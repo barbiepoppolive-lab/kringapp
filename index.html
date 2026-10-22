@@ -127,6 +127,140 @@
       overflow: hidden;
     }
 
+    #spatialWaveCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.92;
+      pointer-events: none;
+    }
+
+    /* 2026 VisionOS / Lusion Spatial Floating 3D Holographic Cards */
+    @property --holo-angle {
+      syntax: '<angle>';
+      initial-value: 0deg;
+      inherits: false;
+    }
+    @keyframes holoSpin {
+      to { --holo-angle: 360deg; }
+    }
+    @keyframes float3dA {
+      0%, 100% { transform: perspective(900px) translate3d(0px, 0px, 28px) rotateX(4deg) rotateY(-6deg); }
+      50% { transform: perspective(900px) translate3d(0px, -8px, 44px) rotateX(-3deg) rotateY(5deg); }
+    }
+    @keyframes float3dB {
+      0%, 100% { transform: perspective(900px) translate3d(0px, 0px, 36px) rotateX(-3deg) rotateY(6deg); }
+      50% { transform: perspective(900px) translate3d(0px, -10px, 52px) rotateX(5deg) rotateY(-5deg); }
+    }
+
+    .spatial-float-deck {
+      width: 100%;
+      max-width: 560px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      perspective: 1200px;
+      transform-style: preserve-3d;
+      z-index: 6;
+    }
+
+    .holo-float-card {
+      position: relative;
+      border-radius: 20px;
+      padding: 12px 14px;
+      background:
+        linear-gradient(155deg, rgba(22, 27, 68, 0.84) 0%, rgba(10, 12, 32, 0.72) 100%);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(155, 92, 255, 0.42);
+      box-shadow:
+        0 18px 40px rgba(2, 3, 14, 0.72),
+        0 0 26px rgba(115, 129, 255, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.24);
+      transform-style: preserve-3d;
+      animation: float3dA 5.6s ease-in-out infinite;
+      transition: transform 0.25s var(--ease-out), box-shadow 0.25s ease, border-color 0.25s ease;
+      overflow: hidden;
+    }
+    .holo-float-card:nth-child(2) {
+      animation: float3dB 6.1s ease-in-out -1.4s infinite;
+      border-color: rgba(255, 178, 30, 0.48);
+    }
+    .holo-float-card:nth-child(3) {
+      animation: float3dB 5.8s ease-in-out -2.8s infinite;
+      border-color: rgba(46, 229, 157, 0.42);
+    }
+    .holo-float-card:nth-child(4) {
+      animation: float3dA 6.4s ease-in-out -4.1s infinite;
+      border-color: rgba(214, 186, 255, 0.48);
+    }
+    .holo-float-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: conic-gradient(from var(--holo-angle), rgba(115,129,255,0.65), rgba(255,178,30,0.65), rgba(155,92,255,0.7), rgba(46,229,157,0.5), rgba(115,129,255,0.65));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: holoSpin 7s linear infinite;
+      pointer-events: none;
+    }
+    .holo-float-card:hover {
+      transform: perspective(900px) translate3d(0, -6px, 64px) rotateX(0deg) rotateY(0deg) scale(1.03);
+      box-shadow:
+        0 24px 52px rgba(2, 3, 14, 0.85),
+        0 0 34px rgba(155, 92, 255, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.38);
+    }
+    .holo-card-kicker {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--anchan-hi);
+      margin-bottom: 4px;
+    }
+    .holo-card-title {
+      font-family: var(--font-display);
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 3px;
+    }
+    .holo-card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10.5px;
+      color: var(--ink-80);
+      font-weight: 600;
+    }
+    .holo-card-pill {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(255, 178, 30, 0.18);
+      border: 1px solid rgba(255, 178, 30, 0.42);
+      color: var(--marigold-hi);
+    }
+    .holo-strike {
+      color: #FF5E7E;
+      text-decoration: line-through;
+      margin-right: 4px;
+      font-family: var(--font-mono);
+    }
+
     .stage-grid {
       position: absolute;
       inset: -30% -20% 0 -20%;
@@ -1419,13 +1553,13 @@
 
     @media (max-width: 640px) {
       .site-wrap {
-        padding: 0 16px;
+        padding: 0 14px;
       }
       .top-nav-wrap {
-        padding: 10px 0 4px;
+        padding: 8px 0 2px;
       }
       .top-nav {
-        padding: 8px 12px;
+        padding: 6px 12px;
       }
       .nav-links {
         display: none;
@@ -1434,56 +1568,79 @@
         display: none;
       }
       .btn-partner-nav {
-        padding: 7px 11px;
-        font-size: 11.5px;
+        padding: 6px 10px;
+        font-size: 11px;
       }
       .hero-section {
-        padding: 10px 0 36px;
-        gap: 28px;
+        padding: 6px 0 28px;
+        gap: 20px;
       }
       .hero-left {
-        gap: 11px;
-      }
-      .hype-badge {
-        order: 1;
-        padding: 5px 12px;
-        font-size: 10px;
-      }
-      .hero-title {
-        order: 2;
-        font-size: clamp(26px, 7.2vw, 32px);
-        line-height: 1.08;
+        gap: 8px;
       }
       .bump-stage-card {
-        order: 3;
+        order: 1;
         width: 100%;
-        padding: 10px 14px 12px;
-        gap: 6px;
+        padding: 8px 12px 10px;
+        gap: 4px;
       }
       .bump-canvas-wrap {
-        width: 248px;
-        height: 128px;
+        width: 244px;
+        height: 116px;
+      }
+      .spatial-float-deck {
+        order: 2;
+        gap: 8px;
+      }
+      .holo-float-card {
+        padding: 9px 10px;
+        border-radius: 16px;
+      }
+      .holo-card-kicker {
+        font-size: 8.5px;
+        margin-bottom: 2px;
+      }
+      .holo-card-title {
+        font-size: 11px;
+        margin-bottom: 2px;
+      }
+      .holo-card-meta {
+        font-size: 9.5px;
+      }
+      .holo-card-pill {
+        font-size: 9px;
+        padding: 1px 6px;
+      }
+      .hype-badge {
+        order: 3;
+        padding: 4px 10px;
+        font-size: 9.5px;
+      }
+      .hero-title {
+        order: 4;
+        font-size: clamp(23px, 6.6vw, 29px);
+        line-height: 1.06;
       }
       .hero-ctas {
-        order: 4;
+        order: 5;
         width: 100%;
         justify-content: center;
-        gap: 8px;
+        gap: 7px;
       }
       .btn-primary-gold,
       .btn-secondary-glass {
         width: 100%;
         justify-content: center;
-        padding: 13px 18px;
-        font-size: 13.5px;
+        padding: 11px 16px;
+        font-size: 13px;
       }
       .hero-sub {
-        order: 5;
-        font-size: 14px;
-        line-height: 1.5;
+        order: 6;
+        font-size: 13.5px;
+        line-height: 1.48;
       }
       .hero-city-strip {
-        order: 6;
+        order: 7;
         justify-content: center;
       }
       .phone-3d-rig {
@@ -1508,8 +1665,9 @@
   </style>
 </head>
 <body>
-  <!-- Volumetric Night Atmosphere -->
+  <!-- Volumetric Night Atmosphere + Real-Time 2026 3D Spatial Wave Mesh -->
   <div class="stage-atmosphere" aria-hidden="true">
+    <canvas id="spatialWaveCanvas"></canvas>
     <div class="stage-orb orb-anchan"></div>
     <div class="stage-orb orb-marigold"></div>
     <div class="stage-orb orb-violet"></div>
@@ -1628,6 +1786,76 @@
                 <span data-i18n-en>Tap to Kring!</span>
                 <span data-i18n-th lang="th">แตะเพื่อ กริ๊ง!</span>
               </button>
+            </div>
+          </div>
+
+          <!-- 2026 3D Levitating Holographic Cards Deck (Z-Space Spatial UI) -->
+          <div class="spatial-float-deck" id="spatialFloatDeck">
+            <div class="holo-float-card tilt-card">
+              <div class="foil-sheen"></div>
+              <div class="holo-card-kicker">
+                <span>⚡ LIVE PASS</span>
+                <span style="color:var(--mint-ok)">✓ VERIFIED</span>
+              </div>
+              <div class="holo-card-title">
+                <span data-i18n-en>Sunset Rooftop · Thonglor</span>
+                <span data-i18n-th lang="th">รูฟท็อปชมพระอาทิตย์ตก · ทองหล่อ</span>
+              </div>
+              <div class="holo-card-meta">
+                <span data-i18n-en>100% Public Venue</span>
+                <span data-i18n-th lang="th">สถานที่สาธารณะ 100%</span>
+                <span class="holo-card-pill">฿1,200 Held</span>
+              </div>
+            </div>
+
+            <div class="holo-float-card tilt-card">
+              <div class="foil-sheen"></div>
+              <div class="holo-card-kicker">
+                <span>🔔 TWO-PHONE BUMP</span>
+                <span style="color:var(--violet-hi)">กริ๊ง!</span>
+              </div>
+              <div class="holo-card-title">
+                <span data-i18n-en>Bump Check-In Escrow</span>
+                <span data-i18n-th lang="th">แตะโทรศัพท์ปลดล็อกยอดจอง</span>
+              </div>
+              <div class="holo-card-meta">
+                <span data-i18n-en>Zero No-Shows</span>
+                <span data-i18n-th lang="th">ไร้กังวลเรื่องผิดนัด</span>
+                <span class="holo-card-pill" style="color:var(--mint-ok);border-color:rgba(46,229,157,0.4);background:rgba(46,229,157,0.14);">Instant</span>
+              </div>
+            </div>
+
+            <div class="holo-float-card tilt-card">
+              <div class="foil-sheen"></div>
+              <div class="holo-card-kicker">
+                <span>📉 KRING PRICE</span>
+                <span style="color:var(--marigold-hi)">RADAR</span>
+              </div>
+              <div class="holo-card-title">
+                <span data-i18n-en>BKK → Sukhumvit VIP Ride</span>
+                <span data-i18n-th lang="th">รถรับส่งสนามบิน → สุขุมวิท</span>
+              </div>
+              <div class="holo-card-meta">
+                <span><s class="holo-strike">฿1,500</s> <strong style="color:var(--mint-ok)">฿665</strong></span>
+                <span class="holo-card-pill">+15k Coins</span>
+              </div>
+            </div>
+
+            <div class="holo-float-card tilt-card">
+              <div class="foil-sheen"></div>
+              <div class="holo-card-kicker">
+                <span>🧸🔔 KEEPSAKE DROP</span>
+                <span style="color:var(--violet-hi)">จุ่มกริ๊ง!</span>
+              </div>
+              <div class="holo-card-title">
+                <span data-i18n-en>Kring Blind Box Keepsakes</span>
+                <span data-i18n-th lang="th">กล่องสุ่มของที่ระลึกกริ๊ง!</span>
+              </div>
+              <div class="holo-card-meta">
+                <span data-i18n-en>Siam Art-Toy Culture</span>
+                <span data-i18n-th lang="th">วัฒนธรรมอาร์ตทอยสยาม</span>
+                <span class="holo-card-pill">Golden Echo</span>
+              </div>
             </div>
           </div>
 
@@ -2590,6 +2818,75 @@
             triggerKringBump(true);
           });
         }
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* 3B. 2026 Awwwards 3D Spatial Wave-Mesh & Particle Ribbon Engine    */
+      /* ------------------------------------------------------------------ */
+      const waveCv = document.getElementById('spatialWaveCanvas');
+      if (waveCv && waveCv.getContext) {
+        const wCtx = waveCv.getContext('2d');
+        let ww = 1, wh = 1, wDpr = 1;
+        let ptrX = 0.5, ptrY = 0.35;
+
+        function resizeWave() {
+          wDpr = Math.min(window.devicePixelRatio || 1, 1.5);
+          ww = Math.max(1, window.innerWidth);
+          wh = Math.max(1, window.innerHeight);
+          waveCv.width = Math.round(ww * wDpr);
+          waveCv.height = Math.round(wh * wDpr);
+          wCtx.setTransform(wDpr, 0, 0, wDpr, 0, 0);
+        }
+        resizeWave();
+        window.addEventListener('resize', resizeWave);
+        window.addEventListener('pointermove', function (e) {
+          ptrX = e.clientX / Math.max(1, ww);
+          ptrY = e.clientY / Math.max(1, wh);
+        }, { passive: true });
+
+        function renderSpatialWaves(now) {
+          const t = now * 0.0012;
+          wCtx.clearRect(0, 0, ww, wh);
+          const rows = 14;
+          const cols = 36;
+          const baseY = wh * 0.54;
+          const spreadY = wh * 0.44;
+
+          for (let r = 0; r < rows; r++) {
+            const depth = r / (rows - 1);
+            const zScale = 0.42 + depth * 0.88;
+            const yRow = baseY + (depth - 0.45) * spreadY;
+            const isGold = r % 3 === 0;
+            const isViolet = r % 3 === 1;
+            const alpha = (0.09 + depth * 0.22).toFixed(3);
+            wCtx.strokeStyle = isGold
+              ? 'rgba(255,178,30,' + alpha + ')'
+              : isViolet
+              ? 'rgba(155,92,255,' + alpha + ')'
+              : 'rgba(115,129,255,' + alpha + ')';
+            wCtx.lineWidth = 0.8 + depth * 1.3;
+            wCtx.beginPath();
+
+            for (let c = 0; c <= cols; c++) {
+              const u = c / cols;
+              const x = (u - 0.5) * ww * (1.15 + depth * 0.35) + ww * 0.5 + (ptrX - 0.5) * 36 * depth;
+              const wave1 = Math.sin(u * 6.2 + t * 1.4 + r * 0.45) * 24 * zScale;
+              const wave2 = Math.cos(u * 3.8 - t * 0.95 + r * 0.3) * 14 * zScale;
+              const ripple = Math.sin(Math.hypot(u - ptrX, depth - ptrY) * 10 - t * 3.2) * 10 * depth;
+              const y = yRow + wave1 + wave2 + ripple;
+              if (c === 0) wCtx.moveTo(x, y);
+              else wCtx.lineTo(x, y);
+
+              if ((c + r) % 7 === 0 && depth > 0.35) {
+                wCtx.fillStyle = isGold ? 'rgba(255,208,103,0.55)' : 'rgba(185,193,255,0.55)';
+                wCtx.fillRect(x - 1.2, y - 1.2, 2.4, 2.4);
+              }
+            }
+            wCtx.stroke();
+          }
+          requestAnimationFrame(renderSpatialWaves);
+        }
+        requestAnimationFrame(renderSpatialWaves);
       }
 
       /* ------------------------------------------------------------------ */
