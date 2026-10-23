@@ -9,11 +9,11 @@
   <meta property="og:description" content="Curated local insiders, instant two-phone bump verification at public venues, and Kring Price street intelligence. Launching soon in Bangkok &amp; Pattaya." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://kringapp.com" />
-  <meta name="theme-color" content="#060714" />
+  <meta name="theme-color" content="#03040B" />
   <link rel="icon" type="image/svg+xml" href="/kring-icon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Unbounded:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Unbounded:wght@600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     @font-face {
       font-family: 'Unbounded';
@@ -66,30 +66,36 @@
     }
 
     :root {
-      --bg-void: #060714;
-      --bg-deep: #0B0D22;
-      --bg-card: rgba(14, 17, 42, 0.68);
-      --bg-card-hi: rgba(20, 24, 58, 0.82);
+      --bg-void: #03040B;
+      --bg-deep: #070918;
       --anchan: #7381FF;
-      --anchan-deep: #3446FF;
-      --anchan-hi: #B9C1FF;
+      --anchan-deep: #3B4BFF;
+      --anchan-hi: #C8D0FF;
       --marigold: #FFB21E;
-      --marigold-hi: #FFD067;
-      --marigold-soft: #FFF0B8;
+      --marigold-hi: #FFD470;
+      --marigold-soft: #FFF2C2;
       --violet-lens: #9B5CFF;
-      --violet-hi: #D6BAFF;
+      --violet-hi: #E0C6FF;
       --mint-ok: #2EE59D;
-      --ink-100: #F6F7FF;
-      --ink-80: rgba(246, 247, 255, 0.82);
-      --ink-60: rgba(210, 216, 255, 0.64);
-      --ink-40: rgba(180, 190, 245, 0.44);
-      --line-subtle: rgba(135, 150, 255, 0.16);
-      --line-bright: rgba(155, 92, 255, 0.42);
+      --coral-strike: #FF5478;
+      --ink-100: #F8F9FF;
+      --ink-80: rgba(244, 246, 255, 0.84);
+      --ink-60: rgba(206, 214, 255, 0.64);
+      --ink-40: rgba(168, 178, 238, 0.44);
       --font-display: 'Unbounded', 'Noto Sans Thai', sans-serif;
       --font-sans: 'Plus Jakarta Sans', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
       --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
       --ease-spring: cubic-bezier(0.22, 1.35, 0.36, 1);
+    }
+
+    @property --holo-deg {
+      syntax: '<angle>';
+      initial-value: 0deg;
+      inherits: false;
+    }
+    @keyframes spinHolo {
+      to { --holo-deg: 360deg; }
     }
 
     * {
@@ -109,22 +115,28 @@
 
     body {
       min-height: 100vh;
-      background:
-        radial-gradient(circle at 18% 16%, rgba(52, 70, 255, 0.28) 0%, transparent 46%),
-        radial-gradient(circle at 82% 20%, rgba(255, 178, 30, 0.20) 0%, transparent 44%),
-        radial-gradient(circle at 50% 48%, rgba(155, 92, 255, 0.18) 0%, transparent 52%),
-        linear-gradient(180deg, #060714 0%, #0B0D22 52%, #060714 100%);
+      background: #03040B;
       overflow-x: hidden;
       position: relative;
     }
 
-    /* Ambient 3D Perspective Grid & Volumetric Atmosphere */
-    .stage-atmosphere {
+    html[data-lang="en"] [data-i18n-th] { display: none !important; }
+    html[data-lang="th"] [data-i18n-en] { display: none !important; }
+
+    /* =====================================================================
+       1. FULL-VIEWPORT 2026 WEBGL / 3D SPATIAL WAVE & AURORA STAGE
+       ===================================================================== */
+    .webgl-cosmos {
       position: fixed;
       inset: 0;
-      pointer-events: none;
       z-index: 0;
+      pointer-events: none;
       overflow: hidden;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 24%, rgba(68, 52, 180, 0.26) 0%, transparent 65%),
+        radial-gradient(circle at 18% 32%, rgba(59, 75, 255, 0.22) 0%, transparent 48%),
+        radial-gradient(circle at 82% 28%, rgba(255, 178, 30, 0.18) 0%, transparent 48%),
+        linear-gradient(180deg, #03040B 0%, #070A1E 48%, #03040B 100%);
     }
 
     #spatialWaveCanvas {
@@ -132,231 +144,63 @@
       inset: 0;
       width: 100%;
       height: 100%;
-      opacity: 0.92;
-      pointer-events: none;
+      display: block;
     }
 
-    /* 2026 VisionOS / Lusion Spatial Floating 3D Holographic Cards */
-    @property --holo-angle {
-      syntax: '<angle>';
-      initial-value: 0deg;
-      inherits: false;
-    }
-    @keyframes holoSpin {
-      to { --holo-angle: 360deg; }
-    }
-    @keyframes float3dA {
-      0%, 100% { transform: perspective(900px) translate3d(0px, 0px, 28px) rotateX(4deg) rotateY(-6deg); }
-      50% { transform: perspective(900px) translate3d(0px, -8px, 44px) rotateX(-3deg) rotateY(5deg); }
-    }
-    @keyframes float3dB {
-      0%, 100% { transform: perspective(900px) translate3d(0px, 0px, 36px) rotateX(-3deg) rotateY(6deg); }
-      50% { transform: perspective(900px) translate3d(0px, -10px, 52px) rotateX(5deg) rotateY(-5deg); }
-    }
-
-    .spatial-float-deck {
-      width: 100%;
-      max-width: 560px;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      perspective: 1200px;
-      transform-style: preserve-3d;
-      z-index: 6;
-    }
-
-    .holo-float-card {
-      position: relative;
-      border-radius: 20px;
-      padding: 12px 14px;
-      background:
-        linear-gradient(155deg, rgba(22, 27, 68, 0.84) 0%, rgba(10, 12, 32, 0.72) 100%);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border: 1px solid rgba(155, 92, 255, 0.42);
-      box-shadow:
-        0 18px 40px rgba(2, 3, 14, 0.72),
-        0 0 26px rgba(115, 129, 255, 0.16),
-        inset 0 1px 0 rgba(255, 255, 255, 0.24);
-      transform-style: preserve-3d;
-      animation: float3dA 5.6s ease-in-out infinite;
-      transition: transform 0.25s var(--ease-out), box-shadow 0.25s ease, border-color 0.25s ease;
-      overflow: hidden;
-    }
-    .holo-float-card:nth-child(2) {
-      animation: float3dB 6.1s ease-in-out -1.4s infinite;
-      border-color: rgba(255, 178, 30, 0.48);
-    }
-    .holo-float-card:nth-child(3) {
-      animation: float3dB 5.8s ease-in-out -2.8s infinite;
-      border-color: rgba(46, 229, 157, 0.42);
-    }
-    .holo-float-card:nth-child(4) {
-      animation: float3dA 6.4s ease-in-out -4.1s infinite;
-      border-color: rgba(214, 186, 255, 0.48);
-    }
-    .holo-float-card::before {
-      content: '';
+    .cosmos-vignette {
       position: absolute;
       inset: 0;
-      border-radius: inherit;
-      padding: 1px;
-      background: conic-gradient(from var(--holo-angle), rgba(115,129,255,0.65), rgba(255,178,30,0.65), rgba(155,92,255,0.7), rgba(46,229,157,0.5), rgba(115,129,255,0.65));
-      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      animation: holoSpin 7s linear infinite;
-      pointer-events: none;
-    }
-    .holo-float-card:hover {
-      transform: perspective(900px) translate3d(0, -6px, 64px) rotateX(0deg) rotateY(0deg) scale(1.03);
-      box-shadow:
-        0 24px 52px rgba(2, 3, 14, 0.85),
-        0 0 34px rgba(155, 92, 255, 0.35),
-        inset 0 1px 0 rgba(255, 255, 255, 0.38);
-    }
-    .holo-card-kicker {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      font-family: var(--font-mono);
-      font-size: 9.5px;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--anchan-hi);
-      margin-bottom: 4px;
-    }
-    .holo-card-title {
-      font-family: var(--font-display);
-      font-size: 12.5px;
-      font-weight: 800;
-      color: #fff;
-      line-height: 1.2;
-      margin-bottom: 3px;
-    }
-    .holo-card-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 10.5px;
-      color: var(--ink-80);
-      font-weight: 600;
-    }
-    .holo-card-pill {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 999px;
-      background: rgba(255, 178, 30, 0.18);
-      border: 1px solid rgba(255, 178, 30, 0.42);
-      color: var(--marigold-hi);
-    }
-    .holo-strike {
-      color: #FF5E7E;
-      text-decoration: line-through;
-      margin-right: 4px;
-      font-family: var(--font-mono);
+      background: radial-gradient(circle at 50% 42%, transparent 35%, rgba(3, 4, 11, 0.72) 100%);
     }
 
-    .stage-grid {
-      position: absolute;
-      inset: -30% -20% 0 -20%;
-      background-image:
-        linear-gradient(to right, rgba(115, 129, 255, 0.07) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(115, 129, 255, 0.07) 1px, transparent 1px);
-      background-size: 64px 64px;
-      transform: perspective(900px) rotateX(62deg) translateY(180px) translateZ(-120px);
-      mask-image: radial-gradient(ellipse 70% 55% at 50% 65%, rgba(0,0,0,0.85) 10%, transparent 80%);
-      -webkit-mask-image: radial-gradient(ellipse 70% 55% at 50% 65%, rgba(0,0,0,0.85) 10%, transparent 80%);
-      animation: gridDrift 24s linear infinite;
-    }
-
-    @keyframes gridDrift {
-      0% { background-position: 0 0; }
-      100% { background-position: 0 64px; }
-    }
-
-    .stage-orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(88px);
-      opacity: 0.55;
-      mix-blend-mode: screen;
-      transition: transform 0.6s var(--ease-out);
-    }
-    .stage-orb.orb-anchan {
-      width: 540px;
-      height: 540px;
-      left: -120px;
-      top: 40px;
-      background: radial-gradient(circle, rgba(115, 129, 255, 0.55), rgba(52, 70, 255, 0) 70%);
-    }
-    .stage-orb.orb-marigold {
-      width: 500px;
-      height: 500px;
-      right: -110px;
-      top: 120px;
-      background: radial-gradient(circle, rgba(255, 178, 30, 0.46), rgba(255, 178, 30, 0) 70%);
-    }
-    .stage-orb.orb-violet {
-      width: 460px;
-      height: 460px;
-      left: 36%;
-      top: 22%;
-      background: radial-gradient(circle, rgba(155, 92, 255, 0.42), rgba(155, 92, 255, 0) 72%);
-    }
-
-    /* Subtle noise grain */
     .stage-grain {
       position: fixed;
       inset: 0;
       pointer-events: none;
       z-index: 1;
-      opacity: 0.035;
+      opacity: 0.032;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     }
 
-    /* Bilingual visibility helper */
-    html[data-lang="en"] [data-i18n-th] { display: none !important; }
-    html[data-lang="th"] [data-i18n-en] { display: none !important; }
-
-    /* Layout Container */
     .site-wrap {
       position: relative;
       z-index: 2;
-      max-width: 1280px;
+      max-width: 1380px;
       margin: 0 auto;
-      padding: 0 24px;
+      padding: 0 28px;
     }
 
-    /* Top Floating Glass Island Navigation */
+    /* =====================================================================
+       2. VISION-OS FLOATING LIQUID-GLASS NAVIGATION ISLAND
+       ===================================================================== */
     .top-nav-wrap {
       position: sticky;
-      top: 16px;
-      z-index: 50;
-      padding-top: 16px;
+      top: 14px;
+      z-index: 60;
+      padding-top: 12px;
+      display: flex;
+      justify-content: center;
     }
 
     .top-nav {
+      width: 100%;
+      max-width: 1120px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      padding: 12px 20px;
+      padding: 10px 18px 10px 22px;
       border-radius: 999px;
-      background: rgba(10, 12, 30, 0.76);
-      backdrop-filter: blur(22px) saturate(160%);
-      -webkit-backdrop-filter: blur(22px) saturate(160%);
-      border: 1px solid rgba(135, 150, 255, 0.22);
+      background: rgba(10, 13, 34, 0.58);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      border: 1px solid rgba(185, 198, 255, 0.18);
       box-shadow:
-        0 18px 48px rgba(3, 4, 14, 0.65),
-        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+        0 20px 50px rgba(0, 0, 0, 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22),
+        inset 0 -1px 0 rgba(115, 129, 255, 0.14);
     }
 
-    /* Official Kring Wordmark ("krıng" with Twin-Ring dot) */
     .brand-lockup {
       display: inline-flex;
       align-items: center;
@@ -372,10 +216,11 @@
       align-items: baseline;
       font-family: var(--font-display);
       font-weight: 800;
-      font-size: 26px;
+      font-size: 25px;
       letter-spacing: -0.04em;
       line-height: 1;
-      color: var(--ink-100);
+      color: #fff;
+      text-shadow: 0 0 24px rgba(115, 129, 255, 0.45);
     }
 
     .kr-wm-i {
@@ -389,46 +234,49 @@
       left: 50%;
       top: -0.28em;
       transform: translateX(-50%);
-      width: 0.92em;
+      width: 0.94em;
       height: auto;
       overflow: visible;
-      filter: drop-shadow(0 0 8px rgba(155, 92, 255, 0.7));
+      filter: drop-shadow(0 0 10px rgba(155, 92, 255, 0.85));
       transition: transform 0.35s var(--ease-spring);
     }
 
     .brand-lockup:hover .kr-wm-dot {
-      transform: translateX(-50%) scale(1.16);
+      transform: translateX(-50%) scale(1.2) rotate(6deg);
     }
 
     .brand-th-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 10px;
+      padding: 4px 11px;
       border-radius: 999px;
       background: rgba(115, 129, 255, 0.12);
-      border: 1px solid rgba(115, 129, 255, 0.26);
-      font-size: 13px;
-      font-weight: 700;
+      border: 1px solid rgba(115, 129, 255, 0.28);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
       color: var(--anchan-hi);
-      letter-spacing: 0.01em;
+      letter-spacing: 0.03em;
     }
 
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 24px;
+      gap: 28px;
     }
 
     .nav-link {
       color: var(--ink-80);
       text-decoration: none;
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 600;
-      transition: color 0.2s ease;
+      letter-spacing: 0.01em;
+      transition: color 0.2s ease, text-shadow 0.2s ease;
     }
     .nav-link:hover {
-      color: var(--marigold-hi);
+      color: #fff;
+      text-shadow: 0 0 16px rgba(255, 212, 112, 0.65);
     }
 
     .nav-actions {
@@ -437,16 +285,13 @@
       gap: 10px;
     }
 
-    /* Language Toggle Pill */
     .lang-switch {
       display: inline-flex;
       align-items: center;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(135, 150, 255, 0.24);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(185, 198, 255, 0.2);
       border-radius: 999px;
       padding: 3px;
-      cursor: pointer;
-      user-select: none;
     }
 
     .lang-btn {
@@ -454,9 +299,9 @@
       background: transparent;
       color: var(--ink-60);
       font-family: var(--font-sans);
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 700;
-      padding: 6px 12px;
+      padding: 5px 11px;
       border-radius: 999px;
       cursor: pointer;
       transition: all 0.22s var(--ease-out);
@@ -465,112 +310,126 @@
     .lang-btn.is-active {
       background: linear-gradient(135deg, var(--anchan-deep), var(--violet-lens));
       color: #fff;
-      box-shadow: 0 2px 12px rgba(115, 129, 255, 0.45);
+      box-shadow: 0 2px 14px rgba(115, 129, 255, 0.55);
     }
 
     .btn-partner-nav {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 9px 18px;
+      gap: 7px;
+      padding: 8px 16px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 178, 30, 0.48);
-      background: linear-gradient(135deg, rgba(255, 178, 30, 0.22), rgba(155, 92, 255, 0.22));
+      border: 1px solid rgba(255, 212, 112, 0.55);
+      background: linear-gradient(135deg, rgba(255, 178, 30, 0.22), rgba(155, 92, 255, 0.25));
       color: var(--marigold-soft);
-      font-family: var(--font-sans);
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 700;
       text-decoration: none;
-      cursor: pointer;
       transition: all 0.25s var(--ease-out);
-      box-shadow: 0 4px 20px rgba(255, 178, 30, 0.16);
+      box-shadow: 0 4px 20px rgba(255, 178, 30, 0.2);
     }
     .btn-partner-nav:hover {
       transform: translateY(-1px);
-      background: linear-gradient(135deg, rgba(255, 178, 30, 0.34), rgba(155, 92, 255, 0.32));
-      box-shadow: 0 8px 26px rgba(255, 178, 30, 0.28);
+      box-shadow: 0 8px 28px rgba(255, 178, 30, 0.38);
+      border-color: #fff;
     }
 
-    /* HERO SECTION */
-    .hero-section {
-      padding: 22px 0 56px;
-      display: grid;
-      grid-template-columns: 1.12fr 0.88fr;
-      gap: 40px;
-      align-items: center;
-    }
-
-    .hero-left {
+    /* =====================================================================
+       3. 2026 AWWWARDS OPEN-SPACE 3D SPATIAL HERO (NO BOXY CONTAINERS!)
+       ===================================================================== */
+    .hero-spatial-stage {
+      position: relative;
+      min-height: calc(100vh - 76px);
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
-      gap: 14px;
-    }
-
-    /* Status Hype Pill */
-    .hype-badge {
-      display: inline-flex;
       align-items: center;
-      gap: 10px;
-      padding: 7px 16px;
-      border-radius: 999px;
-      background: rgba(18, 22, 54, 0.82);
-      border: 1px solid rgba(155, 92, 255, 0.42);
-      box-shadow: 0 0 28px rgba(155, 92, 255, 0.22);
-      font-size: 12.5px;
-      font-weight: 700;
-      color: var(--ink-100);
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
+      justify-content: space-between;
+      padding: 14px 0 36px;
+      perspective: 1600px;
+      transform-style: preserve-3d;
     }
 
-    .pulse-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--mint-ok);
-      box-shadow: 0 0 12px var(--mint-ok);
-      animation: livePulse 2s infinite;
-    }
-
-    @keyframes livePulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.38); opacity: 0.55; }
-    }
-
-    /* Interactive Centerpiece Twin-Ring Stage */
-    .bump-stage-card {
+    /* Orbital 3D Arena: Center Twin-Torus + Orbiting 3D Photo-Glass Portals */
+    .orbital-arena {
       position: relative;
       width: 100%;
-      max-width: 540px;
-      border-radius: 28px;
-      padding: 20px 24px 18px;
-      background: linear-gradient(160deg, rgba(16, 20, 50, 0.85) 0%, rgba(9, 11, 28, 0.92) 100%);
-      border: 1px solid rgba(135, 150, 255, 0.26);
-      box-shadow:
-        0 24px 60px rgba(4, 5, 18, 0.72),
-        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      max-width: 1280px;
+      height: 412px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 1600px;
+      transform-style: preserve-3d;
+    }
+
+    /* Center Open-Space 3D Volumetric Twin-Ring Sculpture (Borderless!) */
+    .bump-stage-card {
+      position: relative;
+      z-index: 12;
+      width: 480px;
+      height: 320px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow: hidden;
+      justify-content: center;
       cursor: pointer;
       user-select: none;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      transform-style: preserve-3d;
+      transform: translateZ(40px) rotateX(var(--stage-rx, 0deg)) rotateY(var(--stage-ry, 0deg));
+      transition: transform 0.2s ease-out;
     }
 
-    .bump-stage-card:hover {
-      border-color: rgba(155, 92, 255, 0.58);
-      box-shadow:
-        0 28px 70px rgba(52, 70, 255, 0.26),
-        0 0 40px rgba(155, 92, 255, 0.18),
-        inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    /* Ambient volumetric halo behind the open 3D rings */
+    .bump-stage-card::before {
+      content: '';
+      position: absolute;
+      width: 390px;
+      height: 250px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 36% 50%, rgba(59, 75, 255, 0.44), transparent 65%),
+        radial-gradient(circle at 64% 50%, rgba(255, 178, 30, 0.38), transparent 65%),
+        radial-gradient(circle at 50% 50%, rgba(155, 92, 255, 0.42), transparent 60%);
+      filter: blur(42px);
+      pointer-events: none;
+      z-index: -1;
+      transition: transform 0.4s var(--ease-out), opacity 0.4s ease;
+    }
+    .bump-stage-card:hover::before {
+      transform: scale(1.12);
+    }
+
+    /* Subtle 3D orbital astrolabe rings around the centerpiece */
+    .orbital-halo-svg {
+      position: absolute;
+      inset: -24px -40px;
+      width: calc(100% + 80px);
+      height: calc(100% + 48px);
+      pointer-events: none;
+      opacity: 0.72;
+      transform: translateZ(-20px);
+    }
+    .orbital-halo-svg .orbit-ellipse-1 {
+      transform-origin: center;
+      animation: orbitSpinA 26s linear infinite;
+    }
+    .orbital-halo-svg .orbit-ellipse-2 {
+      transform-origin: center;
+      animation: orbitSpinB 34s linear infinite;
+    }
+    @keyframes orbitSpinA {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes orbitSpinB {
+      from { transform: rotate(360deg); }
+      to { transform: rotate(0deg); }
     }
 
     .bump-canvas-wrap {
       position: relative;
-      width: 320px;
-      height: 136px;
+      width: 440px;
+      height: 240px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -578,477 +437,456 @@
 
     #kringLiquidCanvas {
       position: absolute;
-      inset: -36px -40px;
-      width: calc(100% + 80px);
-      height: calc(100% + 72px);
+      inset: -44px -56px;
+      width: calc(100% + 112px);
+      height: calc(100% + 88px);
       pointer-events: none;
     }
 
-    /* Pop-up กริ๊ง! word & waveform on contact */
     .bump-pop-word {
       position: absolute;
-      bottom: 6px;
+      bottom: 8px;
       left: 50%;
-      transform: translateX(-50%) scale(0.86);
+      transform: translateX(-50%) translateZ(50px) scale(0.88);
       font-family: var(--font-display);
-      font-size: 21px;
-      font-weight: 800;
-      background: linear-gradient(90deg, var(--anchan-hi), #fff 48%, var(--marigold-hi));
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #D0D7FF 0%, #FFFFFF 46%, #FFE082 100%);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-      text-shadow: 0 0 24px rgba(155, 92, 255, 0.65);
+      filter: drop-shadow(0 0 22px rgba(155, 92, 255, 0.85));
       opacity: 0;
-      transition: all 0.28s var(--ease-spring);
+      transition: all 0.32s var(--ease-spring);
       pointer-events: none;
     }
     .bump-stage-card.is-bumped .bump-pop-word {
       opacity: 1;
-      transform: translateX(-50%) scale(1);
+      transform: translateX(-50%) translateZ(50px) scale(1);
     }
 
+    /* Floating VisionOS Soundwave Pill below the 3D Rings */
     .bump-footer-bar {
-      width: 100%;
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-top: 8px;
-      padding-top: 12px;
-      border-top: 1px solid rgba(135, 150, 255, 0.14);
+      gap: 14px;
+      padding: 6px 8px 6px 16px;
+      border-radius: 999px;
+      background: rgba(12, 16, 42, 0.66);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(185, 198, 255, 0.26);
+      box-shadow:
+        0 14px 34px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.24);
+      transform: translateZ(55px);
     }
 
     .kr-wave {
       display: inline-flex;
       align-items: center;
       gap: 3px;
-      height: 18px;
+      height: 16px;
     }
     .kr-wave i {
       display: block;
       width: 3px;
       height: var(--h, 8px);
       border-radius: 99px;
-      background: var(--anchan);
-      opacity: 0.45;
-      transform: scaleY(0.45);
+      background: var(--anchan-hi);
+      opacity: 0.65;
+      transform: scaleY(0.55);
       transition: transform 0.25s var(--ease-spring), opacity 0.25s ease;
     }
     .kr-wave i:nth-child(n+8) {
-      background: var(--marigold);
+      background: var(--marigold-hi);
     }
     .bump-stage-card.is-ringing .kr-wave i {
-      animation: waveBar 0.62s var(--ease-spring) calc(var(--i) * 24ms) 1;
+      animation: waveBar 0.65s var(--ease-spring) calc(var(--i) * 24ms) 1;
     }
     @keyframes waveBar {
       0% { transform: scaleY(0.35); opacity: 0.4; }
-      45% { transform: scaleY(1.35); opacity: 1; }
+      45% { transform: scaleY(1.45); opacity: 1; }
       100% { transform: scaleY(0.65); opacity: 0.75; }
     }
 
     .btn-tap-kring {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 7px 14px;
+      gap: 7px;
+      padding: 7px 15px;
       border-radius: 999px;
-      background: linear-gradient(135deg, rgba(115, 129, 255, 0.24), rgba(255, 178, 30, 0.24));
-      border: 1px solid rgba(255, 208, 103, 0.45);
-      color: var(--ink-100);
+      background: linear-gradient(135deg, rgba(115, 129, 255, 0.38), rgba(155, 92, 255, 0.36), rgba(255, 178, 30, 0.34));
+      border: 1px solid rgba(255, 220, 130, 0.6);
+      color: #fff;
       font-family: var(--font-sans);
-      font-size: 12.5px;
-      font-weight: 700;
+      font-size: 12px;
+      font-weight: 800;
       cursor: pointer;
-      transition: all 0.2s var(--ease-out);
+      transition: all 0.22s var(--ease-out);
+      box-shadow: 0 0 22px rgba(155, 92, 255, 0.35);
     }
     .btn-tap-kring:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 28px rgba(255, 178, 30, 0.55);
+    }
+
+    /* =====================================================================
+       4. LEVITATING 3D SPATIAL PHOTO-GLASS CARDS (VISION-OS / LUSION STYLE)
+       ===================================================================== */
+    .spatial-float-deck {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      transform-style: preserve-3d;
+      z-index: 14;
+    }
+
+    .holo-float-card {
+      position: absolute;
+      width: 268px;
+      border-radius: 24px;
+      padding: 10px;
+      background: linear-gradient(155deg, rgba(20, 25, 62, 0.66) 0%, rgba(8, 10, 28, 0.52) 100%);
+      backdrop-filter: blur(26px) saturate(190%);
+      -webkit-backdrop-filter: blur(26px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      box-shadow:
+        0 28px 64px rgba(0, 0, 0, 0.78),
+        0 0 38px rgba(115, 129, 255, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      pointer-events: auto;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform 0.35s var(--ease-out), box-shadow 0.35s ease;
+      overflow: hidden;
+    }
+
+    /* Rotating iridescent thin-film interference border */
+    .holo-float-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1.2px;
+      background: conic-gradient(
+        from var(--holo-deg),
+        rgba(115, 129, 255, 0.85),
+        rgba(255, 178, 30, 0.85),
+        rgba(155, 92, 255, 0.9),
+        rgba(46, 229, 157, 0.75),
+        rgba(115, 129, 255, 0.85)
+      );
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: spinHolo 8s linear infinite;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    /* 4 Distinct 3D Orbital Positions on Desktop */
+    .holo-float-card.card-orbit-1 {
+      top: 22px;
+      left: 54px;
+      animation: orbitFloat1 6.4s ease-in-out infinite;
+    }
+    .holo-float-card.card-orbit-2 {
+      top: 22px;
+      right: 54px;
+      animation: orbitFloat2 6.8s ease-in-out -1.6s infinite;
+    }
+    .holo-float-card.card-orbit-3 {
+      bottom: 4px;
+      left: 84px;
+      animation: orbitFloat3 6.2s ease-in-out -3.1s infinite;
+    }
+    .holo-float-card.card-orbit-4 {
+      bottom: 4px;
+      right: 84px;
+      animation: orbitFloat4 7.0s ease-in-out -4.5s infinite;
+    }
+
+    @keyframes orbitFloat1 {
+      0%, 100% { transform: perspective(1200px) translate3d(0, 0px, 28px) rotateY(16deg) rotateX(5deg) rotateZ(-2deg); }
+      50% { transform: perspective(1200px) translate3d(0, -10px, 46px) rotateY(12deg) rotateX(2deg) rotateZ(-1deg); }
+    }
+    @keyframes orbitFloat2 {
+      0%, 100% { transform: perspective(1200px) translate3d(0, 0px, 32px) rotateY(-16deg) rotateX(5deg) rotateZ(2deg); }
+      50% { transform: perspective(1200px) translate3d(0, -12px, 50px) rotateY(-12deg) rotateX(2deg) rotateZ(1deg); }
+    }
+    @keyframes orbitFloat3 {
+      0%, 100% { transform: perspective(1200px) translate3d(0, 0px, 24px) rotateY(14deg) rotateX(-5deg) rotateZ(1.5deg); }
+      50% { transform: perspective(1200px) translate3d(0, -9px, 42px) rotateY(10deg) rotateX(-2deg) rotateZ(0.5deg); }
+    }
+    @keyframes orbitFloat4 {
+      0%, 100% { transform: perspective(1200px) translate3d(0, 0px, 28px) rotateY(-14deg) rotateX(-5deg) rotateZ(-1.5deg); }
+      50% { transform: perspective(1200px) translate3d(0, -10px, 46px) rotateY(-10deg) rotateX(-2deg) rotateZ(-0.5deg); }
+    }
+
+    .holo-float-card:hover {
+      animation-play-state: paused;
+      transform: perspective(1200px) translate3d(0, -8px, 130px) rotateY(0deg) rotateX(0deg) scale(1.05) !important;
+      box-shadow:
+        0 34px 80px rgba(0, 0, 0, 0.88),
+        0 0 50px rgba(155, 92, 255, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    }
+
+    .holo-card-photo {
+      position: relative;
+      height: 102px;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 9px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+    }
+    .holo-card-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
       transform: scale(1.04);
-      box-shadow: 0 0 20px rgba(255, 178, 30, 0.35);
+      transition: transform 0.6s var(--ease-out);
+    }
+    .holo-float-card:hover .holo-card-photo img {
+      transform: scale(1.12);
+    }
+    .holo-card-photo::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(4, 6, 18, 0.08) 0%, rgba(4, 6, 18, 0.76) 100%);
+    }
+
+    .holo-photo-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(6, 8, 24, 0.78);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .holo-photo-tag {
+      position: absolute;
+      bottom: 7px;
+      right: 8px;
+      z-index: 2;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(255, 178, 30, 0.24);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 212, 112, 0.55);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--marigold-soft);
+    }
+
+    .holo-card-body {
+      padding: 0 4px 2px;
+    }
+
+    .holo-card-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.22;
+      margin-bottom: 4px;
+      letter-spacing: -0.01em;
+    }
+
+    .holo-card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--ink-80);
+      font-weight: 600;
+    }
+
+    .holo-strike {
+      color: var(--coral-strike);
+      text-decoration: line-through;
+      margin-right: 4px;
+      font-family: var(--font-mono);
+    }
+
+    /* =====================================================================
+       5. HERO EDITORIAL TYPOGRAPHY & LIQUID-GOLD CTA DECK
+       ===================================================================== */
+    .hero-copy-deck {
+      position: relative;
+      z-index: 16;
+      text-align: center;
+      max-width: 860px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      margin-top: -8px;
+    }
+
+    .hype-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 6px 16px;
+      border-radius: 999px;
+      background: rgba(14, 18, 48, 0.74);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(155, 92, 255, 0.45);
+      box-shadow: 0 0 30px rgba(155, 92, 255, 0.25);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-100);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--mint-ok);
+      box-shadow: 0 0 12px var(--mint-ok);
+      animation: livePulse 2s infinite;
+    }
+    @keyframes livePulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.55; }
     }
 
     .hero-title {
       font-family: var(--font-display);
-      font-size: clamp(30px, 3.6vw, 46px);
-      font-weight: 800;
-      line-height: 1.06;
-      letter-spacing: -0.03em;
-      color: var(--ink-100);
+      font-size: clamp(32px, 4.3vw, 58px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.035em;
+      color: #fff;
+      text-shadow: 0 12px 40px rgba(0, 0, 0, 0.65);
     }
 
     .hero-title .grad-anchan {
-      background: linear-gradient(135deg, #B9C1FF 0%, #7381FF 45%, #9B5CFF 100%);
+      background: linear-gradient(135deg, #E2E7FF 0%, #8E9AFF 45%, #B685FF 100%);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
     }
 
     .hero-title .grad-marigold {
-      background: linear-gradient(135deg, #FFF0B8 0%, #FFD067 45%, #FFB21E 100%);
+      background: linear-gradient(135deg, #FFF5CC 0%, #FFD470 45%, #FFB21E 100%);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
     }
 
     .hero-sub {
-      font-size: clamp(16px, 1.35vw, 19px);
-      line-height: 1.6;
+      font-size: clamp(14.5px, 1.2vw, 17.5px);
+      line-height: 1.55;
       color: var(--ink-80);
-      max-width: 580px;
+      max-width: 680px;
     }
 
     .hero-ctas {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
+      justify-content: center;
       gap: 14px;
-      margin-top: 4px;
+      margin-top: 2px;
     }
 
     .btn-primary-gold {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      padding: 15px 28px;
+      padding: 15px 30px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 240, 184, 0.55);
-      background: linear-gradient(135deg, #FFB21E 0%, #FF930F 55%, #FFB21E 100%);
-      color: #090A1A;
+      border: 1px solid rgba(255, 245, 200, 0.75);
+      background: linear-gradient(135deg, #FFD470 0%, #FFB21E 48%, #FF930F 100%);
+      color: #060714;
       font-family: var(--font-display);
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 800;
       letter-spacing: -0.01em;
       text-decoration: none;
       cursor: pointer;
       box-shadow:
-        0 14px 36px rgba(255, 178, 30, 0.36),
-        inset 0 1px 0 rgba(255, 255, 255, 0.65);
+        0 16px 40px rgba(255, 178, 30, 0.42),
+        0 0 24px rgba(255, 212, 112, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.85);
       transition: all 0.25s var(--ease-out);
     }
     .btn-primary-gold:hover {
-      transform: translateY(-2px) scale(1.01);
+      transform: translateY(-2px) scale(1.02);
       box-shadow:
-        0 18px 44px rgba(255, 178, 30, 0.5),
-        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        0 22px 52px rgba(255, 178, 30, 0.58),
+        inset 0 1px 0 #fff;
     }
 
     .btn-secondary-glass {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 9px;
       padding: 15px 24px;
       border-radius: 999px;
-      border: 1px solid rgba(135, 150, 255, 0.34);
-      background: rgba(16, 20, 48, 0.72);
-      color: var(--ink-100);
-      font-family: var(--font-sans);
-      font-size: 14px;
+      border: 1px solid rgba(185, 198, 255, 0.32);
+      background: rgba(14, 18, 46, 0.65);
+      backdrop-filter: blur(18px);
+      color: #fff;
+      font-size: 13.5px;
       font-weight: 700;
       text-decoration: none;
       cursor: pointer;
       transition: all 0.25s var(--ease-out);
     }
     .btn-secondary-glass:hover {
-      border-color: var(--anchan);
-      background: rgba(52, 70, 255, 0.2);
+      border-color: var(--anchan-hi);
+      background: rgba(59, 75, 255, 0.28);
       transform: translateY(-2px);
     }
 
-    .hero-city-strip {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 18px;
-      padding-top: 8px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--ink-60);
-    }
-    .hero-city-strip span {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* 3D INTERACTIVE DARK-TITANIUM PHONE STAGE */
-    .hero-right {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      perspective: 1400px;
-    }
-
-    .phone-3d-rig {
-      position: relative;
-      width: 356px;
-      border-radius: 50px;
-      padding: 12px;
-      background: linear-gradient(145deg, #2A2E52 0%, #10132B 42%, #1E1B3A 100%);
-      border: 1.5px solid rgba(185, 193, 255, 0.32);
-      box-shadow:
-        0 38px 90px rgba(2, 3, 12, 0.85),
-        0 0 60px rgba(115, 129, 255, 0.22),
-        inset 0 1px 2px rgba(255, 255, 255, 0.35);
-      transform: rotateX(var(--rx, 4deg)) rotateY(var(--ry, -8deg));
-      transform-style: preserve-3d;
-      transition: transform 0.18s ease-out;
-    }
-
-    /* Specular Foil Sheen on Phone & Cards */
+    /* Specular Foil Sheen */
     .foil-sheen {
       position: absolute;
       inset: 0;
       border-radius: inherit;
       pointer-events: none;
       background: radial-gradient(
-        420px circle at var(--mx, 50%) var(--my, 30%),
-        rgba(255, 255, 255, 0.14),
-        rgba(155, 92, 255, 0.08) 38%,
+        380px circle at var(--mx, 50%) var(--my, 30%),
+        rgba(255, 255, 255, 0.18),
+        rgba(155, 92, 255, 0.08) 40%,
         transparent 70%
       );
-      z-index: 6;
+      z-index: 3;
     }
 
-    .phone-screen {
-      position: relative;
-      background: #080A1C;
-      border-radius: 40px;
-      overflow: hidden;
-      padding: 16px 16px 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 13px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .phone-island {
-      width: 108px;
-      height: 24px;
-      border-radius: 999px;
-      background: #02030A;
-      margin: 0 auto 2px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 10px;
-      border: 1px solid rgba(115, 129, 255, 0.22);
-    }
-    .phone-island-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--violet-lens);
-      box-shadow: 0 0 8px var(--violet-lens);
-    }
-
-    .phone-top-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .phone-city-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 11px;
-      border-radius: 999px;
-      background: rgba(115, 129, 255, 0.14);
-      border: 1px solid rgba(115, 129, 255, 0.3);
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--anchan-hi);
-    }
-
-    .phone-verified-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 5px 10px;
-      border-radius: 999px;
-      background: rgba(46, 229, 157, 0.12);
-      border: 1px solid rgba(46, 229, 157, 0.34);
-      font-size: 10.5px;
-      font-weight: 700;
-      color: var(--mint-ok);
-    }
-
-    /* Phone Featured Experience Card */
-    .phone-exp-card {
-      position: relative;
-      height: 204px;
-      border-radius: 24px;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
-    }
-
-    .phone-exp-card img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transform: scale(1.03);
-      transition: transform 0.6s var(--ease-out);
-    }
-    .phone-3d-rig:hover .phone-exp-card img {
-      transform: scale(1.08);
-    }
-
-    .phone-exp-shade {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(6, 7, 20, 0.15) 0%, rgba(6, 7, 20, 0.88) 88%);
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .phone-exp-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .phone-tag-public {
-      padding: 4px 9px;
-      border-radius: 999px;
-      background: rgba(8, 10, 28, 0.78);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 208, 103, 0.4);
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--marigold-hi);
-    }
-
-    .phone-exp-bottom h4 {
-      font-family: var(--font-display);
-      font-size: 14.5px;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 4px;
-    }
-
-    .phone-exp-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 11.5px;
-      color: var(--ink-80);
-    }
-
-    .phone-price-badge {
-      font-family: var(--font-mono);
-      font-weight: 700;
-      color: var(--marigold-hi);
-      background: rgba(255, 178, 30, 0.16);
-      padding: 3px 8px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 178, 30, 0.35);
-    }
-
-    /* Phone Live Two-Phone Bump Banner */
-    .phone-bump-box {
-      padding: 12px 14px;
-      border-radius: 20px;
-      background: linear-gradient(135deg, rgba(52, 70, 255, 0.22), rgba(155, 92, 255, 0.22), rgba(255, 178, 30, 0.18));
-      border: 1px solid rgba(155, 92, 255, 0.44);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      transition: transform 0.28s var(--ease-spring), box-shadow 0.28s ease;
-    }
-    .phone-bump-box.is-flash {
-      transform: scale(1.03);
-      box-shadow: 0 0 28px rgba(155, 92, 255, 0.55);
-    }
-
-    .phone-bump-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .phone-bump-title {
-      font-size: 12px;
-      font-weight: 800;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .phone-bump-desc {
-      font-size: 10.5px;
-      color: var(--ink-80);
-    }
-
-    /* Phone Kring Price Mini Row */
-    .phone-kprice-row {
-      padding: 10px 12px;
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(135, 150, 255, 0.18);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 11px;
-    }
-    .phone-kprice-label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--ink-80);
-      font-weight: 600;
-    }
-    .phone-kprice-val {
-      font-family: var(--font-mono);
-      color: var(--mint-ok);
-      font-weight: 700;
-    }
-
-    /* Floating Orbit Badges around Phone */
-    .floating-chip {
-      position: absolute;
-      z-index: 8;
-      padding: 9px 14px;
-      border-radius: 16px;
-      background: rgba(12, 15, 38, 0.88);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(155, 92, 255, 0.42);
-      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.55);
-      font-size: 11.5px;
-      font-weight: 700;
-      color: var(--ink-100);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transform: translateZ(36px);
-      animation: floatChip 5.5s ease-in-out infinite;
-    }
-    .floating-chip.chip-top-left {
-      top: 34px;
-      left: -38px;
-    }
-    .floating-chip.chip-bottom-right {
-      bottom: 48px;
-      right: -34px;
-      border-color: rgba(255, 178, 30, 0.48);
-      animation-delay: -2.6s;
-    }
-    @keyframes floatChip {
-      0%, 100% { transform: translateZ(36px) translateY(0px); }
-      50% { transform: translateZ(36px) translateY(-7px); }
-    }
-
-    /* SECTION HEADERS */
+    /* =====================================================================
+       6. BELOW-THE-FOLD: 3D SPATIAL WINDOWS & TITANIUM DEVICE STAGE
+       ===================================================================== */
     .section-block {
-      padding: 72px 0;
+      padding: 84px 0;
       position: relative;
     }
 
     .section-head {
       text-align: center;
-      max-width: 720px;
-      margin: 0 auto 48px;
+      max-width: 760px;
+      margin: 0 auto 52px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -1062,20 +900,20 @@
       padding: 6px 14px;
       border-radius: 999px;
       background: rgba(115, 129, 255, 0.12);
-      border: 1px solid rgba(115, 129, 255, 0.3);
+      border: 1px solid rgba(115, 129, 255, 0.32);
       font-family: var(--font-mono);
-      font-size: 11.5px;
-      font-weight: 600;
+      font-size: 11px;
+      font-weight: 700;
       color: var(--anchan-hi);
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.07em;
     }
 
     .section-title {
       font-family: var(--font-display);
-      font-size: clamp(26px, 3.2vw, 40px);
+      font-size: clamp(26px, 3.2vw, 42px);
       font-weight: 800;
-      line-height: 1.15;
+      line-height: 1.12;
       letter-spacing: -0.025em;
     }
 
@@ -1085,52 +923,49 @@
       color: var(--ink-60);
     }
 
-    /* 3 TEASER BENTO CARDS WITH 3D TILT & SPECULAR FOIL */
     .bento-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      perspective: 1200px;
+      gap: 26px;
+      perspective: 1400px;
     }
 
     .bento-card {
       position: relative;
-      border-radius: 28px;
-      padding: 28px 26px;
-      background: var(--bg-card);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--line-subtle);
+      border-radius: 30px;
+      padding: 26px;
+      background: linear-gradient(160deg, rgba(18, 22, 54, 0.72) 0%, rgba(8, 10, 26, 0.62) 100%);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(185, 198, 255, 0.2);
       box-shadow:
-        0 20px 50px rgba(3, 4, 15, 0.6),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        0 26px 64px rgba(0, 0, 0, 0.72),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       gap: 22px;
       overflow: hidden;
       transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-      transition: transform 0.18s ease-out, border-color 0.3s ease, box-shadow 0.3s ease;
+      transform-style: preserve-3d;
+      transition: transform 0.2s ease-out, border-color 0.3s ease, box-shadow 0.3s ease;
     }
-
     .bento-card:hover {
-      border-color: rgba(155, 92, 255, 0.5);
+      border-color: rgba(255, 212, 112, 0.55);
       box-shadow:
-        0 26px 64px rgba(5, 7, 24, 0.78),
-        0 0 36px rgba(115, 129, 255, 0.16),
-        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+        0 32px 76px rgba(0, 0, 0, 0.85),
+        0 0 42px rgba(155, 92, 255, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
     }
 
     .bento-visual {
       position: relative;
-      height: 168px;
-      border-radius: 20px;
+      height: 186px;
+      border-radius: 22px;
       overflow: hidden;
-      background: #080A1E;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: #06081A;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      transform: translateZ(24px);
     }
 
     .bento-photo-strip {
@@ -1145,7 +980,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      border-radius: 14px;
+      border-radius: 16px;
     }
 
     .bento-overlay-pill {
@@ -1153,11 +988,11 @@
       bottom: 10px;
       left: 10px;
       right: 10px;
-      padding: 7px 12px;
-      border-radius: 12px;
-      background: rgba(8, 10, 26, 0.86);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(135, 150, 255, 0.25);
+      padding: 8px 12px;
+      border-radius: 14px;
+      background: rgba(6, 8, 22, 0.84);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(185, 198, 255, 0.24);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -1165,13 +1000,12 @@
       font-weight: 700;
     }
 
-    /* Bento 2: Animated Two-Ring Bump Graphic */
     .bento-bump-stage {
       width: 100%;
       height: 100%;
       background:
-        radial-gradient(circle at 50% 50%, rgba(155, 92, 255, 0.28), transparent 68%),
-        linear-gradient(135deg, rgba(52, 70, 255, 0.18), rgba(255, 178, 30, 0.16));
+        radial-gradient(circle at 50% 50%, rgba(155, 92, 255, 0.32), transparent 68%),
+        linear-gradient(135deg, rgba(59, 75, 255, 0.2), rgba(255, 178, 30, 0.18));
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -1180,9 +1014,9 @@
     }
 
     .bento-rings-svg {
-      width: 152px;
+      width: 156px;
       height: auto;
-      filter: drop-shadow(0 0 18px rgba(155, 92, 255, 0.55));
+      filter: drop-shadow(0 0 20px rgba(155, 92, 255, 0.65));
     }
     .bento-rings-svg .ring-left {
       animation: bentoSlideLeft 3.4s var(--ease-spring) infinite;
@@ -1190,28 +1024,17 @@
     .bento-rings-svg .ring-right {
       animation: bentoSlideRight 3.4s var(--ease-spring) infinite;
     }
-    .bento-rings-svg .ring-lens {
-      animation: bentoLensPulse 3.4s ease-in-out infinite;
-    }
     @keyframes bentoSlideLeft {
       0%, 100% { transform: translateX(0); }
-      15% { transform: translateX(-16px); }
-      32% { transform: translateX(2px); }
-      45% { transform: translateX(0); }
+      18% { transform: translateX(-16px); }
+      34% { transform: translateX(2px); }
     }
     @keyframes bentoSlideRight {
       0%, 100% { transform: translateX(0); }
-      15% { transform: translateX(16px); }
-      32% { transform: translateX(-2px); }
-      45% { transform: translateX(0); }
-    }
-    @keyframes bentoLensPulse {
-      0%, 100% { opacity: 0.92; }
-      15% { opacity: 0; }
-      32% { opacity: 1; }
+      18% { transform: translateX(16px); }
+      34% { transform: translateX(-2px); }
     }
 
-    /* Bento 3: Kring Price Ticker Graphic */
     .bento-price-board {
       width: 100%;
       height: 100%;
@@ -1221,17 +1044,17 @@
       justify-content: center;
       gap: 8px;
       background:
-        radial-gradient(circle at 80% 20%, rgba(255, 178, 30, 0.2), transparent 60%),
-        #080A1E;
+        radial-gradient(circle at 80% 20%, rgba(255, 178, 30, 0.22), transparent 60%),
+        #06081A;
     }
     .price-ticker-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 8px 12px;
+      padding: 9px 12px;
       border-radius: 12px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(135, 150, 255, 0.16);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(185, 198, 255, 0.16);
       font-size: 12px;
     }
     .price-ticker-item strong {
@@ -1243,70 +1066,65 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      transform: translateZ(16px);
     }
-
     .bento-kicker {
       font-family: var(--font-mono);
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--marigold-hi);
       text-transform: uppercase;
       letter-spacing: 0.06em;
     }
-
     .bento-title {
       font-family: var(--font-display);
       font-size: 20px;
-      font-weight: 700;
-      line-height: 1.25;
-      color: var(--ink-100);
+      font-weight: 800;
+      line-height: 1.24;
+      color: #fff;
     }
-
     .bento-text {
       font-size: 14.5px;
       line-height: 1.6;
       color: var(--ink-60);
     }
 
-    /* PARTNER & FOUNDING AGENCY PREVIEW SECTION */
+    /* PARTNER PORTAL */
     .partner-section {
-      padding: 72px 0 88px;
+      padding: 64px 0 88px;
     }
-
     .partner-shell {
       border-radius: 36px;
       padding: 48px;
       background:
-        radial-gradient(circle at 12% 15%, rgba(52, 70, 255, 0.24), transparent 48%),
-        radial-gradient(circle at 88% 85%, rgba(255, 178, 30, 0.2), transparent 48%),
-        rgba(12, 15, 38, 0.84);
-      border: 1px solid rgba(155, 92, 255, 0.34);
+        radial-gradient(circle at 12% 15%, rgba(59, 75, 255, 0.26), transparent 48%),
+        radial-gradient(circle at 88% 85%, rgba(255, 178, 30, 0.22), transparent 48%),
+        rgba(10, 13, 34, 0.78);
+      backdrop-filter: blur(28px);
+      border: 1px solid rgba(185, 198, 255, 0.26);
       box-shadow:
-        0 32px 80px rgba(2, 3, 12, 0.78),
-        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+        0 36px 90px rgba(0, 0, 0, 0.82),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22);
       display: grid;
       grid-template-columns: 1.05fr 0.95fr;
       gap: 44px;
       align-items: start;
     }
-
     .partner-left {
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 22px;
     }
-
     .partner-cards-stack {
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
-
     .partner-lane-card {
       padding: 22px 24px;
       border-radius: 22px;
-      background: rgba(18, 22, 54, 0.72);
-      border: 1px solid rgba(135, 150, 255, 0.22);
+      background: rgba(16, 20, 50, 0.68);
+      border: 1px solid rgba(185, 198, 255, 0.2);
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -1316,7 +1134,6 @@
       border-color: var(--marigold);
       transform: translateX(4px);
     }
-
     .lane-top {
       display: flex;
       align-items: center;
@@ -1324,83 +1141,71 @@
       gap: 12px;
       flex-wrap: wrap;
     }
-
     .lane-badge {
       font-family: var(--font-mono);
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
       padding: 4px 10px;
       border-radius: 999px;
       background: rgba(115, 129, 255, 0.16);
       color: var(--anchan-hi);
-      border: 1px solid rgba(115, 129, 255, 0.32);
+      border: 1px solid rgba(115, 129, 255, 0.34);
     }
     .lane-badge.is-gold {
-      background: rgba(255, 178, 30, 0.15);
+      background: rgba(255, 178, 30, 0.16);
       color: var(--marigold-hi);
-      border-color: rgba(255, 178, 30, 0.38);
+      border-color: rgba(255, 178, 30, 0.4);
     }
-
     .lane-email {
       font-family: var(--font-mono);
       font-size: 12.5px;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--marigold-hi);
       text-decoration: none;
     }
-    .lane-email:hover {
-      text-decoration: underline;
-    }
-
     .lane-title {
       font-family: var(--font-display);
       font-size: 17px;
-      font-weight: 700;
-      color: var(--ink-100);
+      font-weight: 800;
+      color: #fff;
     }
-
     .lane-desc {
       font-size: 13.8px;
       line-height: 1.55;
       color: var(--ink-60);
     }
 
-    /* Interactive Partner Access Form Card */
     .partner-form-card {
       padding: 32px 30px;
       border-radius: 28px;
-      background: rgba(8, 10, 26, 0.9);
-      border: 1px solid rgba(155, 92, 255, 0.4);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+      background: rgba(6, 8, 22, 0.88);
+      border: 1px solid rgba(155, 92, 255, 0.42);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
       display: flex;
       flex-direction: column;
       gap: 18px;
     }
-
     .form-title {
       font-family: var(--font-display);
       font-size: 20px;
-      font-weight: 700;
-      color: var(--ink-100);
+      font-weight: 800;
+      color: #fff;
     }
-
     .form-sub {
       font-size: 13.5px;
       color: var(--ink-60);
       line-height: 1.5;
     }
-
     .cat-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
-
     .cat-chip {
       padding: 10px 12px;
       border-radius: 14px;
-      border: 1px solid rgba(135, 150, 255, 0.22);
-      background: rgba(18, 22, 54, 0.65);
+      border: 1px solid rgba(185, 198, 255, 0.22);
+      background: rgba(16, 20, 50, 0.65);
       color: var(--ink-80);
       font-family: var(--font-sans);
       font-size: 12.5px;
@@ -1409,83 +1214,58 @@
       cursor: pointer;
       transition: all 0.2s ease;
     }
-    .cat-chip:hover {
-      border-color: rgba(115, 129, 255, 0.5);
-    }
     .cat-chip.is-selected {
-      background: linear-gradient(135deg, rgba(52, 70, 255, 0.36), rgba(155, 92, 255, 0.36));
+      background: linear-gradient(135deg, rgba(59, 75, 255, 0.4), rgba(155, 92, 255, 0.4));
       border-color: var(--marigold);
       color: #fff;
-      box-shadow: 0 0 18px rgba(155, 92, 255, 0.32);
+      box-shadow: 0 0 18px rgba(155, 92, 255, 0.35);
     }
-
     .field-group {
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
-
     .field-label {
       font-size: 12px;
       font-weight: 700;
       color: var(--ink-80);
     }
-
     .field-input {
       width: 100%;
       padding: 12px 14px;
       border-radius: 14px;
-      border: 1px solid rgba(135, 150, 255, 0.25);
-      background: rgba(14, 18, 44, 0.85);
-      color: var(--ink-100);
+      border: 1px solid rgba(185, 198, 255, 0.24);
+      background: rgba(12, 16, 40, 0.85);
+      color: #fff;
       font-family: var(--font-sans);
       font-size: 14px;
       outline: none;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    .field-input:focus {
-      border-color: var(--anchan);
-      box-shadow: 0 0 0 3px rgba(115, 129, 255, 0.2);
-    }
-
     .btn-submit-invite {
       width: 100%;
       padding: 14px 20px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 240, 184, 0.5);
-      background: linear-gradient(135deg, #FFB21E 0%, #FF930F 100%);
-      color: #08091A;
+      border: 1px solid rgba(255, 240, 184, 0.6);
+      background: linear-gradient(135deg, #FFD470 0%, #FFB21E 50%, #FF930F 100%);
+      color: #060714;
       font-family: var(--font-display);
       font-size: 13.5px;
       font-weight: 800;
       cursor: pointer;
-      transition: all 0.22s var(--ease-out);
-      box-shadow: 0 10px 28px rgba(255, 178, 30, 0.32);
+      box-shadow: 0 12px 30px rgba(255, 178, 30, 0.35);
     }
-    .btn-submit-invite:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 14px 34px rgba(255, 178, 30, 0.45);
-    }
-
-    /* Futuristic Confirmation Pass State */
     .invite-confirmation {
       display: none;
       flex-direction: column;
       gap: 14px;
       padding: 20px;
       border-radius: 20px;
-      background: linear-gradient(145deg, rgba(46, 229, 157, 0.14), rgba(52, 70, 255, 0.2));
-      border: 1px solid rgba(46, 229, 157, 0.45);
-      animation: fadePop 0.35s var(--ease-spring);
+      background: linear-gradient(145deg, rgba(46, 229, 157, 0.16), rgba(59, 75, 255, 0.22));
+      border: 1px solid rgba(46, 229, 157, 0.48);
     }
     .invite-confirmation.is-visible {
       display: flex;
     }
-    @keyframes fadePop {
-      0% { opacity: 0; transform: scale(0.94); }
-      100% { opacity: 1; transform: scale(1); }
-    }
-
     .pass-header {
       display: flex;
       align-items: center;
@@ -1496,10 +1276,9 @@
       font-weight: 700;
     }
 
-    /* FOOTER */
     .site-footer {
       padding: 40px 0 56px;
-      border-top: 1px solid rgba(135, 150, 255, 0.16);
+      border-top: 1px solid rgba(185, 198, 255, 0.16);
       display: flex;
       flex-wrap: wrap;
       align-items: center;
@@ -1508,13 +1287,11 @@
       font-size: 13px;
       color: var(--ink-60);
     }
-
     .footer-brand {
       display: flex;
       align-items: center;
       gap: 14px;
     }
-
     .footer-emails {
       display: flex;
       flex-wrap: wrap;
@@ -1526,28 +1303,18 @@
     .footer-emails a {
       color: var(--ink-80);
       text-decoration: none;
-      transition: color 0.2s ease;
-    }
-    .footer-emails a:hover {
-      color: var(--marigold-hi);
     }
 
-    /* Responsive Breakpoints */
-    @media (max-width: 1024px) {
-      .hero-section {
-        grid-template-columns: 1fr;
-        text-align: center;
-        gap: 40px;
-      }
-      .hero-left {
-        align-items: center;
-      }
-      .bento-grid {
+    /* =====================================================================
+       7. MOBILE (<= 640px): OPEN 3D SCULPTURE + FANNED 3D PHOTO DECK (ZERO SCROLL!)
+       ===================================================================== */
+    @media (max-width: 1080px) {
+      .bento-grid,
+      .partner-shell {
         grid-template-columns: 1fr;
       }
       .partner-shell {
-        grid-template-columns: 1fr;
-        padding: 32px 24px;
+        padding: 32px 22px;
       }
     }
 
@@ -1556,103 +1323,180 @@
         padding: 0 14px;
       }
       .top-nav-wrap {
-        padding: 8px 0 2px;
+        top: 6px;
+        padding-top: 6px;
       }
       .top-nav {
-        padding: 6px 12px;
+        padding: 7px 12px;
       }
-      .nav-links {
-        display: none;
-      }
+      .nav-links,
       .brand-th-pill {
         display: none;
       }
+      .kr-wm {
+        font-size: 22px;
+      }
       .btn-partner-nav {
-        padding: 6px 10px;
+        padding: 6px 11px;
         font-size: 11px;
       }
-      .hero-section {
-        padding: 6px 0 28px;
-        gap: 20px;
+
+      .hero-spatial-stage {
+        min-height: auto;
+        padding: 4px 0 24px;
+        gap: 10px;
       }
-      .hero-left {
+
+      .orbital-arena {
+        height: auto;
+        flex-direction: column;
         gap: 8px;
       }
+
+      /* 1. Open-Space Glowing 3D Twin-Torus Sculpture right at top */
       .bump-stage-card {
-        order: 1;
         width: 100%;
-        padding: 8px 12px 10px;
-        gap: 4px;
+        height: 168px;
+        transform: none;
+      }
+      .bump-stage-card::before {
+        width: 280px;
+        height: 150px;
       }
       .bump-canvas-wrap {
-        width: 244px;
-        height: 116px;
+        width: 264px;
+        height: 124px;
       }
+      .bump-pop-word {
+        font-size: 19px;
+        bottom: 4px;
+      }
+      .bump-footer-bar {
+        padding: 4px 6px 4px 12px;
+        gap: 10px;
+      }
+      .btn-tap-kring {
+        padding: 5px 11px;
+        font-size: 11px;
+      }
+
+      /* 2. Fanned 3D Spatial Photo-Glass Cards (VisionOS 3-Card Spatial Fan!) */
       .spatial-float-deck {
-        order: 2;
-        gap: 8px;
+        position: relative;
+        inset: auto;
+        width: 100%;
+        height: 146px;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        perspective: 1000px;
       }
+
       .holo-float-card {
-        padding: 9px 10px;
-        border-radius: 16px;
+        position: absolute;
+        width: 162px;
+        padding: 7px;
+        border-radius: 18px;
       }
-      .holo-card-kicker {
+      .holo-card-photo {
+        height: 72px;
+        border-radius: 12px;
+        margin-bottom: 5px;
+      }
+      .holo-photo-badge {
+        font-size: 8px;
+        padding: 2px 6px;
+        top: 5px;
+        left: 5px;
+      }
+      .holo-photo-tag {
         font-size: 8.5px;
-        margin-bottom: 2px;
+        padding: 1px 6px;
+        bottom: 5px;
+        right: 5px;
       }
       .holo-card-title {
-        font-size: 11px;
+        font-size: 9.6px;
         margin-bottom: 2px;
+        white-space: nowrap;
       }
       .holo-card-meta {
-        font-size: 9.5px;
+        font-size: 8.8px;
       }
-      .holo-card-pill {
-        font-size: 9px;
-        padding: 1px 6px;
+
+      /* Left Tilted 3D Wing Card */
+      .holo-float-card.card-orbit-1 {
+        top: 10px;
+        left: 0px;
+        z-index: 12;
+        animation: mobFanLeft 5.5s ease-in-out infinite;
+      }
+      /* Center Foreground Hero 3D Card */
+      .holo-float-card.card-orbit-2 {
+        top: 2px;
+        left: 50%;
+        right: auto;
+        z-index: 15;
+        width: 186px;
+        animation: mobFanCenter 5.8s ease-in-out -1.4s infinite;
+      }
+      /* Right Tilted 3D Wing Card */
+      .holo-float-card.card-orbit-3 {
+        top: 10px;
+        right: 0px;
+        left: auto;
+        bottom: auto;
+        z-index: 13;
+        animation: mobFanRight 5.6s ease-in-out -2.8s infinite;
+      }
+      /* Hide 4th orbit card on tiny mobile hero so 3-card 3D fan has luxurious breathing room */
+      .holo-float-card.card-orbit-4 {
+        display: none;
+      }
+
+      @keyframes mobFanLeft {
+        0%, 100% { transform: perspective(900px) translate3d(-4px, 4px, 6px) rotateY(22deg) rotateZ(-6deg) scale(0.92); }
+        50% { transform: perspective(900px) translate3d(-4px, -3px, 18px) rotateY(18deg) rotateZ(-4deg) scale(0.94); }
+      }
+      @keyframes mobFanCenter {
+        0%, 100% { transform: perspective(900px) translate3d(-50%, 0px, 32px) rotateX(3deg); }
+        50% { transform: perspective(900px) translate3d(-50%, -5px, 44px) rotateX(-2deg); }
+      }
+      @keyframes mobFanRight {
+        0%, 100% { transform: perspective(900px) translate3d(4px, 4px, 6px) rotateY(-22deg) rotateZ(6deg) scale(0.92); }
+        50% { transform: perspective(900px) translate3d(4px, -3px, 18px) rotateY(-18deg) rotateZ(4deg) scale(0.94); }
+      }
+
+      /* 3. Editorial Headline & Liquid-Gold CTA fit 100% inside 390x660 */
+      .hero-copy-deck {
+        gap: 7px;
+        margin-top: 2px;
       }
       .hype-badge {
-        order: 3;
-        padding: 4px 10px;
-        font-size: 9.5px;
+        padding: 4px 11px;
+        font-size: 9px;
       }
       .hero-title {
-        order: 4;
         font-size: clamp(23px, 6.6vw, 29px);
         line-height: 1.06;
       }
-      .hero-ctas {
-        order: 5;
-        width: 100%;
-        justify-content: center;
-        gap: 7px;
+      .hero-sub {
+        font-size: 12px;
+        line-height: 1.38;
       }
-      .btn-primary-gold,
-      .btn-secondary-glass {
+      .hero-ctas {
+        width: 100%;
+        gap: 8px;
+      }
+      .btn-primary-gold {
         width: 100%;
         justify-content: center;
-        padding: 11px 16px;
+        padding: 12px 18px;
         font-size: 13px;
       }
-      .hero-sub {
-        order: 6;
-        font-size: 13.5px;
-        line-height: 1.48;
-      }
-      .hero-city-strip {
-        order: 7;
-        justify-content: center;
-      }
-      .phone-3d-rig {
-        width: 316px;
-      }
-      .floating-chip.chip-top-left {
-        left: -8px;
-        top: 18px;
-      }
-      .floating-chip.chip-bottom-right {
-        right: -8px;
-        bottom: 24px;
+      .btn-secondary-glass {
+        display: none;
       }
       .cat-grid {
         grid-template-columns: 1fr;
@@ -1665,18 +1509,15 @@
   </style>
 </head>
 <body>
-  <!-- Volumetric Night Atmosphere + Real-Time 2026 3D Spatial Wave Mesh -->
-  <div class="stage-atmosphere" aria-hidden="true">
+  <!-- 1. FULL-VIEWPORT 2026 WEBGL / 3D SPATIAL AURORA & WAVE FIELD -->
+  <div class="webgl-cosmos" aria-hidden="true">
     <canvas id="spatialWaveCanvas"></canvas>
-    <div class="stage-orb orb-anchan"></div>
-    <div class="stage-orb orb-marigold"></div>
-    <div class="stage-orb orb-violet"></div>
-    <div class="stage-grid"></div>
+    <div class="cosmos-vignette"></div>
   </div>
   <div class="stage-grain" aria-hidden="true"></div>
 
   <div class="site-wrap">
-    <!-- TOP FLOATING NAVIGATION -->
+    <!-- 2. VISION-OS FLOATING NAVIGATION ISLAND -->
     <header class="top-nav-wrap">
       <nav class="top-nav" aria-label="Primary Navigation">
         <a href="#top" class="brand-lockup" id="navBrandBump">
@@ -1693,23 +1534,23 @@
             <span>ng</span>
           </span>
           <span class="brand-th-pill">
-            <span data-i18n-en>Bangkok &amp; Pattaya</span>
+            <span data-i18n-en>BANGKOK · PATTAYA</span>
             <span data-i18n-th lang="th">กรุงเทพฯ · พัทยา</span>
           </span>
         </a>
 
         <div class="nav-links">
           <a href="#vision" class="nav-link">
-            <span data-i18n-en>The Experience</span>
-            <span data-i18n-th lang="th">ประสบการณ์กริ๊ง</span>
+            <span data-i18n-en>01 · Spatial Experiences</span>
+            <span data-i18n-th lang="th">01 · ประสบการณ์กริ๊ง</span>
           </a>
           <a href="#vision" class="nav-link">
-            <span data-i18n-en>Two-Phone Bump</span>
-            <span data-i18n-th lang="th">แตะกริ๊ง!</span>
+            <span data-i18n-en>02 · Two-Phone Bump</span>
+            <span data-i18n-th lang="th">02 · แตะกริ๊ง!</span>
           </a>
           <a href="#partners" class="nav-link">
-            <span data-i18n-en>Founding Partners</span>
-            <span data-i18n-th lang="th">พาร์ทเนอร์และเอเจนซี่</span>
+            <span data-i18n-en>03 · Founding Partners</span>
+            <span data-i18n-th lang="th">03 · พาร์ทเนอร์และเอเจนซี่</span>
           </a>
         </div>
 
@@ -1719,45 +1560,42 @@
             <button type="button" class="lang-btn" data-set-lang="th" id="btnLangTh">ไทย</button>
           </div>
           <a href="#partners" class="btn-partner-nav" id="navPartnerCta">
-            <span data-i18n-en>Partner Access</span>
-            <span data-i18n-th lang="th">พาร์ทเนอร์</span>
+            <span data-i18n-en>Partner Portal ↗</span>
+            <span data-i18n-th lang="th">พาร์ทเนอร์ ↗</span>
           </a>
         </div>
       </nav>
     </header>
 
-    <!-- HERO SECTION -->
+    <!-- 3. 2026 AWWWARDS OPEN-SPACE 3D HERO STAGE -->
     <main id="top">
-      <section class="hero-section">
-        <div class="hero-left">
-          <div class="hype-badge">
-            <span class="pulse-dot"></span>
-            <span data-i18n-en>PRIVATE BETA · BANGKOK &amp; PATTAYA · COMING SOON</span>
-            <span data-i18n-th lang="th">ไพรเวทเบต้า · กรุงเทพฯ และพัทยา · เร็วๆ นี้</span>
-          </div>
+      <section class="hero-spatial-stage">
+        <div class="orbital-arena" id="orbitalArena">
+          <!-- CENTERPIECE: Open-Space 3D Volumetric Twin-Torus Sculpture -->
+          <div class="bump-stage-card is-bumped" id="heroBumpStage" role="button" tabindex="0" aria-label="Tap to trigger the Kring 3D Twin-Torus Bump and Crystal Chime">
+            <svg class="orbital-halo-svg" viewBox="0 0 600 380" fill="none" aria-hidden="true">
+              <g class="orbit-ellipse-1">
+                <ellipse cx="300" cy="190" rx="255" ry="108" stroke="url(#orbGrad1)" stroke-width="1" stroke-dasharray="6 10" />
+                <circle cx="555" cy="190" r="4" fill="#FFD470" />
+                <circle cx="45" cy="190" r="3.5" fill="#7381FF" />
+              </g>
+              <g class="orbit-ellipse-2">
+                <ellipse cx="300" cy="190" rx="210" ry="142" stroke="url(#orbGrad2)" stroke-width="1" stroke-dasharray="3 12" />
+                <circle cx="300" cy="48" r="3.5" fill="#9B5CFF" />
+              </g>
+              <defs>
+                <linearGradient id="orbGrad1" x1="0" y1="0" x2="600" y2="380" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#7381FF" stop-opacity="0.65" />
+                  <stop offset="50%" stop-color="#9B5CFF" stop-opacity="0.25" />
+                  <stop offset="100%" stop-color="#FFB21E" stop-opacity="0.65" />
+                </linearGradient>
+                <linearGradient id="orbGrad2" x1="600" y1="0" x2="0" y2="380" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#FFB21E" stop-opacity="0.45" />
+                  <stop offset="100%" stop-color="#7381FF" stop-opacity="0.45" />
+                </linearGradient>
+              </defs>
+            </svg>
 
-          <h1 class="hero-title">
-            <span data-i18n-en>
-              See Thailand with a <span class="grad-anchan">verified local.</span><br />
-              Meet with a <span class="grad-marigold">Kring!</span>
-            </span>
-            <span data-i18n-th lang="th">
-              เที่ยวไทยกับ <span class="grad-anchan">โลคอลตัวจริง</span><br />
-              เจอกันเมื่อแตะ <span class="grad-marigold">กริ๊ง!</span>
-            </span>
-          </h1>
-
-          <p class="hero-sub">
-            <span data-i18n-en>
-              Curated street-food walks, temple mornings, sunset rooftops, and creative culture across Bangkok &amp; Pattaya — paired with two-phone bump escrow at 100% public venues and real-time <strong>Kring Price</strong> street intelligence.
-            </span>
-            <span data-i18n-th lang="th">
-              เปิดประสบการณ์เดินชิมสตรีทฟู้ด ไหว้พระยามเช้า รูฟท็อปชมวิว และคาเฟ่ไลฟ์สไตล์ทั่วกรุงเทพฯ และพัทยา มั่นใจด้วยการแตะโทรศัพท์ <strong>กริ๊ง!</strong> ณ สถานที่สาธารณะ พร้อมเช็ก <strong>ราคากริ๊ง</strong> เรียลไทม์
-            </span>
-          </p>
-
-          <!-- Interactive Twin-Ring Liquid Light Stage -->
-          <div class="bump-stage-card is-bumped" id="heroBumpStage" role="button" tabindex="0" aria-label="Tap to trigger the Kring Twin-Ring Bump and Bell Chime">
             <div class="bump-canvas-wrap">
               <canvas id="kringLiquidCanvas"></canvas>
               <div class="bump-pop-word">
@@ -1765,6 +1603,7 @@
                 <span data-i18n-th lang="th">กริ๊ง!</span>
               </div>
             </div>
+
             <div class="bump-footer-bar">
               <div class="kr-wave" id="heroWave" aria-hidden="true">
                 <i style="--i:0;--h:5px"></i>
@@ -1789,214 +1628,158 @@
             </div>
           </div>
 
-          <!-- 2026 3D Levitating Holographic Cards Deck (Z-Space Spatial UI) -->
+          <!-- ORBITING 3D SPATIAL PHOTO-GLASS CARDS (Lusion / VisionOS Spatial Windows) -->
           <div class="spatial-float-deck" id="spatialFloatDeck">
-            <div class="holo-float-card tilt-card">
+            <!-- Orbit Card 1: Sunset Rooftop Experience -->
+            <div class="holo-float-card card-orbit-1 tilt-card">
               <div class="foil-sheen"></div>
-              <div class="holo-card-kicker">
-                <span>⚡ LIVE PASS</span>
-                <span style="color:var(--mint-ok)">✓ VERIFIED</span>
+              <div class="holo-card-photo">
+                <img src="/photos/experiences/chao-phraya-sunset.jpg" alt="Chao Phraya Sunset Rooftop" />
+                <span class="holo-photo-badge">
+                  <span class="pulse-dot"></span>
+                  <span data-i18n-en>PUBLIC VENUE</span>
+                  <span data-i18n-th lang="th">สถานที่สาธารณะ</span>
+                </span>
+                <span class="holo-photo-tag">฿1,200 · 3h</span>
               </div>
-              <div class="holo-card-title">
-                <span data-i18n-en>Sunset Rooftop · Thonglor</span>
-                <span data-i18n-th lang="th">รูฟท็อปชมพระอาทิตย์ตก · ทองหล่อ</span>
-              </div>
-              <div class="holo-card-meta">
-                <span data-i18n-en>100% Public Venue</span>
-                <span data-i18n-th lang="th">สถานที่สาธารณะ 100%</span>
-                <span class="holo-card-pill">฿1,200 Held</span>
+              <div class="holo-card-body">
+                <div class="holo-card-title">
+                  <span data-i18n-en>Chao Phraya Sunset Walk</span>
+                  <span data-i18n-th lang="th">ชมพระอาทิตย์ตกริมเจ้าพระยา</span>
+                </div>
+                <div class="holo-card-meta">
+                  <span data-i18n-en>✓ Verified Local Insider</span>
+                  <span data-i18n-th lang="th">✓ โลคอลยืนยันตัวตน</span>
+                  <span style="color:var(--mint-ok);font-family:var(--font-mono);">LIVE</span>
+                </div>
               </div>
             </div>
 
-            <div class="holo-float-card tilt-card">
+            <!-- Orbit Card 2: Two-Phone Kring! Bump Escrow -->
+            <div class="holo-float-card card-orbit-2 tilt-card">
               <div class="foil-sheen"></div>
-              <div class="holo-card-kicker">
-                <span>🔔 TWO-PHONE BUMP</span>
-                <span style="color:var(--violet-hi)">กริ๊ง!</span>
+              <div class="holo-card-photo">
+                <img src="/photos/experiences/wat-arun-temple.jpg" alt="Wat Arun Twilight Walk & Bump Check-In" />
+                <span class="holo-photo-badge">
+                  <span>🔔</span>
+                  <span data-i18n-en>BUMP ESCROW</span>
+                  <span data-i18n-th lang="th">แตะกริ๊ง!</span>
+                </span>
+                <span class="holo-photo-tag" style="color:var(--mint-ok);border-color:rgba(46,229,157,0.55);background:rgba(46,229,157,0.2);">100% Safe</span>
               </div>
-              <div class="holo-card-title">
-                <span data-i18n-en>Bump Check-In Escrow</span>
-                <span data-i18n-th lang="th">แตะโทรศัพท์ปลดล็อกยอดจอง</span>
-              </div>
-              <div class="holo-card-meta">
-                <span data-i18n-en>Zero No-Shows</span>
-                <span data-i18n-th lang="th">ไร้กังวลเรื่องผิดนัด</span>
-                <span class="holo-card-pill" style="color:var(--mint-ok);border-color:rgba(46,229,157,0.4);background:rgba(46,229,157,0.14);">Instant</span>
+              <div class="holo-card-body">
+                <div class="holo-card-title">
+                  <span data-i18n-en>Two-Phone กริ๊ง! Check-In</span>
+                  <span data-i18n-th lang="th">แตะโทรศัพท์ปลดล็อกยอดจอง</span>
+                </div>
+                <div class="holo-card-meta">
+                  <span data-i18n-en>Released on arrival</span>
+                  <span data-i18n-th lang="th">โอนทันทีเมื่อเจอกัน</span>
+                  <span style="color:var(--marigold-hi);font-family:var(--font-mono);">0% No-Show</span>
+                </div>
               </div>
             </div>
 
-            <div class="holo-float-card tilt-card">
+            <!-- Orbit Card 3: Kring Price Street Radar -->
+            <div class="holo-float-card card-orbit-3 tilt-card">
               <div class="foil-sheen"></div>
-              <div class="holo-card-kicker">
-                <span>📉 KRING PRICE</span>
-                <span style="color:var(--marigold-hi)">RADAR</span>
+              <div class="holo-card-photo">
+                <img src="/photos/experiences/yaowarat-food.jpg" alt="Yaowarat Street Food & Kring Price Radar" />
+                <span class="holo-photo-badge">
+                  <span>📉</span>
+                  <span data-i18n-en>KRING PRICE</span>
+                  <span data-i18n-th lang="th">ราคากริ๊ง</span>
+                </span>
+                <span class="holo-photo-tag">+15k Coins</span>
               </div>
-              <div class="holo-card-title">
-                <span data-i18n-en>BKK → Sukhumvit VIP Ride</span>
-                <span data-i18n-th lang="th">รถรับส่งสนามบิน → สุขุมวิท</span>
-              </div>
-              <div class="holo-card-meta">
-                <span><s class="holo-strike">฿1,500</s> <strong style="color:var(--mint-ok)">฿665</strong></span>
-                <span class="holo-card-pill">+15k Coins</span>
+              <div class="holo-card-body">
+                <div class="holo-card-title">
+                  <span data-i18n-en>BKK Airport → Sukhumvit VIP</span>
+                  <span data-i18n-th lang="th">รถรับส่งสนามบิน → สุขุมวิท</span>
+                </div>
+                <div class="holo-card-meta">
+                  <span><s class="holo-strike">฿1,500</s> <strong style="color:var(--mint-ok)">฿665</strong></span>
+                  <span style="color:var(--anchan-hi);font-family:var(--font-mono);">SAVE 55%</span>
+                </div>
               </div>
             </div>
 
-            <div class="holo-float-card tilt-card">
+            <!-- Orbit Card 4: Siam Keepsake Blind Box -->
+            <div class="holo-float-card card-orbit-4 tilt-card">
               <div class="foil-sheen"></div>
-              <div class="holo-card-kicker">
-                <span>🧸🔔 KEEPSAKE DROP</span>
-                <span style="color:var(--violet-hi)">จุ่มกริ๊ง!</span>
+              <div class="holo-card-photo">
+                <img src="/photos/experiences/night-market.jpg" alt="Siam Night Market & Kring Blind Box" />
+                <span class="holo-photo-badge">
+                  <span>🧸🔔</span>
+                  <span data-i18n-en>BLIND BOX</span>
+                  <span data-i18n-th lang="th">จุ่มกริ๊ง!</span>
+                </span>
+                <span class="holo-photo-tag">Golden Echo</span>
               </div>
-              <div class="holo-card-title">
-                <span data-i18n-en>Kring Blind Box Keepsakes</span>
-                <span data-i18n-th lang="th">กล่องสุ่มของที่ระลึกกริ๊ง!</span>
-              </div>
-              <div class="holo-card-meta">
-                <span data-i18n-en>Siam Art-Toy Culture</span>
-                <span data-i18n-th lang="th">วัฒนธรรมอาร์ตทอยสยาม</span>
-                <span class="holo-card-pill">Golden Echo</span>
+              <div class="holo-card-body">
+                <div class="holo-card-title">
+                  <span data-i18n-en>Siam Cultural Keepsakes</span>
+                  <span data-i18n-th lang="th">กล่องสุ่มของที่ระลึกสยาม</span>
+                </div>
+                <div class="holo-card-meta">
+                  <span data-i18n-en>In-Chat Appreciation</span>
+                  <span data-i18n-th lang="th">ส่งพลังใจในแชต</span>
+                  <span style="color:var(--violet-hi);font-family:var(--font-mono);">จุ่มกริ๊ง!</span>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div class="hero-ctas">
-            <a href="#partners" class="btn-primary-gold" id="heroPartnerBtn">
-              <span data-i18n-en>Request Partner / Early Access</span>
-              <span data-i18n-th lang="th">ขอรับสิทธิ์พาร์ทเนอร์ / เปิดตัวก่อนใคร</span>
-              <span>→</span>
-            </a>
-            <a href="#vision" class="btn-secondary-glass">
-              <span data-i18n-en>Explore the Ecosystem</span>
-              <span data-i18n-th lang="th">สำรวจระบบนิเวศกริ๊ง</span>
-            </a>
-          </div>
-
-          <div class="hero-city-strip">
-            <span>✦ BANGKOK · SUKHUMVIT · YAOWARAT · RIVERSIDE</span>
-            <span>✦ PATTAYA · JOMTIEN · KOH LARN</span>
           </div>
         </div>
 
-        <!-- 3D DARK-TITANIUM IPHONE PREVIEW -->
-        <div class="hero-right">
-          <div class="phone-3d-rig" id="phoneRig">
-            <div class="foil-sheen"></div>
+        <!-- EDITORIAL DISPLAY HEADLINE & PRIMARY CTA -->
+        <div class="hero-copy-deck">
+          <div class="hype-badge">
+            <span class="pulse-dot"></span>
+            <span data-i18n-en>PRIVATE BETA · BANGKOK &amp; PATTAYA · LAUNCHING SOON</span>
+            <span data-i18n-th lang="th">ไพรเวทเบต้า · กรุงเทพฯ และพัทยา · เร็วๆ นี้</span>
+          </div>
 
-            <div class="floating-chip chip-top-left">
-              <span class="pulse-dot"></span>
-              <span data-i18n-en>100% Public Venues</span>
-              <span data-i18n-th lang="th">สถานที่สาธารณะ 100%</span>
-            </div>
+          <h1 class="hero-title">
+            <span data-i18n-en>
+              See Thailand with a <span class="grad-anchan">verified local.</span><br />
+              Meet with a <span class="grad-marigold">Kring!</span>
+            </span>
+            <span data-i18n-th lang="th">
+              เที่ยวไทยกับ <span class="grad-anchan">โลคอลตัวจริง</span><br />
+              เจอกันเมื่อแตะ <span class="grad-marigold">กริ๊ง!</span>
+            </span>
+          </h1>
 
-            <div class="floating-chip chip-bottom-right">
-              <span>⚡</span>
-              <span data-i18n-en>Instant Bump Release</span>
-              <span data-i18n-th lang="th">ปลดล็อกเมื่อแตะกริ๊ง!</span>
-            </div>
+          <p class="hero-sub">
+            <span data-i18n-en>
+              Curated street-food walks, temple mornings, sunset rooftops, and creative culture across Bangkok &amp; Pattaya — protected by two-phone bump escrow at 100% public venues and real-time <strong>Kring Price</strong> street intelligence.
+            </span>
+            <span data-i18n-th lang="th">
+              เปิดประสบการณ์เดินชิมสตรีทฟู้ด ไหว้พระยามเช้า รูฟท็อปชมวิว และคาเฟ่ไลฟ์สไตล์ทั่วกรุงเทพฯ และพัทยา มั่นใจด้วยการแตะโทรศัพท์ <strong>กริ๊ง!</strong> ณ สถานที่สาธารณะ พร้อมเช็ก <strong>ราคากริ๊ง</strong> เรียลไทม์
+            </span>
+          </p>
 
-            <div class="phone-screen">
-              <div class="phone-island">
-                <span style="font-size:9px;color:var(--ink-60);font-family:var(--font-mono)">KRING OS</span>
-                <span class="phone-island-dot"></span>
-              </div>
-
-              <div class="phone-top-bar">
-                <span class="phone-city-chip">
-                  <span data-i18n-en>📍 Bangkok · Night</span>
-                  <span data-i18n-th lang="th">📍 กรุงเทพฯ · คืนนี้</span>
-                </span>
-                <span class="phone-verified-chip">
-                  <span data-i18n-en>✓ ID Verified</span>
-                  <span data-i18n-th lang="th">✓ ยืนยันตัวตนแล้ว</span>
-                </span>
-              </div>
-
-              <!-- Featured Experience Inside Phone -->
-              <div class="phone-exp-card">
-                <img src="/photos/experiences/wat-arun-temple.jpg" alt="Chao Phraya & Wat Arun Twilight Walk" />
-                <div class="phone-exp-shade">
-                  <div class="phone-exp-top">
-                    <span class="phone-tag-public">
-                      <span data-i18n-en>Public Pier &amp; Rooftop</span>
-                      <span data-i18n-th lang="th">ท่าเรือและรูฟท็อปสาธารณะ</span>
-                    </span>
-                  </div>
-                  <div class="phone-exp-bottom">
-                    <h4>
-                      <span data-i18n-en>Wat Arun Twilight &amp; Old Town Walk</span>
-                      <span data-i18n-th lang="th">เดินเล่นวัดอรุณยามเย็น &amp; ย่านเมืองเก่า</span>
-                    </h4>
-                    <div class="phone-exp-meta">
-                      <span>
-                        <span data-i18n-en>Local Insider · Verified</span>
-                        <span data-i18n-th lang="th">โลคอลแนะนำ · ยืนยันแล้ว</span>
-                      </span>
-                      <span class="phone-price-badge">฿1,500 · 3 hrs</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Secondary Experience Card -->
-              <div class="phone-exp-card" style="height: 118px;">
-                <img src="/photos/experiences/yaowarat-food.jpg" alt="Yaowarat Midnight Street Food" />
-                <div class="phone-exp-shade">
-                  <div class="phone-exp-top">
-                    <span class="phone-tag-public">
-                      <span data-i18n-en>Yaowarat Main Strip</span>
-                      <span data-i18n-th lang="th">ถนนเยาวราช</span>
-                    </span>
-                  </div>
-                  <div class="phone-exp-bottom">
-                    <h4>
-                      <span data-i18n-en>Yaowarat Street-Food &amp; Tea Walk</span>
-                      <span data-i18n-th lang="th">ตะลุยสตรีทฟู้ดเยาวราช &amp; โรงน้ำชา</span>
-                    </h4>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Interactive Two-Phone Bump Pill inside Phone -->
-              <div class="phone-bump-box" id="phoneBumpBanner">
-                <div class="phone-bump-info">
-                  <div class="phone-bump-title">
-                    <svg viewBox="0 0 34 20" width="24" height="14" aria-hidden="true">
-                      <path d="M17 4.4A7.5 7.5 0 0 1 17 15.6A7.5 7.5 0 0 1 17 4.4Z" fill="#9B5CFF" />
-                      <circle cx="11" cy="10" r="7.5" fill="none" stroke="#7381FF" stroke-width="3" />
-                      <circle cx="23" cy="10" r="7.5" fill="none" stroke="#FFB21E" stroke-width="3" />
-                    </svg>
-                    <span data-i18n-en>Two-Phone Bump · Kring!</span>
-                    <span data-i18n-th lang="th">แตะกริ๊ง! เมื่อเจอกัน</span>
-                  </div>
-                  <div class="phone-bump-desc">
-                    <span data-i18n-en>Escrow held safely until both phones bump</span>
-                    <span data-i18n-th lang="th">ดูแลยอดจองปลอดภัยจนกว่าจะแตะเครื่องกัน</span>
-                  </div>
-                </div>
-                <span style="font-family:var(--font-mono);font-size:11px;color:var(--marigold-hi);font-weight:700;">READY</span>
-              </div>
-
-              <!-- Kring Price Street Check -->
-              <div class="phone-kprice-row">
-                <span class="phone-kprice-label">
-                  <span>🏷️</span>
-                  <span data-i18n-en>Kring Price · Street Check</span>
-                  <span data-i18n-th lang="th">ราคากริ๊ง · เช็กราคาจริง</span>
-                </span>
-                <span class="phone-kprice-val">LIVE INDEX ✦</span>
-              </div>
-            </div>
+          <div class="hero-ctas">
+            <a href="#partners" class="btn-primary-gold" id="heroPartnerBtn">
+              <span data-i18n-en>Request Founding Partner Access</span>
+              <span data-i18n-th lang="th">ขอรับสิทธิ์พาร์ทเนอร์ก่อตั้ง</span>
+              <span>→</span>
+            </a>
+            <a href="#vision" class="btn-secondary-glass">
+              <span data-i18n-en>Explore Spatial Pillars</span>
+              <span data-i18n-th lang="th">สำรวจระบบนิเวศกริ๊ง</span>
+            </a>
           </div>
         </div>
       </section>
 
-      <!-- 3 TEASER BENTO CARDS SECTION -->
+      <!-- 4. THREE SPATIAL BENTO PILLARS -->
       <section class="section-block" id="vision">
         <div class="section-head">
           <div class="eyebrow-pill">
             <span>✦</span>
-            <span data-i18n-en>BUILT FOR TRUST IN BANGKOK &amp; PATTAYA</span>
-            <span data-i18n-th lang="th">ออกแบบเพื่อความมั่นใจในกรุงเทพฯ และพัทยา</span>
+            <span data-i18n-en>SPATIAL TRUST ARCHITECTURE · BANGKOK &amp; PATTAYA</span>
+            <span data-i18n-th lang="th">สถาปัตยกรรมแห่งความเชื่อมั่น · กรุงเทพฯ และพัทยา</span>
           </div>
           <h2 class="section-title">
             <span data-i18n-en>Three pillars of the Kring night-blue stage.</span>
@@ -2004,7 +1787,7 @@
           </h2>
           <p class="section-desc">
             <span data-i18n-en>
-              Designed from the ground up to connect international visitors with verified Thai insiders, transparent local pricing, and instant physical arrival confirmation.
+              Engineered to connect international visitors with verified Thai insiders, transparent local pricing, and instant physical arrival confirmation.
             </span>
             <span data-i18n-th lang="th">
               เชื่อมโยงผู้มาเยือนจากทั่วโลกเข้ากับโลคอลตัวจริงในไทย ด้วยการยืนยันการพบกันหน้างานและข้อมูลราคาท้องถิ่นที่โปร่งใส
@@ -2013,7 +1796,6 @@
         </div>
 
         <div class="bento-grid">
-          <!-- Card 1: Curated Local Experiences -->
           <article class="bento-card tilt-card">
             <div class="foil-sheen"></div>
             <div class="bento-visual">
@@ -2022,8 +1804,8 @@
                 <img src="/photos/experiences/talat-noi-oldtown.jpg" alt="Talat Noi Creative Walk" />
               </div>
               <div class="bento-overlay-pill">
-                <span data-i18n-en>18 Curated Categories</span>
-                <span data-i18n-th lang="th">18 หมวดหมู่ไลฟ์สไตล์</span>
+                <span data-i18n-en>55+ Curated Experiences</span>
+                <span data-i18n-th lang="th">55+ ประสบการณ์คัดสรร</span>
                 <span style="color:var(--mint-ok)">100% Public Venues</span>
               </div>
             </div>
@@ -2047,7 +1829,6 @@
             </div>
           </article>
 
-          <!-- Card 2: The Kring! Two-Phone Bump -->
           <article class="bento-card tilt-card">
             <div class="foil-sheen"></div>
             <div class="bento-visual">
@@ -2083,22 +1864,21 @@
             </div>
           </article>
 
-          <!-- Card 3: Kring Price -->
           <article class="bento-card tilt-card">
             <div class="foil-sheen"></div>
             <div class="bento-visual">
               <div class="bento-price-board">
                 <div class="price-ticker-item">
-                  <span>🍜 Yaowarat Street Dish</span>
-                  <strong>฿60 – ฿120</strong>
+                  <span>📶 5G Tourist eSIM (15GB)</span>
+                  <strong>฿185 · +5k Coins</strong>
                 </div>
                 <div class="price-ticker-item">
-                  <span>🚤 Chao Phraya Express</span>
-                  <strong>฿16 – ฿40</strong>
+                  <span>🚖 BKK → Sukhumvit Car</span>
+                  <strong>฿665 · +15k Coins</strong>
                 </div>
                 <div class="price-ticker-item">
-                  <span>📶 Tourist 5G eSIM + Perks</span>
-                  <strong style="color:var(--mint-ok)">KRING PASS</strong>
+                  <span>🥊 Muay Thai Club Seat</span>
+                  <strong style="color:var(--mint-ok)">฿1,720 · +25k Coins</strong>
                 </div>
               </div>
             </div>
@@ -2124,7 +1904,7 @@
         </div>
       </section>
 
-      <!-- PARTNER & FOUNDING AGENCY PREVIEW SECTION -->
+      <!-- 5. FOUNDING PARTNER & AGENCY PORTAL -->
       <section class="partner-section" id="partners">
         <div class="partner-shell">
           <div class="partner-left">
@@ -2149,7 +1929,6 @@
             </p>
 
             <div class="partner-cards-stack">
-              <!-- Lane 1: Talent & Creator Agencies -->
               <div class="partner-lane-card">
                 <div class="lane-top">
                   <span class="lane-badge">
@@ -2172,7 +1951,6 @@
                 </p>
               </div>
 
-              <!-- Lane 2: Payments, B2B Vouchers & Infrastructure -->
               <div class="partner-lane-card">
                 <div class="lane-top">
                   <span class="lane-badge is-gold">
@@ -2197,7 +1975,6 @@
             </div>
           </div>
 
-          <!-- Interactive Request Partner Access Form -->
           <div class="partner-form-card">
             <div>
               <h3 class="form-title">
@@ -2262,7 +2039,6 @@
               </button>
             </form>
 
-            <!-- Instant Futuristic Confirmation Pass -->
             <div class="invite-confirmation" id="inviteConfirmation" role="status" aria-live="polite">
               <div class="pass-header">
                 <span>✓ KRING PARTNER PASS ISSUED</span>
@@ -2271,7 +2047,7 @@
               <p style="font-size:13px;line-height:1.5;color:var(--ink-100);" id="passSummaryText">
                 Your partner inquiry is ready for direct dispatch to <strong>partnerships@kringapp.com</strong>.
               </p>
-              <a href="mailto:partnerships@kringapp.com" id="passMailtoLink" class="btn-secondary-glass" style="justify-content:center;padding:10px 16px;font-size:12.5px;">
+              <a href="mailto:partnerships@kringapp.com" id="passMailtoLink" class="btn-secondary-glass" style="justify-content:center;padding:10px 16px;font-size:12.5px;display:inline-flex;">
                 <span>✉️ Open Email Dispatch</span>
               </a>
             </div>
@@ -2305,14 +2081,11 @@
     </footer>
   </div>
 
-  <!-- KRING LIQUID LIGHT ENGINE + WEBAUDIO CHIME + 3D TILT + BILINGUAL SWITCH -->
   <script>
     (function () {
       'use strict';
 
-      /* ------------------------------------------------------------------ */
-      /* 1. Bilingual Switcher (EN | ไทย)                                   */
-      /* ------------------------------------------------------------------ */
+      /* 1. Bilingual Switcher (EN | ไทย) */
       const htmlEl = document.documentElement;
       const btnEn = document.getElementById('btnLangEn');
       const btnTh = document.getElementById('btnLangTh');
@@ -2325,29 +2098,22 @@
           btnTh.classList.toggle('is-active', lang === 'th');
         }
       }
-
       if (btnEn) btnEn.addEventListener('click', function () { setLanguage('en'); });
       if (btnTh) btnTh.addEventListener('click', function () { setLanguage('th'); });
 
-      /* ------------------------------------------------------------------ */
-      /* 2. Synthesized WebAudio Crystal Bell Chime (กริ๊ง!)                */
-      /* ------------------------------------------------------------------ */
+      /* 2. Synthesized WebAudio Crystal Bell Chime (กริ๊ง!) */
       let audioCtx = null;
-
       function playCrystalBell() {
         try {
           const Ctor = window.AudioContext || window.webkitAudioContext;
           if (!Ctor) return;
           if (!audioCtx) audioCtx = new Ctor();
           if (audioCtx.state === 'suspended') audioCtx.resume();
-
-          // Two-note crystal brass bell chime (D6 -> A6 / E6 -> B6 fifth harmonic partials)
           const notes = [
-            { freq: 1174.66, delay: 0, level: 0.18 },   // D6
-            { freq: 1760.00, delay: 0.088, level: 0.20 } // A6
+            { freq: 1174.66, delay: 0, level: 0.18 },
+            { freq: 1760.00, delay: 0.088, level: 0.20 }
           ];
           const partials = [1, 2.76, 5.4];
-
           notes.forEach(function (n) {
             partials.forEach(function (k, idx) {
               const osc = audioCtx.createOscillator();
@@ -2364,22 +2130,18 @@
               osc.stop(t0 + 0.9);
             });
           });
-        } catch (e) {
-          // Best-effort WebAudio
-        }
+        } catch (e) {}
       }
 
-      /* ------------------------------------------------------------------ */
-      /* 3. Official Kring "Liquid Light" Canvas Twin-Ring Engine           */
-      /* ------------------------------------------------------------------ */
+      /* 3. Official Kring 3D Volumetric Liquid-Light Twin-Torus Engine */
       const TAU = Math.PI * 2;
       const C = {
-        blueA: [52, 70, 255],
-        blueB: [115, 129, 255],
-        blueHi: [200, 206, 255],
+        blueA: [59, 75, 255],
+        blueB: [125, 139, 255],
+        blueHi: [215, 222, 255],
         goldA: [255, 178, 30],
-        goldB: [255, 208, 103],
-        goldC: [255, 240, 184],
+        goldB: [255, 212, 112],
+        goldC: [255, 244, 196],
         white: [255, 255, 255]
       };
 
@@ -2409,22 +2171,22 @@
           hi: C.blueHi,
           partner: C.goldB,
           dir: 1,
-          glass: [[0, '#2434E8'], [0.16, '#3446FF'], [0.36, '#7381FF'], [0.5, '#B9C1FF'], [0.62, '#7381FF'], [0.82, '#3446FF'], [1, '#2434E8']]
+          glass: [[0, '#2434E8'], [0.16, '#3B4BFF'], [0.36, '#7D8BFF'], [0.5, '#D4DCFF'], [0.62, '#7D8BFF'], [0.82, '#3B4BFF'], [1, '#2434E8']]
         },
         b: {
           hi: C.goldC,
           partner: C.blueB,
           dir: -1,
-          glass: [[0, '#E89400'], [0.18, '#FFB21E'], [0.38, '#FFD067'], [0.52, '#FFF0B8'], [0.64, '#FFD067'], [0.84, '#FFB21E'], [1, '#E89400']]
+          glass: [[0, '#E89400'], [0.18, '#FFB21E'], [0.38, '#FFD470'], [0.52, '#FFF5CC'], [0.64, '#FFD470'], [0.84, '#FFB21E'], [1, '#E89400']]
         }
       };
 
-      const GEOM = { cx: 100, cy: 60, r: 42, x0: -70, y0: -60, w: 340, h: 240 };
+      const GEOM = { cx: 100, cy: 60, r: 44, x0: -70, y0: -60, w: 340, h: 240 };
       const BEAT = { ta: 0.65, travel: 135 / 76, total: 2.4, k: 1 };
 
       const cv = document.getElementById('kringLiquidCanvas');
       const heroStage = document.getElementById('heroBumpStage');
-      const phoneBanner = document.getElementById('phoneBumpBanner');
+      let waveBurstTime = -10;
 
       if (cv && cv.getContext) {
         const ctx = cv.getContext('2d');
@@ -2435,7 +2197,7 @@
 
         function resizeCanvas() {
           const r = cv.getBoundingClientRect();
-          const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
           const pw = Math.max(1, Math.round(r.width * dpr));
           const ph = Math.max(1, Math.round(r.height * dpr));
           if (cv.width !== pw || cv.height !== ph) {
@@ -2449,7 +2211,7 @@
           if (sprites && Math.abs(spScale - scale) < 0.01) return sprites;
           const R = GEOM.r;
           const f = R / 76;
-          const SW = R * (13 / 76);
+          const SW = R * (14 / 76);
           const sc = scale;
 
           function ringGlow(col, w, blur) {
@@ -2480,8 +2242,8 @@
             const x = c.getContext('2d');
             const gr = x.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
             gr.addColorStop(0, rgba(col, 1));
-            gr.addColorStop(core * 0.4, rgba(col, 0.55));
-            gr.addColorStop(core, rgba(col, 0.18));
+            gr.addColorStop(core * 0.4, rgba(col, 0.58));
+            gr.addColorStop(core, rgba(col, 0.2));
             gr.addColorStop(1, rgba(col, 0));
             x.fillStyle = gr;
             x.fillRect(0, 0, size, size);
@@ -2489,12 +2251,12 @@
           }
 
           sprites = {
-            gA: ringGlow(C.blueA, SW * 1.4, 16 * f),
-            gB: ringGlow(C.goldA, SW * 1.4, 16 * f),
-            white: disc(C.white, 160 * f, 0.3),
-            blue: disc(C.blueA, 200 * f, 0.5),
-            gold: disc(C.goldA, 200 * f, 0.5),
-            warm: disc(C.goldC, 200 * f, 0.4)
+            gA: ringGlow(C.blueA, SW * 1.45, 18 * f),
+            gB: ringGlow(C.goldA, SW * 1.45, 18 * f),
+            white: disc(C.white, 170 * f, 0.32),
+            blue: disc(C.blueA, 210 * f, 0.5),
+            gold: disc(C.goldA, 210 * f, 0.5),
+            warm: disc(C.goldC, 210 * f, 0.42)
           };
           spScale = scale;
           return sprites;
@@ -2526,7 +2288,7 @@
             gr = makeConic(head - len, x, y, [
               [0, rgba(col, 0)],
               [L * 0.6, rgba(col, a * 0.25)],
-              [L * 0.92, rgba(col, a * 0.8)],
+              [L * 0.92, rgba(col, a * 0.85)],
               [L, rgba(col, a)],
               [Math.min(1, L + 0.002), rgba(col, 0)],
               [1, rgba(col, 0)]
@@ -2536,7 +2298,7 @@
           } else {
             gr = makeConic(head, x, y, [
               [0, rgba(col, a)],
-              [L * 0.08, rgba(col, a * 0.8)],
+              [L * 0.08, rgba(col, a * 0.85)],
               [L * 0.4, rgba(col, a * 0.25)],
               [L, rgba(col, 0)],
               [1, rgba(col, 0)]
@@ -2576,20 +2338,20 @@
             dx: dx,
             h: dx < R ? Math.sqrt(R * R - dx * dx) : -1,
             appear: smooth(0, 0.22, t),
-            flash: c >= 0 ? Math.exp(-c * 6.5) * BEAT.k : 0,
-            lens: c < 0 ? 0 : Math.min(1, 0.88 + 0.12 * Math.sin((TAU * t) / 4.2) * idleK + 0.45 * Math.exp(-c * 3.5)) * smooth(0, 0.05, c),
-            exch: c < 0 ? 0 : smooth(0, 0.65, c),
-            flow: t,
+            flash: c < 0 ? 0 : Math.exp(-c * 4.5) * BEAT.k,
+            lens: c < 0 ? 0 : smooth(0, 0.35, c) * (0.34 + 0.08 * Math.sin(t * 2.2)),
+            flow: t * 1.15,
+            exch: c < 0 ? 0 : smooth(0.15, 0.7, c) * 0.65,
             idleK: idleK,
-            floatY: (3 / 76) * R * Math.sin((TAU * t) / 6.5) * idleK,
-            tiltX: 0.05 * Math.sin((TAU * t) / 6.5 + 1.1) * idleK,
-            tiltY: 0.05 * Math.sin((TAU * t) / 8.0) * idleK
+            floatY: Math.sin((TAU * t) / 4.2) * 2.2 * idleK,
+            tiltX: 0.06 * Math.sin((TAU * t) / 6.5 + 1.1) * idleK,
+            tiltY: 0.06 * Math.sin((TAU * t) / 8.0) * idleK
           };
         }
 
         function renderFrame(st) {
           const R = GEOM.r;
-          const SW = R * (13 / 76);
+          const SW = R * (14 / 76);
           const f = R / 76;
           const CY = GEOM.cy;
           const s = getSprites();
@@ -2598,8 +2360,8 @@
           ctx.clearRect(GEOM.x0, GEOM.y0, GEOM.w, GEOM.h);
 
           ctx.globalCompositeOperation = 'lighter';
-          drawSprite(s.blue, st.ax - 20 * f, CY, (0.18 + 0.32 * st.flash) * st.appear, 1.25);
-          drawSprite(s.gold, st.bx + 20 * f, CY, (0.14 + 0.28 * st.flash) * st.appear, 1.25);
+          drawSprite(s.blue, st.ax - 20 * f, CY, (0.22 + 0.34 * st.flash) * st.appear, 1.3);
+          drawSprite(s.gold, st.bx + 20 * f, CY, (0.18 + 0.30 * st.flash) * st.appear, 1.3);
           ctx.globalCompositeOperation = 'source-over';
 
           ctx.save();
@@ -2610,23 +2372,22 @@
           }
 
           ctx.globalCompositeOperation = 'lighter';
-          const ga = (0.52 + 0.1 * Math.sin(st.flow * 1.3) * st.idleK + 0.5 * st.flash) * st.appear;
+          const ga = (0.58 + 0.12 * Math.sin(st.flow * 1.3) * st.idleK + 0.52 * st.flash) * st.appear;
           drawSprite(s.gA, st.ax, CY, ga);
-          drawSprite(s.gB, st.bx, CY, ga * 0.88);
+          drawSprite(s.gB, st.bx, CY, ga * 0.92);
           ctx.globalCompositeOperation = 'source-over';
 
-          // Overlap Violet Lens
           if (st.lens > 0.01 && st.h >= 0) {
             const ri = R - SW / 2;
             ctx.save();
             ctx.beginPath();
             ctx.arc(st.ax, CY, ri, 0, TAU);
             ctx.clip();
-            const gr = ctx.createRadialGradient(st.mx, CY, 0, st.mx, CY, ri * 0.78);
+            const gr = ctx.createRadialGradient(st.mx, CY, 0, st.mx, CY, ri * 0.82);
             const a = st.lens;
-            gr.addColorStop(0, 'rgba(214,186,255,' + a + ')');
-            gr.addColorStop(0.35, 'rgba(170,112,255,' + a + ')');
-            gr.addColorStop(1, 'rgba(155,92,255,' + (0.92 * a) + ')');
+            gr.addColorStop(0, 'rgba(224,198,255,' + a + ')');
+            gr.addColorStop(0.35, 'rgba(175,118,255,' + a + ')');
+            gr.addColorStop(1, 'rgba(155,92,255,' + (0.94 * a) + ')');
             ctx.fillStyle = gr;
             ctx.beginPath();
             ctx.arc(st.bx, CY, ri, 0, TAU);
@@ -2647,49 +2408,50 @@
             ctx.arc(x, CY, R, 0, TAU);
             ctx.stroke();
 
-            ctx.lineWidth = SW * 0.26;
-            ctx.strokeStyle = 'rgba(5,6,20,.26)';
+            ctx.lineWidth = SW * 0.28;
+            ctx.strokeStyle = 'rgba(4,5,18,.32)';
             ctx.beginPath();
             ctx.arc(x, CY, R - SW * 0.36, 0, TAU);
             ctx.stroke();
 
-            ctx.lineWidth = Math.max(0.6, 1.1 * f);
-            ctx.strokeStyle = 'rgba(255,255,255,.34)';
+            ctx.lineWidth = Math.max(0.7, 1.2 * f);
+            ctx.strokeStyle = 'rgba(255,255,255,.42)';
             ctx.beginPath();
             ctx.arc(x, CY, R + SW / 2 - 0.6 * f, 0, TAU);
             ctx.stroke();
 
-            ctx.lineWidth = Math.max(0.5, 0.8 * f);
-            ctx.strokeStyle = rgba(p.hi, 0.36);
+            ctx.lineWidth = Math.max(0.6, 0.9 * f);
+            ctx.strokeStyle = rgba(p.hi, 0.42);
             ctx.beginPath();
             ctx.arc(x, CY, R - SW / 2 + 0.8 * f, 0, TAU);
             ctx.stroke();
 
             ctx.globalAlpha = 1;
             ctx.globalCompositeOperation = 'lighter';
-            drawComet(x, CY, R, st.flow * 1.05 * dir + (w === 'a' ? 0 : 2.4), 2.2, dir, p.hi, 0.55 * st.appear, SW * 0.42);
-            drawComet(x, CY, R, st.flow * 0.8 * dir + (w === 'a' ? 3.4 : 0.4), 2.0, dir, p.partner, st.exch, SW * 0.62);
+            drawComet(x, CY, R, st.flow * 1.05 * dir + (w === 'a' ? 0 : 2.4), 2.2, dir, p.hi, 0.62 * st.appear, SW * 0.44);
+            drawComet(x, CY, R, st.flow * 0.8 * dir + (w === 'a' ? 3.4 : 0.4), 2.0, dir, p.partner, st.exch, SW * 0.64);
 
-            if (st.c >= 0 && st.c < 1.4) {
+            if (st.c >= 0 && st.c < 1.3 && st.h > 0) {
+              const p1 = st.c / 1.3;
+              const fi = smooth(0, 0.06, st.c);
+              const pk = Math.pow(1 - p1, 1.5) * st.k;
+              const trav = easeOut3(p1) * Math.PI * 1.05;
+              const cr = Math.atan2(st.h, st.dx);
               const base = w === 'a' ? 0 : Math.PI;
-              const cr = Math.acos(clamp(st.dx / R, -1, 1));
-              const pk = Math.exp(-st.c * 2.4) * st.k;
-              const trav = easeOut3(clamp(st.c / 1.1)) * 3.3;
-              const fi = smooth(0.03, 0.22, st.c);
               [-1, 1].forEach(function (sgn) {
                 const a0 = base + sgn * cr * (w === 'a' ? 1 : -1);
-                drawComet(x, CY, R, a0 + trav, 1.5, 1, p.hi, pk * 0.8 * fi, SW * 0.55);
-                drawComet(x, CY, R, a0 + trav, 0.5, 1, C.white, pk * 0.7 * fi, SW * 0.3);
-                drawComet(x, CY, R, a0 - trav, 1.5, -1, p.hi, pk * 0.8 * fi, SW * 0.55);
-                drawComet(x, CY, R, a0 - trav, 0.5, -1, C.white, pk * 0.7 * fi, SW * 0.3);
+                drawComet(x, CY, R, a0 + trav, 1.5, 1, p.hi, pk * 0.85 * fi, SW * 0.56);
+                drawComet(x, CY, R, a0 + trav, 0.5, 1, C.white, pk * 0.75 * fi, SW * 0.32);
+                drawComet(x, CY, R, a0 - trav, 1.5, -1, p.hi, pk * 0.85 * fi, SW * 0.56);
+                drawComet(x, CY, R, a0 - trav, 0.5, -1, C.white, pk * 0.75 * fi, SW * 0.32);
               });
             }
 
             ctx.globalCompositeOperation = 'source-over';
             ctx.globalAlpha = st.appear;
             ctx.lineCap = 'round';
-            ctx.lineWidth = SW * 0.2;
-            ctx.strokeStyle = 'rgba(255,255,255,.62)';
+            ctx.lineWidth = SW * 0.22;
+            ctx.strokeStyle = 'rgba(255,255,255,.72)';
             ctx.beginPath();
             ctx.arc(x, CY, R + SW * 0.1, -2.55 + specShift, -1.85 + specShift);
             ctx.stroke();
@@ -2708,13 +2470,12 @@
             ctx.restore();
           }
 
-          // Contact Shockwaves + 30 Sparks
           const c = st.c;
           if (c >= 0 && c <= 1.65) {
             const k = st.k;
             ctx.globalCompositeOperation = 'lighter';
-            drawSprite(s.white, st.mx, CY, st.flash * 0.95, 0.55 + 0.9 * (1 - st.flash));
-            drawSprite(s.warm, st.mx, CY, st.flash * 0.38, 1.4);
+            drawSprite(s.white, st.mx, CY, st.flash * 0.98, 0.58 + 0.92 * (1 - st.flash));
+            drawSprite(s.warm, st.mx, CY, st.flash * 0.42, 1.45);
 
             const cols = [C.white, C.blueB, C.goldB];
             for (let i = 0; i < 3; i++) {
@@ -2722,14 +2483,14 @@
               if (ci < 0 || ci > 1.15) continue;
               const p = ci / 1.15;
               const rr = 24 * f + 280 * f * k * easeOut3(p);
-              ctx.strokeStyle = rgba(cols[i], Math.pow(1 - p, 1.7) * 0.58 * k);
-              ctx.lineWidth = (0.8 + 2.6 * (1 - p)) * Math.max(0.6, f);
+              ctx.strokeStyle = rgba(cols[i], Math.pow(1 - p, 1.7) * 0.62 * k);
+              ctx.lineWidth = (0.9 + 2.8 * (1 - p)) * Math.max(0.6, f);
               ctx.beginPath();
               ctx.arc(st.mx, CY, rr, 0, TAU);
               ctx.stroke();
             }
 
-            const n = 30;
+            const n = 34;
             const hh = R * 0.6;
             for (let i = 0; i < n; i++) {
               const org = i % 3;
@@ -2746,7 +2507,7 @@
               const y = oy + Math.sin(ang) * d;
               const col = i % 4 === 0 ? C.white : i % 2 ? C.goldC : C.blueHi;
               ctx.strokeStyle = rgba(col, 1 - c / life);
-              ctx.lineWidth = (1.6 * (1 - c / life) + 0.4) * Math.max(0.6, f);
+              ctx.lineWidth = (1.7 * (1 - c / life) + 0.4) * Math.max(0.6, f);
               ctx.beginPath();
               ctx.moveTo(x, y);
               ctx.lineTo(x - Math.cos(ang) * tail, y - Math.sin(ang) * tail);
@@ -2766,15 +2527,12 @@
 
         function onBumpContact() {
           firedContact = true;
+          waveBurstTime = performance.now();
           if (heroStage) {
             heroStage.classList.add('is-bumped');
             heroStage.classList.remove('is-ringing');
             void heroStage.offsetWidth;
             heroStage.classList.add('is-ringing');
-          }
-          if (phoneBanner) {
-            phoneBanner.classList.add('is-flash');
-            setTimeout(function () { phoneBanner.classList.remove('is-flash'); }, 750);
           }
           if (playSoundOnContact) {
             playCrystalBell();
@@ -2820,14 +2578,22 @@
         }
       }
 
-      /* ------------------------------------------------------------------ */
-      /* 3B. 2026 Awwwards 3D Spatial Wave-Mesh & Particle Ribbon Engine    */
-      /* ------------------------------------------------------------------ */
+      /* 4. 2026 Awwwards 3D Spatial Wave-Mesh, Aurora Ribbon & Starfield Engine */
       const waveCv = document.getElementById('spatialWaveCanvas');
       if (waveCv && waveCv.getContext) {
         const wCtx = waveCv.getContext('2d');
         let ww = 1, wh = 1, wDpr = 1;
         let ptrX = 0.5, ptrY = 0.35;
+
+        const stars = Array.from({ length: 65 }, function (_, i) {
+          return {
+            x: (Math.sin(i * 73.1) * 0.5 + 0.5),
+            y: (Math.cos(i * 41.7) * 0.5 + 0.5),
+            r: 0.7 + (i % 3) * 0.75,
+            spd: 0.15 + (i % 5) * 0.08,
+            gold: i % 3 === 0
+          };
+        });
 
         function resizeWave() {
           wDpr = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -2842,44 +2608,70 @@
         window.addEventListener('pointermove', function (e) {
           ptrX = e.clientX / Math.max(1, ww);
           ptrY = e.clientY / Math.max(1, wh);
+          if (heroStage && window.innerWidth > 640) {
+            const rx = (0.35 - ptrY) * 10;
+            const ry = (ptrX - 0.5) * 14;
+            heroStage.style.setProperty('--stage-rx', rx.toFixed(2) + 'deg');
+            heroStage.style.setProperty('--stage-ry', ry.toFixed(2) + 'deg');
+          }
         }, { passive: true });
 
         function renderSpatialWaves(now) {
-          const t = now * 0.0012;
+          const t = now * 0.0011;
+          const burstAge = (now - waveBurstTime) * 0.001;
+          const burstAmp = burstAge >= 0 && burstAge < 2.2 ? Math.exp(-burstAge * 2.1) * 28 : 0;
+
           wCtx.clearRect(0, 0, ww, wh);
-          const rows = 14;
-          const cols = 36;
-          const baseY = wh * 0.54;
-          const spreadY = wh * 0.44;
+
+          /* Floating 3D Bokeh Starfield */
+          for (let s = 0; s < stars.length; s++) {
+            const st = stars[s];
+            const sx = ((st.x * ww + Math.sin(t * st.spd + s) * 24) + ww) % ww;
+            const sy = ((st.y * wh - t * st.spd * 18) % wh + wh) % wh;
+            const twinkle = 0.25 + 0.45 * Math.sin(t * 2.4 + s * 1.7);
+            wCtx.fillStyle = st.gold
+              ? 'rgba(255, 212, 112, ' + twinkle.toFixed(3) + ')'
+              : 'rgba(185, 198, 255, ' + twinkle.toFixed(3) + ')';
+            wCtx.beginPath();
+            wCtx.arc(sx, sy, st.r, 0, TAU);
+            wCtx.fill();
+          }
+
+          /* 3D Perspective Wave Ribbon Horizon */
+          const rows = 18;
+          const cols = 42;
+          const baseY = wh * 0.56;
+          const spreadY = wh * 0.48;
 
           for (let r = 0; r < rows; r++) {
             const depth = r / (rows - 1);
-            const zScale = 0.42 + depth * 0.88;
-            const yRow = baseY + (depth - 0.45) * spreadY;
+            const zScale = 0.35 + depth * 0.95;
+            const yRow = baseY + Math.pow(depth, 1.35) * spreadY - spreadY * 0.36;
             const isGold = r % 3 === 0;
             const isViolet = r % 3 === 1;
-            const alpha = (0.09 + depth * 0.22).toFixed(3);
+            const alpha = (0.06 + depth * 0.24).toFixed(3);
             wCtx.strokeStyle = isGold
-              ? 'rgba(255,178,30,' + alpha + ')'
+              ? 'rgba(255,188,56,' + alpha + ')'
               : isViolet
-              ? 'rgba(155,92,255,' + alpha + ')'
-              : 'rgba(115,129,255,' + alpha + ')';
-            wCtx.lineWidth = 0.8 + depth * 1.3;
+              ? 'rgba(165,104,255,' + alpha + ')'
+              : 'rgba(115,134,255,' + alpha + ')';
+            wCtx.lineWidth = 0.7 + depth * 1.4;
             wCtx.beginPath();
 
             for (let c = 0; c <= cols; c++) {
               const u = c / cols;
-              const x = (u - 0.5) * ww * (1.15 + depth * 0.35) + ww * 0.5 + (ptrX - 0.5) * 36 * depth;
-              const wave1 = Math.sin(u * 6.2 + t * 1.4 + r * 0.45) * 24 * zScale;
-              const wave2 = Math.cos(u * 3.8 - t * 0.95 + r * 0.3) * 14 * zScale;
-              const ripple = Math.sin(Math.hypot(u - ptrX, depth - ptrY) * 10 - t * 3.2) * 10 * depth;
-              const y = yRow + wave1 + wave2 + ripple;
+              const x = (u - 0.5) * ww * (1.12 + depth * 0.55) + ww * 0.5 + (ptrX - 0.5) * 44 * depth;
+              const wave1 = Math.sin(u * 6.4 + t * 1.5 + r * 0.42) * 26 * zScale;
+              const wave2 = Math.cos(u * 4.1 - t * 1.05 + r * 0.32) * 16 * zScale;
+              const distCenter = Math.hypot(u - 0.5, depth - 0.35);
+              const shock = burstAmp * Math.sin(distCenter * 18 - burstAge * 12) * zScale;
+              const y = yRow + wave1 + wave2 + shock;
               if (c === 0) wCtx.moveTo(x, y);
               else wCtx.lineTo(x, y);
 
-              if ((c + r) % 7 === 0 && depth > 0.35) {
-                wCtx.fillStyle = isGold ? 'rgba(255,208,103,0.55)' : 'rgba(185,193,255,0.55)';
-                wCtx.fillRect(x - 1.2, y - 1.2, 2.4, 2.4);
+              if ((c + r) % 8 === 0 && depth > 0.38) {
+                wCtx.fillStyle = isGold ? 'rgba(255,220,130,0.65)' : 'rgba(200,210,255,0.6)';
+                wCtx.fillRect(x - 1.3, y - 1.3, 2.6, 2.6);
               }
             }
             wCtx.stroke();
@@ -2889,20 +2681,15 @@
         requestAnimationFrame(renderSpatialWaves);
       }
 
-      /* ------------------------------------------------------------------ */
-      /* 4. 3D Tilt & Specular Foil Sheen on Phone Stage & Bento Cards      */
-      /* ------------------------------------------------------------------ */
-      const phoneRig = document.getElementById('phoneRig');
+      /* 5. 3D Specular Foil Glare on Cards */
       const tiltCards = document.querySelectorAll('.tilt-card');
-
-      function attachTilt(el, maxDeg) {
-        if (!el) return;
+      tiltCards.forEach(function (el) {
         el.addEventListener('pointermove', function (e) {
           const rect = el.getBoundingClientRect();
           const px = (e.clientX - rect.left) / rect.width;
           const py = (e.clientY - rect.top) / rect.height;
-          const ry = (px - 0.5) * maxDeg * 2;
-          const rx = (0.5 - py) * maxDeg * 2;
+          const ry = (px - 0.5) * 12;
+          const rx = (0.5 - py) * 12;
           el.style.setProperty('--rx', rx.toFixed(2) + 'deg');
           el.style.setProperty('--ry', ry.toFixed(2) + 'deg');
           el.style.setProperty('--mx', (px * 100).toFixed(1) + '%');
@@ -2912,16 +2699,9 @@
           el.style.setProperty('--rx', '0deg');
           el.style.setProperty('--ry', '0deg');
         });
-      }
-
-      attachTilt(phoneRig, 9);
-      tiltCards.forEach(function (card) {
-        attachTilt(card, 6);
       });
 
-      /* ------------------------------------------------------------------ */
-      /* 5. Interactive Partner Access Form & Mailto Dispatch               */
-      /* ------------------------------------------------------------------ */
+      /* 6. Partner Portal Form Dispatch */
       const catButtons = document.querySelectorAll('.cat-chip');
       let selectedCategory = 'Talent / Model Agency';
       let targetEmail = 'partnerships@kringapp.com';
