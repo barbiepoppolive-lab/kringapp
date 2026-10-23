@@ -1,1038 +1,637 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kring (กริ๊ง!) · Bangkok. Pattaya. And beyond.</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Kring · Bangkok. Pattaya. And beyond. (กริ๊ง!)</title>
   <meta name="description" content="Experience Thailand with ID-verified local insiders at 100% public spots — plus up to 63% off Kring Price on sunset yachts, VIP airport transfers, licensed spas & 5G eSIMs." />
-  <meta property="og:title" content="Kring (กริ๊ง!) · Bangkok. Pattaya. And beyond." />
-  <meta property="og:description" content="Real People · Real Places · Real Prices. Two-phone bump escrow & ID-verified local insiders across Bangkok & Pattaya." />
+  <meta property="og:title" content="Kring · Bangkok. Pattaya. And beyond." />
+  <meta property="og:description" content="Real People · Real Places · Real Prices. Two-phone bump escrow at 100% public spots + up to 63% off Kring Price deals across Bangkok & Pattaya." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://kringapp.com/" />
+  <meta name="theme-color" content="#040713" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     html, body {
-      background: #050814;
-      color: #F6F2EA;
-      font-family: 'Plus Jakarta Sans', 'Noto Sans Thai', sans-serif;
-      width: 100%;
+      background: #030611;
+      color: #f5f7ff;
+      font-family: 'Inter', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
       overflow-x: hidden;
       scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
     }
 
-    .site-wrap {
-      max-width: 1080px;
-      margin: 0 auto;
-      background: #050814;
-      position: relative;
-      box-shadow: 0 0 120px rgba(0,0,0,0.9);
-    }
-
-    /* HEADER: LOGO, LANGUAGE SWITCH, ONE PRIMARY CTA */
-    .header {
-      position: relative;
-      z-index: 40;
+    body {
+      min-height: 100vh;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 22px 44px 14px;
+      justify-content: center;
+      background:
+        radial-gradient(circle at 50% 14%, rgba(58, 92, 225, 0.16) 0%, transparent 55%),
+        radial-gradient(circle at 50% 86%, rgba(245, 185, 53, 0.08) 0%, transparent 55%),
+        #030611;
     }
-    .logo-brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 11px;
-      font-size: 32px;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      color: #FFFFFF;
-      cursor: pointer;
+
+    /* 1:1 Master Poster Shell: 100% full-bleed on mobile phones, sleek centered 620px showcase on desktop */
+    .poster-stage {
+      container-type: inline-size;
+      position: relative;
+      width: 100%;
+      max-width: 620px;
+      aspect-ratio: 583 / 1280;
+      background: #040713;
+      overflow: hidden;
+      box-shadow: 0 0 90px rgba(0, 0, 0, 0.88), 0 0 1px rgba(140, 170, 255, 0.24);
       user-select: none;
     }
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .lang-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 9px 18px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.22);
-      background: rgba(10, 14, 30, 0.72);
-      color: #F6F2EA;
-      font-size: 13.5px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: border-color 0.25s ease, background 0.25s ease;
-    }
-    .lang-pill:hover {
-      border-color: rgba(255, 209, 102, 0.65);
-      background: rgba(255, 209, 102, 0.1);
-    }
 
-    /* REFLECTIVE GOLD LIGHT SWEEP PRIMARY CTA */
-    .gold-cta {
-      position: relative;
-      overflow: hidden;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 10px 24px;
-      border-radius: 999px;
-      background: linear-gradient(180deg, #FFE07D 0%, #F7B32B 55%, #E89915 100%);
-      color: #120C00;
-      font-size: 14px;
-      font-weight: 800;
-      border: 1px solid rgba(255, 245, 200, 0.75);
-      box-shadow: 0 10px 28px rgba(247, 179, 43, 0.36);
-      cursor: pointer;
-      text-decoration: none;
-      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
-    }
-    .gold-cta:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 14px 36px rgba(247, 179, 43, 0.54);
-    }
-    .gold-cta::after {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -60%;
-      width: 42%;
-      height: 200%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.68), transparent);
-      transform: rotate(25deg);
-      animation: goldLightSweep 4.2s ease-in-out infinite;
-      pointer-events: none;
-    }
-    @keyframes goldLightSweep {
-      0%, 20% { left: -60%; opacity: 0; }
-      30% { opacity: 1; }
-      55%, 100% { left: 135%; opacity: 0; }
-    }
-
-    /* CINEMATIC DESTINATION HERO */
-    .hero-section {
-      position: relative;
-      width: 100%;
-      min-height: 690px;
-      overflow: hidden;
-      display: flex;
-      align-items: flex-start;
-      padding: 36px 44px 56px;
-      perspective: 1200px;
-    }
-    .hero-bg-layer {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      bottom: -8px;
-      width: 58%;
-      z-index: 1;
-      transition: transform 0.25s ease-out;
-      will-change: transform;
-    }
-    .hero-bg-layer img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: left top;
-    }
-    .hero-bg-fade {
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(180deg, #050814 0%, transparent 12%, transparent 84%, #050814 100%),
-        linear-gradient(90deg, #050814 0%, rgba(5,8,20,0.65) 14%, transparent 32%);
-      pointer-events: none;
-    }
-
-    /* LIVE 3D ROTATING / PULSING KRING RINGS STAGE ON THE RIGHT */
-    .hero-3d-rings-stage {
-      position: absolute;
-      right: 3.5%;
-      top: 42px;
-      width: 445px;
-      height: 410px;
-      z-index: 8;
-      transform-style: preserve-3d;
-      cursor: pointer;
-      animation: slow3dRingFloat 7.5s ease-in-out infinite;
-    }
-    @keyframes slow3dRingFloat {
-      0%, 100% {
-        transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateZ(0px) scale(1);
-      }
-      33% {
-        transform: rotateX(7deg) rotateY(-9deg) rotateZ(1.8deg) translateZ(16px) scale(1.025);
-      }
-      66% {
-        transform: rotateX(-6deg) rotateY(8deg) rotateZ(-1.5deg) translateZ(10px) scale(1.015);
-      }
-    }
-    .hero-3d-rings-stage canvas {
+    /* Master 1:1 High-Res Artwork Canvas */
+    .master-art {
       width: 100%;
       height: 100%;
       display: block;
+      object-fit: fill;
       pointer-events: none;
     }
 
-    .hero-left {
-      position: relative;
-      z-index: 15;
-      max-width: 500px;
-      padding-top: 8px;
-    }
-    .hero-eyebrow {
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.26em;
-      color: rgba(246, 242, 234, 0.78);
-      text-transform: uppercase;
-      margin-bottom: 16px;
-    }
-    .hero-title {
-      font-size: 68px;
-      font-weight: 800;
-      line-height: 1.02;
-      letter-spacing: -0.03em;
-      color: #FFFFFF;
-    }
-    .hero-title .and-gold {
-      background: linear-gradient(90deg, #FFE07D 0%, #F7B32B 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .hero-title .beyond-grad {
-      background: linear-gradient(90deg, #F5A36C 0%, #B88CFF 52%, #6D8DFF 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .hero-desc {
-      margin-top: 22px;
-      font-size: 18px;
-      line-height: 1.54;
-      color: rgba(246, 242, 234, 0.88);
-      max-width: 440px;
-    }
-    .hero-desc strong {
-      color: #FFD166;
-      font-weight: 800;
-    }
-    .hero-cta-wrap {
-      margin-top: 30px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 16px;
-    }
-    .hero-main-btn {
-      padding: 17px 46px;
-      font-size: 19px;
-      min-width: 310px;
-    }
-    .partner-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: rgba(246, 242, 234, 0.86);
-      font-size: 15px;
-      font-weight: 600;
-      text-decoration: none;
-      padding-bottom: 3px;
-      border-bottom: 1px solid rgba(246, 242, 234, 0.28);
-      cursor: pointer;
-      transition: color 0.2s ease, border-color 0.2s ease;
-    }
-    .partner-link:hover {
-      color: #FFD166;
-      border-color: #FFD166;
+    /* Accessibility & SEO Semantic Screen-Reader Layer */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
-    /* POPULAR KRING DEALS SECTION */
-    .deals-section {
-      position: relative;
-      z-index: 20;
-      padding: 8px 44px 36px;
-    }
-    .section-kicker {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.2em;
-      color: #F6E3BA;
-      text-transform: uppercase;
-      margin-bottom: 20px;
-    }
-    .section-kicker::before {
-      content: '';
-      width: 34px;
-      height: 2.5px;
-      border-radius: 2px;
-      background: linear-gradient(90deg, #FFD166, #FFB21E);
-    }
-    .deals-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
-    }
-    .deal-card {
-      position: relative;
-      overflow: hidden;
-      border-radius: 22px;
-      background: linear-gradient(180deg, #0D1326 0%, #070A16 100%);
-      border: 1px solid rgba(255, 255, 255, 0.13);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.72);
+    /* ================= LIVE 3D RING ANIMATION & LIGHT SWEEP STAGE ================= */
+    /* Positioned directly over the 3D Kring Rings (x: 306..568 / 583, y: 74..336 / 1280) */
+    .rings-3d-overlay {
+      position: absolute;
+      left: 52.49%;
+      top: 5.78%;
+      width: 44.94%;
+      height: 20.47%;
+      z-index: 6;
       cursor: pointer;
-      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s ease, box-shadow 0.35s ease;
+      perspective: 800px;
     }
-    .deal-card:hover {
-      transform: translateY(-7px);
-      border-color: rgba(255, 209, 102, 0.55);
-      box-shadow: 0 28px 64px rgba(0, 0, 0, 0.85), 0 0 28px rgba(255, 178, 30, 0.18);
+
+    #rings3dCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      mix-blend-mode: screen;
+      pointer-events: none;
     }
-    .deal-card::after {
+
+    /* ================= INTERACTIVE HIT TARGETS & REFLECTIVE GOLD SWEEPS ================= */
+    .hit-zone {
+      position: absolute;
+      z-index: 10;
+      cursor: pointer;
+      text-decoration: none;
+      color: transparent;
+      display: block;
+    }
+
+    /* Top-left Kring Logo (x: 28..190, y: 10..52) */
+    .hit-logo {
+      left: 4.8%;
+      top: 0.78%;
+      width: 27.8%;
+      height: 3.3%;
+    }
+
+    /* Language Switch Pill (x: 278..385, y: 12..50) */
+    .hit-lang {
+      left: 47.68%;
+      top: 0.94%;
+      width: 18.35%;
+      height: 2.97%;
+      border-radius: 999px;
+      background: transparent;
+      border: 1px solid transparent;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hit-lang:hover {
+      border-color: rgba(245, 185, 53, 0.55);
+      box-shadow: 0 0 14px rgba(245, 185, 53, 0.25);
+    }
+
+    /* Top-Right Gold CTA Button (x: 396..556, y: 11..51) */
+    .hit-header-cta {
+      left: 67.92%;
+      top: 0.86%;
+      width: 27.44%;
+      height: 3.13%;
+      border-radius: 999px;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hit-header-cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 22px rgba(245, 185, 53, 0.48);
+    }
+
+    /* Hero Primary Gold CTA Button (x: 32..290, y: 391..451) */
+    .hit-hero-cta {
+      left: 5.49%;
+      top: 30.55%;
+      width: 44.25%;
+      height: 4.69%;
+      border-radius: 999px;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hit-hero-cta:hover {
+      transform: translateY(-1.5px);
+      box-shadow: 0 0 28px rgba(245, 185, 53, 0.52);
+    }
+
+    /* Reflective gold light sweep on both gold CTA buttons */
+    .hit-header-cta::after,
+    .hit-hero-cta::after {
+      content: '';
+      position: absolute;
+      top: -20%;
+      left: -130%;
+      width: 60%;
+      height: 140%;
+      background: linear-gradient(
+        105deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.08) 30%,
+        rgba(255, 255, 255, 0.65) 50%,
+        rgba(255, 255, 255, 0.08) 70%,
+        transparent 100%
+      );
+      transform: skewX(-24deg);
+      animation: ctaSweep 4.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+      pointer-events: none;
+    }
+
+    @keyframes ctaSweep {
+      0% { left: -130%; }
+      40%, 100% { left: 165%; }
+    }
+
+    /* Partner & Agency Access Link (x: 33..212, y: 462..486) */
+    .hit-partner-link {
+      left: 5.66%;
+      top: 36.09%;
+      width: 30.7%;
+      height: 1.95%;
+      border-radius: 4px;
+    }
+
+    /* 3 Popular Kring Deals Cards (y: 618..863 -> top: 48.28%, height: 19.14%) */
+    .hit-card {
+      top: 48.28%;
+      height: 19.14%;
+      width: 29.33%;
+      border-radius: 2.6cqw;
+      overflow: hidden;
+      border: 1px solid transparent;
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.28s ease, box-shadow 0.28s ease;
+    }
+    .hit-card-1 { left: 4.46%; }
+    .hit-card-2 { left: 35.33%; }
+    .hit-card-3 { left: 66.38%; }
+
+    .hit-card:hover {
+      border-color: rgba(245, 185, 53, 0.55);
+      box-shadow: 0 0 24px rgba(245, 185, 53, 0.22), inset 0 0 18px rgba(245, 185, 53, 0.08);
+    }
+    .hit-card::after {
       content: '';
       position: absolute;
       top: 0;
-      left: -110%;
-      width: 65%;
+      left: -140%;
+      width: 75%;
       height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 215, 120, 0.14), transparent);
+      background: linear-gradient(
+        105deg,
+        transparent 0%,
+        rgba(255, 225, 145, 0.04) 35%,
+        rgba(255, 232, 165, 0.22) 50%,
+        rgba(255, 225, 145, 0.04) 65%,
+        transparent 100%
+      );
       transform: skewX(-20deg);
       transition: left 0.65s ease;
       pointer-events: none;
     }
-    .deal-card:hover::after {
-      left: 140%;
-    }
-    .deal-photo-wrap {
-      position: relative;
-      width: 100%;
-      height: 215px;
-      overflow: hidden;
-    }
-    .deal-photo-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .deal-card:hover .deal-photo-wrap img {
-      transform: scale(1.05);
-    }
-    .deal-photo-fade {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, transparent 45%, rgba(7, 10, 22, 0.96) 100%);
-    }
-    .deal-icon-badge {
-      position: relative;
-      z-index: 4;
-      margin-top: -30px;
-      margin-left: 18px;
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, rgba(45, 36, 18, 0.95), rgba(14, 16, 30, 0.98));
-      border: 1.5px solid rgba(255, 209, 102, 0.65);
-      box-shadow: 0 6px 18px rgba(0,0,0,0.65), 0 0 16px rgba(255, 178, 30, 0.25);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #FFD166;
-    }
-    .deal-body {
-      padding: 10px 18px 18px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-    }
-    .deal-title {
-      font-size: 19px;
-      font-weight: 800;
-      color: #FFFFFF;
-      margin-bottom: 4px;
-    }
-    .deal-price-line {
-      font-size: 15px;
-      color: rgba(246, 242, 234, 0.82);
-      margin-bottom: 9px;
-    }
-    .deal-price-line strong {
-      font-size: 23px;
-      font-weight: 800;
-      color: #FFD166;
-      letter-spacing: -0.02em;
-    }
-    .deal-tag {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 999px;
-      background: rgba(255, 178, 30, 0.14);
-      border: 1px solid rgba(255, 209, 102, 0.42);
-      color: #FFE49E;
-      font-size: 12.5px;
-      font-weight: 800;
-    }
-    .deal-arrow {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      background: rgba(255, 255, 255, 0.04);
-      color: #FFFFFF;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      font-weight: 700;
-      flex-shrink: 0;
-      transition: background 0.25s ease, border-color 0.25s ease;
-    }
-    .deal-card:hover .deal-arrow {
-      background: rgba(255, 209, 102, 0.2);
-      border-color: #FFD166;
-      color: #FFD166;
+    .hit-card:hover::after {
+      left: 155%;
     }
 
-    /* 2x2 TRUST PANEL */
-    .trust-section {
-      position: relative;
-      z-index: 20;
-      padding: 0 44px 28px;
-    }
-    .trust-panel {
-      position: relative;
-      border-radius: 26px;
-      padding: 30px 34px;
-      background:
-        radial-gradient(circle at 12% 20%, rgba(115, 129, 255, 0.14), transparent 48%),
-        radial-gradient(circle at 88% 85%, rgba(255, 178, 30, 0.16), transparent 52%),
-        rgba(11, 15, 32, 0.88);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(20px);
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 26px 36px;
-    }
-    .trust-cell {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    .trust-orb {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 30%, rgba(35, 38, 64, 0.9), rgba(10, 13, 26, 0.96));
-      border: 1.5px solid rgba(255, 209, 102, 0.45);
-      box-shadow: inset 0 0 14px rgba(255, 178, 30, 0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      color: #FFD166;
-    }
-    .trust-cell h4 {
-      font-size: 17px;
-      font-weight: 800;
-      color: #FFFFFF;
-      margin-bottom: 4px;
-    }
-    .trust-cell p {
-      font-size: 14px;
-      line-height: 1.42;
-      color: rgba(246, 242, 234, 0.74);
+    /* Trust Panel Anchor Target (y: 882..1085) */
+    .anchor-trust {
+      position: absolute;
+      left: 4.46%;
+      top: 68.9%;
+      width: 91.08%;
+      height: 15.86%;
+      pointer-events: none;
     }
 
-    /* CINEMATIC COASTAL SUNSET FOOTER */
-    .coastal-footer {
-      position: relative;
-      width: 100%;
-      overflow: hidden;
+    /* Footer Links (About | Safety | Contact at x: 428..556, y: 1216..1236) */
+    .hit-footer-about {
+      left: 73.2%;
+      top: 94.9%;
+      width: 6.2%;
+      height: 1.7%;
     }
-    .coastal-pano {
-      position: relative;
-      width: 100%;
-      height: 220px;
-      overflow: hidden;
+    .hit-footer-safety {
+      left: 80.8%;
+      top: 94.9%;
+      width: 6.5%;
+      height: 1.7%;
     }
-    .coastal-pano img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center;
+    .hit-footer-contact {
+      left: 88.8%;
+      top: 94.9%;
+      width: 7.4%;
+      height: 1.7%;
     }
-    .coastal-pano-fade {
+
+    /* ================= THAI (ไทย) LOCALIZATION OVERLAYS (Only shown when switched to Thai) ================= */
+    .th-overlay {
+      display: none;
       position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, #050814 0%, transparent 28%, rgba(5,8,20,0.35) 72%, #050814 100%);
+      z-index: 8;
+      pointer-events: none;
+      font-family: 'Noto Sans Thai', 'Inter', sans-serif;
     }
-    .footer-bottom-bar {
-      position: relative;
-      z-index: 10;
-      padding: 18px 44px 34px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 20px;
-      background: #050814;
+    html[data-lang="th"] .th-overlay {
+      display: block;
     }
-    .footer-left-sub {
-      margin-top: 6px;
-      font-size: 13px;
-      line-height: 1.45;
-      color: rgba(246, 242, 234, 0.68);
+    .th-hero-box {
+      left: 5.1%;
+      top: 5.9%;
+      width: 47.5%;
+      height: 32.5%;
+      background: linear-gradient(90deg, #040814 0%, #050918 82%, rgba(5, 9, 24, 0) 100%);
+      padding: 0.4cqw 0.6cqw;
     }
-    .footer-right {
-      text-align: right;
-    }
-    .footer-links {
-      display: flex;
-      justify-content: flex-end;
-      gap: 14px;
-      font-size: 13.5px;
+    .th-eyebrow {
+      font-size: 1.65cqw;
       font-weight: 600;
-      color: rgba(246, 242, 234, 0.82);
-      margin-bottom: 6px;
+      letter-spacing: 0.18em;
+      color: #a9b8d9;
+      margin-bottom: 1.6cqw;
     }
-    .footer-links a {
-      color: inherit;
-      text-decoration: none;
-      cursor: pointer;
+    .th-h1 {
+      font-size: 7.4cqw;
+      font-weight: 800;
+      line-height: 1.06;
+      color: #fff;
+      margin-bottom: 2.2cqw;
     }
-    .footer-links a:hover { color: #FFD166; }
-    .footer-copy {
-      font-size: 12.5px;
-      color: rgba(246, 242, 234, 0.58);
+    .th-h1 .th-grad {
+      display: block;
+      background: linear-gradient(90deg, #f6c244 0%, #d19b6e 55%, #637bff 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .th-desc {
+      font-size: 2.25cqw;
+      line-height: 1.48;
+      color: #cdd7ec;
+    }
+    .th-desc strong {
+      color: #f6c453;
     }
 
-    /* PARTNER MODAL */
+    /* ================= PARTNER & EARLY ACCESS MODAL ================= */
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(4, 5, 14, 0.82);
-      backdrop-filter: blur(14px);
       z-index: 100;
+      background: rgba(3, 6, 17, 0.82);
+      backdrop-filter: blur(12px);
       display: none;
       align-items: center;
       justify-content: center;
       padding: 20px;
     }
-    .modal-backdrop.open { display: flex; }
+    .modal-backdrop.open {
+      display: flex;
+    }
     .modal-card {
       width: 100%;
-      max-width: 480px;
-      background: linear-gradient(180deg, #111530 0%, #090B1C 100%);
-      border: 1px solid rgba(255, 209, 102, 0.38);
-      border-radius: 24px;
-      padding: 28px;
-      box-shadow: 0 28px 80px rgba(0,0,0,0.85);
-    }
-    .modal-card h3 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
-    .modal-card p { font-size: 13.5px; color: rgba(246,242,234,0.75); margin-bottom: 18px; line-height: 1.5; }
-    .field-group { margin-bottom: 14px; }
-    .field-group label { display: block; font-size: 12px; font-weight: 700; color: #FFD166; margin-bottom: 6px; }
-    .field-group select, .field-group input {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(255,255,255,0.05);
+      max-width: 440px;
+      border-radius: 22px;
+      padding: 26px 24px;
+      background:
+        radial-gradient(circle at 20% 15%, rgba(65, 110, 255, 0.24), transparent 55%),
+        linear-gradient(180deg, #0d152e 0%, #070c1b 100%);
+      border: 1px solid rgba(245, 185, 53, 0.4);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
       color: #fff;
-      font-family: inherit;
-      font-size: 14px;
     }
-    .field-group select option { background: #0B0E22; color: #fff; }
-
-    @media (max-width: 820px) {
-      .header { padding: 16px 20px 10px; }
-      .logo-brand { font-size: 25px; }
-      .lang-pill { padding: 7px 13px; font-size: 12px; }
-      .gold-cta { padding: 8px 16px; font-size: 12.5px; }
-      .hero-section {
-        min-height: 520px;
-        padding: 22px 20px 36px;
-      }
-      .hero-3d-rings-stage {
-        width: 240px;
-        height: 220px;
-        right: -6px;
-        top: 24px;
-      }
-      .hero-left { max-width: 62%; }
-      .hero-eyebrow { font-size: 9.5px; letter-spacing: 0.2em; margin-bottom: 10px; }
-      .hero-title { font-size: 42px; }
-      .hero-desc { font-size: 13.5px; margin-top: 14px; max-width: 260px; }
-      .hero-main-btn { min-width: 220px; padding: 13px 26px; font-size: 15px; }
-      .deals-section { padding: 6px 20px 26px; }
-      .deals-grid { gap: 10px; }
-      .deal-photo-wrap { height: 130px; }
-      .deal-icon-badge { width: 36px; height: 36px; margin-top: -22px; margin-left: 10px; }
-      .deal-body { padding: 8px 10px 12px; }
-      .deal-title { font-size: 13.5px; }
-      .deal-price-line { font-size: 11px; margin-bottom: 6px; }
-      .deal-price-line strong { font-size: 16px; }
-      .deal-tag { font-size: 10px; padding: 3px 8px; }
-      .deal-arrow { width: 26px; height: 26px; font-size: 13px; }
-      .trust-section { padding: 0 20px 20px; }
-      .trust-panel { padding: 20px; gap: 18px 16px; }
-      .trust-orb { width: 44px; height: 44px; }
-      .trust-cell h4 { font-size: 13.5px; }
-      .trust-cell p { font-size: 11.5px; }
-      .coastal-pano { height: 130px; }
-      .footer-bottom-bar { padding: 14px 20px 26px; }
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .modal-head h3 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+    }
+    .modal-close {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .modal-card p {
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: #b9c7e4;
+      margin-bottom: 16px;
+    }
+    .modal-field {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 12px;
+      background: rgba(6, 10, 22, 0.9);
+      border: 1px solid rgba(145, 175, 245, 0.28);
+      color: #fff;
+      font-size: 13.5px;
+      margin-bottom: 10px;
+      outline: none;
+    }
+    .modal-submit {
+      width: 100%;
+      height: 46px;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #ffe48a 0%, #f5b935 54%, #dc9216 100%);
+      color: #090d19;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14.5px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 6px;
     }
   </style>
 </head>
 <body>
-  <div class="site-wrap">
-    <!-- HEADER -->
-    <header class="header">
-      <div class="logo-brand" onclick="triggerKringBump()">
-        <svg width="42" height="30" viewBox="0 0 56 38" fill="none">
-          <defs>
-            <linearGradient id="ringBlue" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#8FA8FF"/>
-              <stop offset="50%" stop-color="#4E6BFF"/>
-              <stop offset="100%" stop-color="#9B5CFF"/>
-            </linearGradient>
-            <linearGradient id="ringGold" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#FFF0A8"/>
-              <stop offset="50%" stop-color="#FFB82E"/>
-              <stop offset="100%" stop-color="#D97706"/>
-            </linearGradient>
-          </defs>
-          <circle cx="20" cy="19" r="13" stroke="url(#ringBlue)" stroke-width="4.5"/>
-          <circle cx="36" cy="19" r="13" stroke="url(#ringGold)" stroke-width="4.5"/>
-        </svg>
-        kring
+  <main class="poster-stage" id="posterStage">
+    <!-- 1:1 Master High-Resolution Visual Canvas -->
+    <img src="kring-master-1053-2x.jpg" alt="Kring · Bangkok. Pattaya. And beyond." class="master-art" />
+
+    <!-- SEO & Accessibility Semantic Content -->
+    <div class="sr-only">
+      <h1>Bangkok. Pattaya. And beyond.</h1>
+      <p>Experience Thailand with ID-verified local insiders at 100% public spots — plus up to 63% off Kring Price on sunset yachts, VIP airport transfers, licensed spas & 5G eSIMs.</p>
+      <h2>Popular Kring Deals</h2>
+      <ul>
+        <li>Sunset Yachts from ฿1,490 (-53%)</li>
+        <li>VIP Airport Cabs from ฿665 (-55%)</li>
+        <li>Verified Locals from ฿650 (80% to Local)</li>
+      </ul>
+      <h2>Why Kring</h2>
+      <ul>
+        <li>Two-Phone Bump Escrow: Held safely until you meet in public</li>
+        <li>100% ID-Verified Locals: Real cultural hosts · 80% direct payout</li>
+        <li>Honest Kring Price (-63%): Yachts ฿1,490 · Cabs ฿665 · Spas ฿385</li>
+        <li>For Thais & Visitors: Everyday local deals · 24/7 1155 Guard</li>
+      </ul>
+      <p>Real People · Real Places · Real Prices. © 2026 Kring (กริ๊ง!). Bangkok & Pattaya, Thailand.</p>
+    </div>
+
+    <!-- Live 3D Ring Rotation & Specular Light Sweeps -->
+    <div class="rings-3d-overlay" id="ringsStage" title="Tap to Kring! (กริ๊ง!)">
+      <canvas id="rings3dCanvas" width="524" height="524"></canvas>
+    </div>
+
+    <!-- Thai Localization Overlay (toggled by EN / ไทย button) -->
+    <div class="th-overlay th-hero-box">
+      <div class="th-eyebrow">กรุงเทพฯ &nbsp;•&nbsp; พัทยา &nbsp;•&nbsp; ประเทศไทย</div>
+      <div class="th-h1">
+        กรุงเทพฯ<br />
+        พัทยา<br />
+        <span class="th-grad">และทั่วไทย.</span>
       </div>
-
-      <div class="header-actions">
-        <button class="lang-pill" onclick="toggleLang()">
-          <span id="langLabel">EN / ไทย</span>
-          <span style="font-size:10px; opacity:0.75;">⌄</span>
-        </button>
-        <button class="gold-cta" onclick="openPartnerModal()">
-          <span data-en="Kring! Let's Go" data-th="กริ๊ง! ไปกันเลย">Kring! Let's Go</span>
-          <span>→</span>
-        </button>
+      <div class="th-desc">
+        สัมผัสประสบการณ์เที่ยวไทยกับโลคอลที่ยืนยันตัวตน<br />
+        ในสถานที่สาธารณะปลอดภัย 100% —<br />
+        พร้อมส่วนลด <strong>ราคากริ๊งสูงสุด 63%</strong> สำหรับ<br />
+        ยอชท์ชมพระอาทิตย์ตก รถรับส่งสนามบิน VIP<br />
+        สปาชั้นนำ และซิมเน็ต 5G
       </div>
-    </header>
+    </div>
 
-    <!-- CINEMATIC DESTINATION HERO -->
-    <section class="hero-section" id="heroSection">
-      <div class="hero-bg-layer" id="heroParallaxBg">
-        <img src="hero-1053-clean.jpg" alt="Bangkok & Pattaya Coastal Sunset & 3D Kring Rings" />
-        <div class="hero-bg-fade"></div>
-      </div>
+    <!-- Interactive Hit Zones & Reflective Gold Light Sweeps -->
+    <a href="#" class="hit-zone hit-logo" aria-label="Kring Home"></a>
+    <button type="button" class="hit-zone hit-lang" id="langSwitchBtn" aria-label="Switch Language EN / ไทย"></button>
+    <a href="#dealsAnchor" class="hit-zone hit-header-cta" aria-label="Kring! Let's Go"></a>
 
-      <!-- LIVE 3D ANIMATED RING SHADER OVERLAY (ROTATING LIGHT SWEEPS, CAUSTICS & BUMP SHOCKWAVE) -->
-      <div class="hero-3d-rings-stage" id="ringsStage" onclick="triggerKringBump()" title="Tap to Kring!">
-        <canvas id="rings3dCanvas" width="520" height="480"></canvas>
-      </div>
+    <a href="#dealsAnchor" class="hit-zone hit-hero-cta" aria-label="Kring! Let's Go"></a>
+    <a href="#partner" class="hit-zone hit-partner-link" id="openPartnerBtn" aria-label="Partner & Agency Access"></a>
 
-      <div class="hero-left">
-        <div class="hero-eyebrow" data-en="BANGKOK   ·   PATTAYA   ·   THAILAND" data-th="กรุงเทพฯ   ·   พัทยา   ·   ประเทศไทย">
-          BANGKOK &nbsp; · &nbsp; PATTAYA &nbsp; · &nbsp; THAILAND
-        </div>
-        <h1 class="hero-title" id="heroTitle">
-          Bangkok.<br/>
-          Pattaya.<br/>
-          <span class="and-gold">And</span> <span class="beyond-grad">beyond.</span>
-        </h1>
-        <p class="hero-desc" id="heroDesc">
-          Experience Thailand with ID-verified local insiders at 100% public spots — plus <strong>up to 63% off</strong> Kring Price on sunset yachts, VIP airport transfers, licensed spas & 5G eSIMs.
-        </p>
-        <div class="hero-cta-wrap">
-          <button class="gold-cta hero-main-btn" onclick="openPartnerModal()">
-            <span data-en="Kring! Let's Go" data-th="กริ๊ง! เริ่มต้นเลย">Kring! Let's Go</span>
-            <span>→</span>
-          </button>
-          <a class="partner-link" onclick="openPartnerModal()">
-            <span data-en="Partner & Agency Access" data-th="พาร์ทเนอร์และเอเจนซี่">Partner & Agency Access</span>
-            <span>→</span>
-          </a>
-        </div>
-      </div>
-    </section>
+    <div id="dealsAnchor" style="position:absolute;top:46%;left:0;"></div>
+    <a href="#partner" class="hit-zone hit-card hit-card-1" data-open-partner="yacht" aria-label="Sunset Yachts from ฿1,490"></a>
+    <a href="#partner" class="hit-zone hit-card hit-card-2" data-open-partner="cab" aria-label="VIP Airport Cabs from ฿665"></a>
+    <a href="#partner" class="hit-zone hit-card hit-card-3" data-open-partner="local" aria-label="Verified Locals from ฿650"></a>
 
-    <!-- POPULAR KRING DEALS -->
-    <section class="deals-section" id="dealsSection">
-      <div class="section-kicker" data-en="POPULAR KRING DEALS" data-th="ดีลราคากริ๊งยอดนิยม">
-        POPULAR KRING DEALS
-      </div>
-
-      <div class="deals-grid">
-        <!-- Card 1: Sunset Yachts -->
-        <div class="deal-card" onclick="openPartnerModal()">
-          <div class="deal-photo-wrap">
-            <img src="card-yacht-1053.jpg" alt="Sunset Yachts" />
-            <div class="deal-photo-fade"></div>
-          </div>
-          <div class="deal-icon-badge">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M2 20a2.4 2.4 0 0 0 2 1 2.4 2.4 0 0 0 2-1 2.4 2.4 0 0 1 2-1 2.4 2.4 0 0 1 2 1 2.4 2.4 0 0 0 2 1 2.4 2.4 0 0 0 2-1 2.4 2.4 0 0 1 2-1 2.4 2.4 0 0 1 2 1 2.4 2.4 0 0 0 2 1 2.4 2.4 0 0 0 2-1"/>
-              <path d="M4 18l-1-3h18l-2 3"/>
-              <path d="M12 4v11"/>
-              <path d="M12 4l6 8H12"/>
-              <path d="M12 6L7 12h5"/>
-            </svg>
-          </div>
-          <div class="deal-body">
-            <div>
-              <div class="deal-title" data-en="Sunset Yachts" data-th="ยอร์ชชมพระอาทิตย์ตก">Sunset Yachts</div>
-              <div class="deal-price-line"><span data-en="from" data-th="เริ่ม">from</span> <strong>฿1,490</strong></div>
-              <span class="deal-tag">-53%</span>
-            </div>
-            <div class="deal-arrow">›</div>
-          </div>
-        </div>
-
-        <!-- Card 2: VIP Airport Cabs -->
-        <div class="deal-card" onclick="openPartnerModal()">
-          <div class="deal-photo-wrap">
-            <img src="card-cab-1053.jpg" alt="VIP Airport Cabs" />
-            <div class="deal-photo-fade"></div>
-          </div>
-          <div class="deal-icon-badge">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
-              <circle cx="7" cy="17" r="2"/>
-              <path d="M9 17h6"/>
-              <circle cx="17" cy="17" r="2"/>
-            </svg>
-          </div>
-          <div class="deal-body">
-            <div>
-              <div class="deal-title" data-en="VIP Airport Cabs" data-th="รถรับส่งสนามบิน VIP">VIP Airport Cabs</div>
-              <div class="deal-price-line"><span data-en="from" data-th="เริ่ม">from</span> <strong>฿665</strong></div>
-              <span class="deal-tag">-55%</span>
-            </div>
-            <div class="deal-arrow">›</div>
-          </div>
-        </div>
-
-        <!-- Card 3: Verified Locals -->
-        <div class="deal-card" onclick="openPartnerModal()">
-          <div class="deal-photo-wrap">
-            <img src="card-local-1053.jpg" alt="Verified Locals" />
-            <div class="deal-photo-fade"></div>
-          </div>
-          <div class="deal-icon-badge">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-          </div>
-          <div class="deal-body">
-            <div>
-              <div class="deal-title" data-en="Verified Locals" data-th="โลคอลยืนยันตัวตน">Verified Locals</div>
-              <div class="deal-price-line"><span data-en="from" data-th="เริ่ม">from</span> <strong>฿650</strong></div>
-              <span class="deal-tag" data-en="80% to Local" data-th="โลคอลรับ 80%">80% to Local</span>
-            </div>
-            <div class="deal-arrow">›</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 2x2 TRUST PANEL -->
-    <section class="trust-section" id="safetySection">
-      <div class="trust-panel">
-        <div class="trust-cell">
-          <div class="trust-orb">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="7" height="16" rx="1.5"/>
-              <rect x="14" y="4" width="7" height="16" rx="1.5"/>
-              <path d="M10 10h4"/>
-              <path d="M10 14h4"/>
-            </svg>
-          </div>
-          <div>
-            <h4 data-en="Two-Phone Bump Escrow" data-th="แตะกริ๊ง! เมื่อเจอกัน">Two-Phone Bump Escrow</h4>
-            <p data-en="Held safely until you meet in public" data-th="พักเงินปลอดภัยจนกว่าจะพบกันในที่สาธารณะ">Held safely until you meet in public</p>
-          </div>
-        </div>
-
-        <div class="trust-cell">
-          <div class="trust-orb">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              <path d="m9 12 2 2 4-4"/>
-            </svg>
-          </div>
-          <div>
-            <h4 data-en="100% ID-Verified Locals" data-th="ยืนยันตัวตน 100%">100% ID-Verified Locals</h4>
-            <p data-en="Real cultural hosts · 80% direct payout" data-th="โลคอลตัวจริง · รับรายได้ตรง 80%">Real cultural hosts · 80% direct payout</p>
-          </div>
-        </div>
-
-        <div class="trust-cell">
-          <div class="trust-orb">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-              <line x1="7" y1="7" x2="7.01" y2="7"/>
-            </svg>
-          </div>
-          <div>
-            <h4 data-en="Honest Kring Price (-63%)" data-th="ราคากริ๊งโปร่งใส (-63%)">Honest Kring Price (-63%)</h4>
-            <p data-en="Yachts ฿1,490 · Cabs ฿665 · Spas ฿385" data-th="ยอร์ช ฿1,490 · รถ VIP ฿665 · สปา ฿385">Yachts ฿1,490 · Cabs ฿665 · Spas ฿385</p>
-          </div>
-        </div>
-
-        <div class="trust-cell">
-          <div class="trust-orb" style="font-weight:800; font-size:15px;">
-            TH
-          </div>
-          <div>
-            <h4 data-en="For Thais & Visitors" data-th="สำหรับคนไทยและผู้มาเยือน">For Thais & Visitors</h4>
-            <p data-en="Everyday local deals · 24/7 1155 Guard" data-th="ดีลคุ้มทุกวัน · ดูแลความปลอดภัย 24 ชม.">Everyday local deals · 24/7 1155 Guard</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CINEMATIC COASTAL SUNSET FOOTER -->
-    <footer class="coastal-footer">
-      <div class="coastal-pano">
-        <img src="footer-coast-1053.jpg" alt="Real People · Real Places · Real Prices" />
-        <div class="coastal-pano-fade"></div>
-      </div>
-
-      <div class="footer-bottom-bar">
-        <div>
-          <div class="logo-brand" style="font-size:26px;" onclick="triggerKringBump()">
-            <svg width="34" height="24" viewBox="0 0 56 38" fill="none">
-              <circle cx="20" cy="19" r="13" stroke="url(#ringBlue)" stroke-width="4.5"/>
-              <circle cx="36" cy="19" r="13" stroke="url(#ringGold)" stroke-width="4.5"/>
-            </svg>
-            kring
-          </div>
-          <div class="footer-left-sub" data-en="Thailand's Public-Venue Cultural & Lifestyle Platform (20+)" data-th="แพลตฟอร์มท่องเที่ยวและไลฟ์สไตล์ในที่สาธารณะของไทย (20+)">
-            Thailand's Public-Venue<br/>Cultural & Lifestyle Platform (20+)
-          </div>
-        </div>
-
-        <div class="footer-right">
-          <div class="footer-links">
-            <a href="#dealsSection" data-en="About" data-th="เกี่ยวกับเรา">About</a>
-            <span>|</span>
-            <a href="#safetySection" data-en="Safety" data-th="ความปลอดภัย">Safety</a>
-            <span>|</span>
-            <a onclick="openPartnerModal()" data-en="Contact" data-th="ติดต่อ">Contact</a>
-          </div>
-          <div class="footer-copy">
-            © 2026 Kring (กริ๊ง!). Bangkok & Pattaya, Thailand.
-          </div>
-        </div>
-      </div>
-    </footer>
-  </div>
+    <div id="trustAnchor" class="anchor-trust"></div>
+    <a href="#trustAnchor" class="hit-zone hit-footer-about" aria-label="About"></a>
+    <a href="#trustAnchor" class="hit-zone hit-footer-safety" aria-label="Safety"></a>
+    <a href="#partner" class="hit-zone hit-footer-contact" id="footerContactBtn" aria-label="Contact"></a>
+  </main>
 
   <!-- PARTNER & EARLY ACCESS MODAL -->
-  <div class="modal-backdrop" id="partnerModal" onclick="if(event.target===this)closePartnerModal()">
+  <div class="modal-backdrop" id="partnerModal">
     <div class="modal-card">
-      <h3 data-en="Kring! Partner & Early Access" data-th="กริ๊ง! พาร์ทเนอร์และสิทธิ์เข้าใช้งานล่วงหน้า">Kring! Partner & Early Access</h3>
-      <p data-en="Connect with our Bangkok & Pattaya team for Talent/Creator Agency onboarding, B2B Voucher & Payment integration, or VIP Early Access." data-th="ติดต่อทีมงานกรุงเทพฯ และพัทยา สำหรับพาร์ทเนอร์เอเจนซี่ ครีเอเตอร์ ระบบชำระเงิน หรือรับสิทธิ์เข้าใช้งานก่อนใคร">
-        Connect with our Bangkok & Pattaya team for Talent/Creator Agency onboarding, B2B Voucher & Payment integration, or VIP Early Access.
-      </p>
-      <div class="field-group">
-        <label data-en="SELECT CATEGORY" data-th="เลือกหมวดหมู่">SELECT CATEGORY</label>
-        <select id="partnerType">
-          <option value="partnerships@kringapp.com">Founding Talent / Creator Agency (partnerships@kringapp.com)</option>
-          <option value="partnerships@kringapp.com">Hotel, Yacht, Spa or Venue Partner (partnerships@kringapp.com)</option>
-          <option value="ops@kringapp.com">Payment Gateway / B2B Voucher Partner (ops@kringapp.com)</option>
-          <option value="partnerships@kringapp.com">VIP Early Access — Thai Local / Visitor</option>
+      <div class="modal-head">
+        <h3>Kring · Partner &amp; VIP Access</h3>
+        <button type="button" class="modal-close" id="closeModalBtn" aria-label="Close">×</button>
+      </div>
+      <p>Connect with our Bangkok &amp; Pattaya partnerships and treasury team for agency onboarding, B2B voucher distribution, or VIP early access.</p>
+      <form id="partnerForm">
+        <select class="modal-field" id="partnerCategory">
+          <option value="agency">Founding Talent / Creator Agency</option>
+          <option value="payment">Payment Rail / B2B Voucher Partner</option>
+          <option value="venue">Hotel / Yacht / Spa / Airport Transfer Partner</option>
+          <option value="vip">VIP Traveller / Local Insider Early Access</option>
         </select>
-      </div>
-      <div class="field-group">
-        <label data-en="YOUR NAME OR COMPANY" data-th="ชื่อของคุณหรือชื่อบริษัท">YOUR NAME OR COMPANY</label>
-        <input type="text" id="partnerName" placeholder="e.g. Siam Lifestyle Group / Khun Ploy" />
-      </div>
-      <div class="field-group">
-        <label data-en="WORK EMAIL OR LINE / TELEGRAM" data-th="อีเมลหรือ LINE / Telegram">WORK EMAIL OR LINE / TELEGRAM</label>
-        <input type="text" id="partnerContact" placeholder="name@company.com" />
-      </div>
-      <div style="display:flex; gap:10px; margin-top:20px;">
-        <button class="gold-cta" style="flex:1; padding:13px 20px;" onclick="submitPartnerForm()">Send Inquiry →</button>
-        <button class="lang-pill" style="padding:13px 18px;" onclick="closePartnerModal()">Close</button>
-      </div>
+        <input type="text" class="modal-field" id="partnerOrg" placeholder="Your Name / Company / Agency" required />
+        <input type="email" class="modal-field" id="partnerEmail" placeholder="Work or Contact Email" required />
+        <button type="submit" class="modal-submit">Request Instant Access →</button>
+      </form>
     </div>
   </div>
 
   <script>
-    let currentLang = 'en';
-    let bumpEnergy = 0;
-
-    // 1. LIVE 3D RING SHADER: Orbital Specular Light Sweeps, Faceted Sparkles & Bump Shockwaves
-    (function init3dRingsCanvas() {
-      const cv = document.getElementById('rings3dCanvas');
-      if (!cv) return;
-      const ctx = cv.getContext('2d');
+    // 1. Live 3D Ring Orbiting Light Sweeps + Interactive Kring! Bell Chime
+    (function initRings3D() {
+      const canvas = document.getElementById('rings3dCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
       let t = 0;
+      let ripples = [];
 
-      function render() {
-        t += 0.022;
-        if (bumpEnergy > 0.01) bumpEnergy *= 0.92;
-        else bumpEnergy = 0;
+      function playKringBell() {
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return;
+          const actx = new AudioCtx();
+          [1174.66, 1760.0].forEach((freq, i) => {
+            const osc = actx.createOscillator();
+            const gain = actx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, actx.currentTime + i * 0.09);
+            gain.gain.setValueAtTime(0.12, actx.currentTime + i * 0.09);
+            gain.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + i * 0.09 + 0.85);
+            osc.connect(gain);
+            gain.connect(actx.destination);
+            osc.start(actx.currentTime + i * 0.09);
+            osc.stop(actx.currentTime + i * 0.09 + 0.9);
+          });
+        } catch (_) {}
+      }
 
-        ctx.clearRect(0, 0, cv.width, cv.height);
+      const stage = document.getElementById('ringsStage');
+      if (stage) {
+        stage.addEventListener('click', () => {
+          ripples.push({ r: 20, alpha: 0.95 });
+          playKringBell();
+        });
+      }
 
-        // Ring 1 (Sapphire-Anchan Left Ring): center ~(195, 195), radius ~96
-        // Ring 2 (Marigold-Gold Right Ring): center ~(325, 255), radius ~98
-        const drawOrbitingLightSweep = (cx, cy, r, angle, colorCore, colorGlow) => {
-          ctx.save();
-          ctx.translate(cx, cy);
-          // 3D elliptical tilt matching the rings in the hero
-          ctx.rotate(-0.18 + Math.sin(t * 0.7) * 0.04);
-          ctx.scale(1, 0.92);
+      // In the 524x524 overlay canvas (which maps to x:306..568, y:74..336 of the 583x1280 master):
+      // - Blue Ring center is at ( (399-306)*2 = 186, (176-74)*2 = 204 ), radius ~ 132
+      // - Gold Ring center is at ( (467-306)*2 = 322, (218-74)*2 = 288 ), radius ~ 132
+      // - Overlap lens center is at (254, 246)
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        t += 0.024;
 
-          for (let i = 0; i < 2; i++) {
-            const a = angle + i * Math.PI;
-            const lx = Math.cos(a) * r;
-            const ly = Math.sin(a) * r;
-
-            const grad = ctx.createRadialGradient(lx, ly, 2, lx, ly, 46 + bumpEnergy * 30);
-            grad.addColorStop(0, colorCore);
-            grad.addColorStop(0.35, colorGlow);
-            grad.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = grad;
-            ctx.beginPath();
-            ctx.arc(lx, ly, 48 + bumpEnergy * 30, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Specular star flare on the ring rim
-            ctx.strokeStyle = colorCore;
-            ctx.lineWidth = 1.6;
-            ctx.beginPath();
-            ctx.moveTo(lx - 12, ly);
-            ctx.lineTo(lx + 12, ly);
-            ctx.moveTo(lx, ly - 12);
-            ctx.lineTo(lx, ly + 12);
-            ctx.stroke();
-          }
-          ctx.restore();
-        };
-
-        // Sapphire-Anchan Ring rotating light sweep
-        drawOrbitingLightSweep(196, 190, 96, t * 1.15, 'rgba(220, 235, 255, 0.92)', 'rgba(115, 129, 255, 0.42)');
-        // Diamond-Gold Ring rotating light sweep
-        drawOrbitingLightSweep(326, 252, 98, -t * 1.05 + 1.2, 'rgba(255, 248, 210, 0.95)', 'rgba(255, 184, 46, 0.45)');
-
-        // Overlap Lens Harmonic Pulse at ~(262, 222)
-        const pulseR = 38 + Math.sin(t * 2.2) * 8 + bumpEnergy * 75;
-        const lensGrad = ctx.createRadialGradient(262, 222, 2, 262, 222, pulseR);
-        lensGrad.addColorStop(0, 'rgba(255, 240, 255, 0.78)');
-        lensGrad.addColorStop(0.45, 'rgba(184, 140, 255, 0.36)');
-        lensGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        ctx.fillStyle = lensGrad;
-        ctx.beginPath();
-        ctx.arc(262, 222, pulseR, 0, Math.PI * 2);
-        ctx.fill();
-
-        if (bumpEnergy > 0.05) {
-          ctx.strokeStyle = 'rgba(255, 215, 110, ' + (bumpEnergy * 0.85) + ')';
-          ctx.lineWidth = 2.5;
+        // Orbiting 3D Sapphire Specular Light Sweep along Blue Torus
+        for (let k = 0; k < 2; k++) {
+          const bAngle = t * 1.25 + k * Math.PI;
+          const bx = 186 + Math.cos(bAngle) * 130;
+          const by = 204 + Math.sin(bAngle) * 126;
+          const bGrad = ctx.createRadialGradient(bx, by, 1, bx, by, 42);
+          bGrad.addColorStop(0, 'rgba(220, 235, 255, 0.88)');
+          bGrad.addColorStop(0.35, 'rgba(110, 140, 255, 0.42)');
+          bGrad.addColorStop(1, 'rgba(110, 140, 255, 0)');
+          ctx.fillStyle = bGrad;
           ctx.beginPath();
-          ctx.arc(262, 222, (1 - bumpEnergy) * 210 + 30, 0, Math.PI * 2);
-          ctx.stroke();
+          ctx.arc(bx, by, 42, 0, Math.PI * 2);
+          ctx.fill();
         }
 
-        requestAnimationFrame(render);
+        // Orbiting 3D Gold Specular Light Sweep along Gold Torus
+        for (let k = 0; k < 2; k++) {
+          const gAngle = -t * 1.15 + 1.2 + k * Math.PI;
+          const gx = 322 + Math.cos(gAngle) * 130;
+          const gy = 288 + Math.sin(gAngle) * 126;
+          const gGrad = ctx.createRadialGradient(gx, gy, 1, gx, gy, 46);
+          gGrad.addColorStop(0, 'rgba(255, 250, 215, 0.92)');
+          gGrad.addColorStop(0.35, 'rgba(245, 185, 53, 0.48)');
+          gGrad.addColorStop(1, 'rgba(245, 185, 53, 0)');
+          ctx.fillStyle = gGrad;
+          ctx.beginPath();
+          ctx.arc(gx, gy, 46, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Overlap Lens Harmonic Glow at (254, 246)
+        const pulse = 0.5 + 0.5 * Math.sin(t * 2.2);
+        const oGrad = ctx.createRadialGradient(254, 246, 2, 254, 246, 36 + pulse * 18);
+        oGrad.addColorStop(0, `rgba(255, 240, 255, ${0.28 + pulse * 0.32})`);
+        oGrad.addColorStop(0.5, `rgba(170, 115, 255, ${0.14 + pulse * 0.16})`);
+        oGrad.addColorStop(1, 'rgba(170, 115, 255, 0)');
+        ctx.fillStyle = oGrad;
+        ctx.beginPath();
+        ctx.arc(254, 246, 54, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Interactive Kring! shockwave ripples
+        for (let i = ripples.length - 1; i >= 0; i--) {
+          const rp = ripples[i];
+          rp.r += 5;
+          rp.alpha *= 0.94;
+          ctx.strokeStyle = `rgba(246, 196, 83, ${rp.alpha})`;
+          ctx.lineWidth = 2.6;
+          ctx.beginPath();
+          ctx.arc(254, 246, rp.r, 0, Math.PI * 2);
+          ctx.stroke();
+          if (rp.alpha < 0.03) ripples.splice(i, 1);
+        }
+
+        requestAnimationFrame(draw);
       }
-      render();
+      draw();
     })();
 
-    // 2. SUBTLE PARALLAX ON HERO BACKGROUND & 3D RINGS
-    const heroSection = document.getElementById('heroSection');
-    const heroBg = document.getElementById('heroParallaxBg');
-    if (heroSection && heroBg) {
-      heroSection.addEventListener('mousemove', (e) => {
-        const rect = heroSection.getBoundingClientRect();
-        const nx = (e.clientX - rect.left) / rect.width - 0.5;
-        const ny = (e.clientY - rect.top) / rect.height - 0.5;
-        heroBg.style.transform = 'translate3d(' + (-nx * 14) + 'px, ' + (-ny * 10) + 'px, 0) scale(1.02)';
+    // 2. Bilingual EN / ไทย Switch
+    (function initLang() {
+      const btn = document.getElementById('langSwitchBtn');
+      let lang = 'en';
+      if (!btn) return;
+      btn.addEventListener('click', () => {
+        lang = lang === 'en' ? 'th' : 'en';
+        document.documentElement.setAttribute('data-lang', lang);
       });
-      heroSection.addEventListener('mouseleave', () => {
-        heroBg.style.transform = 'translate3d(0,0,0) scale(1)';
-      });
-    }
+    })();
 
-    function playKringBell() {
-      try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-        const ctx = new AudioCtx();
-        [1174.66, 1760.0].forEach((freq, idx) => {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.11);
-          gain.gain.setValueAtTime(0.001, ctx.currentTime + idx * 0.11);
-          gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + idx * 0.11 + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + idx * 0.11 + 0.65);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(ctx.currentTime + idx * 0.11);
-          osc.stop(ctx.currentTime + idx * 0.11 + 0.68);
+    // 3. Partner & Early Access Modal
+    (function initModal() {
+      const modal = document.getElementById('partnerModal');
+      const openBtns = [
+        document.getElementById('openPartnerBtn'),
+        document.getElementById('footerContactBtn'),
+        ...document.querySelectorAll('[data-open-partner]')
+      ];
+      const closeBtn = document.getElementById('closeModalBtn');
+      const form = document.getElementById('partnerForm');
+
+      openBtns.forEach((b) => {
+        if (!b) return;
+        b.addEventListener('click', (e) => {
+          e.preventDefault();
+          modal.classList.add('open');
         });
-      } catch (e) {}
-    }
-
-    function triggerKringBump() {
-      bumpEnergy = 1.0;
-      playKringBell();
-    }
-
-    function toggleLang() {
-      currentLang = currentLang === 'en' ? 'th' : 'en';
-      document.querySelectorAll('[data-en]').forEach(el => {
-        el.textContent = el.getAttribute('data-' + currentLang);
       });
-      const heroTitle = document.getElementById('heroTitle');
-      const heroDesc = document.getElementById('heroDesc');
-      if (currentLang === 'th') {
-        heroTitle.innerHTML = 'กรุงเทพฯ<br/>พัทยา<br/><span class="and-gold">และ</span> <span class="beyond-grad">มากกว่านั้น</span>';
-        heroDesc.innerHTML = 'สัมผัสประสบการณ์จริงในไทยกับโลคอลที่ยืนยันตัวตน ณ สถานที่สาธารณะ 100% — พร้อม <strong>ส่วนลดราคากริ๊งสูงสุด 63%</strong> สำหรับเรือยอร์ช รถรับส่งสนามบิน VIP สปาชั้นนำ และ 5G eSIM';
-      } else {
-        heroTitle.innerHTML = 'Bangkok.<br/>Pattaya.<br/><span class="and-gold">And</span> <span class="beyond-grad">beyond.</span>';
-        heroDesc.innerHTML = 'Experience Thailand with ID-verified local insiders at 100% public spots — plus <strong>up to 63% off</strong> Kring Price on sunset yachts, VIP airport transfers, licensed spas & 5G eSIMs.';
+      if (closeBtn) closeBtn.addEventListener('click', () => modal.classList.remove('open'));
+      if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+      if (form) {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const cat = document.getElementById('partnerCategory').value;
+          const org = document.getElementById('partnerOrg').value;
+          const email = document.getElementById('partnerEmail').value;
+          const target = cat === 'payment' ? 'ops@kringapp.com' : 'partnerships@kringapp.com';
+          window.location.href = `mailto:${target}?subject=${encodeURIComponent('Kring Partnership / VIP Access - ' + org)}&body=${encodeURIComponent('Organization/Name: ' + org + '\nEmail: ' + email + '\nCategory: ' + cat)}`;
+          modal.classList.remove('open');
+        });
       }
-      triggerKringBump();
-    }
-
-    function openPartnerModal() {
-      triggerKringBump();
-      document.getElementById('partnerModal').classList.add('open');
-    }
-
-    function closePartnerModal() {
-      document.getElementById('partnerModal').classList.remove('open');
-    }
-
-    function submitPartnerForm() {
-      const targetEmail = document.getElementById('partnerType').value;
-      const name = document.getElementById('partnerName').value.trim() || 'Partner Inquiry';
-      const contact = document.getElementById('partnerContact').value.trim() || '';
-      const subject = encodeURIComponent('Kring (kringapp.com) — Partner / Early Access Inquiry: ' + name);
-      const body = encodeURIComponent('Name / Company: ' + name + '\nContact: ' + contact + '\n\nHello Kring Team,\nWe would like to connect regarding Kring in Bangkok & Pattaya.');
-      window.location.href = 'mailto:' + targetEmail + '?subject=' + subject + '&body=' + body;
-    }
+    })();
   </script>
 </body>
 </html>
