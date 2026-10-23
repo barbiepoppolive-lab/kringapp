@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Kring · 5 Brand-New 2026 3D Visual Directions · Bangkok &amp; Pattaya</title>
+  <title>Kring · 5 Brand-New 2026 Visual Architectures · Bangkok &amp; Pattaya</title>
   <link rel="icon" type="image/svg+xml" href="/kring-icon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -27,12 +27,23 @@
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
     }
+    html[data-variant="5"], html[data-variant="5"] body {
+      color: #080C24;
+    }
 
     html[data-lang="en"] [data-i18n-th] { display: none !important; }
     html[data-lang="th"] [data-i18n-en] { display: none !important; }
 
+    /* Show only the active variant stage! */
+    .v-stage { display: none !important; }
+    html[data-variant="1"] .v1-stage { display: grid !important; }
+    html[data-variant="2"] .v2-stage { display: flex !important; }
+    html[data-variant="3"] .v3-stage { display: flex !important; }
+    html[data-variant="4"] .v4-stage { display: flex !important; }
+    html[data-variant="5"] .v5-stage { display: flex !important; }
+
     /* =====================================================================
-       5 DISTINCT WORLD BACKGROUNDS (V1..V5)
+       5 DISTINCT WORLD BACKDROPS
        ===================================================================== */
     .world-backdrop {
       position: fixed;
@@ -40,7 +51,6 @@
       z-index: 0;
       pointer-events: none;
       overflow: hidden;
-      transition: background 0.5s ease;
     }
     #kringWorldCanvas {
       position: absolute;
@@ -49,56 +59,52 @@
       height: 100%;
       z-index: 2;
     }
-    .v3-skyline-photo {
+    .v2-cinema-bg {
       position: absolute;
-      inset: -4%;
-      width: 108%;
-      height: 108%;
-      background: url('/photos/experiences/chao-phraya-sunset.jpg') center/cover no-repeat;
-      filter: blur(22px) brightness(0.42) saturate(1.45);
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(6, 9, 24, 0.35) 0%, rgba(8, 10, 26, 0.65) 100%),
+        url('/photos/experiences/chao-phraya-sunset.jpg') center/cover no-repeat;
+      filter: saturate(1.35) contrast(1.06);
       opacity: 0;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.4s ease;
       z-index: 1;
     }
+    html[data-variant="2"] .v2-cinema-bg { opacity: 1; }
 
-    /* V1: Liquid Chrome Obsidian */
+    /* V1: Obsidian Chrome & Sapphire-Gold Aura */
     html[data-variant="1"] .world-backdrop {
       background:
-        radial-gradient(circle at 50% 22%, rgba(59, 75, 255, 0.24), transparent 55%),
-        radial-gradient(circle at 50% 65%, rgba(255, 178, 30, 0.12), transparent 60%),
-        #020206;
-    }
-    /* V2: Royal Thai Silk & 24K Gold Lacquer */
-    html[data-variant="2"] .world-backdrop {
-      background:
-        radial-gradient(ellipse 75% 55% at 50% 25%, rgba(212, 138, 28, 0.28), transparent 65%),
-        radial-gradient(circle at 22% 35%, rgba(92, 108, 255, 0.16), transparent 50%),
-        linear-gradient(180deg, #090603 0%, #150E06 50%, #080502 100%);
-    }
-    /* V3: VisionOS Spatial Window over Twilight Bangkok */
-    html[data-variant="3"] .v3-skyline-photo {
-      opacity: 1;
-    }
-    html[data-variant="3"] .world-backdrop {
-      background: #060814;
-    }
-    /* V4: Kinetic Brutalist Neo-Siam */
-    html[data-variant="4"] .world-backdrop {
-      background:
-        radial-gradient(circle at 50% 38%, rgba(35, 58, 255, 0.42), transparent 58%),
-        radial-gradient(circle at 80% 20%, rgba(255, 184, 0, 0.22), transparent 45%),
+        radial-gradient(circle at 24% 30%, rgba(68, 86, 255, 0.28), transparent 52%),
+        radial-gradient(circle at 76% 48%, rgba(255, 178, 30, 0.18), transparent 55%),
         #03040C;
     }
-    /* V5: Bioluminescent Chao Phraya River */
+    /* V2: Full-Bleed Sunset Cinema */
+    html[data-variant="2"] .world-backdrop { background: #070918; }
+    /* V3: Royal Thai Silk & 24K Gold Lacquer */
+    html[data-variant="3"] .world-backdrop {
+      background:
+        radial-gradient(ellipse 75% 55% at 50% 22%, rgba(220, 152, 34, 0.26), transparent 65%),
+        linear-gradient(180deg, #090603 0%, #160F06 50%, #070502 100%);
+    }
+    /* V4: Active Theory Electric Cobalt Vortex */
+    html[data-variant="4"] .world-backdrop {
+      background:
+        radial-gradient(circle at 50% 45%, rgba(52, 74, 255, 0.44), transparent 58%),
+        radial-gradient(circle at 50% 45%, rgba(255, 184, 0, 0.16), transparent 36%),
+        #020412;
+    }
+    /* V5: Daylight Pearl & Iridescent Prism Glass (LIGHT MODE!) */
     html[data-variant="5"] .world-backdrop {
       background:
-        radial-gradient(ellipse 85% 50% at 50% 30%, rgba(112, 68, 255, 0.28), transparent 62%),
-        radial-gradient(ellipse 70% 45% at 50% 80%, rgba(38, 185, 215, 0.18), transparent 65%),
-        linear-gradient(180deg, #020510 0%, #060C24 55%, #030716 100%);
+        radial-gradient(circle at 25% 22%, rgba(115, 129, 255, 0.22), transparent 48%),
+        radial-gradient(circle at 75% 26%, rgba(255, 184, 48, 0.24), transparent 48%),
+        radial-gradient(circle at 50% 80%, rgba(165, 120, 255, 0.16), transparent 55%),
+        linear-gradient(180deg, #F7F9FF 0%, #EAEEFF 55%, #F3F5FF 100%);
     }
 
     /* =====================================================================
-       TOP BAR + FLOATING 5-VARIANT SWITCHER PILL
+       TOP NAVIGATION + 5-VARIANT SWITCHER
        ===================================================================== */
     .shell-wrap {
       position: relative;
@@ -107,46 +113,39 @@
       margin: 0 auto;
       padding: 0 24px;
     }
-
     .top-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 12px 0 6px;
+      padding: 12px 0 8px;
     }
-
     .brand-logo {
       display: inline-flex;
       align-items: center;
       gap: 10px;
       text-decoration: none;
-      color: #fff;
+      color: inherit;
       font-family: var(--font-display);
-      font-weight: 800;
-      font-size: 23px;
+      font-weight: 900;
+      font-size: 22px;
       letter-spacing: -0.04em;
     }
-    .brand-logo svg {
-      filter: drop-shadow(0 0 10px rgba(155, 92, 255, 0.75));
-    }
-
     .variant-dock {
       display: inline-flex;
       align-items: center;
       gap: 4px;
       padding: 4px;
       border-radius: 999px;
-      background: rgba(8, 10, 26, 0.78);
+      background: rgba(8, 10, 26, 0.82);
       backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
     }
-
     .v-pill {
       border: none;
       background: transparent;
-      color: rgba(235, 240, 255, 0.72);
+      color: rgba(235, 240, 255, 0.78);
       font-family: var(--font-mono);
       font-size: 11px;
       font-weight: 700;
@@ -154,26 +153,24 @@
       border-radius: 999px;
       cursor: pointer;
       transition: all 0.2s ease;
-      white-space: nowrap;
     }
     .v-pill.is-active {
-      background: linear-gradient(135deg, #FFB21E, #FF8A00);
+      background: linear-gradient(135deg, #FFD470, #FF9800);
       color: #05060F;
-      box-shadow: 0 0 18px rgba(255, 178, 30, 0.55);
+      box-shadow: 0 0 16px rgba(255, 178, 30, 0.6);
     }
-
     .top-right-actions {
       display: flex;
       align-items: center;
       gap: 8px;
     }
     .lang-pill {
-      border: 1px solid rgba(255,255,255,0.22);
-      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(145, 160, 255, 0.4);
+      background: rgba(12, 16, 38, 0.75);
       color: #fff;
       font-size: 11px;
       font-weight: 700;
-      padding: 6px 11px;
+      padding: 6px 12px;
       border-radius: 999px;
       cursor: pointer;
     }
@@ -183,573 +180,814 @@
       border-radius: 999px;
       font-size: 11.5px;
       font-weight: 700;
-      color: #FFF2C2;
-      border: 1px solid rgba(255, 200, 90, 0.5);
-      background: rgba(255, 178, 30, 0.16);
+      color: #05060F;
+      background: linear-gradient(135deg, #FFD470, #FFB21E);
     }
 
-    /* =====================================================================
-       SHARED 3D TORUS SCULPTURE STAGE (ADAPTS PER VARIANT!)
-       ===================================================================== */
-    .hero-master {
-      position: relative;
-      min-height: calc(100vh - 68px);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      padding: 6px 0 24px;
-      perspective: 1600px;
-    }
-
-    /* Giant Background Kinetic Watermark for Variant 4 */
-    .v4-giant-kinetic {
-      display: none;
-      position: absolute;
-      top: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-      font-family: var(--font-display);
-      font-size: clamp(72px, 13.5vw, 188px);
-      font-weight: 900;
-      letter-spacing: -0.05em;
-      line-height: 0.88;
-      white-space: nowrap;
-      color: transparent;
-      -webkit-text-stroke: 1.5px rgba(135, 155, 255, 0.22);
-      pointer-events: none;
-      z-index: 1;
-      text-transform: uppercase;
-    }
-    html[data-variant="4"] .v4-giant-kinetic {
-      display: block;
-    }
-
-    .torus-stage {
-      position: relative;
-      z-index: 10;
-      width: 440px;
-      height: 224px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      user-select: none;
-    }
-    #kring3DTorusCanvas {
-      width: 100%;
-      height: 186px;
-      display: block;
-    }
-
-    .torus-trigger-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 5px 14px;
-      border-radius: 999px;
-      background: rgba(12, 15, 36, 0.72);
-      backdrop-filter: blur(18px);
-      border: 1px solid rgba(255, 215, 120, 0.45);
-      font-size: 11.5px;
-      font-weight: 700;
-      color: #fff;
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
-      margin-top: -8px;
-    }
-    .bump-word {
-      font-family: var(--font-display);
-      font-weight: 800;
-      color: #FFD470;
-    }
-
-    /* =====================================================================
-       THE 5 RADICALLY DIFFERENT FLOATING CARD ARCHITECTURES
-       ===================================================================== */
-    .cards-stage {
-      position: relative;
-      z-index: 12;
-      width: 100%;
-      max-width: 1220px;
-      perspective: 1500px;
-      transform-style: preserve-3d;
-    }
-
-    .k-card {
-      position: relative;
-      overflow: hidden;
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-      transform-style: preserve-3d;
-    }
-    .k-card-img {
-      position: relative;
-      overflow: hidden;
-    }
-    .k-card-img img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      transition: transform 0.6s ease;
-    }
-    .k-card:hover .k-card-img img {
-      transform: scale(1.08);
-    }
-
-    /* ---------------------------------------------------------------------
-       VARIANT 1: 3 TALL VERTICAL 3D GLASS MONOLITH POSTERS (Lusion / Apple)
-       --------------------------------------------------------------------- */
-    html[data-variant="1"] .cards-stage {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 28px;
-      margin: 4px 0 8px;
-    }
-    html[data-variant="1"] .k-card {
-      width: 284px;
-      height: 238px;
-      border-radius: 28px;
-      border: 1px solid rgba(215, 225, 255, 0.28);
-      background: #050714;
-      box-shadow:
-        0 30px 70px rgba(0, 0, 0, 0.85),
-        0 0 36px rgba(85, 108, 255, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.45);
-    }
-    html[data-variant="1"] .k-card:nth-child(1) {
-      transform: perspective(1200px) rotateY(18deg) rotateZ(-2deg) translateZ(10px);
-    }
-    html[data-variant="1"] .k-card:nth-child(2) {
-      transform: perspective(1200px) translateZ(56px) scale(1.04);
-      border-color: rgba(255, 212, 112, 0.65);
-      box-shadow: 0 36px 84px rgba(0, 0, 0, 0.9), 0 0 48px rgba(255, 178, 30, 0.28);
-    }
-    html[data-variant="1"] .k-card:nth-child(3) {
-      transform: perspective(1200px) rotateY(-18deg) rotateZ(2deg) translateZ(10px);
-    }
-    html[data-variant="1"] .k-card-img {
-      position: absolute;
-      inset: 0;
-    }
-    html[data-variant="1"] .k-card-img::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(2, 3, 10, 0.1) 0%, rgba(2, 3, 10, 0.92) 90%);
-    }
-    html[data-variant="1"] .k-card-content {
-      position: absolute;
-      inset: 0;
-      padding: 16px 18px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      z-index: 2;
-    }
-    html[data-variant="1"] .hero-title {
-      background: linear-gradient(180deg, #FFFFFF 0%, #B8C4FF 55%, #7381FF 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    /* ---------------------------------------------------------------------
-       VARIANT 2: ROYAL THAI SILK & 24K GOLD CONCIERGE VIP TICKETS
-       --------------------------------------------------------------------- */
-    html[data-variant="2"] .cards-stage {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      max-width: 1140px;
-      margin: 6px 0 10px;
-    }
-    html[data-variant="2"] .k-card {
-      display: grid;
-      grid-template-columns: 112px 1fr;
-      height: 136px;
-      border-radius: 20px;
-      background: linear-gradient(135deg, rgba(34, 24, 12, 0.88), rgba(16, 11, 5, 0.94));
-      border: 1px solid rgba(255, 198, 92, 0.48);
-      box-shadow: 0 24px 54px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 232, 175, 0.35);
-      transform: perspective(1000px) rotateX(6deg) translateY(0);
-    }
-    html[data-variant="2"] .k-card:nth-child(2) {
-      transform: perspective(1000px) rotateX(6deg) translateY(-10px) translateZ(30px);
-      border-color: #FFD470;
-    }
-    html[data-variant="2"] .k-card-img {
-      height: 100%;
-      border-right: 1px dashed rgba(255, 198, 92, 0.42);
-    }
-    html[data-variant="2"] .k-card-content {
-      padding: 14px 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    html[data-variant="2"] .hero-title {
-      font-family: var(--font-editorial);
-      font-weight: 700;
-      font-style: italic;
-      font-size: clamp(38px, 5vw, 68px);
-      letter-spacing: -0.01em;
-      color: #FFF4D4;
-    }
-
-    /* ---------------------------------------------------------------------
-       VARIANT 3: APPLE VISION-OS SPATIAL GLASS WINDOW OVER TWILIGHT BANGKOK
-       --------------------------------------------------------------------- */
-    html[data-variant="3"] .hero-master {
-      background: rgba(14, 18, 38, 0.42);
-      backdrop-filter: blur(36px) saturate(190%);
-      -webkit-backdrop-filter: blur(36px) saturate(190%);
-      border: 1px solid rgba(255, 255, 255, 0.28);
-      border-radius: 44px;
-      padding: 14px 28px 26px;
-      margin-top: 6px;
-      box-shadow:
-        0 40px 100px rgba(0, 0, 0, 0.78),
-        inset 0 1.5px 0 rgba(255, 255, 255, 0.45);
-    }
-    html[data-variant="3"] .cards-stage {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
-      margin: 6px 0;
-    }
-    html[data-variant="3"] .k-card {
-      border-radius: 26px;
-      padding: 10px;
-      background: rgba(255, 255, 255, 0.09);
-      backdrop-filter: blur(28px);
-      border: 1px solid rgba(255, 255, 255, 0.32);
-      box-shadow: 0 20px 44px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.5);
-    }
-    html[data-variant="3"] .k-card-img {
-      height: 112px;
-      border-radius: 18px;
-      margin-bottom: 10px;
-    }
-    html[data-variant="3"] .k-card-content {
-      padding: 0 6px 4px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    /* ---------------------------------------------------------------------
-       VARIANT 4: KINETIC BRUTALIST NEO-SIAM HOLOGRAPHIC FOIL PACKS
-       --------------------------------------------------------------------- */
-    html[data-variant="4"] .cards-stage {
-      display: flex;
-      justify-content: center;
-      gap: 22px;
-      margin: 4px 0 8px;
-    }
-    html[data-variant="4"] .k-card {
-      width: 300px;
-      border-radius: 16px;
-      background: linear-gradient(135deg, #10174A 0%, #070A24 100%);
-      border: 2px solid #FFB800;
-      box-shadow: 8px 8px 0px #2D42FF, 0 24px 50px rgba(0, 0, 0, 0.8);
-      transform: skewX(-3deg);
-    }
-    html[data-variant="4"] .k-card:nth-child(2) {
-      border-color: #7381FF;
-      box-shadow: 8px 8px 0px #FFB800, 0 28px 60px rgba(0, 0, 0, 0.85);
-      transform: skewX(-3deg) translateY(-10px);
-    }
-    html[data-variant="4"] .k-card-img {
-      height: 116px;
-      border-bottom: 2px solid rgba(255, 184, 0, 0.5);
-    }
-    html[data-variant="4"] .k-card-content {
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    html[data-variant="4"] .hero-title {
-      font-family: var(--font-kinetic);
-      text-transform: uppercase;
-      letter-spacing: -0.04em;
-    }
-
-    /* ---------------------------------------------------------------------
-       VARIANT 5: TEAMLAB BIOLUMINESCENT CHAO PHRAYA & FLOATING LOTUS ORBS
-       --------------------------------------------------------------------- */
-    html[data-variant="5"] .cards-stage {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 26px;
-      margin: 4px 0 8px;
-    }
-    html[data-variant="5"] .k-card {
-      width: 296px;
-      border-radius: 38px;
-      padding: 12px;
-      background: radial-gradient(circle at 50% 0%, rgba(125, 145, 255, 0.28), rgba(8, 14, 38, 0.78));
-      backdrop-filter: blur(24px);
-      border: 1px solid rgba(155, 220, 255, 0.38);
-      box-shadow:
-        0 24px 60px rgba(2, 6, 22, 0.82),
-        0 0 38px rgba(115, 129, 255, 0.28),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
-      animation: lotusBob 5.4s ease-in-out infinite;
-    }
-    html[data-variant="5"] .k-card:nth-child(2) {
-      animation-delay: -1.8s;
-      border-color: rgba(255, 212, 112, 0.55);
-      box-shadow: 0 28px 68px rgba(2, 6, 22, 0.88), 0 0 44px rgba(255, 178, 30, 0.3);
-    }
-    html[data-variant="5"] .k-card:nth-child(3) {
-      animation-delay: -3.4s;
-    }
-    @keyframes lotusBob {
-      0%, 100% { transform: translateY(0px) rotateX(4deg); }
-      50% { transform: translateY(-10px) rotateX(-2deg); }
-    }
-    html[data-variant="5"] .k-card-img {
-      height: 114px;
-      border-radius: 28px;
-      margin-bottom: 10px;
-    }
-    html[data-variant="5"] .k-card-content {
-      padding: 0 8px 4px;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    /* CARD TYPOGRAPHY & BADGES */
-    .k-badge-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-    }
-    .k-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 3px 9px;
-      border-radius: 999px;
-      background: rgba(6, 8, 22, 0.78);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.24);
-      font-family: var(--font-mono);
-      font-size: 9.5px;
-      font-weight: 700;
-      color: #fff;
-    }
-    .k-price {
-      padding: 3px 9px;
-      border-radius: 999px;
-      background: rgba(255, 178, 30, 0.24);
-      border: 1px solid rgba(255, 212, 112, 0.6);
-      font-family: var(--font-mono);
-      font-size: 10px;
-      font-weight: 700;
-      color: #FFF2C2;
-    }
-    .k-title {
-      font-family: var(--font-display);
-      font-size: 14px;
-      font-weight: 800;
-      color: #fff;
-      line-height: 1.2;
-    }
-    .k-sub {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 11.5px;
-      color: rgba(235, 240, 255, 0.82);
-      font-weight: 600;
-    }
-
-    /* =====================================================================
-       EDITORIAL COPY & PRIMARY CTA FOOTER OF HERO
-       ===================================================================== */
-    .hero-bottom {
-      position: relative;
-      z-index: 14;
-      text-align: center;
-      max-width: 820px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
-    .variant-tag-pill {
+    /* Shared Ring Badge & CTA */
+    .ring-badge-pill {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 4px 14px;
+      padding: 5px 14px;
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.07);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      font-family: var(--font-mono);
-      font-size: 10.5px;
+      background: rgba(10, 14, 34, 0.82);
+      border: 1px solid rgba(255, 212, 112, 0.5);
+      font-size: 11px;
       font-weight: 700;
-      color: #FFD470;
-      letter-spacing: 0.05em;
-    }
-    .hero-title {
-      font-family: var(--font-display);
-      font-size: clamp(28px, 3.8vw, 50px);
-      font-weight: 900;
-      line-height: 1.06;
-      letter-spacing: -0.03em;
       color: #fff;
+      margin-top: -6px;
     }
-    .hero-desc {
-      font-size: 14.5px;
-      line-height: 1.5;
-      color: rgba(226, 232, 255, 0.8);
-      max-width: 640px;
-    }
-    .cta-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      margin-top: 2px;
-    }
-    .btn-gold {
+    .gold-txt { color: #FFD470; font-weight: 800; }
+    .cta-primary {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 10px;
-      padding: 13px 28px;
+      padding: 14px 28px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 245, 200, 0.8);
-      background: linear-gradient(135deg, #FFD470 0%, #FFB21E 50%, #FF9000 100%);
+      border: 1px solid rgba(255, 245, 200, 0.85);
+      background: linear-gradient(135deg, #FFE082 0%, #FFB21E 52%, #FF8C00 100%);
       color: #05060F;
       font-family: var(--font-display);
       font-size: 13px;
       font-weight: 800;
       text-decoration: none;
-      box-shadow: 0 14px 36px rgba(255, 178, 30, 0.42);
+      box-shadow: 0 16px 38px rgba(255, 178, 30, 0.42);
     }
 
     /* =====================================================================
-       MOBILE <= 640px: 100% ABOVE THE FOLD (ZERO SCROLL) FOR ALL 5 VARIANTS!
+       V1 CSS: ASYMMETRIC 2-COLUMN 3D TITANIUM DEVICE & ORBITAL SPATIAL CARDS
+       ===================================================================== */
+    .v1-stage {
+      grid-template-columns: 1.05fr 0.95fr;
+      align-items: center;
+      gap: 36px;
+      min-height: calc(100vh - 76px);
+      padding: 12px 0 28px;
+    }
+    .v1-left {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .v1-ring-pod {
+      width: 340px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      cursor: pointer;
+    }
+    .v1-ring-pod .kring-torus-cv {
+      width: 320px;
+      height: 150px;
+      display: block;
+    }
+    .v1-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: rgba(115, 129, 255, 0.14);
+      border: 1px solid rgba(115, 129, 255, 0.4);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #B8C4FF;
+    }
+    .live-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 10px #10B981;
+    }
+    .v1-title {
+      font-family: var(--font-display);
+      font-size: clamp(30px, 3.6vw, 48px);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+    }
+    .v1-title em {
+      font-style: normal;
+      background: linear-gradient(90deg, #98A6FF, #FFD470);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .v1-sub {
+      font-size: 15px;
+      line-height: 1.55;
+      color: rgba(225, 232, 255, 0.82);
+      max-width: 540px;
+    }
+    .v1-radar-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 16px;
+      border-radius: 16px;
+      background: rgba(15, 20, 46, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .radar-tag {
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(115, 129, 255, 0.25);
+      color: #C4CEFF;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .strike-red {
+      color: #FF6B6B;
+      text-decoration: line-through;
+    }
+
+    /* V1 Right 3D Device + Orbiting Spatial Cards */
+    .v1-right {
+      perspective: 1500px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .v1-device-scene {
+      position: relative;
+      width: 520px;
+      height: 520px;
+      transform-style: preserve-3d;
+    }
+    .v1-phone-frame {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 268px;
+      height: 486px;
+      transform: translate(-50%, -50%) rotateY(-16deg) rotateX(6deg);
+      border-radius: 42px;
+      border: 4px solid rgba(190, 205, 255, 0.55);
+      background: #060919;
+      overflow: hidden;
+      box-shadow:
+        28px 36px 80px rgba(0, 0, 0, 0.9),
+        0 0 50px rgba(115, 129, 255, 0.32);
+    }
+    .v1-phone-bg {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.88);
+    }
+    .v1-phone-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(4,6,18,0.35) 0%, transparent 40%, rgba(4,6,18,0.94) 92%);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .v1-notch {
+      align-self: center;
+      padding: 5px 14px;
+      border-radius: 999px;
+      background: rgba(5, 7, 18, 0.88);
+      border: 1px solid rgba(255, 212, 112, 0.55);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      color: #FFD470;
+    }
+    .v1-phone-bottom {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .v1-p-tag { font-family: var(--font-mono); font-size: 10px; color: #6EE7B7; font-weight: 700; }
+    .v1-p-name { font-family: var(--font-display); font-size: 15px; font-weight: 800; }
+    .v1-p-bump {
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(255, 178, 30, 0.24);
+      border: 1px solid #FFD470;
+      font-size: 11px;
+      font-weight: 700;
+      color: #FFF3C4;
+    }
+
+    .v1-orbit-card {
+      position: absolute;
+      width: 218px;
+      border-radius: 20px;
+      padding: 8px;
+      background: rgba(12, 16, 38, 0.86);
+      backdrop-filter: blur(22px);
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.82);
+    }
+    .v1-orbit-card img {
+      width: 100%;
+      height: 88px;
+      object-fit: cover;
+      border-radius: 13px;
+      margin-bottom: 6px;
+    }
+    .orb-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 0 4px 2px;
+    }
+    .orb-pill { font-family: var(--font-mono); font-size: 9px; color: #FFD470; font-weight: 700; }
+    .orb-meta strong { font-family: var(--font-display); font-size: 12px; color: #fff; }
+    .orb-meta em { font-style: normal; font-size: 10.5px; color: #B8C4FF; font-weight: 600; }
+
+    .orb-tl { top: 14px; left: -16px; transform: translateZ(70px) rotateZ(-4deg); }
+    .orb-tr { top: 58px; right: -18px; transform: translateZ(90px) rotateZ(4deg); border-color: #FFD470; }
+    .orb-br { bottom: 22px; right: -8px; transform: translateZ(80px) rotateZ(-2deg); }
+
+    /* =====================================================================
+       V2 CSS: FULL-BLEED BANGKOK CINEMA + APPLE VISION-OS SPATIAL WINDOW
+       ===================================================================== */
+    .v2-stage {
+      min-height: calc(100vh - 76px);
+      align-items: center;
+      justify-content: center;
+      padding: 10px 0 24px;
+    }
+    .v2-glass-window {
+      width: 100%;
+      max-width: 1220px;
+      border-radius: 42px;
+      padding: 24px 32px;
+      background: rgba(12, 16, 34, 0.48);
+      backdrop-filter: blur(38px) saturate(190%);
+      -webkit-backdrop-filter: blur(38px) saturate(190%);
+      border: 1.5px solid rgba(255, 255, 255, 0.36);
+      box-shadow:
+        0 40px 100px rgba(0, 0, 0, 0.78),
+        inset 0 2px 0 rgba(255, 255, 255, 0.55);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .v2-top-row {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      align-items: center;
+      gap: 28px;
+    }
+    .v2-ring-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 28px;
+      padding: 8px 12px 12px;
+    }
+    .v2-ring-box .kring-torus-cv {
+      width: 300px;
+      height: 146px;
+      display: block;
+    }
+    .v2-pill {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #FFE082;
+      margin-bottom: 8px;
+    }
+    .v2-title {
+      font-family: var(--font-display);
+      font-size: clamp(26px, 3.2vw, 42px);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .v2-sub {
+      font-size: 14.5px;
+      line-height: 1.5;
+      color: rgba(240, 244, 255, 0.88);
+    }
+    .v2-cards-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+    .v2-glass-card {
+      border-radius: 26px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.38);
+    }
+    .v2-glass-card.is-featured {
+      background: rgba(255, 200, 90, 0.16);
+      border-color: rgba(255, 220, 130, 0.68);
+      transform: translateY(-6px);
+    }
+    .v2-glass-card img {
+      width: 100%;
+      height: 122px;
+      object-fit: cover;
+      border-radius: 18px;
+      margin-bottom: 8px;
+    }
+    .v2-c-body { padding: 0 6px 4px; display: flex; flex-direction: column; gap: 4px; }
+    .v2-c-top { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10.5px; color: #FFE082; }
+    .v2-c-body h3 { font-family: var(--font-display); font-size: 14px; font-weight: 800; }
+    .v2-c-body p { font-size: 11.5px; color: rgba(235, 240, 255, 0.85); }
+    .v2-footer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .v2-trust-pills {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #FFF4D4;
+    }
+    .v2-trust-pills span {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* =====================================================================
+       V3 CSS: AMAN / CARTIER ROYAL SIAMESE 24K GOLD & OBSIDIAN PRIVATE CLUB
+       ===================================================================== */
+    .v3-stage {
+      min-height: calc(100vh - 76px);
+      align-items: center;
+      justify-content: center;
+      padding: 10px 0 24px;
+    }
+    .v3-luxury-frame {
+      width: 100%;
+      max-width: 1180px;
+      border: 1px solid rgba(255, 204, 102, 0.42);
+      border-radius: 28px;
+      padding: 20px 32px 26px;
+      background: linear-gradient(180deg, rgba(22, 15, 7, 0.86) 0%, rgba(10, 7, 3, 0.94) 100%);
+      box-shadow: 0 36px 90px rgba(0, 0, 0, 0.88), inset 0 0 40px rgba(255, 184, 48, 0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+    }
+    .v3-crest-Area {
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .v3-crest-Area .kring-torus-cv {
+      width: 340px;
+      height: 152px;
+      display: block;
+    }
+    .v3-crest-caption {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      letter-spacing: 0.16em;
+      color: #FFD470;
+      margin-top: -6px;
+    }
+    .v3-serif-title {
+      font-family: var(--font-editorial);
+      font-size: clamp(36px, 4.6vw, 60px);
+      font-weight: 700;
+      font-style: italic;
+      color: #FFF4D8;
+      line-height: 1.04;
+    }
+    .v3-serif-sub {
+      font-size: 13.5px;
+      color: rgba(255, 232, 185, 0.78);
+      letter-spacing: 0.03em;
+    }
+    .v3-tickets-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin: 6px 0;
+    }
+    .v3-boarding-pass {
+      display: grid;
+      grid-template-columns: 98px 1fr 64px;
+      height: 122px;
+      border-radius: 18px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #23180B 0%, #120C05 100%);
+      border: 1px solid rgba(255, 204, 102, 0.48);
+      text-align: left;
+      box-shadow: 0 20px 44px rgba(0, 0, 0, 0.75);
+    }
+    .v3-boarding-pass.is-gold-center {
+      border-color: #FFD470;
+      box-shadow: 0 24px 54px rgba(0, 0, 0, 0.85), 0 0 32px rgba(255, 184, 48, 0.25);
+      transform: translateY(-6px);
+    }
+    .v3-pass-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .v3-pass-main {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-right: 1.5px dashed rgba(255, 204, 102, 0.4);
+    }
+    .v3-pass-kicker { font-family: var(--font-mono); font-size: 9.5px; color: #FFD470; letter-spacing: 0.08em; }
+    .v3-pass-main h3 { font-family: var(--font-editorial); font-size: 19px; font-weight: 700; color: #FFF7E4; line-height: 1.1; }
+    .v3-pass-meta { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10.5px; color: #E2C892; }
+    .v3-pass-meta b { color: #FFD470; }
+    .v3-pass-stub {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 196, 82, 0.1);
+      font-family: var(--font-mono);
+      gap: 4px;
+    }
+    .v3-pass-stub span { font-size: 8.5px; color: #D4B475; }
+    .v3-pass-stub strong { font-size: 12px; color: #FFD470; }
+    .cta-gold-outline {
+      display: inline-block;
+      padding: 13px 32px;
+      border-radius: 999px;
+      border: 1.5px solid #FFD470;
+      background: linear-gradient(135deg, rgba(255, 204, 102, 0.22), rgba(255, 165, 0, 0.1));
+      color: #FFF4D4;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-decoration: none;
+    }
+
+    /* =====================================================================
+       V4 CSS: ACTIVE THEORY 3D ORBITAL CARD VORTEX & KINETIC TYPOGRAPHY
+       ===================================================================== */
+    .v4-stage {
+      position: relative;
+      min-height: calc(100vh - 76px);
+      align-items: center;
+      justify-content: center;
+      padding: 8px 0 20px;
+    }
+    .v4-kinetic-wall {
+      position: absolute;
+      inset: 4% 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      pointer-events: none;
+      font-family: var(--font-display);
+      font-size: clamp(54px, 8.5vw, 128px);
+      font-weight: 900;
+      line-height: 0.9;
+      white-space: nowrap;
+      color: transparent;
+      -webkit-text-stroke: 1.5px rgba(115, 135, 255, 0.18);
+      text-align: center;
+      z-index: 1;
+    }
+    .v4-vortex-grid {
+      position: relative;
+      z-index: 5;
+      width: 100%;
+      max-width: 1260px;
+      display: grid;
+      grid-template-columns: 290px 1fr 290px;
+      grid-template-rows: auto auto;
+      align-items: center;
+      gap: 18px 26px;
+      perspective: 1400px;
+    }
+    .v4-center-core {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+      padding: 18px;
+      border-radius: 36px;
+      background: radial-gradient(circle, rgba(16, 22, 58, 0.85) 0%, rgba(5, 8, 24, 0.65) 100%);
+      border: 1.5px solid rgba(135, 155, 255, 0.42);
+      box-shadow: 0 0 70px rgba(75, 95, 255, 0.35);
+    }
+    .v4-ring-portal { cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+    .v4-ring-portal .kring-torus-cv {
+      width: 360px;
+      height: 175px;
+      display: block;
+    }
+    .v4-core-title {
+      font-family: var(--font-display);
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+    .v4-core-title span { color: #FFB800; }
+    .v4-core-sub { font-size: 13.5px; color: #C5D0FF; max-width: 390px; }
+
+    .v4-foil-card {
+      border-radius: 18px;
+      overflow: hidden;
+      background: #080C26;
+      border: 2px solid #FFB800;
+      box-shadow: 7px 7px 0px #3B4BFF, 0 22px 45px rgba(0, 0, 0, 0.8);
+    }
+    .v4-tl { grid-column: 1; grid-row: 1; transform: rotateY(14deg) rotateZ(-3deg); }
+    .v4-tr { grid-column: 3; grid-row: 1; transform: rotateY(-14deg) rotateZ(3deg); border-color: #7381FF; box-shadow: -7px 7px 0px #FFB800; }
+    .v4-bl { grid-column: 1; grid-row: 2; transform: rotateY(14deg) rotateZ(2deg); border-color: #7381FF; box-shadow: 7px 7px 0px #FFB800; }
+    .v4-br { grid-column: 3; grid-row: 2; transform: rotateY(-14deg) rotateZ(-2deg); }
+
+    .v4-foil-card img { width: 100%; height: 106px; object-fit: cover; display: block; }
+    .v4-card-info { padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; }
+    .v4-tag { font-family: var(--font-mono); font-size: 9.5px; color: #FFD470; font-weight: 700; }
+    .v4-card-info h3 { font-family: var(--font-display); font-size: 13px; font-weight: 800; color: #fff; }
+    .v4-card-info b { font-family: var(--font-mono); font-size: 11px; color: #9BA9FF; }
+
+    /* =====================================================================
+       V5 CSS: DAYLIGHT PEARL & IRIDESCENT PRISM GLASS MODE (LIGHT MODE!)
+       ===================================================================== */
+    .v5-stage {
+      min-height: calc(100vh - 76px);
+      align-items: center;
+      justify-content: center;
+      padding: 8px 0 24px;
+    }
+    .v5-pearl-hero {
+      width: 100%;
+      max-width: 1180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+    }
+    .v5-top-sculpture {
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .v5-top-sculpture .kring-torus-cv {
+      width: 360px;
+      height: 162px;
+      display: block;
+    }
+    .v5-pearl-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(91, 108, 255, 0.35);
+      box-shadow: 0 10px 24px rgba(59, 75, 255, 0.14);
+      font-size: 11px;
+      font-weight: 700;
+      color: #12183A;
+      margin-top: -6px;
+    }
+    .v5-pearl-pill strong { color: #3B4BFF; }
+    .v5-light-title {
+      font-family: var(--font-display);
+      font-size: clamp(30px, 4vw, 52px);
+      font-weight: 900;
+      color: #080C24;
+      letter-spacing: -0.03em;
+      line-height: 1.06;
+    }
+    .v5-light-title em {
+      font-style: normal;
+      background: linear-gradient(90deg, #3B4BFF, #E07A00);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .v5-light-sub {
+      font-size: 15px;
+      color: #364068;
+      max-width: 640px;
+      font-weight: 500;
+    }
+    .v5-bento-row {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+      margin: 6px 0;
+    }
+    .v5-pearl-card {
+      border-radius: 28px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(24px);
+      border: 1.5px solid rgba(255, 255, 255, 0.95);
+      box-shadow:
+        0 22px 50px rgba(32, 45, 115, 0.12),
+        0 4px 12px rgba(32, 45, 115, 0.06);
+      text-align: left;
+    }
+    .v5-pearl-card.is-center-prism {
+      background: linear-gradient(180deg, #FFFFFF 0%, #F4F6FF 100%);
+      border-color: rgba(91, 108, 255, 0.45);
+      transform: translateY(-8px);
+      box-shadow: 0 28px 60px rgba(59, 75, 255, 0.2);
+    }
+    .v5-pearl-card img {
+      width: 100%;
+      height: 124px;
+      object-fit: cover;
+      border-radius: 20px;
+      margin-bottom: 10px;
+    }
+    .v5-card-body { padding: 0 6px 4px; display: flex; flex-direction: column; gap: 4px; }
+    .v5-badge-line { display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 10.5px; }
+    .v5-b-blue { padding: 3px 8px; border-radius: 999px; background: rgba(59, 75, 255, 0.12); color: #2B3BFF; font-weight: 700; }
+    .v5-b-gold { padding: 3px 8px; border-radius: 999px; background: rgba(255, 168, 18, 0.2); color: #B85D00; font-weight: 700; }
+    .v5-badge-line b { color: #080C24; font-size: 12px; }
+    .v5-card-body h3 { font-family: var(--font-display); font-size: 14.5px; font-weight: 800; color: #080C24; }
+    .v5-card-body p { font-size: 12px; color: #4A5578; font-weight: 600; }
+
+    .v5-btn-royal {
+      display: inline-flex;
+      align-items: center;
+      padding: 14px 32px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #2B3BFF 0%, #5B6CFF 100%);
+      color: #FFFFFF;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+      box-shadow: 0 16px 36px rgba(43, 59, 255, 0.32);
+    }
+
+    /* =====================================================================
+       MOBILE <= 640px: 100% ABOVE THE FOLD (ZERO SCROLL) + DISTINCT LOOKS!
        ===================================================================== */
     @media (max-width: 640px) {
-      .shell-wrap { padding: 0 12px; }
-      .top-bar { padding: 6px 0 2px; }
-      .brand-logo { font-size: 19px; }
+      .shell-wrap { padding: 0 10px; }
+      .top-bar { padding: 6px 0 4px; gap: 6px; }
+      .brand-logo { font-size: 18px; }
       .partner-top-btn { display: none; }
-      .v-pill { padding: 4px 7px; font-size: 9.5px; }
+      .v-pill { padding: 4px 7px; font-size: 9.2px; }
+      .lang-pill { padding: 4px 8px; font-size: 9.5px; }
 
-      .hero-master {
-        min-height: auto;
-        padding: 2px 0 14px;
-        gap: 6px;
+      .kring-torus-cv {
+        width: 240px !important;
+        height: 112px !important;
       }
-      html[data-variant="3"] .hero-master {
-        padding: 8px 10px 14px;
-        border-radius: 28px;
-      }
-
-      /* 1. 3D Torus Sculpture right at top (top ~ 48px, bottom ~ 208px) */
-      .torus-stage {
-        width: 100%;
-        height: 156px;
-      }
-      #kring3DTorusCanvas {
-        height: 132px;
-      }
-      .torus-trigger-pill {
-        padding: 3px 10px;
-        font-size: 10px;
+      .ring-badge-pill, .v5-pearl-pill {
+        font-size: 9.5px !important;
+        padding: 3px 10px !important;
       }
 
-      /* 2. Floating 3D Cards Strip (top ~ 214px, bottom ~ 372px) */
-      html[data-variant="1"] .cards-stage,
-      html[data-variant="2"] .cards-stage,
-      html[data-variant="3"] .cards-stage,
-      html[data-variant="4"] .cards-stage,
-      html[data-variant="5"] .cards-stage {
-        display: grid !important;
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        gap: 7px !important;
-        margin: 2px 0 !important;
-      }
-
-      html[data-variant="1"] .k-card,
-      html[data-variant="2"] .k-card,
-      html[data-variant="3"] .k-card,
-      html[data-variant="4"] .k-card,
-      html[data-variant="5"] .k-card {
-        width: 100% !important;
-        height: 146px !important;
+      /* V1 Mobile: Compact Asymmetric Stack + 3 Orbiting Mini Cards */
+      html[data-variant="1"] .v1-stage {
         display: flex !important;
         flex-direction: column !important;
-        padding: 6px !important;
-        border-radius: 16px !important;
+        gap: 8px !important;
+        padding: 2px 0 10px !important;
+        min-height: auto !important;
       }
-      .k-card-img {
-        height: 68px !important;
-        border-radius: 11px !important;
-        margin-bottom: 4px !important;
-        position: relative !important;
-        border-right: none !important;
-      }
-      .k-card-content {
-        position: relative !important;
-        padding: 0 2px !important;
-      }
-      .k-chip, .k-price {
-        font-size: 7.5px !important;
-        padding: 1px 5px !important;
-      }
-      .k-title {
-        font-size: 9.2px !important;
-        line-height: 1.15 !important;
-        margin-top: 2px;
-      }
-      .k-sub {
-        font-size: 8px !important;
-      }
-
-      /* 3. Headline + CTA fit inside 390x660 (bottom <= 635px) */
-      .hero-bottom {
+      .v1-left { align-items: center; text-align: center; gap: 6px; }
+      .v1-ring-pod { width: 100%; align-items: center; }
+      .v1-eyebrow { font-size: 8.5px; padding: 3px 8px; }
+      .v1-title { font-size: 20px; }
+      .v1-sub { font-size: 11px; line-height: 1.3; }
+      .v1-radar-bar { font-size: 10px; padding: 5px 10px; }
+      .v1-device-scene {
+        width: 100%;
+        height: 162px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
         gap: 6px;
       }
-      .variant-tag-pill {
-        font-size: 8.5px;
-        padding: 3px 9px;
+      .v1-phone-frame { display: none; }
+      .v1-orbit-card {
+        position: relative !important;
+        inset: auto !important;
+        width: 100% !important;
+        transform: none !important;
+        padding: 5px !important;
+        border-radius: 14px !important;
       }
-      .hero-title {
-        font-size: 22px !important;
-        line-height: 1.08 !important;
+      .v1-orbit-card img { height: 64px !important; margin-bottom: 4px !important; }
+      .orb-pill { font-size: 7.5px !important; }
+      .orb-meta strong { font-size: 9.2px !important; line-height: 1.15; }
+      .orb-meta em { font-size: 8px !important; }
+
+      /* V2 Mobile: Frosted VisionOS Glass Window over Sunset River */
+      .v2-stage { min-height: auto; padding: 4px 0 10px; }
+      .v2-glass-window { padding: 10px 12px; border-radius: 26px; gap: 8px; }
+      .v2-top-row { grid-template-columns: 1fr; gap: 6px; text-align: center; }
+      .v2-ring-box { padding: 4px; border-radius: 18px; }
+      .v2-pill { font-size: 8.5px; margin-bottom: 3px; }
+      .v2-title { font-size: 19px; margin-bottom: 3px; }
+      .v2-sub { font-size: 11px; line-height: 1.3; }
+      .v2-cards-strip { gap: 6px; }
+      .v2-glass-card { padding: 5px; border-radius: 14px; }
+      .v2-glass-card img { height: 60px; border-radius: 10px; margin-bottom: 4px; }
+      .v2-c-top { font-size: 7.5px; }
+      .v2-c-body h3 { font-size: 9px; line-height: 1.15; }
+      .v2-c-body p { font-size: 7.8px; }
+      .v2-trust-pills { display: none; }
+      .v2-footer-bar { justify-content: center; padding-top: 4px; }
+
+      /* V3 Mobile: Gold Luxury Frame + 3 Stacked Horizontal VIP Boarding Passes */
+      .v3-stage { min-height: auto; padding: 4px 0 10px; }
+      .v3-luxury-frame { padding: 10px 12px; border-radius: 22px; gap: 6px; }
+      .v3-crest-caption { font-size: 8px; }
+      .v3-serif-title { font-size: 22px; }
+      .v3-serif-sub { font-size: 10px; }
+      .v3-tickets-grid { grid-template-columns: 1fr; gap: 6px; }
+      .v3-boarding-pass {
+        grid-template-columns: 64px 1fr 48px;
+        height: 56px;
+        border-radius: 12px;
       }
-      .hero-desc {
-        font-size: 11.5px;
-        line-height: 1.35;
+      .v3-boarding-pass.is-gold-center { transform: none; }
+      .v3-pass-main { padding: 5px 8px; }
+      .v3-pass-kicker { font-size: 7.5px; }
+      .v3-pass-main h3 { font-size: 12px; }
+      .v3-pass-meta { font-size: 8.5px; }
+      .v3-pass-stub span { font-size: 7px; }
+      .v3-pass-stub strong { font-size: 9.5px; }
+      .cta-gold-outline { padding: 10px 16px; font-size: 10px; width: 100%; }
+
+      /* V4 Mobile: Center Portal + 2x2 Orbital Holographic Grid */
+      .v4-stage { min-height: auto; padding: 2px 0 10px; }
+      .v4-vortex-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
       }
-      .btn-gold {
+      .v4-center-core { order: -1; padding: 8px 10px; border-radius: 22px; gap: 5px; width: 100%; }
+      .v4-core-title { font-size: 21px; }
+      .v4-core-sub { font-size: 10.5px; }
+      .v4-foil-card {
+        transform: none !important;
+        display: grid;
+        grid-template-columns: 72px 1fr;
+        align-items: center;
+        height: 52px;
         width: 100%;
-        justify-content: center;
-        padding: 11px 16px;
-        font-size: 12px;
+        box-shadow: 4px 4px 0px #3B4BFF;
       }
+      .v4-foil-card img { height: 52px; }
+      .v4-card-info { padding: 4px 8px; }
+      .v4-tag { font-size: 7.5px; }
+      .v4-card-info h3 { font-size: 10.5px; }
+      .v4-card-info b { font-size: 8.5px; }
+
+      /* V5 Mobile: Daylight Pearl & Iridescent Cards */
+      .v5-stage { min-height: auto; padding: 2px 0 10px; }
+      .v5-pearl-hero { gap: 6px; }
+      .v5-light-title { font-size: 21px; }
+      .v5-light-sub { font-size: 11px; line-height: 1.3; }
+      .v5-bento-row { gap: 6px; }
+      .v5-pearl-card { padding: 6px; border-radius: 16px; }
+      .v5-pearl-card.is-center-prism { transform: none; }
+      .v5-pearl-card img { height: 64px; border-radius: 11px; margin-bottom: 4px; }
+      .v5-badge-line { font-size: 7.5px; }
+      .v5-b-blue, .v5-b-gold { padding: 1px 4px; font-size: 7px; }
+      .v5-badge-line b { font-size: 8.5px; }
+      .v5-card-body h3 { font-size: 9.2px; line-height: 1.15; }
+      .v5-card-body p { font-size: 7.8px; }
+      .v5-btn-royal, .cta-primary { width: 100%; padding: 10px 16px; font-size: 11.5px; }
     }
   </style>
 </head>
 <body>
-  <!-- WORLD BACKDROP + DYNAMIC 3D WORLD CANVAS -->
   <div class="world-backdrop" aria-hidden="true">
-    <div class="v3-skyline-photo"></div>
+    <div class="v2-cinema-bg"></div>
     <canvas id="kringWorldCanvas"></canvas>
   </div>
 
   <div class="shell-wrap">
-    <!-- TOP BAR WITH INSTANT V1..V5 SWITCHER -->
     <header class="top-bar">
       <a href="#top" class="brand-logo" onclick="window.triggerVariantBump(true); return false;">
         <svg viewBox="0 0 34 20" width="28" height="17" aria-hidden="true">
@@ -761,11 +999,11 @@
       </a>
 
       <div class="variant-dock" role="tablist" aria-label="Choose 2026 Visual Variant">
-        <button type="button" class="v-pill is-active" data-set-v="1">V1 · Chrome</button>
-        <button type="button" class="v-pill" data-set-v="2">V2 · Silk Gold</button>
-        <button type="button" class="v-pill" data-set-v="3">V3 · VisionOS</button>
-        <button type="button" class="v-pill" data-set-v="4">V4 · Kinetic</button>
-        <button type="button" class="v-pill" data-set-v="5">V5 · Lotus River</button>
+        <button type="button" class="v-pill is-active" data-set-v="1">V1 · 3D Split</button>
+        <button type="button" class="v-pill" data-set-v="2">V2 · Cinema Glass</button>
+        <button type="button" class="v-pill" data-set-v="3">V3 · 24K Gold</button>
+        <button type="button" class="v-pill" data-set-v="4">V4 · 3D Vortex</button>
+        <button type="button" class="v-pill" data-set-v="5">V5 · Pearl Light</button>
       </div>
 
       <div class="top-right-actions">
@@ -774,173 +1012,391 @@
       </div>
     </header>
 
-    <!-- MAIN 3D SPATIAL HERO -->
-    <main class="hero-master" id="top">
-      <div class="v4-giant-kinetic" aria-hidden="true">KRING! · กริ๊ง!</div>
-
-      <!-- 1. TRUE 3D INTERLOCKING TORUS SCULPTURE STAGE -->
-      <div class="torus-stage" onclick="window.triggerVariantBump(true)" role="button" tabindex="0" aria-label="Tap to trigger 3D Torus Bump">
-        <canvas id="kring3DTorusCanvas"></canvas>
-        <div class="torus-trigger-pill">
-          <span>🔔</span>
-          <span class="bump-word" id="bumpStatusWord">กริ๊ง! · KRING!</span>
-          <span style="opacity:0.75" data-i18n-en>Tap 3D Sculpture</span>
-          <span style="opacity:0.75" data-i18n-th lang="th">แตะวงแหวน 3 มิติ</span>
-        </div>
-      </div>
-
-      <!-- 2. FLOATING 3D SPATIAL CARDS (MORPHS ACROSS V1..V5!) -->
-      <div class="cards-stage">
-        <!-- Card 1 -->
-        <article class="k-card">
-          <div class="k-card-img">
-            <img src="/photos/experiences/chao-phraya-sunset.jpg" alt="Chao Phraya Sunset Walk" />
+    <main id="top">
+      
+    <!-- ===================================================================
+         VARIANT 1: ASYMMETRIC 3D SPATIAL SPLIT + 3D TITANIUM PHONE & ORBITING CARDS
+         =================================================================== -->
+    <section class="v-stage v1-stage" data-stage="1">
+      <div class="v1-left">
+        <div class="v1-ring-pod" onclick="window.triggerVariantBump(true)" role="button" tabindex="0">
+          <canvas class="kring-torus-cv"></canvas>
+          <div class="ring-badge-pill">
+            <span>🔔</span>
+            <span class="gold-txt">กริ๊ง! · KRING!</span>
+            <span data-i18n-en>Tap 3D Rings</span>
+            <span data-i18n-th lang="th">แตะวงแหวน 3 มิติ</span>
           </div>
-          <div class="k-card-content">
-            <div class="k-badge-row">
-              <span class="k-chip">🟢 PUBLIC VENUE</span>
-              <span class="k-price">฿1,200</span>
-            </div>
-            <div>
-              <h3 class="k-title">
-                <span data-i18n-en>Chao Phraya Sunset</span>
-                <span data-i18n-th lang="th">พระอาทิตย์ตกเจ้าพระยา</span>
-              </h3>
-              <div class="k-sub">
-                <span data-i18n-en>✓ Verified Local</span>
-                <span data-i18n-th lang="th">✓ โลคอลตัวจริง</span>
-                <span style="color:#2EE59D">3 hrs</span>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <!-- Card 2 -->
-        <article class="k-card">
-          <div class="k-card-img">
-            <img src="/photos/experiences/wat-arun-temple.jpg" alt="Two-Phone Kring Bump Check-In" />
-          </div>
-          <div class="k-card-content">
-            <div class="k-badge-row">
-              <span class="k-chip">🔔 BUMP ESCROW</span>
-              <span class="k-price" style="color:#2EE59D;border-color:#2EE59D">100% Safe</span>
-            </div>
-            <div>
-              <h3 class="k-title">
-                <span data-i18n-en>Two-Phone กริ๊ง! Bump</span>
-                <span data-i18n-th lang="th">แตะกริ๊ง! เมื่อเจอกัน</span>
-              </h3>
-              <div class="k-sub">
-                <span data-i18n-en>Instant Release</span>
-                <span data-i18n-th lang="th">โอนเมื่อพบกัน</span>
-                <span style="color:#FFD470">0% No-Show</span>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <!-- Card 3 -->
-        <article class="k-card">
-          <div class="k-card-img">
-            <img src="/photos/experiences/yaowarat-food.jpg" alt="Kring Price Street Intelligence" />
-          </div>
-          <div class="k-card-content">
-            <div class="k-badge-row">
-              <span class="k-chip">📉 KRING PRICE</span>
-              <span class="k-price">+15k Coins</span>
-            </div>
-            <div>
-              <h3 class="k-title">
-                <span data-i18n-en>BKK → Sukhumvit VIP</span>
-                <span data-i18n-th lang="th">รถสนามบิน → สุขุมวิท</span>
-              </h3>
-              <div class="k-sub">
-                <span><s style="color:#FF5478">฿1,500</s> <strong style="color:#2EE59D">฿665</strong></span>
-                <span style="color:#C8D0FF">SAVE 55%</span>
-              </div>
-            </div>
-          </div>
-        </article>
-      </div>
-
-      <!-- 3. EDITORIAL HEADLINE & CTA -->
-      <div class="hero-bottom">
-        <div class="variant-tag-pill" id="variantSubtitlePill">
-          VARIANT 01 · SIAM LIQUID CHROME &amp; VERTICAL 3D MONOLITHS
         </div>
 
-        <h1 class="hero-title">
-          <span data-i18n-en>See Thailand with a verified local. Meet with a Kring!</span>
-          <span data-i18n-th lang="th">เที่ยวไทยกับโลคอลตัวจริง เจอกันเมื่อแตะ กริ๊ง!</span>
+        <div class="v1-eyebrow">
+          <span class="live-dot"></span>
+          <span data-i18n-en>V1 · ASYMMETRIC 3D TITANIUM DEVICE &amp; ORBITAL SPATIAL CARDS</span>
+          <span data-i18n-th lang="th">V1 · ดีไซน์ 3 มิติแยกซ้ายขวา พร้อมสมาร์ทโฟนและการ์ดลอยตัว</span>
+        </div>
+
+        <h1 class="v1-title">
+          <span data-i18n-en>See Thailand with a verified local.<br/><em>Meet with a Kring!</em></span>
+          <span data-i18n-th lang="th">เที่ยวไทยกับโลคอลตัวจริง<br/><em>เจอกันเมื่อแตะ กริ๊ง!</em></span>
         </h1>
 
-        <p class="hero-desc">
-          <span data-i18n-en>
-            100% public-venue cultural &amp; social experiences across Bangkok &amp; Pattaya — protected by two-phone bump escrow and real-time <strong>Kring Price</strong> street intelligence.
-          </span>
-          <span data-i18n-th lang="th">
-            ประสบการณ์ท่องเที่ยวในสถานที่สาธารณะ 100% ทั่วกรุงเทพฯ และพัทยา มั่นใจด้วยการแตะโทรศัพท์ <strong>กริ๊ง!</strong> และเช็ก <strong>ราคากริ๊ง</strong> เรียลไทม์
-          </span>
+        <p class="v1-sub">
+          <span data-i18n-en>100% public venues. Funds held safely in escrow and released the exact millisecond both phones bump on arrival.</span>
+          <span data-i18n-th lang="th">นัดพบในสถานที่สาธารณะ 100% พักเงินปลอดภัยและโอนทันทีที่แตะโทรศัพท์ชนกัน</span>
         </p>
 
-        <div class="cta-row">
-          <a href="mailto:partnerships@kringapp.com" class="btn-gold" id="primaryCtaBtn">
-            <span data-i18n-en>Request Founding Partner Access →</span>
-            <span data-i18n-th lang="th">ขอรับสิทธิ์พาร์ทเนอร์ก่อตั้ง →</span>
+        <div class="v1-radar-bar">
+          <span class="radar-tag">KRING PRICE</span>
+          <span class="strike-red">Street ฿1,500</span>
+          <span>→</span>
+          <strong class="gold-txt">฿665 SUV + 15,000 Coins</strong>
+        </div>
+
+        <div class="v1-cta-row">
+          <a href="#partnerModal" class="cta-primary" onclick="window.openPartnerModal(); return false;">
+            <span data-i18n-en>Request Partner &amp; VIP Access →</span>
+            <span data-i18n-th lang="th">ขอสิทธิ์พาร์ทเนอร์และ VIP →</span>
           </a>
         </div>
       </div>
+
+      <div class="v1-right">
+        <div class="v1-device-scene">
+          <!-- Central 3D Titanium Phone -->
+          <div class="v1-phone-frame">
+            <img src="/photos/experiences/wat-arun-temple.jpg" alt="Wat Arun Sunset" class="v1-phone-bg" />
+            <div class="v1-phone-overlay">
+              <div class="v1-notch">🔔 กริ๊ง! ESCROW ACTIVE</div>
+              <div class="v1-phone-bottom">
+                <div class="v1-p-tag">✓ VERIFIED LOCAL · BANGKOK</div>
+                <div class="v1-p-name">Nong Kwan · Wat Arun Golden Hour</div>
+                <div class="v1-p-bump">🔔 Bump Phones at Pier → Release ฿1,200</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3 Orbiting 3D Spatial Cards Popping Out in Z-Space -->
+          <article class="v1-orbit-card orb-tl">
+            <img src="/photos/experiences/chao-phraya-sunset.jpg" alt="River Walk" />
+            <div class="orb-meta">
+              <span class="orb-pill">★ 4.9 · HELD SAFELY</span>
+              <strong>Chao Phraya Sunset Walk</strong>
+              <em>฿1,200 · Local Time Only</em>
+            </div>
+          </article>
+
+          <article class="v1-orbit-card orb-tr">
+            <img src="/photos/experiences/yaowarat-food.jpg" alt="Yaowarat Food" />
+            <div class="orb-meta">
+              <span class="orb-pill">🔔 TWO-PHONE BUMP</span>
+              <strong>Yaowarat Michelin Wok</strong>
+              <em>฿950 · 100% Public Spot</em>
+            </div>
+          </article>
+
+          <article class="v1-orbit-card orb-br">
+            <img src="/photos/experiences/muay-thai.jpg" alt="Muay Thai" />
+            <div class="orb-meta">
+              <span class="orb-pill">⚡ KRING PRICE PASS</span>
+              <strong>Rajadamnern Club Seat</strong>
+              <em>฿1,720 + 25,000 Coins</em>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VARIANT 2: FULL-BLEED BANGKOK GOLDEN-HOUR CINEMA + VISION-OS GLASS STAGE
+         =================================================================== -->
+    <section class="v-stage v2-stage" data-stage="2">
+      <div class="v2-glass-window">
+        <div class="v2-top-row">
+          <div class="v2-ring-box" onclick="window.triggerVariantBump(true)">
+            <canvas class="kring-torus-cv"></canvas>
+            <div class="ring-badge-pill">🔔 กริ๊ง! · VisionOS Spatial Glass · Tap to Bump</div>
+          </div>
+          <div class="v2-copy-block">
+            <div class="v2-pill">V2 · FULL-BLEED BANGKOK CINEMA + APPLE VISION-OS SPATIAL WINDOW</div>
+            <h1 class="v2-title">
+              <span data-i18n-en>Bangkok &amp; Pattaya, Through Frosted Spatial Glass.</span>
+              <span data-i18n-th lang="th">สัมผัสกรุงเทพฯ และพัทยา ผ่านมิติกระจกอัจฉริยะ กริ๊ง!</span>
+            </h1>
+            <p class="v2-sub">
+              <span data-i18n-en>Book verified local insiders for golden-hour river walks, hidden cafés &amp; licensed spas. Released only when your phones bump.</span>
+              <span data-i18n-th lang="th">จองโลคอลตัวจริงเดินเล่นริมน้ำ คาเฟ่ลับ และสปาชั้นนำ โอนเงินเมื่อแตะโทรศัพท์ชนกันเท่านั้น</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="v2-cards-strip">
+          <article class="v2-glass-card">
+            <img src="/photos/experiences/canal-longtail.jpg" alt="Thonburi Klongs" />
+            <div class="v2-c-body">
+              <div class="v2-c-top"><span>🚤 THONBURI KLONGS</span><b>฿1,100</b></div>
+              <h3>Hidden Longtail &amp; Artist House</h3>
+              <p>✓ Ploy · Verified Local · 3h</p>
+            </div>
+          </article>
+          <article class="v2-glass-card is-featured">
+            <img src="/photos/experiences/thai-spa.jpg" alt="Ari Herbal Spa" />
+            <div class="v2-c-body">
+              <div class="v2-c-top"><span>🌿 LICENSED SPA</span><b>฿385 + 10K Coins</b></div>
+              <h3>Ari Botanical Spa &amp; Tea Walk</h3>
+              <p>🔔 Instant Release on Bump</p>
+            </div>
+          </article>
+          <article class="v2-glass-card">
+            <img src="/photos/experiences/cafe-desserts.jpg" alt="Song Wat Roasters" />
+            <div class="v2-c-body">
+              <div class="v2-c-top"><span>☕ SONG WAT ALLEY</span><b>฿850</b></div>
+              <h3>Heritage Roasters &amp; Craft Sweet</h3>
+              <p>✓ Beam · Verified Local · 2.5h</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="v2-footer-bar">
+          <div class="v2-trust-pills">
+            <span>🛡️ 100% Public Venues</span>
+            <span>⚡ Two-Phone Bump Escrow</span>
+            <span>🏷️ Zero Tourist Rip-Offs</span>
+          </div>
+          <a href="#partnerModal" class="cta-primary" onclick="window.openPartnerModal(); return false;">
+            <span data-i18n-en>Request Partner &amp; Agency Access →</span>
+            <span data-i18n-th lang="th">ขอสิทธิ์พาร์ทเนอร์และเอเจนซี่ →</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VARIANT 3: AMAN / CARTIER ROYAL SIAMESE 24K GOLD & OBSIDIAN PRIVATE CLUB
+         =================================================================== -->
+    <section class="v-stage v3-stage" data-stage="3">
+      <div class="v3-luxury-frame">
+        <div class="v3-crest-Area" onclick="window.triggerVariantBump(true)">
+          <canvas class="kring-torus-cv"></canvas>
+          <div class="v3-crest-caption">✦ MAISON KRING · BANGKOK &amp; PATTAYA · TAP 24K RINGS ✦</div>
+        </div>
+
+        <h1 class="v3-serif-title">
+          <span data-i18n-en>“The Private Art of Experiencing Thailand.”</span>
+          <span data-i18n-th lang="th">“ศิลปะแห่งการท่องเที่ยวไทยระดับพรีเมียม กับโลคอลตัวจริง”</span>
+        </h1>
+        <p class="v3-serif-sub">
+          <span data-i18n-en>V3 · Haute-Concierge Boarding Passes · 24K Gold &amp; Thai Silk Aesthetic · Two-Phone Escrow Release</span>
+          <span data-i18n-th lang="th">V3 · บัตรผ่านคอนเซียร์จสีทอง 24K · พักเงินปลอดภัย โอนเมื่อแตะ กริ๊ง!</span>
+        </p>
+
+        <div class="v3-tickets-grid">
+          <article class="v3-boarding-pass">
+            <div class="v3-pass-photo"><img src="/photos/experiences/talat-noi-oldtown.jpg" alt="Talat Noi" /></div>
+            <div class="v3-pass-main">
+              <div class="v3-pass-kicker">BOARDING PASS · BKK-01</div>
+              <h3>Talat Noi Heritage &amp; Jazz Courtyard</h3>
+              <div class="v3-pass-meta"><span>HOST: KHUN FAH ✓</span><b>฿1,200</b></div>
+            </div>
+            <div class="v3-pass-stub"><span>BUMP</span><strong>กริ๊ง!</strong></div>
+          </article>
+
+          <article class="v3-boarding-pass is-gold-center">
+            <div class="v3-pass-photo"><img src="/photos/experiences/grand-palace.jpg" alt="Rattanakosin" /></div>
+            <div class="v3-pass-main">
+              <div class="v3-pass-kicker">ROYAL INSIDER · BKK-02</div>
+              <h3>Rattanakosin Twilight &amp; River Pavilion</h3>
+              <div class="v3-pass-meta"><span>HOST: KHUN PIM ✓</span><b>฿1,450</b></div>
+            </div>
+            <div class="v3-pass-stub"><span>ESCROW</span><strong>100%</strong></div>
+          </article>
+
+          <article class="v3-boarding-pass">
+            <div class="v3-pass-photo"><img src="/photos/experiences/koh-larn-beach.jpg" alt="Koh Larn" /></div>
+            <div class="v3-pass-main">
+              <div class="v3-pass-kicker">COASTAL VIP · PTY-03</div>
+              <h3>Koh Larn Coral Cove &amp; Sunset Pier</h3>
+              <div class="v3-pass-meta"><span>HOST: KHUN MAY ✓</span><b>฿1,500</b></div>
+            </div>
+            <div class="v3-pass-stub"><span>COINS</span><strong>+30K</strong></div>
+          </article>
+        </div>
+
+        <div class="v3-cta-wrap">
+          <a href="#partnerModal" class="cta-gold-outline" onclick="window.openPartnerModal(); return false;">
+            <span data-i18n-en>✦ ENTER FOUNDING PARTNER &amp; VIP REGISTRY ✦</span>
+            <span data-i18n-th lang="th">✦ ลงทะเบียนพาร์ทเนอร์และสมาชิก VIP รุ่นก่อตั้ง ✦</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VARIANT 4: ACTIVE THEORY 3D ORBITAL CARD VORTEX & KINETIC TYPOGRAPHY
+         =================================================================== -->
+    <section class="v-stage v4-stage" data-stage="4">
+      <div class="v4-kinetic-wall" aria-hidden="true">
+        <div>KRING! · กริ๊ง! · BANGKOK · PATTAYA</div>
+        <div>NO RIP-OFFS · NO NO-SHOWS · BUMP TO RELEASE</div>
+      </div>
+
+      <div class="v4-vortex-grid">
+        <!-- Corner 1: Top Left -->
+        <article class="v4-foil-card v4-tl">
+          <img src="/photos/experiences/night-market.jpg" alt="Night Market" />
+          <div class="v4-card-info">
+            <span class="v4-tag">⚡ NIGHT PULSE · 01</span>
+            <h3>Jodd Fairs &amp; Neon Street Bites</h3>
+            <b>฿850 · Verified Local</b>
+          </div>
+        </article>
+
+        <!-- Corner 2: Top Right -->
+        <article class="v4-foil-card v4-tr">
+          <img src="/photos/experiences/mookata-bbq.jpg" alt="Mookata" />
+          <div class="v4-card-info">
+            <span class="v4-tag">🔥 LOCAL FAVORITE · 02</span>
+            <h3>Banthat Thong Wok &amp; Mookata</h3>
+            <b>฿950 · Held Until Bump</b>
+          </div>
+        </article>
+
+        <!-- CENTER 3D PORTAL CORE -->
+        <div class="v4-center-core">
+          <div class="v4-ring-portal" onclick="window.triggerVariantBump(true)">
+            <canvas class="kring-torus-cv"></canvas>
+            <div class="ring-badge-pill">🔔 V4 · 3D ORBITAL VORTEX · TAP RINGS</div>
+          </div>
+          <h1 class="v4-core-title">MEET. <span>KRING!</span> GO.</h1>
+          <p class="v4-core-sub">Two phones bump at the venue → 100% escrow released instantly.</p>
+          <a href="#partnerModal" class="cta-primary" onclick="window.openPartnerModal(); return false;">
+            <span>LAUNCH PARTNER ACCESS ↗</span>
+          </a>
+        </div>
+
+        <!-- Corner 3: Bottom Left -->
+        <article class="v4-foil-card v4-bl">
+          <img src="/photos/experiences/seafood-market.jpg" alt="Pattaya Pier" />
+          <div class="v4-card-info">
+            <span class="v4-tag">🌊 PATTAYA SEA · 03</span>
+            <h3>Naklua Fisherman Market Walk</h3>
+            <b>฿1,100 · Public Venue</b>
+          </div>
+        </article>
+
+        <!-- Corner 4: Bottom Right -->
+        <article class="v4-foil-card v4-br">
+          <img src="/photos/experiences/flower-market.jpg" alt="Flower Market" />
+          <div class="v4-card-info">
+            <span class="v4-tag">🌸 MIDNIGHT WALK · 04</span>
+            <h3>Pak Khlong Orchid &amp; Bridge Walk</h3>
+            <b>฿800 + 15,000 Coins</b>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VARIANT 5: DAYLIGHT PEARL & IRIDESCENT PRISM GLASS MODE (APPLE LIGHT LUXURY)
+         =================================================================== -->
+    <section class="v-stage v5-stage" data-stage="5">
+      <div class="v5-pearl-hero">
+        <div class="v5-top-sculpture" onclick="window.triggerVariantBump(true)">
+          <canvas class="kring-torus-cv"></canvas>
+          <div class="v5-pearl-pill">
+            <span>🔔</span>
+            <strong>กริ๊ง! · KRING!</strong>
+            <span>V5 · Daylight Pearl &amp; Iridescent Prism Glass</span>
+          </div>
+        </div>
+
+        <h1 class="v5-light-title">
+          <span data-i18n-en>Pure Daylight Trust. <em>Real Thailand Locals.</em></span>
+          <span data-i18n-th lang="th">โปร่งใส ปลอดภัย 100% <em>เที่ยวไทยกับโลคอลตัวจริง</em></span>
+        </h1>
+        <p class="v5-light-sub">
+          <span data-i18n-en>Verified locals, fair Kring Prices, and instant two-phone bump check-in at 100% public spots across Bangkok &amp; Pattaya.</span>
+          <span data-i18n-th lang="th">โลคอลยืนยันตัวตน ราคากริ๊งสุดคุ้ม และเช็คอินแตะโทรศัพท์ชนกันในสถานที่สาธารณะ 100%</span>
+        </p>
+
+        <div class="v5-bento-row">
+          <article class="v5-pearl-card">
+            <img src="/photos/experiences/cooking-class.jpg" alt="Thai Cooking" />
+            <div class="v5-card-body">
+              <div class="v5-badge-line"><span class="v5-b-blue">🥗 MORNING MARKET</span><b>฿980</b></div>
+              <h3>Organic Market &amp; Thai Kitchen</h3>
+              <p>✓ Hosted by Mali · Silom · 3h</p>
+            </div>
+          </article>
+
+          <article class="v5-pearl-card is-center-prism">
+            <img src="/photos/experiences/cycling-park.jpg" alt="Bang Krachao" />
+            <div class="v5-card-body">
+              <div class="v5-badge-line"><span class="v5-b-gold">🚲 GREEN OASIS</span><b>฿850</b></div>
+              <h3>Bang Krachao Elevated Jungle Ride</h3>
+              <p>🔔 Held Safely · Released on Bump</p>
+            </div>
+          </article>
+
+          <article class="v5-pearl-card">
+            <img src="/photos/experiences/thai-tea-fruit.jpg" alt="Craft Tea" />
+            <div class="v5-card-body">
+              <div class="v5-badge-line"><span class="v5-b-blue">🧋 HERITAGE CAFÉ</span><b>฿750</b></div>
+              <h3>Old-Town Craft Thai Tea &amp; Mango</h3>
+              <p>✓ Hosted by Pear · Ari · 2h</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="v5-cta-bar">
+          <a href="#partnerModal" class="v5-btn-royal" onclick="window.openPartnerModal(); return false;">
+            <span data-i18n-en>Request Founding Partner &amp; VIP Access →</span>
+            <span data-i18n-th lang="th">ขอสิทธิ์พาร์ทเนอร์และสมาชิก VIP →</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
     </main>
   </div>
 
   <script>
     (function() {
-      const NAMES = {
-        '1': 'VARIANT 01 · SIAM LIQUID CHROME & VERTICAL 3D GLASS MONOLITHS (LUSION / APPLE PRO)',
-        '2': 'VARIANT 02 · ROYAL THAI SILK & 24K GOLD LUXURY CONCIERGE (CARTIER / AMAN EDITORIAL)',
-        '3': 'VARIANT 03 · 2026 VISION-OS SPATIAL GLASS WINDOW OVER TWILIGHT BANGKOK',
-        '4': 'VARIANT 04 · NEO-SIAM KINETIC CYBER-BRUTALIST HYPE DROP (ACTIVE THEORY)',
-        '5': 'VARIANT 05 · TEAMLAB BIOLUMINESCENT CHAO PHRAYA & FLOATING LOTUS PORTALS'
-      };
-      const html = document.documentElement;
+      const htmlEl = document.documentElement;
       const pills = document.querySelectorAll('[data-set-v]');
-      const label = document.getElementById('variantSubtitlePill');
-
       function setVariant(v) {
-        html.setAttribute('data-variant', String(v));
+        const num = String(v);
+        htmlEl.setAttribute('data-variant', num);
         pills.forEach(function(p) {
-          p.classList.toggle('is-active', p.getAttribute('data-set-v') === String(v));
+          p.classList.toggle('is-active', p.getAttribute('data-set-v') === num);
         });
-        if (label && NAMES[String(v)]) label.textContent = NAMES[String(v)];
         if (window.triggerVariantBump) window.triggerVariantBump(false);
       }
-
-      const params = new URLSearchParams(window.location.search);
-      const qv = params.get('v');
-      if (qv && NAMES[qv]) setVariant(qv);
-
-      pills.forEach(function(p) {
-        p.addEventListener('click', function() {
-          setVariant(p.getAttribute('data-set-v'));
+      pills.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          setVariant(btn.getAttribute('data-set-v'));
         });
       });
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('v')) setVariant(params.get('v'));
 
       const langBtn = document.getElementById('btnToggleLang');
       if (langBtn) {
         langBtn.addEventListener('click', function() {
-          const next = html.getAttribute('data-lang') === 'th' ? 'en' : 'th';
-          html.setAttribute('data-lang', next);
+          const next = htmlEl.getAttribute('data-lang') === 'th' ? 'en' : 'th';
+          htmlEl.setAttribute('data-lang', next);
         });
       }
+      window.openPartnerModal = function() {
+        window.location.href = 'mailto:partnerships@kringapp.com?subject=Kring%202026%20Partner%20%26%20VIP%20Access';
+      };
     })();
   </script>
   <script>
-    
 (function() {
   'use strict';
   const TAU = Math.PI * 2;
 
-  // WebAudio Crystal Bell Chime
+  // WebAudio Crystal Bell Chime (D6 -> A6)
   let audioCtx = null;
   window.playKringBell = function() {
     try {
@@ -971,376 +1427,316 @@
     } catch (e) {}
   };
 
-  // True 3D Torus Mesh Renderer (renders interlocking 3D physical torus rings with tube shading, specular highlights, and 3D rotation!)
+  // Draws one smooth continuous half-torus arc (back half or front half) with zero segment seams!
+  function drawSmoothTorusHalf(ctx, cx, cy, radius, tubeWidth, tiltAngle, squashY, isFront, isGold, mode, t, flash) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(tiltAngle);
+    ctx.scale(1, squashY);
+
+    const a0 = isFront ? 0 : Math.PI;
+    const a1 = isFront ? Math.PI : TAU;
+
+    // 1. Soft 3D Ambient / Drop Shadow under the ring
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, isFront ? 6 : 3, radius, a0, a1, false);
+    ctx.lineWidth = tubeWidth * 1.15;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = mode === 5
+      ? (isGold ? 'rgba(215, 130, 10, 0.22)' : 'rgba(65, 85, 225, 0.22)')
+      : 'rgba(0, 0, 0, 0.55)';
+    ctx.stroke();
+    ctx.restore();
+
+    // 2. Main Continuous 3D Liquid-Metal / Glass Tube Body
+    const grad = ctx.createLinearGradient(-radius, -radius * 0.8, radius, radius * 0.8);
+    if (!isGold) {
+      // Left Ring: Anchan Sapphire (#7381FF / #3B4BFF)
+      if (mode === 5) {
+        grad.addColorStop(0, '#2B3BFF');
+        grad.addColorStop(0.38, '#6A7BFF');
+        grad.addColorStop(0.7, '#9BA9FF');
+        grad.addColorStop(1, '#3242E8');
+      } else if (mode === 3) {
+        grad.addColorStop(0, '#4A5CFF');
+        grad.addColorStop(0.45, '#96A4FF');
+        grad.addColorStop(0.75, '#D4DCFF');
+        grad.addColorStop(1, '#3B4BFF');
+      } else {
+        grad.addColorStop(0, '#3646F5');
+        grad.addColorStop(0.35, '#7A88FF');
+        grad.addColorStop(0.65, '#C5CEFF');
+        grad.addColorStop(1, '#4454FF');
+      }
+    } else {
+      // Right Ring: Marigold 24K Gold (#FFB21E / #FFD470)
+      if (mode === 5) {
+        grad.addColorStop(0, '#E07A00');
+        grad.addColorStop(0.38, '#FFA812');
+        grad.addColorStop(0.7, '#FFE082');
+        grad.addColorStop(1, '#D96B00');
+      } else if (mode === 3) {
+        grad.addColorStop(0, '#C87A08');
+        grad.addColorStop(0.42, '#FFC44D');
+        grad.addColorStop(0.72, '#FFF1BE');
+        grad.addColorStop(1, '#D8890E');
+      } else {
+        grad.addColorStop(0, '#FF8800');
+        grad.addColorStop(0.38, '#FFB824');
+        grad.addColorStop(0.68, '#FFF0B8');
+        grad.addColorStop(1, '#F09000');
+      }
+    }
+
+    ctx.save();
+    ctx.shadowColor = isGold
+      ? 'rgba(255, 178, 30, ' + (mode === 5 ? 0.35 : 0.65) + ')'
+      : 'rgba(115, 129, 255, ' + (mode === 5 ? 0.35 : 0.65) + ')';
+    ctx.shadowBlur = (mode === 5 ? 18 : 28) + flash * 18;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, a0, a1, false);
+    ctx.lineWidth = tubeWidth;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = grad;
+    ctx.stroke();
+    ctx.restore();
+
+    // 3. Inner 3D Core Rim Depth (darkened lower inner bevel for 3D cylinder roundness)
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, tubeWidth * 0.14, radius * 0.985, a0 + 0.06, a1 - 0.06, false);
+    ctx.lineWidth = tubeWidth * 0.26;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = isGold
+      ? 'rgba(120, 52, 0, 0.42)'
+      : 'rgba(18, 24, 95, 0.45)';
+    ctx.stroke();
+    ctx.restore();
+
+    // 4. Ultra-Smooth Continuous Specular Liquid-Glass Highlight Ribbon
+    const specGrad = ctx.createLinearGradient(-radius, -radius * 0.5, radius, radius * 0.5);
+    specGrad.addColorStop(0, 'rgba(255,255,255,0.12)');
+    specGrad.addColorStop(0.35, 'rgba(255,255,255,' + (0.82 + flash * 0.18).toFixed(2) + ')');
+    specGrad.addColorStop(0.65, isGold ? 'rgba(255,248,220,0.92)' : 'rgba(230,238,255,0.92)');
+    specGrad.addColorStop(1, 'rgba(255,255,255,0.15)');
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(-tubeWidth * 0.06, -tubeWidth * 0.19, radius * 0.99, a0 + 0.08, a1 - 0.08, false);
+    ctx.lineWidth = tubeWidth * 0.28;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = specGrad;
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  // Smooth Continuous 3D Interlocking Twin-Torus Renderer
   function render3DTorusPair(ctx, w, h, t, bumpAge, mode, ptrX, ptrY) {
     ctx.clearRect(0, 0, w, h);
     const cx = w * 0.5;
     const cy = h * 0.5;
-    const scale = Math.min(w, h * 1.65) * 0.23;
+    const R = Math.min(w * 0.22, h * 0.35);
+    const tube = Math.max(10, R * 0.27);
 
-    // Bump physics: rings glide in and collide with harmonic recoil
-    let sep = 0.72;
+    // Bump collision physics
+    let sep = R * 0.64;
     let flash = 0;
     if (bumpAge >= 0 && bumpAge < 2.5) {
-      if (bumpAge < 0.35) {
-        const p = bumpAge / 0.35;
-        sep = 1.45 - 0.82 * (p * p * (3 - 2 * p));
+      if (bumpAge < 0.32) {
+        const p = bumpAge / 0.32;
+        sep = R * (1.28 - 0.72 * (p * p * (3 - 2 * p)));
       } else {
-        const c = bumpAge - 0.35;
-        sep = 0.72 - 0.14 * Math.exp(-c * 6) * Math.sin(c * 22);
-        flash = Math.exp(-c * 3.8);
+        const c = bumpAge - 0.32;
+        sep = R * (0.64 - 0.12 * Math.exp(-c * 6) * Math.sin(c * 22));
+        flash = Math.exp(-c * 3.6);
       }
     }
 
-    // Ambient volumetric bloom behind the 3D rings
-    const bloomLeft = ctx.createRadialGradient(cx - scale * sep, cy, 2, cx - scale * sep, cy, scale * 1.7);
-    const bloomRight = ctx.createRadialGradient(cx + scale * sep, cy, 2, cx + scale * sep, cy, scale * 1.7);
+    const leftX = cx - sep + (ptrX - 0.5) * 10;
+    const rightX = cx + sep + (ptrX - 0.5) * 10;
+    const ringY = cy + Math.sin(t * 2.1) * 3.5;
 
-    if (mode === 1) {
-      // V1: Liquid Chrome & Electric Sapphire / Molten Gold
-      bloomLeft.addColorStop(0, 'rgba(95, 118, 255, ' + (0.42 + flash * 0.35) + ')');
-      bloomLeft.addColorStop(1, 'rgba(59, 75, 255, 0)');
-      bloomRight.addColorStop(0, 'rgba(255, 196, 68, ' + (0.38 + flash * 0.35) + ')');
-      bloomRight.addColorStop(1, 'rgba(255, 178, 30, 0)');
-    } else if (mode === 2) {
-      // V2: Cartier Brushed 24K Gold & Royal Thai Silk
-      bloomLeft.addColorStop(0, 'rgba(128, 145, 255, ' + (0.35 + flash * 0.3) + ')');
-      bloomLeft.addColorStop(1, 'rgba(80, 95, 220, 0)');
-      bloomRight.addColorStop(0, 'rgba(255, 185, 50, ' + (0.46 + flash * 0.35) + ')');
-      bloomRight.addColorStop(1, 'rgba(255, 140, 20, 0)');
-    } else if (mode === 3) {
-      // V3: VisionOS Spatial Glass & Iridescent Prism
-      bloomLeft.addColorStop(0, 'rgba(140, 165, 255, ' + (0.44 + flash * 0.35) + ')');
-      bloomLeft.addColorStop(1, 'rgba(115, 129, 255, 0)');
-      bloomRight.addColorStop(0, 'rgba(255, 210, 110, ' + (0.44 + flash * 0.35) + ')');
-      bloomRight.addColorStop(1, 'rgba(255, 178, 30, 0)');
-    } else if (mode === 4) {
-      // V4: Kinetic Brutalist Neo-Siam Wireframe + Neon Core
-      bloomLeft.addColorStop(0, 'rgba(65, 90, 255, ' + (0.52 + flash * 0.4) + ')');
-      bloomLeft.addColorStop(1, 'rgba(45, 66, 255, 0)');
-      bloomRight.addColorStop(0, 'rgba(255, 184, 0, ' + (0.52 + flash * 0.4) + ')');
-      bloomRight.addColorStop(1, 'rgba(255, 184, 0, 0)');
+    // 1. Volumetric Backlight Aura
+    const leftAura = ctx.createRadialGradient(leftX, ringY, 2, leftX, ringY, R * 1.85);
+    const rightAura = ctx.createRadialGradient(rightX, ringY, 2, rightX, ringY, R * 1.85);
+
+    if (mode === 5) {
+      // V5 Pearl Daylight Caustic Glow
+      leftAura.addColorStop(0, 'rgba(91, 108, 255, 0.28)');
+      leftAura.addColorStop(1, 'rgba(91, 108, 255, 0)');
+      rightAura.addColorStop(0, 'rgba(255, 168, 24, 0.28)');
+      rightAura.addColorStop(1, 'rgba(255, 168, 24, 0)');
+      ctx.globalCompositeOperation = 'source-over';
     } else {
-      // V5: Bioluminescent Chao Phraya Water-Light & Lotus
-      bloomLeft.addColorStop(0, 'rgba(110, 140, 255, ' + (0.45 + flash * 0.35) + ')');
-      bloomLeft.addColorStop(1, 'rgba(80, 100, 255, 0)');
-      bloomRight.addColorStop(0, 'rgba(255, 190, 75, ' + (0.45 + flash * 0.35) + ')');
-      bloomRight.addColorStop(1, 'rgba(255, 160, 30, 0)');
+      leftAura.addColorStop(0, 'rgba(95, 115, 255, ' + (0.42 + flash * 0.28).toFixed(2) + ')');
+      leftAura.addColorStop(1, 'rgba(59, 75, 255, 0)');
+      rightAura.addColorStop(0, 'rgba(255, 188, 52, ' + (0.40 + flash * 0.28).toFixed(2) + ')');
+      rightAura.addColorStop(1, 'rgba(255, 178, 30, 0)');
+      ctx.globalCompositeOperation = 'lighter';
     }
-
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = bloomLeft;
+    ctx.fillStyle = leftAura;
     ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = bloomRight;
+    ctx.fillStyle = rightAura;
     ctx.fillRect(0, 0, w, h);
-
-    // Generate 3D Torus segments for both interlocking rings and depth-sort by Z!
-    const R = 1.0;
-    const tubeR = mode === 4 ? 0.24 : 0.22;
-    const segU = mode === 4 ? 44 : 68;
-    const quads = [];
-
-    const tiltX = (ptrY - 0.4) * 0.55 + Math.sin(t * 1.1) * 0.18;
-    const tiltY = (ptrX - 0.5) * 0.65 + Math.cos(t * 0.85) * 0.24;
-
-    function addTorusSegments(ringIdx, centerX, rotXBase, rotYBase, rotZBase) {
-      const cX = Math.cos(rotXBase), sX = Math.sin(rotXBase);
-      const cY = Math.cos(rotYBase), sY = Math.sin(rotYBase);
-      const cZ = Math.cos(rotZBase), sZ = Math.sin(rotZBase);
-
-      for (let i = 0; i < segU; i++) {
-        const u0 = (i / segU) * TAU;
-        const u1 = ((i + 1) / segU) * TAU;
-        const um = (u0 + u1) * 0.5;
-
-        function proj(u) {
-          let x = Math.cos(u) * R;
-          let y = Math.sin(u) * R;
-          let z = 0;
-          // Rotate Z
-          let x1 = x * cZ - y * sZ;
-          let y1 = x * sZ + y * cZ;
-          // Rotate X (interlocking 3D angle!)
-          let y2 = y1 * cX - z * sX;
-          let z2 = y1 * sX + z * cX;
-          // Rotate Y
-          let x3 = x1 * cY + z2 * sY + centerX;
-          let z3 = -x1 * sY + z2 * cY;
-          return { x: x3, y: y2, z: z3 };
-        }
-
-        const p0 = proj(u0);
-        const p1 = proj(u1);
-        const pm = proj(um);
-        // Normal estimation for specular lighting
-        const nx = Math.cos(um) * cY;
-        const ny = Math.sin(um) * cX;
-        const nz = Math.sin(um) * sX + 0.55;
-        const spec = Math.pow(Math.max(0, (nx * -0.35 + ny * -0.65 + nz * 0.75)), 5);
-
-        quads.push({
-          ring: ringIdx,
-          u: um,
-          p0: p0,
-          p1: p1,
-          pm: pm,
-          z: pm.z,
-          spec: spec
-        });
-      }
-    }
-
-    // Ring A (Anchan Sapphire) tilted +28deg in 3D X-axis, Ring B (Marigold Gold) tilted -28deg in 3D X-axis -> TRUE 3D INTERLOCK!
-    addTorusSegments(0, -sep, 0.48 + tiltX, 0.28 + tiltY, t * 0.45);
-    addTorusSegments(1, +sep, -0.48 + tiltX, -0.28 + tiltY, -t * 0.45);
-
-    quads.sort(function(a, b) { return a.z - b.z; });
-
     ctx.globalCompositeOperation = 'source-over';
-    const fov = 3.6;
 
-    for (let q = 0; q < quads.length; q++) {
-      const seg = quads[q];
-      const k0 = fov / (fov - seg.p0.z * 0.45);
-      const k1 = fov / (fov - seg.p1.z * 0.45);
-      const km = fov / (fov - seg.pm.z * 0.45);
+    // 3D Tilt Angles for True Interlocking Perspective
+    const tiltA = -0.22 + Math.sin(t * 1.3) * 0.05 + (ptrX - 0.5) * 0.12;
+    const tiltB = 0.22 - Math.sin(t * 1.3) * 0.05 + (ptrX - 0.5) * 0.12;
+    const squash = 0.78 + Math.cos(t * 1.1) * 0.04;
 
-      const x0 = cx + seg.p0.x * scale * k0;
-      const y0 = cy + seg.p0.y * scale * k0;
-      const x1 = cx + seg.p1.x * scale * k1;
-      const y1 = cy + seg.p1.y * scale * k1;
+    // Interlocking Topological Draw Order:
+    // Step A: Back half of Left Ring (Anchan)
+    drawSmoothTorusHalf(ctx, leftX, ringY, R, tube, tiltA, squash, false, false, mode, t, flash);
+    // Step B: Back half of Right Ring (Marigold) — passes in front of Left Ring's top-right!
+    drawSmoothTorusHalf(ctx, rightX, ringY, R, tube, tiltB, squash, false, true, mode, t, flash);
 
-      const thick = Math.max(3, tubeR * scale * km);
-      const depthShade = 0.55 + 0.45 * ((seg.z + 1.2) / 2.4);
-      const waveLight = 0.5 + 0.5 * Math.sin(seg.u * 2 + (seg.ring === 0 ? t * 2.4 : -t * 2.4));
-
-      // Outer 3D cylinder shadow / body
-      ctx.lineCap = 'round';
-      ctx.lineWidth = thick;
-
-      if (seg.ring === 0) {
-        // Anchan Sapphire 3D Material
-        const r = Math.round(45 + 95 * waveLight * depthShade + seg.spec * 110);
-        const g = Math.round(65 + 110 * waveLight * depthShade + seg.spec * 110);
-        const b = Math.round(215 + 40 * depthShade);
-        ctx.strokeStyle = 'rgb(' + Math.min(255, r) + ',' + Math.min(255, g) + ',' + Math.min(255, b) + ')';
-      } else {
-        // Marigold 24K Gold 3D Material
-        const r = Math.round(215 + 40 * depthShade);
-        const g = Math.round(135 + 85 * waveLight * depthShade + seg.spec * 65);
-        const b = Math.round(18 + 95 * waveLight * depthShade + seg.spec * 140);
-        ctx.strokeStyle = 'rgb(' + Math.min(255, r) + ',' + Math.min(255, g) + ',' + Math.min(255, b) + ')';
-      }
-
-      ctx.beginPath();
-      ctx.moveTo(x0, y0);
-      ctx.lineTo(x1, y1);
-      ctx.stroke();
-
-      // Inner 3D Specular Core Highlight (gives true 3D glass/metallic tube roundness!)
-      ctx.lineWidth = thick * 0.34;
-      const hiAlpha = (0.28 + seg.spec * 0.65 + flash * 0.3) * depthShade;
-      ctx.strokeStyle = seg.ring === 0
-        ? 'rgba(225, 232, 255, ' + hiAlpha.toFixed(3) + ')'
-        : 'rgba(255, 248, 215, ' + hiAlpha.toFixed(3) + ')';
-      ctx.beginPath();
-      ctx.moveTo(x0 - thick * 0.08, y0 - thick * 0.14);
-      ctx.lineTo(x1 - thick * 0.08, y1 - thick * 0.14);
-      ctx.stroke();
-
-      // Mode 4 Wireframe Tech Rings overlay
-      if (mode === 4 && q % 3 === 0) {
-        ctx.lineWidth = 1.1;
-        ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-        ctx.beginPath();
-        ctx.arc(x0, y0, thick * 0.48, 0, TAU);
-        ctx.stroke();
-      }
-    }
-
-    // Central Violet Plasma Intersection Core + Shockwave Ripples
-    ctx.globalCompositeOperation = 'lighter';
-    const coreR = scale * (0.48 + 0.08 * Math.sin(t * 3.2) + flash * 0.45);
-    const coreGrad = ctx.createRadialGradient(cx, cy, 1, cx, cy, coreR);
-    coreGrad.addColorStop(0, 'rgba(255, 255, 255, ' + (0.78 + flash * 0.22) + ')');
-    coreGrad.addColorStop(0.32, 'rgba(198, 148, 255, ' + (0.62 + flash * 0.3) + ')');
-    coreGrad.addColorStop(0.68, 'rgba(155, 92, 255, 0.28)');
-    coreGrad.addColorStop(1, 'rgba(155, 92, 255, 0)');
-    ctx.fillStyle = coreGrad;
+    // Step C: Central Overlap Violet Lens Glow (#9B5CFF) inside the interlock
+    ctx.save();
+    ctx.globalCompositeOperation = mode === 5 ? 'source-over' : 'lighter';
+    const lensR = R * (0.68 + flash * 0.35 + 0.05 * Math.sin(t * 3.5));
+    const lensGrad = ctx.createRadialGradient(cx, ringY, 1, cx, ringY, lensR);
+    lensGrad.addColorStop(0, mode === 5 ? 'rgba(155, 92, 255, 0.55)' : 'rgba(255, 255, 255, 0.9)');
+    lensGrad.addColorStop(0.38, 'rgba(168, 108, 255, 0.65)');
+    lensGrad.addColorStop(0.75, 'rgba(155, 92, 255, 0.22)');
+    lensGrad.addColorStop(1, 'rgba(155, 92, 255, 0)');
+    ctx.fillStyle = lensGrad;
     ctx.beginPath();
-    ctx.arc(cx, cy, coreR, 0, TAU);
+    ctx.arc(cx, ringY, lensR, 0, TAU);
     ctx.fill();
+    ctx.restore();
 
-    // Expanding 3D Shockwave Halo on Bump
-    if (bumpAge >= 0.35 && bumpAge < 1.85) {
-      const p = (bumpAge - 0.35) / 1.5;
+    // Step D: Front half of Left Ring (Anchan) — passes over Right Ring's bottom-left!
+    drawSmoothTorusHalf(ctx, leftX, ringY, R, tube, tiltA, squash, true, false, mode, t, flash);
+    // Step E: Rightmost outer front arc of Right Ring (Marigold)
+    drawSmoothTorusHalf(ctx, rightX, ringY, R, tube, tiltB, squash, true, true, mode, t, flash);
+
+    // Re-knit Left Ring's bottom-right over Right Ring's bottom-left for true topological lock
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(cx - R * 0.45, ringY, R * 0.9, R * 1.2);
+    ctx.clip();
+    drawSmoothTorusHalf(ctx, leftX, ringY, R, tube, tiltA, squash, true, false, mode, t, flash);
+    ctx.restore();
+
+    // Expanding Harmonic Shockwave Ripples on Bump
+    if (bumpAge >= 0.3 && bumpAge < 1.9) {
+      const p = (bumpAge - 0.3) / 1.6;
       const ease = 1 - Math.pow(1 - p, 3);
       for (let s = 0; s < 3; s++) {
-        const rad = scale * (0.4 + (1.8 + s * 0.35) * ease);
+        const rad = R * (0.6 + (1.6 + s * 0.38) * ease);
         ctx.strokeStyle = s === 0
-          ? 'rgba(255,255,255,' + ((1 - p) * 0.65).toFixed(3) + ')'
+          ? (mode === 5 ? 'rgba(91,108,255,' : 'rgba(255,255,255,') + ((1 - p) * 0.6).toFixed(3) + ')'
           : s === 1
           ? 'rgba(155,92,255,' + ((1 - p) * 0.55).toFixed(3) + ')'
-          : 'rgba(255,200,90,' + ((1 - p) * 0.5).toFixed(3) + ')';
-        ctx.lineWidth = 2.4 * (1 - p) + 0.6;
+          : 'rgba(255,184,30,' + ((1 - p) * 0.5).toFixed(3) + ')';
+        ctx.lineWidth = 2.2 * (1 - p) + 0.6;
         ctx.beginPath();
-        ctx.ellipse(cx, cy, rad, rad * (mode === 5 ? 0.52 : 0.72), 0, 0, TAU);
+        ctx.ellipse(cx, ringY, rad, rad * 0.72, 0, 0, TAU);
         ctx.stroke();
       }
     }
-
-    // Mode 5: Chao Phraya Bioluminescent Water Reflection Below the 3D Rings
-    if (mode === 5) {
-      for (let r = 0; r < 6; r++) {
-        const ry = cy + scale * 1.05 + r * 8;
-        const rw = scale * (1.5 - r * 0.14) + Math.sin(t * 3 + r) * 14;
-        ctx.strokeStyle = r % 2 === 0
-          ? 'rgba(125, 145, 255, ' + (0.38 - r * 0.05) + ')'
-          : 'rgba(255, 196, 80, ' + (0.38 - r * 0.05) + ')';
-        ctx.lineWidth = 1.6;
-        ctx.beginPath();
-        ctx.moveTo(cx - rw, ry);
-        ctx.quadraticCurveTo(cx, ry + Math.sin(t * 4 + r) * 4, cx + rw, ry);
-        ctx.stroke();
-      }
-    }
-
-    ctx.globalCompositeOperation = 'source-over';
   }
 
-  // Background World Canvas Renderer (5 Completely Different 2026 Worlds!)
+  // Background World Canvas Renderer for Variants 1..5
   function renderWorldBg(ctx, w, h, t, mode, ptrX, ptrY) {
     ctx.clearRect(0, 0, w, h);
 
     if (mode === 1) {
-      // V1: Lusion Obsidian Chrome & Caustic Light Beams
-      for (let i = 0; i < 5; i++) {
-        const x = w * (0.2 + i * 0.15) + Math.sin(t * 0.5 + i) * 90 + (ptrX - 0.5) * 60;
-        const gr = ctx.createLinearGradient(x - 120, 0, x + 120, h);
-        gr.addColorStop(0, 'rgba(0,0,0,0)');
-        gr.addColorStop(0.45, i % 2 === 0 ? 'rgba(85, 108, 255, 0.09)' : 'rgba(255, 184, 48, 0.07)');
-        gr.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = gr;
-        ctx.fillRect(0, 0, w, h);
-      }
-      // Subtle 3D dot matrix floor
-      const rows = 14, cols = 28;
+      // V1: Asymmetric Spatial Obsidian Chrome + 3D Floor Matrix
+      const rows = 12, cols = 26;
       for (let r = 0; r < rows; r++) {
         const d = r / (rows - 1);
-        const y = h * 0.58 + Math.pow(d, 1.4) * h * 0.42;
+        const y = h * 0.62 + Math.pow(d, 1.4) * h * 0.38;
         for (let c = 0; c < cols; c++) {
           const u = c / (cols - 1);
-          const x = (u - 0.5) * w * (0.9 + d * 0.7) + w * 0.5;
-          const wy = y + Math.sin(u * 6 + t * 1.6 + r * 0.5) * 14 * d;
-          ctx.fillStyle = (c + r) % 3 === 0 ? 'rgba(255,205,100,' + (0.12 + d * 0.35) + ')' : 'rgba(135,155,255,' + (0.12 + d * 0.35) + ')';
+          const x = (u - 0.5) * w * (0.9 + d * 0.65) + w * 0.5;
+          const wy = y + Math.sin(u * 6 + t * 1.5 + r * 0.5) * 12 * d;
+          ctx.fillStyle = (c + r) % 3 === 0
+            ? 'rgba(255,205,100,' + (0.1 + d * 0.3) + ')'
+            : 'rgba(125,145,255,' + (0.1 + d * 0.3) + ')';
           ctx.fillRect(x, wy, 1.8 + d, 1.8 + d);
         }
       }
     } else if (mode === 2) {
-      // V2: Warm Thai Silk Gold & Floating Golden Lantern Embers
-      for (let r = 0; r < 10; r++) {
-        const d = r / 9;
-        ctx.strokeStyle = r % 3 === 0
-          ? 'rgba(115, 135, 255, ' + (0.08 + d * 0.16) + ')'
-          : 'rgba(255, 182, 56, ' + (0.08 + d * 0.22) + ')';
-        ctx.lineWidth = 1 + d * 1.2;
-        ctx.beginPath();
-        for (let x = 0; x <= w; x += 24) {
-          const u = x / w;
-          const y = h * (0.28 + d * 0.55) + Math.sin(u * 4.5 + t * 0.9 + r * 0.6) * 32 + Math.cos(u * 2.8 - t * 0.6) * 18;
-          if (x === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-      }
-      // Rising warm golden lantern particles
-      for (let p = 0; p < 45; p++) {
-        const px = ((Math.sin(p * 91.3) * 0.5 + 0.5) * w + Math.sin(t + p) * 25 + w) % w;
-        const py = ((Math.cos(p * 53.7) * 0.5 + 0.5) * h - t * (16 + (p % 4) * 6) % h + h) % h;
-        const rad = 1.2 + (p % 3) * 1.1;
-        ctx.fillStyle = p % 4 === 0 ? 'rgba(160,180,255,0.45)' : 'rgba(255,210,115,0.55)';
-        ctx.beginPath();
-        ctx.arc(px, py, rad, 0, TAU);
-        ctx.fill();
-      }
-    } else if (mode === 3) {
-      // V3: VisionOS Bangkok Twilight Skyline Bokeh Orbs
-      for (let b = 0; b < 28; b++) {
-        const bx = ((Math.sin(b * 61.7) * 0.5 + 0.5) * w + (ptrX - 0.5) * -40 * (b % 3) + w) % w;
-        const by = h * (0.22 + (b % 7) * 0.1) + Math.sin(t * 0.7 + b) * 12;
-        const br = 12 + (b % 5) * 16;
+      // V2: Sunset Cinema Golden Bokeh Floating Lights
+      for (let b = 0; b < 24; b++) {
+        const bx = ((Math.sin(b * 61.7) * 0.5 + 0.5) * w + Math.sin(t * 0.4 + b) * 30 + w) % w;
+        const by = h * (0.15 + (b % 7) * 0.11) + Math.cos(t * 0.6 + b) * 14;
+        const br = 16 + (b % 5) * 18;
         const gr = ctx.createRadialGradient(bx, by, 1, bx, by, br);
-        const col = b % 3 === 0 ? '255, 190, 70' : b % 3 === 1 ? '125, 145, 255' : '185, 120, 255';
-        gr.addColorStop(0, 'rgba(' + col + ', 0.22)');
+        const col = b % 2 === 0 ? '255, 200, 95' : '155, 175, 255';
+        gr.addColorStop(0, 'rgba(' + col + ', 0.24)');
         gr.addColorStop(1, 'rgba(' + col + ', 0)');
         ctx.fillStyle = gr;
         ctx.beginPath();
         ctx.arc(bx, by, br, 0, TAU);
         ctx.fill();
       }
+    } else if (mode === 3) {
+      // V3: Aman / Cartier 24K Gold Silk Waves
+      for (let r = 0; r < 8; r++) {
+        const d = r / 7;
+        ctx.strokeStyle = 'rgba(255, 196, 85, ' + (0.06 + d * 0.14).toFixed(3) + ')';
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        for (let x = 0; x <= w; x += 28) {
+          const u = x / w;
+          const y = h * (0.25 + d * 0.6) + Math.sin(u * 4 + t * 0.8 + r * 0.7) * 28;
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
     } else if (mode === 4) {
-      // V4: Active Theory / Brutalist 3D Perspective Cyber Tunnel Grid
-      const vpX = w * (0.5 + (ptrX - 0.5) * 0.12);
-      const vpY = h * (0.38 + (ptrY - 0.5) * 0.08);
-      ctx.strokeStyle = 'rgba(75, 96, 255, 0.18)';
+      // V4: 3D Orbital Vortex Perspective Radar Grid
+      const vpX = w * 0.5;
+      const vpY = h * 0.44;
+      ctx.strokeStyle = 'rgba(95, 118, 255, 0.16)';
       ctx.lineWidth = 1;
       for (let i = 0; i < 16; i++) {
-        const ang = (i / 16) * TAU + t * 0.08;
+        const ang = (i / 16) * TAU + t * 0.06;
         ctx.beginPath();
         ctx.moveTo(vpX, vpY);
-        ctx.lineTo(vpX + Math.cos(ang) * w * 1.2, vpY + Math.sin(ang) * w * 1.2);
+        ctx.lineTo(vpX + Math.cos(ang) * w, vpY + Math.sin(ang) * w);
         ctx.stroke();
       }
-      for (let r = 1; r <= 8; r++) {
-        const p = ((r / 8 + t * 0.15) % 1);
-        const rad = Math.pow(p, 2.1) * Math.max(w, h) * 0.85;
-        ctx.strokeStyle = r % 2 === 0
-          ? 'rgba(255, 184, 0, ' + (p * 0.28).toFixed(3) + ')'
-          : 'rgba(95, 115, 255, ' + (p * 0.28).toFixed(3) + ')';
+      for (let r = 1; r <= 6; r++) {
+        const rad = r * Math.min(w, h) * 0.13;
+        ctx.strokeStyle = r % 2 === 0 ? 'rgba(255, 184, 30, 0.16)' : 'rgba(115, 129, 255, 0.18)';
         ctx.beginPath();
-        ctx.arc(vpX, vpY, rad, 0, TAU);
+        ctx.ellipse(vpX, vpY, rad, rad * 0.68, 0, 0, TAU);
         ctx.stroke();
       }
-    } else {
-      // V5: TeamLab Bioluminescent Chao Phraya River & Floating Light Ripples
-      const rows = 20, cols = 44;
-      for (let r = 0; r < rows; r++) {
-        const d = r / (rows - 1);
-        const yBase = h * 0.48 + Math.pow(d, 1.25) * h * 0.5;
-        ctx.strokeStyle = r % 3 === 0
-          ? 'rgba(255, 198, 78, ' + (0.08 + d * 0.26).toFixed(3) + ')'
-          : r % 3 === 1
-          ? 'rgba(175, 115, 255, ' + (0.08 + d * 0.24).toFixed(3) + ')'
-          : 'rgba(95, 145, 255, ' + (0.08 + d * 0.26).toFixed(3) + ')';
-        ctx.lineWidth = 0.9 + d * 1.5;
+    } else if (mode === 5) {
+      // V5: Daylight Pearl & Iridescent Prism Ribbons
+      for (let i = 0; i < 6; i++) {
+        const d = i / 5;
+        ctx.strokeStyle = i % 2 === 0
+          ? 'rgba(91, 108, 255, 0.14)'
+          : 'rgba(255, 165, 20, 0.16)';
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        for (let c = 0; c <= cols; c++) {
-          const u = c / cols;
-          const x = u * w;
-          const wy = yBase + Math.sin(u * 7 + t * 1.8 + r * 0.35) * 22 * (0.4 + d) + Math.cos(u * 4.5 - t * 1.2) * 14 * d;
-          if (c === 0) ctx.moveTo(x, wy);
-          else ctx.lineTo(x, wy);
+        for (let x = 0; x <= w; x += 28) {
+          const u = x / w;
+          const y = h * (0.2 + d * 0.65) + Math.sin(u * 5 + t * 0.9 + i) * 24;
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
         }
         ctx.stroke();
       }
     }
   }
 
-  // Mount Loop
-  const ringCv = document.getElementById('kring3DTorusCanvas');
-  const worldCv = document.getElementById('kringWorldCanvas');
-  let bumpStart = performance.now() - 320;
-  let ptrX = 0.5, ptrY = 0.38;
+  let bumpStart = performance.now() - 300;
+  let ptrX = 0.5, ptrY = 0.4;
 
   window.triggerVariantBump = function(withSound) {
     bumpStart = performance.now();
     if (withSound) window.playKringBell();
-    const badge = document.getElementById('bumpStatusWord');
-    if (badge) {
-      badge.classList.remove('is-pop');
-      void badge.offsetWidth;
-      badge.classList.add('is-pop');
-    }
   };
 
   window.addEventListener('pointermove', function(e) {
@@ -1355,30 +1751,35 @@
     const mode = Number(document.documentElement.getAttribute('data-variant') || '1');
     const bumpAge = (now - bumpStart) * 0.001;
 
-    if (ringCv && ringCv.getContext) {
-      const r = ringCv.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // Render onto the active variant's 3D torus canvas!
+    const canvases = document.querySelectorAll('.kring-torus-cv');
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    for (let i = 0; i < canvases.length; i++) {
+      const cv = canvases[i];
+      const r = cv.getBoundingClientRect();
+      if (r.width < 10 || r.height < 10) continue;
       const pw = Math.max(1, Math.round(r.width * dpr));
       const ph = Math.max(1, Math.round(r.height * dpr));
-      if (ringCv.width !== pw || ringCv.height !== ph) {
-        ringCv.width = pw;
-        ringCv.height = ph;
+      if (cv.width !== pw || cv.height !== ph) {
+        cv.width = pw;
+        cv.height = ph;
       }
-      const rCtx = ringCv.getContext('2d');
+      const rCtx = cv.getContext('2d');
       rCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
       render3DTorusPair(rCtx, r.width, r.height, t, bumpAge, mode, ptrX, ptrY);
     }
 
+    const worldCv = document.getElementById('kringWorldCanvas');
     if (worldCv && worldCv.getContext) {
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const wdpr = Math.min(window.devicePixelRatio || 1, 1.5);
       const ww = Math.max(1, window.innerWidth);
       const wh = Math.max(1, window.innerHeight);
-      if (worldCv.width !== Math.round(ww * dpr) || worldCv.height !== Math.round(wh * dpr)) {
-        worldCv.width = Math.round(ww * dpr);
-        worldCv.height = Math.round(wh * dpr);
+      if (worldCv.width !== Math.round(ww * wdpr) || worldCv.height !== Math.round(wh * wdpr)) {
+        worldCv.width = Math.round(ww * wdpr);
+        worldCv.height = Math.round(wh * wdpr);
       }
       const wCtx = worldCv.getContext('2d');
-      wCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      wCtx.setTransform(wdpr, 0, 0, wdpr, 0, 0);
       renderWorldBg(wCtx, ww, wh, t, mode, ptrX, ptrY);
     }
 
@@ -1386,7 +1787,6 @@
   }
   requestAnimationFrame(tick);
 })();
-
-  </script>
+</script>
 </body>
 </html>
