@@ -1,730 +1,675 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kring (กริ๊ง!) — Founder Visual Decision Studio (Navigation, One-App & Poppo Lucky RTP)</title>
-  <link rel="icon" type="image/png" href="/icon-192.png" />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Kring · Visual Decisions (Zero Clutter · Fable Phone Style)</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=IBM+Plex+Sans+Thai:wght@400;600;700&display=swap">
   <style>
     :root {
-      --bg: #050714;
-      --surface: #0C1126;
-      --surface-2: #131A38;
-      --anchan: #7381FF;
-      --marigold: #FFB21E;
-      --violet: #9B5CFF;
-      --green: #24D17E;
-      --red: #FF5468;
-      --text: #F5F7FF;
-      --muted: rgba(220, 228, 255, 0.72);
-      --line: rgba(255, 215, 130, 0.16);
+      --bg:#06070E; --panel:#0D1020; --panel-2:#141830; --ink:#F4F6FF; --ink-2:#AEB6D2; --ink-3:#6C7593;
+      --anchan:#7381FF; --gold:#FFB21E; --gold-hi:#FFF0B8; --gold-deep:#B8781A;
+      --violet:#9B5CFF; --green:#6FD39C; --red:#FF6B7A; --cyan:#3DF2FF;
+      --display:'Unbounded',system-ui,sans-serif;
+      --body:'Manrope','IBM Plex Sans Thai',system-ui,sans-serif;
+      --mono:'JetBrains Mono',monospace;
+      color-scheme:dark;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing:border-box; margin:0; padding:0; }
     body {
-      background: radial-gradient(circle at 50% 0%, #131B42 0%, #060919 45%, #040610 100%);
-      color: var(--text);
-      font-family: 'Plus Jakarta Sans', 'Noto Sans Thai', sans-serif;
-      min-height: 100vh;
-      padding-bottom: 110px;
+      background:var(--bg); color:var(--ink); font-family:var(--body);
+      padding:28px 16px 110px; overflow-x:hidden;
     }
-    .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 18px; }
+    .wrap { max-width:1140px; margin:0 auto; display:flex; flex-direction:column; gap:24px; }
+    .k { font:700 11px var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); }
+    h1 { font:800 clamp(24px,4vw,38px) var(--display); letter-spacing:-.02em; }
+    h1 b { background:linear-gradient(90deg,var(--gold),var(--violet),var(--anchan)); -webkit-background-clip:text; color:transparent; }
+    .lede { color:var(--ink-2); max-width:68ch; line-height:1.55; font-size:14px; }
 
-    /* Top Header */
-    .top-bar {
-      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;
-      padding-bottom: 20px; border-bottom: 1px solid var(--line); margin-bottom: 28px;
+    /* Band layout: Left Phone (Today) -> Middle Notes & Vote -> Right Phone (Proposed) */
+    .band {
+      background:var(--panel); border-radius:26px; padding:22px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+      border:2px solid transparent; transition:border-color .2s;
+      display:flex; flex-direction:column; gap:16px;
     }
-    .brand { display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 800; }
-    .brand img { width: 42px; height: 30px; object-fit: contain; }
-    .pill-tag {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
-      padding: 6px 14px; border-radius: 999px;
-      background: rgba(255, 178, 30, 0.14); border: 1px solid rgba(255, 178, 30, 0.4); color: #FFD97D;
+    .band[data-vote="approve"] { border-color:rgba(111,211,156,.55); }
+    .band[data-vote="reject"] { border-color:rgba(255,107,122,.55); }
+
+    .band-top {
+      display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    }
+    .band-top h2 { font:700 18px var(--display); }
+    .vote-bar { display:flex; gap:8px; }
+    .vbtn {
+      border:0; border-radius:99px; padding:8px 16px; font:800 12px var(--body);
+      cursor:pointer; background:var(--panel-2); color:var(--ink-2); transition:all .18s;
+    }
+    .vbtn.ok.on { background:var(--green); color:#051b10; box-shadow:0 6px 18px -4px rgba(111,211,156,.6); }
+    .vbtn.no.on { background:var(--red); color:#fff; }
+
+    .row3 {
+      display:grid; grid-template-columns:280px minmax(0,1fr) 280px; gap:22px; align-items:start;
+    }
+    @media (max-width:960px) { .row3 { grid-template-columns:1fr; justify-items:center; } }
+
+    .pcol { display:flex; flex-direction:column; gap:8px; align-items:center; }
+    .pcol .lbl { font:700 10.5px var(--mono); letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); }
+    .pcol .lbl.good { color:var(--gold); }
+
+    /* Fable Phone Frame (280x560, ultra-clean) */
+    .phone {
+      position:relative; width:280px; height:550px; border-radius:36px; overflow:hidden;
+      background:#070914;
+      box-shadow:0 0 0 2px #1b1f33, 0 0 0 7px #0b0d17, 0 30px 60px -20px rgba(0,0,0,.9);
+      font-size:11.5px; user-select:none;
+    }
+    .phone.proposed {
+      box-shadow:0 0 0 2px rgba(255,178,30,.55), 0 0 0 7px #0b0d17, 0 30px 60px -20px rgba(0,0,0,.9);
+    }
+    .scr { position:absolute; inset:0; padding:12px 12px 66px; display:flex; flex-direction:column; gap:9px; }
+
+    /* Top Bar inside Phone */
+    .bar { display:flex; align-items:center; justify-content:space-between; height:28px; flex:none; }
+    .logo { display:flex; align-items:center; gap:5px; font:800 14px var(--display); }
+    .rings-svg { width:22px; height:16px; }
+    .pill { font:700 10px var(--body); padding:4px 9px; border-radius:99px; background:rgba(255,255,255,.08); display:inline-flex; align-items:center; gap:4px; }
+    .pill.gold { background:rgba(255,178,30,.18); color:var(--gold-hi); box-shadow:inset 0 0 0 1px rgba(255,178,30,.45); }
+    .pill.anchan { background:rgba(115,129,255,.2); color:#d2d8ff; box-shadow:inset 0 0 0 1px rgba(115,129,255,.45); }
+    .qdot { width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font:800 11px var(--body); color:#1a1204; background:radial-gradient(circle at 35% 30%,var(--gold-hi),var(--gold)); border:0; cursor:pointer; }
+
+    /* Bottom Dock inside Phone */
+    .dock {
+      position:absolute; left:10px; right:10px; bottom:10px; height:48px; border-radius:20px;
+      background:rgba(14,17,34,.94); box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
+      display:grid; grid-template-columns:repeat(4,1fr); align-items:center; text-align:center; z-index:5;
+    }
+    .dock div { display:flex; flex-direction:column; align-items:center; gap:1px; font-size:9px; color:var(--ink-3); font-weight:700; cursor:pointer; }
+    .dock div i { font-style:normal; font-size:14px; }
+    .dock div.on { color:var(--gold-hi); }
+
+    /* Numbered Pin Marker */
+    .pin { position:relative; }
+    .pin::after {
+      content:attr(data-n); position:absolute; top:-6px; right:-6px;
+      width:16px; height:16px; border-radius:50%;
+      background:var(--cyan); color:#001318; font:800 9px/16px var(--body); text-align:center;
+      box-shadow:0 0 0 2px #070914; z-index:9;
+    }
+    .pin.bad::after { background:var(--red); color:#fff; }
+
+    /* Clean 2-Row Experience / Local Cards inside Phone */
+    .seg { display:flex; gap:4px; padding:3px; border-radius:99px; background:rgba(255,255,255,.06); }
+    .seg span { flex:1; text-align:center; padding:5px 0; border-radius:99px; font:700 10.5px var(--body); color:var(--ink-2); cursor:pointer; }
+    .seg span.on { background:var(--ink); color:#090b16; }
+
+    .xcard {
+      position:relative; height:132px; border-radius:18px; overflow:hidden;
+      background-size:cover; background-position:center;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.15); display:flex; flex-direction:column; justify-content:flex-end; padding:10px;
+    }
+    .xcard::before { content:""; position:absolute; inset:0; background:linear-gradient(transparent 20%, rgba(5,7,18,.92) 90%); }
+    .xcard > * { position:relative; z-index:2; }
+    .xcard .r1 { display:flex; justify-content:space-between; align-items:baseline; }
+    .xcard .r1 b { font-size:12.5px; }
+    .xcard .r2 { display:flex; justify-content:space-between; align-items:center; margin-top:3px; font-size:10px; color:var(--ink-2); }
+
+    .avatars { display:flex; align-items:center; gap:4px; }
+    .av-sm { width:18px; height:18px; border-radius:50%; border:1.5px solid var(--green); background-size:cover; }
+
+    /* Center Explanation Column (Short & Crisp, Fable style) */
+    .mid { display:flex; flex-direction:column; gap:12px; padding-top:18px; }
+    .legend { list-style:none; display:flex; flex-direction:column; gap:9px; font-size:13px; color:var(--ink-2); line-height:1.45; }
+    .legend li { display:flex; gap:9px; align-items:baseline; }
+    .legend em { font-style:normal; flex:none; width:19px; height:19px; border-radius:50%; background:var(--cyan); color:#001318; font:800 10px/19px var(--body); text-align:center; }
+    .legend em.r { background:var(--red); color:#fff; }
+    .legend b { color:var(--ink); }
+
+    .kcs { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:4px; }
+    .kcs div { background:var(--panel-2); border-radius:14px; padding:10px 12px; font-size:12px; color:var(--ink-2); }
+    .kcs div b { display:block; font:700 10px var(--mono); letter-spacing:.1em; text-transform:uppercase; margin-bottom:3px; }
+    .kcs .keep b { color:var(--green); }
+    .kcs .guard b { color:var(--gold); }
+
+    /* Progress Strip inside Phone */
+    .pstrip {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:3px;
+      background:rgba(255,255,255,.05); padding:3px; border-radius:99px;
+    }
+    .pstrip span {
+      text-align:center; padding:4px 2px; border-radius:99px; font:700 8.5px var(--body);
+      color:var(--ink-3); cursor:pointer; white-space:nowrap;
+    }
+    .pstrip span.on { background:var(--gold); color:#1a1204; font-weight:800; }
+
+    /* Poppo Gift Tray inside Phone */
+    .tray {
+      margin:auto -12px -66px; padding:10px 10px 64px; border-radius:22px 22px 0 0;
+      background:#0e1226; box-shadow:0 -1px 0 rgba(255,255,255,.1); display:flex; flex-direction:column; gap:7px;
+    }
+    .ggrid { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; }
+    .gcell {
+      border-radius:12px; padding:6px 2px; background:rgba(255,255,255,.04);
+      display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; border:1px solid transparent;
+    }
+    .gcell.on { border-color:var(--gold); background:rgba(255,178,30,.12); }
+    .gcell .em { font-size:20px; }
+    .gcell .nm { font:700 9px var(--body); }
+    .gcell .pr { font:700 8.5px var(--mono); color:var(--gold-hi); }
+
+    .capsule {
+      display:flex; align-items:center; justify-content:space-between; gap:5px;
+      background:#070914; padding:4px 6px; border-radius:99px; border:1px solid rgba(255,255,255,.1);
+    }
+    .qrow { display:flex; gap:2px; }
+    .qbtn { border:0; background:none; color:var(--ink-2); font:800 9.5px var(--mono); padding:4px 6px; border-radius:99px; cursor:pointer; }
+    .qbtn.on { background:var(--anchan); color:#fff; }
+    .sendbtn {
+      border:0; border-radius:99px; padding:5px 12px; font:800 10px var(--body);
+      background:linear-gradient(180deg,var(--gold-hi),var(--gold)); color:#1a1204; cursor:pointer;
     }
 
-    .hero-intro {
-      background: linear-gradient(135deg, rgba(19, 26, 56, 0.92), rgba(10, 14, 32, 0.92));
-      border: 1px solid rgba(255, 215, 130, 0.25);
-      border-radius: 22px; padding: 24px 28px; margin-bottom: 30px;
-      display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; align-items: center;
+    /* Sticky Bottom Bar */
+    .sticky-foot {
+      position:fixed; left:0; right:0; bottom:0; z-index:50;
+      background:rgba(8,10,22,.94); backdrop-filter:blur(14px);
+      border-top:1px solid rgba(255,255,255,.1); padding:12px 18px;
     }
-    @media (max-width: 860px) { .hero-intro { grid-template-columns: 1fr; } }
-    .hero-intro h1 { font-size: clamp(24px, 3.5vw, 34px); font-weight: 800; line-height: 1.15; margin-bottom: 10px; }
-    .hero-intro p { color: var(--muted); font-size: 14.5px; line-height: 1.55; }
-    .score-box {
-      background: rgba(5, 7, 20, 0.75); border: 1px solid rgba(115, 129, 255, 0.3);
-      border-radius: 16px; padding: 16px 18px; font-size: 13px; line-height: 1.6;
-    }
-    .score-box strong { color: #FFD97D; }
-
-    /* Decision Section Card */
-    .d-card {
-      background: rgba(12, 17, 38, 0.88);
-      border: 2px solid rgba(255, 255, 255, 0.1);
-      border-radius: 24px;
-      padding: 26px;
-      margin-bottom: 28px;
-      transition: border-color 0.25s ease, box-shadow 0.25s ease;
-    }
-    .d-card[data-status="approved"] {
-      border-color: var(--green);
-      box-shadow: 0 0 32px rgba(36, 209, 126, 0.18);
-    }
-    .d-card[data-status="rejected"] {
-      border-color: var(--red);
-      box-shadow: 0 0 28px rgba(255, 84, 104, 0.15);
-    }
-
-    .d-head {
-      display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-      margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08);
-    }
-    .d-num {
-      display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.14em;
-      padding: 4px 10px; border-radius: 999px; background: rgba(115,129,255,0.18); color: #A9B3FF;
-      margin-bottom: 6px;
-    }
-    .d-title { font-size: 21px; font-weight: 800; line-height: 1.25; }
-    .d-sub { font-size: 14px; color: var(--muted); margin-top: 4px; max-width: 720px; }
-
-    /* Approve / Reject Click Controls */
-    .vote-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .v-btn {
-      padding: 10px 18px; border-radius: 999px; font-weight: 800; font-size: 13px;
-      cursor: pointer; border: 1.5px solid rgba(255,255,255,0.18);
-      background: rgba(20, 27, 58, 0.85); color: #fff;
-      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px;
-    }
-    .v-btn:hover { transform: translateY(-1px); }
-    .v-btn.approve.active { background: var(--green); color: #04190E; border-color: var(--green); box-shadow: 0 6px 20px rgba(36,209,126,0.35); }
-    .v-btn.reject.active { background: var(--red); color: #fff; border-color: var(--red); box-shadow: 0 6px 20px rgba(255,84,104,0.35); }
-
-    /* Side-by-Side Phone Mockups */
-    .phones-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: stretch;
-    }
-    @media (max-width: 820px) { .phones-grid { grid-template-columns: 1fr; } }
-
-    .phone-col {
-      background: #070A1A; border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 12px;
-    }
-    .phone-col.fixed {
-      border-color: rgba(255, 178, 30, 0.45);
-      background: linear-gradient(180deg, rgba(18, 25, 56, 0.65) 0%, #070A1A 100%);
-    }
-    .col-badge {
-      display: flex; align-items: center; justify-content: space-between;
-      font-size: 11.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
-    }
-    .col-badge .bad { color: var(--red); }
-    .col-badge .good { color: var(--green); }
-
-    /* Simulated Mobile Screen Inside Card */
-    .mock-screen {
-      background: #0A0D20; border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px; padding: 14px; font-size: 13px; display: flex; flex-direction: column; gap: 10px;
-      position: relative; overflow: hidden;
-    }
-    .m-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .m-pill {
-      padding: 5px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 700;
-      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
-      display: inline-flex; align-items: center; gap: 5px;
-    }
-    .m-pill.gold { background: rgba(255,178,30,0.18); border-color: rgba(255,178,30,0.55); color: #FFD97D; }
-    .m-pill.blue { background: rgba(115,129,255,0.18); border-color: rgba(115,129,255,0.55); color: #C2CAFF; }
-    .m-pill.green { background: rgba(36,209,126,0.16); border-color: rgba(36,209,126,0.5); color: #87F5BE; }
-    .m-pill.red { background: rgba(255,84,104,0.16); border-color: rgba(255,84,104,0.45); color: #FF98A4; }
-
-    .m-card {
-      background: #121735; border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px; padding: 11px 12px;
-    }
-    .m-card.highlight { border-color: rgba(255,178,30,0.55); background: rgba(25, 32, 68, 0.9); }
-
-    .pin-callout {
-      font-size: 12.5px; color: rgba(235, 240, 255, 0.88); line-height: 1.5;
-      padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,0.04);
-      border-left: 3px solid var(--marigold);
-    }
-
-    /* Interactive Stepper / Progress Strip Demo */
-    .step-strip {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
-      background: #080B1B; padding: 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
-    }
-    .step-item {
-      text-align: center; padding: 7px 4px; border-radius: 8px; font-size: 11px; font-weight: 700;
-      color: var(--muted); cursor: pointer; transition: all 0.2s;
-    }
-    .step-item.active {
-      background: linear-gradient(90deg, #FFB21E, #F59E0B); color: #090C1D; font-weight: 800;
-    }
-
-    /* Interactive Poppo Lucky Simulator */
-    .sim-box {
-      background: linear-gradient(180deg, #0D122B 0%, #070A1A 100%);
-      border: 1px solid rgba(255,178,30,0.4); border-radius: 18px; padding: 18px; margin-top: 14px;
-    }
-    .sim-gifts {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0;
-    }
-    .sim-gift {
-      background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.1);
-      border-radius: 12px; padding: 10px 6px; text-align: center; cursor: pointer; transition: all 0.18s;
-    }
-    .sim-gift.selected {
-      border-color: var(--marigold); background: rgba(255,178,30,0.14);
-      box-shadow: 0 0 18px rgba(255,178,30,0.25);
-    }
-    .sim-gift .emo { font-size: 24px; display: block; margin-bottom: 4px; }
-    .sim-gift .nm { font-size: 11.5px; font-weight: 700; display: block; }
-    .sim-gift .pr { font-size: 11px; color: #FFD97D; font-weight: 700; }
-
-    .poppo-capsule {
-      display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
-      background: #060816; padding: 10px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12);
-    }
-    .qty-pills { display: flex; gap: 4px; }
-    .qty-btn {
-      padding: 6px 11px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.15);
-      background: transparent; color: #fff; font-weight: 800; font-size: 12px; cursor: pointer;
-    }
-    .qty-btn.active { background: rgba(115,129,255,0.3); border-color: var(--anchan); color: #FFD97D; }
-    .send-orb {
-      padding: 9px 22px; border-radius: 999px; border: none;
-      background: linear-gradient(92deg, #FCE38A 0%, #F5B942 52%, #E59824 100%);
-      color: #10121E; font-weight: 800; font-size: 13.5px; cursor: pointer;
-      box-shadow: 0 4px 16px rgba(245,185,66,0.4);
-    }
-    .send-orb:active { transform: scale(0.95); }
-
-    .sim-stats {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px;
-    }
-    @media (max-width: 680px) { .sim-stats { grid-template-columns: repeat(2, 1fr); } }
-    .stat-tile {
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
-      border-radius: 10px; padding: 8px 10px; font-size: 11.5px;
-    }
-    .stat-tile b { display: block; font-size: 15px; color: #FFD97D; margin-top: 2px; }
-
-    /* Sticky Bottom Summary Bar */
-    .bottom-dock {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
-      background: rgba(7, 10, 26, 0.95); backdrop-filter: blur(16px);
-      border-top: 1px solid rgba(255, 215, 130, 0.28);
-      padding: 14px 20px;
-    }
-    .dock-inner {
-      max-width: 1180px; margin: 0 auto;
-      display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
-    }
-    .dock-status { font-size: 13.5px; font-weight: 700; }
-    .dock-btn {
-      padding: 11px 24px; border-radius: 999px; border: none;
-      background: linear-gradient(92deg, #FCE38A 0%, #F5B942 52%, #E59824 100%);
-      color: #10121E; font-weight: 800; font-size: 14px; cursor: pointer;
-    }
+    .sticky-in { max-width:1140px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="top-bar">
-      <div class="brand">
-        <img src="/logo-mark-1053.png" alt="Kring" />
-        <span>kring · Founder Decision Studio</span>
-      </div>
-      <span class="pill-tag">ZERO CODE CHANGED · CLICK TO APPROVE / REJECT</span>
-    </div>
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:6px">
+    <span class="k">Kring · Visual Decision Studio · Fable Clean Phone Style</span>
+    <h1>Five clean fixes · <b>tap the phones</b> &amp; approve</h1>
+    <p class="lede">Every screen below keeps our decluttered 2-row card style. Left phone = Today. Right phone = Proposed (interactive — tap the cyan pins and buttons). Click <b>Approve</b> or <b>Reject</b> on each band.</p>
+  </header>
 
-    <div class="hero-intro">
+  <!-- ==================== BAND 1: PATH, LABELS & CARD PRICE ==================== -->
+  <section class="band" id="b1" data-vote="approve">
+    <div class="band-top">
       <div>
-        <h1>Why Your Friend Felt Lost — And How We Fix It Without Losing Our Revenue Engine</h1>
-        <p>When we cleaned up the clutter in Round 4, we hid labels, removed prices from Experience cards, and separated Traveller/Local/Agency into hidden mode switches. Below are the <strong>6 visual fixes</strong> synthesizing Opus's best UX ideas with our <strong>Locked Master Document (V4.3)</strong> + our deep audit of the <strong>Poppo Lucky Gifting RTP & Jackpot Engine</strong>.</p>
+        <span class="k">1 · Navigation &amp; First-Screen Clarity</span>
+        <h2>One door (What → Who → When), word labels on icons, price on card</h2>
       </div>
-      <div class="score-box">
-        <div><strong>✓ Safe to Approve Immediately:</strong> Fixes #1, #2, #3, #5</div>
-        <div><strong>🛡️ Crucial Master-Doc Guardrails Added:</strong> Fix #4 (Foreign Work-Permit Shield & Agency Portal)</div>
-        <div><strong>🎰 Deep-Dive Discovery:</strong> Fix #5 (Why 86.7% of Lucky spins currently return 0x & how Poppo Micro-Roll fixes it)</div>
+      <div class="vote-bar">
+        <button class="vbtn ok on" onclick="vote('b1','approve',this)">✓ Approve</button>
+        <button class="vbtn no" onclick="vote('b1','reject',this)">✗ Reject</button>
       </div>
     </div>
 
-    <!-- ================= DECISION 1: NAVIGATION & ONE CLEAR PATH ================= -->
-    <section class="d-card" id="card-d1" data-status="approved">
-      <div class="d-head">
-        <div>
-          <span class="d-num">DECISION 1 · NAVIGATION & CARD CLARITY</span>
-          <h2 class="d-title">1. One Clear Door ("What → Who → When") + Restore "from ฿650 · Local's Time" on Cards + Word Labels on Unclear Icons</h2>
-          <p class="d-sub">Fixes the #1 reason first-timers hesitate: they couldn't tell whether to pick an Experience or a Person, couldn't see prices before tapping, and had to guess what icon-only buttons (`🎁`, `Filters`) meant.</p>
-        </div>
-        <div class="vote-group">
-          <button class="v-btn approve active" onclick="setVote('d1','approved',this)">✓ Approve Fix 1</button>
-          <button class="v-btn reject" onclick="setVote('d1','rejected',this)">✗ Reject</button>
-        </div>
-      </div>
-
-      <div class="phones-grid">
-        <div class="phone-col">
-          <div class="col-badge"><span>TODAY'S PROTOTYPE</span><span class="bad">⚠ 3 Hesitation Points</span></div>
-          <div class="mock-screen">
-            <div class="m-row">
-              <span class="m-pill">🧭 Experiences | Locals (Equal split)</span>
-              <span class="m-pill red">🎁 (No label) · ⚙️ (No label)</span>
-            </div>
-            <div class="m-card">
-              <div style="font-weight:800;font-size:14px;">Yaowarat Street-Food Walk 🍢</div>
-              <div style="color:var(--muted);font-size:12px;margin-top:4px;">Chinatown · ~2.5h · ★ 4.9</div>
-              <div style="margin-top:8px;color:#FF98A4;font-size:11.5px;font-weight:700;">❌ No price shown on card · User has to tap just to see if it's ฿400 or ฿4,000</div>
-            </div>
-          </div>
-          <div class="pin-callout"><strong>Why your friend got confused:</strong> Two equal doors ("Experiences" vs "Locals") look like two separate apps, and cards without prices force blind tapping.</div>
-        </div>
-
-        <div class="phone-col fixed">
-          <div class="col-badge"><span>PROPOSED ZERO-CONFUSION FIX</span><span class="good">✓ Instant Clarity in 2s</span></div>
-          <div class="mock-screen">
-            <div class="m-row">
-              <span class="m-pill gold">🎁 Rewards</span>
-              <span class="m-pill blue">⚡ Filters</span>
-              <span class="m-pill green">฿1,200 Cash · 🪙 15k</span>
-            </div>
-            <div class="m-card highlight">
-              <div class="m-row">
-                <div style="font-weight:800;font-size:14px;">Yaowarat Street-Food Walk 🍢</div>
-                <span class="m-pill gold">from ฿650</span>
-              </div>
-              <div style="color:#C8D2FF;font-size:12px;margin-top:4px;">~2.5h · <strong>Covers Local's time only</strong> · Pay stalls directly</div>
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.1);">
-                <span style="font-size:11.5px;color:#87F5BE;">🟢 4 Verified Locals free tonight (Kwan, Ploy…)</span>
-                <span style="font-size:11.5px;font-weight:800;color:#FFD97D;">Pick Local →</span>
+    <div class="row3">
+      <!-- LEFT PHONE: TODAY -->
+      <div class="pcol">
+        <span class="lbl">Today (Why friends hesitate)</span>
+        <div class="phone">
+          <div class="scr">
+            <div class="bar">
+              <span class="logo">kring</span>
+              <div style="display:flex;gap:5px">
+                <span class="pill pin bad" data-n="!">🎁</span>
+                <span class="pill pin bad" data-n="!">฿1,200</span>
               </div>
             </div>
-          </div>
-          <div class="pin-callout"><strong>Master-Doc Aligned:</strong> Restores <strong>"from ฿650"</strong> + <strong>"Covers Local's time only"</strong> (Rule 1) + shows available Locals right on the Experience card so <em>What → Who → When</em> is one seamless path!</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================= DECISION 2: STICKY PROGRESS STRIP & TAB NAMES ================= -->
-    <section class="d-card" id="card-d2" data-status="approved">
-      <div class="d-head">
-        <div>
-          <span class="d-num">DECISION 2 · "WHERE AM I & WHAT'S NEXT?" + SELF-EXPLANATORY TABS</span>
-          <h2 class="d-title">2. Live 4-Step Booking Progress Bar + 3-Icon Escrow Visual + Rename Tab 2 to "Deals & Price"</h2>
-          <p class="d-sub">New users don't know what "Kring Price" or "Held until Bump" means. Click the 4 steps below to test how the live booking tracker guides both Guest and Local at every stage.</p>
-        </div>
-        <div class="vote-group">
-          <button class="v-btn approve active" onclick="setVote('d2','approved',this)">✓ Approve Fix 2</button>
-          <button class="v-btn reject" onclick="setVote('d2','rejected',this)">✗ Reject</button>
-        </div>
-      </div>
-
-      <div class="phones-grid">
-        <div class="phone-col">
-          <div class="col-badge"><span>INTERACTIVE 4-STEP BOOKING TRACKER (TAP STEPS)</span><span class="good">👆 Tap 1–4 Below</span></div>
-          <div class="mock-screen">
-            <div class="step-strip" id="bookingStepper">
-              <div class="step-item active" onclick="setBookingStep(0)">1. Requested</div>
-              <div class="step-item" onclick="setBookingStep(1)">2. Agreed 🔒</div>
-              <div class="step-item" onclick="setBookingStep(2)">3. Meet & กริ๊ง!</div>
-              <div class="step-item" onclick="setBookingStep(3)">4. Done ✨</div>
+            <div class="seg pin bad" data-n="!">
+              <span class="on">Experiences</span>
+              <span>Locals</span>
             </div>
-            <div class="m-card highlight" id="bookingStepBody" style="min-height:86px;">
-              <div style="font-weight:800;color:#FFD97D;margin-bottom:4px;">Step 1: Offer Sent · Waiting for Ploy (09:42 left)</div>
-              <div style="font-size:12.5px;color:#D8E0FF;">฿1,200 is reserved safely. If Ploy doesn't accept within 10 mins, <strong>100% (฿1,200) returns to you automatically</strong>.</div>
+            <div class="xcard" style="background-image:url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=500&q=80')">
+              <div class="r1"><b>Yaowarat Food Walk</b></div>
+              <div class="r2"><span>Chinatown · 2.5h</span><span class="pin bad" data-n="!">Tap to see price</span></div>
             </div>
-            <div class="m-card" style="background:rgba(115,129,255,0.09);">
-              <div style="font-size:11.5px;font-weight:800;color:#FFD97D;margin-bottom:4px;">HOW KRING ESCROW WORKS (SHOWN ONCE BEFORE FIRST PAYMENT):</div>
-              <div class="m-row" style="font-size:12px;text-align:center;">
-                <div style="flex:1;">💳 <strong>1. You Pay</strong><br/><span style="font-size:11px;color:var(--muted)">PromptPay / Card</span></div>
-                <div>→</div>
-                <div style="flex:1;">🔒 <strong>2. Kring Holds</strong><br/><span style="font-size:11px;color:var(--muted)">100% Refund Guard</span></div>
-                <div>→</div>
-                <div style="flex:1;">🔔 <strong>3. Bump Releases</strong><br/><span style="font-size:11px;color:var(--muted)">At Public Venue</span></div>
-              </div>
+            <div class="xcard" style="background-image:url('https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=500&q=80')">
+              <div class="r1"><b>Herbal Spa Afternoon</b></div>
+              <div class="r2"><span>Ari · 2h</span><span>Tap to see price</span></div>
             </div>
           </div>
-        </div>
-
-        <div class="phone-col fixed">
-          <div class="col-badge"><span>BOTTOM TAB BAR COMPARISON</span><span class="good">✓ Zero Guessing</span></div>
-          <div class="mock-screen">
-            <div style="font-size:11.5px;color:var(--muted);font-weight:700;">BEFORE (Brand jargon on tab bar):</div>
-            <div class="step-strip" style="margin-bottom:10px;">
-              <div class="step-item">Experiences</div>
-              <div class="step-item" style="color:#FF98A4;border:1px solid rgba(255,84,104,0.4);">Kring Price ❓</div>
-              <div class="step-item">Chats</div>
-              <div class="step-item">Wallet</div>
-            </div>
-            <div style="font-size:11.5px;color:#87F5BE;font-weight:700;">PROPOSED (Action-clear tab labels EN + TH):</div>
-            <div class="step-strip">
-              <div class="step-item active">🧭 Explore<br/><span style="font-size:9.5px;">เที่ยว & โลคอล</span></div>
-              <div class="step-item" style="color:#FFD97D;border:1px solid rgba(255,178,30,0.45);">🏷️ Deals & Price<br/><span style="font-size:9.5px;">ดีล & เช็คราคา</span></div>
-              <div class="step-item">💬 Chats<br/><span style="font-size:9.5px;">แชท & นัด</span></div>
-              <div class="step-item">👤 Wallet & Me<br/><span style="font-size:9.5px;">กระเป๋า & ฉัน</span></div>
-            </div>
-            <div class="pin-callout" style="margin-top:6px;">Inside Tab 2, the hero header still proudly brands <strong>"Kring Price · Up to 63% Off & Street Price Check"</strong>, while the bottom tab tells first-timers what's inside!</div>
+          <div class="dock">
+            <div class="on"><i>🧭</i>Experiences</div>
+            <div><i>🏷️</i>Kring Price</div>
+            <div><i>💬</i>Chats</div>
+            <div><i>👤</i>Wallet</div>
           </div>
         </div>
       </div>
-    </section>
 
-    <!-- ================= DECISION 3: "ONE APP" FOR THAIS & TRAVELLERS + AGENCY GUARDRAIL ================= -->
-    <section class="d-card" id="card-d3" data-status="approved">
-      <div class="d-head">
-        <div>
-          <span class="d-num">DECISION 3 · UNIFIED "ONE APP" FOR LOCALS & TRAVELLERS</span>
-          <h2 class="d-title">3. One Unified App Layout for Everyone (Traveller + Local in One Flow) + Keep Dedicated Agency Partner Hub Inside Me</h2>
-          <p class="d-sub">Switching roles in "Me" currently mutates every tab, making Kring feel like two disconnected apps. Unifying Traveller + Local lets Thai users book weekend trips in Pattaya AND host experiences in Bangkok from the exact same screen.</p>
-        </div>
-        <div class="vote-group">
-          <button class="v-btn approve active" onclick="setVote('d3','approved',this)">✓ Approve Unified One-App</button>
-          <button class="v-btn reject" onclick="setVote('d3','rejected',this)">✗ Reject</button>
-        </div>
+      <!-- MIDDLE: SHORT BULLETS -->
+      <div class="mid">
+        <ul class="legend">
+          <li><em class="r">!</em><div><b>Today's 3 blind spots:</b> Unlabeled <code>🎁</code> icon, equal <i>Experiences | Locals</i> split (do I pick an activity or a person?), and no price on cards.</div></li>
+          <li><em>1</em><div><b>One word on unclear icons:</b> <code>🎁 Rewards</code> and <code>⚙ Filters</code>. Zero guessing.</div></li>
+          <li><em>2</em><div><b>Price + Local's Time on card:</b> <code>from ฿650 · Local's time</code> so nobody thinks food/venue bills are included (Master Doc Rule 1).</div></li>
+          <li><em>3</em><div><b>Locals inside the card:</b> Live avatars show who hosts it (<i>What → Who → When</i>).</div></li>
+        </ul>
       </div>
 
-      <div class="phones-grid">
-        <div class="phone-col">
-          <div class="col-badge"><span>INTERACTIVE PERSONA SWITCH: SAME LAYOUT</span><span class="good">👆 Toggle Wei / Ploy</span></div>
-          <div class="mock-screen">
-            <div class="m-row">
-              <button class="v-btn approve active" id="btnWei" style="padding:6px 12px;font-size:12px;" onclick="setOneAppPersona('wei')">🧳 View as Wei (Traveller)</button>
-              <button class="v-btn" id="btnPloy" style="padding:6px 12px;font-size:12px;" onclick="setOneAppPersona('ploy')">🇹🇭 View as Ploy (Thai Local)</button>
-            </div>
-            <div class="m-card highlight" id="personaScreen">
-              <div class="m-row">
-                <span style="font-weight:800;">📍 You're in Bangkok · 42 Locals Live</span>
-                <span class="m-pill gold">＋ Host an Experience</span>
+      <!-- RIGHT PHONE: PROPOSED -->
+      <div class="pcol">
+        <span class="lbl good">Proposed (Clean 2-row cards)</span>
+        <div class="phone proposed">
+          <div class="scr">
+            <div class="bar">
+              <span class="logo">kring</span>
+              <div style="display:flex;gap:5px">
+                <span class="pill gold pin" data-n="1">🎁 Rewards</span>
+                <span class="pill">฿1,200</span>
+                <button class="qdot">?</button>
               </div>
-              <div style="margin-top:8px;font-size:12.5px;color:#D8E0FF;">
-                • <strong>Chats Tab (Unified):</strong> Shows both <span class="m-pill blue" style="padding:2px 7px;font-size:10.5px;">Joining · Sat 14:00</span> and <span class="m-pill gold" style="padding:2px 7px;font-size:10.5px;">Hosting · Sun 17:00</span> in one clean inbox.<br/>
-                • <strong>Wallet & Me Tab (Unified):</strong> Top pill shows <strong>Spending Cash (฿) + Kring Coins (🪙)</strong>; Verified Locals see their <strong>Ready Earnings (฿) → Instant PromptPay Withdraw</strong> right below on the same card!
+            </div>
+            <div style="display:flex;gap:5px;align-items:center">
+              <span class="pill" style="background:#fff;color:#080a14;font-weight:800">All Bangkok</span>
+              <span class="pill">Browse Locals ›</span>
+              <span class="pill pin" data-n="1" style="margin-left:auto">⚙ Filters</span>
+            </div>
+            <div class="xcard" style="background-image:url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=500&q=80')">
+              <div class="r1">
+                <b>Yaowarat Food Walk</b>
+                <span class="pill gold pin" data-n="2">from ฿650</span>
+              </div>
+              <div class="r2">
+                <span>2.5h · Local's time only</span>
+                <span class="avatars pin" data-n="3">
+                  <i class="av-sm" style="background-image:url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=100&q=80')"></i>
+                  <i class="av-sm" style="background-image:url('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=100&q=80')"></i>
+                  <b style="color:var(--green)">4 live ›</b>
+                </span>
+              </div>
+            </div>
+            <div class="xcard" style="background-image:url('https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=500&q=80')">
+              <div class="r1">
+                <b>Herbal Spa Afternoon</b>
+                <span class="pill gold">from ฿800</span>
+              </div>
+              <div class="r2">
+                <span>2h · Local's time only</span>
+                <span style="color:var(--green);font-weight:700">● Ploy + 2 live ›</span>
               </div>
             </div>
           </div>
-        </div>
-
-        <div class="phone-col fixed">
-          <div class="col-badge"><span>CRITICAL MASTER-DOC GUARDRAILS</span><span class="good">🛡️ Legal & B2B Protected</span></div>
-          <div class="mock-screen">
-            <div class="m-card">
-              <div style="font-weight:800;color:#FFD97D;margin-bottom:4px;">Guardrail A: Don't Delete the Agency Engine (Rule 7)</div>
-              <div style="font-size:12px;color:var(--muted);">Opus suggested deleting the Agency switch completely. Instead, we hide it from normal users' headers and place a clean <strong>"🏢 Agency & Creator Roster Portal (2%–5% Override)"</strong> button inside <em>Wallet & Me</em> so our 200+ Bangkok talent agencies have their full Earn/Manage/Data dashboard!</div>
-            </div>
-            <div class="m-card">
-              <div style="font-weight:800;color:#87F5BE;margin-bottom:4px;">Guardrail B: Thai Work-Permit & Tour Guide Law Shield</div>
-              <div style="font-size:12px;color:var(--muted);">1. <strong>Paid Hosting (฿ Payouts):</strong> Restricted strictly to <strong>Thai Citizens (20+ Thai National ID + Thai PromptPay)</strong>. Foreigners can post <em>"฿0 Free Coffee / Language Exchange"</em> only — zero illegal foreign work-permit liability!<br/>2. <strong>Wording:</strong> All listings are framed as <em>"1-on-1 Social Dining, Café & Lifestyle Hangouts"</em> (never licensed archaeological tour guiding).</div>
-            </div>
+          <div class="dock">
+            <div class="on"><i>🧭</i>Explore</div>
+            <div><i>🏷️</i>Deals &amp; Price</div>
+            <div><i>💬</i>Chats</div>
+            <div><i>👤</i>Wallet &amp; Me</div>
           </div>
         </div>
       </div>
-    </section>
-
-    <!-- ================= DECISION 4: POPPO LUCKY GIFTING RTP & JACKPOT ENGINE ================= -->
-    <section class="d-card" id="card-d4" data-status="approved">
-      <div class="d-head">
-        <div>
-          <span class="d-num">DECISION 4 · POPPO-STYLE LUCKY GIFTING RTP, COMBO BURSTS & JACKPOT PAYOUTS</span>
-          <h2 class="d-title">4. Upgrade `luckyPoolRng.ts` from "Single-Roll (86.7% Dry)" to True Poppo Multi-Roll Combo Engine (80.0% RTP + Reservoir Guard + Big 50x/100x/500x Stage)</h2>
-          <p class="d-sub">We audited `src/lib/luckyPoolRng.ts` line-by-line. Right now, `×10` or `×99` rolls only <strong>1 single random number</strong> with an <strong>86.68% chance of 0x (zero coins back)</strong>! Test both engines live below:</p>
-        </div>
-        <div class="vote-group">
-          <button class="v-btn approve active" onclick="setVote('d4','approved',this)">✓ Approve Poppo v2 RTP Engine</button>
-          <button class="v-btn reject" onclick="setVote('d4','rejected',this)">✗ Keep Old Single-Roll</button>
-        </div>
-      </div>
-
-      <div class="phones-grid">
-        <div class="phone-col">
-          <div class="col-badge"><span>WHAT WE FOUND IN `luckyPoolRng.ts`</span><span class="bad">⚠ 3 Hidden Flaws Today</span></div>
-          <div class="mock-screen">
-            <div class="m-card">
-              <div style="font-weight:800;color:#FF98A4;">Flaw 1: 86.68% of Spins Return 0 Coins</div>
-              <div style="font-size:12px;color:var(--muted);margin-top:3px;">Current table: `2x (7.5%)`, `5x (4.0%)`, `10x (1.5%)`, `50x (0.2%)`, `100x (0.1%)`, `500x (0.02%)`. Total hit rate = <strong>13.32%</strong>. Nearly 9 out of 10 taps give nothing!</div>
-            </div>
-            <div class="m-card">
-              <div style="font-weight:800;color:#FF98A4;">Flaw 2: `×10` and `×99` Only Roll Once!</div>
-              <div style="font-size:12px;color:var(--muted);margin-top:3px;">In `processLuckyComboSpin`, `×99` multiplies the bet by 99 and rolls <strong>one single number</strong>. So a whale spending `×99` still gets `0 coins back` 86.7% of the time — and when they roll `100x`, `99 × 100x = 9,900x` exceeds the water-tank reservoir and gets blocked!</div>
-            </div>
-            <div class="m-card">
-              <div style="font-weight:800;color:#FF98A4;">Flaw 3: 50x/100x/500x Jackpots Blocked from Big Stage</div>
-              <div style="font-size:12px;color:var(--muted);margin-top:3px;">Line 1906 of `ChatsAndPlansTab.tsx` (`drawerMode !== 'lucky'`) blocks Lucky Jackpots from triggering the full-screen Golden Stage celebration!</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="phone-col fixed">
-          <div class="col-badge"><span>LIVE POPPO V2 SIMULATOR (80% RTP · 12% HOST · 8% HOUSE)</span><span class="good">🎰 Try ×1, ×10, ×50, ×99!</span></div>
-          <div class="sim-box">
-            <div class="m-row">
-              <span class="m-pill gold" id="simBalPill">🪙 Balance: 100,000 Coins (฿1,000)</span>
-              <span class="m-pill green" id="simHostPill">👩 Host Ready: ฿0.00 (12%)</span>
-            </div>
-
-            <div class="sim-gifts">
-              <div class="sim-gift selected" onclick="selectSimGift(0, 100, '🎲', 'Lucky Dice', this)">
-                <span class="emo">🎲</span><span class="nm">Lucky Dice</span><span class="pr">🪙 100 (฿1)</span>
-              </div>
-              <div class="sim-gift" onclick="selectSimGift(1, 500, '🐘', 'Gold Elephant', this)">
-                <span class="emo">🐘</span><span class="nm">Gold Elephant</span><span class="pr">🪙 500 (฿5)</span>
-              </div>
-              <div class="sim-gift" onclick="selectSimGift(2, 1500, '🧋', 'Cha Yen', this)">
-                <span class="emo">🧋</span><span class="nm">Cha Yen</span><span class="pr">🪙 1,500 (฿15)</span>
-              </div>
-              <div class="sim-gift" onclick="selectSimGift(3, 5000, '👑', 'Siam Crown', this)">
-                <span class="emo">👑</span><span class="nm">Siam Crown</span><span class="pr">🪙 5,000 (฿50)</span>
-              </div>
-            </div>
-
-            <div class="poppo-capsule">
-              <div class="qty-pills">
-                <button class="qty-btn active" onclick="setSimQty(1, this)">×1</button>
-                <button class="qty-btn" onclick="setSimQty(10, this)">×10</button>
-                <button class="qty-btn" onclick="setSimQty(50, this)">×50</button>
-                <button class="qty-btn" onclick="setSimQty(99, this)">×99</button>
-              </div>
-              <button class="send-orb" id="simSendBtn" onclick="runPoppoSpin()">🔔 Send · กริ๊ง!</button>
-            </div>
-
-            <div id="simResultBanner" style="margin-top:12px;padding:11px 14px;border-radius:12px;background:rgba(255,178,30,0.12);border:1px solid rgba(255,178,30,0.35);font-size:12.5px;font-weight:700;color:#FFE294;">
-              👆 Select ×10 or ×99 and tap "Send · กริ๊ง!" to test Poppo v2 Multi-Roll bursts!
-            </div>
-
-            <div class="sim-stats">
-              <div class="stat-tile">Pool Reservoir (80%)<b id="stPool">🪙 50,000</b></div>
-              <div class="stat-tile">Guest Won Back<b id="stWon">🪙 0</b></div>
-              <div class="stat-tile">Host Cash (12%)<b id="stHost">฿0.00</b></div>
-              <div class="stat-tile">House + Agency (8%)<b id="stHouse">฿0.00</b></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================= DECISION 5: LUCKY TRAY VISUAL & BRANDING VARIANT ================= -->
-    <section class="d-card" id="card-d5" data-status="approved">
-      <div class="d-head">
-        <div>
-          <span class="d-num">DECISION 5 · LUCKY TRAY VISUALS (NON-GAMBLING / NON-SKETCHY BRANDING)</span>
-          <h2 class="d-title">5. Pick the Visual Identity for Lucky Gifting (`Poppo Golden Bell Capsule` vs. `Siam Blind Box จุ่มกริ๊ง!`)</h2>
-          <p class="d-sub">Instead of casino/slot-machine words like "80% Gambling Pool", we keep the exact Poppo capsule mechanics (`[×1 | ×10 | ×50 | ×99 | 🔔 Combo]`) with authentic Thai cultural framing:</p>
-        </div>
-        <div class="vote-group">
-          <button class="v-btn approve active" id="v5A" onclick="pickVariant5('A')">✓ Option A: Golden Kring Bell Capsule (Recommended)</button>
-          <button class="v-btn" id="v5B" onclick="pickVariant5('B')">Option B: Siam Blind Box (กล่องจุ่มกริ๊ง)</button>
-        </div>
-      </div>
-
-      <div class="phones-grid">
-        <div class="phone-col fixed" id="col5A">
-          <div class="col-badge"><span>OPTION A (RECOMMENDED) · GOLDEN KRING BELL CAPSULE</span><span class="good">★ Matches Twin-Ring Brand</span></div>
-          <div class="mock-screen">
-            <div class="m-row">
-              <span class="m-pill">🎁 Cultural Treats (฿)</span>
-              <span class="m-pill gold">🔔 Lucky Kring · Up to 500× Coins</span>
-            </div>
-            <div class="m-card highlight">
-              <div style="font-weight:800;color:#FFD97D;">Why Option A Wins for Both Poppo Whales & App Store Reviewers:</div>
-              <div style="font-size:12px;color:#D8E0FF;margin-top:4px;">
-                • Keeps the exact <strong>Poppo Live muscle memory</strong> (`4×2` grid + `[×1 | ×10 | ×50 | ×99]` + 3-second Golden Combo Ring timer).<br/>
-                • Every send rings the <strong>Twin Kring Bells (`กริ๊ง!`)</strong>; winning micro-spins pop Twin-Ring Kring Coins right into the balance pill, while `50× / 100× / 500×` fires the <strong>Golden Siam Jackpot Stage</strong>!<br/>
-                • Under `gateway_review_mode = true` (for Google Play / bank reviewers), the multiplier labels hide automatically so it reads as clean Cultural Keepsake Stickers.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="phone-col" id="col5B">
-          <div class="col-badge"><span>OPTION B · SIAM BLIND BOX (จุ่มกริ๊ง! POP-MART STYLE)</span><span class="good">Gen-Z Art-Toy Vibe</span></div>
-          <div class="mock-screen">
-            <div class="m-row">
-              <span class="m-pill">🎁 Gifts (฿)</span>
-              <span class="m-pill blue">🧸 Mystery Box · จุ่มกริ๊ง!</span>
-            </div>
-            <div class="m-card">
-              <div style="font-weight:800;color:#C2CAFF;">How Option B Works:</div>
-              <div style="font-size:12px;color:var(--muted);margin-top:4px;">
-                • Frames each Lucky gift as a Bangkok Siam Square "Blind Box" (`กล่องสุ่ม`) where unsealing a box drops rare golden editions (`2×` to `500×` bonus Kring Coins).<br/>
-                • Cute for Gen-Z, though slightly less immediate than Poppo's rapid-fire combo bell capsule.
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <!-- Sticky Bottom Approval Bar -->
-  <div class="bottom-dock">
-    <div class="dock-inner">
-      <div class="dock-status" id="dockSummaryText">
-        ✅ All 5 Decisions Approved (1: Clear Path + Card Prices · 2: Progress Strip + Tab Names · 3: Unified One-App + Agency/Legal Shield · 4: Poppo v2 Multi-Roll RTP · 5: Option A Golden Kring Capsule)
-      </div>
-      <button class="dock-btn" onclick="copyDecisions()">📋 Copy My Approved Decisions</button>
     </div>
+  </section>
+
+  <!-- ==================== BAND 2: PROGRESS STRIP & ESCROW PICTURE ==================== -->
+  <section class="band" id="b2" data-vote="approve">
+    <div class="band-top">
+      <div>
+        <span class="k">2 · Booking Progress &amp; Money Picture</span>
+        <h2>Slim 4-step strip (Tap 1–4 on right phone) + 3-icon escrow visual</h2>
+      </div>
+      <div class="vote-bar">
+        <button class="vbtn ok on" onclick="vote('b2','approve',this)">✓ Approve</button>
+        <button class="vbtn no" onclick="vote('b2','reject',this)">✗ Reject</button>
+      </div>
+    </div>
+
+    <div class="row3">
+      <!-- LEFT PHONE: TODAY -->
+      <div class="pcol">
+        <span class="lbl">Today (No progress bar)</span>
+        <div class="phone">
+          <div class="scr">
+            <div class="bar"><span class="logo">← Ploy · 23</span><span class="pill">🟢 Online</span></div>
+            <div style="margin-top:40px;padding:14px;border-radius:18px;background:var(--panel-2);display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between"><b>Herbal Spa Afternoon</b><b style="color:var(--gold)">฿800</b></div>
+              <div style="font-size:10.5px;color:var(--ink-2)">Sat 14:00 · Siam Herbal Spa, Ari</div>
+              <div class="pin bad" data-n="!" style="padding:7px;border-radius:10px;background:rgba(255,255,255,.05);font-size:10px;color:var(--ink-2)">
+                Held until you meet · Counter / Suggest change
+              </div>
+            </div>
+          </div>
+          <div class="dock">
+            <div><i>🧭</i>Experiences</div><div><i>🏷️</i>Kring Price</div><div class="on"><i>💬</i>Chats</div><div><i>👤</i>Wallet</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MIDDLE -->
+      <div class="mid">
+        <ul class="legend">
+          <li><em>1</em><div><b>Tap the 4 steps on the right phone:</b> <code>Requested → Agreed → Meet &amp; กริ๊ง! → Done</code>. One slim 28px pill bar tells both Guest and Local exactly what happens next.</div></li>
+          <li><em>2</em><div><b>One-look money picture:</b> <code>You pay → Kring holds 🔒 → กริ๊ง! releases 🔔</code>. Replaces paragraphs of text with 3 icons.</div></li>
+          <li><em>3</em><div><b>Tab 2 named by action:</b> <code>Deals &amp; Price</code> on the dock, keeping <b>Kring Price</b> as the title inside.</div></li>
+        </ul>
+      </div>
+
+      <!-- RIGHT PHONE: PROPOSED INTERACTIVE -->
+      <div class="pcol">
+        <span class="lbl good">Proposed (Tap steps 1–4 inside phone)</span>
+        <div class="phone proposed">
+          <div class="scr">
+            <div class="bar"><span class="logo">← Ploy · 23 ✓</span><span class="pill gold">🔒 ฿800 Held</span></div>
+            <div class="pstrip pin" data-n="1" id="pstrip">
+              <span onclick="setStep(0)">1. Request</span>
+              <span class="on" onclick="setStep(1)">2. Agreed</span>
+              <span onclick="setStep(2)">3. กริ๊ง!</span>
+              <span onclick="setStep(3)">4. Done</span>
+            </div>
+            <!-- 3-icon escrow picture -->
+            <div class="pin" data-n="2" style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;text-align:center;padding:8px;border-radius:14px;background:rgba(255,255,255,.04);font-size:9.5px">
+              <div>💳<br><b>You pay</b></div><span style="color:var(--ink-3)">→</span>
+              <div style="color:var(--gold-hi)">🔒<br><b>Kring holds</b></div><span style="color:var(--ink-3)">→</span>
+              <div>🔔<br><b>Bump pays</b></div>
+            </div>
+            <!-- Active ticket card -->
+            <div id="stepCard" style="padding:12px;border-radius:18px;background:linear-gradient(160deg,#171c3a,#0e1124);box-shadow:inset 0 0 0 1px rgba(255,178,30,.35);display:flex;flex-direction:column;gap:7px">
+              <div style="display:flex;justify-content:space-between"><b>Herbal Spa · Sat 14:00</b><b style="color:var(--gold)">฿800</b></div>
+              <div style="font-size:10px;color:var(--ink-2)">📍 Siam Herbal Spa, Ari · 100% refund if no-show</div>
+              <button class="btn gold" style="padding:8px;font-size:11px;margin-top:2px" onclick="setStep(2)">🔔 Bump Phones at Venue · กริ๊ง!</button>
+            </div>
+          </div>
+          <div class="dock pin" data-n="3">
+            <div><i>🧭</i>Explore</div>
+            <div><i>🏷️</i>Deals &amp; Price</div>
+            <div class="on"><i>💬</i>Chats</div>
+            <div><i>👤</i>Wallet &amp; Me</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== BAND 3: ONE APP (TRAVELLER + LOCAL + AGENCY SHIELD) ==================== -->
+  <section class="band" id="b3" data-vote="approve">
+    <div class="band-top">
+      <div>
+        <span class="k">3 · Unified "One App" for Thais &amp; Travellers + Master-Doc Guardrails</span>
+        <h2>Same 4 tabs for everyone (Tap Wei / Ploy toggle on right phone)</h2>
+      </div>
+      <div class="vote-bar">
+        <button class="vbtn ok on" onclick="vote('b3','approve',this)">✓ Approve</button>
+        <button class="vbtn no" onclick="vote('b3','reject',this)">✗ Reject</button>
+      </div>
+    </div>
+
+    <div class="row3">
+      <!-- LEFT PHONE: TODAY -->
+      <div class="pcol">
+        <span class="lbl">Today (3-Role Switcher Mutates App)</span>
+        <div class="phone">
+          <div class="scr">
+            <div class="bar"><span class="logo">My Profile</span></div>
+            <div class="seg pin bad" data-n="!">
+              <span class="on">Traveller</span><span>Local</span><span>Agency</span>
+            </div>
+            <div style="padding:14px;border-radius:18px;background:var(--panel-2);font-size:11px;color:var(--ink-2);line-height:1.5">
+              Switching to <b>Local</b> hides Experiences and turns the app into a separate host dashboard. A Thai local visiting Pattaya has to keep switching modes.
+            </div>
+          </div>
+          <div class="dock">
+            <div><i>🧭</i>Experiences</div><div><i>🏷️</i>Kring Price</div><div><i>💬</i>Chats</div><div class="on"><i>👤</i>Wallet</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MIDDLE -->
+      <div class="mid">
+        <ul class="legend">
+          <li><em>1</em><div><b>No mode switch — tap Wei / Ploy on the right phone:</b> Both see the exact same clean layout. Ploy can book a Pattaya weekend trip AND go <code>🟢 Live</code> to host in Bangkok.</div></li>
+          <li><em>2</em><div><b>Two-row Wallet (Spend + Earn):</b> Top tile = Spend (<code>฿ Cash · 🪙 Coins</code>). Second tile = <code>Local Earnings · Withdraw PromptPay</code>.</div></li>
+          <li><em>3</em><div><b>Agency &amp; Thai Law Protected:</b> Agency Roster sits cleanly inside a row (not cluttering headers), and paid hosting requires <b>Thai ID (20+) + PromptPay</b> (foreigners can host <code>฿0 Free Language Swap</code> only).</div></li>
+        </ul>
+      </div>
+
+      <!-- RIGHT PHONE: PROPOSED ONE APP -->
+      <div class="pcol">
+        <span class="lbl good">Proposed (Tap Wei / Ploy inside phone)</span>
+        <div class="phone proposed">
+          <div class="scr">
+            <div class="seg pin" data-n="1">
+              <span class="on" id=" tWei" onclick="setPersona('wei')">🧳 Wei (Visitor)</span>
+              <span id="tPloy" onclick="setPersona('ploy')">🇹🇭 Ploy (Thai Local)</span>
+            </div>
+            <div id="oneAppBody" style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 11px;border-radius:14px;background:rgba(111,211,156,.12)">
+                <span style="font-weight:700;color:var(--green)">🟢 Live · Hosting in Bangkok</span>
+                <span class="pill">＋ List activity</span>
+              </div>
+              <!-- Spend & Earn side-by-side tiles (Poppo style!) -->
+              <div class="pin" data-n="2" style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+                <div style="padding:10px;border-radius:16px;background:var(--panel-2)">
+                  <div style="font-size:9.5px;color:var(--ink-2)">Spend Balance</div>
+                  <div style="font:800 16px var(--display);margin:3px 0">฿1,450</div>
+                  <div style="font-size:9.5px;color:var(--gold)">🪙 15,000 Coins</div>
+                </div>
+                <div style="padding:10px;border-radius:16px;background:linear-gradient(145deg,#332409,#181206);box-shadow:inset 0 0 0 1px rgba(255,178,30,.4)">
+                  <div style="font-size:9.5px;color:var(--gold-hi)">Host Ready (80%)</div>
+                  <div style="font:800 16px var(--display);margin:3px 0;color:var(--gold-hi)">฿3,840</div>
+                  <div style="font-size:9.5px;color:var(--green)">⚡ Withdraw PromptPay ›</div>
+                </div>
+              </div>
+              <div class="pin" data-n="3" style="padding:9px 11px;border-radius:14px;background:rgba(255,255,255,.04);display:flex;justify-content:space-between;align-items:center">
+                <span>🏢 <b>Agency Roster Portal</b> (2%–5%)</span>
+                <span style="color:var(--ink-3)">Open ›</span>
+              </div>
+            </div>
+          </div>
+          <div class="dock">
+            <div><i>🧭</i>Explore</div><div><i>🏷️</i>Deals &amp; Price</div><div><i>💬</i>Chats</div><div class="on"><i>👤</i>Wallet &amp; Me</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== BAND 4: POPPO LUCKY GIFTING RTP & JACKPOT SIMULATOR ==================== -->
+  <section class="band" id="b4" data-vote="approve">
+    <div class="band-top">
+      <div>
+        <span class="k">4 · Poppo Lucky Gifting RTP &amp; Combo Burst Engine (`luckyPoolRng.ts`)</span>
+        <h2>Fix 86.7% dry spins → True Poppo Multi-Roll on ×10 / ×99 (Tap Send on right phone!)</h2>
+      </div>
+      <div class="vote-bar">
+        <button class="vbtn ok on" onclick="vote('b4','approve',this)">✓ Approve Poppo v2 RTP</button>
+        <button class="vbtn no" onclick="vote('b4','reject',this)">✗ Keep Single-Roll</button>
+      </div>
+    </div>
+
+    <div class="row3">
+      <!-- LEFT PHONE: TODAY -->
+      <div class="pcol">
+        <span class="lbl">Today (`luckyPoolRng.ts` single-roll)</span>
+        <div class="phone">
+          <div class="scr" style="justify-content:flex-end">
+            <div class="tray">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink-2)">
+                <b>Gifts</b><b style="color:var(--red)">⚠ 86.7% of spins = 0 coins</b>
+              </div>
+              <div class="ggrid">
+                <div class="gcell on"><span class="em">🎲</span><span class="nm">Dice</span><span class="pr">🪙100</span></div>
+                <div class="gcell"><span class="em">🐘</span><span class="nm">Elephant</span><span class="pr">🪙500</span></div>
+                <div class="gcell"><span class="em">🧋</span><span class="nm">Cha Yen</span><span class="pr">🪙1,500</span></div>
+                <div class="gcell"><span class="em">👑</span><span class="nm">Crown</span><span class="pr">🪙5,000</span></div>
+              </div>
+              <div class="capsule pin bad" data-n="!">
+                <span style="font:700 10px var(--mono)">×99 rolls only 1 number!</span>
+                <button class="sendbtn">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MIDDLE -->
+      <div class="mid">
+        <ul class="legend">
+          <li><em class="r">!</em><div><b>What was wrong in code:</b> <code>processLuckyComboSpin</code> rolled only <b>1 random number</b> for an entire <code>×99</code> send (so 86.7% of <code>×99</code> sends returned <b>0 coins</b>), and blocked <code>50×/100×/500×</code> from triggering the Big Stage!</div></li>
+          <li><em>1</em><div><b>True Poppo Multi-Roll (Try it on the right phone!):</b> Tapping <code>×10</code> or <code>×99</code> runs <b>10 or 99 independent micro-rolls</b> at <b>80.0% exact RTP</b> (38% per-spin hit rate) — so every combo burst showers Kring Coins back above the balance pill!</div></li>
+          <li><em>2</em><div><b>Exact Split Locked:</b> <code>80%</code> Guest Kring Coin Pool · <code>12%</code> Host Ready <code>฿</code> · <code>8%</code> House + Agency Vault. Hits of <code>50×/100×/500×</code> fire the full-screen Golden Stage!</div></li>
+        </ul>
+      </div>
+
+      <!-- RIGHT PHONE: LIVE INTERACTIVE POPPO TRAY -->
+      <div class="pcol">
+        <span class="lbl good">Proposed (Tap ×10 / ×99 &amp; 🔔 Combo!)</span>
+        <div class="phone proposed">
+          <div class="scr" style="justify-content:flex-end">
+            <div class="bar" style="margin-bottom:auto">
+              <span class="logo">Ploy · 23</span>
+              <span class="pill gold" id="hostEarnChip">👩 Host +฿0.00</span>
+            </div>
+
+            <!-- Live Win Toast inside Chat -->
+            <div id="winToast" style="padding:9px 11px;border-radius:14px;background:rgba(255,178,30,.16);border:1px solid rgba(255,178,30,.45);font-size:10.5px;font-weight:700;color:var(--gold-hi);margin-bottom:6px">
+              👆 Tap ×10 or ×99 below, then tap 🔔 Send to test live Poppo coin return!
+            </div>
+
+            <div class="tray">
+              <div style="display:flex;gap:6px">
+                <span class="pill">🎁 Cultural Treats (฿)</span>
+                <span class="pill gold pin" data-n="1">🔔 Lucky Kring · 500×</span>
+              </div>
+              <div class="ggrid" id="pGrid">
+                <div class="gcell on" onclick="pickG(100,'🎲','Dice',this)"><span class="em">🎲</span><span class="nm">Dice</span><span class="pr">🪙100</span></div>
+                <div class="gcell" onclick="pickG(500,'🐘','Elephant',this)"><span class="em">🐘</span><span class="nm">Elephant</span><span class="pr">🪙500</span></div>
+                <div class="gcell" onclick="pickG(1500,'🧋','Cha Yen',this)"><span class="em">🧋</span><span class="nm">Cha Yen</span><span class="pr">🪙1,500</span></div>
+                <div class="gcell" onclick="pickG(5000,'👑','Crown',this)"><span class="em">👑</span><span class="nm">Crown</span><span class="pr">🪙5,000</span></div>
+              </div>
+              <div class="capsule pin" data-n="2">
+                <span style="font:700 9.5px var(--mono);color:var(--gold-hi)" id="balTxt">🪙 100,000</span>
+                <div class="qrow">
+                  <button class="qbtn" onclick="pickQ(1,this)">×1</button>
+                  <button class="qbtn on" onclick="pickQ(10,this)">×10</button>
+                  <button class="qbtn" onclick="pickQ(50,this)">×50</button>
+                  <button class="qbtn" onclick="pickQ(99,this)">×99</button>
+                </div>
+                <button class="sendbtn" onclick="spinPoppo()">🔔 Combo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="sticky-foot">
+  <div class="sticky-in">
+    <div id="sumLine" style="font-weight:700;font-size:13px">
+      ✅ All 4 Core Upgrades Approved (1: Card Prices + Labels · 2: 4-Step Strip + Escrow Visual · 3: Unified One-App + Legal/Agency Shield · 4: Poppo v2 Multi-Roll 80% RTP)
+    </div>
+    <button class="vbtn ok on" onclick="navigator.clipboard?.writeText(document.getElementById('sumLine').textContent);this.textContent='✓ Copied Decisions!'">Copy Approved Decisions</button>
   </div>
+</div>
 
-  <script>
-    const state = { d1: 'approved', d2: 'approved', d3: 'approved', d4: 'approved', d5: 'Option A (Golden Kring Bell Capsule)' };
+<script>
+  const votes = { b1:'approve', b2:'approve', b3:'approve', b4:'approve' };
+  function vote(id, v, btn) {
+    votes[id] = v;
+    const band = document.getElementById(id);
+    band.setAttribute('data-vote', v);
+    btn.parentElement.querySelectorAll('.vbtn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('sumLine').textContent =
+      `1 (Path & Card Price): ${votes.b1.toUpperCase()} · 2 (4-Step Bar & Tabs): ${votes.b2.toUpperCase()} · 3 (One-App + Legal/Agency): ${votes.b3.toUpperCase()} · 4 (Poppo v2 Multi-Roll RTP): ${votes.b4.toUpperCase()}`;
+  }
 
-    function setVote(id, status, btn) {
-      state[id] = status;
-      const card = document.getElementById('card-' + id);
-      card.setAttribute('data-status', status);
-      const btns = btn.parentElement.querySelectorAll('.v-btn');
-      btns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      updateSummary();
+  const steps = [
+    { t:'Herbal Spa · Offer Sent (09:42)', s:'Waiting for Ploy · 100% auto-refund if no reply', b:'⏳ Waiting for Ploy…' },
+    { t:'Herbal Spa · Sat 14:00', s:'📍 Siam Herbal Spa, Ari · ฿800 Held Safely', b:'🔔 Bump Phones at Venue · กริ๊ง!' },
+    { t:'Both Phones Bumped · กริ๊ง! ✨', s:'✓ Released ฿800 to Ploy at Siam Herbal Spa', b:'⭐ Leave 1-Tap Review' },
+    { t:'Completed · Share Card Ready', s:'+5,000 Bonus Kring Coins unlocked on Deals', b:'🎉 Book Again' }
+  ];
+  function setStep(i) {
+    document.querySelectorAll('#pstrip span').forEach((el, idx) => el.classList.toggle('on', idx === i));
+    const st = steps[i];
+    document.getElementById('stepCard').innerHTML = `
+      <div style="display:flex;justify-content:space-between"><b>${st.t}</b><b style="color:var(--gold)">฿800</b></div>
+      <div style="font-size:10px;color:var(--ink-2)">${st.s}</div>
+      <button class="btn gold" style="padding:8px;font-size:11px;margin-top:2px" onclick="setStep(${(i+1)%4})">${st.b}</button>`;
+  }
+
+  function setPersona(p) {
+    const body = document.getElementById('oneAppBody');
+    if (p === 'wei') {
+      body.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 11px;border-radius:14px;background:rgba(115,129,255,.15)">
+          <span style="font-weight:700;color:#d2d8ff">📍 In Bangkok · 42 Locals Live</span>
+          <span class="pill">＋ Free Coffee Swap</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+          <div style="padding:10px;border-radius:16px;background:var(--panel-2)">
+            <div style="font-size:9.5px;color:var(--ink-2)">Spend Balance</div>
+            <div style="font:800 16px var(--display);margin:3px 0">฿2,400</div>
+            <div style="font-size:9.5px;color:var(--gold)">🪙 25,000 Coins</div>
+          </div>
+          <div style="padding:10px;border-radius:16px;background:var(--panel-2)">
+            <div style="font-size:9.5px;color:var(--ink-2)">Trip Savings</div>
+            <div style="font:800 16px var(--display);margin:3px 0;color:var(--green)">Saved ฿920</div>
+            <div style="font-size:9.5px;color:var(--ink-3)">vs street quotes</div>
+          </div>
+        </div>
+        <div style="padding:9px 11px;border-radius:14px;background:rgba(255,255,255,.04);font-size:10px;color:var(--ink-2)">
+          ✓ Foreigners can book any Local or host <b>฿0 Free Language Swaps</b> (Paid hosting requires Thai ID).
+        </div>`;
+    } else {
+      body.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 11px;border-radius:14px;background:rgba(111,211,156,.12)">
+          <span style="font-weight:700;color:var(--green)">🟢 ออนไลน์ · รับงานในกรุงเทพฯ</span>
+          <span class="pill">＋ ลงกิจกรรม</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+          <div style="padding:10px;border-radius:16px;background:var(--panel-2)">
+            <div style="font-size:9.5px;color:var(--ink-2)">เงินใช้เที่ยว (พัทยา)</div>
+            <div style="font:800 16px var(--display);margin:3px 0">฿1,450</div>
+            <div style="font-size:9.5px;color:var(--gold)">🪙 15,000 Coins</div>
+          </div>
+          <div style="padding:10px;border-radius:16px;background:linear-gradient(145deg,#332409,#181206);box-shadow:inset 0 0 0 1px rgba(255,178,30,.4)">
+            <div style="font-size:9.5px;color:var(--gold-hi)">รายได้พร้อมถอน (80%)</div>
+            <div style="font:800 16px var(--display);margin:3px 0;color:var(--gold-hi)">฿3,840</div>
+            <div style="font-size:9.5px;color:var(--green)">⚡ ถอนเข้าพร้อมเพย์ ›</div>
+          </div>
+        </div>
+        <div style="padding:9px 11px;border-radius:14px;background:rgba(255,255,255,.04);display:flex;justify-content:space-between">
+          <span>🏢 <b>Agency Roster Portal</b> (2%–5%)</span><span style="color:var(--ink-3)">Open ›</span>
+        </div>`;
     }
+  }
 
-    function pickVariant5(opt) {
-      state.d5 = opt === 'A' ? 'Option A (Golden Kring Bell Capsule)' : 'Option B (Siam Blind Box)';
-      document.getElementById('v5A').className = 'v-btn ' + (opt === 'A' ? 'approve active' : '');
-      document.getElementById('v5B').className = 'v-btn ' + (opt === 'B' ? 'approve active' : '');
-      document.getElementById('col5A').className = 'phone-col ' + (opt === 'A' ? 'fixed' : '');
-      document.getElementById('col5B').className = 'phone-col ' + (opt === 'B' ? 'fixed' : '');
-      updateSummary();
-    }
-
-    function updateSummary() {
-      const el = document.getElementById('dockSummaryText');
-      el.textContent = `D1 (Card Prices & Labels): ${state.d1.toUpperCase()} · D2 (Progress Bar & Tabs): ${state.d2.toUpperCase()} · D3 (One-App + Legal/Agency Shield): ${state.d3.toUpperCase()} · D4 (Poppo v2 Multi-Roll RTP): ${state.d4.toUpperCase()} · D5: ${state.d5}`;
-    }
-
-    function copyDecisions() {
-      const txt = document.getElementById('dockSummaryText').textContent;
-      navigator.clipboard?.writeText(txt);
-      alert('Copied to clipboard!\n\n' + txt);
-    }
-
-    const stepData = [
-      { title: 'Step 1: Offer Sent · Waiting for Ploy (09:42 left)', body: '฿1,200 is reserved safely. If Ploy doesn\'t accept within 10 mins, 100% (฿1,200) returns to you automatically.' },
-      { title: 'Step 2: Agreed 🔒 · ฿1,200 Held Safely Until You Meet', body: 'Your Street-Food Walk is Sat 14:00 at Yaowarat Gate 1. Private directions & auto-translated chat are unlocked.' },
-      { title: 'Step 3: At the Public Venue · Tap Phones to กริ๊ง! 🔔', body: 'Bump both phones together (or scan the 30s QR code) at the meeting point. ฿1,200 releases to Ploy instantly!' },
-      { title: 'Step 4: Completed ✨ · Both Get Share Card & Review', body: 'You both went กริ๊ง! Rate your experience and claim +5,000 Bonus Kring Coins on your next Kring Price deal.' }
-    ];
-    function setBookingStep(idx) {
-      const items = document.querySelectorAll('#bookingStepper .step-item');
-      items.forEach((el, i) => el.classList.toggle('active', i === idx));
-      const box = document.getElementById('bookingStepBody');
-      box.innerHTML = `<div style="font-weight:800;color:#FFD97D;margin-bottom:4px;">${stepData[idx].title}</div><div style="font-size:12.5px;color:#D8E0FF;">${stepData[idx].body}</div>`;
-    }
-
-    function setOneAppPersona(p) {
-      document.getElementById('btnWei').className = 'v-btn ' + (p === 'wei' ? 'approve active' : '');
-      document.getElementById('btnPloy').className = 'v-btn ' + (p === 'ploy' ? 'approve active' : '');
-      const box = document.getElementById('personaScreen');
-      if (p === 'wei') {
-        box.innerHTML = `
-          <div class="m-row"><span style="font-weight:800;">📍 You're in Bangkok · 42 Locals Live</span><span class="m-pill gold">＋ Free Coffee Swap</span></div>
-          <div style="margin-top:8px;font-size:12.5px;color:#D8E0FF;">
-            • <strong>Wei (Foreign Visitor, English UI):</strong> Sees the exact same 4 tabs. Books Ploy for a Yaowarat Food Walk (฿650 held until bump) and checks tuk-tuk prices in <em>Deals & Price</em>.<br/>
-            • Can also post a <strong>฿0 Free English Coffee Swap</strong> (no Thai work permit needed since ฿0!).
-          </div>`;
-      } else {
-        box.innerHTML = `
-          <div class="m-row"><span style="font-weight:800;">📍 คุณอยู่พัทยา · โลคอล 18 คนออนไลน์</span><span class="m-pill gold">🟢 ออนไลน์รับงาน · ＋ ลงกิจกรรม</span></div>
-          <div style="margin-top:8px;font-size:12.5px;color:#D8E0FF;">
-            • <strong>Ploy (Thai Local on Weekend Trip to Pattaya, Thai UI):</strong> Uses the <strong>exact same 4 tabs</strong>! Books a Koh Larn boat deal with friends, AND receives incoming Bangkok booking offers + instant PromptPay cashouts in one unified Wallet!
-          </div>`;
-      }
-    }
-
-    // Poppo v2 Multi-Roll Simulator (Exact 80.0% Theoretical RTP with High-Frequency Micro-Hits)
-    let simBalance = 100000;
-    let simPool = 50000;
-    let simWonTotal = 0;
-    let simHostBaht = 0;
-    let simHouseBaht = 0;
-    let simUnitCoins = 100;
-    let simEmoji = '🎲';
-    let simName = 'Lucky Dice';
-    let simQty = 1;
-
-    function selectSimGift(idx, coins, emo, name, el) {
-      simUnitCoins = coins; simEmoji = emo; simName = name;
-      document.querySelectorAll('.sim-gift').forEach(g => g.classList.remove('selected'));
-      el.classList.add('selected');
-    }
-
-    function setSimQty(q, el) {
-      simQty = q;
-      document.querySelectorAll('.qty-btn').forEach(b => b.classList.remove('active'));
-      el.classList.add('active');
-    }
-
-    // Poppo v2 High-Frequency Table (38.32% per-spin hit rate, exact 80.0% EV!):
-    // 500x: 0.0001 (EV 0.05) | 100x: 0.0005 (EV 0.05) | 50x: 0.0020 (EV 0.10) | 10x: 0.0150 (EV 0.15) | 5x: 0.0400 (EV 0.20) | 2x: 0.0750 (EV 0.15) | 0.4x Consolation Sparkle: 0.2500 (EV 0.10) => Total EV = 0.8000 (80.0% RTP!)
-    function rollSingleUnit(unit, poolAvail) {
+  let bal = 100000, pool = 50000, hostB = 0, unit = 100, emo = '🎲', nm = 'Dice', qty = 10;
+  function pickG(c, e, n, el) {
+    unit = c; emo = e; nm = n;
+    document.querySelectorAll('#pGrid .gcell').forEach(x => x.classList.remove('on'));
+    el.classList.add('on');
+  }
+  function pickQ(q, el) {
+    qty = q;
+    document.querySelectorAll('.qrow .qbtn').forEach(x => x.classList.remove('on'));
+    el.classList.add('on');
+  }
+  function spinPoppo() {
+    const spend = unit * qty;
+    if (bal < spend) bal += 100000;
+    bal -= spend;
+    pool += Math.floor(spend * 0.80);
+    hostB += (spend * 0.12) / 100;
+    let won = 0, bestM = 0, hits = 0;
+    const tiers = [{m:500,c:0.0001},{m:100,c:0.0006},{m:50,c:0.0026},{m:10,c:0.0176},{m:5,c:0.0576},{m:2,c:0.1326},{m:0.4,c:0.3826}];
+    for (let i=0; i<qty; i++) {
       const r = Math.random();
-      const tiers = [
-        { m: 500, c: 0.0001 },
-        { m: 100, c: 0.0006 },
-        { m: 50,  c: 0.0026 },
-        { m: 10,  c: 0.0176 },
-        { m: 5,   c: 0.0576 },
-        { m: 2,   c: 0.1326 },
-        { m: 0.4, c: 0.3826 }
-      ];
       for (const t of tiers) {
         if (r < t.c) {
           const pay = Math.round(unit * t.m);
-          if (pay <= poolAvail) return { m: t.m, pay };
+          if (pay <= pool) { pool -= pay; won += pay; hits++; if (t.m > bestM) bestM = t.m; break; }
         }
       }
-      return { m: 0, pay: 0 };
     }
-
-    function runPoppoSpin() {
-      const spend = simUnitCoins * simQty;
-      if (simBalance < spend) {
-        simBalance += 100000;
-      }
-      simBalance -= spend;
-      const poolAdd = Math.floor(spend * 0.80);
-      const hostAddCoins = Math.floor(spend * 0.12);
-      const houseAddCoins = spend - poolAdd - hostAddCoins;
-      simPool += poolAdd;
-      simHostBaht += hostAddCoins / 100;
-      simHouseBaht += houseAddCoins / 100;
-
-      let burstWin = 0;
-      let bestMult = 0;
-      let hitCount = 0;
-      for (let i = 0; i < simQty; i++) {
-        const res = rollSingleUnit(simUnitCoins, simPool);
-        if (res.pay > 0) {
-          simPool -= res.pay;
-          burstWin += res.pay;
-          hitCount++;
-          if (res.m > bestMult) bestMult = res.m;
-        }
-      }
-      simBalance += burstWin;
-      simWonTotal += burstWin;
-
-      document.getElementById('simBalPill').textContent = `🪙 Balance: ${simBalance.toLocaleString()} Coins (฿${(simBalance/100).toFixed(0)})`;
-      document.getElementById('simHostPill').textContent = `👩 Host Ready: ฿${simHostBaht.toFixed(2)} (12%)`;
-      document.getElementById('stPool').textContent = `🪙 ${simPool.toLocaleString()}`;
-      document.getElementById('stWon').textContent = `🪙 ${simWonTotal.toLocaleString()}`;
-      document.getElementById('stHost').textContent = `฿${simHostBaht.toFixed(2)}`;
-      document.getElementById('stHouse').textContent = `฿${simHouseBaht.toFixed(2)}`;
-
-      const banner = document.getElementById('simResultBanner');
-      if (burstWin > 0) {
-        const isBig = bestMult >= 50;
-        banner.style.background = isBig ? 'rgba(155,92,255,0.28)' : 'rgba(36,209,126,0.16)';
-        banner.style.borderColor = isBig ? '#FFB21E' : '#24D17E';
-        banner.innerHTML = `${isBig ? '🐉 GOLDEN STAGE JACKPOT! ' : '🔔 กริ๊ง! COMBO WIN! '} Sent ${simEmoji} ${simName} ×${simQty} (-🪙 ${spend.toLocaleString()}) → Hit ${hitCount}× rolls (Peak <strong>${bestMult}×</strong>) → <strong>+🪙 ${burstWin.toLocaleString()} Coins Returned Instantly!</strong> (Host earned +฿${(hostAddCoins/100).toFixed(2)} Ready Cash)`;
-      } else {
-        banner.style.background = 'rgba(255,255,255,0.06)';
-        banner.style.borderColor = 'rgba(255,255,255,0.15)';
-        banner.innerHTML = `Sent ${simEmoji} ${simName} ×${simQty} (-🪙 ${spend.toLocaleString()}) · 80% added to Reservoir Pool (+🪙 ${poolAdd.toLocaleString()}) · Host earned +฿${(hostAddCoins/100).toFixed(2)}! Tap again within 3s for Combo!`;
-      }
-    }
-  </script>
+    bal += won;
+    document.getElementById('balTxt').textContent = `🪙 ${bal.toLocaleString()}`;
+    document.getElementById('hostEarnChip').textContent = `👩 Host +฿${hostB.toFixed(1)}`;
+    const toast = document.getElementById('winToast');
+    toast.innerHTML = won > 0
+      ? `🔔 <b>กริ๊ง! +🪙 ${won.toLocaleString()} Won Back!</b> (${hits} hits · Peak <b>${bestM}×</b> on ${emo} ×${qty})`
+      : `Sent ${emo} ×${qty} · +🪙 ${Math.floor(spend*0.8).toLocaleString()} added to 80% Pool!`;
+  }
+</script>
 </body>
 </html>
