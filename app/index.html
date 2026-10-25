@@ -1,1 +1,36 @@
-﻿<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kring — Launching Soon</title><meta http-equiv="refresh" content="2;url=/" /><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#05060D;color:#F5F6FA;font-family:system-ui,-apple-system,sans-serif;text-align:center;padding:24px}b{color:#FFB21E;display:block;font-size:22px;margin-bottom:8px}p{color:#9BA1B8;font-size:14px;margin:0 0 18px}a{color:#05060D;background:#FFB21E;text-decoration:none;font-weight:700;padding:10px 20px;border-radius:999px;font-size:14px}</style></head><body><div><b>Kring · Launching Soon</b><p>Redirecting you back to kringapp.com…</p><a href="/">Back to Kring</a></div></body></html>
+<!doctype html>
+<html lang="en" class="tonight-mode">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#05060D" />
+    <meta name="description" content="Kring · Bangkok Locals — Real locals. Fair prices. เที่ยวกับโลคอลตัวจริง ในราคากันเอง" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Kring" />
+    <meta name="application-name" content="Kring" />
+    <link rel="icon" type="image/svg+xml" href="/kring-icon.svg" />
+    <link rel="apple-touch-icon" href="/kring-icon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <!-- KRING V2 · brand fonts are self-hosted (src/design/fonts.css); the two faces of the first screen load early -->
+    <link rel="preload" href="/fonts/plus-jakarta-sans-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/unbounded-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <title>Kring · Bangkok Locals — Real locals. Fair prices.</title>
+    <script type="module" crossorigin src="./assets/main-GhnTyGpB.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/fonts-DK0Tm0OS.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-Dn3sTvRY.js">
+    <link rel="stylesheet" crossorigin href="./assets/fonts-DmQQ6wg4.css">
+    <link rel="stylesheet" crossorigin href="./assets/main-dnrtcw50.css">
+  </head>
+  <body class="antialiased" style="background:#05060D">
+    <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator && navigator.serviceWorker) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker?.register?.('/sw.js')?.catch(() => {});
+        });
+      }
+    </script>
+  </body>
+</html>
