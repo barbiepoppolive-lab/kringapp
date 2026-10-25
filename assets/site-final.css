@@ -645,3 +645,9 @@ html:lang(th) .icard h3{font-family:var(--thai)}
 html:lang(th) .icard h3{font-family:var(--thai);letter-spacing:0}
 @media (prefers-reduced-motion:reduce){.in-pane.in .icard{animation:none}}
 .in-tabs{width:min(480px,100%)}
+
+/* motto in the hero: "Kring, let's go!" leads, the descriptor follows */
+.kick-hero{flex-wrap:wrap;row-gap:6px}
+.kick-hero .motto{font:800 clamp(15px,1.7vw,18px)/1.2 var(--ui);color:var(--gold-2);letter-spacing:.01em}
+html:lang(th) .kick-hero .motto{font-family:var(--thai)}
+.kick-hero .kick-desc{color:var(--muted)}

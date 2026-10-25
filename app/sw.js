@@ -1,9 +1,9 @@
-const CACHE_NAME = 'kring-mobile-v2'
+const CACHE_NAME = 'kring-mobile-v3'
 
 self.addEventListener('install', (event) => {
   self.skipWaiting()
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(['/', '/manifest.json', '/kring-icon.svg', '/icon-192.png'])).catch(() => {})
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(['./', './manifest.json', './kring-icon.svg', './icon-192.png'])).catch(() => {})
   )
 })
 
@@ -25,7 +25,7 @@ self.addEventListener('fetch', (event) => {
     fetch(event.request).catch(() =>
       caches
         .match(event.request)
-        .then((res) => res || (event.request.mode === 'navigate' ? caches.match('/') : null))
+        .then((res) => res || (event.request.mode === 'navigate' ? caches.match('./') : null))
         .then((res) => res || new Response('', { status: 504, statusText: 'Offline' }))
     )
   )
