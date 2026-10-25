@@ -28,9 +28,9 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="assets/final/fonts/unbounded-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/final/fonts/noto-sans-thai-thai-800-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/site-final.css?v=20261025r5">
+<link rel="stylesheet" href="assets/site-final.css?v=20261025r6">
 <script>(function(d){var m=false;try{m=matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){}d.className+=" js"+(m?" rm":"")})(document.documentElement)</script>
-<script src="assets/site-final.js?v=20261025r5" defer></script>
+<script src="assets/site-final.js?v=20261025r6" defer></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Kring","alternateName":"กริ๊ง!","url":"https://kringapp.com/","logo":"https://kringapp.com/icon-512.png","slogan":"Real Thailand, with a local.","areaServed":["Bangkok","Pattaya"]}</script>
 </head>
 <body data-side="trav">
@@ -94,8 +94,9 @@
   <a href="#top" data-ch="0"><span data-i="ch1">The bump</span><i></i><b>01</b></a>
   <a href="#you" data-ch="1"><span data-i="ch2">Host or visit</span><i></i><b>02</b></a>
   <a href="#trip" data-ch="2"><span data-i="ch3">Trip card</span><i></i><b>03</b></a>
-  <a href="#biz" data-ch="3"><span data-i="ch5">For businesses</span><i></i><b>04</b></a>
-  <a href="#join" data-ch="4"><span data-i="ch4">Early access</span><i></i><b>05</b></a>
+  <a href="#inside" data-ch="3"><span data-i="ch6">Inside Kring</span><i></i><b>04</b></a>
+  <a href="#biz" data-ch="4"><span data-i="ch5">For businesses</span><i></i><b>05</b></a>
+  <a href="#join" data-ch="5"><span data-i="ch4">Early access</span><i></i><b>06</b></a>
 </nav>
 
 <main id="main">
@@ -265,11 +266,39 @@
     </div>
   </section>
 
-  <!-- 04 · FOR BUSINESSES -->
-  <section class="ch biz" id="biz" data-ch="3" aria-labelledby="bizH">
+  <!-- 04 · INSIDE KRING -->
+  <section class="ch inside" id="inside" data-ch="3" aria-labelledby="inH">
+    <div class="wrap">
+      <p class="kick"><b>04</b><em></em></p>
+      <h2 class="disp kin" id="inH" data-i="inT" data-kin>More inside Kring.</h2>
+      <p class="sub" data-i="inSub">Deals, coupons and one simple way to pay. Hosts earn more as they grow.</p>
+      <div class="in-tabs" role="tablist" aria-labelledby="inH">
+        <button type="button" role="tab" id="inTabT" aria-controls="inPaneT" aria-selected="true" data-i="inTabT">For travellers</button>
+        <button type="button" role="tab" id="inTabH" aria-controls="inPaneH" aria-selected="false" tabindex="-1" data-i="inTabH">For hosts</button>
+      </div>
+      <div class="in-pane" id="inPaneT" role="tabpanel" aria-labelledby="inTabT">
+        <article class="icard"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-5 9 5-9 5z"/><path d="M7 11.5V16c0 1.5 2.2 3 5 3s5-1.5 5-3v-4.5"/></svg><h3 data-i="d1T">Deals &amp; packages</h3><p data-i="d1S">Licensed tours, island days and city packs in one booking.</p><p class="ex"><span data-i="ex1">48 hours in Bangkok</span><span class="px"><s>฿4,240</s><b>฿3,390</b></span></p></article>
+        <article class="icard"><svg class="ic" aria-hidden="true"><use href="#i-ticket"/></svg><h3 data-i="d2T">Coupons</h3><p data-i="d2S">eSIM, airport car, bag drop, Thai tea. Show the code at the counter.</p><p class="ex"><span data-i="ex2">Thailand eSIM, 8 days</span><span class="px"><s>฿499</s><b>฿185</b></span></p></article>
+        <article class="icard"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M7 15h4"/></svg><h3 data-i="d3T">Pay in seconds</h3><p data-i="d3S">Pay the way you pay at home. A licensed payment partner holds it until you meet.</p><p class="pays" id="pays"></p></article>
+        <article class="icard"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12l-8 8-9-9V4h7z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg><h3 data-i="d4T">See what you save</h3><p data-i="d4S">Every price shows the usual street price next to it.</p><p class="ex"><span data-i="ex4">Street food walk</span><span class="px"><s>฿1,600</s><b>฿1,000</b></span></p></article>
+        <p class="fine in-fine" data-i="inFine">Example prices. Final prices in the app at launch. Payment options depend on our licensed payment partner.</p>
+        <a class="gold" href="#join" data-cta="visit"><span data-i="cta">Get early access</span><svg aria-hidden="true"><use href="#i-down"/></svg></a>
+      </div>
+      <div class="in-pane" id="inPaneH" role="tabpanel" aria-labelledby="inTabH" hidden>
+        <article class="icard"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><text x="12" y="16.6" text-anchor="middle" font-size="13" font-weight="800" fill="currentColor" stroke="none" font-family="system-ui,sans-serif">฿</text></svg><h3 data-i="h1T">Your price, per activity</h3><p data-i="h1S">One price for 1–2 people. You set it.</p></article>
+        <article class="icard"><svg class="ic" aria-hidden="true"><use href="#i-rings"/></svg><h3 data-i="h2T">Paid when you meet</h3><p data-i="h2S">When phones touch, it goes to your PromptPay.</p></article>
+        <article class="icard"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="9" width="16" height="11" rx="2"/><path d="M4 13h16M12 9v11M12 9c-2-4-6-4-6-1s6 1 6 1zM12 9c2-4 6-4 6-1s-6 1-6 1z"/></svg><h3 data-i="h3T">Tips and Thai gifts</h3><p data-i="h3S">Travellers can tip after the activity and send gifts. Tips go straight to you.</p></article>
+        <article class="icard"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg><h3 data-i="h4T">Level up, earn more</h3><p data-i="h4S">Higher levels earn more per activity.</p><p class="ex lv"><span>★</span><span>★★</span><span>★★★</span></p></article>
+        <a class="gold" href="#join" data-cta="local"><span data-i="hCta">Be one of the first hosts</span><svg aria-hidden="true"><use href="#i-down"/></svg></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 · FOR BUSINESSES -->
+  <section class="ch biz" id="biz" data-ch="4" aria-labelledby="bizH">
     <div class="wrap biz-in">
       <div class="biz-pitch">
-        <p class="kick"><b>04</b><em></em></p>
+        <p class="kick"><b>05</b><em></em></p>
         <p class="soon" data-soon><i aria-hidden="true"></i><span data-i="soon">Coming soon · November</span></p>
         <h2 class="disp kin" id="bizH" data-i="bizTitle" data-kin>Bring travellers through your door.</h2>
         <p class="sub" data-i="bizSub">Be a Kring partner venue in Bangkok or Pattaya.</p>
@@ -322,12 +351,12 @@
     </div>
   </section>
 
-  <!-- 05 · EARLY ACCESS -->
-  <section class="ch join" id="join" data-ch="4" aria-labelledby="joinH">
+  <!-- 06 · EARLY ACCESS -->
+  <section class="ch join" id="join" data-ch="5" aria-labelledby="joinH">
     <div class="join-in">
       <figure class="phone" aria-hidden="true"><img id="phoneImg" src="assets/final/app/en-detail.webp" alt="" width="360" height="780" loading="lazy" decoding="async"></figure>
       <div class="panel" id="panel">
-        <p class="kick"><b>05</b><em></em></p>
+        <p class="kick"><b>06</b><em></em></p>
         <p class="jwhen" data-i="jWhen">Opens in November · Bangkok · Pattaya</p>
         <h2 id="joinH" class="disp">Get early access</h2>
 
@@ -392,7 +421,7 @@
     <li><span data-i="line">LINE · coming soon</span></li>
     <li><a href="tel:1155" data-i="police">Tourist Police 1155</a></li>
   </ul>
-  <p class="fcopy">© 2026 Kring (kringapp.com) · Bangkok &amp; Pattaya · <a href="mailto:privacy@kringapp.com" style="color:inherit;text-decoration:underline;text-underline-offset:3px">privacy@kringapp.com</a></p>
+  <p class="fcopy">© 2026 Kring</p>
 </footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
