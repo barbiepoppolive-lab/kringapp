@@ -1,0 +1,40 @@
+{
+  "id": "/",
+  "name": "Kring · Bangkok Locals (กริ๊ง!)",
+  "short_name": "Kring",
+  "description": "Real locals. Fair prices. Book verified locals in Bangkok and Pattaya — the booking is held until you meet. เที่ยวกับโลคอลตัวจริง ในราคากันเอง",
+  "lang": "en",
+  "start_url": "/?standalone=1",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A0B1E",
+  "theme_color": "#0A0B1E",
+  "categories": ["travel", "lifestyle", "social"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/kring-icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
