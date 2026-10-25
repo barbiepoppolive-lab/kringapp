@@ -1181,7 +1181,13 @@ $('#bNext').addEventListener('click', () => {
 });
 $('#bBack').addEventListener('click', () => bGo(1));
 const PHONE = /^\+?[0-9 ()-]{8,16}$/;
-const REF = (() => { let r = new URLSearchParams(location.search).get('ref'); try { r = r || sessionStorage.getItem('kring-ref'); if (r) sessionStorage.setItem('kring-ref', r); } catch (e) {} return r ? String(r).replace(/[^\w.-]/g, '').slice(0, 40) : ''; })();
+const REF = (() => {
+  const hashQ = location.hash.includes('?') ? location.hash.slice(location.hash.indexOf('?') + 1) : '';
+  let r = new URLSearchParams(location.search).get('ref') || new URLSearchParams(hashQ).get('ref');
+  try { r = r || sessionStorage.getItem('kring-ref'); if (r) sessionStorage.setItem('kring-ref', r); } catch (e) {}
+  if (location.hash.startsWith('#biz?')) { try { history.replaceState(null, '', location.pathname + location.search + '#biz'); $('#biz') && $('#biz').scrollIntoView(); } catch (e) {} }
+  return r ? String(r).replace(/[^\w.-]/g, '').slice(0, 40) : '';
+})();
 const withRef = n => [n, REF ? 'ref:' + REF : ''].filter(Boolean).join(' | ').slice(0, 300) || null;
 bform.addEventListener('submit', async e => {
   e.preventDefault();
