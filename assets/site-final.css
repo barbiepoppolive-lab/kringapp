@@ -652,3 +652,19 @@ html:lang(th) .icard h3{font-family:var(--thai);letter-spacing:0}
 html:lang(th) .kick-hero .motto{font-family:var(--thai)}
 .kick-hero .kick-desc{color:var(--muted)}
 .sticky-cta{white-space:nowrap;width:max-content;max-width:calc(100vw - 32px)}
+
+/* 1-screen business form (r13) */
+.bform{gap:12px}
+.bfor{margin:0;font:800 15px/1.35 var(--ui);color:var(--gold-2)}
+.bq{padding:5px}
+.bq input{height:50px}
+.bq .gold{min-height:50px}
+.bcons{margin:0;font-size:12.5px}
+.bcons a{color:var(--anchan-2)}
+.breply{margin:0;font-size:13px;color:var(--muted)}
+.bmore{border-top:1px solid var(--line);padding-top:12px}
+.bmore summary{cursor:pointer;list-style:none;font:700 14px/1.3 var(--ui);color:var(--anchan-2);min-height:44px;display:flex;align-items:center;gap:8px}
+.bmore summary::-webkit-details-marker{display:none}
+.bmore summary::before{content:"+";display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1px solid var(--line-2);font-weight:800}
+.bmore[open] summary::before{content:"\2212"}
+.bmore .bstep{padding-top:8px}
