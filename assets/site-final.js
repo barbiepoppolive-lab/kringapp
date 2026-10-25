@@ -114,25 +114,34 @@ let toastT = 0;
 function toast(m){ const el = $('#toast'); el.textContent = m; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 2000); }
 
 /* =====================================================================
-   sound + haptics (off by default)
+   sound + haptics (ON by default — auto-unlocks AudioContext on first touch/hold)
    ===================================================================== */
-let soundOn = false, ac = null, BUS = null, WET = null;
+let soundOn = true, ac = null, BUS = null, WET = null;
 /* master bus: gentle compressor + a generated hall reverb (no audio files) */
 function initBus(){
   if (BUS || !ac) return;
   try {
     const comp = ac.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3; comp.connect(ac.destination);
-    BUS = ac.createGain(); BUS.gain.value = .9; BUS.connect(comp);
+    BUS = ac.createGain(); BUS.gain.value = .95; BUS.connect(comp);
     const len = Math.round(ac.sampleRate * 2.6), ir = ac.createBuffer(2, len, ac.sampleRate);
     for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2); }
     const cv = ac.createConvolver(); cv.buffer = ir; WET = ac.createGain(); WET.gain.value = .32; WET.connect(cv).connect(comp);
   } catch (e) { BUS = null; WET = null; }
 }
+function ensureAudio(){
+  if (!soundOn) return false;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === 'suspended' && ac.resume) ac.resume();
+    initBus();
+    return !!ac;
+  } catch (e) { ac = null; return false; }
+}
+['pointerdown', 'touchstart', 'keydown', 'click'].forEach(ev => addEventListener(ev, () => { if (soundOn) ensureAudio(); }, {capture: true, passive: true}));
 function out(node, wet){ const dry = BUS || ac.destination; node.connect(dry); if (WET && wet) { const s = ac.createGain(); s.gain.value = wet; node.connect(s).connect(WET); } }
 function tone(f, dur, vol, type, delay, wet){
-  if (!soundOn || !ac) return;
+  if (!ensureAudio()) return;
   try {
-    initBus();
     const o = ac.createOscillator(), g = ac.createGain(), n = ac.currentTime + (delay || 0);
     o.type = type || 'sine'; o.frequency.setValueAtTime(f, n);
     g.gain.setValueAtTime(0, n); g.gain.linearRampToValueAtTime(vol, n + .004); g.gain.exponentialRampToValueAtTime(.0001, n + dur);
@@ -140,9 +149,8 @@ function tone(f, dur, vol, type, delay, wet){
   } catch (e) {}
 }
 function noise(dur, vol, f0, f1, q, delay, type){
-  if (!soundOn || !ac) return;
+  if (!ensureAudio()) return;
   try {
-    initBus();
     const n = ac.currentTime + (delay || 0), len = Math.round(ac.sampleRate * dur), b = ac.createBuffer(1, len, ac.sampleRate), d = b.getChannelData(0);
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
     const s = ac.createBufferSource(), fl = ac.createBiquadFilter(), g = ac.createGain();
@@ -154,26 +162,25 @@ function noise(dur, vol, f0, f1, q, delay, type){
 }
 /* the กริ๊ง!: a temple bell (inharmonic partials, long tail) + a bright bicycle-bell double strike + a soft low thump */
 function bell(){
-  tone(110, .35, .22, 'sine', 0, 0); tone(220, .25, .08, 'triangle', 0, 0);
-  [[1, .11], [2.76, .06], [5.4, .035], [8.93, .02]].forEach(([r, v], i) => tone(392 * r, 3.2 - i * .6, v, 'sine', .01, .9));
-  [[2637, .07], [3951, .045], [5274, .02]].forEach(([f, v]) => { tone(f, .5, v, 'sine', .02, .6); tone(f * 1.006, .45, v * .8, 'sine', .14, .6); });
+  tone(110, .35, .24, 'sine', 0, 0); tone(220, .25, .1, 'triangle', 0, 0);
+  [[1, .14], [2.76, .08], [5.4, .045], [8.93, .025]].forEach(([r, v], i) => tone(392 * r, 3.2 - i * .6, v, 'sine', .01, .9));
+  [[2637, .09], [3951, .06], [5274, .03]].forEach(([f, v]) => { tone(f, .5, v, 'sine', .02, .6); tone(f * 1.006, .45, v * .8, 'sine', .14, .6); });
 }
 /* pentatonic chimes: each step of the hold climbs the Thai-sounding scale (C D E G A) */
 const PENTA = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.5, 1567.98, 1760, 2093, 2349.3, 2637];
-function stepSnd(i){ const f = PENTA[Math.min(PENTA.length - 1, i)]; tone(f, .35, .045, 'sine', 0, .7); tone(f * 2, .18, .012, 'sine', 0, .7); }
-function chime(){ tone(1046.5, .7, .05, 'sine', 0, .7); tone(1567.98, .8, .04, 'sine', .07, .7); }
+function stepSnd(i){ const f = PENTA[Math.min(PENTA.length - 1, i)]; tone(f, .35, .065, 'sine', 0, .7); tone(f * 2, .18, .02, 'sine', 0, .7); }
+function chime(){ tone(1046.5, .7, .06, 'sine', 0, .7); tone(1567.98, .8, .05, 'sine', .07, .7); }
 function whoosh(){ noise(.45, .09, 300, 2400, .8); }
-function flick(){ noise(.07, .12, 3500, 6000, 1.5, 0, 'highpass'); tone(1760, .08, .02, 'triangle', 0, .2); }
-function success(){ [1046.5, 1318.5, 1567.98, 2093].forEach((f, i) => tone(f, .9, .045, 'sine', i * .09, .8)); }
+function flick(){ noise(.07, .12, 3500, 6000, 1.5, 0, 'highpass'); tone(1760, .08, .025, 'triangle', 0, .2); }
+function success(){ [1046.5, 1318.5, 1567.98, 2093].forEach((f, i) => tone(f, .9, .055, 'sine', i * .09, .8)); }
 /* hold tension: two detuned saws through a closing-then-opening low-pass, pitch follows the hold */
 let hum = null;
 function humStart(){
-  if (!soundOn || !ac || hum) return;
+  if (!ensureAudio() || hum) return;
   try {
-    initBus();
     const g = ac.createGain(), fl = ac.createBiquadFilter(), o1 = ac.createOscillator(), o2 = ac.createOscillator();
     o1.type = o2.type = 'sawtooth'; o1.frequency.value = 98; o2.frequency.value = 98.7; fl.type = 'lowpass'; fl.frequency.value = 280; fl.Q.value = 6;
-    g.gain.setValueAtTime(0, ac.currentTime); g.gain.linearRampToValueAtTime(.05, ac.currentTime + .25);
+    g.gain.setValueAtTime(0, ac.currentTime); g.gain.linearRampToValueAtTime(.06, ac.currentTime + .25);
     o1.connect(fl); o2.connect(fl); fl.connect(g); out(g, .3); o1.start(); o2.start();
     hum = {g, fl, o1, o2};
   } catch (e) { hum = null; }
@@ -181,9 +188,10 @@ function humStart(){
 function humSet(p){ if (!hum) return; const n = ac.currentTime; hum.o1.frequency.setTargetAtTime(98 * (1 + p * 1.5), n, .05); hum.o2.frequency.setTargetAtTime(98.7 * (1 + p * 1.52), n, .05); hum.fl.frequency.setTargetAtTime(280 + p * p * 2600, n, .05); hum.g.gain.setTargetAtTime(.04 + p * .05, n, .05); }
 function humStop(fast){ if (!hum) return; const h = hum; hum = null; try { const n = ac.currentTime; h.g.gain.cancelScheduledValues(n); h.g.gain.setTargetAtTime(0, n, fast ? .02 : .12); setTimeout(() => { try { h.o1.stop(); h.o2.stop(); } catch (e) {} }, 700); } catch (e) {} }
 function buzz(p){ if (!soundOn) return; try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+$('#snd').setAttribute('aria-pressed', 'true');
 $('#snd').addEventListener('click', e => {
   soundOn = !soundOn; e.currentTarget.setAttribute('aria-pressed', String(soundOn));
-  if (soundOn) { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); ac.resume && ac.resume(); initBus(); chime(); buzz(10); } catch (err) { ac = null; } }
+  if (soundOn) { ensureAudio(); chime(); buzz(10); }
   else humStop(true);
 });
 
@@ -693,8 +701,8 @@ function startHold(e){
     S.side = onRings ? (e.clientX < r.left + r.width / 2 ? 1 : -1) : 0;
     const hb = e.target.closest && e.target.closest('.holdbtn'); if (hb) { try { hb.setPointerCapture(e.pointerId); } catch (err) {} }
   }
-  if (soundOn && ac) ac.resume && ac.resume();
-  humStart(); buzz(8); kick();
+  ensureAudio();
+  stepSnd(0); humStart(); buzz(8); kick();
 }
 function endHold(){ if (!S.holding) return; humStop(S.met); S.holding = false; S.ptr = null; S.dragP = 0; stage.classList.remove('holding'); }
 stage.addEventListener('pointerdown', e => {
