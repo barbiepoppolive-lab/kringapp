@@ -28,9 +28,9 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="assets/final/fonts/unbounded-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/final/fonts/noto-sans-thai-thai-800-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/site-final.css?v=20261025r4">
+<link rel="stylesheet" href="assets/site-final.css?v=20261025r5">
 <script>(function(d){var m=false;try{m=matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){}d.className+=" js"+(m?" rm":"")})(document.documentElement)</script>
-<script src="assets/site-final.js?v=20261025r4" defer></script>
+<script src="assets/site-final.js?v=20261025r5" defer></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Kring","alternateName":"กริ๊ง!","url":"https://kringapp.com/","logo":"https://kringapp.com/icon-512.png","slogan":"Real Thailand, with a local.","areaServed":["Bangkok","Pattaya"]}</script>
 </head>
 <body data-side="trav">
@@ -68,7 +68,7 @@
   </div>
   <div class="bar-r">
     <a class="bizlink" href="#biz" data-i="bizNav">For businesses</a>
-    <button class="chip snd" id="snd" type="button" aria-pressed="true" aria-label="Sound and vibration">
+    <button class="chip snd" id="snd" type="button" aria-pressed="false" aria-label="Sound and vibration">
       <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></svg>
       <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
     </button>
@@ -158,7 +158,7 @@
           <li data-i="r2">Money held until you meet</li>
           <li data-i="r3" data-k>Touch phones, <span class="th" lang="th">กริ๊ง!</span></li>
         </ol>
-        <a class="gold st" href="#join" id="heroCta" data-cta="visit"><span data-i="cta">Get early access</span><svg aria-hidden="true"><use href="#i-down"/></svg></a>
+        <a class="gold st" href="#join" id="heroCta" data-cta="auto"><span data-i="cta">Get early access</span><svg aria-hidden="true"><use href="#i-down"/></svg></a>
         <p class="when st" data-i="when">Bangkok · Pattaya · November</p>
       </div>
     </div>
@@ -306,7 +306,7 @@
             <div class="bf"><label for="bOffer" data-i="bOffer">What would you offer travellers? (optional)</label><textarea class="inp ta" id="bOffer" maxlength="160" rows="2" data-ph="bOfferPh"></textarea></div>
             <div class="bf"><label for="bTime" data-i="bTime">Best time to call</label>
               <select class="inp sel" id="bTime"><option value="any" data-i="tAny">Any time</option><option value="morning" data-i="tMorning">Morning</option><option value="afternoon" data-i="tAfternoon">Afternoon</option><option value="evening" data-i="tEvening">Evening</option></select></div>
-            <div class="bf"><label class="bcheck"><input type="checkbox" id="bConsent" aria-describedby="bConsentE"><span><span data-i="bConsent">I agree that Kring may contact me about a partnership.</span> <a href="privacy.html" data-i="privacy">Privacy</a></span></label><p class="ferr" id="bConsentE"></p></div>
+            <div class="bf"><label class="bcheck"><input type="checkbox" id="bConsent" aria-describedby="bConsentE"><span><span data-i="bConsent">I agree that Kring may contact me about a partnership.</span> <a href="privacy.html" target="_blank" rel="noopener" data-i="privacy">Privacy</a></span></label><p class="ferr" id="bConsentE"></p></div>
             <div class="bnav"><button class="ghost" type="button" id="bBack" data-i="bBack">Back</button><button class="gold" type="submit" id="bSend"><span data-i="bSend">Send</span></button></div>
           </div>
           <p class="err" id="bFail" role="alert"></p>
@@ -341,13 +341,16 @@
             <svg class="medal-s" aria-hidden="true"><use href="#i-medal"/></svg>
             <div><b data-i="badgeT">Founding host</b><span data-i="badgeS">First 100 per area</span></div>
           </div>
+          <div class="harea" id="harea" aria-hidden="true">
+            <div class="bseg"><input type="radio" name="harea" id="haB" value="bangkok" checked><label for="haB" data-i="aBkk">Bangkok</label><input type="radio" name="harea" id="haP" value="pattaya"><label for="haP" data-i="aPty">Pattaya</label></div>
+          </div>
           <div class="field" id="field">
-            <label class="sr" for="who" data-i="field">Email or LINE ID</label>
-            <input id="who" name="who" type="text" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="Email or LINE ID" aria-describedby="err">
+            <label class="sr" for="who" data-i="field">Email, LINE ID or phone</label>
+            <input id="who" name="who" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Email, LINE ID or phone" aria-describedby="err">
             <button class="gold" type="submit" id="joinBtn" data-i="join">Join</button>
           </div>
           <p class="err" id="err" role="alert"></p>
-          <p class="fine" id="consent" hidden><span data-i="consent">We only use this to tell you when we open.</span> <a href="privacy.html" data-i="privacy">Privacy</a></p>
+          <p class="fine" id="consent" hidden><span data-i="consent">We only use this to tell you when we open.</span> <a href="privacy.html" target="_blank" rel="noopener" data-i="privacy">Privacy</a></p>
           <p class="fine" id="previewNote" data-i="preview" hidden>Preview: nothing is sent yet.</p>
         </form>
 
@@ -377,6 +380,7 @@
     </div>
   </section>
 </main>
+<a class="gold sticky-cta" id="stickyCta" href="#join" data-cta="auto" aria-hidden="true" tabindex="-1"><span id="stickyTxt">Get early access</span><svg aria-hidden="true"><use href="#i-down"/></svg></a>
 
 <footer class="foot">
   <a class="logo" href="#top" aria-label="Kring"><svg aria-hidden="true"><use href="#i-rings"/></svg><span lang="th">กริ๊ง!</span></a>
