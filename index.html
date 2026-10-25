@@ -28,9 +28,9 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="assets/final/fonts/unbounded-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/final/fonts/noto-sans-thai-thai-800-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/site-final.css?v=20261025r12">
+<link rel="stylesheet" href="assets/site-final.css?v=20261026r13">
 <script>(function(d){var m=false;try{m=matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){}d.className+=" js"+(m?" rm":"")})(document.documentElement)</script>
-<script src="assets/site-final.js?v=20261025r12" defer></script>
+<script src="assets/site-final.js?v=20261026r13" defer></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Kring","legalName":"KRING (UDYAM-BR-34-0067891)","taxID":"UDYAM-BR-34-0067891","alternateName":"กริ๊ง!","url":"https://kringapp.com/","logo":"https://kringapp.com/icon-512.png","slogan":"Real Thailand, with a local.","areaServed":["Bangkok","Pattaya","Thailand","India"],"address":{"@type":"PostalAddress","streetAddress":"Ward 12, Sursand Asli, Sursand","addressLocality":"Sitamarhi","addressRegion":"Bihar","postalCode":"843331","addressCountry":"IN"},"contactPoint":[{"@type":"ContactPoint","telephone":"+91-8002399215","email":"ops@kringapp.com","contactType":"customer support"},{"@type":"ContactPoint","telephone":"+91-8002399215","email":"partnerships@kringapp.com","contactType":"sales"}]}</script>
 </head>
 <body data-side="trav">
@@ -311,33 +311,33 @@
       </div>
       <div class="bcard">
         <form class="bform" id="bform" novalidate aria-labelledby="bizH">
-          <div class="bprog" aria-hidden="true">
-            <span class="bp-l on" id="bpl1"><b>1</b><span data-i="bStep1">Your business</span></span>
-            <span class="bp-l" id="bpl2"><b>2</b><span data-i="bStep2">How to reach you</span></span>
-            <div class="bp-bar"><i id="bpFill"></i></div>
+          <p class="bfor" id="bFor" hidden></p>
+          <div class="bf">
+            <label for="bContact" data-i="bContact">LINE ID or phone</label>
+            <div class="field bq" id="bqField">
+              <input id="bContact" type="text" inputmode="text" autocomplete="tel" autocapitalize="off" spellcheck="false" maxlength="40" data-ph="bContactPh" placeholder="e.g. @yourshop" aria-describedby="bContactE">
+              <button class="gold" type="submit" id="bSend"><span data-i="bSend">Send</span></button>
+            </div>
+            <p class="ferr" id="bContactE"></p>
           </div>
-          <p class="sr" id="bStepLive" aria-live="polite"></p>
-
-          <div class="bstep" id="bs1">
-            <div class="bf"><label for="bName" data-i="bName">Business name</label><input class="inp" id="bName" autocomplete="organization" maxlength="80" aria-describedby="bNameE"><p class="ferr" id="bNameE"></p></div>
-            <fieldset class="bf" aria-describedby="bTypeE"><legend data-i="bType">Type of business</legend><div class="btypes" id="btypes"></div><p class="ferr" id="bTypeE"></p></fieldset>
-            <fieldset class="bf"><legend data-i="bArea">Area</legend>
-              <div class="bseg"><input type="radio" name="barea" id="baB" value="bangkok" checked><label for="baB" data-i="aBkk">Bangkok</label><input type="radio" name="barea" id="baP" value="pattaya"><label for="baP" data-i="aPty">Pattaya</label></div>
-              <label class="sr" for="bDistrict" data-i="bDistrict">District (optional)</label><input class="inp mt8" id="bDistrict" maxlength="60" data-ph="bDistrictPh">
-            </fieldset>
-            <div class="bf"><label for="bPerson" data-i="bPerson">Contact person</label><input class="inp" id="bPerson" autocomplete="name" maxlength="60" aria-describedby="bPersonE"><p class="ferr" id="bPersonE"></p></div>
-            <div class="bnav"><button class="gold" type="button" id="bNext"><span data-i="bNext">Next</span><svg aria-hidden="true"><use href="#i-right"/></svg></button></div>
-          </div>
-
-          <div class="bstep" id="bs2" hidden>
-            <div class="bf"><label for="bContact" data-i="bContact">LINE ID or phone</label><input class="inp" id="bContact" autocomplete="tel" maxlength="40" aria-describedby="bContactE"><p class="ferr" id="bContactE"></p></div>
-            <div class="bf"><label for="bEmail" data-i="bEmail">Email (optional)</label><input class="inp" id="bEmail" type="email" inputmode="email" autocomplete="email" maxlength="120" aria-describedby="bEmailE"><p class="ferr" id="bEmailE"></p></div>
-            <div class="bf"><label for="bOffer" data-i="bOffer">What would you offer travellers? (optional)</label><textarea class="inp ta" id="bOffer" maxlength="160" rows="2" data-ph="bOfferPh"></textarea></div>
-            <div class="bf"><label for="bTime" data-i="bTime">Best time to call</label>
-              <select class="inp sel" id="bTime"><option value="any" data-i="tAny">Any time</option><option value="morning" data-i="tMorning">Morning</option><option value="afternoon" data-i="tAfternoon">Afternoon</option><option value="evening" data-i="tEvening">Evening</option></select></div>
-            <div class="bf"><label class="bcheck"><input type="checkbox" id="bConsent" aria-describedby="bConsentE"><span><span data-i="bConsent">I agree that Kring may contact me about a partnership.</span> <a href="privacy.html" target="_blank" rel="noopener" data-i="privacy">Privacy Policy</a></span></label><p class="ferr" id="bConsentE"></p></div>
-            <div class="bnav"><button class="ghost" type="button" id="bBack" data-i="bBack">Back</button><button class="gold" type="submit" id="bSend"><span data-i="bSend">Send</span></button></div>
-          </div>
+          <p class="fine bcons"><span data-i="bConsent">By sending, you agree that Kring may contact you about a partnership.</span> <a href="privacy.html" target="_blank" rel="noopener" data-i="privacy">Privacy Policy</a></p>
+          <p class="fine breply" id="bReply" data-i="bReply" hidden>Prefer email? Just reply to our message.</p>
+          <details class="bmore" id="bMore">
+            <summary data-i="bMore">Add details (optional)</summary>
+            <div class="bstep">
+              <div class="bf"><label for="bName" data-i="bName">Business name</label><input class="inp" id="bName" autocomplete="organization" maxlength="80"></div>
+              <fieldset class="bf"><legend data-i="bType">Type of business</legend><div class="btypes" id="btypes"></div></fieldset>
+              <fieldset class="bf"><legend data-i="bArea">Area</legend>
+                <div class="bseg"><input type="radio" name="barea" id="baB" value="bangkok" checked><label for="baB" data-i="aBkk">Bangkok</label><input type="radio" name="barea" id="baP" value="pattaya"><label for="baP" data-i="aPty">Pattaya</label></div>
+                <label class="sr" for="bDistrict" data-i="bDistrict">District (optional)</label><input class="inp mt8" id="bDistrict" maxlength="60" data-ph="bDistrictPh">
+              </fieldset>
+              <div class="bf"><label for="bPerson" data-i="bPerson">Contact person</label><input class="inp" id="bPerson" autocomplete="name" maxlength="60"></div>
+              <div class="bf"><label for="bEmail" data-i="bEmail">Email (optional)</label><input class="inp" id="bEmail" type="email" inputmode="email" autocomplete="email" maxlength="120" aria-describedby="bEmailE"><p class="ferr" id="bEmailE"></p></div>
+              <div class="bf"><label for="bOffer" data-i="bOffer">What would you offer travellers? (optional)</label><textarea class="inp ta" id="bOffer" maxlength="160" rows="2" data-ph="bOfferPh"></textarea></div>
+              <div class="bf"><label for="bTime" data-i="bTime">Best time to call</label>
+                <select class="inp sel" id="bTime"><option value="any" data-i="tAny">Any time</option><option value="morning" data-i="tMorning">Morning</option><option value="afternoon" data-i="tAfternoon">Afternoon</option><option value="evening" data-i="tEvening">Evening</option></select></div>
+            </div>
+          </details>
           <p class="err" id="bFail" role="alert"></p>
           <p class="fine" id="bPreview" data-i="preview">Preview: nothing is sent yet.</p>
         </form>
