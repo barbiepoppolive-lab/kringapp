@@ -567,3 +567,11 @@ html:lang(zh-Hans) .h-host,html:lang(ko) .h-host,html:lang(hi) .h-host{letter-sp
 .h-host .l2 .g{background:linear-gradient(100deg,var(--gold-2) 10%,#FFE7A8 45%,var(--gold) 80%);-webkit-background-clip:text;background-clip:text;color:transparent}
 html:not(.js) .h-host .l2{color:var(--gold-2)}
 @media (min-width:900px){.pane.host>.h-host{grid-area:head;text-align:left;font-size:clamp(44px,4.8vw,78px)}}
+
+/* store badges (pre-launch: "Coming soon") */
+.stores{list-style:none;margin:22px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+@media (min-width:900px){.panel .stores{justify-content:flex-start}}
+.store{display:flex;align-items:center;gap:10px;min-width:0;height:52px;padding:0 16px 0 12px;border-radius:14px;border:1px solid var(--line-2);background:rgba(10,12,31,.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:var(--ink)}
+.store svg{width:24px;height:24px;flex:none}
+.store span{display:flex;flex-direction:column;align-items:flex-start;gap:3px;font:800 15px/1 var(--ui);white-space:nowrap}
+.store small{font:800 9.5px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--gold-2)}
