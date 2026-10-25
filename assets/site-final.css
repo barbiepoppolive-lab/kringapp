@@ -651,3 +651,4 @@ html:lang(th) .icard h3{font-family:var(--thai);letter-spacing:0}
 .kick-hero .motto{font:800 clamp(15px,1.7vw,18px)/1.2 var(--ui);color:var(--gold-2);letter-spacing:.01em}
 html:lang(th) .kick-hero .motto{font-family:var(--thai)}
 .kick-hero .kick-desc{color:var(--muted)}
+.sticky-cta{white-space:nowrap;width:max-content;max-width:calc(100vw - 32px)}
