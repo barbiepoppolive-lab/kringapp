@@ -1,0 +1,2531 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en" data-variant="1">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Kring · See Thailand with a Verified Local · Kring! Let's Go! (Bangkok &amp; Pattaya)</title>
+  <meta name="description" content="See Thailand with a verified local. Kring! Let's Go! Two-phone bump escrow at 100% public spots + super-cheap Kring Price deals on everything from VIP Cabs &amp; 5G eSIMs to Sunset Rooftops &amp; Yachts." />
+  <link rel="icon" type="image/svg+xml" href="/kring-icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600;1,700&family=JetBrains+Mono:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&family=Unbounded:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --px: 0;
+      --py: 0;
+      --font-display: 'Unbounded', 'Noto Sans Thai', sans-serif;
+      --font-editorial: 'Cormorant Garamond', 'Noto Sans Thai', Georgia, serif;
+      --font-kinetic: 'Syne', 'Unbounded', 'Noto Sans Thai', sans-serif;
+      --font-sans: 'Plus Jakarta Sans', 'Noto Sans Thai', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      min-height: 100vh;
+      font-family: var(--font-sans);
+      color: #F8F9FF;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+    }
+    html[data-variant="5"], html[data-variant="5"] body {
+      color: #080C24;
+    }
+
+    html[data-lang="en"] [data-i18n-th] { display: none !important; }
+    html[data-lang="th"] [data-i18n-en] { display: none !important; }
+
+    /* Show only the active variant stage! */
+    .v-stage { display: none !important; }
+    html[data-variant="1"] .v1-stage { display: grid !important; }
+    html[data-variant="2"] .v2-stage { display: flex !important; }
+    html[data-variant="3"] .v3-stage { display: flex !important; }
+    html[data-variant="4"] .v4-stage { display: flex !important; }
+    html[data-variant="5"] .v5-stage { display: flex !important; }
+
+    /* =====================================================================
+       5 DISTINCT WORLD BACKDROPS
+       ===================================================================== */
+    .world-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    #kringWorldCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
+    .v2-cinema-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(6, 9, 24, 0.35) 0%, rgba(8, 10, 26, 0.65) 100%),
+        url('/photos/experiences/chao-phraya-sunset.jpg') center/cover no-repeat;
+      filter: saturate(1.35) contrast(1.06);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      z-index: 1;
+    }
+    html[data-variant="2"] .v2-cinema-bg { opacity: 1; }
+
+    /* V1: Obsidian Chrome & Sapphire-Gold Aura */
+    html[data-variant="1"] .world-backdrop {
+      background:
+        radial-gradient(circle at 24% 28%, rgba(68, 86, 255, 0.3), transparent 52%),
+        radial-gradient(circle at 76% 45%, rgba(255, 178, 30, 0.2), transparent 55%),
+        #03040C;
+    }
+    html[data-variant="2"] .world-backdrop { background: #070918; }
+    html[data-variant="3"] .world-backdrop {
+      background:
+        radial-gradient(ellipse 75% 55% at 50% 22%, rgba(220, 152, 34, 0.26), transparent 65%),
+        linear-gradient(180deg, #090603 0%, #160F06 50%, #070502 100%);
+    }
+    html[data-variant="4"] .world-backdrop {
+      background:
+        radial-gradient(circle at 50% 45%, rgba(52, 74, 255, 0.44), transparent 58%),
+        radial-gradient(circle at 50% 45%, rgba(255, 184, 0, 0.16), transparent 36%),
+        #020412;
+    }
+    html[data-variant="5"] .world-backdrop {
+      background:
+        radial-gradient(circle at 25% 22%, rgba(115, 129, 255, 0.22), transparent 48%),
+        radial-gradient(circle at 75% 26%, rgba(255, 184, 48, 0.24), transparent 48%),
+        radial-gradient(circle at 50% 80%, rgba(165, 120, 255, 0.16), transparent 55%),
+        linear-gradient(180deg, #F7F9FF 0%, #EAEEFF 55%, #F3F5FF 100%);
+    }
+
+    /* =====================================================================
+       TOP NAVIGATION + SWITCHER / NAV LINKS
+       ===================================================================== */
+    .shell-wrap {
+      position: relative;
+      z-index: 5;
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 0 8px;
+    }
+    .brand-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 22px;
+      letter-spacing: -0.04em;
+    }
+    .nav-links {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(8, 10, 26, 0.78);
+      backdrop-filter: blur(22px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: rgba(235, 240, 255, 0.85);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 13px;
+      border-radius: 999px;
+      transition: all 0.2s ease;
+    }
+    .nav-links a:hover {
+      background: rgba(255, 178, 30, 0.18);
+      color: #FFD470;
+    }
+    .variant-dock {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      border-radius: 999px;
+      background: rgba(8, 10, 26, 0.82);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    }
+    .v-pill {
+      border: none;
+      background: transparent;
+      color: rgba(235, 240, 255, 0.78);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .v-pill.is-active {
+      background: linear-gradient(135deg, #FFD470, #FF9800);
+      color: #05060F;
+      box-shadow: 0 0 16px rgba(255, 178, 30, 0.6);
+    }
+    .top-right-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .lang-pill {
+      border: 1px solid rgba(145, 160, 255, 0.4);
+      background: rgba(12, 16, 38, 0.75);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .partner-top-btn {
+      text-decoration: none;
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #05060F;
+      background: linear-gradient(135deg, #FFD470, #FFB21E);
+    }
+
+    /* Shared Ring Badge & CTA */
+    .ring-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      background: rgba(10, 14, 34, 0.82);
+      border: 1px solid rgba(255, 212, 112, 0.5);
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      margin-top: -6px;
+    }
+    .gold-txt { color: #FFD470; font-weight: 800; }
+    .cta-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 26px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 245, 200, 0.85);
+      background: linear-gradient(135deg, #FFE082 0%, #FFB21E 52%, #FF8C00 100%);
+      color: #05060F;
+      font-family: var(--font-display);
+      font-size: 12.5px;
+      font-weight: 800;
+      text-decoration: none;
+      box-shadow: 0 16px 38px rgba(255, 178, 30, 0.42);
+      cursor: pointer;
+    }
+    .cta-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 13px 20px;
+      border-radius: 999px;
+      border: 1px solid rgba(155, 170, 255, 0.42);
+      background: rgba(15, 20, 48, 0.72);
+      color: #E2E8FF;
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    /* =====================================================================
+       V1 CSS: ASYMMETRIC 2-COLUMN 3D TITANIUM DEVICE & ORBITAL SPATIAL CARDS
+       ===================================================================== */
+    .v1-stage {
+      grid-template-columns: 1.05fr 0.95fr;
+      align-items: center;
+      gap: 32px;
+      min-height: calc(100vh - 82px);
+      padding: 8px 0 24px;
+    }
+    .v1-left {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .v1-ring-pod {
+      width: 340px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      cursor: pointer;
+    }
+    .v1-ring-pod .kring-torus-cv {
+      width: 320px;
+      height: 146px;
+      display: block;
+    }
+    .v1-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: rgba(115, 129, 255, 0.14);
+      border: 1px solid rgba(115, 129, 255, 0.4);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #B8C4FF;
+    }
+    .live-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 10px #10B981;
+    }
+    .v1-title {
+      font-family: var(--font-display);
+      font-size: clamp(30px, 3.6vw, 48px);
+      font-weight: 900;
+      line-height: 1.07;
+      letter-spacing: -0.03em;
+    }
+    .v1-title em {
+      font-style: normal;
+      background: linear-gradient(90deg, #FFD470 0%, #FFB21E 45%, #98A6FF 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .v1-sub {
+      font-size: 14.5px;
+      line-height: 1.54;
+      color: rgba(225, 232, 255, 0.85);
+      max-width: 560px;
+    }
+    .v1-hype-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .v1-hype-pills span {
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 212, 112, 0.35);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #FFF2C2;
+    }
+    .v1-radar-bar {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 15px;
+      border-radius: 16px;
+      background: rgba(15, 20, 46, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+    }
+    .radar-tag {
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255, 178, 30, 0.25);
+      color: #FFD470;
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .strike-red {
+      color: #FF6B6B;
+      text-decoration: line-through;
+    }
+    .v1-cta-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 2px;
+    }
+
+    /* V1 Right 3D Device + 4 Orbiting Spatial Cards */
+    .v1-right {
+      perspective: 1500px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .v1-device-scene {
+      position: relative;
+      width: 540px;
+      height: 520px;
+      transform-style: preserve-3d;
+    }
+    .v1-phone-frame {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 266px;
+      height: 484px;
+      transform: translate(-50%, -50%) rotateY(-15deg) rotateX(6deg);
+      border-radius: 42px;
+      border: 4px solid rgba(190, 205, 255, 0.55);
+      background: #060919;
+      overflow: hidden;
+      box-shadow:
+        28px 36px 80px rgba(0, 0, 0, 0.9),
+        0 0 50px rgba(115, 129, 255, 0.32);
+    }
+    .v1-phone-bg {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.88);
+    }
+    .v1-phone-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(4,6,18,0.35) 0%, transparent 40%, rgba(4,6,18,0.94) 92%);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .v1-notch {
+      align-self: center;
+      padding: 5px 14px;
+      border-radius: 999px;
+      background: rgba(5, 7, 18, 0.88);
+      border: 1px solid rgba(255, 212, 112, 0.55);
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #FFD470;
+    }
+    .v1-phone-bottom {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .v1-p-tag { font-family: var(--font-mono); font-size: 10px; color: #6EE7B7; font-weight: 700; }
+    .v1-p-name { font-family: var(--font-display); font-size: 14.5px; font-weight: 800; }
+    .v1-p-bump {
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(255, 178, 30, 0.24);
+      border: 1px solid #FFD470;
+      font-size: 11px;
+      font-weight: 700;
+      color: #FFF3C4;
+    }
+
+    .v1-orbit-card {
+      position: absolute;
+      width: 214px;
+      border-radius: 20px;
+      padding: 8px;
+      background: rgba(12, 16, 38, 0.88);
+      backdrop-filter: blur(22px);
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.82);
+    }
+    .v1-orbit-card img {
+      width: 100%;
+      height: 82px;
+      object-fit: cover;
+      border-radius: 13px;
+      margin-bottom: 6px;
+    }
+    .orb-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 0 4px 2px;
+    }
+    .orb-pill { font-family: var(--font-mono); font-size: 8.8px; color: #FFD470; font-weight: 700; }
+    .orb-meta strong { font-family: var(--font-display); font-size: 11.5px; color: #fff; }
+    .orb-meta em { font-style: normal; font-size: 10px; color: #B8C4FF; font-weight: 600; }
+    .orb-meta em s { color: #FF6B6B; }
+
+    .orb-tl { top: 8px; left: -18px; transform: translateZ(70px) rotateZ(-4deg); border-color: #FFD470; }
+    .orb-tr { top: 24px; right: -18px; transform: translateZ(90px) rotateZ(4deg); border-color: #7381FF; }
+    .orb-bl { bottom: 26px; left: -14px; transform: translateZ(65px) rotateZ(3deg); }
+    .orb-br { bottom: 14px; right: -12px; transform: translateZ(85px) rotateZ(-3deg); border-color: #FFD470; }
+
+    /* =====================================================================
+       V2..V5 CSS (FOR INTERACTIVE SWITCHER)
+       ===================================================================== */
+    .v2-stage { min-height: calc(100vh - 76px); align-items: center; justify-content: center; padding: 10px 0 24px; }
+    .v2-glass-window {
+      width: 100%; max-width: 1220px; border-radius: 42px; padding: 24px 32px;
+      background: rgba(12, 16, 34, 0.48); backdrop-filter: blur(38px) saturate(190%);
+      border: 1.5px solid rgba(255, 255, 255, 0.36);
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.78), inset 0 2px 0 rgba(255, 255, 255, 0.55);
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .v2-top-row { display: grid; grid-template-columns: 340px 1fr; align-items: center; gap: 28px; }
+    .v2-ring-box { display: flex; flex-direction: column; align-items: center; cursor: pointer; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 28px; padding: 8px 12px 12px; }
+    .v2-ring-box .kring-torus-cv { width: 300px; height: 146px; display: block; }
+    .v2-pill { display: inline-block; padding: 4px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; color: #FFE082; margin-bottom: 8px; }
+    .v2-title { font-family: var(--font-display); font-size: clamp(26px, 3.2vw, 42px); font-weight: 900; line-height: 1.1; margin-bottom: 8px; }
+    .v2-sub { font-size: 14.5px; line-height: 1.5; color: rgba(240, 244, 255, 0.88); }
+    .v2-cards-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .v2-glass-card { border-radius: 26px; padding: 10px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.34); box-shadow: 0 18px 40px rgba(0, 0, 0, 0.38); }
+    .v2-glass-card.is-featured { background: rgba(255, 200, 90, 0.16); border-color: rgba(255, 220, 130, 0.68); transform: translateY(-6px); }
+    .v2-glass-card img { width: 100%; height: 122px; object-fit: cover; border-radius: 18px; margin-bottom: 8px; }
+    .v2-c-body { padding: 0 6px 4px; display: flex; flex-direction: column; gap: 4px; }
+    .v2-c-top { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10.5px; color: #FFE082; }
+    .v2-c-body h3 { font-family: var(--font-display); font-size: 14px; font-weight: 800; }
+    .v2-c-body p { font-size: 11.5px; color: rgba(235, 240, 255, 0.85); }
+    .v2-footer-bar { display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.2); }
+    .v2-trust-pills { display: flex; gap: 12px; font-size: 12px; font-weight: 700; color: #FFF4D4; }
+    .v2-trust-pills span { padding: 6px 12px; border-radius: 999px; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.2); }
+
+    .v3-stage { min-height: calc(100vh - 76px); align-items: center; justify-content: center; padding: 10px 0 24px; }
+    .v3-luxury-frame { width: 100%; max-width: 1180px; border: 1px solid rgba(255, 204, 102, 0.42); border-radius: 28px; padding: 20px 32px 26px; background: linear-gradient(180deg, rgba(22, 15, 7, 0.86) 0%, rgba(10, 7, 3, 0.94) 100%); box-shadow: 0 36px 90px rgba(0, 0, 0, 0.88); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; }
+    .v3-crest-Area { cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+    .v3-crest-Area .kring-torus-cv { width: 340px; height: 152px; display: block; }
+    .v3-crest-caption { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.16em; color: #FFD470; margin-top: -6px; }
+    .v3-serif-title { font-family: var(--font-editorial); font-size: clamp(36px, 4.6vw, 60px); font-weight: 700; font-style: italic; color: #FFF4D8; line-height: 1.04; }
+    .v3-serif-sub { font-size: 13.5px; color: rgba(255, 232, 185, 0.78); }
+    .v3-tickets-grid { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: 6px 0; }
+    .v3-boarding-pass { display: grid; grid-template-columns: 98px 1fr 64px; height: 122px; border-radius: 18px; overflow: hidden; background: linear-gradient(135deg, #23180B 0%, #120C05 100%); border: 1px solid rgba(255, 204, 102, 0.48); text-align: left; }
+    .v3-boarding-pass.is-gold-center { border-color: #FFD470; transform: translateY(-6px); }
+    .v3-pass-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .v3-pass-main { padding: 12px 14px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1.5px dashed rgba(255, 204, 102, 0.4); }
+    .v3-pass-kicker { font-family: var(--font-mono); font-size: 9.5px; color: #FFD470; }
+    .v3-pass-main h3 { font-family: var(--font-editorial); font-size: 19px; font-weight: 700; color: #FFF7E4; line-height: 1.1; }
+    .v3-pass-meta { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10.5px; color: #E2C892; }
+    .v3-pass-stub { display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255, 196, 82, 0.1); font-family: var(--font-mono); gap: 4px; }
+    .v3-pass-stub span { font-size: 8.5px; color: #D4B475; }
+    .v3-pass-stub strong { font-size: 12px; color: #FFD470; }
+    .cta-gold-outline { display: inline-block; padding: 13px 32px; border-radius: 999px; border: 1.5px solid #FFD470; background: rgba(255, 204, 102, 0.16); color: #FFF4D4; font-family: var(--font-mono); font-size: 12px; font-weight: 700; text-decoration: none; }
+
+    .v4-stage { position: relative; min-height: calc(100vh - 76px); align-items: center; justify-content: center; padding: 8px 0 20px; }
+    .v4-kinetic-wall { position: absolute; inset: 4% 0; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; font-family: var(--font-display); font-size: clamp(54px, 8.5vw, 128px); font-weight: 900; line-height: 0.9; white-space: nowrap; color: transparent; -webkit-text-stroke: 1.5px rgba(115, 135, 255, 0.18); text-align: center; z-index: 1; }
+    .v4-vortex-grid { position: relative; z-index: 5; width: 100%; max-width: 1260px; display: grid; grid-template-columns: 290px 1fr 290px; grid-template-rows: auto auto; align-items: center; gap: 18px 26px; perspective: 1400px; }
+    .v4-center-core { grid-column: 2; grid-row: 1 / span 2; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 18px; border-radius: 36px; background: radial-gradient(circle, rgba(16, 22, 58, 0.85) 0%, rgba(5, 8, 24, 0.65) 100%); border: 1.5px solid rgba(135, 155, 255, 0.42); }
+    .v4-ring-portal { cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+    .v4-ring-portal .kring-torus-cv { width: 360px; height: 175px; display: block; }
+    .v4-core-title { font-family: var(--font-display); font-size: clamp(32px, 4vw, 52px); font-weight: 900; }
+    .v4-core-title span { color: #FFB800; }
+    .v4-core-sub { font-size: 13.5px; color: #C5D0FF; max-width: 390px; }
+    .v4-foil-card { border-radius: 18px; overflow: hidden; background: #080C26; border: 2px solid #FFB800; box-shadow: 7px 7px 0px #3B4BFF; }
+    .v4-tl { grid-column: 1; grid-row: 1; transform: rotateY(14deg) rotateZ(-3deg); }
+    .v4-tr { grid-column: 3; grid-row: 1; transform: rotateY(-14deg) rotateZ(3deg); border-color: #7381FF; }
+    .v4-bl { grid-column: 1; grid-row: 2; transform: rotateY(14deg) rotateZ(2deg); border-color: #7381FF; }
+    .v4-br { grid-column: 3; grid-row: 2; transform: rotateY(-14deg) rotateZ(-2deg); }
+    .v4-foil-card img { width: 100%; height: 106px; object-fit: cover; display: block; }
+    .v4-card-info { padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; }
+    .v4-tag { font-family: var(--font-mono); font-size: 9.5px; color: #FFD470; font-weight: 700; }
+    .v4-card-info h3 { font-family: var(--font-display); font-size: 13px; font-weight: 800; color: #fff; }
+    .v4-card-info b { font-family: var(--font-mono); font-size: 11px; color: #9BA9FF; }
+
+    .v5-stage { min-height: calc(100vh - 76px); align-items: center; justify-content: center; padding: 8px 0 24px; }
+    .v5-pearl-hero { width: 100%; max-width: 1180px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; }
+    .v5-top-sculpture { cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+    .v5-top-sculpture .kring-torus-cv { width: 360px; height: 162px; display: block; }
+    .v5-pearl-pill { display: inline-flex; align-items: center; gap: 8px; padding: 5px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.88); border: 1px solid rgba(91, 108, 255, 0.35); font-size: 11px; font-weight: 700; color: #12183A; margin-top: -6px; }
+    .v5-light-title { font-family: var(--font-display); font-size: clamp(30px, 4vw, 52px); font-weight: 900; color: #080C24; line-height: 1.06; }
+    .v5-light-title em { font-style: normal; background: linear-gradient(90deg, #3B4BFF, #E07A00); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .v5-light-sub { font-size: 15px; color: #364068; max-width: 640px; }
+    .v5-bento-row { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin: 6px 0; }
+    .v5-pearl-card { border-radius: 28px; padding: 12px; background: rgba(255, 255, 255, 0.82); border: 1.5px solid #fff; box-shadow: 0 22px 50px rgba(32, 45, 115, 0.12); text-align: left; }
+    .v5-pearl-card img { width: 100%; height: 124px; object-fit: cover; border-radius: 20px; margin-bottom: 10px; }
+    .v5-card-body { padding: 0 6px 4px; display: flex; flex-direction: column; gap: 4px; }
+    .v5-badge-line { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10.5px; }
+    .v5-b-blue { padding: 3px 8px; border-radius: 999px; background: rgba(59, 75, 255, 0.12); color: #2B3BFF; font-weight: 700; }
+    .v5-b-gold { padding: 3px 8px; border-radius: 999px; background: rgba(255, 168, 18, 0.2); color: #B85D00; font-weight: 700; }
+    .v5-card-body h3 { font-family: var(--font-display); font-size: 14.5px; font-weight: 800; color: #080C24; }
+    .v5-card-body p { font-size: 12px; color: #4A5578; }
+    .v5-btn-royal { display: inline-flex; padding: 14px 32px; border-radius: 999px; background: linear-gradient(135deg, #2B3BFF 0%, #5B6CFF 100%); color: #fff; font-family: var(--font-display); font-size: 13px; font-weight: 800; text-decoration: none; }
+
+    
+    /* =====================================================================
+       KINETIC BRAND HYPE MARQUEE
+       ===================================================================== */
+    .hype-marquee {
+      position: relative;
+      z-index: 6;
+      width: 100%;
+      overflow: hidden;
+      padding: 13px 0;
+      background: linear-gradient(90deg, rgba(16, 22, 58, 0.92), rgba(28, 22, 52, 0.92), rgba(16, 22, 58, 0.92));
+      border-top: 1px solid rgba(255, 212, 112, 0.38);
+      border-bottom: 1px solid rgba(115, 129, 255, 0.38);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65);
+    }
+    .marquee-track {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      width: max-content;
+      animation: kringMarquee 26s linear infinite;
+      font-family: var(--font-display);
+      font-size: 12.5px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: #FFF4D4;
+      white-space: nowrap;
+    }
+    .marquee-track .dot {
+      color: #7381FF;
+    }
+    @keyframes kringMarquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* =====================================================================
+       SECTION 1: LIVE METRICS & AUTHORITY RIBBON
+       ===================================================================== */
+    .stats-ribbon {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin: 42px 0 24px;
+    }
+    .stat-box {
+      padding: 22px 20px;
+      border-radius: 24px;
+      background: rgba(10, 14, 34, 0.78);
+      backdrop-filter: blur(22px);
+      border: 1px solid rgba(155, 170, 255, 0.24);
+      box-shadow: 0 20px 44px rgba(0, 0, 0, 0.55);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .stat-box.is-gold {
+      border-color: rgba(255, 212, 112, 0.58);
+      background: linear-gradient(145deg, rgba(32, 24, 10, 0.84), rgba(12, 15, 36, 0.88));
+    }
+    .stat-val {
+      font-family: var(--font-display);
+      font-size: clamp(26px, 2.8vw, 36px);
+      font-weight: 900;
+      background: linear-gradient(90deg, #FFFFFF, #FFD470);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .stat-lbl {
+      font-size: 13px;
+      line-height: 1.45;
+      color: rgba(225, 232, 255, 0.82);
+    }
+
+    /* =====================================================================
+       SHARED HYPE SECTION HEADERS
+       ===================================================================== */
+    .hype-section {
+      padding: 46px 0;
+    }
+    .sec-head {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      margin-bottom: 34px;
+    }
+    .sec-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(115, 129, 255, 0.16);
+      border: 1px solid rgba(255, 212, 112, 0.42);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: #FFD470;
+      letter-spacing: 0.05em;
+    }
+    .sec-title {
+      font-family: var(--font-display);
+      font-size: clamp(26px, 3.2vw, 42px);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+    .sec-title em {
+      font-style: normal;
+      background: linear-gradient(90deg, #98A6FF, #FFD470);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .sec-sub {
+      font-size: 15px;
+      line-height: 1.58;
+      color: rgba(225, 232, 255, 0.8);
+      max-width: 720px;
+    }
+
+    /* =====================================================================
+       SECTION 2: 3-STEP "KRING! LET'S GO!" RITUAL CARDS
+       ===================================================================== */
+    .ritual-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+    .ritual-card {
+      padding: 26px 24px;
+      border-radius: 28px;
+      background: rgba(10, 14, 34, 0.82);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(155, 170, 255, 0.26);
+      box-shadow: 0 24px 54px rgba(0, 0, 0, 0.65);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+    .ritual-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(255, 212, 112, 0.65);
+    }
+    .ritual-card.is-center-bump {
+      background: linear-gradient(155deg, rgba(28, 22, 54, 0.92), rgba(12, 15, 36, 0.92));
+      border-color: rgba(255, 212, 112, 0.62);
+      box-shadow: 0 28px 64px rgba(0, 0, 0, 0.78), 0 0 40px rgba(155, 92, 255, 0.24);
+      cursor: pointer;
+    }
+    .ritual-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: #FFD470;
+      letter-spacing: 0.08em;
+    }
+    .ritual-card h3 {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 800;
+      line-height: 1.22;
+    }
+    .ritual-card h3 em {
+      font-style: normal;
+      color: #FFD470;
+    }
+    .ritual-card p {
+      font-size: 13.8px;
+      line-height: 1.58;
+      color: rgba(225, 232, 255, 0.84);
+    }
+    .ritual-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .ritual-chip-row span {
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #D4DCFF;
+    }
+    .ritual-chip-row .gold-chip {
+      background: rgba(255, 178, 30, 0.2);
+      border-color: rgba(255, 212, 112, 0.55);
+      color: #FFF2C2;
+    }
+
+    /* =====================================================================
+       SECTION 3: 6-CARD 3D EXPERIENCE SHOWCASE GRID
+       ===================================================================== */
+    .exp-showcase-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+    .exp-3d-card {
+      border-radius: 26px;
+      overflow: hidden;
+      background: rgba(10, 14, 34, 0.84);
+      border: 1px solid rgba(155, 170, 255, 0.25);
+      box-shadow: 0 22px 48px rgba(0, 0, 0, 0.68);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.35s ease, border-color 0.35s ease;
+    }
+    .exp-3d-card:hover {
+      transform: translateY(-7px);
+      border-color: #FFD470;
+    }
+    .exp-img-wrap {
+      position: relative;
+      height: 176px;
+      overflow: hidden;
+    }
+    .exp-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+    .exp-3d-card:hover .exp-img-wrap img {
+      transform: scale(1.06);
+    }
+    .exp-city-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(5, 7, 18, 0.84);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .exp-price-badge {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: rgba(255, 178, 30, 0.92);
+      color: #05060F;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 800;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    }
+    .exp-body {
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      justify-content: space-between;
+    }
+    .exp-body h3 {
+      font-family: var(--font-display);
+      font-size: 15.5px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+    .exp-body p {
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(220, 228, 255, 0.8);
+    }
+    .exp-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 11.5px;
+      color: #B8C4FF;
+      font-weight: 600;
+    }
+
+    /* =====================================================================
+       SECTION 4: KRING PRICE RADAR COMPARISON PANEL
+       ===================================================================== */
+    .price-radar-panel {
+      display: grid;
+      grid-template-columns: 0.92fr 1.08fr;
+      gap: 32px;
+      padding: 32px;
+      border-radius: 34px;
+      background: linear-gradient(135deg, rgba(14, 18, 44, 0.92), rgba(7, 10, 26, 0.96));
+      border: 1.5px solid rgba(135, 155, 255, 0.35);
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.78);
+      align-items: center;
+    }
+    .pr-left {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .pr-Starter-callout {
+      padding: 16px 18px;
+      border-radius: 20px;
+      background: rgba(255, 178, 30, 0.14);
+      border: 1px solid rgba(255, 212, 112, 0.55);
+      font-size: 13px;
+      line-height: 1.48;
+      color: #FFF4D4;
+    }
+    .pr-table {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pr-row {
+      display: grid;
+      grid-template-columns: 1.4fr 0.55fr 0.95fr;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .pr-row.pr-head {
+      background: transparent;
+      border: none;
+      padding: 4px 16px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #9BA9FF;
+    }
+    .pr-row.is-highlight {
+      background: rgba(255, 178, 30, 0.12);
+      border-color: rgba(255, 212, 112, 0.58);
+    }
+    .pr-row strong {
+      display: block;
+      font-size: 13.5px;
+      color: #fff;
+    }
+    .pr-row small {
+      font-size: 11px;
+      color: rgba(200, 212, 255, 0.72);
+    }
+    .pr-bad {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: #FF6B6B;
+      text-decoration: line-through;
+    }
+    .pr-good {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      font-family: var(--font-mono);
+    }
+    .pr-good b {
+      font-size: 15px;
+      color: #FFD470;
+    }
+    .pr-good em {
+      font-style: normal;
+      font-size: 10.5px;
+      color: #6EE7B7;
+      font-weight: 700;
+    }
+
+    /* =====================================================================
+       SECTION 5: PARTNER, AGENCY & INFRASTRUCTURE BENTO
+       ===================================================================== */
+    .partner-bento {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+    .p-card {
+      padding: 26px 24px;
+      border-radius: 28px;
+      background: rgba(10, 14, 34, 0.84);
+      border: 1px solid rgba(155, 170, 255, 0.28);
+      box-shadow: 0 24px 54px rgba(0, 0, 0, 0.65);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .p-card.is-gold-border {
+      border-color: rgba(255, 212, 112, 0.62);
+      background: linear-gradient(155deg, rgba(28, 22, 10, 0.84), rgba(10, 14, 34, 0.9));
+    }
+    .p-icon { font-size: 28px; }
+    .p-kicker {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #FFD470;
+      letter-spacing: 0.06em;
+    }
+    .p-card h3 {
+      font-family: var(--font-display);
+      font-size: 17.5px;
+      font-weight: 800;
+      line-height: 1.24;
+    }
+    .p-card p {
+      font-size: 13.5px;
+      line-height: 1.56;
+      color: rgba(225, 232, 255, 0.82);
+    }
+    .p-link {
+      display: inline-flex;
+      align-items: center;
+      font-family: var(--font-display);
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #FFD470;
+      text-decoration: none;
+      margin-top: 6px;
+    }
+
+    /* =====================================================================
+       FOOTER & MODAL
+       ===================================================================== */
+    .site-footer {
+      margin-top: 32px;
+      padding: 32px 0 42px;
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    .foot-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .foot-logo-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-family: var(--font-display);
+      font-size: 20px;
+    }
+    .foot-punch {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 178, 30, 0.18);
+      border: 1px solid rgba(255, 212, 112, 0.5);
+      font-size: 11px;
+      color: #FFD470;
+    }
+    .foot-brand p {
+      font-size: 13px;
+      color: rgba(210, 220, 255, 0.72);
+      max-width: 460px;
+    }
+    .foot-contacts {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+    .foot-contacts small {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #9BA9FF;
+      margin-bottom: 4px;
+    }
+    .foot-contacts a {
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #FFD470;
+      text-decoration: none;
+    }
+    .foot-bottom {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 12px;
+      color: rgba(190, 202, 245, 0.65);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(3, 5, 14, 0.84);
+      backdrop-filter: blur(18px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.is-open {
+      display: flex;
+    }
+    .modal-card {
+      position: relative;
+      width: 100%;
+      max-width: 520px;
+      border-radius: 28px;
+      padding: 28px 26px;
+      background: linear-gradient(155deg, #111638 0%, #070A1E 100%);
+      border: 1.5px solid rgba(255, 212, 112, 0.55);
+      box-shadow: 0 36px 90px rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      color: #fff;
+    }
+    .modal-close {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      cursor: pointer;
+    }
+    .modal-card h3 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+    }
+    .modal-card p {
+      font-size: 13px;
+      color: rgba(220, 228, 255, 0.8);
+    }
+    #partnerForm {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    #partnerForm label {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    #partnerForm label span {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      color: #FFD470;
+    }
+    #partnerForm select,
+    #partnerForm input,
+    #partnerForm textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(155, 170, 255, 0.35);
+      background: rgba(6, 9, 24, 0.9);
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 13.5px;
+    }
+    .p-confirm {
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.18);
+      border: 1px solid #10B981;
+      font-size: 12.5px;
+      color: #A7F3D0;
+    }
+
+    @media (max-width: 900px) {
+      .stats-ribbon,
+      .ritual-grid,
+      .exp-showcase-grid,
+      .price-radar-panel,
+      .partner-bento {
+        grid-template-columns: 1fr;
+      }
+      .price-radar-panel {
+        padding: 20px 16px;
+      }
+      .pr-row {
+        grid-template-columns: 1.2fr 0.5fr 0.9fr;
+        padding: 10px;
+      }
+    }
+
+
+    /* =====================================================================
+       MOBILE <= 640px: 100% ABOVE THE FOLD (ZERO SCROLL) + SCROLLABLE HYPE!
+       ===================================================================== */
+    @media (max-width: 640px) {
+      .shell-wrap { padding: 0 10px; }
+      .top-bar { padding: 6px 0 4px; gap: 6px; }
+      .brand-logo { font-size: 18px; }
+      .nav-links, .partner-top-btn, .cta-secondary, .v1-hype-pills { display: none !important; }
+      .v-pill { padding: 4px 7px; font-size: 9.2px; }
+      .lang-pill { padding: 4px 8px; font-size: 9.5px; }
+
+      .kring-torus-cv {
+        width: 236px !important;
+        height: 108px !important;
+      }
+      .ring-badge-pill, .v5-pearl-pill {
+        font-size: 9.2px !important;
+        padding: 3px 10px !important;
+      }
+
+      /* V1 Mobile: Compact Asymmetric Stack + 3 Orbiting Mini Cards Fit Inside 390x660 */
+      html[data-variant="1"] .v1-stage {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+        padding: 2px 0 10px !important;
+        min-height: auto !important;
+      }
+      .v1-left { align-items: center; text-align: center; gap: 5px; }
+      .v1-ring-pod { width: 100%; align-items: center; }
+      .v1-eyebrow { font-size: 8px; padding: 3px 8px; }
+      .v1-title { font-size: 20px; line-height: 1.08; }
+      .v1-sub { font-size: 10.8px; line-height: 1.3; }
+      .v1-radar-bar { font-size: 9.2px; padding: 4px 9px; gap: 6px; justify-content: center; }
+      .v1-cta-row { width: 100%; }
+      .v1-device-scene {
+        width: 100%;
+        height: 152px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+      }
+      .v1-phone-frame, .orb-bl { display: none !important; }
+      .v1-orbit-card {
+        position: relative !important;
+        inset: auto !important;
+        width: 100% !important;
+        transform: none !important;
+        padding: 5px !important;
+        border-radius: 14px !important;
+      }
+      .v1-orbit-card img { height: 58px !important; margin-bottom: 4px !important; }
+      .orb-pill { font-size: 7.2px !important; }
+      .orb-meta strong { font-size: 8.8px !important; line-height: 1.15; }
+      .orb-meta em { font-size: 7.8px !important; }
+      .cta-primary { width: 100%; padding: 10px 14px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="world-backdrop" aria-hidden="true">
+    <div class="v2-cinema-bg"></div>
+    <canvas id="kringWorldCanvas"></canvas>
+  </div>
+
+  <div class="shell-wrap">
+    <header class="top-bar">
+      <a href="#top" class="brand-logo" onclick="window.triggerVariantBump(true); return false;">
+        <svg viewBox="0 0 34 20" width="28" height="17" aria-hidden="true">
+          <path d="M17 4.4A7.5 7.5 0 0 1 17 15.6A7.5 7.5 0 0 1 17 4.4Z" fill="#9B5CFF" />
+          <circle cx="11" cy="10" r="7.5" fill="none" stroke="#7381FF" stroke-width="3.2" />
+          <circle cx="23" cy="10" r="7.5" fill="none" stroke="#FFB21E" stroke-width="3.2" />
+        </svg>
+        <span>kring</span>
+      </a>
+
+      
+      <div class="variant-dock" role="tablist" aria-label="Choose 2026 Visual Variant">
+        <button type="button" class="v-pill is-active" data-set-v="1">V1 · 3D Split</button>
+        <button type="button" class="v-pill" data-set-v="2">V2 · Cinema Glass</button>
+        <button type="button" class="v-pill" data-set-v="3">V3 · 24K Gold</button>
+        <button type="button" class="v-pill" data-set-v="4">V4 · 3D Vortex</button>
+        <button type="button" class="v-pill" data-set-v="5">V5 · Pearl Light</button>
+      </div>
+      
+
+      <div class="top-right-actions">
+        <button type="button" class="lang-pill" id="btnToggleLang">EN / ไทย</button>
+        <a href="#partnerModal" class="partner-top-btn" onclick="window.openPartnerModal(); return false;">Partner Portal ↗</a>
+      </div>
+    </header>
+
+    <main id="top">
+      
+    <!-- ===================================================================
+         VARIANT 1: ASYMMETRIC 3D SPATIAL SPLIT + 3D TITANIUM PHONE & ORBITING CARDS
+         =================================================================== -->
+    <section class="v-stage v1-stage" data-stage="1">
+      <div class="v1-left">
+        <div class="v1-ring-pod" onclick="window.triggerVariantBump(true)" role="button" tabindex="0">
+          <canvas class="kring-torus-cv"></canvas>
+          <div class="ring-badge-pill">
+            <span>🔔</span>
+            <span class="gold-txt">กริ๊ง! · KRING! LET'S GO!</span>
+            <span data-i18n-en>Tap 3D Rings</span>
+            <span data-i18n-th lang="th">แตะวงแหวน 3 มิติ</span>
+          </div>
+        </div>
+
+        <div class="v1-eyebrow">
+          <span class="live-dot"></span>
+          <span data-i18n-en>BANGKOK &amp; PATTAYA · 2026 SOCIAL EXPERIENCE &amp; ESCROW PLATFORM</span>
+          <span data-i18n-th lang="th">กรุงเทพฯ และพัทยา · แพลตฟอร์มท่องเที่ยวกับโลคอลตัวจริง 2026</span>
+        </div>
+
+        <h1 class="v1-title">
+          <span data-i18n-en>See Thailand with a verified local.<br/><em>Kring! Let’s Go!</em></span>
+          <span data-i18n-th lang="th">เที่ยวไทยกับโลคอลตัวจริง<br/><em>แตะกริ๊ง! ไปกันเลย!</em></span>
+        </h1>
+
+        <p class="v1-sub">
+          <span data-i18n-en>Meet verified Bangkok &amp; Pattaya locals at 100% public spots—plus unlock <b>super-cheap Kring Price deals on everything from VIP Cabs &amp; 5G eSIMs to Sunset Rooftops &amp; Yachts</b>. Held safely in escrow; released the millisecond both phones bump!</span>
+          <span data-i18n-th lang="th">นัดพบโลคอลตัวจริงในที่สาธารณะ 100% พร้อมดีลราคากริ๊งถูกสุดๆ ตั้งแต่รถรับส่ง VIP, eSIM, รูฟท็อป ไปจนถึงเรือยอชต์ พักเงินปลอดภัย โอนทันทีเมื่อแตะโทรศัพท์ชนกัน!</span>
+        </p>
+
+        <div class="v1-hype-pills">
+          <span>🚖 VIP Cabs -55%</span>
+          <span>🛥️ Yachts &amp; Boats -50%</span>
+          <span>🍸 Rooftops -40%</span>
+          <span>🔔 &lt;1s Bump Escrow</span>
+        </div>
+
+        <div class="v1-radar-bar">
+          <span class="radar-tag">SUPER DEALS</span>
+          <span>🚖 Cab <s class="strike-red">฿1,500</s> <b class="gold-txt">฿665</b></span>
+          <span>·</span>
+          <span>🛥️ Yacht <s class="strike-red">฿3,200</s> <b class="gold-txt">฿1,490</b></span>
+          <span>·</span>
+          <span>📶 eSIM <b class="gold-txt">฿185</b></span>
+        </div>
+
+        <div class="v1-cta-row">
+          <a href="#partnerModal" class="cta-primary" onclick="window.openPartnerModal(); return false;">
+            <span data-i18n-en>🔔 Kring! Let’s Go! · Partner &amp; VIP Access →</span>
+            <span data-i18n-th lang="th">🔔 แตะกริ๊ง! ไปกันเลย! · สิทธิ์พาร์ทเนอร์และ VIP →</span>
+          </a>
+          <a href="#kring-price" class="cta-secondary">
+            <span data-i18n-en>See Cabs-to-Yachts Deals ↓</span>
+            <span data-i18n-th lang="th">ดูดีลรถถึงเรือยอชต์ ↓</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="v1-right">
+        <div class="v1-device-scene">
+          <!-- Central 3D Titanium Phone -->
+          <div class="v1-phone-frame">
+            <img src="/photos/experiences/wat-arun-temple.jpg" alt="Wat Arun Sunset" class="v1-phone-bg" />
+            <div class="v1-phone-overlay">
+              <div class="v1-notch">🔔 KRING! LET'S GO! · ESCROW</div>
+              <div class="v1-phone-bottom">
+                <div class="v1-p-tag">✓ 1-FACE VERIFIED LOCAL · BKK</div>
+                <div class="v1-p-name">Nong Kwan · Sunset Pier &amp; Rooftop</div>
+                <div class="v1-p-bump">🔔 Phones Bumped → ฿1,200 Released!</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4 Orbiting 3D Spatial Cards Popping Out in Z-Space -->
+          <article class="v1-orbit-card orb-tl">
+            <img src="/photos/experiences/koh-larn-beach.jpg" alt="Yacht & Catamaran" />
+            <div class="orb-meta">
+              <span class="orb-pill">🛥️ YACHT SUPER DEAL · -53%</span>
+              <strong>Sunset Yacht &amp; Catamaran</strong>
+              <em><s>฿3,200</s> → ฿1,490 + 30K Coins</em>
+            </div>
+          </article>
+
+          <article class="v1-orbit-card orb-tr">
+            <img src="/photos/experiences/chao-phraya-sunset.jpg" alt="VIP Cab & River" />
+            <div class="orb-meta">
+              <span class="orb-pill">🚖 VIP CAB &amp; ROOFTOP · -55%</span>
+              <strong>Airport SUV &amp; Sky Lounge</strong>
+              <em><s>฿1,500</s> → ฿665 + 15K Coins</em>
+            </div>
+          </article>
+
+          <article class="v1-orbit-card orb-bl">
+            <img src="/photos/experiences/thai-spa.jpg" alt="Licensed Spa" />
+            <div class="orb-meta">
+              <span class="orb-pill">🌿 SPA &amp; 5G eSIM DEALS</span>
+              <strong>Herbal Spa ฿385 · eSIM ฿185</strong>
+              <em>+15,000 Bonus Kring Coins</em>
+            </div>
+          </article>
+
+          <article class="v1-orbit-card orb-br">
+            <img src="/photos/experiences/yaowarat-food.jpg" alt="Yaowarat Food" />
+            <div class="orb-meta">
+              <span class="orb-pill">🔔 KRING! LET'S GO!</span>
+              <strong>Verified Local Insider Meet</strong>
+              <em>฿950 Held · Released on Bump</em>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VARIANT 2: FULL-BLEED BANGKOK GOLDEN-HOUR CINEMA + VISION-OS GLASS STAGE
+         =================================================================== -->
+    <section class="v-stage v2-stage" data-stage="2">
+      <div class="v2-glass-window">
+        <div class="v2-top-row">
+          <div class="v2-ring-box" onclick="window.triggerVariantBump(true)">
+            <canvas class="kring-torus-cv"></canvas>
+            <div class="ring-badge-pill">🔔 กริ๊ง! · VisionOS Spatial Glass · Tap to Bump</div>
+          </div>
+          <div class="v2-copy-block">
+            <div class="v2-pill">V2 · FULL-BLEED BANGKOK CINEMA + APPLE VISION-OS SPATIAL WINDOW</div>
+            <h1 class="v2-title">
+              <span data-i18n-en>Bangkok &amp; Pattaya, Through Frosted Spatial Glass.</span>
+              <span data-i18n-th lang="th">สัมผัสกรุงเทพฯ และพัทยา ผ่านมิติกระจกอัจฉริยะ กริ๊ง!</span>
+            </h1>
+            <p class="v2-sub">
+              <span data-i18n-en>Book verified local insiders for golden-hour river walks, hidden cafés &amp; licensed spas. Released only when your phones bump.</span>
+              <span data-i18n-th lang="th">จองโลคอลตัวจริงเดินเล่นริมน้ำ คาเฟ่ลับ และสปาชั้นนำ โอนเงินเมื่อแตะโทรศัพท์ชนกันเท่านั้น</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="v2-cards-strip">
+          <article class="v2-glass-card">
+            <img src="/photos/experiences/canal-longtail.jpg" alt="Thonburi Klongs" />
+            <div class="v2-c-body">
+              <div class="v2-c-top"><span>🚤 THONBURI KLONGS</span><b>฿1,100</b></div>
+              <h3>Hidden Longtail &amp; Artist House</h3>
+              <p>✓ Ploy · Verified Local · 3h</p>
+            </div>
+          </article>
+          <article class="v2-glass-card is-featured">
+            <img src="/photos/experiences/thai-spa.jpg" alt="Ari Herbal Spa" />
+            <div class="v2-c-body">
+              <div class="v2-c-top"><span>🌿 LICENSED SPA</span><b>฿385 + 10K Coins</b></div>
+              <h3>Ari Botanical Spa &amp; Tea Walk</h3>
+              <p>🔔 Instant Release on Bump</p>
+            </div>
+          </article>
+          <article class="v2-glass-card">
+            <img src="/photos/experiences/cafe-desserts.jpg" alt="Song Wat Roasters" />
+            <div class="v2-c-body">
+              <div class="v2-c-top"><span>☕ SONG WAT ALLEY</span><b>฿850</b></div>
+              <h3>Heritage Roasters &amp; Craft Sweet</h3>
+              <p>✓ Beam · Verified Local · 2.5h</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="v2-footer-bar">
+          <div class="v2-trust-pills">
+            <span>🛡️ 100% Public Venues</span>
+            <span>⚡ Two-Phone Bump Escrow</span>
+            <span>🏷️ Zero Tourist Rip-Offs</span>
+          </div>
+          <a href="#partnerModal" class="cta-primary" onclick="window.openPartnerModal(); return false;">
+            <span data-i18n-en>Request Partner &amp; Agency Access →</span>
+            <span data-i18n-th lang="th">ขอสิทธิ์พาร์ทเนอร์และเอเจนซี่ →</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VARIANT 3: AMAN / CARTIER ROYAL SIAMESE 24K GOLD & OBSIDIAN PRIVATE CLUB
+         =================================================================== -->
+    <section class="v-stage v3-stage" data-stage="3">
+      <div class="v3-luxury-frame">
+        <div class="v3-crest-Area" onclick="window.triggerVariantBump(true)">
+          <canvas class="kring-torus-cv"></canvas>
+          <div class="v3-crest-caption">✦ MAISON KRING · BANGKOK &amp; PATTAYA · TAP 24K RINGS ✦</div>
+        </div>
+
+        <h1 class="v3-serif-title">
+          <span data-i18n-en>“The Private Art of Experiencing Thailand.”</span>
+          <span data-i18n-th lang="th">“ศิลปะแห่งการท่องเที่ยวไทยระดับพรีเมียม กับโลคอลตัวจริง”</span>
+        </h1>
+        <p class="v3-serif-sub">
+          <span data-i18n-en>V3 · Haute-Concierge Boarding Passes · 24K Gold &amp; Thai Silk Aesthetic · Two-Phone Escrow Release</span>
+          <span data-i18n-th lang="th">V3 · บัตรผ่านคอนเซียร์จสีทอง 24K · พักเงินปลอดภัย โอนเมื่อแตะ กริ๊ง!</span>
+        </p>
+
+        <div class="v3-tickets-grid">
+          <article class="v3-boarding-pass">
+            <div class="v3-pass-photo"><img src="/photos/experiences/talat-noi-oldtown.jpg" alt="Talat Noi" /></div>
+            <div class="v3-pass-main">
+              <div class="v3-pass-kicker">BOARDING PASS · BKK-01</div>
+              <h3>Talat Noi Heritage &amp; Jazz Courtyard</h3>
+              <div class="v3-pass-meta"><span>HOST: KHUN FAH ✓</span><b>฿1,200</b></div>
+            </div>
+            <div class="v3-pass-stub"><span>BUMP</span><strong>กริ๊ง!</strong></div>
+          </article>
+
+          <article class="v3-boarding-pass is-gold-center">
+            <div class="v3-pass-photo"><img src="/photos/experiences/grand-palace.jpg" alt="Rattanakosin" /></div>
+            <div class="v3-pass-main">
+              <div class="v3-pass-kicker">ROYAL INSIDER · BKK-02</div>
+              <h3>Rattanakosin Twilight &amp; River Pavilion</h3>
+              <div class="v3-pass-meta"><span>HOST: KHUN PIM ✓</span><b>฿1,450</b></div>
+            </div>
+            <div class="v3-pass-stub"><span>ESCROW</span><strong>100%</strong></div>
+          </article>
+
+          <article class="v3-boarding-pass">
+            <div class="v3-pass-photo"><img src="/photos/experiences/koh-larn-beach.jpg" alt="Koh Larn" /></div>
+            <div class="v3-pass-main">
+              <div class="v3-pass-kicker">COASTAL VIP · PTY-03</div>
+              <h3>Koh Larn Coral Cove &amp; Sunset Pier</h3>
+              <div class="v3-pass-meta"><span>HOST: KHUN MAY ✓</span><b>฿1,500</b></div>
+            </div>
+            <div class="v3-pass-stub"><span>COINS</span><strong>+30K</strong></div>
+          </article>
+        </div>
+
+        <div class="v3-cta-wrap">
+          <a href="#partnerModal" class="cta-gold-outline" onclick="window.openPartnerModal(); return false;">
+            <span data-i18n-en>✦ ENTER FOUNDING PARTNER &amp; VIP REGISTRY ✦</span>
+            <span data-i18n-th lang="th">✦ ลงทะเบียนพาร์ทเนอร์และสมาชิก VIP รุ่นก่อตั้ง ✦</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VARIANT 4: ACTIVE THEORY 3D ORBITAL CARD VORTEX & KINETIC TYPOGRAPHY
+         =================================================================== -->
+    <section class="v-stage v4-stage" data-stage="4">
+      <div class="v4-kinetic-wall" aria-hidden="true">
+        <div>KRING! · กริ๊ง! · BANGKOK · PATTAYA</div>
+        <div>NO RIP-OFFS · NO NO-SHOWS · BUMP TO RELEASE</div>
+      </div>
+
+      <div class="v4-vortex-grid">
+        <!-- Corner 1: Top Left -->
+        <article class="v4-foil-card v4-tl">
+          <img src="/photos/experiences/night-market.jpg" alt="Night Market" />
+          <div class="v4-card-info">
+            <span class="v4-tag">⚡ NIGHT PULSE · 01</span>
+            <h3>Jodd Fairs &amp; Neon Street Bites</h3>
+            <b>฿850 · Verified Local</b>
+          </div>
+        </article>
+
+        <!-- Corner 2: Top Right -->
+        <article class="v4-foil-card v4-tr">
+          <img src="/photos/experiences/mookata-bbq.jpg" alt="Mookata" />
+          <div class="v4-card-info">
+            <span class="v4-tag">🔥 LOCAL FAVORITE · 02</span>
+            <h3>Banthat Thong Wok &amp; Mookata</h3>
+            <b>฿950 · Held Until Bump</b>
+          </div>
+        </article>
+
+        <!-- CENTER 3D PORTAL CORE -->
+        <div class="v4-center-core">
+          <div class="v4-ring-portal" onclick="window.triggerVariantBump(true)">
+            <canvas class="kring-torus-cv"></canvas>
+            <div class="ring-badge-pill">🔔 V4 · 3D ORBITAL VORTEX · TAP RINGS</div>
+          </div>
+          <h1 class="v4-core-title">MEET. <span>KRING!</span> GO.</h1>
+          <p class="v4-core-sub">Two phones bump at the venue → 100% escrow released instantly.</p>
+          <a href="#partnerModal" class="cta-primary" onclick="window.openPartnerModal(); return false;">
+            <span>LAUNCH PARTNER ACCESS ↗</span>
+          </a>
+        </div>
+
+        <!-- Corner 3: Bottom Left -->
+        <article class="v4-foil-card v4-bl">
+          <img src="/photos/experiences/seafood-market.jpg" alt="Pattaya Pier" />
+          <div class="v4-card-info">
+            <span class="v4-tag">🌊 PATTAYA SEA · 03</span>
+            <h3>Naklua Fisherman Market Walk</h3>
+            <b>฿1,100 · Public Venue</b>
+          </div>
+        </article>
+
+        <!-- Corner 4: Bottom Right -->
+        <article class="v4-foil-card v4-br">
+          <img src="/photos/experiences/flower-market.jpg" alt="Flower Market" />
+          <div class="v4-card-info">
+            <span class="v4-tag">🌸 MIDNIGHT WALK · 04</span>
+            <h3>Pak Khlong Orchid &amp; Bridge Walk</h3>
+            <b>฿800 + 15,000 Coins</b>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VARIANT 5: DAYLIGHT PEARL & IRIDESCENT PRISM GLASS MODE (APPLE LIGHT LUXURY)
+         =================================================================== -->
+    <section class="v-stage v5-stage" data-stage="5">
+      <div class="v5-pearl-hero">
+        <div class="v5-top-sculpture" onclick="window.triggerVariantBump(true)">
+          <canvas class="kring-torus-cv"></canvas>
+          <div class="v5-pearl-pill">
+            <span>🔔</span>
+            <strong>กริ๊ง! · KRING!</strong>
+            <span>V5 · Daylight Pearl &amp; Iridescent Prism Glass</span>
+          </div>
+        </div>
+
+        <h1 class="v5-light-title">
+          <span data-i18n-en>Pure Daylight Trust. <em>Real Thailand Locals.</em></span>
+          <span data-i18n-th lang="th">โปร่งใส ปลอดภัย 100% <em>เที่ยวไทยกับโลคอลตัวจริง</em></span>
+        </h1>
+        <p class="v5-light-sub">
+          <span data-i18n-en>Verified locals, fair Kring Prices, and instant two-phone bump check-in at 100% public spots across Bangkok &amp; Pattaya.</span>
+          <span data-i18n-th lang="th">โลคอลยืนยันตัวตน ราคากริ๊งสุดคุ้ม และเช็คอินแตะโทรศัพท์ชนกันในสถานที่สาธารณะ 100%</span>
+        </p>
+
+        <div class="v5-bento-row">
+          <article class="v5-pearl-card">
+            <img src="/photos/experiences/cooking-class.jpg" alt="Thai Cooking" />
+            <div class="v5-card-body">
+              <div class="v5-badge-line"><span class="v5-b-blue">🥗 MORNING MARKET</span><b>฿980</b></div>
+              <h3>Organic Market &amp; Thai Kitchen</h3>
+              <p>✓ Hosted by Mali · Silom · 3h</p>
+            </div>
+          </article>
+
+          <article class="v5-pearl-card is-center-prism">
+            <img src="/photos/experiences/cycling-park.jpg" alt="Bang Krachao" />
+            <div class="v5-card-body">
+              <div class="v5-badge-line"><span class="v5-b-gold">🚲 GREEN OASIS</span><b>฿850</b></div>
+              <h3>Bang Krachao Elevated Jungle Ride</h3>
+              <p>🔔 Held Safely · Released on Bump</p>
+            </div>
+          </article>
+
+          <article class="v5-pearl-card">
+            <img src="/photos/experiences/thai-tea-fruit.jpg" alt="Craft Tea" />
+            <div class="v5-card-body">
+              <div class="v5-badge-line"><span class="v5-b-blue">🧋 HERITAGE CAFÉ</span><b>฿750</b></div>
+              <h3>Old-Town Craft Thai Tea &amp; Mango</h3>
+              <p>✓ Hosted by Pear · Ari · 2h</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="v5-cta-bar">
+          <a href="#partnerModal" class="v5-btn-royal" onclick="window.openPartnerModal(); return false;">
+            <span data-i18n-en>Request Founding Partner &amp; VIP Access →</span>
+            <span data-i18n-th lang="th">ขอสิทธิ์พาร์ทเนอร์และสมาชิก VIP →</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    </main>
+  </div>
+
+  
+  <!-- =====================================================================
+       KINETIC BRAND HYPE MARQUEE ("KRING! LET'S GO!")
+       ===================================================================== -->
+  <div class="hype-marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span>🔔 KRING! LET'S GO!</span><span class="dot">✦</span>
+      <span>แตะกริ๊ง! ไปกันเลย!</span><span class="dot">✦</span>
+      <span>🚖 VIP AIRPORT CABS ฿665 (-55%)</span><span class="dot">✦</span>
+      <span>🛥️ SUNSET YACHT PASS ฿1,490 (-53%)</span><span class="dot">✦</span>
+      <span>🍸 SKY ROOFTOP TABLES ฿1,800 (-40%)</span><span class="dot">✦</span>
+      <span>📶 5G TOURIST eSIM ฿185 (-63%)</span><span class="dot">✦</span>
+      <span>🌿 LICENSED SPAS ฿385</span><span class="dot">✦</span>
+      <span>TWO-PHONE BUMP ESCROW</span><span class="dot">✦</span>
+      <span>100% PUBLIC VENUES</span><span class="dot">✦</span>
+      <span>🔔 KRING! LET'S GO!</span><span class="dot">✦</span>
+      <span>แตะกริ๊ง! ไปกันเลย!</span><span class="dot">✦</span>
+      <span>🚖 VIP AIRPORT CABS ฿665 (-55%)</span><span class="dot">✦</span>
+      <span>🛥️ SUNSET YACHT PASS ฿1,490 (-53%)</span><span class="dot">✦</span>
+    </div>
+  </div>
+
+  <div class="shell-wrap">
+    <!-- ===================================================================
+         SECTION 1: LIVE METRICS & BRAND AUTHORITY BAR
+         =================================================================== -->
+    <section class="stats-ribbon" id="how-it-works">
+      <div class="stat-box">
+        <div class="stat-val">55+</div>
+        <div class="stat-lbl" data-i18n-en>Curated Public-Venue Experiences Across Bangkok &amp; Pattaya</div>
+        <div class="stat-lbl" data-i18n-th lang="th">ประสบการณ์คัดสรรในสถานที่สาธารณะทั่วกรุงเทพฯ และพัทยา</div>
+      </div>
+      <div class="stat-box is-gold">
+        <div class="stat-val">&lt; 1s</div>
+        <div class="stat-lbl" data-i18n-en>Two-Phone <b>กริ๊ง!</b> Bump Escrow Release on Arrival</div>
+        <div class="stat-lbl" data-i18n-th lang="th">แตะโทรศัพท์ <b>กริ๊ง!</b> โอนเงินประกันทันทีเมื่อเจอกัน</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val">100%</div>
+        <div class="stat-lbl" data-i18n-en>Full Refund Protection If a Meet Doesn't Happen</div>
+        <div class="stat-lbl" data-i18n-th lang="th">คืนเงินเต็มจำนวน 100% หากไม่ได้พบกันตามนัดหมาย</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val">20+ ID</div>
+        <div class="stat-lbl" data-i18n-en>1-Face Biometric Verified Locals &amp; 1155 Tourist SOS Shield</div>
+        <div class="stat-lbl" data-i18n-th lang="th">ยืนยันตัวตนจริงด้วยระบบสแกนใบหน้า พร้อมปุ่มฉุกเฉิน 1155</div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         SECTION 2: THE 3-STEP "KRING! LET'S GO!" RITUAL
+         =================================================================== -->
+    <section class="hype-section">
+      <div class="sec-head">
+        <div class="sec-pill">
+          <span>🔔 THE SIGNATURE RITUAL</span>
+          <span>·</span>
+          <span>กริ๊ง! ไปกันเลย!</span>
+        </div>
+        <h2 class="sec-title">
+          <span data-i18n-en>How <em>“Kring! Let’s Go!”</em> Works</span>
+          <span data-i18n-th lang="th">3 ขั้นตอนง่ายๆ <em>“แตะกริ๊ง! ไปกันเลย!”</em></span>
+        </h2>
+        <p class="sec-sub">
+          <span data-i18n-en>Zero awkward cash handoffs. Zero tourist traps. Zero no-shows. Every booking is protected by Kring's two-phone bump escrow.</span>
+          <span data-i18n-th lang="th">ไม่ต้องพกเงินสด ไม่โดนโก่งราคา และไม่โดนเท ทุกการนัดหมายคุ้มครองด้วยระบบพักเงินและแตะโทรศัพท์ชนกัน</span>
+        </p>
+      </div>
+
+      <div class="ritual-grid">
+        <article class="ritual-card">
+          <div class="ritual-num">STEP 01 · PLAN IN CHAT</div>
+          <h3>
+            <span data-i18n-en>Pick a Verified Local &amp; Public Spot</span>
+            <span data-i18n-th lang="th">เลือกโลคอลตัวจริงและสถานที่สาธารณะ</span>
+          </h3>
+          <p data-i18n-en>Browse 55+ Bangkok &amp; Pattaya experiences—from Yaowarat street-food walks to golden-hour river piers and licensed spas. Agree on time &amp; spot in chat (<em>Just Me 1-on-1</em> or <em>+1 Wingman / Bestie</em>). Your booking fee covers the Local’s time &amp; company and is held safely in Kring Escrow.</p>
+          <p data-i18n-th lang="th">เลือกทริปเดินกินเยาวราช ชมวิวแม่น้ำเจ้าพระยา หรือคาเฟ่ลับ ตกลงเวลาและจุดนัดพบในแชต ค่าจองคือเวลาและการดูแลของโลคอล พักไว้ปลอดภัยในระบบ Kring</p>
+          <div class="ritual-chip-row">
+            <span>✓ 1-Face Biometric ID</span>
+            <span>✓ 100% Public Venues</span>
+          </div>
+        </article>
+
+        <article class="ritual-card is-center-bump" onclick="window.triggerVariantBump(true)">
+          <div class="ritual-num">STEP 02 · THE TWO-PHONE BUMP</div>
+          <h3>
+            <span data-i18n-en>Meet at the Venue &amp; Tap <em>“Kring!”</em></span>
+            <span data-i18n-th lang="th">เจอกันที่จุดนัดพบ แตะโทรศัพท์ <em>“กริ๊ง!”</em></span>
+          </h3>
+          <p data-i18n-en>When you arrive at the public meeting point, bring both phones together. The interlocking Anchan &amp; Marigold rings collide with our signature crystal bell chime—releasing the held booking fee to the Local in under a second (with rotating QR + GPS fallback).</p>
+          <p data-i18n-th lang="th">เมื่อพบกันที่จุดนัดพบ นำโทรศัพท์มาแตะใกล้กัน วงแหวนอัญชันและดาวเรืองจะชนกันพร้อมเสียงกระดิ่งใส “กริ๊ง!” โอนเงินให้โลคอลทันทีภายในเสี้ยววินาที</p>
+          <div class="ritual-chip-row">
+            <span class="gold-chip">🔔 Instant Escrow Release</span>
+            <span>🛡️ 100% Refund If No-Show</span>
+          </div>
+        </article>
+
+        <article class="ritual-card">
+          <div class="ritual-num">STEP 03 · KRING! LET'S GO!</div>
+          <h3>
+            <span data-i18n-en>Explore the City + Unlock Kring Coins</span>
+            <span data-i18n-th lang="th">ออกลุยเมืองไทย + รับ Kring Coins สุดคุ้ม</span>
+          </h3>
+          <p data-i18n-en>Once your phones chime <em>“Kring! Let’s Go!”</em>, enjoy authentic Bangkok &amp; Pattaya like an insider. Extend time seamlessly if both sides agree, send cultural keepsakes &amp; Blind Boxes (<em>จุ่มกริ๊ง!</em>) in chat, and save up to 55% with Kring Price city passes.</p>
+          <p data-i18n-th lang="th">หลังแตะ “กริ๊ง! ไปกันเลย!” ก็สนุกกับทริปได้เต็มที่ ต่อเวลาเพิ่มได้เมื่อทั้งสองฝ่ายตกลง ส่งของขวัญกล่องสุ่มกริ๊งในแชต และใช้สิทธิ์ราคากริ๊งทั่วเมือง</p>
+          <div class="ritual-chip-row">
+            <span>🧸 Kring Blind Box Keepsakes</span>
+            <span>⚡ +5,000–50,000 Coins</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         SECTION 3: CURATED BANGKOK & PATTAYA EXPERIENCES SHOWCASE
+         =================================================================== -->
+    <section class="hype-section" id="experiences">
+      <div class="sec-head">
+        <div class="sec-pill">
+          <span>✨ 55+ VERIFIED EXPERIENCES</span>
+          <span>·</span>
+          <span>BANGKOK &amp; PATTAYA</span>
+        </div>
+        <h2 class="sec-title">
+          <span data-i18n-en>Real Locals. Iconic Public Spots. <em>Kring! Let’s Go!</em></span>
+          <span data-i18n-th lang="th">โลคอลตัวจริง จุดนัดพบสุดฮิต <em>แตะกริ๊ง! ไปกันเลย!</em></span>
+        </h2>
+        <p class="sec-sub">
+          <span data-i18n-en>Every booking fee covers the verified Local’s time and insider company. Venue food, coffee, or tickets are paid directly at the spot—zero hidden markups.</span>
+          <span data-i18n-th lang="th">ค่าจองครอบคลุมเวลาและการพาเที่ยวของโลคอล ค่าอาหาร กาแฟ หรือตั๋วจ่ายตามจริงที่หน้าร้าน ไม่มีการบวกราคาแอบแฝง</span>
+        </p>
+      </div>
+
+      <div class="exp-showcase-grid">
+        <article class="exp-3d-card">
+          <div class="exp-img-wrap">
+            <img src="/photos/experiences/chao-phraya-sunset.jpg" alt="Chao Phraya Sunset" />
+            <span class="exp-city-badge">BANGKOK · SUNSET &amp; ROOFTOPS</span>
+            <span class="exp-price-badge">฿1,200 · ~3h</span>
+          </div>
+          <div class="exp-body">
+            <h3>Chao Phraya Golden-Hour Pier &amp; Rooftop Walk</h3>
+            <p>Watch Wat Arun light up from a riverside terrace with a verified Bangkok insider.</p>
+            <div class="exp-foot">
+              <span>✓ Hosted by Nong Kwan · 4.9★</span>
+              <b class="gold-txt">🔔 Kring! Let's Go!</b>
+            </div>
+          </div>
+        </article>
+
+        <article class="exp-3d-card">
+          <div class="exp-img-wrap">
+            <img src="/photos/experiences/yaowarat-food.jpg" alt="Yaowarat Street Food" />
+            <span class="exp-city-badge">BANGKOK · STREET FOOD</span>
+            <span class="exp-price-badge">฿950 · ~2.5h</span>
+          </div>
+          <div class="exp-body">
+            <h3>Yaowarat &amp; Banthat Thong Michelin Wok Crawl</h3>
+            <p>Skip the tourist queues—taste hidden charcoal-wok legends and craft desserts with a local foodie.</p>
+            <div class="exp-foot">
+              <span>✓ Hosted by Ploy · 5.0★</span>
+              <b class="gold-txt">🔔 Kring! Let's Go!</b>
+            </div>
+          </div>
+        </article>
+
+        <article class="exp-3d-card">
+          <div class="exp-img-wrap">
+            <img src="/photos/experiences/talat-noi-oldtown.jpg" alt="Talat Noi Heritage" />
+            <span class="exp-city-badge">BANGKOK · CULTURE &amp; CAFÉS</span>
+            <span class="exp-price-badge">฿850 · ~2.5h</span>
+          </div>
+          <div class="exp-body">
+            <h3>Talat Noi &amp; Song Wat Specialty Roasters Walk</h3>
+            <p>Explore century-old riverside shophouses, vinyl cafés, and riverside art alleys.</p>
+            <div class="exp-foot">
+              <span>✓ Hosted by Fah · 4.9★</span>
+              <b class="gold-txt">🔔 Kring! Let's Go!</b>
+            </div>
+          </div>
+        </article>
+
+        <article class="exp-3d-card">
+          <div class="exp-img-wrap">
+            <img src="/photos/experiences/thai-spa.jpg" alt="Licensed Botanical Spa" />
+            <span class="exp-city-badge">WELLNESS · LICENSED SPAS</span>
+            <span class="exp-price-badge">฿385 + 10K Coins</span>
+          </div>
+          <div class="exp-body">
+            <h3>Ari Botanical Licensed Herbal Spa &amp; Tea Sanctuary</h3>
+            <p>100% certified wellness spas &amp; herbal compress sanctuaries at local Kring Prices.</p>
+            <div class="exp-foot">
+              <span>✓ Verified Wellness Partner</span>
+              <b class="gold-txt">⚡ Instant Voucher</b>
+            </div>
+          </div>
+        </article>
+
+        <article class="exp-3d-card">
+          <div class="exp-img-wrap">
+            <img src="/photos/experiences/koh-larn-beach.jpg" alt="Koh Larn Pattaya" />
+            <span class="exp-city-badge">PATTAYA &amp; SEA</span>
+            <span class="exp-price-badge">฿1,500 · ~4h</span>
+          </div>
+          <div class="exp-body">
+            <h3>Koh Larn Coral Cove &amp; Bali Hai Sunset Pier</h3>
+            <p>Crystal-water island hopping, sea-breeze cafés, and sunset seafood piers with a Pattaya local.</p>
+            <div class="exp-foot">
+              <span>✓ Hosted by May · 4.9★</span>
+              <b class="gold-txt">🔔 Kring! Let's Go!</b>
+            </div>
+          </div>
+        </article>
+
+        <article class="exp-3d-card">
+          <div class="exp-img-wrap">
+            <img src="/photos/experiences/night-market.jpg" alt="Night Market & Live Music" />
+            <span class="exp-city-badge">NIGHT MARKETS &amp; LIVE MUSIC</span>
+            <span class="exp-price-badge">฿900 · ~3h</span>
+          </div>
+          <div class="exp-body">
+            <h3>Jodd Fairs Neon Bites &amp; Acoustic Courtyard</h3>
+            <p>Vibrant night-market shopping, Thai street fashion, and acoustic live-music lounges.</p>
+            <div class="exp-foot">
+              <span>✓ Hosted by Beam · 4.9★</span>
+              <b class="gold-txt">🔔 Kring! Let's Go!</b>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         SECTION 4: KRING PRICE RADAR (SUPER-CHEAP DEALS FROM CABS TO YACHTS)
+         =================================================================== -->
+    <section class="hype-section" id="kring-price">
+      <div class="price-radar-panel">
+        <div class="pr-left">
+          <div class="sec-pill">📉 SUPER-CHEAP KRING PRICE DEALS · ดีลถูกสุดตั้งแต่รถถึงเรือยอชต์</div>
+          <h2 class="sec-title">
+            <span data-i18n-en>Super-Cheap Deals on Everything:<br/><em>From VIP Cabs to Sunset Yachts.</em></span>
+            <span data-i18n-th lang="th">ดีลราคากริ๊งถูกสุดขีดครบทุกอย่าง:<br/><em>ตั้งแต่รถรับส่ง VIP ไปจนถึงเรือยอชต์</em></span>
+          </h2>
+          <p class="sec-sub">
+            <span data-i18n-en>Why pay tourist markups? Kring gives every passport wholesale insider prices on <b>airport &amp; city VIP cabs, Pattaya sunset yachts &amp; speedboats, sky rooftop tables, 5G eSIMs, licensed spas &amp; Muay Thai ringside</b>—plus up to <b>+50,000 Kring Coins</b> (<code>฿1 = 100 Kring Coins</code>) on every booking!</span>
+            <span data-i18n-th lang="th">ไม่ต้องจ่ายแพงแบบนักท่องเที่ยวอีกต่อไป จองรถรับส่ง VIP เรือยอชต์พัทยา โต๊ะรูฟท็อป eSIM 5G สปา และมวยไทยในราคาส่งสุดคุ้ม พร้อมรับโบนัสสูงถึง <b>+50,000 Kring Coins</b></span>
+          </p>
+          <div class="pr-Starter-callout">
+            <div>
+              <span class="gold-txt">🔥 FOUNDING TRAVELLER STARTER PACK · ฿999</span>
+              <p>Includes 5G Tourist eSIM + VIP Cab Discount Pass + <b>+50,000 Kring Coins</b> (฿1,350+ Total Value)</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="pr-table">
+          <div class="pr-row pr-head">
+            <span>CABS, YACHTS &amp; CITY PASSES</span>
+            <span>STREET QUOTE</span>
+            <span>KRING PRICE + BONUS</span>
+          </div>
+          <div class="pr-row is-highlight">
+            <div>
+              <strong>🚖 BKK Airport → Sukhumvit VIP Cab (-55%)</strong>
+              <small>Private SUV/Sedan · Tollway Included</small>
+            </div>
+            <span class="pr-bad">฿1,500</span>
+            <span class="pr-good"><b>฿665</b> <em>+15,000 Coins</em></span>
+          </div>
+          <div class="pr-row is-highlight">
+            <div>
+              <strong>🛥️ Pattaya &amp; Koh Larn Sunset Yacht Pass (-53%)</strong>
+              <small>Luxury Catamaran &amp; Speedboat Island Hopping</small>
+            </div>
+            <span class="pr-bad">฿3,200</span>
+            <span class="pr-good"><b>฿1,490</b> <em>+30,000 Coins</em></span>
+          </div>
+          <div class="pr-row">
+            <div>
+              <strong>🍸 Bangkok Sky Rooftop VIP Table Pass (-40%)</strong>
+              <small>Sukhumvit &amp; Chao Phraya Riverfront Lounges</small>
+            </div>
+            <span class="pr-bad">฿3,000</span>
+            <span class="pr-good"><b>฿1,800</b> <em>+20,000 Coins</em></span>
+          </div>
+          <div class="pr-row">
+            <div>
+              <strong>📶 5G Unlimited Tourist eSIM (15GB · -63%)</strong>
+              <small>Instant QR Activation · AIS / True 5G</small>
+            </div>
+            <span class="pr-bad">฿499</span>
+            <span class="pr-good"><b>฿185</b> <em>+5,000 Coins</em></span>
+          </div>
+          <div class="pr-row">
+            <div>
+              <strong>🌿 60-Min Licensed Thai Herbal Spa (-57%)</strong>
+              <small>Certified Bangkok &amp; Pattaya Sanctuaries</small>
+            </div>
+            <span class="pr-bad">฿900</span>
+            <span class="pr-good"><b>฿385</b> <em>+10,000 Coins</em></span>
+          </div>
+          <div class="pr-row">
+            <div>
+              <strong>🥊 Rajadamnern Muay Thai Club Seat (-31%)</strong>
+              <small>Official VIP Ringside Pass</small>
+            </div>
+            <span class="pr-bad">฿2,500</span>
+            <span class="pr-good"><b>฿1,720</b> <em>+25,000 Coins</em></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         SECTION 5: PARTNER, CREATOR AGENCY & PAYMENT INFRASTRUCTURE HUB
+         =================================================================== -->
+    <section class="hype-section" id="partners">
+      <div class="sec-head">
+        <div class="sec-pill">🤝 ECOSYSTEM &amp; B2B PARTNERSHIPS · พาร์ทเนอร์และเอเจนซี่</div>
+        <h2 class="sec-title">
+          <span data-i18n-en>Built for Thailand’s Top Agencies, Venues &amp; Payment Rails.</span>
+          <span data-i18n-th lang="th">เปิดรับพันธมิตรเอเจนซี่ ร้านค้า และระบบชำระเงินชั้นนำ</span>
+        </h2>
+        <p class="sec-sub">
+          <span data-i18n-en>One account, three seamless roles (<b>Traveller · Local · Agency</b>). Strict privacy walls, instant PromptPay payouts, and transparent B2B settlement.</span>
+          <span data-i18n-th lang="th">บัญชีเดียวสลับได้ 3 บทบาท (นักท่องเที่ยว · โลคอล · เอเจนซี่) ปลอดภัย โปร่งใส โอนไวผ่าน PromptPay</span>
+        </p>
+      </div>
+
+      <div class="partner-bento">
+        <article class="p-card">
+          <div class="p-icon">👑</div>
+          <div class="p-kicker">FOR CREATOR, MODEL &amp; LIFESTYLE AGENCIES</div>
+          <h3>Founding Agency Roster &amp; Rolling Overrides</h3>
+          <p>Onboard verified 20+ bilingual Bangkok &amp; Pattaya creators and local insiders. Locals receive <b>80%</b> directly to their own PromptPay/bank on every meet &amp; gift, while Founding Agencies earn automated 30-day rolling volume overrides + activation bounties—with 100% privacy protection.</p>
+          <a href="#partnerModal" class="p-link" onclick="window.openPartnerModal('Agency / Creator Roster Partnership'); return false;">Apply as Founding Agency →</a>
+        </article>
+
+        <article class="p-card is-gold-border">
+          <div class="p-icon">🏦</div>
+          <div class="p-kicker">FOR PAYMENT GATEWAYS &amp; VOUCHER DISTRIBUTORS</div>
+          <h3>Escrow Pay-In, PromptPay Payouts &amp; Prepaid Vouchers</h3>
+          <p>Integrating licensed cross-border &amp; domestic Thai payment rails (PromptPay QR, Apple/Google Pay, global cards, and wholesale Closed-Loop Kring Coin Voucher Resellers) with automated webhook verification and instant beneficiary settlement.</p>
+          <a href="#partnerModal" class="p-link" onclick="window.openPartnerModal('Payment Gateway / B2B Voucher Rail'); return false;">Connect Payment / Voucher Desk →</a>
+        </article>
+
+        <article class="p-card">
+          <div class="p-icon">🍸</div>
+          <div class="p-kicker">FOR LICENSED SPAS, ROOFTOPS, CAFÉS &amp; FLEETS</div>
+          <h3>Featured Public Meeting Spots &amp; Kring Price Passes</h3>
+          <p>Become an official Kring Public Check-In Venue or Kring Price Pass provider. Drive high-spending international travellers and verified local hosts directly to your dining room, rooftop terrace, spa, or transport fleet with zero upfront listing fees.</p>
+          <a href="#partnerModal" class="p-link" onclick="window.openPartnerModal('Venue / Spa / Mobility Partner'); return false;">List Your Venue or Service →</a>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         FOOTER
+         =================================================================== -->
+    <footer class="site-footer">
+      <div class="foot-top">
+        <div class="foot-brand">
+          <div class="foot-logo-line">
+            <svg viewBox="0 0 34 20" width="30" height="18" aria-hidden="true">
+              <path d="M17 4.4A7.5 7.5 0 0 1 17 15.6A7.5 7.5 0 0 1 17 4.4Z" fill="#9B5CFF" />
+              <circle cx="11" cy="10" r="7.5" fill="none" stroke="#7381FF" stroke-width="3.2" />
+              <circle cx="23" cy="10" r="7.5" fill="none" stroke="#FFB21E" stroke-width="3.2" />
+            </svg>
+            <strong>kring</strong>
+            <span class="foot-punch">🔔 Kring! Let’s Go! · แตะกริ๊ง! ไปกันเลย!</span>
+          </div>
+          <p>See Thailand with a verified local. Two-phone bump escrow at 100% public venues across Bangkok &amp; Pattaya.</p>
+        </div>
+
+        <div class="foot-contacts">
+          <div>
+            <small>AGENCY, TALENT &amp; VENUE PARTNERSHIPS</small>
+            <a href="mailto:partnerships@kringapp.com">partnerships@kringapp.com</a>
+          </div>
+          <div>
+            <small>PAYMENTS, B2B VOUCHERS &amp; OPERATIONS</small>
+            <a href="mailto:ops@kringapp.com">ops@kringapp.com</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="foot-bottom">
+        <span>© 2026 Kring · Bangkok &amp; Pattaya · Thailand (kringapp.com)</span>
+        <span>20+ Verified Platform · 100% Public Venues Only · PDPA Ephemeral Biometric Compliance</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- =====================================================================
+       INTERACTIVE PARTNER & VIP ACCESS MODAL
+       ===================================================================== -->
+  <div class="modal-backdrop" id="partnerModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-labelledby="modalTitle">
+      <button type="button" class="modal-close" onclick="window.closePartnerModal()">✕</button>
+      <div class="sec-pill">🔔 KRING! LET'S GO! · 2026 PARTNER &amp; VIP DESK</div>
+      <h3 id="modalTitle">Request Founding Partner or Early VIP Access</h3>
+      <p>Select your track below to connect directly with our Bangkok &amp; Pattaya partnerships or payment operations desk.</p>
+
+      <form id="partnerForm" onsubmit="window.submitPartnerForm(event)">
+        <label>
+          <span>PARTNERSHIP TRACK</span>
+          <select id="pTrack" required>
+            <option value="Agency / Creator Roster Partnership">👑 Creator / Model / Talent Agency Roster</option>
+            <option value="Payment Gateway / B2B Voucher Rail">🏦 Payment Gateway / B2B Voucher Distributor</option>
+            <option value="Venue / Spa / Mobility Partner">🌿 Licensed Spa, Rooftop, Café or Fleet Partner</option>
+            <option value="VIP Early Traveller / Local Invite">🔔 VIP Early Traveller / Verified Local Access</option>
+          </select>
+        </label>
+        <label>
+          <span>YOUR NAME &amp; COMPANY / AGENCY</span>
+          <input type="text" id="pName" placeholder="e.g. Khun Ploy · Siam Talent Group" required />
+        </label>
+        <label>
+          <span>WORK EMAIL OR LINE / TELEGRAM HANDLE</span>
+          <input type="text" id="pContact" placeholder="name@company.com or @line_id" required />
+        </label>
+        <label>
+          <span>BRIEF NOTE</span>
+          <textarea id="pNote" rows="3" placeholder="Tell us about your roster, payment rail, or venue..."></textarea>
+        </label>
+        <button type="submit" class="cta-primary" style="width:100%;">
+          <span>🔔 Dispatch to Kring Partner Desk →</span>
+        </button>
+        <div id="pConfirmMsg" class="p-confirm" style="display:none;">
+          ✓ Inquiry prepared! Opening your mail client to <b>partnerships@kringapp.com</b> / <b>ops@kringapp.com</b>...
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <script>
+    (function() {
+      const htmlEl = document.documentElement;
+      const pills = document.querySelectorAll('[data-set-v]');
+      function setVariant(v) {
+        const num = String(v);
+        htmlEl.setAttribute('data-variant', num);
+        pills.forEach(function(p) {
+          p.classList.toggle('is-active', p.getAttribute('data-set-v') === num);
+        });
+        if (window.triggerVariantBump) window.triggerVariantBump(false);
+      }
+      pills.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          setVariant(btn.getAttribute('data-set-v'));
+        });
+      });
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('v')) setVariant(params.get('v'));
+
+      const langBtn = document.getElementById('btnToggleLang');
+      if (langBtn) {
+        langBtn.addEventListener('click', function() {
+          const next = htmlEl.getAttribute('data-lang') === 'th' ? 'en' : 'th';
+          htmlEl.setAttribute('data-lang', next);
+        });
+      }
+
+      const modal = document.getElementById('partnerModal');
+      const trackSelect = document.getElementById('pTrack');
+      window.openPartnerModal = function(defaultTrack) {
+        if (defaultTrack && trackSelect) {
+          trackSelect.value = defaultTrack;
+        }
+        if (modal) {
+          modal.classList.add('is-open');
+          modal.setAttribute('aria-hidden', 'false');
+        }
+      };
+      window.closePartnerModal = function() {
+        if (modal) {
+          modal.classList.remove('is-open');
+          modal.setAttribute('aria-hidden', 'true');
+        }
+      };
+      window.submitPartnerForm = function(e) {
+        e.preventDefault();
+        const track = document.getElementById('pTrack').value;
+        const name = document.getElementById('pName').value;
+        const contact = document.getElementById('pContact').value;
+        const note = document.getElementById('pNote').value;
+        const targetEmail = track.indexOf('Payment') !== -1 ? 'ops@kringapp.com' : 'partnerships@kringapp.com';
+        const subj = encodeURIComponent('Kring! Let\'s Go! · ' + track + ' — ' + name);
+        const body = encodeURIComponent(
+          'Track: ' + track + '\n' +
+          'Name / Company: ' + name + '\n' +
+          'Contact: ' + contact + '\n\n' +
+          'Details:\n' + note
+        );
+        const msg = document.getElementById('pConfirmMsg');
+        if (msg) msg.style.display = 'block';
+        setTimeout(function() {
+          window.location.href = 'mailto:' + targetEmail + '?subject=' + subj + '&body=' + body;
+        }, 350);
+      };
+    })();
+  </script>
+  <script>
+(function() {
+  'use strict';
+  const TAU = Math.PI * 2;
+
+  // WebAudio Crystal Bell Chime (D6 -> A6)
+  let audioCtx = null;
+  window.playKringBell = function() {
+    try {
+      const Ctor = window.AudioContext || window.webkitAudioContext;
+      if (!Ctor) return;
+      if (!audioCtx) audioCtx = new Ctor();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const notes = [
+        { freq: 1174.66, delay: 0, level: 0.18 },
+        { freq: 1760.00, delay: 0.085, level: 0.22 }
+      ];
+      [1, 2.76, 5.4].forEach(function(k, idx) {
+        notes.forEach(function(n) {
+          const osc = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          const t0 = audioCtx.currentTime + n.delay;
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(n.freq * k, t0);
+          g.gain.setValueAtTime(0.0001, t0);
+          g.gain.linearRampToValueAtTime(n.level / ((idx + 1) * (idx + 1)), t0 + 0.005);
+          g.gain.exponentialRampToValueAtTime(0.0001, t0 + (idx ? 0.32 : 0.85));
+          osc.connect(g);
+          g.connect(audioCtx.destination);
+          osc.start(t0);
+          osc.stop(t0 + 0.9);
+        });
+      });
+    } catch (e) {}
+  };
+
+  // Draws one smooth continuous half-torus arc (back half or front half) with zero segment seams!
+  function drawSmoothTorusHalf(ctx, cx, cy, radius, tubeWidth, tiltAngle, squashY, isFront, isGold, mode, t, flash) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(tiltAngle);
+    ctx.scale(1, squashY);
+
+    const a0 = isFront ? 0 : Math.PI;
+    const a1 = isFront ? Math.PI : TAU;
+
+    // 1. Soft 3D Ambient / Drop Shadow under the ring
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, isFront ? 6 : 3, radius, a0, a1, false);
+    ctx.lineWidth = tubeWidth * 1.15;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = mode === 5
+      ? (isGold ? 'rgba(215, 130, 10, 0.22)' : 'rgba(65, 85, 225, 0.22)')
+      : 'rgba(0, 0, 0, 0.55)';
+    ctx.stroke();
+    ctx.restore();
+
+    // 2. Main Continuous 3D Liquid-Metal / Glass Tube Body
+    const grad = ctx.createLinearGradient(-radius, -radius * 0.8, radius, radius * 0.8);
+    if (!isGold) {
+      // Left Ring: Anchan Sapphire (#7381FF / #3B4BFF)
+      if (mode === 5) {
+        grad.addColorStop(0, '#2B3BFF');
+        grad.addColorStop(0.38, '#6A7BFF');
+        grad.addColorStop(0.7, '#9BA9FF');
+        grad.addColorStop(1, '#3242E8');
+      } else if (mode === 3) {
+        grad.addColorStop(0, '#4A5CFF');
+        grad.addColorStop(0.45, '#96A4FF');
+        grad.addColorStop(0.75, '#D4DCFF');
+        grad.addColorStop(1, '#3B4BFF');
+      } else {
+        grad.addColorStop(0, '#3646F5');
+        grad.addColorStop(0.35, '#7A88FF');
+        grad.addColorStop(0.65, '#C5CEFF');
+        grad.addColorStop(1, '#4454FF');
+      }
+    } else {
+      // Right Ring: Marigold 24K Gold (#FFB21E / #FFD470)
+      if (mode === 5) {
+        grad.addColorStop(0, '#E07A00');
+        grad.addColorStop(0.38, '#FFA812');
+        grad.addColorStop(0.7, '#FFE082');
+        grad.addColorStop(1, '#D96B00');
+      } else if (mode === 3) {
+        grad.addColorStop(0, '#C87A08');
+        grad.addColorStop(0.42, '#FFC44D');
+        grad.addColorStop(0.72, '#FFF1BE');
+        grad.addColorStop(1, '#D8890E');
+      } else {
+        grad.addColorStop(0, '#FF8800');
+        grad.addColorStop(0.38, '#FFB824');
+        grad.addColorStop(0.68, '#FFF0B8');
+        grad.addColorStop(1, '#F09000');
+      }
+    }
+
+    ctx.save();
+    ctx.shadowColor = isGold
+      ? 'rgba(255, 178, 30, ' + (mode === 5 ? 0.35 : 0.65) + ')'
+      : 'rgba(115, 129, 255, ' + (mode === 5 ? 0.35 : 0.65) + ')';
+    ctx.shadowBlur = (mode === 5 ? 18 : 28) + flash * 18;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, a0, a1, false);
+    ctx.lineWidth = tubeWidth;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = grad;
+    ctx.stroke();
+    ctx.restore();
+
+    // 3. Inner 3D Core Rim Depth (darkened lower inner bevel for 3D cylinder roundness)
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, tubeWidth * 0.14, radius * 0.985, a0 + 0.06, a1 - 0.06, false);
+    ctx.lineWidth = tubeWidth * 0.26;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = isGold
+      ? 'rgba(120, 52, 0, 0.42)'
+      : 'rgba(18, 24, 95, 0.45)';
+    ctx.stroke();
+    ctx.restore();
+
+    // 4. Ultra-Smooth Continuous Specular Liquid-Glass Highlight Ribbon
+    const specGrad = ctx.createLinearGradient(-radius, -radius * 0.5, radius, radius * 0.5);
+    specGrad.addColorStop(0, 'rgba(255,255,255,0.12)');
+    specGrad.addColorStop(0.35, 'rgba(255,255,255,' + (0.82 + flash * 0.18).toFixed(2) + ')');
+    specGrad.addColorStop(0.65, isGold ? 'rgba(255,248,220,0.92)' : 'rgba(230,238,255,0.92)');
+    specGrad.addColorStop(1, 'rgba(255,255,255,0.15)');
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(-tubeWidth * 0.06, -tubeWidth * 0.19, radius * 0.99, a0 + 0.08, a1 - 0.08, false);
+    ctx.lineWidth = tubeWidth * 0.28;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = specGrad;
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  // Smooth Continuous 3D Interlocking Twin-Torus Renderer
+  function render3DTorusPair(ctx, w, h, t, bumpAge, mode, ptrX, ptrY) {
+    ctx.clearRect(0, 0, w, h);
+    const cx = w * 0.5;
+    const cy = h * 0.5;
+    const R = Math.min(w * 0.22, h * 0.35);
+    const tube = Math.max(10, R * 0.27);
+
+    // Bump collision physics
+    let sep = R * 0.64;
+    let flash = 0;
+    if (bumpAge >= 0 && bumpAge < 2.5) {
+      if (bumpAge < 0.32) {
+        const p = bumpAge / 0.32;
+        sep = R * (1.28 - 0.72 * (p * p * (3 - 2 * p)));
+      } else {
+        const c = bumpAge - 0.32;
+        sep = R * (0.64 - 0.12 * Math.exp(-c * 6) * Math.sin(c * 22));
+        flash = Math.exp(-c * 3.6);
+      }
+    }
+
+    const leftX = cx - sep + (ptrX - 0.5) * 10;
+    const rightX = cx + sep + (ptrX - 0.5) * 10;
+    const ringY = cy + Math.sin(t * 2.1) * 3.5;
+
+    // 1. Volumetric Backlight Aura
+    const leftAura = ctx.createRadialGradient(leftX, ringY, 2, leftX, ringY, R * 1.85);
+    const rightAura = ctx.createRadialGradient(rightX, ringY, 2, rightX, ringY, R * 1.85);
+
+    if (mode === 5) {
+      // V5 Pearl Daylight Caustic Glow
+      leftAura.addColorStop(0, 'rgba(91, 108, 255, 0.28)');
+      leftAura.addColorStop(1, 'rgba(91, 108, 255, 0)');
+      rightAura.addColorStop(0, 'rgba(255, 168, 24, 0.28)');
+      rightAura.addColorStop(1, 'rgba(255, 168, 24, 0)');
+      ctx.globalCompositeOperation = 'source-over';
+    } else {
+      leftAura.addColorStop(0, 'rgba(95, 115, 255, ' + (0.42 + flash * 0.28).toFixed(2) + ')');
+      leftAura.addColorStop(1, 'rgba(59, 75, 255, 0)');
+      rightAura.addColorStop(0, 'rgba(255, 188, 52, ' + (0.40 + flash * 0.28).toFixed(2) + ')');
+      rightAura.addColorStop(1, 'rgba(255, 178, 30, 0)');
+      ctx.globalCompositeOperation = 'lighter';
+    }
+    ctx.fillStyle = leftAura;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = rightAura;
+    ctx.fillRect(0, 0, w, h);
+    ctx.globalCompositeOperation = 'source-over';
+
+    // 3D Tilt Angles for True Interlocking Perspective
+    const tiltA = -0.22 + Math.sin(t * 1.3) * 0.05 + (ptrX - 0.5) * 0.12;
+    const tiltB = 0.22 - Math.sin(t * 1.3) * 0.05 + (ptrX - 0.5) * 0.12;
+    const squash = 0.78 + Math.cos(t * 1.1) * 0.04;
+
+    // Interlocking Topological Draw Order:
+    // Step A: Back half of Left Ring (Anchan)
+    drawSmoothTorusHalf(ctx, leftX, ringY, R, tube, tiltA, squash, false, false, mode, t, flash);
+    // Step B: Back half of Right Ring (Marigold) — passes in front of Left Ring's top-right!
+    drawSmoothTorusHalf(ctx, rightX, ringY, R, tube, tiltB, squash, false, true, mode, t, flash);
+
+    // Step C: Central Overlap Violet Lens Glow (#9B5CFF) inside the interlock
+    ctx.save();
+    ctx.globalCompositeOperation = mode === 5 ? 'source-over' : 'lighter';
+    const lensR = R * (0.68 + flash * 0.35 + 0.05 * Math.sin(t * 3.5));
+    const lensGrad = ctx.createRadialGradient(cx, ringY, 1, cx, ringY, lensR);
+    lensGrad.addColorStop(0, mode === 5 ? 'rgba(155, 92, 255, 0.55)' : 'rgba(255, 255, 255, 0.9)');
+    lensGrad.addColorStop(0.38, 'rgba(168, 108, 255, 0.65)');
+    lensGrad.addColorStop(0.75, 'rgba(155, 92, 255, 0.22)');
+    lensGrad.addColorStop(1, 'rgba(155, 92, 255, 0)');
+    ctx.fillStyle = lensGrad;
+    ctx.beginPath();
+    ctx.arc(cx, ringY, lensR, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+
+    // Step D: Front half of Left Ring (Anchan) — passes over Right Ring's bottom-left!
+    drawSmoothTorusHalf(ctx, leftX, ringY, R, tube, tiltA, squash, true, false, mode, t, flash);
+    // Step E: Rightmost outer front arc of Right Ring (Marigold)
+    drawSmoothTorusHalf(ctx, rightX, ringY, R, tube, tiltB, squash, true, true, mode, t, flash);
+
+    // Re-knit Left Ring's bottom-right over Right Ring's bottom-left for true topological lock
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(cx - R * 0.45, ringY, R * 0.9, R * 1.2);
+    ctx.clip();
+    drawSmoothTorusHalf(ctx, leftX, ringY, R, tube, tiltA, squash, true, false, mode, t, flash);
+    ctx.restore();
+
+    // Expanding Harmonic Shockwave Ripples on Bump
+    if (bumpAge >= 0.3 && bumpAge < 1.9) {
+      const p = (bumpAge - 0.3) / 1.6;
+      const ease = 1 - Math.pow(1 - p, 3);
+      for (let s = 0; s < 3; s++) {
+        const rad = R * (0.6 + (1.6 + s * 0.38) * ease);
+        ctx.strokeStyle = s === 0
+          ? (mode === 5 ? 'rgba(91,108,255,' : 'rgba(255,255,255,') + ((1 - p) * 0.6).toFixed(3) + ')'
+          : s === 1
+          ? 'rgba(155,92,255,' + ((1 - p) * 0.55).toFixed(3) + ')'
+          : 'rgba(255,184,30,' + ((1 - p) * 0.5).toFixed(3) + ')';
+        ctx.lineWidth = 2.2 * (1 - p) + 0.6;
+        ctx.beginPath();
+        ctx.ellipse(cx, ringY, rad, rad * 0.72, 0, 0, TAU);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Background World Canvas Renderer for Variants 1..5
+  function renderWorldBg(ctx, w, h, t, mode, ptrX, ptrY) {
+    ctx.clearRect(0, 0, w, h);
+
+    if (mode === 1) {
+      // V1: Asymmetric Spatial Obsidian Chrome + 3D Floor Matrix
+      const rows = 12, cols = 26;
+      for (let r = 0; r < rows; r++) {
+        const d = r / (rows - 1);
+        const y = h * 0.62 + Math.pow(d, 1.4) * h * 0.38;
+        for (let c = 0; c < cols; c++) {
+          const u = c / (cols - 1);
+          const x = (u - 0.5) * w * (0.9 + d * 0.65) + w * 0.5;
+          const wy = y + Math.sin(u * 6 + t * 1.5 + r * 0.5) * 12 * d;
+          ctx.fillStyle = (c + r) % 3 === 0
+            ? 'rgba(255,205,100,' + (0.1 + d * 0.3) + ')'
+            : 'rgba(125,145,255,' + (0.1 + d * 0.3) + ')';
+          ctx.fillRect(x, wy, 1.8 + d, 1.8 + d);
+        }
+      }
+    } else if (mode === 2) {
+      // V2: Sunset Cinema Golden Bokeh Floating Lights
+      for (let b = 0; b < 24; b++) {
+        const bx = ((Math.sin(b * 61.7) * 0.5 + 0.5) * w + Math.sin(t * 0.4 + b) * 30 + w) % w;
+        const by = h * (0.15 + (b % 7) * 0.11) + Math.cos(t * 0.6 + b) * 14;
+        const br = 16 + (b % 5) * 18;
+        const gr = ctx.createRadialGradient(bx, by, 1, bx, by, br);
+        const col = b % 2 === 0 ? '255, 200, 95' : '155, 175, 255';
+        gr.addColorStop(0, 'rgba(' + col + ', 0.24)');
+        gr.addColorStop(1, 'rgba(' + col + ', 0)');
+        ctx.fillStyle = gr;
+        ctx.beginPath();
+        ctx.arc(bx, by, br, 0, TAU);
+        ctx.fill();
+      }
+    } else if (mode === 3) {
+      // V3: Aman / Cartier 24K Gold Silk Waves
+      for (let r = 0; r < 8; r++) {
+        const d = r / 7;
+        ctx.strokeStyle = 'rgba(255, 196, 85, ' + (0.06 + d * 0.14).toFixed(3) + ')';
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        for (let x = 0; x <= w; x += 28) {
+          const u = x / w;
+          const y = h * (0.25 + d * 0.6) + Math.sin(u * 4 + t * 0.8 + r * 0.7) * 28;
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+    } else if (mode === 4) {
+      // V4: 3D Orbital Vortex Perspective Radar Grid
+      const vpX = w * 0.5;
+      const vpY = h * 0.44;
+      ctx.strokeStyle = 'rgba(95, 118, 255, 0.16)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 16; i++) {
+        const ang = (i / 16) * TAU + t * 0.06;
+        ctx.beginPath();
+        ctx.moveTo(vpX, vpY);
+        ctx.lineTo(vpX + Math.cos(ang) * w, vpY + Math.sin(ang) * w);
+        ctx.stroke();
+      }
+      for (let r = 1; r <= 6; r++) {
+        const rad = r * Math.min(w, h) * 0.13;
+        ctx.strokeStyle = r % 2 === 0 ? 'rgba(255, 184, 30, 0.16)' : 'rgba(115, 129, 255, 0.18)';
+        ctx.beginPath();
+        ctx.ellipse(vpX, vpY, rad, rad * 0.68, 0, 0, TAU);
+        ctx.stroke();
+      }
+    } else if (mode === 5) {
+      // V5: Daylight Pearl & Iridescent Prism Ribbons
+      for (let i = 0; i < 6; i++) {
+        const d = i / 5;
+        ctx.strokeStyle = i % 2 === 0
+          ? 'rgba(91, 108, 255, 0.14)'
+          : 'rgba(255, 165, 20, 0.16)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let x = 0; x <= w; x += 28) {
+          const u = x / w;
+          const y = h * (0.2 + d * 0.65) + Math.sin(u * 5 + t * 0.9 + i) * 24;
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+    }
+  }
+
+  let bumpStart = performance.now() - 300;
+  let ptrX = 0.5, ptrY = 0.4;
+
+  window.triggerVariantBump = function(withSound) {
+    bumpStart = performance.now();
+    if (withSound) window.playKringBell();
+  };
+
+  window.addEventListener('pointermove', function(e) {
+    ptrX = e.clientX / Math.max(1, window.innerWidth);
+    ptrY = e.clientY / Math.max(1, window.innerHeight);
+    document.documentElement.style.setProperty('--px', ((ptrX - 0.5) * 2).toFixed(3));
+    document.documentElement.style.setProperty('--py', ((ptrY - 0.5) * 2).toFixed(3));
+  }, { passive: true });
+
+  function tick(now) {
+    const t = now * 0.001;
+    const mode = Number(document.documentElement.getAttribute('data-variant') || '1');
+    const bumpAge = (now - bumpStart) * 0.001;
+
+    // Render onto the active variant's 3D torus canvas!
+    const canvases = document.querySelectorAll('.kring-torus-cv');
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    for (let i = 0; i < canvases.length; i++) {
+      const cv = canvases[i];
+      const r = cv.getBoundingClientRect();
+      if (r.width < 10 || r.height < 10) continue;
+      const pw = Math.max(1, Math.round(r.width * dpr));
+      const ph = Math.max(1, Math.round(r.height * dpr));
+      if (cv.width !== pw || cv.height !== ph) {
+        cv.width = pw;
+        cv.height = ph;
+      }
+      const rCtx = cv.getContext('2d');
+      rCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      render3DTorusPair(rCtx, r.width, r.height, t, bumpAge, mode, ptrX, ptrY);
+    }
+
+    const worldCv = document.getElementById('kringWorldCanvas');
+    if (worldCv && worldCv.getContext) {
+      const wdpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const ww = Math.max(1, window.innerWidth);
+      const wh = Math.max(1, window.innerHeight);
+      if (worldCv.width !== Math.round(ww * wdpr) || worldCv.height !== Math.round(wh * wdpr)) {
+        worldCv.width = Math.round(ww * wdpr);
+        worldCv.height = Math.round(wh * wdpr);
+      }
+      const wCtx = worldCv.getContext('2d');
+      wCtx.setTransform(wdpr, 0, 0, wdpr, 0, 0);
+      renderWorldBg(wCtx, ww, wh, t, mode, ptrX, ptrY);
+    }
+
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

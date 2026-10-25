@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.kringapp.app",
+        "sha256_cert_fingerprints": ["8F:A4:73:30:89:61:F0:10:84:CB:B8:84:45:26:52:5B:45:BC:AF:BB:15:78:81:AC:F5:F0:89:57:54:14:2F:61"]
+      }
+    }]

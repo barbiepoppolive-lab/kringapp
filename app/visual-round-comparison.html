@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kring — NOW vs AFTER (Opus/Fable 6-Point Visual Round)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Unbounded:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --anchan: #7381FF;
+    --marigold: #FFB21E;
+    --violet: #9B5CFF;
+    --jasmine: #FFF6E6;
+    --emerald: #2CE59B;
+    --red: #FF4D6A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #04050B;
+    color: #FFF6E6;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+    padding: 24px;
+    width: 1120px;
+    margin: 0 auto;
+  }
+  .top-header {
+    text-align: center;
+    padding: 20px 24px;
+    background: linear-gradient(180deg, rgba(115,129,255,0.14), rgba(255,178,30,0.06));
+    border-radius: 24px;
+    margin-bottom: 24px;
+  }
+  .top-header h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #FFF6E6;
+  }
+  .top-header p {
+    font-size: 14px;
+    color: rgba(255,246,230,0.72);
+    margin-top: 6px;
+  }
+  .section-row {
+    background: #0A0C18;
+    border-radius: 26px;
+    padding: 20px;
+    margin-bottom: 22px;
+    box-shadow: 0 18px 44px rgba(0,0,0,0.55);
+  }
+  .section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .section-title h2 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: #FFB21E;
+  }
+  .section-title span {
+    font-size: 12.5px;
+    color: rgba(255,246,230,0.68);
+    font-weight: 600;
+  }
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .phone-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .badge-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+  }
+  .badge-now {
+    background: rgba(255, 77, 106, 0.16);
+    color: #FF8FA3;
+  }
+  .badge-after {
+    background: rgba(44, 229, 155, 0.16);
+    color: #5FF5B8;
+  }
+  .phone-frame {
+    border-radius: 28px;
+    padding: 16px;
+    min-height: 410px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  /* NOW: Navy haze + duller contrast */
+  .phone-now {
+    background: radial-gradient(circle at 50% 25%, #1F2756 0%, #14193B 55%, #101430 100%);
+    box-shadow: inset 0 0 0 1px rgba(150,165,255,0.18);
+  }
+  /* AFTER: True deep black + luminous highlights */
+  .phone-after {
+    background: #05060D;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .unbounded { font-family: 'Unbounded', sans-serif !important; }
+  .sys-font { font-family: 'Inter', sans-serif !important; }
+
+  /* Top bars inside phone */
+  .p-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .logo-now { font-weight: 800; font-size: 17px; color: #DCE0FF; }
+  .logo-after {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    color: #FFF6E6;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pill-bar-now {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: rgba(255,246,230,0.72);
+    margin-bottom: 6px;
+  }
+  .seg-row-after {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .seg-pill-active {
+    background: #FFF6E6;
+    color: #060710;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 7px 14px;
+    border-radius: 999px;
+  }
+  .seg-pill-idle {
+    background: #101223;
+    color: rgba(255,246,230,0.7);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 7px 14px;
+    border-radius: 999px;
+  }
+  /* Card comparison */
+  .card-now {
+    background: linear-gradient(135deg, #4A3728 0%, #2C221E 65%, #1E192A 100%);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 18px;
+    padding: 14px;
+    margin-top: 4px;
+  }
+  .card-after {
+    background: radial-gradient(circle at 78% 28%, rgba(255,178,30,0.42), rgba(155,92,255,0.22) 48%, #0D0F20 90%);
+    border-radius: 22px;
+    padding: 16px;
+    box-shadow: 0 14px 32px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.12);
+    position: relative;
+    overflow: hidden;
+  }
+  .avatar-brown {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #5C4033; color: #E6CCB2;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 14px;
+  }
+  .avatar-vibrant {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #FF758F, #FFB21E, #7381FF);
+    color: #05060D;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900; font-size: 13px;
+    box-shadow: 0 0 14px rgba(255,178,30,0.45);
+  }
+  .caption-list {
+    font-size: 12px;
+    color: rgba(255,246,230,0.78);
+    line-height: 1.45;
+    padding: 8px 4px 0;
+  }
+  .caption-list b { color: #FFF6E6; }
+
+  /* Ticket comparison */
+  .ticket-now {
+    background: #171C3F;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 18px;
+    padding: 14px;
+  }
+  .ticket-after {
+    background: #0B0D1C;
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 18px 38px rgba(0,0,0,0.7);
+  }
+  .ticket-gold-head {
+    background: linear-gradient(135deg, #FFD166 0%, #FFB21E 55%, #E08E00 100%);
+    color: #120D02;
+    padding: 14px 16px;
+  }
+  .ticket-body-after {
+    padding: 16px;
+  }
+
+  /* Chat comparison */
+  .chat-now {
+    background: radial-gradient(circle at 30% 40%, rgba(155,92,255,0.42), rgba(115,129,255,0.28) 50%, #171B3A 100%);
+  }
+  .chat-after {
+    background: #05060D;
+  }
+  .offer-now {
+    background: #1B2048;
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 16px;
+    padding: 12px;
+  }
+  .offer-after {
+    background: linear-gradient(165deg, rgba(255,178,30,0.20) 0%, rgba(16,19,38,0.96) 55%);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,209,102,0.45);
+    border-radius: 20px;
+    padding: 15px;
+  }
+  .btn-gold {
+    background: linear-gradient(180deg, #FFC44D, #FFB21E);
+    color: #120D02;
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800;
+    font-size: 12px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    text-align: center;
+    box-shadow: 0 6px 18px rgba(255,178,30,0.38);
+  }
+</style>
+</head>
+<body>
+  <div class="top-header">
+    <h1>KRING (กริ๊ง!) — NOW vs AFTER (OPUS / FABLE 6-POINT VISUAL ROUND)</h1>
+    <p>Left = Current App on Phone ("NOW") · Right = Proposed Visual Round Matching Approved Mockups ("AFTER")</p>
+  </div>
+
+  <!-- POINT 1 & 2: DEEP BLACK, 2 BARS INSTEAD OF 5, BRIGHT ART, UNBOUNDED FONT -->
+  <div class="section-row">
+    <div class="section-title">
+      <h2>1 & 2. Experiences Feed: Deep-Black Canvas, 2 Bars (Not 5), Bright Art & Unbounded Font</h2>
+      <span>Fixes: Navy haze · 5 cluttered bars · brown sepia art · missing Unbounded font · brown letter avatars</span>
+    </div>
+    <div class="compare-grid">
+      <div class="phone-col">
+        <div class="badge-bar badge-now"><span>❌ NOW (CURRENT APP)</span><span>Navy Haze · 5 Bars · System Font</span></div>
+        <div class="phone-frame phone-now sys-font">
+          <div>
+            <div class="p-top">
+              <div class="logo-now">kring</div>
+              <div style="font-size:11px;background:rgba(255,255,255,0.1);padding:4px 9px;border-radius:99px;">฿1,000</div>
+            </div>
+            <div class="pill-bar-now">1. Install banner bar</div>
+            <div class="pill-bar-now">2. Free ฿75 promo · watch 1 story bar</div>
+            <div class="pill-bar-now">3. Experiences | Locals + Bangkok | Pattaya bar</div>
+            <div class="pill-bar-now">4. Search "What do you want to do?" + Filters bar</div>
+            <div class="pill-bar-now">5. Category chips row (5 bars before first card!)</div>
+            <div class="card-now">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:10px;background:rgba(0,0,0,0.35);padding:3px 8px;border-radius:99px;">🟢 Yaowarat Rd</span>
+                <div class="avatar-brown">K</div>
+              </div>
+              <div style="margin-top:26px;">
+                <div style="font-size:10px;color:#D4A359;font-weight:700;">★ POPULAR (Sepia / Brown Tint)</div>
+                <div style="font-size:17px;font-weight:700;margin-top:2px;">Street-food walk</div>
+                <div style="font-size:12px;color:rgba(255,246,230,0.7);margin-top:3px;"><b style="color:#FFB21E;">from ฿1,200</b> · ~3h · 1 local</div>
+              </div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:#FF8FA3;margin-top:8px;">⚠️ Darkest tone is lifted navy (#14193B); 5 bars push first card halfway down screen.</div>
+        </div>
+      </div>
+
+      <div class="phone-col">
+        <div class="badge-bar badge-after"><span>✅ AFTER (VISUAL ROUND)</span><span>Deep Black #05060D · 2 Bars · Unbounded</span></div>
+        <div class="phone-frame phone-after">
+          <div>
+            <div class="p-top">
+              <div class="logo-after">
+                <svg width="26" height="18" viewBox="0 0 34 22" fill="none">
+                  <circle cx="11" cy="11" r="7.5" stroke="#7381FF" stroke-width="2.8"/>
+                  <circle cx="23" cy="11" r="7.5" stroke="#FFB21E" stroke-width="2.8"/>
+                  <path d="M17 4.8 A7.5 7.5 0 0 1 17 17.2 A7.5 7.5 0 0 1 17 4.8 Z" fill="#9B5CFF" fill-opacity="0.75"/>
+                </svg>
+                kring
+              </div>
+              <div class="unbounded" style="font-size:12px;font-weight:800;background:#111426;padding:6px 12px;border-radius:99px;color:#FFB21E;">฿1,000</div>
+            </div>
+            <!-- Only 2 clean bars above first card -->
+            <div class="seg-row-after">
+              <div class="seg-pill-active">Experiences</div>
+              <div class="seg-pill-idle">Locals</div>
+              <div class="seg-pill-idle" style="margin-left:auto;color:#7381FF;">Bangkok ▾</div>
+            </div>
+            <div class="seg-row-after" style="margin-bottom:14px;">
+              <div class="seg-pill-active" style="background:#FFB21E;color:#05060D;">✦ For you</div>
+              <div class="seg-pill-idle">🍜 Eat</div>
+              <div class="seg-pill-idle">🌇 Sunset</div>
+              <div class="seg-pill-idle">💆 Spa</div>
+            </div>
+            <div class="card-after">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:11px;font-weight:700;background:rgba(5,6,13,0.75);padding:5px 10px;border-radius:99px;">🟢 Yaowarat Chinatown</span>
+                <div class="avatar-vibrant">KW</div>
+              </div>
+              <div style="margin:22px 0 14px;display:flex;justify-content:space-between;align-items:flex-end;">
+                <div>
+                  <div style="font-size:10.5px;color:#FFB21E;font-weight:800;letter-spacing:0.06em;">★ POPULAR TONIGHT</div>
+                  <div class="unbounded" style="font-size:20px;font-weight:800;margin-top:4px;line-height:1.15;">Street-food<br/>walk</div>
+                  <div style="font-size:13px;margin-top:8px;">
+                    <span class="unbounded" style="color:#FFB21E;font-weight:800;font-size:15px;">฿1,200</span>
+                    <span style="color:rgba(255,246,230,0.72);"> · ~3h · Kwan ✓</span>
+                  </div>
+                </div>
+                <div style="font-size:48px;filter:drop-shadow(0 0 22px rgba(255,178,30,0.65));">🍢🏮</div>
+              </div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:#5FF5B8;margin-top:8px;">✓ True #05060D deep black, 2 bars above card, glowing art, colourful portrait & Unbounded font.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POINT 3: WALLET 3 BLOCKS + UNBOUNDED BALANCE VS 7 BLOCKS -->
+  <div class="section-row">
+    <div class="section-title">
+      <h2>3. Wallet & Plan Ticket: 3 Clean Wallet Blocks + Brushed-Gold Metal Ticket Header</h2>
+      <span>Fixes: 7 cluttered Wallet blocks · missing Gold Metal Ticket Header · small ticket times</span>
+    </div>
+    <div class="compare-grid">
+      <div class="phone-col">
+        <div class="badge-bar badge-now"><span>❌ NOW (CURRENT APP)</span><span>7 Wallet Blocks · Flat Dark Ticket Header</span></div>
+        <div class="phone-frame phone-now sys-font">
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div class="pill-bar-now" style="padding:10px;">
+              <div style="font-size:10px;opacity:0.7;">1. Balance Card (Navy)</div>
+              <div style="font-size:22px;font-weight:800;">฿1,000.00</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+              <div class="pill-bar-now" style="margin:0;">2. Add cash tile</div>
+              <div class="pill-bar-now" style="margin:0;">3. Cash out tile</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+              <div class="pill-bar-now" style="margin:0;">4. Held info tile</div>
+              <div class="pill-bar-now" style="margin:0;">5. Savings tile</div>
+            </div>
+            <div class="pill-bar-now" style="margin:0;">6. Starter Pack box + 7. Invite/Safety/Privacy/Settings + Today</div>
+            <div class="ticket-now" style="margin-top:4px;">
+              <div style="font-size:11px;color:#7381FF;font-weight:700;">FLAT DARK TICKET HEADER</div>
+              <div style="font-size:14px;font-weight:700;margin-top:4px;">Street-food walk with Kwan</div>
+              <div style="font-size:12px;opacity:0.75;margin-top:2px;">Tonight 19:30–22:30 · ฿1,200 held</div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:#FF8FA3;">⚠️ 7 separate boxes on Wallet; PlanTicket lost its gold metal header & big Unbounded times.</div>
+        </div>
+      </div>
+
+      <div class="phone-col">
+        <div class="badge-bar badge-after"><span>✅ AFTER (VISUAL ROUND)</span><span>3 Wallet Blocks · Gold Metal Ticket Header</span></div>
+        <div class="phone-frame phone-after">
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <!-- Block 1: Unified Metal Card with Balance + Actions -->
+            <div style="background:linear-gradient(145deg,#171A32,#0C0E1C);border-radius:20px;padding:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.12);">
+              <div style="font-size:10px;letter-spacing:0.08em;color:rgba(255,246,230,0.65);">KRING WALLET · CASH + PROMO</div>
+              <div class="unbounded" style="font-size:28px;font-weight:900;color:#FFF6E6;margin:4px 0 10px;">฿1,000<span style="font-size:16px;opacity:0.65;">.00</span></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div class="btn-gold">+ Top up</div>
+                <div style="background:#191D36;color:#FFF6E6;font-family:'Unbounded',sans-serif;font-size:11.5px;font-weight:700;padding:10px;border-radius:999px;text-align:center;">Withdraw</div>
+              </div>
+            </div>
+            <!-- Gold Metal Ticket from Mockup -->
+            <div class="ticket-after">
+              <div class="ticket-gold-head">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span class="unbounded" style="font-size:10.5px;font-weight:900;letter-spacing:0.06em;">★ CONFIRMED PLAN TICKET</span>
+                  <span class="unbounded" style="font-size:13px;font-weight:900;">฿1,200 HELD</span>
+                </div>
+                <div class="unbounded" style="font-size:22px;font-weight:900;margin-top:4px;">19:30 → 22:30</div>
+              </div>
+              <div class="ticket-body-after">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div>
+                    <div class="unbounded" style="font-size:14px;font-weight:800;">Street-food walk · Kwan ✓</div>
+                    <div style="font-size:12px;color:rgba(255,246,230,0.7);margin-top:3px;">📍 Yaowarat Rd · Public venue</div>
+                  </div>
+                  <div class="btn-gold" style="padding:8px 14px;">กริ๊ง! Bump</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:#5FF5B8;">✓ 3 clean Wallet blocks + Mockup's Gold Metal Ticket Header with huge Unbounded times.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POINT 4, 5, 6: CALM CHAT + GOLD OFFER CARD, 100% LAUNCH BUMP, 0ms INSTANT TRANSITIONS -->
+  <div class="section-row" style="margin-bottom:0;">
+    <div class="section-title">
+      <h2>4, 5 & 6. Calm Deep-Black Chat + Gold Offer Card, 100% Launch Bump & Instant 60fps Switch</h2>
+      <span>Fixes: Violet blob wall behind chat · dull offer card · 60% skipped launch bump · 670 KB Chonn CSS lag</span>
+    </div>
+    <div class="compare-grid">
+      <div class="phone-col">
+        <div class="badge-bar badge-now"><span>❌ NOW (CURRENT APP)</span><span>Violet Blob Chat · 60% Bump · 0.3s Lag</span></div>
+        <div class="phone-frame phone-now chat-now sys-font">
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="font-size:11px;background:rgba(0,0,0,0.35);padding:6px 10px;border-radius:10px;">
+              🟣 Distracting glowing violet/blue blob wall behind chat bubbles
+            </div>
+            <div class="offer-now">
+              <div style="font-size:11px;color:rgba(255,246,230,0.65);">OFFER IN CHAT (Flat Navy Box)</div>
+              <div style="font-size:16px;font-weight:700;margin-top:3px;">฿1,200 · Street-food walk</div>
+              <div style="font-size:12px;opacity:0.75;margin-top:2px;">Tonight 19:30 · Yaowarat Rd</div>
+            </div>
+            <div style="background:rgba(0,0,0,0.35);border-radius:14px;padding:12px;text-align:center;">
+              <div style="font-size:11px;color:#FF8FA3;font-weight:700;margin-bottom:6px;">Launch Bump: Skipped or 60% Tiny Size</div>
+              <svg width="72" height="42" viewBox="0 0 72 42" fill="none">
+                <circle cx="27" cy="21" r="12" stroke="#7381FF" stroke-width="2.5" stroke-opacity="0.6"/>
+                <circle cx="45" cy="21" r="12" stroke="#FFB21E" stroke-width="2.5" stroke-opacity="0.6"/>
+              </svg>
+              <div style="font-size:11px;opacity:0.75;margin-top:4px;">⏱️ 150–500ms freeze on tab switch (670 KB old Chonn CSS + tilt recalc)</div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:#FF8FA3;">⚠️ Violet haze competes with messages; launch bump skipped by slow-device heuristic.</div>
+        </div>
+      </div>
+
+      <div class="phone-col">
+        <div class="badge-bar badge-after"><span>✅ AFTER (VISUAL ROUND)</span><span>Calm Black Chat · Gold Offer · 100% Bump</span></div>
+        <div class="phone-frame phone-after chat-after">
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="offer-after">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span class="unbounded" style="font-size:10.5px;font-weight:800;color:#FFB21E;letter-spacing:0.06em;">★ GOLD OFFER CARD</span>
+                <span style="font-size:11px;color:#5FF5B8;font-weight:700;">Held until กริ๊ง!</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;">
+                <div class="unbounded" style="font-size:24px;font-weight:900;color:#FFF6E6;">฿1,200</div>
+                <div class="unbounded" style="font-size:13px;font-weight:700;color:#FFB21E;">19:30 – 22:30</div>
+              </div>
+              <div style="font-size:12px;color:rgba(255,246,230,0.78);margin:4px 0 10px;">📍 Yaowarat Rd · Local's time only</div>
+              <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:8px;">
+                <div class="btn-gold">Accept · ฿1,200</div>
+                <div style="background:#15182E;color:#FFF6E6;font-size:11.5px;font-weight:700;padding:10px;border-radius:999px;text-align:center;">Counter</div>
+              </div>
+            </div>
+
+            <div style="background:radial-gradient(circle, rgba(155,92,255,0.22), #080A16 72%);border-radius:18px;padding:12px;text-align:center;">
+              <div class="unbounded" style="font-size:11px;color:#FFB21E;font-weight:800;margin-bottom:4px;">100% FULL-SCALE LAUNCH BUMP (ALWAYS PLAYS)</div>
+              <svg width="150" height="74" viewBox="0 0 150 74" fill="none">
+                <circle cx="56" cy="37" r="28" stroke="#7381FF" stroke-width="5"/>
+                <circle cx="94" cy="37" r="28" stroke="#FFB21E" stroke-width="5"/>
+                <path d="M75 15 A28 28 0 0 1 75 59 A28 28 0 0 1 75 15 Z" fill="#9B5CFF" fill-opacity="0.78"/>
+              </svg>
+              <div style="font-size:11.5px;color:#5FF5B8;font-weight:700;margin-top:2px;">⚡ &lt;16ms Instant Tab Switch (Leftover Chonn CSS &amp; Tilt Lag Cut)</div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:#5FF5B8;">✓ Calm #05060D chat, Gold Offer Card, 100% hero launch bump, instant 60fps transitions.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

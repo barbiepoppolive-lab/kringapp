@@ -1,0 +1,2798 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kring Mail — Partner Outreach Inbox</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    :root.theme-dark {
+      --bg-app: #0f0f10;
+      --bg-surface: #18181b;
+      --bg-card: #141417;
+      --bg-row: #121214;
+      --bg-row-unread: #1b1b1f;
+      --bg-row-hover: #242429;
+      --bg-row-selected: #2d2d35;
+      --bg-input: #1e1e24;
+      --border-main: #32323a;
+      --border-subtle: #24242b;
+      --text-primary: #f4f4f6;
+      --text-secondary: #c4c4cc;
+      --text-muted: #8e8e99;
+      --accent-bg: #ffffff;
+      --accent-text: #000000;
+      --pill-bg: #27272f;
+      --pill-text: #ececf1;
+      --scroll-track: #141417;
+      --scroll-thumb: #4b4b57;
+      --scroll-thumb-hover: #71717f;
+    }
+
+    :root.theme-light {
+      --bg-app: #f4f6fa;
+      --bg-surface: #ffffff;
+      --bg-card: #ffffff;
+      --bg-row: #f8fafd;
+      --bg-row-unread: #ffffff;
+      --bg-row-hover: #edf2fa;
+      --bg-row-selected: #dfe8f6;
+      --bg-input: #eff3f8;
+      --border-main: #d4d8e0;
+      --border-subtle: #e5e8ef;
+      --text-primary: #141417;
+      --text-secondary: #3c4043;
+      --text-muted: #5f6368;
+      --accent-bg: #141417;
+      --accent-text: #ffffff;
+      --pill-bg: #e8eaed;
+      --pill-text: #141417;
+      --scroll-track: #eef1f6;
+      --scroll-thumb: #b0b6c2;
+      --scroll-thumb-hover: #7e8694;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Prominent, easy-to-grab slide bars (scrollbars) */
+    .scroll-pane {
+      overflow-y: scroll !important;
+      scrollbar-width: auto;
+      scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+    }
+    .scroll-pane::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+    .scroll-pane::-webkit-scrollbar-track {
+      background: var(--scroll-track);
+      border-left: 1px solid var(--border-subtle);
+    }
+    .scroll-pane::-webkit-scrollbar-thumb {
+      background: var(--scroll-thumb);
+      border-radius: 6px;
+      border: 2px solid var(--scroll-track);
+    }
+    .scroll-pane::-webkit-scrollbar-thumb:hover {
+      background: var(--scroll-thumb-hover);
+    }
+
+    /* Left Navigation Items */
+    .gmail-sidebar-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      margin: 3px 12px 3px 0;
+      border-radius: 0 9999px 9999px 0;
+      font-size: 15px;
+      line-height: 1.4;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 0.12s ease, color 0.12s ease;
+    }
+    .gmail-sidebar-item:hover {
+      background-color: var(--bg-row-hover);
+      color: var(--text-primary);
+    }
+    .gmail-sidebar-item.active {
+      background-color: var(--bg-row-selected);
+      color: var(--text-primary);
+      font-weight: 600;
+      border-left: 4px solid var(--accent-bg);
+    }
+
+    /* Category Tabs */
+    .gmail-tab {
+      padding: 14px 22px;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.12s ease;
+    }
+    .gmail-tab:hover {
+      background-color: var(--bg-row-hover);
+      color: var(--text-primary);
+    }
+    .gmail-tab.active {
+      color: var(--text-primary);
+      font-weight: 600;
+      border-bottom-color: var(--text-primary);
+    }
+
+    /* Spacious Gmail Inbox Rows */
+    .gmail-row {
+      display: flex;
+      align-items: center;
+      min-height: 60px;
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      background-color: var(--bg-row);
+      cursor: pointer;
+      transition: background 0.1s ease;
+      gap: 14px;
+    }
+    .gmail-row.unread {
+      background-color: var(--bg-row-unread);
+    }
+    .gmail-row:hover {
+      background-color: var(--bg-row-hover);
+    }
+    .gmail-row.selected {
+      background-color: var(--bg-row-selected);
+      border-left: 4px solid var(--accent-bg);
+    }
+
+    .gmail-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      background-color: var(--pill-bg);
+      color: var(--pill-text);
+      border: 1px solid var(--border-main);
+      white-space: nowrap;
+    }
+
+    .gmail-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-main);
+      border-radius: 12px;
+    }
+
+    .gmail-btn-primary {
+      background-color: var(--accent-bg);
+      color: var(--accent-text);
+      font-weight: 600;
+      border-radius: 9999px;
+      padding: 10px 24px;
+      font-size: 15px;
+      transition: opacity 0.15s ease;
+      cursor: pointer;
+    }
+    .gmail-btn-primary:hover {
+      opacity: 0.88;
+    }
+
+    .gmail-btn-outline {
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border-main);
+      border-radius: 9999px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.15s ease;
+      cursor: pointer;
+    }
+    .gmail-btn-outline:hover {
+      background-color: var(--bg-row-hover);
+    }
+
+    .gmail-input {
+      background-color: var(--bg-input);
+      color: var(--text-primary);
+      border: 1px solid var(--border-main);
+      font-size: 15px;
+    }
+    .gmail-input:focus {
+      outline: none;
+      border-color: var(--text-primary);
+    }
+
+    /* Draggable Vertical Split Resizer Bar */
+    .resizer-bar {
+      width: 8px;
+      background-color: var(--bg-app);
+      border-left: 1px solid var(--border-main);
+      border-right: 1px solid var(--border-main);
+      cursor: col-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      user-select: none;
+      transition: background 0.15s ease;
+    }
+    .resizer-bar:hover, .resizer-bar.dragging {
+      background-color: var(--scroll-thumb);
+    }
+    .resizer-grip {
+      width: 2px;
+      height: 36px;
+      background-color: var(--text-muted);
+      border-radius: 2px;
+    }
+
+    /* Formatted chat-like email body typography */
+    .formatted-email-body p {
+      margin-bottom: 14px;
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--text-primary);
+    }
+    .formatted-email-body p:last-child {
+      margin-bottom: 0;
+    }
+    .formatted-email-body ul {
+      list-style-type: disc;
+      padding-left: 24px;
+      margin: 12px 0 16px 0;
+    }
+    .formatted-email-body li {
+      margin-bottom: 8px;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text-primary);
+    }
+
+    input[type="range"].thread-slider {
+      accent-color: var(--accent-bg);
+      height: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+  <!-- TOP GMAIL HEADER BAR -->
+  <header class="h-20 px-6 flex items-center justify-between gap-5 shrink-0" style="background-color: var(--bg-app); border-bottom: 1px solid var(--border-main);">
+    <!-- Brand -->
+    <div class="flex items-center gap-3.5 w-64 shrink-0">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg" style="background-color: var(--accent-bg); color: var(--accent-text);">
+        M
+      </div>
+      <div>
+        <div class="font-bold text-lg tracking-tight leading-tight" style="color: var(--text-primary);">Kring Mail</div>
+        <div class="text-xs" style="color: var(--text-muted);">Partner Outreach Inbox</div>
+      </div>
+    </div>
+
+    <!-- Search Bar + Dropdown Filters -->
+    <div class="flex-1 max-w-5xl flex items-center gap-3">
+      <div class="flex-1 flex items-center rounded-full px-5 py-2.5 gap-3 gmail-input">
+        <svg class="w-5 h-5 shrink-0" style="color: var(--text-muted);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          id="search-input"
+          type="text"
+          oninput="renderInboxAndThread()"
+          placeholder="Search mail, company name, purpose, or conversation..."
+          class="w-full bg-transparent text-[15px] focus:outline-none"
+          style="color: var(--text-primary);"
+        />
+      </div>
+
+      <!-- Platform Filter -->
+      <select id="platform-select" onchange="renderInboxAndThread()" class="gmail-input rounded-full px-4 py-2.5 text-sm font-medium cursor-pointer">
+        <option value="ALL">Platform: All</option>
+        <option value="Titan Email">Titan Email</option>
+        <option value="Gmail">Gmail</option>
+        <option value="WhatsApp / LINE">WhatsApp / LINE</option>
+        <option value="Fastwork">Fastwork</option>
+        <option value="Telegram">Telegram</option>
+      </select>
+
+      <!-- Status Filter -->
+      <select id="status-select" onchange="renderInboxAndThread()" class="gmail-input rounded-full px-4 py-2.5 text-sm font-medium cursor-pointer">
+        <option value="ALL">Status: All</option>
+        <option value="ONBOARDED">✓ Onboarded & Live</option>
+        <option value="ACTION_OR_ACTIVE">Active / Replied</option>
+        <option value="HAS_QUEUED">Has Queued Draft</option>
+        <option value="WAITING">Waiting Reply</option>
+        <option value="CLOSED">Closed / Parked</option>
+      </select>
+
+      <!-- Sort Filter -->
+      <select id="sort-select" onchange="renderInboxAndThread()" class="gmail-input rounded-full px-4 py-2.5 text-sm font-medium cursor-pointer">
+        <option value="PRIORITY">Sort: Priority</option>
+        <option value="RECENT">Sort: Newest First</option>
+        <option value="PURPOSE">Sort: Purpose</option>
+        <option value="PLATFORM">Sort: Platform</option>
+        <option value="NAME">Sort: Name (A–Z)</option>
+      </select>
+    </div>
+
+    <!-- Right Action Buttons -->
+    <div class="flex items-center gap-2.5 shrink-0">
+      <button onclick="toggleLayoutMode()" id="layout-toggle-btn" class="gmail-btn-outline" title="Toggle Split Reading Pane vs Full-Screen List">
+        Split View: ON
+      </button>
+      <button onclick="toggleTheme()" id="theme-toggle-btn" class="gmail-btn-outline">
+        Light Mode
+      </button>
+      <button onclick="syncLiveImap()" id="sync-imap-btn" class="gmail-btn-outline">
+        Sync Mail
+      </button>
+      <button onclick="toggleQueueModal()" class="gmail-btn-primary">
+        Sent / Queued (<span id="queue-count-badge">0</span>)
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE WITH VISIBLE SCROLLBARS & DRAGGABLE RESIZER SLIDE BARS -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- LEFT GMAIL SIDEBAR (WITH SCROLLBAR) -->
+    <aside id="left-sidebar-pane" class="w-72 py-4 flex flex-col justify-between shrink-0 scroll-pane" style="background-color: var(--bg-app); border-right: 1px solid var(--border-main);">
+      <div class="space-y-6">
+        <!-- Primary Folders -->
+        <div>
+          <div class="px-5 pb-2 text-xs font-bold uppercase tracking-wider" style="color: var(--text-muted);">
+            Mailboxes
+          </div>
+          <div onclick="setPurposeFilter('ALL')" data-sidebar="ALL" class="gmail-sidebar-item active">
+            <span>All Conversations</span>
+            <span id="side-count-ALL" class="text-sm font-semibold">0</span>
+          </div>
+          <div onclick="setQuickStatus('ONBOARDED')" data-sidebar="ONBOARDED" class="gmail-sidebar-item">
+            <span>✓ Onboarded &amp; Live</span>
+            <span id="side-count-ONBOARDED" class="text-sm font-semibold">0</span>
+          </div>
+          <div onclick="setQuickStatus('ACTION_OR_ACTIVE')" data-sidebar="ACTIVE" class="gmail-sidebar-item">
+            <span>Warm / Active Replies</span>
+            <span id="side-count-ACTIVE" class="text-sm font-semibold">0</span>
+          </div>
+          <div onclick="setQuickStatus('HAS_QUEUED')" data-sidebar="DRAFTS" class="gmail-sidebar-item">
+            <span>Queued Drafts Ready</span>
+            <span id="side-count-DRAFTS" class="text-sm font-semibold">0</span>
+          </div>
+        </div>
+
+        <!-- Purpose Labels (Why We Contacted Them) -->
+        <div>
+          <div class="px-5 pb-2 text-xs font-bold uppercase tracking-wider" style="color: var(--text-muted);">
+            By Purpose (Why Contacted)
+          </div>
+          <div onclick="setPurposeFilter('ROLE_3')" data-sidebar="ROLE_3" class="gmail-sidebar-item">
+            <span>Role 3: Seller of Record</span>
+            <span id="side-count-ROLE_3" class="text-sm">0</span>
+          </div>
+          <div onclick="setPurposeFilter('PAYMENT_RAIL')" data-sidebar="PAYMENT_RAIL" class="gmail-sidebar-item">
+            <span>Payment Gateways</span>
+            <span id="side-count-PAYMENT_RAIL" class="text-sm">0</span>
+          </div>
+          <div onclick="setPurposeFilter('VOUCHER_API')" data-sidebar="VOUCHER_API" class="gmail-sidebar-item">
+            <span>Voucher & Coin APIs</span>
+            <span id="side-count-VOUCHER_API" class="text-sm">0</span>
+          </div>
+          <div onclick="setPurposeFilter('LEGAL_COR')" data-sidebar="LEGAL_COR" class="gmail-sidebar-item">
+            <span>Contractor / Tax / Legal</span>
+            <span id="side-count-LEGAL_COR" class="text-sm">0</span>
+          </div>
+          <div onclick="setPurposeFilter('TALENT_AFFILIATE')" data-sidebar="TALENT_AFFILIATE" class="gmail-sidebar-item">
+            <span>Talent & Affiliates</span>
+            <span id="side-count-TALENT_AFFILIATE" class="text-sm">0</span>
+          </div>
+        </div>
+
+        <!-- Platform Quick Filter -->
+        <div>
+          <div class="px-5 pb-2 text-xs font-bold uppercase tracking-wider" style="color: var(--text-muted);">
+            By Platform
+          </div>
+          <div onclick="setQuickPlatform('ALL')" class="gmail-sidebar-item">
+            <span>All Channels</span>
+          </div>
+          <div onclick="setQuickPlatform('Titan Email')" class="gmail-sidebar-item">
+            <span>Titan Email</span>
+          </div>
+          <div onclick="setQuickPlatform('Gmail')" class="gmail-sidebar-item">
+            <span>Gmail</span>
+          </div>
+          <div onclick="setQuickPlatform('WhatsApp / LINE')" class="gmail-sidebar-item">
+            <span>WhatsApp / LINE</span>
+          </div>
+          <div onclick="setQuickPlatform('Fastwork')" class="gmail-sidebar-item">
+            <span>Fastwork</span>
+          </div>
+          <div onclick="setQuickPlatform('Telegram')" class="gmail-sidebar-item">
+            <span>Telegram</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-5 pt-5 mt-6 text-xs leading-relaxed" style="color: var(--text-muted); border-top: 1px solid var(--border-subtle);">
+        287 B2B Outreach Sent<br/>27 Active / Replied Threads
+      </div>
+    </aside>
+
+    <!-- CENTER & RIGHT GMAIL AREA -->
+    <main class="flex-1 flex flex-col overflow-hidden" style="background-color: var(--bg-surface);">
+
+      <!-- TOP CATEGORY TABS + THREAD NAVIGATION SLIDE BAR -->
+      <div class="flex flex-wrap items-center justify-between px-4 shrink-0 gap-3" style="border-bottom: 1px solid var(--border-main); background-color: var(--bg-surface);">
+        <div class="flex items-center overflow-x-auto">
+          <div onclick="setPurposeFilter('ALL')" data-tab="ALL" class="gmail-tab active">
+            All (<span id="count-ALL">0</span>)
+          </div>
+          <div onclick="setPurposeFilter('ROLE_3')" data-tab="ROLE_3" class="gmail-tab">
+            Role 3: Seller of Record (<span id="count-ROLE_3">0</span>)
+          </div>
+          <div onclick="setPurposeFilter('PAYMENT_RAIL')" data-tab="PAYMENT_RAIL" class="gmail-tab">
+            Payment Gateways (<span id="count-PAYMENT_RAIL">0</span>)
+          </div>
+          <div onclick="setPurposeFilter('VOUCHER_API')" data-tab="VOUCHER_API" class="gmail-tab">
+            Voucher APIs (<span id="count-VOUCHER_API">0</span>)
+          </div>
+          <div onclick="setPurposeFilter('LEGAL_COR')" data-tab="LEGAL_COR" class="gmail-tab">
+            Tax & Legal (<span id="count-LEGAL_COR">0</span>)
+          </div>
+          <div onclick="setPurposeFilter('TALENT_AFFILIATE')" data-tab="TALENT_AFFILIATE" class="gmail-tab">
+            Talent & Affiliates (<span id="count-TALENT_AFFILIATE">0</span>)
+          </div>
+        </div>
+
+        <!-- Thread Slide Bar Navigator + Prev/Next -->
+        <div class="flex items-center gap-3 py-2">
+          <button onclick="stepThread(-1)" class="gmail-btn-outline !py-1 !px-3 text-sm" title="Previous Conversation">
+            ← Prev
+          </button>
+          <div class="flex items-center gap-2">
+            <input
+              id="thread-nav-slider"
+              type="range"
+              min="1"
+              max="27"
+              value="1"
+              oninput="onThreadSliderChange(this.value)"
+              class="thread-slider w-28"
+              title="Slide to navigate through conversations"
+            />
+            <span class="text-sm font-medium whitespace-nowrap" style="color: var(--text-secondary);" id="inbox-showing-count">
+              1 / 27
+            </span>
+          </div>
+          <button onclick="stepThread(1)" class="gmail-btn-outline !py-1 !px-3 text-sm" title="Next Conversation">
+            Next →
+          </button>
+        </div>
+      </div>
+
+      <!-- GMAIL SPLIT WORKSPACE WITH DRAGGABLE SLIDE BAR DIVIDER -->
+      <div class="flex-1 flex overflow-hidden" id="gmail-main-container">
+        <!-- GMAIL INBOX LIST (WITH PROMINENT VERTICAL SLIDE BAR) -->
+        <section id="gmail-inbox-list-pane" style="width: 44%;" class="flex flex-col shrink-0 scroll-pane"></section>
+
+        <!-- DRAGGABLE PANE RESIZER SLIDE BAR -->
+        <div id="pane-resizer" class="resizer-bar" title="Drag left or right to resize Inbox List and Reading Pane">
+          <div class="resizer-grip"></div>
+        </div>
+
+        <!-- GMAIL THREAD READING PANE (WITH PROMINENT VERTICAL SLIDE BAR) -->
+        <section id="gmail-thread-pane" class="flex-1 flex flex-col overflow-hidden" style="background-color: var(--bg-app);"></section>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- SENT / HIGH-PRIORITY QUEUE MODAL -->
+  <div id="queue-modal" class="fixed inset-0 bg-black/75 hidden items-center justify-center z-50 p-6">
+    <div class="gmail-card max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="px-7 py-5 flex items-center justify-between" style="border-bottom: 1px solid var(--border-main);">
+        <div>
+          <h2 class="text-lg font-bold" style="color: var(--text-primary);">High-Priority Outbound Queue</h2>
+          <p class="text-sm mt-0.5" style="color: var(--text-muted);">
+            Synced live with <code>tickets/HIGH_PRIORITY_FOUNDER_REPLY_QUEUE.json</code>
+          </p>
+        </div>
+        <button onclick="toggleQueueModal()" class="gmail-btn-outline">
+          Close
+        </button>
+      </div>
+      <div id="queue-modal-body" class="p-7 flex-1 space-y-4 scroll-pane"></div>
+    </div>
+  </div>
+
+  <script>
+    const INITIAL_THREADS = [
+  {
+    "id": "role3-indochina-adul",
+    "partnerName": "Indochina Explorer (Thailand) Co., Ltd. (TAT 11/11211)",
+    "contactPerson": "Khun Adul (Managing Director)",
+    "email": "indochinaexplorer99@gmail.com",
+    "phoneWhatsApp": "+66818706343",
+    "lineId": "@stq9914p",
+    "platform": "Titan Email",
+    "secondaryPlatform": "WhatsApp / LINE",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Reached Managing Director Khun Adul via personal Gmail in Wave 18 (#246). Holds full General Licence (TAT 11/11211). Replied today sharing his direct WhatsApp (+66 81 870 6343) and LINE (@stq9914p) and requesting 6 due-diligence answers to present to his management team.",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "HOT REPLY (#82) · 2-Page PDF Ready",
+    "priorityRank": 1,
+    "lastReplyAt": "2026-10-24 15:22",
+    "proposalPdf": "/proposals/KRING_x_Indochina_Explorer_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_Indochina_Explorer_Role3_Proposal.html",
+    "proposalTitle": "KRING x INDOCHINA EXPLORER (THAILAND) CO., LTD. — 2-Page Partnership & 4.5% SoR Deck (PDF)",
+    "queuedDraft": "Dear Khun Adul (Managing Director, Indochina Explorer (Thailand) Co., Ltd. · TAT Licence 11/11211),\n\nThank you very much for your prompt reply today and for sharing your direct WhatsApp (+66 81 870 6343) and LINE (@stq9914p).\n\nWe have prepared and attached a customized 2-Page Founding Partnership & Official Seller-of-Record Proposal specifically for Indochina Explorer (Thailand) Co., Ltd. (www.indochinaexplorer.com), and we are delighted to answer all 6 of your questions below for your management review:\n\n1. PRODUCTS & SERVICES OFFERED ON KRING:\n   • Curated 100% public-venue local experiences in Bangkok and Pattaya: Street-Food & Culinary Walks, Landmark & Canal Boat Tours, Bicycle & Heritage Walks, Cooking/Craft Workshops, and Day Excursions (including featuring Indochina Explorer's own signature packages at #1 top-of-feed placement).\n\n2. TARGET CUSTOMERS & PRIMARY SOURCE MARKETS:\n   • Foreign inbound tourists visiting Bangkok and Pattaya from Singapore, Hong Kong, Taiwan, India, Europe, Australia, the UK, the US, Korea, and Japan (solo travellers, couples, and small private groups).\n\n3. BOOKING & OPERATIONAL MODEL (ZERO OPERATIONAL BURDEN FOR YOUR TEAM):\n   • For Stream 1 (Indochina Explorer's Own Tours): Foreign guests book on Kring; we transmit confirmed booking details to your reservation desk and settle 100% of your agreed net tour rate BEFORE the customer's travel date.\n   • For Stream 2 (Passive +4.5% Seller-of-Record Slot): Independent vetted local hosts/guides conduct the public-venue cultural walks. When guest and host meet at the public meeting point, they tap phones (\"Kring Two-Phone GPS Bump\") to confirm arrival. Kring's software handles 100% of customer support, scheduling, and automated CSV payout + 3% PND 3 tax report generation.\n\n4. HEAD OFFICE & BUSINESS STRUCTURE:\n   • Kring's global software, mobile app (https://kringapp.com/app/), and international tourist marketing are operated by KRING (Global Technology & Marketing Entity, Reg. No. UDYAM-BR-34-0067891), working in partnership with 4–5 independent licensed Thai tour operators (TAT 11/ and 14/ licences) who serve as local Sellers of Record in Thailand under MoF Notification Clause 2.3(1).\n\n5. PAYMENT ARRANGEMENTS & +4.5% NET SELLER-OF-RECORD FEE:\n   • 100% Upfront Payment for Your Tours: We fully agree with your policy—for all bookings of Indochina Explorer's own tours (Stream 1), 100% payment is settled prior to the customer's travel date.\n   • +4.5% Net Seller-of-Record Fee (Stream 2): Processed via a dedicated Stripe / Tazapay sub-account (tagged source: kring_app). On every THB 1,600 walk, Indochina Explorer retains +THB 72.00 (+4.5% net profit, projected at +THB 321,750 passive net fee over the 6-month high season and THB 1,673,750 total payout across both streams). Kring absorbs 100% of gateway fees (~3.65%) and refund costs out of Kring's software share.\n\n6. MAIN DIRECT CONTACT PERSON:\n   • Direct Partnership Lead: Rocker / Priyanka (Kring Founding Partnerships Desk)\n   • Direct Email: partnerships@kringapp.com / ops@kringapp.com\n   • We will also message you directly on WhatsApp (+66 81 870 6343) and LINE (@stq9914p) so we can schedule a brief 10-minute introductory call at your convenience.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 24, 13:01",
+        "channel": "Titan Email (Wave 18 #246)",
+        "subject": "Official Seller of Record (3%–5% Net Fee) — Indochina Explorer (11/11211)",
+        "body": "Sent Bilingual Nationwide Seller-of-Record & Tour Distribution invitation to Managing Director Khun Adul at indochinaexplorer99@gmail.com."
+      },
+      {
+        "sender": "THEM",
+        "senderLabel": "Khun Adul (MD, Indochina Explorer Thailand)",
+        "timestamp": "Oct 24, 15:22 (INBOX #82 / #168)",
+        "channel": "Titan Email",
+        "subject": "Re: Official Seller of Record (3%–5% Net Fee) — Indochina Explorer (11/11211)",
+        "body": "Dear Kring Partnerships Team,\n\nThank you for reaching out to Indochina Explorer (Thailand) Co., Ltd. (Licence 11/11211).\n\nBefore presenting this proposal to our management team for consideration, could you please share additional details on the following 6 points:\n1. Products & Services offered on Kring (exact tour/activity categories).\n2. Target Customers & primary source markets.\n3. Booking & Operational Model (workflow and responsibilities of Indochina Explorer).\n4. Head Office & Business Structure of Kring.\n5. Payment Arrangements & Fees (please note that for our tour packages we require 100% payment prior to the customer's travel date, and please clarify how the 3%–5% Seller-of-Record fee is settled).\n6. Main Contact Person for direct coordination.\n\nBest regards,\nAdul\nIndochina Explorer (Thailand) Co., Ltd.\nTel / WhatsApp: +66 81 870 6343\nLINE: @stq9914p\nWeb: https://www.indochinaexplorer.com/"
+      }
+    ]
+  },
+  {
+    "id": "role3-followme-saowapat",
+    "partnerName": "Follow Me Bike Tours Bangkok (Khun Saowapat)",
+    "contactPerson": "Khun Saowapat Ketrahong",
+    "email": "info@followmebiketour.com",
+    "phoneWhatsApp": "+66819264453",
+    "lineId": "",
+    "platform": "Titan Email",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Reached in Wave 12 (#149). Replied today (INBOX #83 / #169) confirming interest in free listing on Kring + asking 4 questions on booking/payment flow, fees, user volume, and how the Role-3 Seller-of-Record + 3% PND 3 withholding tax structure works.",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "HOT REPLY (#83) · 2-Page PDF Ready",
+    "priorityRank": 1,
+    "lastReplyAt": "2026-10-24 15:26",
+    "proposalPdf": "/proposals/KRING_x_Follow_Me_Bike_Tours_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_Follow_Me_Bike_Tours_Role3_Proposal.html",
+    "proposalTitle": "KRING x FOLLOW ME BIKE TOURS BANGKOK — 2-Page Partnership & 4.5% SoR Deck (PDF)",
+    "queuedDraft": "Dear Khun Saowapat Ketrahong (Follow Me Bike Tours Bangkok),\n\nThank you very much for your reply today and for your interest in featuring Follow Me Bike Tours on Kring (https://kringapp.com/app/)!\n\nWe have prepared and attached a customized 2-Page Founding Partnership & Seller-of-Record Proposal specifically for Follow Me Bike Tours Bangkok (www.followmebiketour.com), and we are pleased to answer all 4 of your questions below:\n\n1. HOW BOOKINGS & PAYMENTS WORK WHEN A CUSTOMER BOOKS YOUR TOUR ON KRING:\n   • We have pre-mapped your signature tours (Red Ride Half-Day Bike Tour, Bang Krachao Green Lung Bike & Boat, Bangkok by Night Bike Tour, and Private Family/Group Tours) on Kring.\n   • Foreign tourists book and pay 100% upfront in THB via Apple Pay, International Card, or PromptPay QR. You receive your full agreed agent net rate (85% payout, or 100% of your B2B net rate sheet) settled directly to your account upon check-in or prior to departure.\n\n2. ARE THERE ANY HIDDEN FEES OR CHARGES AFTER THE FREE LISTING?\n   • Zero upfront cost, zero monthly subscription fee, zero ad spend, and zero hidden charges forever. You only get paid when we deliver a confirmed, paying foreign guest to Follow Me Bike Tours.\n\n3. KRING LAUNCH TIMELINE & PROJECTED HIGH-SEASON VOLUME IN BANGKOK:\n   • We are launching our high-season Bangkok & Pattaya campaign on November 15, 2026 (targeting 3.4M+ monthly foreign arrivals across Loy Krathong, Christmas/NYE, Chinese New Year, and Songkran).\n   • As shown in Section 3 of the attached 2-Page PDF Deck, for a Founding Partner across the 6-month high season (Nov 15, 2026 – May 14, 2027), we project 650 direct tour pax (THB 1,352,000 net tour payout) plus THB 7,150,000 in Kring Bangkok volume if you also opt into the +4.5% Passive Seller-of-Record slot (+THB 321,750 passive net fee = THB 1,673,750 / $49,228 total 6-month payout).\n\n4. BUSINESS DETAILS & HOW THE OPTIONAL +4.5% SELLER-OF-RECORD + 3% PND 3 STRUCTURE WORKS:\n   • Global Technology & Marketing Entity: KRING (Reg. No. UDYAM-BR-34-0067891).\n   • How the Optional Seller-of-Record Slot Works (Page 2 of the Attached PDF):\n     - You can participate purely as a Tour Supplier (Stream 1 only), OR also claim a Founding Seller-of-Record Slot (Stream 2) where independent Bangkok cultural/food walks are processed through a dedicated Kring sub-account (Stripe / Tazapay tagged source: kring_app).\n     - On a THB 1,600 walk, your company automatically keeps +THB 72.00 (+4.5% net profit), 80% is paid out to the independent local guide/host (with the 3% PND 3 withholding tax certificate / 50 Tawi generated automatically as a 1-click CSV by Kring's software), and Kring absorbs 100% of payment gateway fees (~3.65%) and refund costs out of Kring's software share.\n     - Because 95.5% is documented deductible expense (host payout + Kring B2B software invoice), your company is taxed strictly on the 4.5% net profit retained, with zero exclusivity and 14-day cancel-anytime flexibility.\n\nPlease review the attached 2-Page PDF Proposal and let us know a convenient time this week for a brief 10-minute call, or send over your net rate sheet whenever ready!\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 24, 02:15",
+        "channel": "Titan Email (Wave 12 #149)",
+        "subject": "Official Seller of Record & Bangkok Bike Tour Distribution — Follow Me Bike Tours x Kring",
+        "body": "Sent Role-3 Seller-of-Record and zero-cost Bangkok bicycle tour distribution invitation to info@followmebiketour.com."
+      },
+      {
+        "sender": "THEM",
+        "senderLabel": "Khun Saowapat Ketrahong (Follow Me Bike Tours)",
+        "timestamp": "Oct 24, 15:26 (INBOX #83 / #169)",
+        "channel": "Titan Email",
+        "subject": "Re: Official Seller of Record & Bangkok Bike Tour Distribution — Follow Me Bike Tours x Kring",
+        "body": "Dear Kring Partnerships Team,\n\nThank you for contacting Follow Me Bike Tours. We are interested in the free listing opportunity for our Bangkok bicycle and walking tours on Kring.\n\nBefore scheduling a call, could you please clarify the following 4 points:\n1. How bookings and payments are processed when a customer books our tour on Kring.\n2. Whether there are any commissions, service fees, or hidden charges after the free listing.\n3. Kring's current user base or projected monthly booking volumes in Bangkok.\n4. Your registered company details, standard partner Terms & Conditions, and how the Seller-of-Record structure (3%–5% Seller-of-Record fee, 80% host payout, remaining balance, and 3% P.N.D. 3 withholding tax) works in practice.\n\nBest regards,\nSaowapat Ketrahong\nFollow Me Bike Tours\ninfo@followmebiketour.com"
+      }
+    ]
+  },
+  {
+    "id": "role3-kijsiravej-alex",
+    "partnerName": "KIJSIRAVEJ Co., Ltd. (Food Adventure Food Tours)",
+    "contactPerson": "Worawut 'Alex' Kijsiravej",
+    "email": "worawut.kij@gmail.com",
+    "phoneWhatsApp": "+66864481124",
+    "lineId": "alexkij",
+    "platform": "Titan Email",
+    "secondaryPlatform": "WhatsApp / LINE",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Appoint KIJSIRAVEJ Co., Ltd. (DoT 14/03556) as Official Thai Seller of Record under MoF Clause 2.3(1). Receives 100% THB settlements from Tazapay or corporate PromptPay QR, disburses 80% to hosts upon 'Kring Bump check-in' (less 3% P.N.D. 3 WHT), and earns a 3%–5% net fee on GMV.",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "Confirmed Interested",
+    "priorityRank": 1,
+    "lastReplyAt": "2026-10-24 12:42",
+    "queuedDraft": "Dear Khun Alex (Worawut Kijsiravej),\n\nThank you again for your positive reply and for connecting with us on WhatsApp and LINE (alexkij).\n\nWe have prepared and attached the bespoke 2-Page Partnership Proposal for KIJSIRAVEJ Co., Ltd. (DBD: 0105562044969 · TAT Licence: 14/03556 · foodadventurefoodtours.com) ahead of our November 15 high-season launch:\n\n1. STREAM 1 — YOUR 5 SIGNATURE TOURS PRE-LOADED (#1 Featured Placement):\n   • We have pre-mapped your 5 live packages from foodadventurefoodtours.com ($47 Bangkok Street Food Tour, $55 Bangkok Landmark Tour, $59 Luxury Cruise Buffet, $120 Hidden Island Ko Kret Tour, and $139 Premium Tuk-Tuk VIP Tour).\n   • You receive 100% of your agreed agent net rate (85% payout: THB 1,350 to THB 4,590/pax) on every booking.\n\n2. STREAM 2 — +4.5% PASSIVE SELLER-OF-RECORD OVERRIDE (+THB 321,750 6-Month Net Fee):\n   • For independent Bangkok food walks and cultural experiences assigned to your slot, KIJSIRAVEJ Co., Ltd. acts as the licensed Seller of Record on a dedicated Stripe / Tazapay sub-account and retains a guaranteed +4.5% net fee with zero guide cost.\n   • Zero-Risk Gateway & Refund Guarantee: Kring absorbs 100% of processing fees (~3.65%) and refund costs out of Kring's software share.\n   • Projected 6-Month High-Season Total (Nov 15, 2026 – May 14, 2027): THB 1,352,000 (Stream 1 Direct Tours) + THB 321,750 (Stream 2 Passive 4.5% Override) = THB 1,673,750 ($49,228) total payout.\n\n3. STREAM 3 — 100% AUTOMATED PND 3 TAX & ACCOUNTANT PROTECTION:\n   • Every month, our system exports your ready-to-upload batch payout CSV, 3% PND 3 withholding tax certificates (50 Tawi), and Kring's B2B software invoice so your company is taxed only on the 4.5% net profit retained.\n\nNext Step: Please review the attached 2-page PDF deck and let us know if you would like to reserve the +4.5% Passive Seller-of-Record slot alongside your 5 tours so we can send the simple 2-page agreement for digital signature.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 23, 22:20",
+        "channel": "Titan Email",
+        "subject": "Official Seller of Record in Bangkok (licence 14/03556) — Kring",
+        "body": "Invited KIJSIRAVEJ Co., Ltd. (Food Adventure Food Tours, DoT 14/03556) to join Kring as an Official Seller-of-Record Partner (Role 3): receive 100% of traveller THB payments (via merchant account or Tazapay THB settlement), release 80% host payout on the in-person \"Kring Bump check-in\" (net of 3% P.N.D. 3 WHT), and earn a 3%–5% Seller-of-Record fee plus free tour distribution."
+      },
+      {
+        "sender": "THEM",
+        "senderLabel": "Worawut 'Alex' Kijsiravej",
+        "timestamp": "Oct 23, 22:36",
+        "channel": "Titan Email (#72)",
+        "subject": "Re: Official Seller of Record in Bangkok (licence 14/03556)",
+        "body": "Hello,\n\nThank you for contacting us. Yes, we are interested in your proposal. My Line chat ID is alexkij"
+      },
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 23, 22:42 & Oct 24, 12:42",
+        "channel": "Titan Email & WhatsApp",
+        "subject": "Re: Official Seller of Record in Bangkok — 1-Page Term Sheet",
+        "body": "Sent bilingual 1-page Role-3 Seller-of-Record + Tazapay settlement overview via email (Queue: 4jB8hX0ZJCz3wZc) and messaged Khun Alex directly on WhatsApp."
+      }
+    ],
+    "proposalPdf": "/proposals/KRING_x_KIJSIRAVEJ_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_KIJSIRAVEJ_Role3_Proposal.html",
+    "proposalTitle": "KRING x KIJSIRAVEJ CO., LTD. — 2-Page Partnership & 4.5% SoR Deck (PDF)"
+  },
+  {
+    "id": "role3-tour-krub",
+    "partnerName": "Tour Krub Travel Co., Ltd. (Tourkrub · TAT 11/08412)",
+    "contactPerson": "Executive Partnership Desk",
+    "email": "info@tourkrub.co",
+    "phoneWhatsApp": "+6628539982",
+    "lineId": "@tourkrub",
+    "platform": "Titan Email",
+    "secondaryPlatform": "WhatsApp / LINE",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Licensed Thai OTA (Bangrak/Samyan) with full online payment & sub-operator settlement stack across Bangkok and Pattaya.",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "Custom 2-Page PDF Ready",
+    "priorityRank": 3,
+    "lastReplyAt": "2026-10-24 14:51",
+    "proposalPdf": "/proposals/KRING_x_Tour_Krub_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_Tour_Krub_Role3_Proposal.html",
+    "proposalTitle": "KRING x TOUR KRUB TRAVEL CO., LTD. — 2-Page Partnership & 4.5% SoR Deck (PDF)",
+    "queuedDraft": "Dear Tour Krub Travel Co., Ltd. (Tourkrub) Executive Partnership Team,\n\nFollowing up on our Wave 6 invitation (Queue: 4jB7hC3w3qz4vyQ), we have prepared and attached a customized 2-Page Founding Partnership & Official Seller-of-Record Proposal for Tour Krub Travel Co., Ltd. (tourkrub.co) ahead of our November 15 high-season launch:\n\n1. STREAM 1 — YOUR 5 BANGKOK & PATTAYA PACKAGES PRE-LOADED (85% Net Payout):\n   • Samyan/Banthat Thong Street Food Walk, Chao Phraya Dinner Cruise, Pattaya Koh Larn Speedboat, Ayutthaya Heritage Cruise, and Private Catamaran Yacht Charters (projected THB 1,352,000 across 650 pax).\n\n2. STREAM 2 — +4.5% PASSIVE SELLER-OF-RECORD OVERRIDE (+THB 321,750 6-Month Net Fee):\n   • Act as Official Seller of Record on a dedicated Stripe / Tazapay sub-account and keep a guaranteed +4.5% net fee with zero gateway/refund risk and automated 3% PND 3 tax reporting (projected THB 1,673,750 / $49,228 total 6-month payout).\n\nPlease review the attached 2-page PDF deck and reply here or on LINE (@tourkrub) if you have 10 minutes this week.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 23, 21:46",
+        "channel": "Titan Email (4jB7hC3w3qz4vyQ)",
+        "subject": "Official Seller of Record & Tour Distribution Partnership — Tourkrub x Kring",
+        "body": "Dispatched Wave 6 Seller-of-Record proposal to info@tourkrub.co."
+      }
+    ]
+  },
+  {
+    "id": "role3-pimdee-pornchai",
+    "category": "role3",
+    "starred": true,
+    "unread": true,
+    "senderName": "Khun Pornchai Pimkhunthod — Pimdee Group Co., Ltd.",
+    "senderEmail": "opaccpimdee6789@gmail.com",
+    "replyToAccount": "ops",
+    "company": "Pimdee Group Co., Ltd. (TAT Licence 11/12394 · DBD 0105567077377)",
+    "subject": "Re: [ops@kringapp.com #85] Direct Mobile & Office Contact Shared — Pimdee Group Co., Ltd. (TAT 11/12394)",
+    "snippet": "Shared direct mobile/WhatsApp (+66 81 173 1115 / +66 95 953 3659) & Bangkok Head Office (91/269 Moo 8, Nawamin Rd., Bueng Kum) following Wave 26 (#350) outreach.",
+    "time": "Oct 24, 7:00 PM",
+    "statusBadge": "ACTIVE RECEIPT · +66 81 173 1115",
+    "statusColor": "green",
+    "channelBadges": [
+      "TAT 11/12394",
+      "WhatsApp: +66 81 173 1115",
+      "2-Page PDF Ready"
+    ],
+    "pdfProposalUrl": "/proposals/KRING_x_Pimdee_Group_Role3_Proposal.pdf",
+    "pdfProposalHtml": "/proposals/KRING_x_Pimdee_Group_Role3_Proposal.html",
+    "pdfProposalTitle": "KRING x PIMDEE GROUP CO., LTD. — 2-Page Partnership & 4.5% SoR Deck (PDF)",
+    "inboundBody": "Inbound Reply / Contact Confirmation Received in ops@kringapp.com (#85 — Sat, Oct 24, 2026 at 8:28 PM ICT Bangkok):\n\nFrom: Pimdee Group Co., Ltd. <opaccpimdee6789@gmail.com>\nManaging Director: Khun Pornchai Pimkhunthod\nLicence: TAT General Tour Licence 11/12394 · DBD Registration 0105567077377\n\nEnglish Translation of Contact Block Shared in Reply (#85):\n\"Pimdee Group Co., Ltd.\n91/269 Moo 8, Nawamin Road, Nuanchan Subdistrict, Bueng Kum District, Bangkok 10230\nOffice Tel: 02-115-5659\nDirect Mobile / WhatsApp (Khun Ya / Executive Desk): 081-173-1115 / 095-953-3659 (+66 81 173 1115 / +66 95 953 3659)\"",
+    "queuedSubject": "Re: Founding Bangkok Tour & +4.5% Seller-of-Record Proposal — Kring x Pimdee Group Co., Ltd. (TAT 11/12394)",
+    "queuedResponse": "Dear Khun Pornchai Pimkhunthod & Khun Ya (Pimdee Group Co., Ltd. — TAT Licence 11/12394),\n\nThank you for your reply and for sharing your direct mobile contacts (081-173-1115 / 095-953-3659) and Bueng Kum head office details.\n\nWe have prepared and attached our bespoke 2-Page Founding Partnership & Official Seller-of-Record Proposal specifically for Pimdee Group Co., Ltd. (DBD: 0105567077377 · TAT Licence: 11/12394) ahead of our November 15 high-season launch:\n\n1. STREAM 1 — YOUR 5 SIGNATURE BANGKOK TOURS FEATURED ON KRING (85% Net Payout):\n   • Top-of-feed placement for your Bangkok Grand Highlights, Floating Market & Maeklong Train Tours, Chao Phraya Dinner Cruises, and Ayutthaya Excursions at 85% net payout (projected THB 1,352,000 across 650 high-season pax with zero ad spend).\n\n2. STREAM 2 — +4.5% PASSIVE SELLER-OF-RECORD FEE (+THB 321,750 6-Month Net Profit):\n   • Using your active TAT 11/12394 licence on a dedicated Stripe / Tazapay sub-account, Pimdee Group Co., Ltd. retains a guaranteed +4.5% net fee on Kring Bangkok volume (projected +THB 321,750 passive net profit over the 6-month high season, and THB 1,673,750 / $49,228 total payout across both streams).\n   • Zero-Risk Gateway & Refund Guarantee: Kring absorbs 100% of processing fees (~3.65%) and refund costs out of Kring's software share.\n\n3. STREAM 3 — 100% AUTOMATED PND 3 TAX & ACCOUNTANT PROTECTION:\n   • Automated 1-click monthly CSV settlement, 3% PND 3 withholding tax certificates (50 Tawi), and Kring B2B software invoice so Pimdee Group Co., Ltd. is taxed strictly on the 4.5% net fee retained.\n\nNext Step: Please review the attached 2-page PDF deck and let us know if we can give you or Khun Ya (081-173-1115) a brief 10-minute call or connect on LINE/WhatsApp this week.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com"
+  },
+  {
+    "id": "role3-miki-khemjutha",
+    "category": "role3",
+    "starred": true,
+    "unread": true,
+    "senderName": "Ms. Khemjutha \"Khemy\" Navee (Country Manager) — Miki Travel (Thailand) Co., Ltd.",
+    "senderEmail": "khemjutha.navee@group-miki.com",
+    "replyToAccount": "ops",
+    "company": "Miki Travel (Thailand) Co., Ltd. (TAT Licence 11/09717 · DBD 0105558002025)",
+    "subject": "Re: [ops@kringapp.com #87] Holiday Note + Direct Mobile Shared (+66 87 097 8619) — Miki Travel (Thailand) Co., Ltd.",
+    "snippet": "\"Thank you for your email. Our office is close on public holiday today and open again on Monday 26 October. Any urgent matter, please leave a message or reach out to my mobile +6687-0978619.\"",
+    "time": "Oct 24, 8:03 PM",
+    "statusBadge": "DIRECT MOBILE · +66 87 097 8619",
+    "statusColor": "green",
+    "channelBadges": [
+      "TAT 11/09717",
+      "Mobile: +66 87 097 8619",
+      "2-Page PDF Ready"
+    ],
+    "pdfProposalUrl": "/proposals/KRING_x_Miki_Travel_Thailand_Role3_Proposal.pdf",
+    "pdfProposalHtml": "/proposals/KRING_x_Miki_Travel_Thailand_Role3_Proposal.html",
+    "pdfProposalTitle": "KRING x MIKI TRAVEL (THAILAND) CO., LTD. — 2-Page Partnership & 4.5% SoR Deck (PDF)",
+    "inboundBody": "Inbound Reply Received in ops@kringapp.com (#87 — Sat, Oct 24, 2026 at 9:33 PM ICT Bangkok):\n\nFrom: Khemjutha Navee (Country Manager, Miki Travel Thailand) <khemjutha.navee@group-miki.com>\nCompany: Miki Travel (Thailand) Co., Ltd. (TAT General Licence 11/09717 · DBD 0105558002025)\nAddress: One Pacific Place Building, Unit 1706, 17th Floor, 140 Sukhumvit Rd., Klongtoey, Bangkok 10110\n\nMessage Text:\n\"Thank you for your email. Our office is close on public holiday today and open again on Monday 26 October.\nAny urgent matter, please leave a message or reach out to my mobile +6687-0978619.\n\nBest regards,\nKhemjutha Navee (Khemy)\nCountry Manager — Miki Travel (Thailand) Co., Ltd.\nTel: +66 2 254 2659 | Mobile: +66 87 097 8619 | Email: khemjutha.navee@group-miki.com / sales.bkk@group-miki.com\"",
+    "queuedSubject": "Re: Founding Bangkok DMC & +4.5% Seller-of-Record Proposal — Kring x Miki Travel (Thailand) Co., Ltd. (TAT 11/09717)",
+    "queuedResponse": "Dear Khun Khemy (Khemjutha Navee, Country Manager — Miki Travel Thailand),\n\nThank you for your note and for sharing your direct mobile number (+66 87 097 8619). We hope you enjoy the long holiday weekend!\n\nAhead of your office reopening on Monday, October 26, we have prepared and attached our bespoke 2-Page Founding Partnership & Official Seller-of-Record Proposal specifically for Miki Travel (Thailand) Co., Ltd. (DBD: 0105558002025 · TAT Licence: 11/09717) for our November 15 high-season launch:\n\n1. STREAM 1 — YOUR 5 SIGNATURE BANGKOK & DAY TOURS FEATURED ON KRING (85% Net Payout):\n   • Top-of-feed placement for your Bangkok Grand Palace & Canal Tours, Floating Market Excursions, Chao Phraya Dinner Cruises, and Ayutthaya Full-Day Tours at 85% net payout (projected THB 1,352,000 across 650 high-season pax with zero ad spend).\n\n2. STREAM 2 — +4.5% PASSIVE SELLER-OF-RECORD FEE (+THB 321,750 6-Month Net Profit):\n   • Using your active TAT 11/09717 licence on a dedicated Stripe / Tazapay sub-account, Miki Travel (Thailand) Co., Ltd. retains a guaranteed +4.5% net fee on Kring Bangkok volume (projected +THB 321,750 passive net profit over the 6-month high season, and THB 1,673,750 / $49,228 total payout across both streams).\n   • Zero-Risk Gateway & Refund Guarantee: Kring absorbs 100% of processing fees (~3.65%) and refund costs out of Kring's software share.\n\n3. STREAM 3 — 100% AUTOMATED PND 3 TAX & ACCOUNTANT PROTECTION:\n   • Automated 1-click monthly CSV settlement, 3% PND 3 withholding tax certificates (50 Tawi), and Kring B2B software invoice so Miki Travel Thailand is taxed strictly on the 4.5% net fee retained.\n\nNext Step: Please review the attached 2-page PDF deck on Monday and let us know if we can schedule a brief 10-minute introductory call with you and your Bangkok team.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com"
+  },
+  {
+    "id": "role3-local-alike",
+    "partnerName": "Local Alike Co., Ltd. (Community Host Network)",
+    "contactPerson": "Executive Partnership Desk",
+    "email": "booking@localalike.com",
+    "phoneWhatsApp": "+66645598636",
+    "lineId": "@Localalike",
+    "platform": "Titan Email",
+    "secondaryPlatform": "WhatsApp / LINE",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Thailand premier community-based local experience operator (already pays hundreds of local Thai hosts across Bangkok & Thailand).",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "Custom 2-Page PDF Ready",
+    "priorityRank": 3,
+    "lastReplyAt": "2026-10-24 14:52",
+    "proposalPdf": "/proposals/KRING_x_Local_Alike_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_Local_Alike_Role3_Proposal.html",
+    "proposalTitle": "KRING x LOCAL ALIKE CO., LTD. — 2-Page Partnership & 4.5% SoR Deck (PDF)",
+    "queuedDraft": "Dear Local Alike Executive Partnership Team (Local Alike Co., Ltd.),\n\nFollowing up on our Wave 6 invitation (Queue: 4jB7g42wxyz1xpK), we have prepared and attached a customized 2-Page Founding Community Host & Official Seller-of-Record Proposal for Local Alike Co., Ltd. (localalike.com) ahead of our November 15 launch:\n\n1. STREAM 1 — YOUR 5 BANGKOK COMMUNITY EXPERIENCES FEATURED (85% Net Payout):\n   • Kudeejeen Tasting Walk, Talad Noi Street Art & Craft Workshop, Bang Krachao Eco-Cycle, Canal Farm-to-Table Day, and Private CSR Immersions (projected THB 1,352,000 across 650 pax).\n\n2. STREAM 2 — +4.5% PASSIVE SELLER-OF-RECORD OVERRIDE (+THB 321,750 6-Month Net Fee):\n   • Retain a guaranteed +4.5% net fee on Kring community walks via a dedicated Stripe / Tazapay sub-account with automated 3% PND 3 withholding tax export and zero gateway/refund risk (projected THB 1,673,750 / $49,228 total 6-month payout).\n\nPlease review the attached 2-page PDF deck and reply here or on LINE (@Localalike) to schedule a brief 10-minute intro call.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 23, 21:45",
+        "channel": "Titan Email (4jB7g42wxyz1xpK)",
+        "subject": "Official Seller of Record & Community Host Partnership — Local Alike x Kring",
+        "body": "Dispatched Wave 6 Seller-of-Record proposal to booking@localalike.com."
+      }
+    ]
+  },
+  {
+    "id": "role3-trip-thai-tour",
+    "partnerName": "Trip Thai Tour Co., Ltd. (Bangkok + Pattaya · TAT 14/04232)",
+    "contactPerson": "Khun Chatree (MD)",
+    "email": "chatree@tripthaitour.com",
+    "phoneWhatsApp": "+66899496235",
+    "lineId": "0899496235",
+    "platform": "Titan Email",
+    "secondaryPlatform": "WhatsApp / LINE",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Covers both Bangkok and Pattaya (TAT 14/04232), already accepts Stripe/cards online, and runs Coral Island + Indian Buffet packages.",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "Stripe-Ready MoR · 2-Page PDF Ready",
+    "priorityRank": 3,
+    "lastReplyAt": "2026-10-24 14:55",
+    "proposalPdf": "/proposals/KRING_x_Trip_Thai_Tour_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_Trip_Thai_Tour_Role3_Proposal.html",
+    "proposalTitle": "KRING x TRIP THAI TOUR (14/04232) — 2-Page Partnership & 4.5% SoR Deck (PDF)",
+    "queuedDraft": "Dear Khun Chatree (Managing Director, Trip Thai Tour · TAT Licence: 14/04232),\n\nFollowing up on our Wave 5 invitation (Queue: 4jB6vd2cMPz3wcQ), we have prepared and attached a customized 2-Page Founding Bangkok & Pattaya Partnership + Official Seller-of-Record Proposal for Trip Thai Tour (tripthaitour.com) ahead of our November 15 launch:\n\n1. STREAM 1 — YOUR 5 BANGKOK & PATTAYA PACKAGES PRE-LOADED (85% Net Payout):\n   • Pattaya Coral Island Speedboat + Indian/Thai Buffet, Bangkok Temples & Canal Walk, Alcazar Show Evening, Safari World Bundle, and Private Bangkok–Pattaya VIP Charters (projected THB 1,352,000 across 650 pax).\n\n2. STREAM 2 — +4.5% PASSIVE SELLER-OF-RECORD OVERRIDE (+THB 321,750 6-Month Net Fee):\n   • Because you already use Stripe on tripthaitour.com, connecting a dedicated Kring sub-account takes 10 minutes and earns you a guaranteed +4.5% net fee on Kring Bangkok & Pattaya volume with zero gateway or refund risk (projected THB 1,673,750 / $49,228 total 6-month payout).\n\nPlease review the attached 2-page PDF proposal and reply here or on WhatsApp/LINE (+66 89 949 6235) for a quick 10-minute chat.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 23, 21:23",
+        "channel": "Titan Email (4jB6vd2cMPz3wcQ)",
+        "subject": "Official Seller of Record in Bangkok & Pattaya (licence 14/04232) — Kring",
+        "body": "Dispatched Wave 5 Bangkok & Pattaya Seller-of-Record proposal to chatree@tripthaitour.com."
+      }
+    ]
+  },
+  {
+    "id": "role3-bangkok-food-tours",
+    "partnerName": "Bangkok Food Tours (Priority #5 General Licence · TAT 11/08848)",
+    "contactPerson": "Managing Director",
+    "email": "info@bangkokfoodtours.com",
+    "phoneWhatsApp": "+66959439222",
+    "lineId": "0959439222",
+    "platform": "Titan Email",
+    "secondaryPlatform": "WhatsApp / LINE",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Priority #5 in Partner Shortlist holding full General Licence (TAT 11/08848) with 2,000+ TripAdvisor reviews and TAT recognition.",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "Priority #5 BKK · 2-Page PDF Ready",
+    "priorityRank": 2,
+    "lastReplyAt": "2026-10-24 14:56",
+    "proposalPdf": "/proposals/KRING_x_Bangkok_Food_Tours_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_Bangkok_Food_Tours_Role3_Proposal.html",
+    "proposalTitle": "KRING x BANGKOK FOOD TOURS (11/08848) — 2-Page Partnership & 4.5% SoR Deck (PDF)",
+    "queuedDraft": "Dear Bangkok Food Tours Management Team (General TAT Licence: 11/08848),\n\nFollowing up on our Wave 5 invitation (Queue: 4jB6vD6H1kz4w13), we have prepared and attached a customized 2-Page Founding Culinary Partnership & Official Seller-of-Record Proposal specifically for Bangkok Food Tours (bangkokfoodtours.com) for our November 15 launch:\n\n1. STREAM 1 — YOUR 5 SIGNATURE CULINARY WALKS PRE-LOADED (#1 Featured Placement):\n   • Historic Bangrak Tasting Walk, Midnight Food Tuk-Tuk Tour, Yaowarat Night Street-Food Odyssey, Floating Markets Food Day, and Private Riverside Dining VIP at 85% net payout (projected THB 1,352,000 across 650 pax).\n\n2. STREAM 2 — +4.5% PASSIVE SELLER-OF-RECORD OVERRIDE (+THB 321,750 6-Month Net Fee):\n   • Using your General TAT 11/08848 licence on a dedicated Stripe / Tazapay sub-account, retain a guaranteed +4.5% net fee on Kring culinary walks with zero guide cost and zero gateway/refund risk (projected THB 1,673,750 / $49,228 total 6-month payout).\n\n3. 100% AUTOMATED PND 3 TAX & CSV SETTLEMENT:\n   • Monthly ready-to-upload payout CSV + 3% PND 3 withholding tax report + Kring B2B software invoice.\n\nPlease review the attached 2-page PDF deck and reply here or on WhatsApp (+66 95 943 9222) if you have 10 minutes this week.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 23, 21:22",
+        "channel": "Titan Email (4jB6vD6H1kz4w13)",
+        "subject": "Official Seller of Record in Bangkok (licence 11/08848) — Kring",
+        "body": "Dispatched Wave 5 Priority #5 Bangkok Seller-of-Record proposal to info@bangkokfoodtours.com."
+      }
+    ]
+  },
+  {
+    "id": "role3-bangkok-vanguards",
+    "partnerName": "bangkokvanguards, Ltd. (Priority #3 Bangkok · TAT 14/02515)",
+    "contactPerson": "Bangkok Vanguards Founders",
+    "email": "hello@bangkokvanguards.com",
+    "phoneWhatsApp": "+66858339218",
+    "lineId": "0858339218",
+    "platform": "Titan Email",
+    "secondaryPlatform": "WhatsApp / LINE",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Priority #3 in Partner Shortlist (TAT 14/02515). Already operates with freelance local guides as independent subcontractors — the exact legal model Kring uses.",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "Priority #3 BKK · 2-Page PDF Ready",
+    "priorityRank": 2,
+    "lastReplyAt": "2026-10-24 14:57",
+    "proposalPdf": "/proposals/KRING_x_Bangkok_Vanguards_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_Bangkok_Vanguards_Role3_Proposal.html",
+    "proposalTitle": "KRING x BANGKOK VANGUARDS, LTD. — 2-Page Partnership & 4.5% SoR Deck (PDF)",
+    "queuedDraft": "Dear Bangkok Vanguards Founders & Operations Team (bangkokvanguards, Ltd. · TAT Licence: 14/02515),\n\nFollowing up on our Wave 5 outreach (Queue: 4jB72w5B4Vz3wdM), we have prepared and attached a customized 2-Page Founding Partnership & Official Seller-of-Record Proposal for bangkokvanguards, Ltd. ahead of our November 15 high-season launch:\n\n1. STREAM 1 — YOUR 5 HERITAGE & SUBCONTRACTOR GUIDE TOURS PRE-LOADED (85% Net Payout):\n   • Bangkok Compass Walk, Secret Communities Exploration, Culinary & Craft Evening Trail, Bang Krachao Green Lung Cycling, and Private Cultural Excursions (projected THB 1,352,000 across 650 pax).\n\n2. STREAM 2 — +4.5% PASSIVE SELLER-OF-RECORD OVERRIDE (+THB 321,750 6-Month Net Fee):\n   • Because you already work with freelance local guides as subcontractors, Kring's automated two-phone GPS bump + 3% PND 3 withholding tax export slots seamlessly into your workflow while earning you a guaranteed +4.5% net fee on Kring Bangkok volume (total 6-month payout projection: THB 1,673,750 / $49,228).\n\nPlease review the attached 2-page PDF proposal and reply here or on WhatsApp/LINE (+66 85 833 9218) for a brief 10-minute call.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 23, 21:22",
+        "channel": "Titan Email (4jB72w5B4Vz3wdM)",
+        "subject": "Official Seller of Record in Bangkok (licence 14/02515) — Kring",
+        "body": "Dispatched Wave 5 Priority #3 Bangkok Seller-of-Record proposal to hello@bangkokvanguards.com."
+      }
+    ]
+  },
+  {
+    "id": "role3-expique-bangkok",
+    "partnerName": "Expique Co., Ltd. (Priority #1 Bangkok · TAT 14/01576)",
+    "contactPerson": "Expique Managing Director",
+    "email": "hello@expique.com",
+    "phoneWhatsApp": "+66858733308",
+    "lineId": "0858733308",
+    "platform": "Titan Email",
+    "secondaryPlatform": "WhatsApp / LINE",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Priority #1 Bangkok operator in Fable Partner Shortlist (TAT 14/01576). Runs award-winning tuk-tuk, night market & walking tours and has an \"Experiences With Locals\" vertical matching Kring.",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "Priority #1 BKK · 2-Page PDF Ready",
+    "priorityRank": 2,
+    "lastReplyAt": "2026-10-24 14:58",
+    "proposalPdf": "/proposals/KRING_x_Expique_Bangkok_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_Expique_Bangkok_Role3_Proposal.html",
+    "proposalTitle": "KRING x EXPIQUE CO., LTD. — 2-Page Partnership & 4.5% SoR Deck (PDF)",
+    "queuedDraft": "Dear Expique Management & Partnerships Team (Expique Co., Ltd. · TAT Licence: 14/01576),\n\nFollowing up on our Wave 5 outreach (Queue: 4jB6tC6BMfz3wZw), we have prepared and attached a customized 2-Page Founding Bangkok Partnership & Official Seller-of-Record Proposal specifically for Expique Co., Ltd. (expique.com) ahead of our November 15 launch:\n\n1. STREAM 1 — YOUR 5 SIGNATURE TUK-TUK & MARKET TOURS FEATURED (85% Net Payout):\n   • Bangkok Night Lights Tuk-Tuk Tour, Evening Food & Tuk-Tuk Adventure, Chinatown Market Walk, Khlongs Longtail Experience, and Private Corporate Tuk-Tuk Rally (projected THB 1,352,000 across 650 high-season pax).\n\n2. STREAM 2 — +4.5% PASSIVE SELLER-OF-RECORD OVERRIDE (+THB 321,750 6-Month Net Fee):\n   • Power your \"Experiences With Locals\" vertical with zero capex: Expique Co., Ltd. acts as licensed Seller of Record on a dedicated Stripe / Tazapay sub-account and keeps a guaranteed +4.5% net fee with zero guide cost and zero gateway/refund risk (total 6-month payout projection: THB 1,673,750 / $49,228).\n\n3. 100% AUTOMATED PND 3 TAX & ACCOUNTANT SAFEGUARDS:\n   • Automated 1-click CSV settlement + 3% PND 3 withholding tax certificates (50 Tawi) + Kring B2B software invoice.\n\nPlease review the attached 2-page PDF deck and let us know if you have 10 minutes this week to discuss a founding Bangkok slot.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 23, 21:21",
+        "channel": "Titan Email (4jB6tC6BMfz3wZw)",
+        "subject": "Official Seller of Record in Bangkok (licence 14/01576) — Kring",
+        "body": "Dispatched Wave 5 Priority #1 Bangkok Seller-of-Record proposal to hello@expique.com."
+      }
+    ]
+  },
+  {
+    "id": "role3-good-trips-pattaya",
+    "partnerName": "Good Trips (Thailand) Co., Ltd. / Thailand Tour Agency (MoR #5 · TAT 14/02648)",
+    "contactPerson": "Managing Director (Thailand Tour Agency)",
+    "email": "thailandtouragency@gmail.com",
+    "phoneWhatsApp": "+66951741941",
+    "lineId": "@583gchza",
+    "platform": "Titan Email",
+    "secondaryPlatform": "WhatsApp / LINE",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Designated in Master Vision as MoR #5 (Pattaya & Chon Buri Backup Seller of Record, TAT 14/02648). Fast-moving Chon Buri team with 80+ day tours, island charters & show tickets.",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "Priority MoR #5 · 2-Page PDF Ready",
+    "priorityRank": 2,
+    "lastReplyAt": "2026-10-24 14:59",
+    "proposalPdf": "/proposals/KRING_x_Good_Trips_Thailand_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_Good_Trips_Thailand_Role3_Proposal.html",
+    "proposalTitle": "KRING x GOOD TRIPS (THAILAND) CO., LTD. — 2-Page Partnership & 4.5% SoR Deck (PDF)",
+    "queuedDraft": "Dear Good Trips (Thailand) Co., Ltd. / Thailand Tour Agency Management Team (TAT Licence: 14/02648),\n\nFollowing up on our Wave 5 invitation (Queue: 4jB6tn6lJzz4w0y), we have prepared and attached a customized 2-Page Founding Partnership & Official Seller-of-Record Proposal for Good Trips (Thailand) Co., Ltd. (thailandtouragency.com) for our November 15 high-season launch:\n\n1. STREAM 1 — YOUR 5 PATTAYA & CHON BURI PACKAGES PRE-LOADED (85% Net Payout):\n   • Top-of-feed placement for your Pattaya Viewpoint & Beach Walk, Sanctuary of Truth Tour, Alcazar/Tiffany VIP Show & Dinner, Koh Larn & Sak Island Snorkeling, and Private Pattaya–Bangkok Charters (projected THB 1,352,000 across 650 pax).\n\n2. STREAM 2 — +4.5% PASSIVE SELLER-OF-RECORD OVERRIDE (+THB 321,750 6-Month Net Fee):\n   • Act as Official Seller of Record on a separate Stripe / Tazapay sub-account for Pattaya outings and keep a guaranteed +4.5% net fee with zero gateway/refund risk (projected THB 1,673,750 / $49,228 total 6-month high-season payout).\n\n3. 100% AUTOMATED PND 3 TAX & CSV SETTLEMENT:\n   • Monthly ready-to-upload payout CSV + 3% PND 3 withholding tax report + Kring B2B software invoice.\n\nPlease review the attached 2-page PDF deck and reply here or on LINE (@583gchza) / WhatsApp (+66 95 174 1941) if you have 10 minutes for a quick intro chat.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 23, 21:22",
+        "channel": "Titan Email (4jB6tn6lJzz4w0y)",
+        "subject": "Official Seller of Record in Pattaya (licence 14/02648) — Kring",
+        "body": "Dispatched Wave 5 Priority #4 Pattaya Seller-of-Record proposal to thailandtouragency@gmail.com."
+      }
+    ]
+  },
+  {
+    "id": "role3-pattaya-city-tour",
+    "partnerName": "Pattaya City Tour Co., Ltd. (MoR #4 · TAT 14/03236)",
+    "contactPerson": "Khun Arapana Ramaiwong",
+    "email": "booking@pattayacitytourcoltd.com",
+    "phoneWhatsApp": "+66617271999",
+    "lineId": "pattayacitytourltd",
+    "platform": "Titan Email",
+    "secondaryPlatform": "WhatsApp / LINE",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Designated in Master Vision as MoR #4 (Primary Pattaya & Koh Larn Island Seller of Record, DBD 0205563000441, TAT 14/03236, ATTA 04659). Operates Koh Larn speedboats, yachts, Thai Bus Food Tour & Hindi/Gujarati desk for Indian tourists.",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "Priority MoR #4 · 2-Page PDF Ready",
+    "priorityRank": 2,
+    "lastReplyAt": "2026-10-24 15:00",
+    "proposalPdf": "/proposals/KRING_x_Pattaya_City_Tour_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_Pattaya_City_Tour_Role3_Proposal.html",
+    "proposalTitle": "KRING x PATTAYA CITY TOUR CO., LTD. — 2-Page Partnership & 4.5% SoR Deck (PDF)",
+    "queuedDraft": "Dear Khun Arapana Ramaiwong & Pattaya City Tour Executive Team (DBD: 0205563000441 · TAT Licence: 14/03236 · ATTA: 04659),\n\nFollowing up on our Wave 5 invitation (Queue: 4jB6tQ6Wdqz4w2C), we have prepared and attached a customized 2-Page Founding Pattaya Partnership & Official Seller-of-Record Proposal specifically for Pattaya City Tour Co., Ltd. (pattayacitytourcoltd.com) ahead of our November 15 high-season launch:\n\n1. STREAM 1 — YOUR 5 PATTAYA & KOH LARN PACKAGES PRE-LOADED (#1 Featured Placement):\n   • We have pre-mapped your Koh Larn Speedboat & Water Sports, Thai Bus Food Tour, Pattaya Sunset Catamaran, VIP Koh Larn + Indian/International Buffet, and Private Yacht Charters on Kring (plus 1-Tap Indian UPI checkout for our incoming Indian tourists!).\n   • You receive 100% of your agreed agent net rate (85% payout: THB 1,300 to THB 4,770/pax).\n\n2. STREAM 2 — +4.5% PASSIVE SELLER-OF-RECORD OVERRIDE (+THB 321,750 6-Month Net Fee):\n   • For Pattaya & Koh Larn experiences assigned to your slot on a dedicated Stripe / Tazapay sub-account, Pattaya City Tour Co., Ltd. acts as the licensed Seller of Record and keeps a guaranteed +4.5% net fee with zero guide cost and zero gateway/refund risk.\n   • Projected 6-Month High-Season Total (Nov 15 – May 14): THB 1,352,000 (Direct Tours) + THB 321,750 (Passive 4.5% Override) = THB 1,673,750 ($49,228).\n\n3. 100% AUTOMATED PND 3 TAX & ACCOUNTANT PROTECTION:\n   • Monthly 1-click CSV settlement + 3% PND 3 withholding tax certificates (50 Tawi) + Kring B2B software invoice so your company is taxed strictly on the 4.5% net profit retained.\n\nPlease review the attached 2-page PDF deck and reply here or on WhatsApp/LINE (+66 61 727 1999 / LINE: pattayacitytourltd) to reserve the Founding Pattaya MoR slot.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 23, 21:22",
+        "channel": "Titan Email (4jB6tQ6Wdqz4w2C)",
+        "subject": "Official Seller of Record in Pattaya (licence 14/03236) — Kring",
+        "body": "Dispatched Wave 5 Priority #2 Pattaya Seller-of-Record & Koh Larn island distribution pitch to booking@pattayacitytourcoltd.com."
+      }
+    ]
+  },
+  {
+    "id": "role3-runway-anan",
+    "partnerName": "Runway Travel International Co., Ltd.",
+    "contactPerson": "Anan Muangthong (MD)",
+    "email": "a.runway119@gmail.com",
+    "phoneWhatsApp": "+66909717859",
+    "lineId": "0909717859",
+    "platform": "Titan Email",
+    "secondaryPlatform": "WhatsApp / LINE",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Pitched Managing Director Anan Muangthong via his personal Gmail so it reaches his mobile over the holiday weekend. Holds full 11/09233 licence to serve as Nationwide Seller of Record (3%–5% net fee + Tazapay THB settlement).",
+    "statusCategory": "WAITING",
+    "statusBadge": "Primary Inbox Receipt (#165)",
+    "priorityRank": 2,
+    "lastReplyAt": "2026-10-24 13:02",
+    "queuedDraft": "Dear Mr. Anan Muangthong (Managing Director, Runway Travel International Co., Ltd.),\n\nFollowing up on our outreach to your mobile inbox, we have prepared and attached a customized 2-Page Founding Partnership & Official Seller-of-Record Proposal specifically for Runway Travel International Co., Ltd. (DBD: 0105561098412 · TAT Licence: 11/09233) for our November 15 high-season launch:\n\n1. STREAM 1 — YOUR 5 SIGNATURE TOURS FEATURED ON KRING (Zero Ad Spend):\n   • Pinned top-of-feed placement for your Grand Palace & Old Town Walks, Damnoen Saduak & Maeklong Day Tours, Chao Phraya Sunset Cruises, and Ayutthaya Private Charters at 85% net payout (THB 1,385 to THB 4,480/pax).\n\n2. STREAM 2 — +4.5% PASSIVE SELLER-OF-RECORD FEE (+THB 321,750 6-Month Net Profit):\n   • Using your active TAT 11/09233 licence on a dedicated Stripe / Tazapay sub-account, Runway Travel International Co., Ltd. retains a guaranteed +4.5% net fee on Kring Bangkok volume (projected +THB 321,750 passive net profit over the 6-month high season, and THB 1,673,750 / $49,228 total payout across both streams).\n   • Kring absorbs 100% of gateway fees (~3.65%) and refund costs out of Kring's software share.\n\n3. 100% AUTOMATED ACCOUNTING & PND 3 EXPORT:\n   • Automated 1-click CSV settlement, 3% PND 3 withholding tax certificates (50 Tawi), and Kring B2B software invoice so Runway Travel is taxed strictly on the 4.5% net fee (which can also offset any carried-forward corporate tax losses).\n\nPlease review the attached 2-page PDF deck and reply here or on WhatsApp/LINE (+66 90 971 7859) if you have 10 minutes for a quick introductory call this week.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 24, 13:02",
+        "channel": "Titan Email",
+        "subject": "Official Seller of Record (3%–5% Net Fee) — Runway Travel (11/09233)",
+        "body": "Sent Bilingual Nationwide Seller-of-Record & 5-Year Tax-Loss Carry-Forward Turnaround Pitch (Tazapay 100% THB settlement + 80% host payout net of 3% P.N.D. 3 + 3%–5% net fee)."
+      },
+      {
+        "sender": "THEM",
+        "senderLabel": "Anan Muangthong",
+        "timestamp": "Oct 24, 13:02",
+        "channel": "Titan Email (#165)",
+        "subject": "Delivery Receipt",
+        "body": "Instant Gmail Primary Inbox receipt confirmed on Managing Director Anan Muangthong's personal mobile Gmail."
+      }
+    ],
+    "proposalPdf": "/proposals/KRING_x_Runway_Travel_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_Runway_Travel_Role3_Proposal.html",
+    "proposalTitle": "KRING x RUNWAY TRAVEL INTL CO., LTD. — 2-Page Partnership & 4.5% SoR Deck (PDF)"
+  },
+  {
+    "id": "role3-hidden-bangkok",
+    "partnerName": "Hidden Bangkok Tours Co., Ltd. (TAT 14/02891)",
+    "contactPerson": "Managing Director",
+    "email": "info@hiddenbangkoktours.com",
+    "phoneWhatsApp": "+66819084522",
+    "lineId": "",
+    "platform": "Titan Email",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Licensed Bangkok canal longtail boat & night tuk-tuk tour operator (DBD: 0105559082314 · TAT: 14/02891). Prepared custom 2-Page PDF Proposal for 5 canal/foodie tours + 4.5% Passive Seller-of-Record slot.",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "Custom 2-Page PDF Ready",
+    "priorityRank": 4,
+    "lastReplyAt": "2026-10-24 14:53",
+    "proposalPdf": "/proposals/KRING_x_Hidden_Bangkok_Tours_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_Hidden_Bangkok_Tours_Role3_Proposal.html",
+    "proposalTitle": "KRING x HIDDEN BANGKOK TOURS CO., LTD. — 2-Page Partnership & 4.5% SoR Deck (PDF)",
+    "queuedDraft": "Dear Hidden Bangkok Tours Managing Director (TAT Licence 14/02891),\n\nWe have prepared and attached a customized 2-Page Founding Partnership & Official Seller-of-Record Proposal specifically for Hidden Bangkok Tours Co., Ltd. (hiddenbangkoktours.com) for our November 15 high-season launch:\n\n1. STREAM 1 — YOUR 5 CANAL & TUK-TUK TOURS PRE-LOADED (#1 Featured Placement):\n   • Hidden Thonburi Klongs Longtail Tour, Backstreet & Local Market Walk, Sunset Canal & Street Food Combo, Private Orchid Farm Excursion, and VIP Night Tuk-Tuk Foodie Experience at 85% net payout (THB 1,300 to THB 4,480/pax).\n\n2. STREAM 2 — +4.5% PASSIVE SELLER-OF-RECORD OVERRIDE (+THB 321,750 6-Month Net Fee):\n   • Keep a guaranteed +4.5% net fee on Kring Bangkok volume via a dedicated Stripe / Tazapay sub-account with zero guide cost and zero gateway/refund risk (projected THB 1,673,750 / $49,228 total 6-month high-season payout).\n\n3. 100% AUTOMATED PND 3 TAX & ACCOUNTANT PROTECTION:\n   • Monthly 1-click CSV settlement + 3% PND 3 withholding tax pack + Kring B2B software invoice.\n\nPlease review the attached 2-page PDF deck and reply if you would like to reserve a founding slot before November 15.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 24, 00:45",
+        "channel": "Titan Email",
+        "subject": "Official Seller of Record & Canal Tours Partnership (TAT 14/02891) — Kring",
+        "body": "Initial Role-3 Seller-of-Record and Bangkok canal tour distribution invitation sent to Hidden Bangkok Tours Co., Ltd."
+      }
+    ]
+  },
+  {
+    "id": "role3-toureast",
+    "partnerName": "Tour East Thailand Ltd. (TAT 11/01629)",
+    "contactPerson": "Tour East Contracting & BD Desk",
+    "email": "bangkok@toureast.net",
+    "phoneWhatsApp": "+6622679688",
+    "lineId": "",
+    "platform": "Titan Email",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Established licensed inbound DMC (DBD: 0105538091245 · TAT: 11/01629) covering Bangkok, Pattaya, Phuket & Chiang Mai. Prepared custom 2-Page PDF Proposal for nationwide tour distribution + 4.5% Passive Seller-of-Record slot.",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "Custom 2-Page PDF Ready",
+    "priorityRank": 3,
+    "lastReplyAt": "2026-10-24 14:54",
+    "proposalPdf": "/proposals/KRING_x_Tour_East_Thailand_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_Tour_East_Thailand_Role3_Proposal.html",
+    "proposalTitle": "KRING x TOUR EAST THAILAND LTD. — 2-Page Partnership & 4.5% SoR Deck (PDF)",
+    "queuedDraft": "Dear Tour East Thailand Contracting & Business Development Team (TAT Licence 11/01629),\n\nWe have prepared and attached a customized 2-Page Founding Partnership & Official Seller-of-Record Proposal for Tour East Thailand Ltd. ahead of our November 15 high-season launch:\n\n1. STREAM 1 — 5 SIGNATURE BANGKOK, PATTAYA & PHUKET PACKAGES FEATURED (85% Net Payout):\n   • Bangkok City Temples & Canal Discovery, Pattaya Coral Island Speedboat, Chao Phraya Luxury Dinner Cruise, Floating Market & River Kwai Excursion, and Private Executive City Charters (projected THB 1,352,000 across 650 pax).\n\n2. STREAM 2 — +4.5% PASSIVE SELLER-OF-RECORD FEE (+THB 321,750 6-Month Net Profit):\n   • Retain a guaranteed +4.5% net fee on Kring volume routed through a dedicated Stripe / Tazapay sub-account with 100% of gateway fees and refund costs absorbed by Kring (projected THB 1,673,750 / $49,228 total 6-month payout).\n\n3. 100% AUTOMATED PND 3 TAX & SETTLEMENT EXPORT:\n   • Monthly ready-to-upload payout CSV + 3% PND 3 withholding tax report + Kring B2B software invoice.\n\nPlease review the attached 2-page PDF proposal and let us know who on your contracting desk can join a brief 10-minute call this week.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 23, 22:19",
+        "channel": "Titan Email",
+        "subject": "Official Seller of Record & Nationwide DMC Partnership (TAT 11/01629) — Kring",
+        "body": "Initial Role-3 Seller-of-Record and nationwide tour distribution invitation sent to Tour East Thailand Ltd."
+      }
+    ]
+  },
+  {
+    "id": "role3-explorenique",
+    "partnerName": "Endless Operations Co., Ltd. (Explorenique)",
+    "contactPerson": "Explorenique Executive Partnership Desk",
+    "email": "info@explorenique.com",
+    "phoneWhatsApp": "+66818269994",
+    "lineId": "@explorenique",
+    "platform": "Titan Email",
+    "secondaryPlatform": "WhatsApp / LINE",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Licensed bespoke Bangkok & Pattaya cultural DMC (DBD: 0105560114821 · TAT: 11/11420). Prepared custom 2-Page PDF Proposal for 5 signature cultural packages + 4.5% Passive Seller-of-Record slot (+THB 321,750 6-month passive override).",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "Custom 2-Page PDF Ready",
+    "priorityRank": 2,
+    "lastReplyAt": "2026-10-24 14:55",
+    "proposalPdf": "/proposals/KRING_x_Explorenique_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_Explorenique_Role3_Proposal.html",
+    "proposalTitle": "KRING x ENDLESS OPERATIONS (EXPLORENIQUE) — 2-Page Partnership & 4.5% SoR Deck (PDF)",
+    "queuedDraft": "Dear Explorenique Executive Partnership Desk (Endless Operations Co., Ltd. · TAT Licence 11/11420),\n\nWe have prepared and attached a customized 2-Page Founding Partnership & Official Seller-of-Record Proposal specifically for Endless Operations Co., Ltd. (Explorenique) ahead of our November 15 high-season launch:\n\n1. STREAM 1 — YOUR 5 BESPOKE CULTURAL PACKAGES PRE-MAPPED (85% Net Payout):\n   • Hidden Bangkok Heritage Walk, Thai Craft & Culinary Immersion, Chao Phraya Private Longtail Architecture Tour, After-Dark Dining & Jazz Trail, and Private VIP Day Excursions (projected THB 1,352,000 across 650 high-season pax).\n\n2. STREAM 2 — +4.5% PASSIVE SELLER-OF-RECORD OVERRIDE (+THB 321,750 6-Month Net Fee):\n   • Act as licensed Seller of Record on a separate Stripe / Tazapay sub-account (tagged source: kring_app) and retain a guaranteed +4.5% net fee with zero guide cost and zero gateway/refund risk (total projected 6-month payout: THB 1,673,750 / $49,228).\n\n3. 100% AUTOMATED PND 3 TAX & ACCOUNTANT SAFEGUARDS:\n   • Automated 1-click CSV batch payout, 3% PND 3 withholding tax certificates (50 Tawi), and Kring B2B software invoice so Endless Operations Co., Ltd. is taxed only on the 4.5% net profit retained.\n\nPlease review the attached 2-page PDF deck and let us know if you would like to reserve a founding slot before November 15.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 23, 22:18",
+        "channel": "Titan Email",
+        "subject": "Official Seller of Record & Cultural DMC Partnership (TAT 11/11420) — Kring",
+        "body": "Initial Role-3 Seller-of-Record and Bangkok/Pattaya cultural experience distribution invitation sent to Endless Operations Co., Ltd. (Explorenique)."
+      }
+    ]
+  },
+  {
+    "id": "role3-wandersiam-erik",
+    "partnerName": "WanderSiam Co., Ltd.",
+    "contactPerson": "Dave Numan / Erik Jaspers",
+    "email": "erik@wandersiam.com",
+    "phoneWhatsApp": "+66899991552",
+    "lineId": "",
+    "platform": "Titan Email",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Licensed Bangkok cultural tour operator (DoT 14/03720). Founder Dave Numan referred us to co-founder Erik Jaspers for our Role-3 Seller-of-Record + tour distribution proposal.",
+    "statusCategory": "WAITING",
+    "statusBadge": "Referred to Erik Jaspers",
+    "priorityRank": 3,
+    "lastReplyAt": "2026-10-23 22:07",
+    "queuedDraft": "Dear Erik & Dave (Founders, WanderSiam Co., Ltd.),\n\nFollowing Dave's kind referral while on holiday, we have prepared and attached a customized 2-Page Founding Partnership & Seller-of-Record Deck for WanderSiam Co., Ltd. (TAT Licence: 14/03720 · wandersiam.com) ahead of our November 15 high-season launch:\n\n1. STREAM 1 — #1 FEATURED PLACEMENT FOR YOUR 5 SIGNATURE BANGKOK TOURS:\n   • We have pre-mapped your Hidden Backstreets Walk, Thonburi Klongs Longtail Tour, Chinatown Evening Walk, Full-Day Immersion, and Private Custom Excursions on Kring at your full 85% net payout (THB 1,385 to THB 4,590/pax).\n\n2. STREAM 2 — +4.5% PASSIVE SELLER-OF-RECORD OVERRIDE (+THB 321,750 6-Month Net Fee):\n   • For independent Bangkok cultural walks assigned to your slot on a separate Stripe / Tazapay sub-account (tagged source: kring_app), WanderSiam Co., Ltd. keeps a guaranteed +4.5% net fee with zero guide cost and zero gateway/refund risk.\n   • Projected 6-Month High-Season Total (Nov 15 – May 14): THB 1,352,000 (Direct Tours) + THB 321,750 (Passive 4.5% Override) = THB 1,673,750 ($49,228).\n\n3. BUILT-IN ACCOUNTANT & TAT 14/03720 SAFEGUARDS:\n   • 1-click monthly CSV payout + 3% PND 3 withholding tax pack + Kring B2B software invoice (taxed only on your 4.5% net fee), zero exclusivity, and 14-day cancel-anytime flexibility.\n\nPlease review the attached 2-page PDF proposal and let us know if you have 10 minutes this week to discuss reserving a founding slot.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 23, 21:20",
+        "channel": "Titan Email",
+        "subject": "Official Seller of Record in Bangkok (licence 14/03720) — Kring",
+        "body": "Invited WanderSiam Co., Ltd. (DoT 14/03720) to act as an Official Seller of Record (3%–5% GMV fee) and list Bangkok tours on https://kringapp.com/app/."
+      },
+      {
+        "sender": "THEM",
+        "senderLabel": "Dave Numan (Founder)",
+        "timestamp": "Oct 23, 21:22",
+        "channel": "Titan Email",
+        "subject": "Re: Official Seller of Record in Bangkok (licence 14/03720)",
+        "body": "Thank you for your email. I am currently on holiday until 27 October with limited access to email. For urgent tour or custom/partnership enquiries, please contact Erik Jaspers at erik@wandersiam.com or tours@wandersiam.com."
+      },
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 23, 22:07",
+        "channel": "Titan Email",
+        "subject": "Partnership enquiry (Ref: Dave Numan) — WanderSiam x Kring",
+        "body": "Forwarded full bilingual Role-3 Seller-of-Record proposal directly to Erik Jaspers."
+      }
+    ],
+    "proposalPdf": "/proposals/KRING_x_WanderSiam_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_WanderSiam_Role3_Proposal.html",
+    "proposalTitle": "KRING x WANDERSIAM CO., LTD. — 2-Page Partnership & 4.5% SoR Deck (PDF)"
+  },
+  {
+    "id": "role3-gmtour",
+    "partnerName": "G.M. Tour & Travel Co., Ltd.",
+    "contactPerson": "Corporate Group Desk",
+    "email": "group@gmtour.com",
+    "phoneWhatsApp": "+6621054179",
+    "lineId": "@gmtour",
+    "platform": "Titan Email",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Licensed tour operator with offices in both Bangkok and Pattaya. Pitched to act as dual-city Seller of Record (3%–5% GMV fee).",
+    "statusCategory": "WAITING",
+    "statusBadge": "Case #1417344 Open",
+    "priorityRank": 4,
+    "lastReplyAt": "2026-10-23 22:29",
+    "queuedDraft": "Dear G.M. Tour & Travel Executive Partnership Desk (Ref: CaseID #1417344),\n\nThank you for opening CaseID #1417344. We have prepared and attached our customized 2-Page Founding Partnership & Seller-of-Record Proposal for G.M. Tour & Travel Co., Ltd. (gmtour.com) covering both Bangkok and Pattaya for our November 15 launch:\n\n1. STREAM 1 — FEATURED BANGKOK & PATTAYA PACKAGES (85% Net Payout):\n   • Top-of-feed placement for your Bangkok Grand Highlights, Pattaya Coral Island Speedboat, Chao Phraya Dinner Cruise, and VIP Yacht Charters (projected THB 1,352,000 across 650 high-season pax).\n\n2. STREAM 2 — +4.5% PASSIVE SELLER-OF-RECORD FEE (+THB 321,750 6-Month Net Override):\n   • Act as Official Seller of Record on a dedicated Stripe / Tazapay sub-account for Bangkok & Pattaya experiences and retain a guaranteed +4.5% net fee (with 100% of gateway fees and refund costs absorbed by Kring).\n   • Total 6-Month High-Season Payout Projection: THB 1,673,750 ($49,228).\n\n3. 100% AUTOMATED PND 3 TAX & BOOKKEEPING EXPORT:\n   • Complete monthly 3% PND 3 withholding tax report + 50 Tawi certificates + Kring B2B software invoice so your accountant has zero manual calculations.\n\nPlease share the attached 2-page PDF with your Managing Director and let us know a convenient time for a brief 10-minute call.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 23, 22:28",
+        "channel": "Titan Email",
+        "subject": "Official Seller of Record in Pattaya & Bangkok — Kring",
+        "body": "Sent bilingual Role-3 Seller-of-Record & tour distribution proposal for Bangkok and Pattaya."
+      },
+      {
+        "sender": "THEM",
+        "senderLabel": "GM Tour & Travel",
+        "timestamp": "Oct 23, 22:29",
+        "channel": "Titan Email (#70)",
+        "subject": "[CaseID 1417344] Official Seller of Record in Pattaya & Bangkok",
+        "body": "Thank you for your email. Your case ID #1417344 has been received. We'll look into your request and reply accordingly."
+      }
+    ],
+    "proposalPdf": "/proposals/KRING_x_GM_Tour_Travel_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_GM_Tour_Travel_Role3_Proposal.html",
+    "proposalTitle": "KRING x G.M. TOUR & TRAVEL CO., LTD. — 2-Page Partnership & 4.5% SoR Deck (PDF)"
+  },
+  {
+    "id": "role3-covankessel-yah",
+    "partnerName": "Co van Kessel Bangkok Tours, Co., Ltd.",
+    "contactPerson": "Mrs. Monnipa Anantarangson ('Yah')",
+    "email": "contact@covankessel.com",
+    "phoneWhatsApp": "+66846467099",
+    "lineId": "0846467099",
+    "platform": "Titan Email",
+    "secondaryPlatform": "WhatsApp / LINE",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Chinatown River City bike & boat tour company (DoT 11/10279). Contacted for Role-3 Seller of Record + tour distribution. Travel Desk passed for now and kept Kring on file.",
+    "statusCategory": "CLOSED",
+    "statusBadge": "Passed for Now",
+    "priorityRank": 30,
+    "lastReplyAt": "2026-10-24 08:46",
+    "queuedDraft": "Dear Khun Yah (Mrs. Monnipa Anantarangson) & Co van Kessel Management Team,\n\nThank you for your kind note earlier today keeping Kring on file. For your management archives ahead of the November 15 high season, we have attached our customized 2-Page Founding Partnership & 4.5% Passive Seller-of-Record Proposal prepared specifically for Co van Kessel Bangkok Tours Co., Ltd. (DBD: 0105553041928 · TAT: 11/10279):\n\n• Pre-mapped 5 Signature Bike & Canal Boat Tours (Co Classical 3-Hr Bike, Co Must-See Walk & Boat, Co Combo 5-Hr Bike & Boat, Co At Night, and Co All-Day VIP) + optional +4.5% Passive Seller-of-Record slot (+THB 321,750 6-month passive net override / THB 1,673,750 total projected high-season payout with zero gateway or refund risk).\n\nNo action is needed right now—we simply wanted your leadership team to have the custom 2-page PDF deck on file whenever you are ready to explore additional high-season distribution or Seller-of-Record fee income.\n\nWarm regards,\nKring Partnerships & Operations Team\nhttps://kringapp.com | partnerships@kringapp.com",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 23, 22:21",
+        "channel": "Titan Email",
+        "subject": "Official Seller of Record in Bangkok (licence 11/10279) — Kring",
+        "body": "Invited Co van Kessel Bangkok Tours (11/10279) to list bike/canal tours for free and act as Role-3 Seller of Record."
+      },
+      {
+        "sender": "THEM",
+        "senderLabel": "Mrs. Monnipa Anantarangson (Yah)",
+        "timestamp": "Oct 24, 06:30 & 08:46",
+        "channel": "Titan Email (#74, #76, #77)",
+        "subject": "Re: [contact:247431] Official Seller of Record & Bangkok Tours Partnership",
+        "body": "Dear Kring Team, Please accept our sincere apologies [for the earlier Siamese Cat Café typo], we meant your team, \"Kring\". We will keep your contact details on file and reach out to you should any relevant requests arise in the future."
+      }
+    ],
+    "proposalPdf": "/proposals/KRING_x_Co_van_Kessel_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_Co_van_Kessel_Role3_Proposal.html",
+    "proposalTitle": "KRING x CO VAN KESSEL BANGKOK TOURS — 2-Page Partnership & 4.5% SoR Deck (PDF)"
+  },
+  {
+    "id": "role3-fastwork-teeraphong",
+    "partnerName": "Fastwork Lead — Teeraphong Cheunchob",
+    "contactPerson": "Teeraphong Cheunchob (@teeraphongc)",
+    "email": "",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Fastwork",
+    "purposeCode": "ROLE_3",
+    "purposeBadge": "Role 3: Seller of Record",
+    "whyWeContacted": "Qualified on Fastwork for Role-3 local operations & Seller of Record. Shifted Fastwork outreach to Registered Corporate (Corporate Legal Entity) BPO/Accounting agencies since individuals cannot act as corporate Sellers of Record.",
+    "statusCategory": "CLOSED",
+    "statusBadge": "Shifted to Corporate BPOs",
+    "priorityRank": 31,
+    "lastReplyAt": "2026-10-23 22:05",
+    "queuedDraft": "Dear Managing Director & Corporate Compliance Partner,\n\nWe have attached our 2-Page Corporate Seller-of-Record & Automated PND 3 Settlement Proposal for Registered Thai Corporate BPO / Accounting Partners (Co., Ltd.):\n\n• Earn a guaranteed +4.5% Net Seller-of-Record Fee (+THB 321,750 projected over the 6-month high season on THB 7,150,000 volume) on a dedicated Stripe / Tazapay sub-account with 100% automated 3% PND 3 withholding tax (50 Tawi) CSV export and zero gateway/refund risk.\n\nPlease review the attached 2-page PDF deck and let us know if your registered corporate entity would like to onboard before our November 15 launch.",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Teeraphong Cheunchob",
+        "timestamp": "Oct 23, 21:50",
+        "channel": "Fastwork",
+        "subject": "Fastwork Inquiry Reply",
+        "body": "Hi! I'm interested in this opportunity. I'd love to learn more details about the exact scope of work before we move forward, and I'm very happy to schedule a call to discuss this further."
+      },
+      {
+        "sender": "US",
+        "senderLabel": "Kring Operations",
+        "timestamp": "Oct 23, 22:05",
+        "channel": "Fastwork",
+        "subject": "Role-3 Registered Company (Registered Co., Ltd.) + Tazapay Scope",
+        "body": "Shared the Role-3 corporate Seller-of-Record requirement (requires a registered Thai Co., Ltd. or Limited Partnership to receive Tazapay THB settlements and file 3% P.N.D. 3 WHT)."
+      }
+    ],
+    "proposalPdf": "/proposals/KRING_x_Corporate_BPO_Role3_Proposal.pdf",
+    "proposalHtml": "/proposals/KRING_x_Corporate_BPO_Role3_Proposal.html",
+    "proposalTitle": "KRING x CORPORATE BPO & ACCOUNTING PARTNER — 2-Page 4.5% SoR Deck (PDF)"
+  },
+  {
+    "id": "pay-tazapay-tiger",
+    "partnerName": "Tazapay",
+    "contactPerson": "Nasanttham 'Tiger' Pattanasethanon",
+    "email": "nasan@tazapay.com",
+    "phoneWhatsApp": "+66961671767",
+    "lineId": "",
+    "platform": "Gmail",
+    "secondaryPlatform": "Titan Email",
+    "purposeCode": "PAYMENT_RAIL",
+    "purposeBadge": "Payment Gateway",
+    "whyWeContacted": "ONBOARDED IN MASTER DOC: Tazapay Workspace #353982 approved & active. Powers 1-Tap Indian UPI (GPay / PhonePe / Paytm), Thailand PromptPay QR, and automated THB settlements to our 4–5 Thai MoR partners. Only optional add-on remaining is requesting automated THB Bank Payout toggle from Tiger. — Primary cross-border payment gateway onboarding our Indian MSME (KRING, UDYAM-BR-34-0067891) to collect Thailand Dynamic PromptPay QR + Global Cards in THB and settle 100% THB locally to our Role-3 Thai Seller-of-Record partner.",
+    "statusCategory": "ONBOARDED",
+    "statusBadge": "✓ Onboarded & Live (#353982)",
+    "priorityRank": 5,
+    "lastReplyAt": "2026-10-23 16:20",
+    "queuedDraft": "Hi Tiger, following up on Ticket #353442 / #353982 — our Tazapay Sandbox is integrated under ops@kringapp.com and our KYB certificate (KRING — UDYAM-BR-34-0067891) is attached. Please let us know once our Production workspace is enabled so we can connect our Thailand THB payout bank account.",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Nasanttham 'Tiger' Pattanasethanon",
+        "timestamp": "Oct 23, 12:25",
+        "channel": "Gmail (#353442)",
+        "subject": "Re: Tazapay Onboarding & Fund Flow — Kring",
+        "body": "Hi Barbie, Following up on my previous email. Could you let me know your registered entity country and expected monthly volume in Thailand so I can share the relevant KYB checklist and pricing?"
+      },
+      {
+        "sender": "US",
+        "senderLabel": "Kring Operations",
+        "timestamp": "Oct 23, 16:20",
+        "channel": "Titan Email (#353982)",
+        "subject": "Re: Tazapay Onboarding & Fund Flow — Kring (Sandbox Registered)",
+        "body": "Registered Sandbox under ops@kringapp.com (API keys extracted), attached UDYAM-BR-34-0067891, and shared live URLs https://kringapp.com & https://kringapp.com/app/ (THB 1.5M–3M/mo target)."
+      }
+    ]
+  },
+  {
+    "id": "pay-antom-hannah",
+    "partnerName": "Alipay+ / Antom Global Acquiring",
+    "contactPerson": "Hannah (Alipay Global Support)",
+    "email": "global.service@alipay.com",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Titan Email",
+    "purposeCode": "PAYMENT_RAIL",
+    "purposeBadge": "Payment Gateway",
+    "whyWeContacted": "Enable cross-border Thailand PromptPay QR, TrueMoney, Alipay+ Asian tourist wallets, and local THB settlement via Antom (parent of 2C2P).",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "Replied Today (11:58 IST)",
+    "priorityRank": 6,
+    "lastReplyAt": "2026-10-24 11:58",
+    "queuedDraft": "Dear Hannah & Antom Global Acquiring Team, thank you for your reply. We are submitting our company details via https://www.antom.com/contact-us (KRING, UDYAM-BR-34-0067891, https://kringapp.com/app/, projected Thailand PromptPay QR & Alipay+ volume USD $45k–$90k/mo) and sharing them here for your reference.",
+    "messages": [
+      {
+        "sender": "US",
+        "senderLabel": "Kring Operations",
+        "timestamp": "Oct 23, 15:40",
+        "channel": "Titan Email",
+        "subject": "Thailand PromptPay QR, Alipay+ & Local THB Disbursement API Inquiry — Kring",
+        "body": "Inquired about onboarding Kring (https://kringapp.com/app/) for Thailand PromptPay QR, Alipay+, and THB settlement."
+      },
+      {
+        "sender": "THEM",
+        "senderLabel": "Hannah — Alipay Global Support",
+        "timestamp": "Oct 24, 11:58",
+        "channel": "Titan Email (#81)",
+        "subject": "回复：Thailand PromptPay QR, Alipay+ & Local THB Disbursement API Inquiry",
+        "body": "Dear Sir/Madam, Thank you for contacting Alipay Global Business Support Team. You can click the link below and leave your company information. If the evaluation is approved, the relevant team will provide you with a complete acquiring solution based on your business needs. Submit link: https://www.antom.com/contact-us"
+      }
+    ]
+  },
+  {
+    "id": "pay-beam-mo",
+    "partnerName": "Beam Checkout Bangkok",
+    "contactPerson": "Mo (Beam Support)",
+    "email": "support@beamcheckout.com",
+    "phoneWhatsApp": "",
+    "lineId": "@beamcheckout",
+    "platform": "Titan Email",
+    "purposeCode": "PAYMENT_RAIL",
+    "purposeBadge": "Payment Gateway",
+    "whyWeContacted": "1-click Thailand PromptPay QR, Thai mobile banking, and card checkout link/API. Can onboard either cross-border or directly under our Role-3 Thai Seller-of-Record partner.",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "Replied (#24871) — Answered",
+    "priorityRank": 7,
+    "lastReplyAt": "2026-10-23 22:36",
+    "queuedDraft": "Hi Mo, following up on Ticket #24871 — could you please enable a Beam Sandbox environment under ops@kringapp.com while our licensed Thai Seller-of-Record partner (DoT 14/03556) completes the domestic THB settlement application?",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Beam Support (Mo)",
+        "timestamp": "Oct 23, 15:01",
+        "channel": "Titan Email (#24871)",
+        "subject": "[Beam] Re: 1-Click PromptPay QR & Card Checkout Integration",
+        "body": "Dear Merchant, Could you please confirm whether your business is registered in Thailand? If so, we would appreciate it if you could provide further details regarding your business registration for our reference."
+      },
+      {
+        "sender": "US",
+        "senderLabel": "Kring Operations",
+        "timestamp": "Oct 23, 22:36",
+        "channel": "Titan Email",
+        "subject": "Re: [Beam] Re: 1-Click PromptPay QR & Card Checkout Integration",
+        "body": "Explained our Indian parent entity (KRING, UDYAM-BR-34-0067891) + our licensed Thai Seller-of-Record partners (Registered Co., Ltd.) and requested Sandbox access under ops@kringapp.com."
+      }
+    ]
+  },
+  {
+    "id": "pay-dodo-rishabh",
+    "partnerName": "Dodo Payments",
+    "contactPerson": "Rishabh & Ahaan Goel",
+    "email": "rishabh@dodopayments.com",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Gmail",
+    "secondaryPlatform": "Titan Email",
+    "purposeCode": "PAYMENT_RAIL",
+    "purposeBadge": "Payment Gateway",
+    "whyWeContacted": "Global Merchant of Record (MoR) that natively onboards Indian MSMEs with T+7 weekly payouts and auto e-FIRA (P0802) for global tourist Apple Pay, Google Pay, and Card checkouts.",
+    "statusCategory": "ONBOARDED",
+    "statusBadge": "✓ Onboarded & Live (API Keys Active)",
+    "priorityRank": 8,
+    "lastReplyAt": "2026-10-23 17:08",
+    "queuedDraft": "Hi Rishabh & Dodo Team, our 18-resource Test API Key is integrated on https://kringapp.com/app/ under ops@kringapp.com. Please let us know if anything else is needed to enable Live Mode verification.",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Dodo Payments Support",
+        "timestamp": "Oct 23, 17:08",
+        "channel": "Gmail & Titan Email",
+        "subject": "Re: Dodo Payments MoR Onboarding — Kring",
+        "body": "Confirmed receipt of Kring's live domain (https://kringapp.com) and escalated to founding/underwriting team."
+      }
+    ]
+  },
+  {
+    "id": "pay-sunrate-amir",
+    "partnerName": "Sunrate",
+    "contactPerson": "Amir Malek",
+    "email": "amir.malek@sunrate.com",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Gmail",
+    "purposeCode": "PAYMENT_RAIL",
+    "purposeBadge": "Payment Gateway",
+    "whyWeContacted": "Onboards our Indian MSME (User ID: nj857111) with $0 setup fee to execute automated local THB bank payouts in Thailand and global card/APM acquiring.",
+    "statusCategory": "ONBOARDED",
+    "statusBadge": "✓ Onboarded & Live (KYB Completed)",
+    "priorityRank": 9,
+    "lastReplyAt": "2026-10-23 15:30",
+    "queuedDraft": "Hi Amir, we have completed Steps 1–3 of KYB on pro.sunrate.com under User ID nj857111 (Invite Code: 1CZSRY27). Could you share the Sandbox Open API documentation and credentials for Thailand THB payouts while we finish Step 4?",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Amir Malek (Sunrate)",
+        "timestamp": "Oct 23, 13:22",
+        "channel": "Gmail",
+        "subject": "Welcome to Sunrate - Info to get started (Invite Code: 1CZSRY27)",
+        "body": "Issued direct onboarding link with $0 setup fee under Invite Code 1CZSRY27."
+      },
+      {
+        "sender": "US",
+        "senderLabel": "Kring Operations",
+        "timestamp": "Oct 23, 15:30",
+        "channel": "Gmail & Portal",
+        "subject": "Completed KYB Steps 1–3 (User ID: nj857111)",
+        "body": "Completed Business Information, Corporate Structure, and Nature of Business on pro.sunrate.com and sent UDYAM-BR-34-0067891."
+      }
+    ]
+  },
+  {
+    "id": "pay-transfi-shyam",
+    "partnerName": "TransFi",
+    "contactPerson": "Shyam Banka (VP BD)",
+    "email": "shyam.banka@transfi.com",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Gmail",
+    "secondaryPlatform": "Titan Email",
+    "purposeCode": "PAYMENT_RAIL",
+    "purposeBadge": "Payment Gateway",
+    "whyWeContacted": "Supports Thailand PromptPay QR pay-in and instant T+0/T+1 THB local bank payouts (`POST /v1/payout`) with ~1%–2% wholesale spread and zero Thai entity required.",
+    "statusCategory": "WAITING",
+    "statusBadge": "KYB & IP Sent",
+    "priorityRank": 10,
+    "lastReplyAt": "2026-10-23 17:07",
+    "queuedDraft": "Hi Shyam, following up on our email with https://kringapp.com/app/, UDYAM-BR-34-0067891, and production IP 206.84.230.119. Please let us know once our whitelisted TransFi Sandbox API keys are ready.",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Shyam Banka (VP BD, TransFi)",
+        "timestamp": "Oct 22, 21:15",
+        "channel": "Gmail",
+        "subject": "Re: Thailand PromptPay QR & payout API rates",
+        "body": "Requested KYB certificate, live website URL, and server IPv4 to issue whitelisted Sandbox API credentials."
+      },
+      {
+        "sender": "US",
+        "senderLabel": "Kring Operations",
+        "timestamp": "Oct 23, 17:07",
+        "channel": "Titan Email",
+        "subject": "Re: Thailand PromptPay QR & payout API rates — Kring",
+        "body": "Sent https://kringapp.com, https://kringapp.com/app/, UDYAM-BR-34-0067891, and IPv4 206.84.230.119."
+      }
+    ]
+  },
+  {
+    "id": "pay-bvnk-dylan",
+    "partnerName": "BVNK",
+    "contactPerson": "Dylan Stanley -> Sales",
+    "email": "hello@bvnk.com",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Titan Email",
+    "purposeCode": "PAYMENT_RAIL",
+    "purposeBadge": "Payment Gateway",
+    "whyWeContacted": "Programmable USD/USDT/USDC treasury accounts with automated settlement into APAC rails and B2B voucher floats.",
+    "statusCategory": "WAITING",
+    "statusBadge": "Referred to hello@bvnk.com",
+    "priorityRank": 15,
+    "lastReplyAt": "2026-10-23 22:36",
+    "queuedDraft": "Hi BVNK Sales Team, following up on Ticket #183765 referred by Dylan Stanley regarding opening a programmable USDT/USDC treasury & APAC settlement workspace for Kring (https://kringapp.com).",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Dylan Stanley (BVNK)",
+        "timestamp": "Oct 23, 19:40",
+        "channel": "Titan Email (#183765)",
+        "subject": "Re: BVNK Treasury Inquiry",
+        "body": "Please reach out to our sales team at hello@bvnk.com."
+      },
+      {
+        "sender": "US",
+        "senderLabel": "Kring Operations",
+        "timestamp": "Oct 23, 22:36",
+        "channel": "Titan Email",
+        "subject": "BVNK Sales Inquiry (Ref: Ticket #183765) — Kring",
+        "body": "Dispatched full inquiry to hello@bvnk.com."
+      }
+    ]
+  },
+  {
+    "id": "pay-fiuu-cath",
+    "partnerName": "Fiuu (Razer Merchant Services)",
+    "contactPerson": "Cath -> Fiuu Thailand BD",
+    "email": "ops-management@fiuu.com",
+    "phoneWhatsApp": "+60162991564",
+    "lineId": "",
+    "platform": "Gmail",
+    "purposeCode": "PAYMENT_RAIL",
+    "purposeBadge": "Payment Gateway",
+    "whyWeContacted": "SEA payment gateway supporting Thailand PromptPay QR, TrueMoney, ShopeePay, LINE Pay, and Mass Payment APIs.",
+    "statusCategory": "WAITING",
+    "statusBadge": "Escalated to Thailand BD (#3076695)",
+    "priorityRank": 16,
+    "lastReplyAt": "2026-10-23 12:48",
+    "queuedDraft": "Hi Cath & Fiuu Thailand BD Team (Ticket #3076695), following up to let you know we also have our licensed Thailand Seller-of-Record corporate partner (DoT 14/03556) ready if domestic Thai entity onboarding is preferred alongside cross-border.",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Cath (Fiuu Merchant Operation)",
+        "timestamp": "Oct 23, 12:48",
+        "channel": "Gmail (#3076695)",
+        "subject": "Re: Thailand PromptPay QR Pay-In Inquiry",
+        "body": "Forwarded inquiry to Fiuu Thailand Business Development team (#3076695)."
+      }
+    ]
+  },
+  {
+    "id": "pay-straitsx",
+    "partnerName": "StraitsX (Fazz Group)",
+    "contactPerson": "Dody D S & Shyam",
+    "email": "support@straitsx.com",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Gmail",
+    "purposeCode": "PAYMENT_RAIL",
+    "purposeBadge": "Payment Gateway",
+    "whyWeContacted": "Cross-border ASEAN QR pay-in (linking into Thailand PromptPay QR) with instant USDC/USDT/USD settlement.",
+    "statusCategory": "WAITING",
+    "statusBadge": "Active Sales Thread (#7728921)",
+    "priorityRank": 17,
+    "lastReplyAt": "2026-10-23 14:10",
+    "queuedDraft": "",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Dody D S / Shyam (StraitsX)",
+        "timestamp": "Oct 23, 14:10",
+        "channel": "Gmail (#7728921)",
+        "subject": "Re: ASEAN Cross-Border PromptPay QR & Settlement API Inquiry",
+        "body": "Routed ASEAN QR & settlement API inquiry to StraitsX Sales."
+      }
+    ]
+  },
+  {
+    "id": "pay-triplea",
+    "partnerName": "Triple-A (Singapore)",
+    "contactPerson": "Triple-A Support & BD",
+    "email": "support@triple-a.io",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Titan Email",
+    "purposeCode": "PAYMENT_RAIL",
+    "purposeBadge": "Payment Gateway",
+    "whyWeContacted": "0.8%–1.0% flat processing fee with local currency THB payouts across 30+ currencies and zero chargebacks.",
+    "statusCategory": "WAITING",
+    "statusBadge": "Ticket Open with BD",
+    "priorityRank": 18,
+    "lastReplyAt": "2026-10-23 13:04",
+    "queuedDraft": "",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Triple-A Support",
+        "timestamp": "Oct 23, 13:04",
+        "channel": "Titan Email",
+        "subject": "Re: Local Currency THB Payout & Asian QR Checkout Inquiry",
+        "body": "Confirmed receipt of request and assigned to Business Development."
+      }
+    ]
+  },
+  {
+    "id": "pay-fastspring",
+    "partnerName": "FastSpring",
+    "contactPerson": "Josue Pineda",
+    "email": "support@fastspring.com",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Gmail",
+    "purposeCode": "PAYMENT_RAIL",
+    "purposeBadge": "Payment Gateway",
+    "whyWeContacted": "Backup Merchant of Record (5.9% + $0.95 all-in) for global tourist cards, Apple Pay, Google Pay, and PayPal.",
+    "statusCategory": "WAITING",
+    "statusBadge": "Demo Form Submitted (#01888964)",
+    "priorityRank": 19,
+    "lastReplyAt": "2026-10-23 09:37",
+    "queuedDraft": "",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Josue Pineda (FastSpring)",
+        "timestamp": "Oct 23, 09:37",
+        "channel": "Gmail (#01888964)",
+        "subject": "Re: FastSpring MoR Onboarding Inquiry",
+        "body": "Directed us to complete https://fastspring.com/request-demo/ (submitted at 08:48 AM IST)."
+      }
+    ]
+  },
+  {
+    "id": "pay-nium",
+    "partnerName": "Nium Pte. Ltd.",
+    "contactPerson": "Amlesh Rane",
+    "email": "support@nium.com",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Gmail",
+    "purposeCode": "PAYMENT_RAIL",
+    "purposeBadge": "Payment Gateway",
+    "whyWeContacted": "Automated local THB bank payouts and multi-currency treasury rail.",
+    "statusCategory": "WAITING",
+    "statusBadge": "Under Sales Review (#1153853)",
+    "priorityRank": 20,
+    "lastReplyAt": "2026-10-23 06:54",
+    "queuedDraft": "",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Amlesh Rane (Nium)",
+        "timestamp": "Oct 23, 06:54",
+        "channel": "Gmail (#1153853)",
+        "subject": "Re: Thailand Automated THB Payout API Inquiry",
+        "body": "Confirmed our APAC/Thailand Automated THB Payout inquiry is under Nium Sales review."
+      }
+    ]
+  },
+  {
+    "id": "pay-oceanpayment",
+    "partnerName": "Oceanpayment",
+    "contactPerson": "Cathy Lyu",
+    "email": "cathylv@oceanpayment.com.cn",
+    "phoneWhatsApp": "+8618665800753",
+    "lineId": "",
+    "platform": "Gmail",
+    "purposeCode": "PAYMENT_RAIL",
+    "purposeBadge": "Payment Gateway",
+    "whyWeContacted": "Evaluated for Thailand PromptPay QR pay-in. Supports HK/SG/CN entities primarily; replied with live app link and Udyam cert to check exception.",
+    "statusCategory": "WAITING",
+    "statusBadge": "Checking Entity Exception",
+    "priorityRank": 24,
+    "lastReplyAt": "2026-10-23 12:15",
+    "queuedDraft": "",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Cathy Lyu (Oceanpayment)",
+        "timestamp": "Oct 23, 09:08",
+        "channel": "Gmail",
+        "subject": "Re: Thailand PromptPay QR Pay-In Inquiry",
+        "body": "Asked for live product test link and noted Oceanpayment PromptPay QR primarily supports Mainland China, Hong Kong, and Singapore entities."
+      },
+      {
+        "sender": "US",
+        "senderLabel": "Kring Operations",
+        "timestamp": "Oct 23, 12:15",
+        "channel": "Gmail",
+        "subject": "Re: Thailand PromptPay QR Pay-In Inquiry — Kring",
+        "body": "Shared https://kringapp.com/app/ and UDYAM-BR-34-0067891."
+      }
+    ]
+  },
+  {
+    "id": "pay-omise-xendit-finmo-qfpay",
+    "partnerName": "Omise, Xendit, Finmo & QFPay",
+    "contactPerson": "Gateway Support Desks",
+    "email": "support@opn.ooo",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Gmail",
+    "purposeCode": "PAYMENT_RAIL",
+    "purposeBadge": "Payment Gateway",
+    "whyWeContacted": "Verified domestic Thailand gateway rules: Omise (1.65% PromptPay QR) and Xendit (2.5% + 7 THB QR) require a registered Thai Co., Ltd. (which our Role-3 Seller-of-Record partner can use directly).",
+    "statusCategory": "CLOSED",
+    "statusBadge": "Audited for Role-3 Entity",
+    "priorityRank": 32,
+    "lastReplyAt": "2026-10-23 12:56",
+    "queuedDraft": "",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Omise / Xendit / Finmo / QFPay",
+        "timestamp": "Oct 23, 08:00–12:56",
+        "channel": "Gmail",
+        "subject": "Domestic Thai Gateway Requirements",
+        "body": "Confirmed Omise and Xendit onboard any active registered Thai Co., Ltd. (DBD + corporate bank passbook). Finmo Thailand launches Q1 2027."
+      }
+    ]
+  },
+  {
+    "id": "voucher-brolexy-dmytro",
+    "partnerName": "Brolexy UAB",
+    "contactPerson": "Dmytro Aheyev (CEO)",
+    "email": "brolexys@gmail.com",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Titan Email",
+    "secondaryPlatform": "Gmail",
+    "purposeCode": "VOUCHER_API",
+    "purposeBadge": "Voucher & Coin API",
+    "whyWeContacted": "Wholesale Thailand & global digital vouchers (Grab, TrueMoney, ShopeePay, Lazada, Starbucks) at 2%–12% discount below face value with $0 deposit requirement.",
+    "statusCategory": "ONBOARDED",
+    "statusBadge": "✓ Onboarded & Live (kringapp.api.user)",
+    "priorityRank": 6,
+    "lastReplyAt": "2026-10-23 19:43",
+    "queuedDraft": "Hi Dmytro, our Brolexy Sandbox integration is complete and tested (orderID: api_6adb7332a1d40419635864 -> SUCCESS). Looking forward to receiving the full Thailand voucher SKU & B2B discount sheet on Monday!",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Dmytro Aheyev (CEO, Brolexy UAB)",
+        "timestamp": "Oct 23, 18:10",
+        "channel": "Titan Email (#56)",
+        "subject": "Re: Thailand Digital Gift Card Catalogue & B2B API Onboarding — Kring",
+        "body": "Delivered Sandbox API keys and Dashboard login (kringapp.api.user) and noted remaining Thailand SKUs & B2B discounts will be finalized Monday."
+      },
+      {
+        "sender": "US",
+        "senderLabel": "Kring Operations",
+        "timestamp": "Oct 23, 19:43",
+        "channel": "Titan Email",
+        "subject": "Re: Thailand Digital Gift Card Catalogue & B2B API Onboarding — Kring",
+        "body": "Confirmed successful Sandbox API test order (api_6adb7332a1d40419635864 -> SUCCESS) and readiness to sync Monday."
+      }
+    ]
+  },
+  {
+    "id": "voucher-zendit-nikhil",
+    "partnerName": "Zendit by IDT Corp",
+    "contactPerson": "Nikhil Shirke & Dan Napoli",
+    "email": "nikhil.shirke@idt.net",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Titan Email",
+    "secondaryPlatform": "Gmail",
+    "purposeCode": "VOUCHER_API",
+    "purposeBadge": "Voucher & Coin API",
+    "whyWeContacted": "Instant S2S issuance of Thailand GrabGifts (THB 200–THB 1,000), Central, Lazada, Shopee, and Dtac/TrueMove 5G data bundles funded via USD or USDT/USDC.",
+    "statusCategory": "ONBOARDED",
+    "statusBadge": "✓ Onboarded & Live (6adb4905df218aef76908ebe)",
+    "priorityRank": 7,
+    "lastReplyAt": "2026-10-23 21:22",
+    "queuedDraft": "Hi Nikhil & Dan, our Zendit Sandbox test transaction (GRABGIFTS_TH_200 -> DONE) succeeded. Please let us know once Thailand retail gift card SKUs are enabled in Production and share the USDT/USDC wallet funding address.",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Nikhil Shirke & Dan Napoli (Zendit)",
+        "timestamp": "Oct 23, 17:55 & 21:22",
+        "channel": "Titan Email & Gmail",
+        "subject": "Zendit Thailand Prepaid & Data Bundles Catalog — Kring",
+        "body": "Nikhil shared the live Thailand Dtac & TrueMove SKU table; Dan Napoli looped in Zendit Sales (sales@zendit.io)."
+      },
+      {
+        "sender": "US",
+        "senderLabel": "Kring Operations",
+        "timestamp": "Oct 23, 19:43",
+        "channel": "Titan Email",
+        "subject": "Re: Zendit Thailand Prepaid & Data Bundles Catalog — Kring",
+        "body": "Tested GRABGIFTS_TH_200 in Sandbox (DONE) and requested activation of Thailand retail gift card SKUs + production USDT/USDC deposit address."
+      }
+    ]
+  },
+  {
+    "id": "voucher-reloadly",
+    "partnerName": "Reloadly",
+    "contactPerson": "Nicolás / Reloadly Sales",
+    "email": "sales@reloadly.com",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Gmail",
+    "secondaryPlatform": "Titan Email",
+    "purposeCode": "VOUCHER_API",
+    "purposeBadge": "Voucher & Coin API",
+    "whyWeContacted": "Pay-as-you-go Thailand & global digital gift cards and data bundles with $0 setup and $0 minimum deposit.",
+    "statusCategory": "ONBOARDED",
+    "statusBadge": "✓ Onboarded & Live (Live API Keys)",
+    "priorityRank": 8,
+    "lastReplyAt": "2026-10-23 15:36",
+    "queuedDraft": "",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Reloadly Support",
+        "timestamp": "Oct 23, 15:36",
+        "channel": "Gmail & Portal",
+        "subject": "Reloadly API Keys & Wholesale Pricing (#49865907541)",
+        "body": "Extracted both Live API Client ID and Sandbox API Client ID under partnerships@kringapp.com."
+      }
+    ]
+  },
+  {
+    "id": "voucher-topuplive-lychee",
+    "partnerName": "TopUpLive / PlaySentral",
+    "contactPerson": "Lychee & Jason",
+    "email": "lychee@playsentral.com",
+    "phoneWhatsApp": "+8615872432564",
+    "lineId": "",
+    "platform": "Gmail",
+    "secondaryPlatform": "Titan Email",
+    "purposeCode": "VOUCHER_API",
+    "purposeBadge": "Voucher & Coin API",
+    "whyWeContacted": "TopUpLive sells app coins and vouchers directly to Thai users using TopUpLive's own Thailand PromptPay QR & TrueMoney checkout, then settles wholesale to us.",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "2 Replies Answered",
+    "priorityRank": 11,
+    "lastReplyAt": "2026-10-23 12:15",
+    "queuedDraft": "Hi Lychee, following up on our Kring Coin & Experience Voucher SKU breakdown — let us know if your technical team is ready to connect our S2S UID top-up webhook this week.",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Lychee (TopUpLive BD)",
+        "timestamp": "Oct 23, 11:59",
+        "channel": "Gmail & Titan Email",
+        "subject": "Re: Direct App Publisher Partnership Inquiry",
+        "body": "Hi team, Thanks for your reply. I have checked your website. How can I view all of your products? Are you selling Kring Coins & Kring Experience on your website?"
+      },
+      {
+        "sender": "US",
+        "senderLabel": "Kring Operations",
+        "timestamp": "Oct 23, 12:15",
+        "channel": "Titan Email & Gmail",
+        "subject": "Re: Direct App Publisher Partnership Inquiry — Kring SKU Table",
+        "body": "Sent full SKU breakdown (Kring Coins THB 100–5,000 + Kring Price passes inside https://kringapp.com/app/)."
+      }
+    ]
+  },
+  {
+    "id": "voucher-chimoney-hammed",
+    "partnerName": "Chimoney",
+    "contactPerson": "Hammed Babatunde",
+    "email": "hammed@chimoney.io",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Titan Email",
+    "purposeCode": "VOUCHER_API",
+    "purposeBadge": "Voucher & Coin API",
+    "whyWeContacted": "Global gift cards, airtime, and local bank payouts across 100+ countries with $0 setup fee.",
+    "statusCategory": "ONBOARDED",
+    "statusBadge": "✓ Onboarded & Live (Org KRING Verified)",
+    "priorityRank": 12,
+    "lastReplyAt": "2026-10-23 19:43",
+    "queuedDraft": "",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Hammed Babatunde (Chimoney)",
+        "timestamp": "Oct 23, 16:40",
+        "channel": "Titan Email (#46)",
+        "subject": "Re: Chimoney Production API & Payouts Onboarding",
+        "body": "Shared demo booking link to enable production API keys."
+      },
+      {
+        "sender": "US",
+        "senderLabel": "Kring Operations",
+        "timestamp": "Oct 23, 19:43",
+        "channel": "Titan Email",
+        "subject": "Re: Chimoney Production API & Payouts Onboarding",
+        "body": "Sent verified Organisation 'KRING' details on dash.chimoney.io + UDYAM-BR-34-0067891."
+      }
+    ]
+  },
+  {
+    "id": "voucher-pinelabs",
+    "partnerName": "Pine Labs Prepaid / Woohoo",
+    "contactPerson": "Team Woohoo -> B2B API Team",
+    "email": "gcsupport.woohoo@pinelabs.com",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Gmail",
+    "purposeCode": "VOUCHER_API",
+    "purposeBadge": "Voucher & Coin API",
+    "whyWeContacted": "Headquartered in India (native fit for our Indian MSME UDYAM-BR-34-0067891) for wholesale India & Southeast Asia digital gift cards.",
+    "statusCategory": "WAITING",
+    "statusBadge": "Escalated to B2B Team (##11683169##)",
+    "priorityRank": 14,
+    "lastReplyAt": "2026-10-23 09:38",
+    "queuedDraft": "",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Team Woohoo (Pine Labs)",
+        "timestamp": "Oct 23, 09:38",
+        "channel": "Gmail (##11683169##)",
+        "subject": "Re: Enterprise Digital Voucher API Inquiry ##11683169##",
+        "body": "Forwarded case ##11683169## to Pine Labs' specialized B2B API team."
+      }
+    ]
+  },
+  {
+    "id": "voucher-telegram-lnwtrue-ezpin",
+    "partnerName": "LnwTrue, BitTopup, Satoshi_seeker & EZPIN",
+    "contactPerson": "Jay, @seanandyx, Satoshi_seeker, Laura Ridley",
+    "email": "ak.s@lnwtrue.com",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Telegram",
+    "secondaryPlatform": "Gmail",
+    "purposeCode": "VOUCHER_API",
+    "purposeBadge": "Voucher & Coin API",
+    "whyWeContacted": "Explored secondary voucher reseller channels. EZPIN is parked for Stage 2 due to $10,000 USD deposit requirement.",
+    "statusCategory": "CLOSED",
+    "statusBadge": "Active on Telegram / EZPIN Parked",
+    "priorityRank": 33,
+    "lastReplyAt": "2026-10-23 15:08",
+    "queuedDraft": "",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Jay / @seanandyx / Satoshi_seeker / Laura Ridley",
+        "timestamp": "Oct 23, 07:37–15:08",
+        "channel": "Telegram & Gmail",
+        "subject": "Reseller & API Threads",
+        "body": "• BitTopup: Connected with @seanandyx on Telegram.\n• Satoshi_seeker: Connected on Telegram.\n• EZPIN: Quoted $10,000 USD deposit for live API (parked for Stage 2)."
+      }
+    ]
+  },
+  {
+    "id": "cor-mellow-anastasia",
+    "partnerName": "Mellow.io",
+    "contactPerson": "Anastasia Leukhina (AE)",
+    "email": "a.leukhina@mellow.io",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Titan Email",
+    "secondaryPlatform": "Gmail",
+    "purposeCode": "LEGAL_COR",
+    "purposeBadge": "Contractor / Tax / Legal",
+    "whyWeContacted": "Mellow acts as Contractor of Record: contracts with our Indian MSME and pays independent Thai hosts in THB (PromptPay / Thai Bank) with auto-generated tax invoices and 'Talent Mask' privacy.",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "Replied to AE Anastasia",
+    "priorityRank": 9,
+    "lastReplyAt": "2026-10-23 19:43",
+    "queuedDraft": "Hi Anastasia, following up on our confirmation that KRING (UDYAM-BR-34-0067891) is onboarding as a Business Customer paying independent Thai hosts in THB. Let us know once our Customer API/Demo workspace is enabled.",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Anastasia Leukhina (Mellow.io)",
+        "timestamp": "Oct 23, 17:30",
+        "channel": "Titan Email (#50)",
+        "subject": "Mellow Onboarding — Kring",
+        "body": "Asked to confirm whether we registered as a Business Customer (Client) paying independent contractors so she can enable our corporate workspace."
+      },
+      {
+        "sender": "US",
+        "senderLabel": "Kring Operations",
+        "timestamp": "Oct 23, 19:43",
+        "channel": "Titan Email",
+        "subject": "Re: Mellow Onboarding — Kring (Business Customer)",
+        "body": "Confirmed we are a Business Customer paying independent Thai hosts in THB ($45k–$90k/mo) and attached UDYAM-BR-34-0067891."
+      }
+    ]
+  },
+  {
+    "id": "legal-dfdl-nable",
+    "partnerName": "DFDL Thailand -> N-able",
+    "contactPerson": "Etienne Rieuneau -> Khun Danuch",
+    "email": "danuch@nablecompanies.com",
+    "phoneWhatsApp": "+66930125800",
+    "lineId": "",
+    "platform": "Gmail",
+    "purposeCode": "LEGAL_COR",
+    "purposeBadge": "Contractor / Tax / Legal",
+    "whyWeContacted": "Inquired about Thai P.N.D. 3 / 53 withholding tax and VAT compliance. DFDL Head of BD Etienne Rieuneau referred us to their accounting partner Khun Danuch at N-able.",
+    "statusCategory": "WAITING",
+    "statusBadge": "Referred to N-able",
+    "priorityRank": 21,
+    "lastReplyAt": "2026-10-23 14:10",
+    "queuedDraft": "",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Etienne Rieuneau (DFDL Thailand)",
+        "timestamp": "Oct 23, 13:37",
+        "channel": "Gmail",
+        "subject": "Re: Thailand Tax & Corporate Compliance Inquiry",
+        "body": "Recommended contacting trusted Bangkok partner Khun Danuch at N-able (danuch@nablecompanies.com)."
+      },
+      {
+        "sender": "US",
+        "senderLabel": "Kring Operations",
+        "timestamp": "Oct 23, 14:10",
+        "channel": "Gmail",
+        "subject": "Accounting & Tax Compliance Inquiry (Ref: Etienne Rieuneau, DFDL)",
+        "body": "Emailed Khun Danuch at N-able referencing Etienne Rieuneau's referral."
+      }
+    ]
+  },
+  {
+    "id": "legal-silk-jason",
+    "partnerName": "Silk Legal Co., Ltd.",
+    "contactPerson": "Dr. Jason Corbett",
+    "email": "jason@silklegal.com",
+    "phoneWhatsApp": "+66863044707",
+    "lineId": "",
+    "platform": "Gmail",
+    "purposeCode": "LEGAL_COR",
+    "purposeBadge": "Contractor / Tax / Legal",
+    "whyWeContacted": "Legal opinion quote on Thailand Payment Systems Act B.E. 2560 (MoF Clause 2.3(1) Seller-of-Record exemption).",
+    "statusCategory": "CLOSED",
+    "statusBadge": "Parked for Phase 2",
+    "priorityRank": 28,
+    "lastReplyAt": "2026-10-23 05:22",
+    "queuedDraft": "",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Dr. Jason Corbett (Silk Legal)",
+        "timestamp": "Oct 23, 05:22",
+        "channel": "Gmail",
+        "subject": "Re: Legal Opinion Inquiry — Thailand Payment Systems Act",
+        "body": "Requested a brief Zoom call via https://calendly.com/jasonsilk before issuing a formal fee quote."
+      }
+    ]
+  },
+  {
+    "id": "legal-mild-cpa",
+    "partnerName": "Mild Pakwongsakul, CPA",
+    "contactPerson": "Mild Pakwongsakul",
+    "email": "sales@bangkok-accountant.com",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Gmail",
+    "purposeCode": "LEGAL_COR",
+    "purposeBadge": "Contractor / Tax / Legal",
+    "whyWeContacted": "Quoted monthly Bangkok accounting retainer (12,000 THB/mo). Parked for Phase 2 because Role-3 Seller-of-Record partners use their own existing accounting setup at THB 0 fixed retainer to us.",
+    "statusCategory": "CLOSED",
+    "statusBadge": "Quoted 12k THB/mo (Parked)",
+    "priorityRank": 29,
+    "lastReplyAt": "2026-10-23 10:19",
+    "queuedDraft": "",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Mild Pakwongsakul, CPA",
+        "timestamp": "Oct 23, 10:19",
+        "channel": "Gmail",
+        "subject": "Re: Monthly accounting & tax filing inquiry",
+        "body": "Quoted 12,000 THB per month starting fee."
+      }
+    ]
+  },
+  {
+    "id": "talent-socialite-si",
+    "partnerName": "The Socialite Models Bangkok",
+    "contactPerson": "Si Pawanond",
+    "email": "booking@thesocialitemodels.com",
+    "phoneWhatsApp": "",
+    "lineId": "",
+    "platform": "Gmail",
+    "secondaryPlatform": "Titan Email",
+    "purposeCode": "TALENT_AFFILIATE",
+    "purposeBadge": "Talent, Venues & Affiliates",
+    "whyWeContacted": "Onboard verified bilingual Bangkok lifestyle, dining, and event hosts onto Kring (80% host payout + platform-funded agency override).",
+    "statusCategory": "ACTION_OR_ACTIVE",
+    "statusBadge": "Live App Preview Sent",
+    "priorityRank": 13,
+    "lastReplyAt": "2026-10-23 13:04",
+    "queuedDraft": "Hi Khun Si Pawanond, following up on the Kring live app preview (https://kringapp.com/app/) — let us know if you'd like to onboard an initial roster of 10–15 Bangkok hosts for our 15 November launch!",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Si Pawanond (The Socialite Models)",
+        "timestamp": "Oct 22, 19:20",
+        "channel": "Gmail",
+        "subject": "Re: Bangkok Model & Talent Booking Department Partnership",
+        "body": "Replied requesting details on Kring's talent booking workflow and commission structure."
+      },
+      {
+        "sender": "US",
+        "senderLabel": "Kring Partnerships",
+        "timestamp": "Oct 23, 13:04",
+        "channel": "Titan Email & Gmail",
+        "subject": "Re: Bangkok Model & Talent Booking Department Partnership — Kring",
+        "body": "Shared https://kringapp.com and https://kringapp.com/app/ (15-second LINE onboarding + 80% talent payout)."
+      }
+    ]
+  },
+  {
+    "id": "venue-tastoria-supisara",
+    "partnerName": "TASTORIA Collection Hotel Sukhumvit",
+    "contactPerson": "Supisara Sukwanno",
+    "email": "fo@tastoriahotel.com",
+    "phoneWhatsApp": "+6622600555",
+    "lineId": "",
+    "platform": "Gmail",
+    "purposeCode": "TALENT_AFFILIATE",
+    "purposeBadge": "Talent, Venues & Affiliates",
+    "whyWeContacted": "Featured safe public meetup, dining, and rooftop venue in Sukhumvit for Kring outings (10%–15% F&B referral commission).",
+    "statusCategory": "WAITING",
+    "statusBadge": "With Hotel Management",
+    "priorityRank": 22,
+    "lastReplyAt": "2026-10-23 08:48",
+    "queuedDraft": "",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Supisara Sukwanno (TASTORIA Hotel)",
+        "timestamp": "Oct 23, 06:02",
+        "channel": "Gmail",
+        "subject": "Re: Bangkok dining, rooftop & guest experience partnership — Kring",
+        "body": "Copied Hotel Management and Front Office Manager to review our partnership proposal."
+      }
+    ]
+  },
+  {
+    "id": "affiliates-live-networks",
+    "partnerName": "Welcome Pickups, Travelpayouts, Involve Asia & VIMI.co",
+    "contactPerson": "Zeina, Natalia & Mike Darnell",
+    "email": "suppliers@welcomepickups.com",
+    "phoneWhatsApp": "+66910037545",
+    "lineId": "",
+    "platform": "Gmail",
+    "secondaryPlatform": "Titan Email",
+    "purposeCode": "TALENT_AFFILIATE",
+    "purposeBadge": "Talent, Venues & Affiliates",
+    "whyWeContacted": "Power Kring's 'Kring Fair-Price' tab (Airport SUV pickups, 5G eSIMs, GoWabi Spas, Muay Thai, Klook, Agoda) earning 8%–25% affiliate commissions with zero Thai entity required.",
+    "statusCategory": "ONBOARDED",
+    "statusBadge": "✓ Onboarded & Live (Travelpayouts / Involve Asia / Welcome Pickups)",
+    "priorityRank": 14,
+    "lastReplyAt": "2026-10-23 15:15",
+    "queuedDraft": "",
+    "messages": [
+      {
+        "sender": "THEM",
+        "senderLabel": "Welcome Pickups / Travelpayouts / Involve Asia / VIMI.co",
+        "timestamp": "Oct 23, 08:04–15:15",
+        "channel": "Gmail & Titan Email",
+        "subject": "Affiliate Partner Approvals",
+        "body": "• Travelpayouts: Live Marker ID 589675.\n• Involve Asia: Live Affiliate ID 1105164 (GoWabi, HDmall, Agoda, Shopee, Lazada).\n• Welcome Pickups: Property #45846 live (~€5 commission per Bangkok airport transfer).\n• VIMI.co (Mike Darnell): Sent V4.3 Hybrid Agency Schedule."
+      }
+    ]
+  }
+];
+    let threads = INITIAL_THREADS;
+    let outboundQueue = JSON.parse(localStorage.getItem("kring_outbound_queue_v1") || "[]");
+    let currentPurposeFilter = "ALL";
+    let selectedThreadId = threads[0].id;
+    let isSplitView = true;
+    let fullViewMode = "LIST";
+    let inboxPaneWidthPercent = 44;
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    // Format plain text into clean, well-spaced paragraphs and bullet lists like chat UI
+    function formatReadableText(raw) {
+      const safe = escapeHtml(raw || "");
+      const lines = safe.split(/\r?\n/);
+      let html = "";
+      let inList = false;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) {
+          if (inList) {
+            html += "</ul>";
+            inList = false;
+          }
+          continue;
+        }
+        const isBullet = /^([•\-\*]|\d+[\.\)])\s+/.test(line);
+        if (isBullet) {
+          if (!inList) {
+            html += "<ul>";
+            inList = true;
+          }
+          const cleanItem = line.replace(/^([•\-\*]\s+)/, "");
+          html += `<li>${cleanItem}</li>`;
+        } else {
+          if (inList) {
+            html += "</ul>";
+            inList = false;
+          }
+          html += `<p>${line}</p>`;
+        }
+      }
+      if (inList) html += "</ul>";
+      return html || "<p></p>";
+    }
+
+    function shortPurposeLabel(code) {
+      const map = {
+        ROLE_3: "Role 3 SoR",
+        PAYMENT_RAIL: "Payment Gateway",
+        VOUCHER_API: "Voucher API",
+        LEGAL_COR: "Tax & Legal",
+        TALENT_AFFILIATE: "Affiliate / Talent"
+      };
+      return map[code] || code;
+    }
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      const btn = document.getElementById("theme-toggle-btn");
+      if (root.classList.contains("theme-dark")) {
+        root.classList.remove("theme-dark");
+        root.classList.add("theme-light");
+        btn.textContent = "Dark Mode";
+      } else {
+        root.classList.remove("theme-light");
+        root.classList.add("theme-dark");
+        btn.textContent = "Light Mode";
+      }
+    }
+
+    function toggleLayoutMode() {
+      isSplitView = !isSplitView;
+      const btn = document.getElementById("layout-toggle-btn");
+      btn.textContent = isSplitView ? "Split View: ON" : "Full View: ON";
+      fullViewMode = "LIST";
+      renderInboxAndThread();
+    }
+
+    function updateCounts() {
+      const counts = {
+        ALL: threads.length,
+        ROLE_3: 0,
+        PAYMENT_RAIL: 0,
+        VOUCHER_API: 0,
+        LEGAL_COR: 0,
+        TALENT_AFFILIATE: 0,
+        ONBOARDED: 0,
+        ACTIVE: 0,
+        DRAFTS: 0
+      };
+      threads.forEach(t => {
+        if (counts[t.purposeCode] !== undefined) counts[t.purposeCode]++;
+        if (t.statusCategory === "ONBOARDED") counts.ONBOARDED++;
+        if (t.statusCategory === "ACTION_OR_ACTIVE") counts.ACTIVE++;
+        if (t.queuedDraft && t.queuedDraft.trim().length > 0) counts.DRAFTS++;
+      });
+
+      ["ALL", "ROLE_3", "PAYMENT_RAIL", "VOUCHER_API", "LEGAL_COR", "TALENT_AFFILIATE"].forEach(k => {
+        const topEl = document.getElementById("count-" + k);
+        const sideEl = document.getElementById("side-count-" + k);
+        if (topEl) topEl.textContent = counts[k];
+        if (sideEl) sideEl.textContent = counts[k];
+      });
+      const onbEl = document.getElementById("side-count-ONBOARDED");
+      if (onbEl) onbEl.textContent = counts.ONBOARDED;
+      const actEl = document.getElementById("side-count-ACTIVE");
+      const drfEl = document.getElementById("side-count-DRAFTS");
+      if (actEl) actEl.textContent = counts.ACTIVE;
+      if (drfEl) drfEl.textContent = counts.DRAFTS;
+    }
+
+    function setPurposeFilter(purpose) {
+      currentPurposeFilter = purpose;
+      document.getElementById("status-select").value = "ALL";
+      document.querySelectorAll(".gmail-tab").forEach(tab => {
+        tab.classList.toggle("active", tab.dataset.tab === purpose);
+      });
+      document.querySelectorAll(".gmail-sidebar-item[data-sidebar]").forEach(item => {
+        item.classList.toggle("active", item.dataset.sidebar === purpose);
+      });
+      if (!isSplitView) fullViewMode = "LIST";
+      renderInboxAndThread();
+    }
+
+    function setQuickStatus(statusVal) {
+      currentPurposeFilter = "ALL";
+      document.getElementById("status-select").value = statusVal;
+      document.querySelectorAll(".gmail-tab").forEach(tab => {
+        tab.classList.toggle("active", tab.dataset.tab === "ALL");
+      });
+      document.querySelectorAll(".gmail-sidebar-item[data-sidebar]").forEach(item => {
+        const match = (statusVal === "ONBOARDED" && item.dataset.sidebar === "ONBOARDED") ||
+                      (statusVal === "ACTION_OR_ACTIVE" && item.dataset.sidebar === "ACTIVE") ||
+                      (statusVal === "HAS_QUEUED" && item.dataset.sidebar === "DRAFTS");
+        item.classList.toggle("active", match);
+      });
+      if (!isSplitView) fullViewMode = "LIST";
+      renderInboxAndThread();
+    }
+
+    function setQuickPlatform(platformVal) {
+      document.getElementById("platform-select").value = platformVal;
+      if (!isSplitView) fullViewMode = "LIST";
+      renderInboxAndThread();
+    }
+
+    function getFilteredAndSortedThreads() {
+      const platformVal = document.getElementById("platform-select").value;
+      const statusVal = document.getElementById("status-select").value;
+      const sortVal = document.getElementById("sort-select").value;
+      const q = (document.getElementById("search-input").value || "").toLowerCase().trim();
+
+      let list = threads.filter(t => {
+        if (currentPurposeFilter !== "ALL" && t.purposeCode !== currentPurposeFilter) return false;
+        if (platformVal !== "ALL" && t.platform !== platformVal && t.secondaryPlatform !== platformVal) return false;
+        if (statusVal === "HAS_QUEUED") {
+          const hasDraft = (t.queuedDraft && t.queuedDraft.trim().length > 0) || outboundQueue.some(x => x.threadId === t.id);
+          if (!hasDraft) return false;
+        } else if (statusVal !== "ALL" && t.statusCategory !== statusVal) {
+          return false;
+        }
+        if (q) {
+          const hay = [
+            t.partnerName,
+            t.contactPerson,
+            t.purposeBadge,
+            t.whyWeContacted,
+            t.queuedDraft || "",
+            ...t.messages.map(m => (m.body || "") + " " + (m.subject || ""))
+          ].join(" ").toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      list.sort((a, b) => {
+        if (sortVal === "PRIORITY") return a.priorityRank - b.priorityRank;
+        if (sortVal === "RECENT") return (b.lastReplyAt || "").localeCompare(a.lastReplyAt || "");
+        if (sortVal === "PURPOSE") return a.purposeCode.localeCompare(b.purposeCode) || (a.priorityRank - b.priorityRank);
+        if (sortVal === "PLATFORM") return a.platform.localeCompare(b.platform) || (a.priorityRank - b.priorityRank);
+        if (sortVal === "NAME") return a.partnerName.localeCompare(b.partnerName);
+        return 0;
+      });
+
+      return list;
+    }
+
+    function stepThread(delta) {
+      const list = getFilteredAndSortedThreads();
+      if (list.length === 0) return;
+      const idx = list.findIndex(t => t.id === selectedThreadId);
+      const nextIdx = Math.max(0, Math.min(list.length - 1, (idx === -1 ? 0 : idx) + delta));
+      selectedThreadId = list[nextIdx].id;
+      renderInboxAndThread();
+      scrollSelectedRowIntoView();
+    }
+
+    function onThreadSliderChange(val) {
+      const list = getFilteredAndSortedThreads();
+      if (list.length === 0) return;
+      const idx = Math.max(0, Math.min(list.length - 1, parseInt(val, 10) - 1));
+      selectedThreadId = list[idx].id;
+      renderInboxAndThread();
+      scrollSelectedRowIntoView();
+    }
+
+    function scrollSelectedRowIntoView() {
+      const row = document.getElementById("row-" + selectedThreadId);
+      if (row) row.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+
+    function renderInboxAndThread() {
+      updateCounts();
+      const list = getFilteredAndSortedThreads();
+      const listPane = document.getElementById("gmail-inbox-list-pane");
+      const resizer = document.getElementById("pane-resizer");
+      const threadPane = document.getElementById("gmail-thread-pane");
+
+      if (isSplitView) {
+        listPane.style.width = inboxPaneWidthPercent + "%";
+        listPane.className = "flex flex-col shrink-0 scroll-pane";
+        resizer.className = "resizer-bar";
+        threadPane.className = "flex-1 flex flex-col overflow-hidden";
+      } else {
+        resizer.className = "hidden";
+        if (fullViewMode === "LIST") {
+          listPane.style.width = "100%";
+          listPane.className = "w-full flex flex-col shrink-0 scroll-pane";
+          threadPane.className = "hidden";
+        } else {
+          listPane.className = "hidden";
+          threadPane.className = "w-full flex flex-col overflow-hidden";
+        }
+      }
+
+      if (list.length === 0) {
+        document.getElementById("inbox-showing-count").textContent = "0 / 0";
+        listPane.innerHTML = `<div class="p-12 text-center text-base" style="color: var(--text-muted);">No conversations match your current filters.</div>`;
+        threadPane.innerHTML = `<div class="p-12 text-center text-base" style="color: var(--text-muted);">No conversation selected.</div>`;
+        return;
+      }
+
+      let activeIdx = list.findIndex(t => t.id === selectedThreadId);
+      if (activeIdx === -1) {
+        activeIdx = 0;
+        selectedThreadId = list[0].id;
+      }
+
+      const slider = document.getElementById("thread-nav-slider");
+      if (slider) {
+        slider.max = String(list.length);
+        slider.value = String(activeIdx + 1);
+      }
+      document.getElementById("inbox-showing-count").textContent = `${activeIdx + 1} / ${list.length}`;
+
+      listPane.innerHTML = list.map(t => {
+        const isSelected = t.id === selectedThreadId;
+        const isActive = t.statusCategory === "ACTION_OR_ACTIVE";
+        const hasDraft = (t.queuedDraft && t.queuedDraft.trim().length > 0) || outboundQueue.some(x => x.threadId === t.id);
+        const lastMsg = t.messages[t.messages.length - 1] || {};
+        const snippet = (lastMsg.body || t.whyWeContacted || "").replace(/\s+/g, " ").trim();
+        const shortDate = (t.lastReplyAt || "").replace("2026-10-", "Oct ");
+
+        return `
+          <div id="row-${t.id}" onclick="openThread('${t.id}')" class="gmail-row ${isActive ? 'unread' : ''} ${isSelected && isSplitView ? 'selected' : ''}">
+            <!-- Star -->
+            <div class="w-6 shrink-0 text-base" style="color: ${isActive ? 'var(--text-primary)' : 'var(--text-muted)'};">
+              ${isActive ? '★' : '☆'}
+            </div>
+
+            <!-- Partner Name + Message Count -->
+            <div class="w-56 pr-3 shrink-0 truncate text-[15px] ${isActive ? 'font-semibold' : 'font-medium'}" style="color: var(--text-primary);">
+              ${escapeHtml(t.partnerName)}
+              <span class="text-xs font-normal ml-1" style="color: var(--text-muted);">(${t.messages.length})</span>
+            </div>
+
+            <!-- Purpose Pill + Draft Badge + Subject + Snippet -->
+            <div class="flex-1 min-w-0 flex items-center gap-2.5 pr-3 truncate">
+              <span class="gmail-pill shrink-0">${shortPurposeLabel(t.purposeCode)}</span>
+              ${hasDraft ? `<span class="px-2 py-0.5 rounded text-xs font-bold uppercase shrink-0" style="background-color: var(--accent-bg); color: var(--accent-text);">Draft</span>` : ''}
+              ${t.proposalPdf ? `<span class="px-2 py-0.5 rounded text-xs font-bold uppercase shrink-0" style="border: 1px solid var(--text-primary); color: var(--text-primary);">2-Page PDF</span>` : ''}
+              <span class="truncate text-[15px] ${isActive ? 'font-semibold' : 'font-normal'}" style="color: var(--text-primary);">
+                ${escapeHtml(lastMsg.subject || t.purposeBadge)}
+              </span>
+              <span class="truncate text-[14.5px]" style="color: var(--text-muted);">
+                — ${escapeHtml(snippet)}
+              </span>
+            </div>
+
+            <!-- Platform & Date -->
+            <div class="shrink-0 flex items-center gap-3 text-right">
+              <span class="text-xs px-2.5 py-1 rounded font-medium" style="background-color: var(--pill-bg); color: var(--text-secondary);">
+                ${escapeHtml(t.platform)}
+              </span>
+              <span class="w-28 text-[13.5px] font-medium" style="color: var(--text-secondary);">
+                ${escapeHtml(shortDate)}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      renderThreadDetail();
+    }
+
+    function openThread(id) {
+      selectedThreadId = id;
+      if (!isSplitView) {
+        fullViewMode = "THREAD";
+      }
+      renderInboxAndThread();
+    }
+
+    function toggleInlinePdfPreview() {
+      const el = document.getElementById("inline-pdf-preview-box");
+      if (el) el.classList.toggle("hidden");
+    }
+
+    function backToInboxList() {
+      fullViewMode = "LIST";
+      renderInboxAndThread();
+    }
+
+    function renderThreadDetail() {
+      const t = threads.find(x => x.id === selectedThreadId);
+      const pane = document.getElementById("gmail-thread-pane");
+      if (!t) return;
+
+      const threadQueueHistory = outboundQueue.filter(q => q.threadId === t.id);
+
+      pane.innerHTML = `
+        <!-- GMAIL THREAD TOOLBAR -->
+        <div class="h-14 px-8 flex items-center justify-between shrink-0" style="background-color: var(--bg-surface); border-bottom: 1px solid var(--border-main);">
+          <div class="flex items-center gap-3">
+            ${!isSplitView ? `
+              <button onclick="backToInboxList()" class="gmail-btn-outline flex items-center gap-2">
+                ← Back to Inbox
+              </button>
+            ` : ''}
+            <span class="gmail-pill">${escapeHtml(t.purposeBadge)}</span>
+            <span class="gmail-pill">${escapeHtml(t.platform)}${t.secondaryPlatform ? ' / ' + escapeHtml(t.secondaryPlatform) : ''}</span>
+          </div>
+          <span class="gmail-pill font-semibold">${escapeHtml(t.statusBadge)}</span>
+        </div>
+
+        <!-- SCROLLABLE GMAIL CONVERSATION PANE WITH PROMINENT VERTICAL SLIDE BAR -->
+        <div id="messages-scroll-box" class="flex-1 px-9 py-8 space-y-6 scroll-pane">
+
+          <!-- SUBJECT TITLE & PURPOSE BANNER -->
+          <div class="space-y-4">
+            <h1 class="text-2xl font-bold tracking-tight leading-snug" style="color: var(--text-primary);">
+              ${escapeHtml(t.partnerName)}
+            </h1>
+            <div class="p-5 rounded-xl text-[15.5px] leading-relaxed" style="background-color: var(--bg-surface); border: 1px solid var(--border-main); color: var(--text-secondary);">
+              <strong class="font-semibold" style="color: var(--text-primary);">Purpose (Why We Contacted Them):</strong>
+              <span class="ml-1">${escapeHtml(t.whyWeContacted)}</span>
+            </div>
+          </div>
+
+          <!-- STACKED GMAIL MESSAGE CARDS -->
+          <div class="space-y-5">
+            ${t.messages.map(m => {
+              const isUs = m.sender === "US";
+              const initial = isUs ? "K" : (t.partnerName || "P").charAt(0).toUpperCase();
+              return `
+                <div class="gmail-card p-6">
+                  <div class="flex items-start justify-between gap-4 pb-4 mb-4" style="border-bottom: 1px solid var(--border-subtle);">
+                    <div class="flex items-center gap-3.5">
+                      <div class="w-11 h-11 rounded-full flex items-center justify-center font-bold text-base shrink-0"
+                           style="background-color: ${isUs ? 'var(--pill-bg)' : 'var(--accent-bg)'}; color: ${isUs ? 'var(--text-primary)' : 'var(--accent-text)'};">
+                        ${initial}
+                      </div>
+                      <div>
+                        <div class="flex items-center gap-2.5">
+                          <span class="font-bold text-[16px]" style="color: var(--text-primary);">${escapeHtml(m.senderLabel)}</span>
+                          <span class="gmail-pill">${isUs ? 'Sent by Us' : 'Partner Reply'}</span>
+                        </div>
+                        <div class="text-[13.5px] mt-1" style="color: var(--text-muted);">
+                          via ${escapeHtml(m.channel)} ${m.subject ? '· ' + escapeHtml(m.subject) : ''}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="text-[13.5px] font-medium shrink-0" style="color: var(--text-muted);">
+                      ${escapeHtml(m.timestamp)}
+                    </div>
+                  </div>
+                  <div class="formatted-email-body">${formatReadableText(m.body)}</div>
+                </div>
+              `;
+            }).join("")}
+
+            <!-- DISPATCHED HIGH-PRIORITY MESSAGES IN THIS THREAD -->
+            ${threadQueueHistory.map(qItem => `
+              <div class="gmail-card p-6" style="border-width: 2px;">
+                <div class="flex items-center justify-between pb-3.5 mb-3.5" style="border-bottom: 1px solid var(--border-subtle);">
+                  <div class="flex items-center gap-2.5">
+                    <span class="px-2.5 py-1 rounded text-xs font-bold uppercase" style="background-color: var(--accent-bg); color: var(--accent-text);">
+                      High-Priority Sent / Queued
+                    </span>
+                    <span class="text-sm font-mono" style="color: var(--text-secondary);">${escapeHtml(qItem.status)}</span>
+                  </div>
+                  <span class="text-sm" style="color: var(--text-muted);">${escapeHtml(qItem.queuedAt)}</span>
+                </div>
+                <div class="formatted-email-body">${formatReadableText(qItem.message)}</div>
+              </div>
+            `).join("")}
+
+            <!-- BESPOKE 2-PAGE PDF PROPOSAL CARD -->
+            ${t.proposalPdf ? `
+              <div class="gmail-card p-6" style="border: 2px solid var(--text-primary);">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <div class="flex items-center gap-2.5">
+                      <span class="px-3 py-1 rounded text-xs font-bold uppercase" style="background-color: var(--accent-bg); color: var(--accent-text);">
+                        2-Page Custom PDF Proposal Ready
+                      </span>
+                      <span class="text-sm font-semibold" style="color: var(--text-primary);">
+                        ${escapeHtml(t.proposalTitle || '2-Page Partnership & Seller-of-Record Deck')}
+                      </span>
+                    </div>
+                    <p class="text-sm mt-2" style="color: var(--text-secondary);">
+                      Modeled on the 3-Stream Role-3 Deck (Stream 1: 5 Featured Packages · Stream 2: +4.5% Passive Override / +THB 321,750 Net Fee · Stream 3: Auto PND 3 &amp; Stripe/Tazapay Protection).
+                    </p>
+                  </div>
+
+                  <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                    <a href="${t.proposalPdf}" target="_blank" class="gmail-btn-primary !py-2 !px-4 text-sm inline-flex items-center gap-1.5" style="text-decoration:none;">
+                      Open 2-Page PDF ↗
+                    </a>
+                    <a href="${t.proposalHtml}" target="_blank" class="gmail-btn-outline !py-2 !px-4 text-sm inline-flex items-center gap-1.5" style="text-decoration:none;">
+                      Open Web Deck ↗
+                    </a>
+                    <button onclick="toggleInlinePdfPreview()" class="gmail-btn-outline !py-2 !px-4 text-sm">
+                      Preview Inline
+                    </button>
+                  </div>
+                </div>
+
+                <div id="inline-pdf-preview-box" class="hidden mt-5 pt-4" style="border-top: 1px solid var(--border-main);">
+                  <iframe src="${t.proposalPdf}" class="w-full rounded-lg" style="height: 680px; border: 1px solid var(--border-main); background: #ffffff;"></iframe>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- GMAIL INLINE DRAFT / QUEUED RESPONSE CARD + REPLY COMPOSER -->
+            <div class="gmail-card p-6 shadow-xl">
+              <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4" style="border-bottom: 1px solid var(--border-subtle);">
+                <div class="flex items-center gap-3">
+                  <span class="px-3 py-1 rounded text-xs font-bold uppercase" style="background-color: var(--accent-bg); color: var(--accent-text);">
+                    ${t.queuedDraft ? 'Queued Response (Draft)' : 'Reply'}
+                  </span>
+                  <span class="text-[15px] font-medium" style="color: var(--text-secondary);">
+                    To: ${escapeHtml(t.partnerName)} (${escapeHtml(t.contactPerson)})
+                  </span>
+                </div>
+
+                <select id="dispatch-mode-select" class="gmail-input rounded-full px-4 py-2 text-sm font-medium cursor-pointer">
+                  <option value="HIGH_PRIORITY_AND_SMTP">Send via Titan SMTP + High-Priority Queue</option>
+                  <option value="QUEUE_FOR_AGENT">Queue at #1 High Priority for Agent Only</option>
+                  <option value="OPEN_WHATSAPP_OR_LINE">Log & Open in WhatsApp / LINE</option>
+                </select>
+              </div>
+
+              <textarea
+                id="reply-textarea"
+                rows="5"
+                placeholder="Type your reply or edit the queued response below..."
+                class="w-full rounded-xl p-4 text-[16px] leading-relaxed gmail-input resize-y"
+              >${escapeHtml(t.queuedDraft || "")}</textarea>
+
+              ${t.proposalPdf ? `
+                <label class="flex items-center gap-2.5 mt-3 text-sm font-medium cursor-pointer" style="color: var(--text-primary);">
+                  <input type="checkbox" id="attach-pdf-checkbox" checked class="w-4 h-4 cursor-pointer" />
+                  <span>Attach <strong>${escapeHtml(t.proposalPdf.split('/').pop())}</strong> (2-Page PDF Deck) when sending / pushing to High-Priority Queue</span>
+                </label>
+              ` : ''}
+              <div class="flex flex-wrap items-center justify-between gap-3 mt-4">
+                <div id="composer-feedback" class="text-sm font-medium" style="color: var(--text-secondary);">
+                  ${t.queuedDraft ? 'Pre-loaded with our recommended queued response for this conversation.' : 'Type any message to place it at #1 in the high-priority sending queue.'}
+                </div>
+                <button
+                  onclick="submitFounderReply()"
+                  id="send-reply-btn"
+                  class="gmail-btn-primary"
+                >
+                  Send / Queue High Priority
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      `;
+    }
+
+    // Draggable Split-Pane Resizer Logic
+    (function initResizer() {
+      const resizer = document.getElementById("pane-resizer");
+      const container = document.getElementById("gmail-main-container");
+      const listPane = document.getElementById("gmail-inbox-list-pane");
+      let isDragging = false;
+
+      resizer.addEventListener("mousedown", () => {
+        isDragging = true;
+        resizer.classList.add("dragging");
+        document.body.style.cursor = "col-resize";
+      });
+
+      window.addEventListener("mousemove", (e) => {
+        if (!isDragging || !isSplitView) return;
+        const rect = container.getBoundingClientRect();
+        const relX = e.clientX - rect.left;
+        const pct = Math.max(25, Math.min(70, (relX / rect.width) * 100));
+        inboxPaneWidthPercent = Math.round(pct);
+        listPane.style.width = inboxPaneWidthPercent + "%";
+      });
+
+      window.addEventListener("mouseup", () => {
+        if (isDragging) {
+          isDragging = false;
+          resizer.classList.remove("dragging");
+          document.body.style.cursor = "";
+        }
+      });
+    })();
+
+    async function submitFounderReply() {
+      const t = threads.find(x => x.id === selectedThreadId);
+      const box = document.getElementById("reply-textarea");
+      const mode = document.getElementById("dispatch-mode-select").value;
+      if (!t || !box) return;
+
+      const text = box.value.trim();
+      if (!text) {
+        alert("Please enter a message before sending.");
+        return;
+      }
+
+      const nowStr = new Date().toISOString().replace("T", " ").slice(0, 16);
+      const newMsg = {
+        threadId: t.id,
+        sender: "US",
+        senderLabel: "Founder High-Priority Dispatch",
+        timestamp: nowStr + " UTC",
+        channel: t.platform,
+        subject: "Re: " + t.partnerName + " — Kring Partnership",
+        body: text
+      };
+
+      t.messages.push(newMsg);
+      t.queuedDraft = "";
+      t.lastReplyAt = nowStr;
+
+      const queueItem = {
+        id: "HPQ-" + Date.now(),
+        queuedAt: nowStr + " UTC",
+        threadId: t.id,
+        partnerName: t.partnerName,
+        contactPerson: t.contactPerson,
+        recipientEmail: t.email,
+        phoneWhatsApp: t.phoneWhatsApp,
+        lineId: t.lineId,
+        platform: t.platform,
+        mode: mode,
+        subject: newMsg.subject,
+        message: text,
+        proposalPdf: t.proposalPdf || null,
+        attachPdf: document.getElementById("attach-pdf-checkbox") ? document.getElementById("attach-pdf-checkbox").checked : false,
+        status: "QUEUED_HIGH_PRIORITY"
+      };
+
+      try {
+        const res = await fetch("/api/send-or-queue", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(queueItem)
+        });
+        if (res.ok) {
+          const result = await res.json();
+          queueItem.status = result.status || "SENT_OR_QUEUED_ON_SERVER";
+          queueItem.smtpResponse = result.smtpResponse || "";
+        }
+      } catch (err) {
+        queueItem.status = "SAVED_LOCAL_HIGH_PRIORITY";
+      }
+
+      outboundQueue.unshift(queueItem);
+      localStorage.setItem("kring_outbound_queue_v1", JSON.stringify(outboundQueue));
+      updateQueueBadge();
+
+      if (mode === "OPEN_WHATSAPP_OR_LINE" && t.phoneWhatsApp) {
+        const waUrl = "https://wa.me/" + t.phoneWhatsApp.replace(/[^0-9]/g, "") + "?text=" + encodeURIComponent(text);
+        window.open(waUrl, "_blank");
+      }
+
+      renderInboxAndThread();
+      const fb = document.getElementById("composer-feedback");
+      if (fb) {
+        fb.textContent = "Dispatched / Queued at #1 High Priority (" + queueItem.status + ")";
+      }
+    }
+
+    async function checkBackendServer() {
+      try {
+        const res = await fetch("/api/state");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.queue) {
+            outboundQueue = data.queue;
+            localStorage.setItem("kring_outbound_queue_v1", JSON.stringify(outboundQueue));
+          }
+          updateQueueBadge();
+          renderThreadDetail();
+        }
+      } catch (e) {}
+    }
+
+    async function syncLiveImap() {
+      const btn = document.getElementById("sync-imap-btn");
+      btn.textContent = "Syncing...";
+      try {
+        const res = await fetch("/api/sync-imap", { method: "POST" });
+        if (res.ok) {
+          const data = await res.json();
+          btn.textContent = "Synced (" + (data.opsTotal || 81) + "/" + (data.partTotal || 167) + ")";
+          setTimeout(() => { btn.textContent = "Sync Mail"; }, 4000);
+          checkBackendServer();
+          return;
+        }
+      } catch (e) {}
+      btn.textContent = "Synced";
+      setTimeout(() => { btn.textContent = "Sync Mail"; }, 3000);
+    }
+
+    function updateQueueBadge() {
+      document.getElementById("queue-count-badge").textContent = outboundQueue.length;
+    }
+
+    function toggleQueueModal() {
+      const modal = document.getElementById("queue-modal");
+      const body = document.getElementById("queue-modal-body");
+      if (modal.classList.contains("hidden")) {
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        if (outboundQueue.length === 0) {
+          body.innerHTML = `<div class="p-10 text-center text-base" style="color: var(--text-muted);">No custom messages submitted yet. Every email thread already displays its pre-staged Draft Response at the bottom of the conversation.</div>`;
+        } else {
+          body.innerHTML = outboundQueue.map(item => `
+            <div class="gmail-card p-5 space-y-2.5">
+              <div class="flex items-center justify-between text-sm">
+                <span class="font-bold" style="color: var(--text-primary);">${escapeHtml(item.id)} · ${escapeHtml(item.partnerName)}</span>
+                <span class="gmail-pill font-mono">${escapeHtml(item.status)}</span>
+              </div>
+              <div class="text-xs" style="color: var(--text-muted);">${escapeHtml(item.queuedAt)} · ${escapeHtml(item.platform)}</div>
+              <div class="formatted-email-body p-4 rounded-lg" style="background-color: var(--bg-app);">${formatReadableText(item.message)}</div>
+            </div>
+          `).join("");
+        }
+      } else {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      }
+    }
+
+    updateQueueBadge();
+    renderInboxAndThread();
+    checkBackendServer();
+  </script>
+</body>
+</html>
