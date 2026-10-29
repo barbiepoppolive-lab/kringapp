@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kring Unified Outreach & LINE Command Center (@266jjwqh)</title>
+  <style>
+    :root {
+      --bg: #070911;
+      --panel: #0f1320;
+      --panel-alt: #151b2d;
+      --card: #182036;
+      --card-hover: #1f2944;
+      --border: #283352;
+      --text: #f3f5fa;
+      --muted: #9aa5be;
+      --primary: #3446ff;
+      --marigold: #ffb21e;
+      --line-green: #06c755;
+      --wa-green: #25d366;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      font-size: 16px;
+      line-height: 1.75;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    p, ul, ol {
+      margin-top: 0;
+      margin-bottom: 12px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    /* Mandatory visible 12px scrollbars */
+    .scroll-pane {
+      overflow-y: scroll !important;
+      scrollbar-width: auto;
+    }
+    .scroll-pane::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+    .scroll-pane::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.06);
+      border-left: 1px solid var(--border);
+    }
+    .scroll-pane::-webkit-scrollbar-thumb {
+      background: rgba(154, 165, 190, 0.45);
+      border-radius: 6px;
+      border: 2px solid rgba(15, 19, 32, 0.8);
+    }
+    .scroll-pane::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 178, 30, 0.75);
+    }
+
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* Top Command Header */
+    .top-header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, var(--primary), #5a6bff);
+      color: #fff;
+      font-weight: 800;
+      padding: 6px 12px;
+      border-radius: 8px;
+      letter-spacing: 0.03em;
+    }
+
+    .oa-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(6, 199, 85, 0.14);
+      border: 1px solid rgba(6, 199, 85, 0.45);
+      color: #6df09f;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn:hover {
+      background: var(--card-hover);
+      border-color: #455686;
+    }
+    .btn-line {
+      background: var(--line-green);
+      border-color: var(--line-green);
+      color: #041b0b;
+      font-weight: 700;
+    }
+    .btn-line:hover {
+      background: #08dc60;
+    }
+    .btn-wa {
+      background: var(--wa-green);
+      border-color: var(--wa-green);
+      color: #041b0b;
+      font-weight: 700;
+    }
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      font-weight: 700;
+    }
+    .btn-primary:hover {
+      background: #4758ff;
+    }
+    .btn-marigold {
+      background: var(--marigold);
+      border-color: var(--marigold);
+      color: #090b12;
+      font-weight: 700;
+    }
+
+    /* Navigation Tabs + Filter Bar */
+    .tab-bar {
+      background: var(--panel-alt);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .tabs-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tab-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+    }
+    .tab-btn.active {
+      background: var(--card);
+      border-color: var(--primary);
+      color: var(--text);
+    }
+    .tab-count {
+      background: rgba(255, 255, 255, 0.12);
+      padding: 1px 8px;
+      border-radius: 999px;
+      font-size: 13px;
+    }
+
+    .filters-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .input-ctrl, .select-ctrl {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    /* Draggable Split-Pane Workspace */
+    .split-workspace {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+      width: 100%;
+      position: relative;
+    }
+
+    .left-pane {
+      width: 430px;
+      min-width: 280px;
+      max-width: 65vw;
+      background: var(--panel);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .resizer {
+      width: 8px;
+      background: var(--border);
+      cursor: col-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+      user-select: none;
+    }
+    .resizer:hover, .resizer.dragging {
+      background: var(--marigold);
+    }
+    .resizer::after {
+      content: "⋮";
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .right-pane {
+      flex: 1;
+      min-width: 340px;
+      background: var(--bg);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Left List Items */
+    .list-item {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .list-item:hover {
+      background: var(--panel-alt);
+    }
+    .list-item.selected {
+      background: var(--card);
+      border-left: 4px solid var(--marigold);
+    }
+    .item-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .item-title {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text);
+    }
+    .badge {
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-line {
+      background: rgba(6, 199, 85, 0.18);
+      color: #6df09f;
+      border: 1px solid rgba(6, 199, 85, 0.4);
+    }
+    .badge-wa {
+      background: rgba(37, 211, 102, 0.18);
+      color: #72f5a0;
+      border: 1px solid rgba(37, 211, 102, 0.4);
+    }
+    .badge-email {
+      background: rgba(52, 70, 255, 0.22);
+      color: #9ba6ff;
+      border: 1px solid rgba(52, 70, 255, 0.45);
+    }
+    .badge-warn {
+      background: rgba(255, 178, 30, 0.18);
+      color: var(--marigold);
+      border: 1px solid rgba(255, 178, 30, 0.45);
+    }
+    .badge-done {
+      background: rgba(154, 165, 190, 0.16);
+      color: var(--muted);
+    }
+    .item-sub {
+      font-size: 14px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Right Detail & Thread View */
+    .detail-header {
+      padding: 16px 24px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .detail-body {
+      flex: 1;
+      padding: 20px 24px;
+    }
+    .msg-bubble {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 16px;
+    }
+    .msg-bubble.outbound {
+      background: rgba(52, 70, 255, 0.12);
+      border-color: rgba(52, 70, 255, 0.4);
+    }
+    .msg-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 6px;
+    }
+    .msg-text {
+      white-space: pre-wrap;
+      font-size: 16px;
+      line-height: 1.75;
+    }
+
+    /* Inline Composer / Action Footer */
+    .composer-box {
+      padding: 16px 24px;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+    }
+    .composer-textarea {
+      width: 100%;
+      min-height: 130px;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-family: inherit;
+      font-size: 16px;
+      line-height: 1.75;
+      resize: vertical;
+      margin-bottom: 12px;
+    }
+    .composer-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .toast-banner {
+      position: fixed;
+      bottom: 20px;
+      right: 24px;
+      background: #10b981;
+      color: #041b0b;
+      font-weight: 700;
+      padding: 12px 20px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+      display: none;
+      z-index: 9999;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .stat-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .stat-label {
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .stat-val {
+      font-size: 22px;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="brand-group">
+        <span class="brand-badge">KRING OUTREACH &amp; LINE HUB</span>
+        <span class="oa-pill" id="oa-status-pill">
+          ● LINE OA: @266jjwqh (Thailand · Messaging API #2012264230 · Field Auto-Reply Active)
+        </span>
+      </div>
+      <div class="header-actions">
+        <a class="btn btn-line" href="https://chat.line.biz/" target="_blank" rel="noopener">
+          💬 Open LINE 1-on-1 Chat (chat.line.biz)
+        </a>
+        <a class="btn" href="https://manager.line.biz/account/@266jjwqh" target="_blank" rel="noopener">
+          ⚙️ @266jjwqh Console
+        </a>
+        <a class="btn" href="https://admanager.line.biz/home/" target="_blank" rel="noopener">
+          📢 Thailand LINE Ads Manager
+        </a>
+        <button class="btn" id="btn-copy-oa-link" type="button">
+          📋 Copy @266jjwqh Link
+        </button>
+        <button class="btn btn-primary" id="btn-sync-now" type="button">
+          🔄 Sync All Channels
+        </button>
+      </div>
+    </header>
+
+    <!-- Channel Tabs + Filter Controls -->
+    <nav class="tab-bar">
+      <div class="tabs-left" id="channel-tabs">
+        <button class="tab-btn active" data-tab="needs_reply" type="button">
+          🔥 Warm Needs Reply <span class="tab-count" id="cnt-needs-reply">0</span>
+        </button>
+        <button class="tab-btn" data-tab="line_venues" type="button">
+          💚 LINE Venue Queue (@LINE) <span class="tab-count" id="cnt-line-venues">0</span>
+        </button>
+        <button class="tab-btn" data-tab="line_oa_field" type="button">
+          🙋‍♀️ LINE OA (@266jjwqh) &amp; Field Crew <span class="tab-count" id="cnt-field-crew">Live</span>
+        </button>
+        <button class="tab-btn" data-tab="whatsapp_venues" type="button">
+          🟢 WhatsApp Queue (+66) <span class="tab-count" id="cnt-wa-venues">0</span>
+        </button>
+        <button class="tab-btn" data-tab="email_venues" type="button">
+          📧 Cold Email Queue &amp; Drain <span class="tab-count" id="cnt-email-venues">0</span>
+        </button>
+        <button class="tab-btn" data-tab="all_threads" type="button">
+          ✅ All Sent &amp; Replied <span class="tab-count" id="cnt-all-threads">0</span>
+        </button>
+      </div>
+      <div class="filters-right">
+        <select class="select-ctrl" id="city-filter">
+          <option value="all">All Cities (Bangkok &amp; Pattaya)</option>
+          <option value="bangkok">Bangkok Only</option>
+          <option value="pattaya">Pattaya Only</option>
+        </select>
+        <input class="input-ctrl" id="search-input" type="search" placeholder="Search venue, @LINE, email, partner..." />
+      </div>
+    </nav>
+
+    <!-- Split Workspace -->
+    <div class="split-workspace" id="split-workspace">
+      <aside class="left-pane scroll-pane" id="left-list-pane"></aside>
+      <div class="resizer" id="split-resizer" title="Drag to resize panes"></div>
+      <main class="right-pane" id="right-detail-pane">
+        <div class="detail-body scroll-pane" id="detail-content">
+          <p>Loading Kring Unified Outreach &amp; LINE Command Center...</p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast-banner" id="toast-banner">Action completed!</div>
+
+  <script>
+    const state = {
+      activeTab: 'needs_reply',
+      cityFilter: 'all',
+      searchQuery: '',
+      selectedId: null,
+      data: null,
+    };
+
+    function showToast(msg) {
+      const el = document.getElementById('toast-banner');
+      el.textContent = msg;
+      el.style.display = 'block';
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => {
+        el.style.display = 'none';
+      }, 3200);
+    }
+
+    function decodeB64Utf8(b64) {
+      if (!b64) return '';
+      try {
+        const bin = atob(b64);
+        const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+        return new TextDecoder('utf-8').decode(bytes);
+      } catch {
+        return '';
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function getFilteredList() {
+      if (!state.data) return [];
+      const q = state.searchQuery.trim().toLowerCase();
+      const city = state.cityFilter;
+
+      let raw = [];
+      if (state.activeTab === 'needs_reply') {
+        raw = (state.data.partnerThreads || []).filter((t) => t.owes === 'us' || t.owes === 'founder_tap');
+      } else if (state.activeTab === 'line_venues') {
+        raw = state.data.lineVenues || [];
+      } else if (state.activeTab === 'whatsapp_venues') {
+        raw = state.data.whatsappVenues || [];
+      } else if (state.activeTab === 'email_venues') {
+        raw = state.data.emailVenues || [];
+      } else if (state.activeTab === 'all_threads') {
+        raw = state.data.partnerThreads || [];
+      } else if (state.activeTab === 'line_oa_field') {
+        raw = [
+          {
+            id: 'oa_hub_overview',
+            title: 'LINE Official Account @266jjwqh Overview & Job Post',
+            subtitle: 'Thailand Region · Messaging API #2012264230 · Auto-Reply Rule #82614369',
+            badge: 'LIVE OA',
+            badgeClass: 'badge-line',
+          },
+          ...(state.data.fieldCrew?.applicants || []).map((a, idx) => ({
+            id: `applicant_${idx}`,
+            title: a.name || `Field Applicant #${idx + 1}`,
+            subtitle: `${a.area || 'Bangkok'} · Score: ${a.score || 5}/5`,
+            badge: 'APPLICANT',
+            badgeClass: 'badge-warn',
+            applicant: a,
+          })),
+        ];
+      }
+
+      return raw.filter((item) => {
+        if (city !== 'all' && item.city) {
+          if (String(item.city).toLowerCase() !== city) return false;
+        }
+        if (!q) return true;
+        const hay = JSON.stringify({
+          w: item.who || item.business_name || item.title || '',
+          h: item.handle || item.line_oa || item.whatsapp || item.email || '',
+          s: item.subject || item.business_type || item.city || '',
+        }).toLowerCase();
+        return hay.includes(q);
+      });
+    }
+
+    function renderCounts() {
+      if (!state.data) return;
+      const c = state.data.counts || {};
+      document.getElementById('cnt-needs-reply').textContent = c.needsReplyCount ?? 0;
+      document.getElementById('cnt-line-venues').textContent = `${c.lineVenuesCount ?? 0} (${c.lineContactedToday ?? 0}/${c.lineDailySeatCap ?? 40} today)`;
+      document.getElementById('cnt-field-crew').textContent = `@266jjwqh · ${c.fieldApplicantsCount ?? 0}`;
+      document.getElementById('cnt-wa-venues').textContent = c.whatsappVenuesCount ?? 0;
+      document.getElementById('cnt-email-venues').textContent = c.emailVenuesCount ?? 0;
+      document.getElementById('cnt-all-threads').textContent = c.totalPartnerThreads ?? 0;
+    }
+
+    function renderLeftPane() {
+      const pane = document.getElementById('left-list-pane');
+      const items = getFilteredList();
+      if (items.length === 0) {
+        pane.innerHTML = `<div style="padding:20px;color:var(--muted);">No items match this filter.</div>`;
+        return;
+      }
+
+      if (!state.selectedId || !items.some((x) => x.id === state.selectedId)) {
+        state.selectedId = items[0].id;
+      }
+
+      pane.innerHTML = items
+        .map((item) => {
+          const isSel = item.id === state.selectedId;
+          if (state.activeTab === 'needs_reply' || state.activeTab === 'all_threads') {
+            const chBadge =
+              item.channel === 'line'
+                ? `<span class="badge badge-line">LINE</span>`
+                : item.channel === 'whatsapp'
+                  ? `<span class="badge badge-wa">WHATSAPP</span>`
+                  : `<span class="badge badge-email">EMAIL</span>`;
+            const statusBadge =
+              item.owes === 'us' || item.owes === 'founder_tap'
+                ? `<span class="badge badge-warn">NEEDS REPLY</span>`
+                : `<span class="badge badge-done">SENT ✓</span>`;
+            return `
+              <div class="list-item ${isSel ? 'selected' : ''}" data-id="${escapeHtml(item.id)}">
+                <div class="item-top">
+                  <span class="item-title">${escapeHtml(item.who)}</span>
+                  <span>${chBadge} ${statusBadge}</span>
+                </div>
+                <div class="item-sub">${escapeHtml(item.handle)} · ${escapeHtml(item.subject)}</div>
+                <div class="item-sub" style="margin-top:4px;color:#cbd5e1;">${escapeHtml(item.last)}</div>
+              </div>
+            `;
+          }
+
+          if (state.activeTab === 'line_venues') {
+            const stBadge =
+              item.status === 'contacted'
+                ? `<span class="badge badge-done">SENT ✓</span>`
+                : `<span class="badge badge-line">READY (@LINE)</span>`;
+            return `
+              <div class="list-item ${isSel ? 'selected' : ''}" data-id="${escapeHtml(item.id)}">
+                <div class="item-top">
+                  <span class="item-title">${escapeHtml(item.business_name)}</span>
+                  ${stBadge}
+                </div>
+                <div class="item-sub">${escapeHtml(item.city)} · ${escapeHtml(item.business_type.replace(/_/g, ' '))} · <strong>${escapeHtml(item.line_oa)}</strong></div>
+              </div>
+            `;
+          }
+
+          if (state.activeTab === 'whatsapp_venues') {
+            return `
+              <div class="list-item ${isSel ? 'selected' : ''}" data-id="${escapeHtml(item.id)}">
+                <div class="item-top">
+                  <span class="item-title">${escapeHtml(item.business_name)}</span>
+                  <span class="badge badge-wa">${escapeHtml(item.whatsapp)}</span>
+                </div>
+                <div class="item-sub">${escapeHtml(item.city)} · ${escapeHtml(item.business_type.replace(/_/g, ' '))}</div>
+              </div>
+            `;
+          }
+
+          if (state.activeTab === 'email_venues') {
+            return `
+              <div class="list-item ${isSel ? 'selected' : ''}" data-id="${escapeHtml(item.id)}">
+                <div class="item-top">
+                  <span class="item-title">${escapeHtml(item.business_name)}</span>
+                  <span class="badge badge-email">${escapeHtml(item.validatorGate)}</span>
+                </div>
+                <div class="item-sub">${escapeHtml(item.city)} · ${escapeHtml(item.email)}</div>
+              </div>
+            `;
+          }
+
+          return `
+            <div class="list-item ${isSel ? 'selected' : ''}" data-id="${escapeHtml(item.id)}">
+              <div class="item-top">
+                <span class="item-title">${escapeHtml(item.title)}</span>
+                <span class="badge ${item.badgeClass || 'badge-line'}">${escapeHtml(item.badge)}</span>
+              </div>
+              <div class="item-sub">${escapeHtml(item.subtitle)}</div>
+            </div>
+          `;
+        })
+        .join('');
+
+      pane.querySelectorAll('.list-item').forEach((el) => {
+        el.addEventListener('click', () => {
+          state.selectedId = el.getAttribute('data-id');
+          renderLeftPane();
+          renderRightPane();
+        });
+      });
+    }
+
+    function renderRightPane() {
+      const container = document.getElementById('right-detail-pane');
+      const items = getFilteredList();
+      const item = items.find((x) => x.id === state.selectedId) || items[0];
+
+      if (!item) {
+        container.innerHTML = `<div class="detail-body scroll-pane"><p>Select an item on the left to view full history and actions.</p></div>`;
+        return;
+      }
+
+      // TAB: LINE OA (@266jjwqh) & FIELD CREW
+      if (state.activeTab === 'line_oa_field') {
+        const fc = state.data.fieldCrew || {};
+        container.innerHTML = `
+          <div class="detail-header">
+            <div>
+              <h2 style="margin:0 0 4px 0;font-size:20px;">LINE Official Account: @266jjwqh (Kring) &amp; Field Ambassador Hub</h2>
+              <div style="color:var(--muted);font-size:14px;">
+                Region: Thailand (TH) · Messaging API Channel ID: <strong>${escapeHtml(fc.messagingApiChannelId)}</strong> · Active Auto-Reply Rule ID: <strong>#${escapeHtml(fc.autoReplyRuleId)}</strong>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <a class="btn btn-line" href="${escapeHtml(fc.lineChatConsoleUrl)}" target="_blank" rel="noopener">💬 Open Live 1-on-1 Chat Inbox</a>
+              <a class="btn" href="${escapeHtml(fc.lineAddFriendUrl)}" target="_blank" rel="noopener">🔗 Test Add-Friend URL (@266jjwqh)</a>
+            </div>
+          </div>
+          <div class="detail-body scroll-pane">
+            <div class="info-grid">
+              <div class="stat-card">
+                <div class="stat-label">Official Basic ID</div>
+                <div class="stat-val" style="color:var(--line-green);">@266jjwqh</div>
+                <div style="font-size:14px;color:var(--muted);margin-top:4px;">1-on-1 Chat &amp; Webhook Replies: THB 0 (Free &amp; Unlimited)</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Field Crew Compensation</div>
+                <div class="stat-val" style="color:var(--marigold);">THB 600/day + THB 250/venue</div>
+                <div style="font-size:14px;color:var(--muted);margin-top:4px;">8 café check-ins/day + THB 150 bonus after 1st Table Bill</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Official QR Code (@266jjwqh)</div>
+                <div style="margin-top:8px;display:flex;align-items:center;gap:12px;">
+                  <img src="${escapeHtml(fc.lineQrUrl)}" alt="LINE OA @266jjwqh QR" style="width:72px;height:72px;border-radius:8px;background:#fff;padding:4px;" />
+                  <a class="btn" href="${escapeHtml(fc.lineQrUrl)}" target="_blank" rel="noopener">Download QR PNG</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="msg-bubble outbound">
+              <div class="msg-meta">
+                <span><strong>Field Ambassador Job Post Template (Linked to @266jjwqh)</strong></span>
+                <span>Ready for LINE OpenChat &amp; Facebook BA/Event Groups</span>
+              </div>
+              <div class="msg-text">${escapeHtml(fc.jobPostEnglishPreview)}</div>
+              <div style="margin-top:12px;">
+                <button class="btn btn-line" id="btn-copy-job-post" data-b64="${escapeHtml(fc.jobPostPayloadB64)}" type="button">
+                  📋 Copy Thai Job Post (with @266jjwqh) to Clipboard
+                </button>
+              </div>
+            </div>
+
+            <div class="msg-bubble">
+              <div class="msg-meta">
+                <span><strong>Active 24/7 Keyword Auto-Response on @266jjwqh (Rule #82614369)</strong></span>
+                <span>Trigger: ${escapeHtml(fc.triggerKeywordDescription)}</span>
+              </div>
+              <div class="msg-text">${escapeHtml(fc.autoReplyEnglishTranslation)}</div>
+            </div>
+          </div>
+        `;
+
+        const copyJobBtn = document.getElementById('btn-copy-job-post');
+        if (copyJobBtn) {
+          copyJobBtn.addEventListener('click', async () => {
+            const decoded = decodeB64Utf8(copyJobBtn.getAttribute('data-b64'));
+            await navigator.clipboard.writeText(decoded);
+            showToast('Copied Thai Field Ambassador job post (with @266jjwqh) to clipboard!');
+          });
+        }
+        return;
+      }
+
+      // TAB: LINE VENUE QUEUE (184 VERIFIED @LINE VENUES)
+      if (state.activeTab === 'line_venues') {
+        const c = state.data.counts || {};
+        container.innerHTML = `
+          <div class="detail-header">
+            <div>
+              <h2 style="margin:0 0 4px 0;font-size:20px;">${escapeHtml(item.business_name)} (${escapeHtml(item.city)})</h2>
+              <div style="color:var(--muted);font-size:14px;">
+                Verified @LINE Handle: <strong style="color:#6df09f;">${escapeHtml(item.line_oa)}</strong> · Category: ${escapeHtml(item.business_type.replace(/_/g, ' '))} · Source: <a href="${escapeHtml(item.source_url)}" target="_blank" rel="noopener" style="color:#9ba6ff;">${escapeHtml(item.source_url)}</a>
+              </div>
+            </div>
+            <div>
+              <span class="oa-pill">Daily Human Seat Cap: ${c.lineContactedToday ?? 0} / ${c.lineDailySeatCap ?? 40} Sent Today</span>
+            </div>
+          </div>
+          <div class="detail-body scroll-pane">
+            <div class="msg-bubble">
+              <div class="msg-meta">
+                <span><strong>HTML Evidence Fact Extracted from Venue Website</strong></span>
+                <span>Cached HTTP 200 Proof: ${escapeHtml(item.cache_file || 'Verified')}</span>
+              </div>
+              <div class="msg-text">${escapeHtml(item.one_public_fact)}</div>
+            </div>
+
+            <div class="msg-bubble outbound">
+              <div class="msg-meta">
+                <span><strong>100% English Translation of Outbound Touch T2 LINE Invitation</strong></span>
+                <span>11/11 Validator Gates: PASS · Direct-POS Model (THB 0 venue setup cost)</span>
+              </div>
+              <div class="msg-text">${escapeHtml(item.englishPreview)}</div>
+            </div>
+          </div>
+          <div class="composer-box">
+            <div class="composer-actions">
+              <div style="font-size:14px;color:var(--muted);">
+                Human-Sent Rule (Opus Stop 1): Clicking below copies the bilingual invite to your clipboard, opens <strong>${escapeHtml(item.line_oa)}</strong> in LINE, and logs the touch.
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="btn" id="btn-copy-line-only" data-b64="${escapeHtml(item.payloadB64)}" type="button">
+                  📋 Copy Invite Text Only
+                </button>
+                <button class="btn btn-line" id="btn-open-line-venue" data-b64="${escapeHtml(item.payloadB64)}" data-url="${escapeHtml(item.deepLink)}" type="button">
+                  💬 Copy Invite &amp; Open ${escapeHtml(item.line_oa)} in LINE (Logs Touch)
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('btn-copy-line-only')?.addEventListener('click', async (e) => {
+          const txt = decodeB64Utf8(e.currentTarget.getAttribute('data-b64'));
+          await navigator.clipboard.writeText(txt);
+          showToast(`Copied invite for ${item.business_name} to clipboard!`);
+        });
+
+        document.getElementById('btn-open-line-venue')?.addEventListener('click', async (e) => {
+          const txt = decodeB64Utf8(e.currentTarget.getAttribute('data-b64'));
+          const url = e.currentTarget.getAttribute('data-url');
+          await navigator.clipboard.writeText(txt);
+          window.open(url, '_blank', 'noopener');
+          await fetch('/api/log-human-touch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: item.id,
+              business_name: item.business_name,
+              handle: item.line_oa,
+              channel: 'line',
+            }),
+          });
+          showToast(`Copied invite & opened ${item.line_oa} in LINE!`);
+          await loadState();
+        });
+        return;
+      }
+
+      // TAB: WHATSAPP VENUE QUEUE (59 VERIFIED +66 VENUES)
+      if (state.activeTab === 'whatsapp_venues') {
+        container.innerHTML = `
+          <div class="detail-header">
+            <div>
+              <h2 style="margin:0 0 4px 0;font-size:20px;">${escapeHtml(item.business_name)} (${escapeHtml(item.city)})</h2>
+              <div style="color:var(--muted);font-size:14px;">
+                Verified WhatsApp: <strong style="color:#72f5a0;">${escapeHtml(item.whatsapp)}</strong> · Category: ${escapeHtml(item.business_type.replace(/_/g, ' '))} · Website: <a href="${escapeHtml(item.source_url)}" target="_blank" rel="noopener" style="color:#9ba6ff;">${escapeHtml(item.source_url)}</a>
+              </div>
+            </div>
+          </div>
+          <div class="detail-body scroll-pane">
+            <div class="msg-bubble outbound">
+              <div class="msg-meta">
+                <span><strong>Pre-Filled WhatsApp Partner Pitch (English)</strong></span>
+                <span>Direct-POS Table Bill Model · Zero Hardware</span>
+              </div>
+              <div class="msg-text">${escapeHtml(item.englishPreview)}</div>
+            </div>
+          </div>
+          <div class="composer-box">
+            <div class="composer-actions">
+              <span style="font-size:14px;color:var(--muted);">Opens WhatsApp Web / Desktop with the message pre-filled for ${escapeHtml(item.whatsapp)}.</span>
+              <button class="btn btn-wa" id="btn-open-wa-venue" data-url="${escapeHtml(item.waUrl)}" type="button">
+                🟢 Open WhatsApp (${escapeHtml(item.whatsapp)}) With Pre-Filled Pitch
+              </button>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('btn-open-wa-venue')?.addEventListener('click', async (e) => {
+          const url = e.currentTarget.getAttribute('data-url');
+          window.open(url, '_blank', 'noopener');
+          await fetch('/api/log-human-touch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: item.id,
+              business_name: item.business_name,
+              handle: item.whatsapp,
+              channel: 'whatsapp',
+            }),
+          });
+          showToast(`Opened WhatsApp for ${item.business_name}!`);
+          await loadState();
+        });
+        return;
+      }
+
+      // TAB: COLD EMAIL QUEUE (305 VERIFIED VENUES + DRAIN STATUS)
+      if (state.activeTab === 'email_venues') {
+        const rot = state.data.rotationState || {};
+        const inboxesObj = rot.inboxes || {};
+        const inboxKeys = Object.keys(inboxesObj);
+        container.innerHTML = `
+          <div class="detail-header">
+            <div>
+              <h2 style="margin:0 0 4px 0;font-size:20px;">${escapeHtml(item.business_name)} (${escapeHtml(item.city)})</h2>
+              <div style="color:var(--muted);font-size:14px;">
+                Verified Role Email: <strong style="color:#9ba6ff;">${escapeHtml(item.email)}</strong> · Validator: <strong>${escapeHtml(item.validatorGate)}</strong> · Website: <a href="${escapeHtml(item.source_url)}" target="_blank" rel="noopener" style="color:#9ba6ff;">${escapeHtml(item.source_url)}</a>
+              </div>
+            </div>
+          </div>
+          <div class="detail-body scroll-pane">
+            <div class="info-grid">
+              <div class="stat-card">
+                <div class="stat-label">5-Min Scheduled Drain</div>
+                <div class="stat-val" style="color:#6df09f;">KringSendQueueDrain5Min</div>
+                <div style="font-size:14px;color:var(--muted);margin-top:4px;">Guardrail v4 + Opus 10-Day Warmup Gate Active</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Tracked Senders in Rotation</div>
+                <div class="stat-val">${inboxKeys.length || 3}</div>
+                <div style="font-size:14px;color:var(--muted);margin-top:4px;">Cap: 20/day/inbox (Days 1–10: warm/human only)</div>
+              </div>
+            </div>
+
+            <div class="msg-bubble outbound">
+              <div class="msg-meta">
+                <span><strong>Validated Touch T1 Email Invitation Preview</strong></span>
+                <span>Recipient: ${escapeHtml(item.email)}</span>
+              </div>
+              <div class="msg-text">${escapeHtml(item.englishPreview)}</div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // TAB: NEEDS REPLY & ALL THREADS (WARM PARTNER CONVERSATIONS)
+      const msgsHtml =
+        (item.messages || []).length > 0
+          ? item.messages
+              .map(
+                (m) => `
+                <div class="msg-bubble ${m.dir === 'out' ? 'outbound' : ''}">
+                  <div class="msg-meta">
+                    <span><strong>${m.dir === 'out' ? 'Outbound (Kring · ' + escapeHtml(m.sender_account) + ')' : 'Inbound (' + escapeHtml(m.from || item.who) + ')'}</strong> · via ${escapeHtml(m.channel.toUpperCase())}</span>
+                    <span>${escapeHtml(m.at)}</span>
+                  </div>
+                  <div class="msg-text">${escapeHtml(m.text)}</div>
+                </div>
+              `
+              )
+              .join('')
+          : `<div class="msg-bubble"><div class="msg-text">${escapeHtml(item.last)}</div></div>`;
+
+      const draftVal = item.draft?.text || '';
+      const hasWa = Boolean(item.continue_on_whatsapp_url);
+      const hasLine = Boolean(item.continue_on_line_url);
+
+      container.innerHTML = `
+        <div class="detail-header">
+          <div>
+            <h2 style="margin:0 0 4px 0;font-size:20px;">${escapeHtml(item.who)}</h2>
+            <div style="color:var(--muted);font-size:14px;">
+              Channel: <strong>${escapeHtml(item.channel.toUpperCase())}</strong> · Handle: <strong>${escapeHtml(item.handle)}</strong> · Subject: ${escapeHtml(item.subject)}
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            ${hasLine ? `<a class="btn btn-line" href="${escapeHtml(item.continue_on_line_url)}" target="_blank" rel="noopener">💬 Continue on LINE (${escapeHtml(item.extracted_line || 'LINE')})</a>` : ''}
+            ${hasWa ? `<a class="btn btn-wa" href="${escapeHtml(item.continue_on_whatsapp_url)}" target="_blank" rel="noopener">🟢 Continue on WhatsApp (${escapeHtml(item.extracted_whatsapp || 'WA')})</a>` : ''}
+          </div>
+        </div>
+        <div class="detail-body scroll-pane">
+          ${msgsHtml}
+        </div>
+        <div class="composer-box">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:14px;color:var(--muted);">
+            <span><strong>Preloaded Reply Composer</strong> (Guardrail v4: <strong style="color:#6df09f;">${escapeHtml(item.draft?.guardrail || 'pass')}</strong>)</span>
+            <span>Signed: Barbie · Founder, KRING · +91 9000966360</span>
+          </div>
+          <textarea class="composer-textarea" id="reply-textarea">${escapeHtml(draftVal)}</textarea>
+          <div class="composer-actions">
+            <span style="font-size:14px;color:var(--muted);">Approving adds this reply to <code>SEND_QUEUE.json</code> with <code>approved_by: "founder"</code> for the 5-minute drain.</span>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn" id="btn-copy-reply" type="button">📋 Copy Reply Text</button>
+              <button class="btn btn-primary" id="btn-approve-queue" type="button">📨 Approve &amp; Queue Send</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('btn-copy-reply')?.addEventListener('click', async () => {
+        const val = document.getElementById('reply-textarea').value;
+        await navigator.clipboard.writeText(val);
+        showToast('Copied reply to clipboard!');
+      });
+
+      document.getElementById('btn-approve-queue')?.addEventListener('click', async () => {
+        const val = document.getElementById('reply-textarea').value;
+        await fetch('/api/queue-send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            thread_id: item.id,
+            channel: item.channel,
+            to: item.handle,
+            subject: item.subject ? `Re: ${item.subject.replace(/^Re:\s*/i, '')}` : 'Kring Partnership Follow-Up',
+            text: val,
+          }),
+        });
+        showToast(`Queued approved reply for ${item.who} in SEND_QUEUE.json!`);
+        await loadState();
+      });
+    }
+
+    async function loadState() {
+      try {
+        const res = await fetch('/api/state');
+        state.data = await res.json();
+        renderCounts();
+        renderLeftPane();
+        renderRightPane();
+      } catch (e) {
+        console.error('Failed to load state:', e);
+      }
+    }
+
+    // Tab switching
+    document.querySelectorAll('#channel-tabs .tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#channel-tabs .tab-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.activeTab = btn.getAttribute('data-tab');
+        state.selectedId = null;
+        renderLeftPane();
+        renderRightPane();
+      });
+    });
+
+    // Filters
+    document.getElementById('city-filter').addEventListener('change', (e) => {
+      state.cityFilter = e.target.value;
+      renderLeftPane();
+      renderRightPane();
+    });
+
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      state.searchQuery = e.target.value;
+      renderLeftPane();
+      renderRightPane();
+    });
+
+    // Header buttons
+    document.getElementById('btn-copy-oa-link').addEventListener('click', async () => {
+      await navigator.clipboard.writeText('https://line.me/R/ti/p/@266jjwqh');
+      showToast('Copied @266jjwqh Add-Friend URL to clipboard!');
+    });
+
+    document.getElementById('btn-sync-now').addEventListener('click', async () => {
+      showToast('Syncing all Email, LINE & Venue channels...');
+      const res = await fetch('/api/sync', { method: 'POST' });
+      const out = await res.json();
+      if (out.state) {
+        state.data = out.state;
+        renderCounts();
+        renderLeftPane();
+        renderRightPane();
+      }
+      showToast('All channels synced!');
+    });
+
+    // Draggable split-pane divider
+    const resizer = document.getElementById('split-resizer');
+    const leftPane = document.getElementById('left-list-pane');
+    let isDragging = false;
+
+    resizer.addEventListener('mousedown', () => {
+      isDragging = true;
+      resizer.classList.add('dragging');
+      document.body.style.cursor = 'col-resize';
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const newWidth = Math.max(280, Math.min(window.innerWidth * 0.65, e.clientX));
+      leftPane.style.width = `${newWidth}px`;
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        resizer.classList.remove('dragging');
+        document.body.style.cursor = '';
+      }
+    });
+
+    loadState();
+  </script>
+</body>
+</html>
