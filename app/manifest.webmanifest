@@ -1,20 +1,16 @@
 {
   "id": "/",
-  "name": "Kring (กริ๊ง!)",
+  "name": "Kring · Bangkok Locals (กริ๊ง!)",
   "short_name": "Kring",
   "description": "Kring, let's go. Meet a real local — or be one. Book verified locals in Bangkok and Pattaya at public places, held safely until you both go กริ๊ง!",
   "lang": "en",
-  "start_url": "/app/?standalone=1",
-  "scope": "/app/",
+  "start_url": "/?standalone=1",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#05060D",
   "theme_color": "#05060D",
-  "categories": [
-    "travel",
-    "lifestyle",
-    "social"
-  ],
+  "categories": ["travel", "lifestyle", "social"],
   "icons": [
     {
       "src": "/icon-192.png",

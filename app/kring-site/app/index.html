@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en" class="tonight-mode">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://photon.komoot.io; base-uri 'self'; form-action 'self';" />
+    <meta name="theme-color" content="#05060D" />
+    <meta name="description" content="Book activities with ID-checked Thai locals in Bangkok and Pattaya. Meet in public places. เที่ยวไทยแบบคนท้องถิ่น" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Kring" />
+    <meta name="application-name" content="Kring" />
+    <link rel="icon" type="image/svg+xml" href="/kring-icon.svg" />
+    <link rel="apple-touch-icon" href="/kring-icon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <!-- KRING V2 · brand fonts are self-hosted (src/design/fonts.css); the two faces of the first screen load early -->
+    <link rel="preload" href="/fonts/plus-jakarta-sans-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/unbounded-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <title>Kring, let's go — Real Thailand, with a local</title>
+    <script type="module" crossorigin src="/assets/main-8SeYaGcG.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-BhiKuK3Z.js">
+    <link rel="stylesheet" crossorigin href="/assets/main-CiMLdvAu.css">
+  </head>
+  <body class="antialiased" style="background:#05060D">
+    <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator && navigator.serviceWorker) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker?.register?.('sw.js')?.catch(() => {});
+        });
+      }
+    </script>
+  </body>
+</html>
