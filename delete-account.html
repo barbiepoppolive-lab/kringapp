@@ -1,190 +1,86 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Delete Account & Biometric Data — Kring (กริ๊ง!) · Bangkok & Pattaya</title>
-  <meta name="description" content="Official Account and Personal/Biometric Data Deletion Portal for Kring (กริ๊ง!)." />
-  <link rel="icon" type="image/png" href="/icon-192.png" />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: radial-gradient(circle at 50% 0%, #11183A 0%, #060919 55%, #040611 100%);
-      color: #F4F6FF;
-      font-family: 'Plus Jakarta Sans', 'Noto Sans Thai', sans-serif;
-      line-height: 1.65;
-      min-height: 100vh;
-      padding: 0 18px 64px;
-    }
-    .container {
-      max-width: 820px;
-      margin: 0 auto;
-    }
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 24px 0;
-      border-bottom: 1px solid rgba(255, 215, 130, 0.14);
-      margin-bottom: 36px;
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      color: #fff;
-      font-weight: 800;
-      font-size: 24px;
-      letter-spacing: -0.03em;
-    }
-    .brand img { width: 38px; height: 28px; object-fit: contain; }
-    .nav-links { display: flex; gap: 16px; flex-wrap: wrap; }
-    .nav-links a {
-      color: rgba(230, 236, 255, 0.8);
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 7px 14px;
-      border-radius: 999px;
-      background: rgba(16, 22, 48, 0.75);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-    }
-    .nav-links a:hover, .nav-links a.active {
-      border-color: rgba(255, 198, 88, 0.65);
-      color: #FFD97D;
-    }
-    .badge {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: #FFD97D;
-      background: rgba(245, 185, 66, 0.12);
-      border: 1px solid rgba(245, 185, 66, 0.35);
-      padding: 5px 12px;
-      border-radius: 999px;
-      margin-bottom: 14px;
-    }
-    h1 {
-      font-size: clamp(28px, 4.5vw, 40px);
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      line-height: 1.15;
-      margin-bottom: 12px;
-    }
-    .subtitle {
-      color: rgba(220, 228, 255, 0.78);
-      font-size: 16px;
-      margin-bottom: 32px;
-    }
-    .card {
-      background: rgba(12, 17, 38, 0.82);
-      border: 1px solid rgba(255, 215, 130, 0.16);
-      border-radius: 20px;
-      padding: 26px;
-      margin-bottom: 20px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
-    }
-    h2 {
-      font-size: 19px;
-      font-weight: 700;
-      color: #FFE294;
-      margin-bottom: 10px;
-    }
-    p, li {
-      color: rgba(232, 238, 255, 0.88);
-      font-size: 15px;
-      margin-bottom: 10px;
-    }
-    ul { padding-left: 20px; margin-bottom: 10px; }
-    strong { color: #fff; }
-    .form-group { margin-bottom: 16px; }
-    label { display: block; font-size: 13px; font-weight: 700; color: #FFD97D; margin-bottom: 6px; }
-    input, select, textarea {
-      width: 100%;
-      padding: 13px 15px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      background: rgba(6, 9, 25, 0.9);
-      color: #fff;
-      font-family: inherit;
-      font-size: 14px;
-    }
-    .btn-gold {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 14px 28px;
-      border-radius: 999px;
-      border: none;
-      background: linear-gradient(92deg, #FCE38A 0%, #F5B942 52%, #E59824 100%);
-      color: #11131F;
-      font-weight: 800;
-      font-size: 15px;
-      cursor: pointer;
-      text-decoration: none;
-    }
-    footer {
-      margin-top: 48px;
-      padding-top: 24px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-      font-size: 13px;
-      color: rgba(200, 210, 240, 0.65);
-    }
-    footer a { color: #FFD97D; text-decoration: none; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Delete your Kring account — Kring (กริ๊ง!)</title>
+<meta name="description" content="How to delete your Kring (กริ๊ง!) account and personal data, in the app or by email: what is deleted, what is kept, and what happens to upcoming bookings.">
+<meta name="theme-color" content="#05060D">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="assets/legal.css?v=20261025a">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <a class="brand" href="/"><img src="/icon-192.png" alt="Kring" style="width:30px;height:30px;border-radius:8px;" /><span>kring</span></a>
-      <nav class="nav-links">
-        <a href="/">Home</a>
-        <a href="/privacy.html">Privacy Policy</a>
-        <a href="/safety.html">Safety</a>
-        <a href="/delete-account.html" class="active">Delete Account</a>
-      </nav>
-    </header>
+<div class="wrap">
+<header>
+  <a class="brand" href="./" data-keep><svg width="34" height="20" viewBox="0 0 40 24" aria-hidden="true"><circle cx="14" cy="12" r="9" fill="none" stroke="#7381FF" stroke-width="3"/><circle cx="26" cy="12" r="9" fill="none" stroke="#FFB21E" stroke-width="3"/></svg><span lang="th">กริ๊ง!</span></a>
+  <div class="langs" role="group" aria-label="Language / ภาษา"><button type="button" data-set="th" lang="th">ไทย</button><button type="button" data-set="en" lang="en">EN</button></div>
+</header>
 
-    <span class="badge">ACCOUNT DELETION · ลบบัญชี</span>
-    <h1>Delete your Kring account and data</h1>
-    <p class="subtitle">You can delete your Kring (กริ๊ง!) account and personal data inside the app, or by email if you no longer have the app.</p>
-
-    <div class="card">
-      <h2>Option A: in the Kring app</h2>
-      <ol style="padding-left:20px; color:rgba(232,238,255,0.9); font-size:15px;">
-        <li>Open the <strong>Kring</strong> app and tap <strong>Me (ฉัน)</strong> in the bottom bar.</li>
-        <li>Tap <strong>Settings (ตั้งค่า)</strong>.</li>
-        <li>Tap <strong>Delete account (ลบบัญชี)</strong> and confirm. Your account is deleted for good 7 days after you confirm. Sign in again within those 7 days if you change your mind.</li>
-      </ol>
-    </div>
-
-    <div class="card">
-      <h2>Option B: by email (no app needed)</h2>
-      <p>Email <a href="mailto:ops@kringapp.com?subject=Delete%20my%20Kring%20account" style="color:#FFD97D;">ops@kringapp.com</a> from the email address on your account (or include the phone number you signed up with) and write "Delete my Kring account". We reply within 48 hours to confirm it is you, then delete the account. You can also ask us to delete only your ID-check data and photos and keep the account.</p>
-      <p><a class="btn-gold" href="mailto:ops@kringapp.com?subject=Delete%20my%20Kring%20account" style="display:inline-block;text-decoration:none;">Email a deletion request →</a></p>
-    </div>
-
-    <div class="card">
-      <h2>What is deleted and what is kept</h2>
-      <ul>
-        <li><strong>Deleted:</strong> your name, email and phone, profile photos, preferences (such as language, gender filter and diet), emergency contact, chats, saved activities, and any host ID-check data and selfie.</li>
-        <li><strong>Kept, as the law requires:</strong> records of payments you made to Kring (when and how much) for tax and fraud checks, for up to 5 years, without your profile.</li>
-        <li><strong>Bookings:</strong> any upcoming booking is cancelled and its Kring ticket refunded in full before the account is closed.</li>
-      </ul>
-    </div>
-
-    <footer>
-      <div>© 2026 Kring (กริ๊ง!). Bangkok & Pattaya, Thailand. Contact: <a href="mailto:ops@kringapp.com">ops@kringapp.com</a></div>
-      <div><a href="/">Home</a> · <a href="/privacy.html">Privacy Policy</a> · <a href="/safety.html">Safety</a></div>
-    </footer>
+<main>
+<!-- ======================= ไทย ======================= -->
+<section data-l="th" lang="th">
+  <h1>ลบบัญชีและข้อมูลของคุณ</h1>
+  <p class="lead">คุณลบบัญชี Kring (กริ๊ง!) และข้อมูลส่วนตัวได้เองในแอป หรือส่งอีเมลถึงเราถ้าไม่มีแอปแล้ว</p>
+  <div class="card">
+    <h2>1. ลบในแอป Kring</h2>
+    <ol>
+      <li>เปิดแอป <strong>Kring</strong> แล้วแตะ <strong>ฉัน</strong> ที่แถบด้านล่าง</li>
+      <li>แตะ <strong>ตั้งค่า</strong></li>
+      <li>แตะ <strong>ลบบัญชีของฉัน</strong> แล้วยืนยัน บัญชีจะถูกลบ 7 วันหลังคุณยืนยัน เข้าสู่ระบบภายใน 7 วันเพื่อยกเลิก</li>
+    </ol>
   </div>
+  <div class="card">
+    <h2>2. ขอลบทางอีเมล (ไม่ต้องใช้แอป)</h2>
+    <p>ส่งอีเมลถึง <a href="mailto:ops@kringapp.com?subject=Delete%20my%20Kring%20account">ops@kringapp.com</a> จากอีเมลที่ใช้สมัคร (หรือแจ้งเบอร์โทรที่ใช้สมัคร) และเขียนว่า "ขอลบบัญชี Kring" เราตอบภายใน 48 ชั่วโมงเพื่อยืนยันว่าเป็นคุณ แล้วจึงลบบัญชี คุณขอให้ลบเฉพาะข้อมูลตรวจบัตรและรูปถ่ายของเจ้าถิ่นโดยเก็บบัญชีไว้ก็ได้</p>
+  </div>
+  <div class="card">
+    <h2>3. สิ่งที่ลบและสิ่งที่เก็บไว้</h2>
+    <ul>
+      <li><strong>ลบ:</strong> ชื่อ อีเมล เบอร์โทร รูปโปรไฟล์ การตั้งค่า (เช่น ภาษา ตัวกรองเพศ อาหาร) ผู้ติดต่อฉุกเฉิน แชท กิจกรรมที่บันทึกไว้ และข้อมูลตรวจบัตรและเซลฟีของเจ้าถิ่น</li>
+      <li><strong>เก็บไว้ตามที่กฎหมายกำหนด:</strong> บันทึกการชำระเงินให้ Kring (วันที่และจำนวนเงิน) เพื่อภาษีและการตรวจสอบการโกง ไม่เกิน 5 ปี โดยไม่มีโปรไฟล์ของคุณ</li>
+      <li><strong>การจอง:</strong> การจองที่จะถึงจะถูกยกเลิก และคืนค่าตั๋ว Kring ตามกติกาปกติ: ยกเลิกก่อน 24 ชม. ขึ้นไปคืน 100% หลังจากนั้นคืน 50% (ดู<a href="refund.html" data-keep>นโยบายการคืนเงิน</a>) ค่ากิจกรรมคุณไม่ได้จ่ายผ่าน Kring จึงไม่มีอะไรต้องคืนในส่วนนั้น</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ======================= English ======================= -->
+<section data-l="en" lang="en" hidden>
+  <h1>Delete your Kring account and data</h1>
+  <p class="lead">You can delete your Kring (กริ๊ง!) account and personal data inside the app, or by email if you no longer have the app.</p>
+  <div class="card">
+    <h2>1. In the Kring app</h2>
+    <ol>
+      <li>Open the <strong>Kring</strong> app and tap <strong>Me</strong> in the bottom bar.</li>
+      <li>Tap <strong>Settings</strong>.</li>
+      <li>Tap <strong>Delete my account</strong> and confirm. Your account is deleted 7 days after you confirm. Sign in within 7 days to cancel.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h2>2. By email (no app needed)</h2>
+    <p>Email <a href="mailto:ops@kringapp.com?subject=Delete%20my%20Kring%20account">ops@kringapp.com</a> from the email address on your account (or include the phone number you signed up with) and write "Delete my Kring account". We reply within 48 hours to confirm it is you, then delete the account. You can also ask us to delete only your host ID-check data and photos and keep the account.</p>
+  </div>
+  <div class="card">
+    <h2>3. What is deleted and what is kept</h2>
+    <ul>
+      <li><strong>Deleted:</strong> your name, email and phone, profile photos, settings (such as language, gender filter and diet), emergency contact, chats, saved activities, and any host ID-check data and selfie.</li>
+      <li><strong>Kept, as the law requires:</strong> records of payments you made to Kring (when and how much) for tax and fraud checks, for up to 5 years, without your profile.</li>
+      <li><strong>Bookings:</strong> Upcoming bookings are cancelled and your Kring tickets are refunded by the usual rules: 100% if you cancel 24 h or more before, 50% later (see the <a href="refund.html" data-keep>refund policy</a>). You never paid the activity price through Kring, so there is nothing to refund there.</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<footer>
+  <a href="./" data-keep><span data-l="th">หน้าแรก</span><span data-l="en" hidden>Home</span></a>
+  <a href="about.html" data-keep><span data-l="th">เกี่ยวกับเรา</span><span data-l="en" hidden>About Us</span></a>
+  <a href="contact.html" data-keep><span data-l="th">ติดต่อเรา</span><span data-l="en" hidden>Contact Us</span></a>
+  <a href="terms.html" data-keep><span data-l="th">ข้อกำหนดการใช้งาน</span><span data-l="en" hidden>Terms &amp; Conditions</span></a>
+  <a href="refund.html" data-keep><span data-l="th">การคืนเงิน</span><span data-l="en" hidden>Refunds</span></a>
+  <a href="privacy.html" data-keep><span data-l="th">ความเป็นส่วนตัว</span><span data-l="en" hidden>Privacy Policy</span></a>
+  <a href="safety.html" data-keep><span data-l="th">ความปลอดภัย</span><span data-l="en" hidden>Safety</span></a>
+  <a href="delete-account.html" data-keep><span data-l="th">ลบบัญชี</span><span data-l="en" hidden>Delete account</span></a>
+</footer>
+</div>
+<script src="assets/legal.js?v=20261030a" defer></script>
 </body>
 </html>
