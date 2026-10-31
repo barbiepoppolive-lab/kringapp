@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kring-mobile-v6-r7'
+const CACHE_NAME = 'kring-mobile-v6-r8'
 const CORE_SHELL = [
   './',
   './index.html',
