@@ -1,11 +1,10 @@
 <!doctype html>
 <html lang="en" dir="ltr">
 <head>
-<script>/* app deep links shared without /app/ (e.g. venue cards): send them into the app */(function(){var h=location.hash||"";if(/^#(venue-|detail|book|host|signup|signin)/.test(h)){location.replace("/app/"+h)}})()</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Kring, let's go — Real Thailand, with a local</title>
-<meta name="description" content="Book activities with ID-checked Thai locals in Bangkok and Pattaya. Always in public places. Book online and pay your host at the meeting point, after check-in.">
+<title>Kring (กริ๊ง!) — 90-minute activities for everyone</title>
+<meta name="description" content="Book activities with ID-checked Thai locals in Bangkok and Pattaya. Always in public places. Your money is held safely by a licensed payment partner until check-in at the meeting point. Coming in November.">
 <link rel="canonical" href="https://kringapp.com/">
 <link rel="alternate" hreflang="en" href="https://kringapp.com/?lang=en">
 <link rel="alternate" hreflang="th" href="https://kringapp.com/?lang=th">
@@ -23,16 +22,16 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Kring">
 <meta property="og:url" content="https://kringapp.com/">
-<meta property="og:title" content="Kring, let's go — Real Thailand, with a local">
-<meta property="og:description" content="Activities with ID-checked Thai locals in Bangkok and Pattaya. Public places only. Book online, pay at the meeting point.">
+<meta property="og:title" content="Kring (กริ๊ง!) — 90-minute activities for everyone">
+<meta property="og:description" content="Activities with ID-checked Thai locals in Bangkok and Pattaya. Public places only. Your money is held until check-in.">
 <meta property="og:image" content="https://kringapp.com/assets/og-image.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="assets/final/fonts/unbounded-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/final/fonts/noto-sans-thai-thai-800-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/site-final.css?v=20261026r13">
+<link rel="stylesheet" href="assets/site-final.css?v=20261025r10">
 <script>(function(d){var m=false;try{m=matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){}d.className+=" js"+(m?" rm":"")})(document.documentElement)</script>
-<script src="assets/site-final.js?v=20261026r13" defer></script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Kring","alternateName":"กริ๊ง!","url":"https://kringapp.com/","logo":"https://kringapp.com/icon-512.png","slogan":"Real Thailand, with a local.","areaServed":["Bangkok","Pattaya","Thailand"],"contactPoint":[{"@type":"ContactPoint","email":"ops@kringapp.com","contactType":"customer support"},{"@type":"ContactPoint","email":"partnerships@kringapp.com","contactType":"sales"}]}</script>
+<script src="assets/site-final.js?v=20261025r10" defer></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Kring","alternateName":"กริ๊ง!","url":"https://kringapp.com/","logo":"https://kringapp.com/icon-512.png","slogan":"Real Thailand, with a local.","areaServed":["Bangkok","Pattaya"]}</script>
 </head>
 <body data-side="trav">
 <a class="skip" href="#main" data-i="skip">Skip to content</a>
@@ -93,8 +92,8 @@
 
 <nav class="rail" id="rail" aria-label="Chapters">
   <a href="#top" data-ch="0"><span data-i="ch1">The bump</span><i></i><b>01</b></a>
-  <a href="#you" data-ch="1"><span data-i="ch2">Host or visit</span><i></i><b>02</b></a>
-  <a href="#trip" data-ch="2"><span data-i="ch3">Trip card</span><i></i><b>03</b></a>
+  <a href="#you" data-ch="1"><span data-i="ch2">Host or book</span><i></i><b>02</b></a>
+  <a href="#trip" data-ch="2" hidden style="display:none"><span data-i="ch3">Trip card</span><i></i><b>03</b></a>
   <a href="#inside" data-ch="3"><span data-i="ch6">Inside Kring</span><i></i><b>04</b></a>
   <a href="#biz" data-ch="4"><span data-i="ch5">For businesses</span><i></i><b>05</b></a>
   <a href="#join" data-ch="5"><span data-i="ch4">Early access</span><i></i><b>06</b></a>
@@ -105,7 +104,7 @@
   <section class="stage" id="top" data-ch="0" aria-labelledby="holdTitle">
     <canvas id="fx" aria-hidden="true"></canvas>
     <div class="hero-top">
-      <p class="kick kick-hero"><b>01</b><span class="motto" data-i="motto">Kring, let's go!</span><span class="kick-desc" data-i="kicker">Real Thailand, with a local.</span></p>
+      <p class="kick kick-hero"><b>01</b><span class="motto" data-i="motto">Kring, let's go!</span><span class="kick-desc" data-i="kicker">90-minute activities, for everyone</span></p>
       <p class="soon soon-hero" data-soon><i aria-hidden="true"></i><span data-i="soon">Coming soon · November</span></p>
     </div>
 
@@ -157,7 +156,7 @@
         <p class="word st" id="word" aria-hidden="true" lang="th">กริ๊ง!</p>
         <ol class="lines st">
           <li data-i="r1">Find a local activity</li>
-          <li data-i="r2">Book online, pay at the meeting point</li>
+          <li data-i="r2">Pay your host directly at the meeting point</li>
           <li data-i="r3" data-k>Touch phones, <span class="th" lang="th">กริ๊ง!</span></li>
         </ol>
         <a class="gold st" href="#join" id="heroCta" data-cta="auto"><span data-i="cta">Get early access</span><svg aria-hidden="true"><use href="#i-down"/></svg></a>
@@ -170,24 +169,24 @@
   <!-- 02 · HOST OR VISIT -->
   <section class="ch you" id="you" data-ch="1" aria-labelledby="youLbl">
     <div class="wrap">
-      <p class="kick"><b>02</b><span class="sr" id="youLbl" data-i="ch2">Host or visit</span><em></em></p>
+      <p class="kick"><b>02</b><span class="sr" id="youLbl" data-i="ch2">Host or book</span><em></em></p>
       <div class="side-switch" id="sideSwitch" role="radiogroup" aria-labelledby="youLbl">
         <span class="thumb" aria-hidden="true"></span>
         <button type="button" role="radio" data-side="host" aria-checked="false" tabindex="-1">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 18h18M7 18a5 5 0 0110 0"/><path d="M12 6v3M5.6 10.6l1.8 1.8M18.4 10.6l-1.8 1.8M2 14h2M20 14h2"/></svg>
-          <span class="sw-t"><b data-i="swHost">I'm a Thai local</b></span>
+          <span class="sw-t"><b data-i="swHost">I want to host</b></span>
         </button>
         <button type="button" role="radio" data-side="trav" aria-checked="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></svg>
-          <span class="sw-t"><b data-i="swTrav">I'm visiting</b></span>
+          <span class="sw-t"><b data-i="swTrav">I want to book</b></span>
         </button>
       </div>
 
       <!-- host side (dawn) -->
       <div class="pane host" data-for="host" hidden>
-        <p class="fbadge"><svg aria-hidden="true"><use href="#i-medal"/></svg><span data-i="hBadge">Founding host · first 100 per area</span></p>
-        <h2 class="h-host" id="hostH"><span class="kin l1" data-i="hT1" data-kin>Show the Thailand you love.</span><span class="kin l2" data-i="hT2" data-kin>Get paid when the activity starts.</span></h2>
-        <p class="sub" data-i="hSub">Anyone in Thailand can host.</p>
+        <p class="fbadge"><svg aria-hidden="true"><use href="#i-medal"/></svg><span data-i="hBadge">Founding Hosts · first 100 per area</span></p>
+        <h2 class="h-host" id="hostH"><span class="kin l1" data-i="hT1" data-kin>Host what you love</span><span class="kin l2" data-i="hT2" data-kin>Guests pay you directly at the meeting point</span></h2>
+        <p class="sub" data-i="hSub">Teach what you're good at in 90 minutes: pour-over, film photo, board games, crafts · every guest verifies ID · always in public places</p>
         <div class="studio">
           <div class="lcard-wrap">
             <article class="lcard" id="lcard" aria-live="polite">
@@ -209,7 +208,7 @@
                 </defs>
                 <circle cx="150" cy="150" r="142" fill="url(#mg)" stroke="url(#mgold)" stroke-width="5"/>
                 <circle cx="150" cy="150" r="98" fill="none" stroke="rgba(255,208,103,.35)" stroke-width="1.5"/>
-                <g class="rot"><text font-size="21" font-weight="800" fill="#FFD067" letter-spacing="2"><textPath href="#circ" id="medalText" textLength="735" lengthAdjust="spacing">FOUNDING HOST • FIRST 100 • FOUNDING HOST • FIRST 100 • </textPath></text></g>
+                <g class="rot"><text font-size="21" font-weight="800" fill="#FFD067" letter-spacing="2"><textPath href="#circ" id="medalText" textLength="735" lengthAdjust="spacing">Founding Hosts • first 100 • Founding Hosts • first 100 • </textPath></text></g>
                 <use href="#i-rings" x="96" y="88" width="108" height="70"/>
                 <text x="150" y="212" text-anchor="middle" font-size="58" font-weight="800" fill="#F3F4FA" class="m100">100</text>
               </svg>
@@ -239,14 +238,14 @@
         <div class="deck-nav"><button class="icon-btn" id="prev" type="button" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="dots" id="dots" aria-hidden="true"></div><button class="icon-btn" id="next" type="button" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>
         <div class="heldbox">
           <svg class="hrings" viewBox="0 0 120 80" aria-hidden="true"><path d="M60 14.62A30 30 0 0 1 60 65.38A30 30 0 0 1 60 14.62Z" fill="#9B5CFF"/><circle cx="44" cy="40" r="30" fill="none" stroke="#7381FF" stroke-width="8"/><circle cx="76" cy="40" r="30" fill="none" stroke="#FFB21E" stroke-width="8"/></svg>
-          <p><b data-i="held">Pay your host at the meeting point</b><small data-i="heldFine">Online you pay only the booking fee. The activity price is paid after check-in.</small></p>
+          <p><b data-i="held">Pay your host directly at the meeting point</b><small data-i="heldFine">Held by a licensed payment partner.</small></p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- 03 · TRIP CARD -->
-  <section class="ch trip" id="trip" data-ch="2" aria-labelledby="tripH">
+  <section class="ch trip" id="trip" data-ch="2" aria-labelledby="tripH" hidden style="display:none">
     <div class="wrap">
       <p class="kick"><b>03</b><em></em></p>
       <h2 class="disp kin" id="tripH" data-i="trTitle" data-kin>Make your trip card</h2>
@@ -272,24 +271,24 @@
     <div class="wrap">
       <p class="kick"><b>04</b><em></em></p>
       <h2 class="disp kin" id="inH" data-i="inT" data-kin>More inside Kring.</h2>
-      <p class="sub" data-i="inSub">Deals, coupons and one simple way to pay. Hosts with good reviews earn more.</p>
+      <p class="sub" data-i="inSub">Deals, coupons and easy booking in one place. Hosts with good reviews get booked more.</p>
       <div class="in-tabs" role="tablist" aria-labelledby="inH">
-        <button type="button" role="tab" id="inTabT" aria-controls="inPaneT" aria-selected="true" data-i="inTabT">For travellers</button>
+        <button type="button" role="tab" id="inTabT" aria-controls="inPaneT" aria-selected="true" data-i="inTabT">For guests</button>
         <button type="button" role="tab" id="inTabH" aria-controls="inPaneH" aria-selected="false" tabindex="-1" data-i="inTabH">For hosts</button>
       </div>
       <div class="in-pane" id="inPaneT" role="tabpanel" aria-labelledby="inTabT">
-        <article class="icard"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-5 9 5-9 5z"/><path d="M7 11.5V16c0 1.5 2.2 3 5 3s5-1.5 5-3v-4.5"/></svg><h3 data-i="d1T">Deals &amp; packages</h3><p data-i="d1S">Licensed tours, island days and city packs in one booking.</p><p class="ex"><span data-i="ex1">48 hours in Bangkok</span><span class="px"><s>฿4,240</s><b>฿3,390 (₹8,475)</b></span></p></article>
-        <article class="icard"><svg class="ic" aria-hidden="true"><use href="#i-ticket"/></svg><h3 data-i="d2T">Coupons</h3><p data-i="d2S">eSIM, airport car, bag drop, Thai tea. Show the code at the counter.</p><p class="ex"><span data-i="ex2">Thailand eSIM, 8 days</span><span class="px"><s>฿499</s><b>฿185 (₹465)</b></span></p></article>
-        <article class="icard"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M7 15h4"/></svg><h3 data-i="d3T">Pay in seconds</h3><p data-i="d3S">Pay the booking fee the way you pay at home. Pay the activity by PromptPay QR after check-in.</p><p class="pays" id="pays"></p></article>
-        <article class="icard"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12l-8 8-9-9V4h7z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg><h3 data-i="d4T">See what you save</h3><p data-i="d4S">Every price shows the usual street price next to it.</p><p class="ex"><span data-i="ex4">Street food walk</span><span class="px"><s>฿1,600</s><b>฿1,000 (₹2,500)</b></span></p></article>
-        <p class="fine in-fine" data-i="inFine">Example prices. Final prices in the app at launch. Online payment options depend on our payment providers.</p>
+        <article class="icard"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-5 9 5-9 5z"/><path d="M7 11.5V16c0 1.5 2.2 3 5 3s5-1.5 5-3v-4.5"/></svg><h3 data-i="d1T">Deals &amp; packages</h3><p data-i="d1S">Licensed tours, island days and city packs in one booking.</p><p class="ex"><span data-i="ex1">48 hours in Bangkok</span><span class="px"><s>฿4,240</s><b>฿3,390</b></span></p></article>
+        <article class="icard"><svg class="ic" aria-hidden="true"><use href="#i-ticket"/></svg><h3 data-i="d2T">Coupons</h3><p data-i="d2S">eSIM, airport car, bag drop, Thai tea. Show the code at the counter.</p><p class="ex"><span data-i="ex2">Thailand eSIM, 8 days</span><span class="px"><s>฿499</s><b>฿185</b></span></p></article>
+        <article class="icard"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M7 15h4"/></svg><h3 data-i="d3T">Pay in seconds</h3><p data-i="d3S">Pay the booking ticket in the app; pay the activity fee to your host at the meeting point.</p><p class="pays" id="pays"></p></article>
+        <article class="icard"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12l-8 8-9-9V4h7z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg><h3 data-i="d4T">See what you save</h3><p data-i="d4S">Every price shows the usual street price next to it.</p><p class="ex"><span data-i="ex4">Street food walk</span><span class="px"><s>฿1,600</s><b>฿1,000</b></span></p></article>
+        <p class="fine in-fine" data-i="inFine">Example prices. Final prices in the app at launch. Payment options depend on our licensed payment partner.</p>
         <a class="gold" href="#join" data-cta="visit"><span data-i="cta">Get early access</span><svg aria-hidden="true"><use href="#i-down"/></svg></a>
       </div>
       <div class="in-pane" id="inPaneH" role="tabpanel" aria-labelledby="inTabH" hidden>
         <article class="icard"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><text x="12" y="16.6" text-anchor="middle" font-size="13" font-weight="800" fill="currentColor" stroke="none" font-family="system-ui,sans-serif">฿</text></svg><h3 data-i="h1T">Your price, per activity</h3><p data-i="h1S">One price for 1–2 people. You set it.</p></article>
-        <article class="icard"><svg class="ic" aria-hidden="true"><use href="#i-rings"/></svg><h3 data-i="h2T">Paid when the activity starts</h3><p data-i="h2S">After phones touch, the traveller pays your PromptPay QR at the meeting point.</p></article>
-        <article class="icard"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="9" width="16" height="11" rx="2"/><path d="M4 13h16M12 9v11M12 9c-2-4-6-4-6-1s6 1 6 1zM12 9c2-4 6-4 6-1s-6 1-6 1z"/></svg><h3 data-i="h3T">Tips after the activity</h3><p data-i="h3S">After the activity, guests can tip you in person or by your own QR. Tips go straight to you.</p></article>
-        <article class="icard"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg><h3 data-i="h4T">Good reviews, more per activity</h3><p data-i="h4S">Good reviews raise your level. Higher levels earn more per activity.</p><p class="ex lv"><span>★</span><span>★★</span><span>★★★</span></p></article>
+        <article class="icard"><svg class="ic" aria-hidden="true"><use href="#i-rings"/></svg><h3 data-i="h2T">Guests pay you directly at the meeting point</h3><p data-i="h2S">Guests scan your PromptPay QR when the activity starts. Kring takes nothing.</p></article>
+        <article class="icard"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="9" width="16" height="11" rx="2"/><path d="M4 13h16M12 9v11M12 9c-2-4-6-4-6-1s6 1 6 1zM12 9c2-4 6-4 6-1s-6 1-6 1z"/></svg><h3 data-i="h3T">Tips after the activity</h3><p data-i="h3S">Guests can add a tip after the activity. Tips go straight to you.</p></article>
+        <article class="icard"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg><h3 data-i="h4T">Good reviews, more per activity</h3><p data-i="h4S">Good reviews raise your level and get you booked more.</p><p class="ex lv"><span>★</span><span>★★</span><span>★★★</span></p></article>
         <a class="gold" href="#join" data-cta="local"><span data-i="hCta">Be one of the first hosts</span><svg aria-hidden="true"><use href="#i-down"/></svg></a>
       </div>
     </div>
@@ -312,33 +311,33 @@
       </div>
       <div class="bcard">
         <form class="bform" id="bform" novalidate aria-labelledby="bizH">
-          <p class="bfor" id="bFor" hidden></p>
-          <div class="bf">
-            <label for="bContact" data-i="bContact">LINE ID or phone</label>
-            <div class="field bq" id="bqField">
-              <input id="bContact" type="text" inputmode="text" autocomplete="tel" autocapitalize="off" spellcheck="false" maxlength="40" data-ph="bContactPh" placeholder="e.g. @yourshop" aria-describedby="bContactE">
-              <button class="gold" type="submit" id="bSend"><span data-i="bSend">Send</span></button>
-            </div>
-            <p class="ferr" id="bContactE"></p>
+          <div class="bprog" aria-hidden="true">
+            <span class="bp-l on" id="bpl1"><b>1</b><span data-i="bStep1">Your business</span></span>
+            <span class="bp-l" id="bpl2"><b>2</b><span data-i="bStep2">How to reach you</span></span>
+            <div class="bp-bar"><i id="bpFill"></i></div>
           </div>
-          <p class="fine bcons"><span data-i="bConsent">By sending, you agree that Kring may contact you about a partnership.</span> <a href="privacy.html" target="_blank" rel="noopener" data-i="privacy">Privacy Policy</a></p>
-          <p class="fine breply" id="bReply" data-i="bReply" hidden>Prefer email? Just reply to our message.</p>
-          <details class="bmore" id="bMore">
-            <summary data-i="bMore">Add details (optional)</summary>
-            <div class="bstep">
-              <div class="bf"><label for="bName" data-i="bName">Business name</label><input class="inp" id="bName" autocomplete="organization" maxlength="80"></div>
-              <fieldset class="bf"><legend data-i="bType">Type of business</legend><div class="btypes" id="btypes"></div></fieldset>
-              <fieldset class="bf"><legend data-i="bArea">Area</legend>
-                <div class="bseg"><input type="radio" name="barea" id="baB" value="bangkok" checked><label for="baB" data-i="aBkk">Bangkok</label><input type="radio" name="barea" id="baP" value="pattaya"><label for="baP" data-i="aPty">Pattaya</label></div>
-                <label class="sr" for="bDistrict" data-i="bDistrict">District (optional)</label><input class="inp mt8" id="bDistrict" maxlength="60" data-ph="bDistrictPh">
-              </fieldset>
-              <div class="bf"><label for="bPerson" data-i="bPerson">Contact person</label><input class="inp" id="bPerson" autocomplete="name" maxlength="60"></div>
-              <div class="bf"><label for="bEmail" data-i="bEmail">Email (optional)</label><input class="inp" id="bEmail" type="email" inputmode="email" autocomplete="email" maxlength="120" aria-describedby="bEmailE"><p class="ferr" id="bEmailE"></p></div>
-              <div class="bf"><label for="bOffer" data-i="bOffer">What would you offer travellers? (optional)</label><textarea class="inp ta" id="bOffer" maxlength="160" rows="2" data-ph="bOfferPh"></textarea></div>
-              <div class="bf"><label for="bTime" data-i="bTime">Best time to call</label>
-                <select class="inp sel" id="bTime"><option value="any" data-i="tAny">Any time</option><option value="morning" data-i="tMorning">Morning</option><option value="afternoon" data-i="tAfternoon">Afternoon</option><option value="evening" data-i="tEvening">Evening</option></select></div>
-            </div>
-          </details>
+          <p class="sr" id="bStepLive" aria-live="polite"></p>
+
+          <div class="bstep" id="bs1">
+            <div class="bf"><label for="bName" data-i="bName">Business name</label><input class="inp" id="bName" autocomplete="organization" maxlength="80" aria-describedby="bNameE"><p class="ferr" id="bNameE"></p></div>
+            <fieldset class="bf" aria-describedby="bTypeE"><legend data-i="bType">Type of business</legend><div class="btypes" id="btypes"></div><p class="ferr" id="bTypeE"></p></fieldset>
+            <fieldset class="bf"><legend data-i="bArea">Area</legend>
+              <div class="bseg"><input type="radio" name="barea" id="baB" value="bangkok" checked><label for="baB" data-i="aBkk">Bangkok</label><input type="radio" name="barea" id="baP" value="pattaya"><label for="baP" data-i="aPty">Pattaya</label></div>
+              <label class="sr" for="bDistrict" data-i="bDistrict">District (optional)</label><input class="inp mt8" id="bDistrict" maxlength="60" data-ph="bDistrictPh">
+            </fieldset>
+            <div class="bf"><label for="bPerson" data-i="bPerson">Contact person</label><input class="inp" id="bPerson" autocomplete="name" maxlength="60" aria-describedby="bPersonE"><p class="ferr" id="bPersonE"></p></div>
+            <div class="bnav"><button class="gold" type="button" id="bNext"><span data-i="bNext">Next</span><svg aria-hidden="true"><use href="#i-right"/></svg></button></div>
+          </div>
+
+          <div class="bstep" id="bs2" hidden>
+            <div class="bf"><label for="bContact" data-i="bContact">LINE ID or phone</label><input class="inp" id="bContact" autocomplete="tel" maxlength="40" aria-describedby="bContactE"><p class="ferr" id="bContactE"></p></div>
+            <div class="bf"><label for="bEmail" data-i="bEmail">Email (optional)</label><input class="inp" id="bEmail" type="email" inputmode="email" autocomplete="email" maxlength="120" aria-describedby="bEmailE"><p class="ferr" id="bEmailE"></p></div>
+            <div class="bf"><label for="bOffer" data-i="bOffer">Any special deal for Kring users? (optional)</label><textarea class="inp ta" id="bOffer" maxlength="160" rows="2" data-ph="bOfferPh"></textarea></div>
+            <div class="bf"><label for="bTime" data-i="bTime">Best time to call</label>
+              <select class="inp sel" id="bTime"><option value="any" data-i="tAny">Any time</option><option value="morning" data-i="tMorning">Morning</option><option value="afternoon" data-i="tAfternoon">Afternoon</option><option value="evening" data-i="tEvening">Evening</option></select></div>
+            <div class="bf"><label class="bcheck"><input type="checkbox" id="bConsent" aria-describedby="bConsentE"><span><span data-i="bConsent">I agree that Kring may contact me about a partnership.</span> <a href="privacy.html" target="_blank" rel="noopener" data-i="privacy">Privacy</a></span></label><p class="ferr" id="bConsentE"></p></div>
+            <div class="bnav"><button class="ghost" type="button" id="bBack" data-i="bBack">Back</button><button class="gold" type="submit" id="bSend"><span data-i="bSend">Send</span></button></div>
+          </div>
           <p class="err" id="bFail" role="alert"></p>
           <p class="fine" id="bPreview" data-i="preview">Preview: nothing is sent yet.</p>
         </form>
@@ -364,12 +363,12 @@
         <form class="form" id="form" novalidate>
           <div class="seg" id="seg" data-role="visit" role="radiogroup" aria-labelledby="joinH">
             <span class="pill" aria-hidden="true"></span>
-            <input type="radio" name="role" id="rv" value="visit" checked><label for="rv" data-i="visit">I'm visiting</label>
-            <input type="radio" name="role" id="rl" value="local"><label for="rl" data-i="local">I'm a Thai local</label>
+            <input type="radio" name="role" id="rv" value="visit" checked><label for="rv" data-i="visit">I want to book</label>
+            <input type="radio" name="role" id="rl" value="local"><label for="rl" data-i="local">I want to host</label>
           </div>
           <div class="badge" id="badge" aria-hidden="true">
             <svg class="medal-s" aria-hidden="true"><use href="#i-medal"/></svg>
-            <div><b data-i="badgeT">Founding host</b><span data-i="badgeS">First 100 per area</span></div>
+            <div><b data-i="badgeT">Founding Host</b><span data-i="badgeS">First 100 per area</span></div>
           </div>
           <div class="harea" id="harea" aria-hidden="true">
             <div class="bseg"><input type="radio" name="harea" id="haB" value="bangkok" checked><label for="haB" data-i="aBkk">Bangkok</label><input type="radio" name="harea" id="haP" value="pattaya"><label for="haP" data-i="aPty">Pattaya</label></div>
@@ -380,7 +379,7 @@
             <button class="gold" type="submit" id="joinBtn" data-i="join">Join</button>
           </div>
           <p class="err" id="err" role="alert"></p>
-          <p class="fine" id="consent" hidden><span data-i="consent">We only use this to tell you when we open.</span> <a href="privacy.html" target="_blank" rel="noopener" data-i="privacy">Privacy Policy</a></p>
+          <p class="fine" id="consent" hidden><span data-i="consent">We only use this to tell you when we open.</span> <a href="privacy.html" target="_blank" rel="noopener" data-i="privacy">Privacy</a></p>
           <p class="fine" id="previewNote" data-i="preview" hidden>Preview: nothing is sent yet.</p>
         </form>
 
@@ -416,19 +415,13 @@
   <a class="logo" href="#top" aria-label="Kring"><svg aria-hidden="true"><use href="#i-rings"/></svg><span lang="th">กริ๊ง!</span></a>
   <ul class="flinks">
     <li><a href="#biz" data-i="bizNav">For businesses</a></li>
-    <li><a href="about.html" data-i="about">About Us</a></li>
-    <li><a href="contact.html" data-i="contact">Contact Us</a></li>
-    <li><a href="terms.html" data-i="terms">Terms &amp; Conditions</a></li>
-    <li><a href="refund.html" data-i="refunds">Refund &amp; Cancellation</a></li>
-    <li><a href="delivery.html" data-i="delivery">Shipping &amp; Delivery</a></li>
-    <li><a href="privacy.html" data-i="privacy">Privacy Policy</a></li>
+    <li><a href="privacy.html" data-i="privacy">Privacy</a></li>
     <li><a href="safety.html" data-i="safety">Safety</a></li>
     <li><a href="delete-account.html" data-i="del">Delete account</a></li>
-    <li><a href="mailto:ops@kringapp.com">ops@kringapp.com</a></li>
-    <li><a href="mailto:partnerships@kringapp.com">partnerships@kringapp.com</a></li>
+    <li><span data-i="line">LINE · coming soon</span></li>
     <li><a href="tel:1155" data-i="police">Tourist Police 1155</a></li>
   </ul>
-  <p class="fcopy">© 2026 <strong>Kring (กริ๊ง!)</strong> · Real Thailand, with a local · Bangkok &amp; Pattaya · <a href="mailto:ops@kringapp.com">ops@kringapp.com</a> · <a href="mailto:partnerships@kringapp.com">partnerships@kringapp.com</a></p>
+  <p class="fcopy">© 2026 Kring</p>
 </footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
