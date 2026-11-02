@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Kring · Bangkok Locals (กริ๊ง!)",
   "short_name": "Kring",
-  "description": "Kring, let's go. Meet a real local — or be one. Book verified locals in Bangkok and Pattaya at public places, held safely until you both go กริ๊ง!",
+  "description": "Kring: 90-minute activities in Bangkok with ID-checked hosts, for everyone. Always in public places. Coming in November.",
   "lang": "en",
   "start_url": "/?standalone=1",
   "scope": "/",
@@ -43,21 +43,21 @@
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Curated Bangkok & Pattaya Experiences with Real Locals"
+      "label": "90-Minute Activities in Bangkok with ID-Checked Hosts"
     },
     {
       "src": "/play-store-assets/screenshots/03-kring-price-check.png",
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Kring Price Check — Real Street Prices in Bangkok & Pattaya"
+      "label": "Kring Price Check — Usual Street Prices in Bangkok"
     },
     {
       "src": "/play-store-assets/screenshots/05-two-phone-bump.png",
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Two-Phone กริ๊ง! Bump Escrow — Released Only When You Meet"
+      "label": "Two-Phone กริ๊ง! Check-In at the Public Meeting Point"
     },
     {
       "src": "/play-store-assets/screenshots/06-me-wallet-one-balance.png",
