@@ -18,6 +18,7 @@
     "h2S": "Guests scan your PromptPay QR when the activity starts. Kring takes nothing.",
     "r2": "Pay your host directly at the meeting point",
     "held": "Pay your host directly at the meeting point",
+    "heldFine": "The booking ticket is paid in the app; the activity fee goes straight to the host.",
     "cardHeld": "Pay your host directly at the meeting point",
     "d3S": "Pay the booking ticket in the app; pay the activity fee to your host at the meeting point.",
     "with": "hosted by {n}",
@@ -30,6 +31,10 @@
     "h4T": "Good reviews, more per activity",
     "h4S": "Good reviews raise your level and get you booked more.",
     "tTitle": "Pick an activity.",
+    "shareText": "Kring: 90-minute activities, for everyone. Opening in Bangkok this November.",
+    "bizTitle": "Bring people who booked an activity to your place.",
+    "bizSub": "Become a Kring partner venue in Bangkok.",
+    "bc1": "An app in 7 languages, for everyone",
     "bc2": "Meeting point and venue for activities"
   },
   "th": {
@@ -54,10 +59,15 @@
     "h2S": "ผู้จองสแกนพร้อมเพย์ QR ของคุณตอนเริ่มกิจกรรม Kring ไม่หักเลย",
     "r2": "จ่ายค่ากิจกรรมให้โฮสต์โดยตรงที่จุดนัด",
     "held": "จ่ายค่ากิจกรรมให้โฮสต์โดยตรงที่จุดนัด",
+    "heldFine": "ค่าตั๋วจองจ่ายในแอป ส่วนค่ากิจกรรมจ่ายให้โฮสต์โดยตรง",
     "cardHeld": "จ่ายค่ากิจกรรมให้โฮสต์โดยตรงที่จุดนัด",
     "d3S": "ค่าตั๋วจองจ่ายในแอป ค่ากิจกรรมจ่ายให้โฮสต์โดยตรงที่จุดนัด",
     "tTitle": "เลือกกิจกรรมที่ใช่",
     "with": "โฮสต์โดย {n}",
+    "shareText": "กริ๊ง! กิจกรรม 90 นาที สำหรับทุกคน เปิดตัวพฤศจิกายนนี้ที่กรุงเทพฯ",
+    "bizTitle": "พาคนที่จองกิจกรรมมาถึงร้านคุณ",
+    "bizSub": "มาเป็นร้านพาร์ทเนอร์ของกริ๊ง! ในกรุงเทพฯ",
+    "bc1": "แอป 7 ภาษา สำหรับทุกคน",
     "bc2": "จุดนัดพบและสถานที่จัดกิจกรรม",
     "bc3": "ดีลและคูปองในแอป",
     "bOffer": "มีดีลพิเศษให้ผู้ใช้ Kring ไหมคะ? (ไม่บังคับ)",
@@ -90,6 +100,7 @@
     "h2S": "活动开始时参与者扫描你的 PromptPay 二维码付款。Kring 分文不取。",
     "r2": "在集合点直接付款给活动主理人",
     "held": "在集合点直接付款给活动主理人",
+    "heldFine": "预订票在 App 内支付；活动费直接付给活动主理人。",
     "cardHeld": "在集合点直接付款给活动主理人",
     "d3S": "在 App 内支付预订票；在集合点将活动费直接付给活动主理人。",
     "tTitle": "选一个活动。",
@@ -102,6 +113,10 @@
     "h3S": "活动结束后，参与者可以给小费。小费直接归你。",
     "h4T": "好评越多，预订越多",
     "h4S": "好评能提升你的等级，让你获得更多预订。",
+    "shareText": "Kring：适合每个人的 90 分钟活动。今年 11 月在曼谷上线。",
+    "bizTitle": "把预订活动的人带到你的店里。",
+    "bizSub": "成为 Kring 在曼谷的合作场地。",
+    "bc1": "支持 7 种语言、适合每个人的 App",
     "bc2": "活动集合点与合作场地"
   },
   "ko": {
@@ -124,6 +139,7 @@
     "h2S": "액티비티가 시작될 때 게스트가 호스트의 PromptPay QR을 스캔해요. Kring은 수수료를 떼지 않아요.",
     "r2": "모임 장소에서 호스트에게 직접 결제",
     "held": "모임 장소에서 호스트에게 직접 결제",
+    "heldFine": "예약 티켓은 앱에서 결제하고, 액티비티 요금은 호스트에게 직접 전달돼요.",
     "cardHeld": "모임 장소에서 호스트에게 직접 결제",
     "d3S": "앱에서 예약 티켓을 결제하고, 액티비티 요금은 모임 장소에서 호스트에게 직접 내요.",
     "tTitle": "액티비티를 고르세요.",
@@ -136,6 +152,10 @@
     "h3S": "액티비티가 끝난 뒤 게스트가 팁을 줄 수 있어요. 팁은 호스트에게 바로 전달돼요.",
     "h4T": "좋은 리뷰, 더 많은 예약",
     "h4S": "좋은 리뷰가 쌓이면 레벨이 올라가고 더 많은 예약을 받아요.",
+    "shareText": "Kring: 모두를 위한 90분 액티비티. 이번 11월 방콕에서 오픈합니다.",
+    "bizTitle": "액티비티를 예약한 사람들을 매장으로 모셔오세요.",
+    "bizSub": "방콕에서 Kring 파트너 매장이 되어 주세요.",
+    "bc1": "모두를 위한 7개 언어 앱",
     "bc2": "액티비티 집합 장소 및 파트너 장소"
   },
   "hi": {
@@ -157,6 +177,7 @@
     "h2S": "एक्टिविटी शुरू होने पर गेस्ट आपका PromptPay QR स्कैन करते हैं। Kring कुछ नहीं काटता।",
     "r2": "मीटिंग पॉइंट पर अपने होस्ट को सीधे पे करें",
     "held": "मीटिंग पॉइंट पर अपने होस्ट को सीधे पे करें",
+    "heldFine": "बुकिंग टिकट ऐप में पे होता है; एक्टिविटी फ़ीस सीधे होस्ट को जाती है।",
     "cardHeld": "मीटिंग पॉइंट पर अपने होस्ट को सीधे पे करें",
     "d3S": "ऐप में बुकिंग टिकट पे करें; एक्टिविटी फ़ीस मीटिंग पॉइंट पर अपने होस्ट को दें।",
     "tTitle": "एक एक्टिविटी चुनें।",
@@ -168,7 +189,11 @@
     "h3T": "एक्टिविटी के बाद टिप",
     "h3S": "एक्टिविटी के बाद गेस्ट टिप जोड़ सकते हैं। टिप सीधे आपको मिलती है।",
     "h4T": "अच्छे रिव्यू, ज़्यादा बुकिंग",
-    "h4S": "अच्छे रिव्यू से आपका लेवल बढ़ता है और आपको ज़्यादा बुकिंग मिलती है।"
+    "h4S": "अच्छे रिव्यू से आपका लेवल बढ़ता है और आपको ज़्यादा बुकिंग मिलती है।",
+    "shareText": "Kring: हर किसी के लिए 90-मिनट की एक्टिविटी। इस नवंबर बैंकॉक में शुरू हो रहा है।",
+    "bizTitle": "एक्टिविटी बुक करने वाले लोगों को अपनी जगह पर लाइए।",
+    "bizSub": "बैंकॉक में Kring पार्टनर वेन्यू बनिए।",
+    "bc1": "हर किसी के लिए 7 भाषाओं में ऐप"
   },
   "ru": {
     "kicker": "90-минутные занятия для каждого",
@@ -190,6 +215,7 @@
     "h2S": "В начале занятия гости сканируют ваш QR-код PromptPay. Kring ничего не удерживает.",
     "r2": "Оплата ведущему напрямую на месте встречи",
     "held": "Оплата ведущему напрямую на месте встречи",
+    "heldFine": "Билет бронирования оплачивается в приложении, а оплата за занятие идёт напрямую ведущему.",
     "cardHeld": "Оплата ведущему напрямую на месте встречи",
     "d3S": "Билет бронирования оплачивается в приложении, а само занятие — ведущему на месте встречи.",
     "tTitle": "Выберите занятие.",
@@ -202,6 +228,10 @@
     "h3S": "После занятия гости могут оставить чаевые. Чаевые идут напрямую вам.",
     "h4T": "Хорошие отзывы — больше бронирований",
     "h4S": "Хорошие отзывы повышают ваш уровень и привлекают больше гостей.",
+    "shareText": "Kring: 90-минутные занятия для каждого. Открытие в Бангкоке в этом ноябре.",
+    "bizTitle": "Приведите людей, забронировавших занятие, в ваше заведение.",
+    "bizSub": "Станьте партнёрской площадкой Kring в Бангкоке.",
+    "bc1": "Приложение на 7 языках для каждого",
     "bc2": "Место сбора и площадка для занятий"
   },
   "ms": {
@@ -223,6 +253,7 @@
     "h2S": "Tetamu imbas QR PromptPay anda apabila aktiviti bermula. Kring tidak menolak apa-apa.",
     "r2": "Bayar terus kepada hos anda di titik pertemuan",
     "held": "Bayar terus kepada hos anda di titik pertemuan",
+    "heldFine": "Tiket tempahan dibayar dalam apl; yuran aktiviti terus kepada hos.",
     "cardHeld": "Bayar terus kepada hos anda di titik pertemuan",
     "d3S": "Bayar tiket tempahan dalam apl; bayar yuran aktiviti kepada hos anda di titik pertemuan.",
     "tTitle": "Pilih satu aktiviti.",
@@ -235,6 +266,10 @@
     "h3S": "Tetamu boleh menambah tip selepas aktiviti. Tip terus kepada anda.",
     "h4T": "Ulasan baik, lebih banyak tempahan",
     "h4S": "Ulasan baik menaikkan tahap anda dan membuatkan anda lebih kerap ditempah.",
+    "shareText": "Kring: Aktiviti 90 minit, untuk semua. Dibuka di Bangkok pada November ini.",
+    "bizTitle": "Bawa orang yang menempah aktiviti ke tempat anda.",
+    "bizSub": "Jadi tempat rakan Kring di Bangkok.",
+    "bc1": "Aplikasi dalam 7 bahasa, untuk semua",
     "bc2": "Titik pertemuan dan tempat untuk aktiviti"
   }
 }
