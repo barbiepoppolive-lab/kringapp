@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://photon.komoot.io https://api.open-meteo.com; base-uri 'self'; form-action 'self';" />
+    <meta name="theme-color" content="#12123A" />
+    <meta name="description" content="Kring — Bangkok live neighbourhood feed, friendly people, and 2-for-1 venue deals for travellers and Thai locals." />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Kring" />
+    <meta name="application-name" content="Kring" />
+    <link rel="icon" type="image/png" sizes="48x48" href="icon-48.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="manifest.json" />
+    <title>Kring</title>
+    <script type="module" crossorigin src="/preview-6nov/assets/main-D07lg8tx.js"></script>
+    <link rel="modulepreload" crossorigin href="/preview-6nov/assets/vendor-BQuG_orS.js">
+    <link rel="stylesheet" crossorigin href="/preview-6nov/assets/main-BaRoBFpf.css">
+  </head>
+  <body class="antialiased" style="background:#12123A;margin:0">
+    <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator && navigator.serviceWorker) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker?.register?.('sw.js')?.catch(() => {});
+        });
+      }
+    </script>
+  </body>
+</html>
