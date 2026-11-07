@@ -1,93 +1,55 @@
 <!doctype html>
-<html lang="th">
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>About Kring — Kring (กริ๊ง!)</title>
-<meta name="description" content="About Kring (กริ๊ง!): an online marketplace for activities with ID-checked hosts in Bangkok.">
-<meta name="theme-color" content="#05060D">
-<link rel="icon" href="icon-192.png">
-<link rel="stylesheet" href="assets/legal.css?v=20261025a">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>About Kring · Kring (กริ๊ง!)</title>
+<meta name="description" content="Kring (กริ๊ง!) is a Bangkok app for plans and outings with other people, always in public places.">
+<link rel="canonical" href="https://kringapp.com/about.html">
+<meta name="theme-color" content="#12123A"><meta name="color-scheme" content="dark">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<meta property="og:title" content="About Kring · Kring (กริ๊ง!)"><meta property="og:image" content="https://kringapp.com/assets/home/og.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;margin:0;padding:0}:root{--ink:#12123A;--panel:#1A1A47;--cream:#FFF7EC;--t2:rgba(255,247,236,.76);--t3:rgba(255,247,236,.5);--line:rgba(255,247,236,.12);--pink:#FF4FA3;--orange:#FF8A3D}
+body{background:var(--ink);color:var(--cream);font:17px/1.65 'Bricolage Grotesque','Anuphan',system-ui,sans-serif;-webkit-font-smoothing:antialiased;background-image:radial-gradient(60% 40% at 80% 0%,rgba(91,108,255,.18),transparent 70%),radial-gradient(40% 30% at 0% 10%,rgba(255,79,163,.1),transparent 70%);background-repeat:no-repeat}
+html[lang=th] body{font-family:'Anuphan',system-ui,sans-serif}
+a{color:#ffb3d6}
+nav{position:sticky;top:0;z-index:5;background:rgba(18,18,58,.82);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.w{max-width:780px;margin:0 auto;padding:0 22px}
+nav .w{max-width:1100px;display:flex;justify-content:space-between;align-items:center;height:66px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--cream);text-decoration:none;font-weight:700;font-size:18px}
+.brand span{opacity:.55;font-weight:500;font-family:'Anuphan',sans-serif}
+.lang{display:flex;border:1px solid rgba(255,247,236,.25);border-radius:99px;padding:3px}
+.lang button{border:0;background:none;color:var(--t2);font:500 13px inherit;font-family:inherit;padding:6px 11px;border-radius:99px;cursor:pointer}
+.lang button.on{background:var(--cream);color:var(--ink)}
+main{padding:64px 0 40px}
+h1{font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:clamp(44px,7vw,72px);line-height:1;letter-spacing:-.015em;margin-bottom:18px}
+html[lang=th] h1{font-family:'Anuphan',sans-serif;font-weight:600;line-height:1.2;font-size:clamp(36px,6vw,56px)}
+.lead{font-size:19px;color:var(--t2);margin-bottom:10px}
+.eff{font-size:13px;color:var(--t3);margin-bottom:34px;letter-spacing:.04em}
+section{border-top:1px solid var(--line);padding:26px 0}
+h2{font-size:20px;font-weight:700;margin-bottom:8px}
+section p,section li{color:var(--t2)}
+section ul{padding-left:20px;display:grid;gap:8px}
+section b{color:var(--cream)}
+[data-l]{display:none}
+html[lang=en] [data-l=en],html[lang=th] [data-l=th]{display:block}
+footer{border-top:1px solid var(--line);padding:30px 0 50px;font-size:14px;color:var(--t3)}
+footer .w{max-width:1100px;display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:space-between}
+footer nav{all:unset;display:flex;flex-wrap:wrap;gap:8px 16px}
+footer a{color:var(--t2);text-decoration:none}
+html[lang=en] footer [data-l=en],html[lang=th] footer [data-l=th]{display:flex;flex-wrap:wrap;gap:8px 16px}footer a:hover{color:var(--cream)}</style>
 </head>
 <body>
-<div class="wrap">
-<header>
-  <a class="brand" href="./" data-keep><svg width="34" height="20" viewBox="0 0 40 24" aria-hidden="true"><circle cx="14" cy="12" r="9" fill="none" stroke="#7381FF" stroke-width="3"/><circle cx="26" cy="12" r="9" fill="none" stroke="#FFB21E" stroke-width="3"/></svg><span lang="th">กริ๊ง!</span></a>
-  <div class="langs" role="group" aria-label="Language / ภาษา"><button type="button" data-set="th" lang="th">ไทย</button><button type="button" data-set="en" lang="en">EN</button></div>
-</header>
-
-<main>
-<!-- ======================= ไทย ======================= -->
-<section data-l="th" lang="th">
-  <h1>เกี่ยวกับกริ๊ง!</h1>
-  <p class="lead">กริ๊ง! (Kring) คือแพลตฟอร์มออนไลน์สำหรับจองกิจกรรมสั้น ๆ กับเจ้าถิ่นที่ยืนยันตัวตนแล้ว และกับบริษัททัวร์ที่มีใบอนุญาต ในกรุงเทพฯ นัดพบที่สาธารณะเสมอ กริ๊ง! ไปกันเลย</p>
-  <div class="card">
-    <h2>เราทำอะไร</h2>
-    <p>นักท่องเที่ยวเลือกกิจกรรม เช่น เดินกินสตรีทฟู้ด เที่ยวตลาด เรียนทำอาหาร หรือมวยไทย ราคาเดียวต่อกิจกรรมสำหรับ 1–2 คน จองในแอป แล้วเจอกันที่จุดนัดสาธารณะ แตะโทรศัพท์เช็กอิน (กริ๊ง!) แล้วเริ่มกิจกรรม</p>
-  </div>
-  <div class="card">
-    <h2>วิธีชำระเงิน</h2>
-    <p>ออนไลน์จ่ายเฉพาะค่าจองของกริ๊ง! ผ่านผู้ให้บริการชำระเงินของเรา ส่วนค่ากิจกรรมนักท่องเที่ยวจ่ายให้เจ้าถิ่นโดยตรงด้วยพร้อมเพย์ QR ที่จุดนัด หลังเช็กอิน สำหรับทัวร์ของบริษัทที่มีใบอนุญาต ชำระค่าทัวร์ที่เคาน์เตอร์ของบริษัท</p>
-  </div>
-  <div class="card">
-    <h2>สิ่งที่กริ๊ง! ไม่ใช่</h2>
-    <p>กริ๊ง! เป็นการจองกิจกรรมที่ระบุชัดเจนเท่านั้น ไม่มีการจองตามชั่วโมง และไม่นัดที่โรงแรม ห้องพัก หรือบ้าน</p>
-  </div>
-  <div class="card">
-    <h2>เปิดให้บริการ</h2>
-    <p>แอปเปิดเดือนพฤศจิกายน 2569 ที่กรุงเทพฯ</p>
-  </div>
-  <div class="card">
-    <h2>ผู้ให้บริการ</h2>
-    <p><strong>แพลตฟอร์ม:</strong> Kring (กริ๊ง!) · กรุงเทพฯ<br>
-    <strong>อีเมลฝ่ายสนับสนุน:</strong> <a href="mailto:ops@kringapp.com">ops@kringapp.com</a><br>
-    <strong>อีเมลฝ่ายธุรกิจและพาร์ทเนอร์:</strong> <a href="mailto:partnerships@kringapp.com">partnerships@kringapp.com</a></p>
-  </div>
-
-</section>
-
-<!-- ======================= English ======================= -->
-<section data-l="en" lang="en" hidden>
-  <h1>About Kring</h1>
-  <p class="lead">Kring (กริ๊ง!) is an online marketplace for booking short activities with ID-checked hosts and licensed tour companies in Bangkok, always in public places. Kring, let's go!</p>
-  <div class="card">
-    <h2>What we do</h2>
-    <p>Travellers pick an activity, such as a street-food walk, a market visit, a cooking class or a Muay Thai lesson. There is one price per activity for 1–2 people. You book in the app, meet at a public meeting point, touch phones to check in (กริ๊ง!) and the activity starts.</p>
-  </div>
-  <div class="card">
-    <h2>How payment works</h2>
-    <p>Online, you pay only Kring's booking fee, through our payment providers. You pay the activity price straight to your host by PromptPay QR at the meeting point, after check-in. For tours run by licensed tour companies, the tour price is paid at the company's counter.</p>
-  </div>
-  <div class="card">
-    <h2>What Kring is not</h2>
-    <p>Kring is for booking named activities only. There is no booking by the hour, and no meeting at hotels, rooms or homes.</p>
-  </div>
-  <div class="card">
-    <h2>Launch</h2>
-    <p>The app opens in November 2026 in Bangkok.</p>
-  </div>
-  <div class="card">
-    <h2>Who runs Kring</h2>
-    <p><strong>Platform:</strong> Kring (กริ๊ง!) · Bangkok, Thailand<br>
-    <strong>Customer Support:</strong> <a href="mailto:ops@kringapp.com">ops@kringapp.com</a><br>
-    <strong>Partnerships &amp; Businesses:</strong> <a href="mailto:partnerships@kringapp.com">partnerships@kringapp.com</a></p>
-  </div>
-
-</section>
-</main>
-
-<footer>
-  <a href="./" data-keep><span data-l="th">หน้าแรก</span><span data-l="en" hidden>Home</span></a>
-  <a href="contact.html" data-keep><span data-l="th">ติดต่อเรา</span><span data-l="en" hidden>Contact Us</span></a>
-  <a href="terms.html" data-keep><span data-l="th">ข้อกำหนดการใช้งาน</span><span data-l="en" hidden>Terms &amp; Conditions</span></a>
-  <a href="refund.html" data-keep><span data-l="th">การคืนเงินและยกเลิก</span><span data-l="en" hidden>Refund &amp; Cancellation</span></a>
-  <a href="delivery.html" data-keep><span data-l="th">การส่งมอบบริการ</span><span data-l="en" hidden>Shipping &amp; Delivery</span></a>
-  <a href="privacy.html" data-keep><span data-l="th">ความเป็นส่วนตัว</span><span data-l="en" hidden>Privacy Policy</span></a>
-  <a href="safety.html" data-keep><span data-l="th">ความปลอดภัย</span><span data-l="en" hidden>Safety</span></a>
-  <a href="partner-terms.html" data-keep><span data-l="th">ข้อตกลงพาร์ทเนอร์</span><span data-l="en" hidden>Partner Terms</span></a>
-  <a href="delete-account.html" data-keep><span data-l="th">ลบบัญชี</span><span data-l="en" hidden>Delete account</span></a>
-</footer>
-</div>
-<script src="assets/legal.js?v=20261030a" defer></script>
+<nav><div class="w"><a class="brand" href="./"><svg viewBox="0 0 1024 1024" width="38" height="38" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6874FB"/><stop offset=".38" stop-color="#3946E3"/><stop offset=".52" stop-color="#FBE4A8"/><stop offset=".6" stop-color="#C47FB8"/><stop offset=".78" stop-color="#A14FBF"/><stop offset="1" stop-color="#CE4BB1"/></linearGradient><clipPath id="ca"><circle cx="392" cy="512" r="226"/></clipPath></defs><circle cx="392" cy="512" r="225" fill="none" stroke="#3440E0" stroke-width="60"/><circle cx="632" cy="512" r="225" fill="none" stroke="#FF4FA3" stroke-width="60"/><g clip-path="url(#ca)"><circle cx="632" cy="512" r="226" fill="url(#lg)"/><circle cx="632" cy="512" r="225" fill="none" stroke="#FF4FA3" stroke-width="60"/></g></svg>Kring<span>กริ๊ง!</span></a><div class="lang"><button data-set="en">EN</button><button data-set="th">ไทย</button></div></div></nav>
+<main><div class="w">
+<div data-l="en"><h1>About Kring</h1><p class="lead">Kring (กริ๊ง!) is a Bangkok app for plans and outings with other people, always in public places.</p><div style="height:24px"></div><section><h2>What Kring does</h2><p>See what's happening across Bangkok right now, ask people who live here, and find someone to go with: a café, a night market, a gig, a run in the park. You can write in Thai or English, and the chat translates for you.</p></section><section><h2>Who it's for</h2><p>People who live in Bangkok and people visiting. Everyone uses the same app, with the same rules.</p></section><section><h2>What Kring is not</h2><p>Kring is not a dating app and not a booking or payment service. Nobody is paid to meet anyone. Plans happen in public places only.</p></section><section><h2>Cafés and venues</h2><p>Partner cafés and venues can offer small Kring treats in their quiet hours. Customers pay the venue directly at the counter. See the <a href="partner-terms.html">partner terms</a>.</p></section><section><h2>Launch</h2><p>Kring opens in Bangkok on 1 December 2026.</p></section></div>
+<div data-l="th" lang="th"><h1>เกี่ยวกับกริ๊ง!</h1><p class="lead">กริ๊ง! (Kring) คือแอปในกรุงเทพฯ สำหรับนัดกันออกไปทำอะไรสนุก ๆ กับคนอื่น ในที่สาธารณะเสมอ</p><div style="height:24px"></div><section><h2>กริ๊ง! ทำอะไร</h2><p>ดูว่าตอนนี้ที่ไหนในกรุงเทพฯ มีอะไรน่าไป ถามคนที่อยู่ที่นี่ และหาคนไปด้วยกัน ไม่ว่าจะเป็นคาเฟ่ ตลาดกลางคืน คอนเสิร์ต หรือวิ่งในสวน พิมพ์ไทยหรืออังกฤษก็ได้ แชตแปลให้อัตโนมัติ</p></section><section><h2>เหมาะกับใคร</h2><p>ทั้งคนที่อยู่กรุงเทพฯ และคนที่มาเที่ยว ทุกคนใช้แอปเดียวกัน กติกาเดียวกัน</p></section><section><h2>กริ๊ง! ไม่ใช่อะไร</h2><p>กริ๊ง! ไม่ใช่แอปหาคู่ และไม่ใช่บริการจองหรือรับชำระเงิน ไม่มีใครได้รับเงินเพื่อมาเจอใคร และนัดกันในที่สาธารณะเท่านั้น</p></section><section><h2>คาเฟ่และร้านค้า</h2><p>คาเฟ่และร้านพาร์ทเนอร์สามารถให้ Kring treat เล็ก ๆ ในช่วงที่ร้านเงียบ ลูกค้าจ่ายเงินให้ร้านโดยตรงที่เคาน์เตอร์ ดู<a href="partner-terms.html">ข้อตกลงพาร์ทเนอร์</a></p></section><section><h2>เปิดตัว</h2><p>กริ๊ง! เปิดให้บริการในกรุงเทพฯ วันที่ 1 ธันวาคม 2569</p></section></div>
+</div></main>
+<footer><div class="w"><span>© 2026 Kring · กริ๊ง! · Bangkok</span><nav><span data-l="en"><a href="index.html">Home</a><a href="about.html">About</a><a href="safety.html">Safety</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="partner-terms.html">Partner terms</a><a href="refund.html">Payments</a><a href="delete-account.html">Delete account</a><a href="contact.html">Contact</a></span><span data-l="th"><a href="index.html">หน้าแรก</a><a href="about.html">เกี่ยวกับเรา</a><a href="safety.html">ความปลอดภัย</a><a href="privacy.html">ความเป็นส่วนตัว</a><a href="terms.html">ข้อกำหนด</a><a href="partner-terms.html">ข้อตกลงพาร์ทเนอร์</a><a href="refund.html">การชำระเงิน</a><a href="delete-account.html">ลบบัญชี</a><a href="contact.html">ติดต่อ</a></span></nav></div></footer>
+<script>(function(){var q=new URLSearchParams(location.search).get('lang'),s=null;try{s=localStorage.getItem('kr_lang')}catch(e){}
+function set(l){document.documentElement.lang=l;document.querySelectorAll('.lang button').forEach(function(b){b.classList.toggle('on',b.dataset.set===l)});try{localStorage.setItem('kr_lang',l)}catch(e){}}
+document.querySelectorAll('.lang button').forEach(function(b){b.onclick=function(){set(b.dataset.set)}});
+set(q==='th'||q==='en'?q:(s||((navigator.language||'').indexOf('th')===0?'th':'en')));})();</script>
 </body>
 </html>
