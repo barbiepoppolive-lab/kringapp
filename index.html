@@ -604,7 +604,7 @@ new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)go(cur);else cle
  const ctx=cv.getContext('2d');let W,H,D=Math.min(devicePixelRatio||1,2);
  const PL={en:[["Sunset ferry","6pm · 2 going"],["Night market","7pm · 3 going"],["Riverside gig","9pm · 2 going"],["Matcha break","now · 2 going"],["Gallery hop","Sat 2pm · 4 going"],["Street food walk","8pm · 3 going"],["Run club","7am · 5 going"]],
   th:[["ล่องเรือดูพระอาทิตย์ตก","6 โมงเย็น · ไป 2 คน"],["ตลาดนัดกลางคืน","1 ทุ่ม · ไป 3 คน"],["ดนตรีสดริมน้ำ","3 ทุ่ม · ไป 2 คน"],["พักกินมัทฉะ","ตอนนี้ · ไป 2 คน"],["เดินดูแกลเลอรี่","ส. บ่าย 2 · ไป 4 คน"],["เดินกินสตรีทฟู้ด","2 ทุ่ม · ไป 3 คน"],["รันคลับ","7 โมงเช้า · ไป 5 คน"]]};
- const N=[["Ari",.71,.40,.30,.20],["Siam",.75,.57,.62,.27],["Thonglor",.93,.45,.86,.21],["Talat Noi",.67,.70,.14,.37],["Yaowarat",.80,.76,.44,.40],["Silom",.89,.63,.78,.36],["Chatuchak",.82,.29,.12,.15]];
+ const N=[["Ari",.71,.40,.30,.19],["Siam",.75,.57,.58,.23],["Thonglor",.93,.45,.80,.15],["Talat Noi",.67,.70,.14,.29],["Yaowarat",.80,.76,.42,.31],["Silom",.89,.63,.86,.29],["Chatuchak",.82,.29,.10,.13]];
  let pts=[];
  function layout(){const r=hero.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*D;cv.height=H*D;cv.style.width=W+'px';cv.style.height=H+'px';ctx.setTransform(D,0,0,D,0,0);
   const m=W<900;nodesEl.innerHTML='';pts=N.map(n=>{const x=(m?n[3]:n[1])*W,y=(m?n[4]:n[2])*H;const d=document.createElement('div');d.className='nd';d.style.left=x+'px';d.style.top=y+'px';d.innerHTML='<i></i>'+n[0];nodesEl.appendChild(d);return{x,y}})}
