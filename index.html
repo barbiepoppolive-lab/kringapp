@@ -205,6 +205,26 @@ html[lang=th] .final h2{line-height:1.15}
 .final .in.in .ring-b,.final .in.in .ring-p{stroke-dashoffset:0}
 .final .in.in .lens{opacity:1}
 footer{padding:36px 0 52px;color:var(--t3);font-size:13.5px}
+/* v4: photo backgrounds behind sections */
+.hold,.story,.rew,.trust{position:relative;isolation:isolate}
+.hold:before,.story:before,.rew:before,.trust:before{content:"";position:absolute;inset:0;z-index:-2;background-size:cover;background-position:center;filter:saturate(1.1)}
+.hold:after,.story:after,.rew:after,.trust:after{content:"";position:absolute;inset:0;z-index:-1}
+.hold:before{background-image:url(assets/home/tuktuk.jpg);filter:blur(3px) saturate(1.2);transform:scale(1.05)}
+.hold:after{background:radial-gradient(45% 50% at 50% 55%,rgba(29,29,90,.72),rgba(18,18,58,.94) 80%)}
+.story:before{background-image:url(assets/home/cafe.jpg);background-position:center 40%}
+.story:after{background:linear-gradient(180deg,rgba(18,18,58,.97),rgba(18,18,58,.70) 30%,rgba(18,18,58,.74) 70%,rgba(18,18,58,.97))}
+.rew{padding-top:100px}
+.rew:before{background-image:url(assets/home/river.jpg);background-position:center 60%;background-attachment:scroll}
+.rew:after{background:linear-gradient(180deg,rgba(18,18,58,.97),rgba(18,18,58,.66) 25%,rgba(18,18,58,.80) 70%,rgba(18,18,58,.98))}
+.trust{padding-top:100px}
+.trust:before{background-image:url(assets/home/hero.jpg);background-position:center 30%}
+.trust:after{background:linear-gradient(180deg,rgba(18,18,58,.98),rgba(18,18,58,.80) 35%,rgba(18,18,58,.92))}
+.tc{background:rgba(26,26,74,.62);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.tc.ven{background:linear-gradient(160deg,rgba(18,18,58,.80),rgba(44,22,68,.90) 60%),url(assets/home/cafe.jpg) center/cover}
+.sos{flex-wrap:wrap}
+footer a{white-space:nowrap}
+.final{min-height:auto;padding:110px 0 120px}
+
 footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px}
 footer a{color:inherit;text-decoration:none;margin-left:18px}
 
@@ -381,7 +401,7 @@ html[lang=th] .rc .k{letter-spacing:.04em}
     <h1 class="disp" data-i="h1">Bangkok is better <i class="g">together.</i></h1>
     <p class="hsub" data-i="hsub">See what's happening across the city right now, and find someone to go with. Thai or English, always in public places.</p>
     <div class="who" role="radiogroup" aria-label="I am"><label><input type="radio" name="role_h" value="local" checked><span data-i="w_l">🏠 I live in Bangkok</span></label><label><input type="radio" name="role_h" value="visit"><span data-i="w_v">✈️ I'm visiting</span></label><label><input type="radio" name="role_h" value="venue"><span data-i="w_b">☕ I run a venue</span></label></div>
-    <form class="join" novalidate><input type="email" required placeholder="Your email address" data-ph="ph" aria-label="Email"><button class="btn" data-i="cta">Get early access</button></form>
+    <form class="join" novalidate><input type="email" required placeholder="Your email" data-ph="ph" aria-label="Email"><button class="btn" data-i="cta">Get early access</button></form>
     <p class="fine"><span data-i="fine">Free. We only use this to tell you when we open.</span> <a href="privacy.html" data-i="pv">Privacy</a></p><p class="ferr" role="alert"></p>
   </div></div>
 </header>
@@ -443,12 +463,12 @@ html[lang=th] .rc .k{letter-spacing:.04em}
   <div class="agrid">
     <article class="acard l rv"><div class="bg" style="background-image:url(assets/home/twilight.jpg)"></div><div class="in">
       <span class="tag" data-i="a1t">If you live here</span>
-      <h3 class="disp" data-i="a1h">Never miss a plan for want of company.</h3>
+      <h3 class="disp" data-i="a1h">Got a plan? Find someone to go with.</h3>
       <p data-i="a1p">Post the gig, the class or the new café and find someone who wants to go too. Answer visitors' questions, earn levels and café treats.</p>
     </div></article>
     <article class="acard v rv"><div class="bg" style="background-image:url(assets/home/tuktuk.jpg)"></div><div class="in">
       <span class="tag" data-i="a2t">If you're visiting</span>
-      <h3 class="disp" data-i="a2h">See the Bangkok people here actually live.</h3>
+      <h3 class="disp" data-i="a2h">Skip the tourist list. Go where Bangkok goes.</h3>
       <p data-i="a2p">Live posts from every neighbourhood, straight answers from people who live here, and a chat that speaks your language.</p>
     </div></article>
   </div>
@@ -489,7 +509,7 @@ html[lang=th] .rc .k{letter-spacing:.04em}
     <div class="eyebrow" data-i="s_eb">Safety</div>
     <h3 class="disp" data-i="s_h">Built for public places and real plans.</h3>
     <ul><li data-i="s1">One message before a reply. No phone numbers or links in a first hello.</li><li data-i="s2">Plans happen at cafés, markets and venues, never private addresses.</li><li data-i="s3">Block and report in one tap. Download or delete your data any time (PDPA).</li></ul>
-    <div class="sos"><span><b>1155</b><span data-i="tp">Tourist Police</span></span><span><b>191</b><span data-i="em">Emergency</span></span></div>
+    <div class="sos"><span><b>1155</b><span data-i="tp">Tourist Police</span></span><span><b>191</b><span data-i="em">Emergency</span></span><span><b>1669</b><span data-i="amb">Ambulance</span></span></div>
   </div>
   <div class="tc ven rv" id="venues">
     <div class="eyebrow" data-i="v_eb">For cafés & venues</div>
@@ -505,7 +525,7 @@ html[lang=th] .rc .k{letter-spacing:.04em}
     <svg class="logo-svg" viewBox="0 0 1024 1024"><use href="#kr"/></svg>
     <h2 class="disp" data-i="fh">Kring, <i class="g">let's go.</i></h2>
     <div class="who" role="radiogroup" aria-label="I am"><label><input type="radio" name="role_f" value="local" checked><span data-i="w_l">🏠 I live in Bangkok</span></label><label><input type="radio" name="role_f" value="visit"><span data-i="w_v">✈️ I'm visiting</span></label><label><input type="radio" name="role_f" value="venue"><span data-i="w_b">☕ I run a venue</span></label></div>
-    <form class="join" novalidate><input type="email" required placeholder="Your email address" data-ph="ph" aria-label="Email"><button class="btn" data-i="cta">Get early access</button></form>
+    <form class="join" novalidate><input type="email" required placeholder="Your email" data-ph="ph" aria-label="Email"><button class="btn" data-i="cta">Get early access</button></form>
     <p class="fine"><span data-i="fine">Free. We only use this to tell you when we open.</span> <a href="privacy.html" data-i="pv">Privacy</a></p><p class="ferr" role="alert"></p>
   </div>
 </section>
@@ -534,11 +554,11 @@ t5:"Kring treat",t5p:"ของดีจากคาเฟ่ช่วงร้�
 t6:"ความปลอดภัย",t6p:"ตำรวจท่องเที่ยว 1155 เหตุฉุกเฉิน 191 และสถานทูต อยู่ในทุกแชต",
 exn:"หน้าจอจริงของแอป พร้อมเนื้อหาตัวอย่าง",
 aud_eb:"เหมาะกับใคร",aud_h:'เมืองเดียว <i class="g">รักได้สองแบบ</i>',
-a1t:"ถ้าคุณอยู่ที่นี่",a1h:"ไม่ต้องพลาดแพลน เพราะไม่มีเพื่อนไปด้วย",a1p:"โพสต์คอนเสิร์ต คลาส หรือคาเฟ่เปิดใหม่ แล้วหาคนที่อยากไปเหมือนกัน ตอบคำถามนักท่องเที่ยว เก็บเลเวลและรับของดีจากคาเฟ่",
-a2t:"ถ้าคุณมาเที่ยว",a2h:"เห็นกรุงเทพฯ แบบที่คนที่นี่ใช้ชีวิตจริง",a2p:"โพสต์สดจากทุกย่าน คำตอบตรง ๆ จากคนที่อยู่ที่นี่ และแชตที่พูดภาษาของคุณ",
+a1t:"ถ้าคุณอยู่ที่นี่",a1h:"มีแพลนแล้ว? หาคนไปด้วยกันได้เลย",a1p:"โพสต์คอนเสิร์ต คลาส หรือคาเฟ่เปิดใหม่ แล้วหาคนที่อยากไปเหมือนกัน ตอบคำถามนักท่องเที่ยว เก็บเลเวลและรับของดีจากคาเฟ่",
+a2t:"ถ้าคุณมาเที่ยว",a2h:"ข้ามลิสต์นักท่องเที่ยว ไปที่ที่คนกรุงเทพฯ ไปจริง",a2p:"โพสต์สดจากทุกย่าน คำตอบตรง ๆ จากคนที่อยู่ที่นี่ และแชตที่พูดภาษาของคุณ",
 s_eb:"ความปลอดภัย",s_h:"ออกแบบมาเพื่อที่สาธารณะและแพลนจริง",
 s1:"ส่งได้หนึ่งข้อความก่อนอีกฝ่ายตอบ ห้ามใส่เบอร์โทรหรือลิงก์ในข้อความแรก",s2:"นัดกันที่คาเฟ่ ตลาด และสถานที่ต่าง ๆ ไม่ใช่ที่พักส่วนตัว",s3:"บล็อกและรายงานในแตะเดียว ดาวน์โหลดหรือลบข้อมูลได้ตลอด (PDPA)",
-tp:"ตำรวจท่องเที่ยว",em:"เหตุฉุกเฉิน",
+tp:"ตำรวจท่องเที่ยว",em:"เหตุฉุกเฉิน",amb:"รถพยาบาล",
 v_eb:"สำหรับคาเฟ่และร้านค้า",v_h:"เติมช่วงเวลาที่ร้านเงียบ",v1:"ลูกค้าใหม่ ทั้งคนในย่านและนักท่องเที่ยว ในช่วงเวลาที่ร้านเลือก",v2:"ร้านกำหนดสิทธิ์และจำนวนต่อวันเอง ลูกค้าโชว์ QR",v3:"เข้าร่วมฟรีช่วงเปิดตัว",v_cta:"สมัครเป็นพาร์ทเนอร์ช่วงเปิดตัว",
 fh:'กริ๊ง! <i class="g">ไปกัน</i>',pv:"ความเป็นส่วนตัว",tm:"ข้อกำหนด"
 };
