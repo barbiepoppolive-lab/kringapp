@@ -223,6 +223,26 @@ footer{padding:36px 0 52px;color:var(--t3);font-size:13.5px}
 .tc.ven{background:linear-gradient(160deg,rgba(18,18,58,.80),rgba(44,22,68,.90) 60%),url(assets/home/cafe.jpg) center/cover}
 .sos{flex-wrap:wrap}
 footer a{white-space:nowrap}
+/* v4b: phone chips for app tabs + swipe rewards */
+.tdesc{display:none}
+@media(max-width:899px){
+ .tabs{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;gap:8px;border-top:0;margin:0 -20px;padding:2px 20px 6px;scrollbar-width:none;scroll-snap-type:x proximity}
+ .tabs::-webkit-scrollbar{display:none}
+ .tab{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;padding:9px 15px;font-size:14.5px;background:rgba(26,26,74,.55);scroll-snap-align:start}
+ .tab span,.tab i{display:none}
+ .tab.on{background:var(--grad);border-color:transparent;color:#fff}
+ .tdesc{display:block;color:var(--t2);font-size:15.5px;line-height:1.55;margin-top:14px;min-height:3.2em}
+ .ctop h2{margin-bottom:20px}
+ .car{grid-template-columns:minmax(0,1fr)} .ctop{min-width:0}
+ #rgrid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:14px;margin:0 -20px;padding:0 20px 8px;scrollbar-width:none}
+ #rgrid::-webkit-scrollbar{display:none}
+ #rgrid>.rc{flex:0 0 84%;scroll-snap-align:center;min-height:400px}
+ .rdots{display:flex;gap:7px;justify-content:center;margin-top:14px}
+ .rdots i{width:7px;height:7px;border-radius:99px;background:rgba(255,247,236,.3);transition:width .3s}
+ .rdots i.on{width:22px;background:var(--pink)}
+}
+@media(min-width:900px){.rdots{display:none}}
+
 .final{min-height:auto;padding:110px 0 120px}
 
 footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px}
@@ -439,6 +459,7 @@ html[lang=th] .rc .k{letter-spacing:.04em}
         <button class="tab" data-t="4"><b data-i="t5">Kring treats</b><span data-i="t5p">Café treats in quiet hours. Two taps, show it at the counter.</span><i></i></button>
         <button class="tab" data-t="5"><b data-i="t6">Safety</b><span data-i="t6p">Tourist Police 1155, 191 and your embassy inside every chat.</span><i></i></button>
       </div>
+      <p class="tdesc" id="tdesc"></p>
     </div>
     <div class="pcol">
       <div class="cphone">
@@ -501,6 +522,7 @@ html[lang=th] .rc .k{letter-spacing:.04em}
       <p data-i="r3p">Every week the best photo wins a café treat and gets featured on Kring.</p>
     </div>
   </div>
+  <div class="rdots" id="rdots"><i class="on"></i><i></i><i></i></div>
   <p class="trav rv" data-i="r_tr"><b>Visiting?</b> Collect passport stamps and trip perks as you explore.</p>
 </div></section>
 
@@ -607,7 +629,7 @@ const nav=document.getElementById('nav');addEventListener('scroll',()=>nav.class
 const shots=[...document.querySelectorAll('.phone .scr img')],tabs=[...document.querySelectorAll('.tab')],dots=[...document.querySelectorAll('.dots i')],car=document.querySelector('.car');
 let cur=0,timer=null;const DUR=6000;
 function go(i){cur=(i+tabs.length)%tabs.length;shots.forEach((s,k)=>s.classList.toggle('on',k===cur));dots.forEach((d,k)=>d.classList.toggle('on',k===cur));
- tabs.forEach((t,k)=>{t.classList.toggle('on',k===cur);const bar=t.querySelector('i');bar.style.animation='none';void bar.offsetWidth;bar.style.animation=''});restart()}
+ tabs.forEach((t,k)=>{t.classList.toggle('on',k===cur);const bar=t.querySelector('i');bar.style.animation='none';void bar.offsetWidth;bar.style.animation=''});const td=document.getElementById('tdesc');if(td){const sp=tabs[cur].querySelector('span');td.textContent=sp?sp.textContent:''}const tw=tabs[cur].parentElement;if(tw&&tw.scrollWidth>tw.clientWidth){tw.scrollTo({left:tabs[cur].offsetLeft-20,behavior:'smooth'})}restart()}
 function restart(){clearTimeout(timer);if(!car.classList.contains('paused'))timer=setTimeout(()=>go(cur+1),DUR)}
 tabs.forEach((t,k)=>t.onclick=()=>go(k));
 car.addEventListener('mouseenter',()=>{car.classList.add('paused');clearTimeout(timer)});
@@ -692,5 +714,8 @@ new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)go(cur);else cle
 const ro=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');ro.unobserve(e.target)}}),{threshold:.15});
 document.querySelectorAll('.rv').forEach(e=>ro.observe(e));
 </script>
+
+<script>new MutationObserver(()=>{const t=document.querySelector('.tab.on span'),d=document.getElementById('tdesc');if(t&&d)setTimeout(()=>d.textContent=t.textContent,0)}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});</script>
+<script>(function(){const g=document.getElementById('rgrid'),d=document.getElementById('rdots');if(!g||!d)return;const ds=[...d.children];g.addEventListener('scroll',()=>{const cs=[...g.children];let best=0,bd=1e9;cs.forEach((c,k)=>{const dd=Math.abs(c.offsetLeft-g.scrollLeft-20);if(dd<bd){bd=dd;best=k}});ds.forEach((x,k)=>x.classList.toggle('on',k===best))},{passive:true})})();</script>
 </body>
 </html>
