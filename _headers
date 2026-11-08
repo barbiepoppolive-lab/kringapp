@@ -25,3 +25,6 @@
 
 /p/*
   X-Robots-Tag: noindex, nofollow
+
+/app-old-7nov/*
+  X-Robots-Tag: noindex, nofollow
