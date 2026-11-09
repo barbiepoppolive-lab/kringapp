@@ -1,34 +1,22 @@
 {
-  "id": "/",
-  "name": "Kring (กริ๊ง!) · Do Thailand with a Local",
+  "name": "Kring",
   "short_name": "Kring",
-  "description": "Book activities with verified local hosts in Bangkok and Pattaya — cafés, street food, photography, at public places.",
-  "lang": "en",
-  "start_url": "/?standalone=1",
+  "description": "Bangkok live neighbourhood feed, friendly people, and 2-for-1 venue deals for travellers and Thai locals.",
+  "start_url": "/app/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#05060D",
-  "theme_color": "#05060D",
-  "categories": [
-    "travel",
-    "lifestyle"
-  ],
-  "shortcuts": [
-    {
-      "name": "Check-in (Received ✓)",
-      "short_name": "Check-in",
-      "description": "Open Host & Guest Check-in screen offline-safe",
-      "url": "/#checkin"
-    },
-    {
-      "name": "Meeting Place · Table Bill",
-      "short_name": "Table Bill",
-      "description": "Record Meeting Place Table Bill for Monthly Statement",
-      "url": "/#venue-bill"
-    }
-  ],
+  "background_color": "#12123A",
+  "theme_color": "#12123A",
+  "categories": ["travel", "social", "food"],
+  "lang": "en",
   "icons": [
+    {
+      "src": "/icon-48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
@@ -46,12 +34,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    },
-    {
-      "src": "/kring-icon.svg",
-      "sizes": "192x192 512x512",
-      "type": "image/svg+xml",
-      "purpose": "any"
     }
   ]
 }
