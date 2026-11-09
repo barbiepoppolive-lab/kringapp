@@ -67,6 +67,16 @@ cap:`Spent 2 weeks in Bangkok ordering fried rice. Then a Thai friend ordered fo
 
 What's the one order every visitor should know? 👇
 ${AI}`,extra:{label:'Copy Threads link (first reply)',text:U('threads')}},
+{id:'x',name:'X (Twitter)',tip:'Pick X in the share menu. If X ignores the text, paste the caption (already copied). Or use the "Open X with text" button, then attach the video.',
+cap:`2 weeks in Bangkok eating only fried rice. Then my Thai friend ordered:
+กะเพราหมูกรอบ ราดข้าว ไข่ดาว เผ็ดๆ 🌶️
+(crispy pork basil on rice, fried egg, spicy)
+
+Every stall has a secret order. Go with someone who knows.
+${U('x')}
+AI visuals #Bangkok #ThaiFood`,extra:{label:'Open X with text',open:true}},
+{id:'reddit',name:'Reddit (r/ThaiFood)',tip:'Reddit is strict on promotion and AI content: post ONLY in r/ThaiFood, as a food question, NO link, say it is AI-made in the post. Skip r/Bangkok and r/Thailand (no self-promotion). Pick Reddit in the share menu, choose r/ThaiFood, paste the title (copied), then tap "Copy post text".',
+cap:`Tourist order vs the order my Thai friend made: กะเพราหมูกรอบ ราดข้าว ไข่ดาว (AI-made clip). What's your go-to "secret" order at a Bangkok stall?`,extra:{label:'Copy post text',text:`Made this short AI clip about the order a Thai friend taught me: kra-pao moo krob, rad khao, kai dao, phet phet (crispy pork belly holy basil on rice, fried egg, spicy). Visuals are AI-generated. What do you order at a street stall that most visitors don't know about?`}},
 {id:'line',name:'LINE (Kring account)',tip:'Pick LINE Official Account / OA Manager → post to timeline (VOOM).',
 cap:`เมนูลับที่คนไทยสั่งจริง: กะเพราหมูกรอบ ราดข้าว ไข่ดาว เผ็ดๆ 🌶️ ร้านไหนอร่อยสุด บอกหน่อย! 👇
 The secret order Thais actually make: crispy pork basil on rice, fried egg, spicy. Which stall does it best? 👇
@@ -83,6 +93,6 @@ d.querySelector('pre').textContent=p.cap;
 d.querySelector('.go').onclick=async()=>{copy(p.cap);
  if(FILE&&navigator.canShare&&navigator.canShare({files:[FILE]})){try{await navigator.share({files:[FILE]});msg('Caption copied: paste it in the app')}catch(e){msg('Caption copied')}}
  else{msg('Caption copied. Video still loading or share not supported: use Download below');}};
-if(p.extra)d.querySelector('.sec').onclick=()=>{copy(p.extra.text);msg('Copied')};
+if(p.extra)d.querySelector('.sec').onclick=()=>{if(p.extra.open){copy(p.cap);location.href='https://x.com/intent/post?text='+encodeURIComponent(p.cap);}else{copy(p.extra.text);msg('Copied')}};
 c.appendChild(d);});
 </script></body></html>
