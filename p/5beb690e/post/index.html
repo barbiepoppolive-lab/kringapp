@@ -1,0 +1,88 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Post: Secret Order Reel</title>
+<style>
+:root{--bg:#0A0B1E;--card:#15173a;--ink:#fff;--mute:#aab;--blue:#7381FF;--gold:#FFB21E}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;padding:16px;max-width:560px;margin:auto}
+h1{font-size:22px;margin:8px 0 4px}p.s{color:var(--mute);margin:0 0 14px;font-size:14px}
+video{width:100%;max-height:60vh;border-radius:14px;background:#000}
+.card{background:var(--card);border-radius:16px;padding:14px;margin:14px 0}
+.card h2{margin:0 0 6px;font-size:18px}.card small{color:var(--mute);display:block;margin-bottom:10px}
+button,a.btn{display:block;width:100%;text-align:center;border:0;border-radius:12px;padding:14px;font-size:17px;font-weight:700;margin:8px 0;cursor:pointer;text-decoration:none}
+.go{background:linear-gradient(90deg,var(--blue),var(--gold));color:#0A0B1E}.sec{background:#2a2d5c;color:#fff}
+pre{white-space:pre-wrap;background:#0d0e25;border-radius:10px;padding:10px;font:13px/1.4 system-ui;color:#dde;max-height:160px;overflow:auto}
+#msg{position:fixed;left:16px;right:16px;bottom:16px;background:#2ecc71;color:#000;padding:12px;border-radius:12px;font-weight:700;display:none;text-align:center}
+</style></head><body>
+<h1>Secret Order Reel · post it</h1>
+<p class="s">One tap per platform: the caption is copied, then your phone's share menu opens with the video. Pick the app, paste the caption, post. Turn ON the AI label in each app.</p>
+<video src="kring_secret_order.mp4" controls playsinline></video>
+<div id="cards"></div>
+<a class="btn sec" href="kring_secret_order.mp4" download>Download video (if share doesn't work)</a>
+<div id="msg"></div>
+<script>
+const U=p=>`kringapp.com/?utm_source=${p}&utm_medium=reel&utm_campaign=secret_order`;
+const AI='*ภาพจำลองด้วย AI · AI-generated visuals';
+const P=[
+{id:'instagram',name:'Instagram Reels',tip:'Pick Instagram → Reels. Put the Instagram link in your bio. Cover: yolk frame (~11s). Location: Bangkok. Best time 19:00–20:00 Bangkok.',
+cap:`สั่งข้าวผัดมา 2 อาทิตย์… จนเพื่อนคนไทยสั่งให้ 🍳
+2 weeks of ordering fried rice… until my Thai friend ordered for me
+
+กะเพราหมูกรอบ ราดข้าว ไข่ดาว เผ็ดๆ 🌶️
+(crispy pork basil on rice, fried egg, spicy)
+
+ทุกร้านมีเมนูลับ ไปกับคนที่รู้ 💛💙
+Every stall has a secret order. Go with someone who knows.
+
+เมนูลับของคุณคืออะไร? บอกหน่อย 👇
+What's YOUR secret order? Tell us below 👇
+
+🔗 ลิงก์ในโปรไฟล์ · Link in bio
+${AI}
+
+#กะเพรา #bangkokfood #thaistreetfood #ร้านอร่อยกรุงเทพ #kringapp`,extra:{label:'Copy Instagram bio link',text:U('instagram')}},
+{id:'facebook',name:'Facebook Reels',tip:'Pick Facebook → Reel on the Kring Page.',
+cap:`2 weeks in Bangkok eating only fried rice… until my Thai friend ordered for me 🍳
+อยู่กรุงเทพฯ 2 อาทิตย์ กินแต่ข้าวผัด… จนเพื่อนคนไทยสั่งให้
+
+Order this: กะเพราหมูกรอบ ราดข้าว ไข่ดาว เผ็ดๆ 🌶️
+(crispy pork basil on rice, fried egg, spicy)
+
+Every stall has a secret order. Go with someone who knows 💛💙
+ทุกร้านมีเมนูลับ ไปกับคนที่รู้
+
+Tag a Thai friend who knows the secret menu 👇
+แท็กเพื่อนคนไทยที่รู้เมนูลับ
+
+👉 ${U('facebook')}
+${AI}
+
+#bangkokfood #กะเพรา #thaifood`},
+{id:'youtube',name:'YouTube Shorts',tip:'Pick YouTube → Short. Paste TITLE first (copied), then tap "Copy description". Set "Altered or synthetic content" = Yes.',
+cap:`The order nobody tells tourists in Bangkok 🍳 กะเพราหมูกรอบ`,extra:{label:'Copy YouTube description',text:`2 weeks of fried rice, then my Thai friend ordered: กะเพราหมูกรอบ ราดข้าว ไข่ดาว เผ็ดๆ (crispy pork basil on rice, fried egg, spicy). Every stall has a secret order. Go with someone who knows.
+${U('youtube')}
+AI-generated visuals.
+#shorts #bangkokfood #thaistreetfood`}},
+{id:'threads',name:'Threads',tip:'Pick Threads. Topic tag: Bangkok food. Then tap "Copy Threads link" and add it as the first reply.',
+cap:`Spent 2 weeks in Bangkok ordering fried rice. Then a Thai friend ordered for me: กะเพราหมูกรอบ ราดข้าว ไข่ดาว เผ็ดๆ 🌶️
+(crispy pork basil on rice, fried egg, spicy)
+
+What's the one order every visitor should know? 👇
+${AI}`,extra:{label:'Copy Threads link (first reply)',text:U('threads')}},
+{id:'line',name:'LINE (Kring account)',tip:'Pick LINE Official Account / OA Manager → post to timeline (VOOM).',
+cap:`เมนูลับที่คนไทยสั่งจริง: กะเพราหมูกรอบ ราดข้าว ไข่ดาว เผ็ดๆ 🌶️ ร้านไหนอร่อยสุด บอกหน่อย! 👇
+The secret order Thais actually make: crispy pork basil on rice, fried egg, spicy. Which stall does it best? 👇
+${U('line')}
+${AI}`}
+];
+let FILE=null;fetch('kring_secret_order.mp4').then(r=>r.blob()).then(b=>{FILE=new File([b],'kring_secret_order.mp4',{type:'video/mp4'})}).catch(()=>{});
+const msg=t=>{const m=document.getElementById('msg');m.textContent=t;m.style.display='block';setTimeout(()=>m.style.display='none',3500)};
+const copy=t=>{try{navigator.clipboard.writeText(t)}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(_){};a.remove()}};
+const c=document.getElementById('cards');
+P.forEach(p=>{const d=document.createElement('div');d.className='card';
+d.innerHTML=`<h2>${p.name}</h2><small>${p.tip}</small><button class="go">Copy caption + share video</button>${p.extra?`<button class="sec">${p.extra.label}</button>`:''}<pre></pre>`;
+d.querySelector('pre').textContent=p.cap;
+d.querySelector('.go').onclick=async()=>{copy(p.cap);
+ if(FILE&&navigator.canShare&&navigator.canShare({files:[FILE]})){try{await navigator.share({files:[FILE]});msg('Caption copied: paste it in the app')}catch(e){msg('Caption copied')}}
+ else{msg('Caption copied. Video still loading or share not supported: use Download below');}};
+if(p.extra)d.querySelector('.sec').onclick=()=>{copy(p.extra.text);msg('Copied')};
+c.appendChild(d);});
+</script></body></html>
