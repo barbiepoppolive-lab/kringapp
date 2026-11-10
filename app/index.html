@@ -17,13 +17,23 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <link rel="manifest" href="manifest.json" />
     <title>Kring</title>
-    <script type="module" crossorigin src="/app/assets/main-N1jGI5OW.js"></script>
-    <link rel="modulepreload" crossorigin href="/app/assets/vendor-BU1N4Yee.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/pdf-Bwm6cNhE.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/v5Live-BLXTsOZ7.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/v5Reel-DE8rZkb5.js">
-    <link rel="stylesheet" crossorigin href="/app/assets/main-YxhwLPJN.css">
-    <link rel="stylesheet" crossorigin href="/app/assets/fonts-v8-Cs2pmvHW.css">
+    <script>
+      // LINE's in-app browser loses sign-in: reopen every Kring link in the phone's normal browser (LINE supports ?openExternalBrowser=1)
+      try {
+        if (/\bLine\//i.test(navigator.userAgent) && !/[?&]openExternalBrowser=1/.test(location.search)) {
+          var u = new URL(location.href); u.searchParams.set('openExternalBrowser', '1'); location.replace(u.toString());
+        }
+      } catch (e) {}
+      // keep the install offer for later (Add to home screen)
+      window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__kr8Install = e; });
+    </script>
+    <script type="module" crossorigin src="/assets/main-DKPPTupG.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-BU1N4Yee.js">
+    <link rel="modulepreload" crossorigin href="/assets/pdf-BjpozoIw.js">
+    <link rel="modulepreload" crossorigin href="/assets/v5Live-CB47W-kk.js">
+    <link rel="modulepreload" crossorigin href="/assets/v5Reel-BwfoUI_T.js">
+    <link rel="stylesheet" crossorigin href="/assets/main-ChjpwsmT.css">
+    <link rel="stylesheet" crossorigin href="/assets/fonts-v8-CIqJgwEX.css">
   </head>
   <body class="antialiased" style="background:#12123A;margin:0">
     <div id="root"></div>
