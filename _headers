@@ -1,6 +1,7 @@
 # Cloudflare Pages headers (ignored by GitHub Pages)
 /*
   X-Content-Type-Options: nosniff
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(self), microphone=(self), geolocation=(self)
 
@@ -13,7 +14,7 @@
 /assets/*
   Cache-Control: public, max-age=86400
 
-/preview-6nov/assets/*
+/app/assets/*
   Cache-Control: public, max-age=31536000, immutable
 
 /.well-known/apple-app-site-association
@@ -26,5 +27,11 @@
 /p/*
   X-Robots-Tag: noindex, nofollow
 
-/app-old-7nov/*
-  X-Robots-Tag: noindex, nofollow
+/app/admin*
+  X-Frame-Options: DENY
+
+/app/staff*
+  X-Frame-Options: DENY
+
+/app/owner*
+  X-Frame-Options: DENY
