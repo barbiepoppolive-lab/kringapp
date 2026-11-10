@@ -1,14 +1,19 @@
 {
   "name": "Kring",
   "short_name": "Kring",
-  "description": "Bangkok live neighbourhood feed, friendly people, and 2-for-1 venue deals for travellers and Thai locals.",
+  "description": "Short Reels of real Bangkok spots, friendly people, and partner-café treats for travellers and Thai locals.",
+  "id": "/app/",
   "start_url": "/app/",
-  "scope": "/",
+  "scope": "/app/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#12123A",
   "theme_color": "#12123A",
-  "categories": ["travel", "social", "food"],
+  "categories": [
+    "travel",
+    "social",
+    "food"
+  ],
   "lang": "en",
   "icons": [
     {
