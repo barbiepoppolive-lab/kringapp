@@ -1,36 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://kringapp.com/</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-11-11</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://kringapp.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="th" href="https://kringapp.com/th/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kringapp.com/"/>
   </url>
   <url>
-    <loc>https://kringapp.com/about.html</loc>
-    <lastmod>2026-10-25</lastmod>
+    <loc>https://kringapp.com/en/</loc>
+    <lastmod>2026-11-11</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://kringapp.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="th" href="https://kringapp.com/th/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kringapp.com/"/>
   </url>
   <url>
-    <loc>https://kringapp.com/contact.html</loc>
-    <lastmod>2026-10-25</lastmod>
+    <loc>https://kringapp.com/th/</loc>
+    <lastmod>2026-11-11</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://kringapp.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="th" href="https://kringapp.com/th/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kringapp.com/"/>
   </url>
   <url>
-    <loc>https://kringapp.com/terms.html</loc>
-    <lastmod>2026-10-25</lastmod>
+    <loc>https://kringapp.com/about</loc>
+    <lastmod>2026-11-10</lastmod>
   </url>
   <url>
-    <loc>https://kringapp.com/refund.html</loc>
-    <lastmod>2026-10-25</lastmod>
+    <loc>https://kringapp.com/contact</loc>
+    <lastmod>2026-11-10</lastmod>
   </url>
   <url>
-    <loc>https://kringapp.com/delivery.html</loc>
-    <lastmod>2026-10-25</lastmod>
+    <loc>https://kringapp.com/terms</loc>
+    <lastmod>2026-11-11</lastmod>
   </url>
   <url>
-    <loc>https://kringapp.com/privacy.html</loc>
-    <lastmod>2026-10-25</lastmod>
+    <loc>https://kringapp.com/privacy</loc>
+    <lastmod>2026-11-10</lastmod>
   </url>
   <url>
-    <loc>https://kringapp.com/safety.html</loc>
-    <lastmod>2026-10-25</lastmod>
+    <loc>https://kringapp.com/partner-terms</loc>
+    <lastmod>2026-11-10</lastmod>
   </url>
-  <url><loc>https://kringapp.com/partner-terms.html</loc></url>
+  <url>
+    <loc>https://kringapp.com/refund</loc>
+    <lastmod>2026-11-09</lastmod>
+  </url>
+  <url>
+    <loc>https://kringapp.com/delivery</loc>
+    <lastmod>2026-11-10</lastmod>
+  </url>
+  <url>
+    <loc>https://kringapp.com/safety</loc>
+    <lastmod>2026-11-09</lastmod>
+  </url>
+  <url>
+    <loc>https://kringapp.com/delete-account</loc>
+    <lastmod>2026-11-09</lastmod>
+  </url>
 </urlset>

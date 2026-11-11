@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kring (กริ๊ง!) · Bangkok is better together</title>
-<meta name="description" content="See what's happening across Bangkok right now and find someone to go with. Thai or English, always in public places. Now open in Bangkok, early access.">
+<title>Kring (กริ๊ง!) Bangkok · Bangkok is better together</title>
+<meta name="description" content="Kring (กริ๊ง!) Bangkok: see what's happening across Bangkok right now and find someone to go with. Thai or English, always in public places.">
 <link rel="canonical" href="https://kringapp.com/">
-<link rel="alternate" hreflang="en" href="https://kringapp.com/?lang=en">
-<link rel="alternate" hreflang="th" href="https://kringapp.com/?lang=th">
+<link rel="alternate" hreflang="en" href="https://kringapp.com/en/">
+<link rel="alternate" hreflang="th" href="https://kringapp.com/th/">
 <link rel="alternate" hreflang="x-default" href="https://kringapp.com/">
 <meta name="theme-color" content="#12123A">
 <meta name="color-scheme" content="dark">
@@ -17,12 +17,13 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Kring">
 <meta property="og:url" content="https://kringapp.com/">
-<meta property="og:title" content="Kring (กริ๊ง!) · Bangkok is better together">
-<meta property="og:description" content="See what's happening across Bangkok right now and find someone to go with. Now open in Bangkok, early access.">
+<meta property="og:title" content="Kring (กริ๊ง!) Bangkok · Bangkok is better together">
+<meta property="og:description" content="Kring (กริ๊ง!) Bangkok: see what's happening across Bangkok right now and find someone to go with. Thai or English, always in public places.">
 <meta property="og:image" content="https://kringapp.com/assets/home/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preload" as="image" href="assets/home/hero.jpg">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Kring","alternateName":"กริ๊ง!","url":"https://kringapp.com/","logo":"https://kringapp.com/icon-512.png","slogan":"Bangkok is better together.","areaServed":["Bangkok"]}</script>
+<link rel="preload" as="image" href="assets/home/hero.webp" type="image/webp" media="(min-width:801px)">
+<link rel="preload" as="image" href="assets/home/hero-800.webp" type="image/webp" media="(max-width:800px)">
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://kringapp.com/#org", "name": "Kring", "alternateName": ["กริ๊ง!", "Kring (กริ๊ง!) Bangkok"], "url": "https://kringapp.com/", "logo": "https://kringapp.com/icon-512.png", "slogan": "Bangkok is better together.", "areaServed": {"@type": "City", "name": "Bangkok"}, "knowsLanguage": ["th", "en"], "sameAs": ["https://www.instagram.com/kring.bkk/", "https://line.me/R/ti/p/@194hsqbc"]}, {"@type": "WebSite", "@id": "https://kringapp.com/#web", "url": "https://kringapp.com/", "name": "Kring", "alternateName": "กริ๊ง!", "inLanguage": ["th", "en"], "publisher": {"@id": "https://kringapp.com/#org"}}, {"@type": "MobileApplication", "name": "Kring (กริ๊ง!)", "url": "https://kringapp.com/app/", "applicationCategory": "SocialNetworkingApplication", "operatingSystem": "Android, iOS (web app)", "inLanguage": ["th", "en"], "offers": {"@type": "Offer", "price": "0", "priceCurrency": "THB"}, "publisher": {"@id": "https://kringapp.com/#org"}}, {"@type": "FAQPage", "url": "https://kringapp.com/", "inLanguage": "en", "mainEntity": [{"@type": "Question", "name": "What is Kring (กริ๊ง!) Bangkok?", "acceptedAnswer": {"@type": "Answer", "text": "Kring (กริ๊ง!) is a Bangkok people app. Locals and visitors post short clips of real Bangkok spots, find people into the same things, and meet at cafés and other public places. Thai or English, with built-in translation."}}, {"@type": "Question", "name": "Is Kring free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Signing up and using Kring is free."}}, {"@type": "Question", "name": "Where do people meet on Kring?", "acceptedAnswer": {"@type": "Answer", "text": "Always in public places: partner cafés, markets and venues. Never private addresses."}}, {"@type": "Question", "name": "Which areas of Bangkok?", "acceptedAnswer": {"@type": "Answer", "text": "All of Bangkok, with the most activity in Ari, Siam, Thonglor, Ekkamai and Silom."}}, {"@type": "Question", "name": "How do I sign up?", "acceptedAnswer": {"@type": "Answer", "text": "Open kringapp.com/app and continue with LINE or your email."}}]}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
@@ -105,7 +106,7 @@ html[lang=th] .btn{font-family:var(--thai)}
 
 /* HERO */
 .hero{position:relative;height:100svh;min-height:680px;overflow:hidden;display:flex;align-items:flex-end}
-.hero .bg{position:absolute;inset:0;background:url(assets/home/hero.jpg) center 62%/cover;transform:scale(1.1)}
+.hero .bg{position:absolute;inset:0;background:url(assets/home/hero.webp) center 62%/cover;transform:scale(1.1)}
 .ready .hero .bg{animation:kb 22s ease-out forwards}
 @keyframes kb{to{transform:scale(1)}}
 .hero:before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(18,18,58,.55) 0%,rgba(18,18,58,.05) 28%,rgba(18,18,58,.12) 45%,rgba(18,18,58,.86) 80%,var(--ink) 100%),linear-gradient(90deg,rgba(18,18,58,.55),transparent 62%)}
@@ -217,7 +218,7 @@ footer{padding:36px 0 52px;color:var(--t3);font-size:13.5px}
 .rew:before{background-image:url(assets/home/river.jpg);background-position:center 60%;background-attachment:scroll}
 .rew:after{background:linear-gradient(180deg,rgba(18,18,58,.97),rgba(18,18,58,.66) 25%,rgba(18,18,58,.80) 70%,rgba(18,18,58,.98))}
 .trust{padding-top:100px}
-.trust:before{background-image:url(assets/home/hero.jpg);background-position:center 30%}
+.trust:before{background-image:url(assets/home/hero.webp);background-position:center 30%}
 .trust:after{background:linear-gradient(180deg,rgba(18,18,58,.98),rgba(18,18,58,.80) 35%,rgba(18,18,58,.92))}
 .tc{background:rgba(26,26,74,.62);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .tc.ven{background:linear-gradient(160deg,rgba(18,18,58,.80),rgba(44,22,68,.90) 60%),url(assets/home/cafe.jpg) center/cover}
@@ -384,6 +385,8 @@ html[lang=th] .rc .k{letter-spacing:.04em}
 .rank{margin:34px auto 6px;max-width:760px;background:var(--panel,#16163f);border:1px solid var(--line,rgba(255,255,255,.12));border-radius:26px;padding:24px 26px}.rank h3{font-size:22px;margin:0 0 4px}.rank>p{color:var(--t2,#b9bce0);margin:0 0 16px;font-size:15px}.rkr{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 34px;gap:12px;align-items:center;padding:9px 0;border-top:1px solid rgba(255,255,255,.07)}.rkt b{display:block;font-size:15px}.rkt span{font-size:12.5px;color:#a9acd6}.rkb{height:10px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}.rkb i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#7381FF,#9B5CFF,#FFB21E)}.rkr em{font-style:normal;font-weight:800;color:#FFB21E;text-align:right}.rank small{display:block;margin-top:12px;color:#a9acd6;font-size:12.5px}@media(max-width:560px){.rkr{grid-template-columns:1fr 70px 30px}.rank{padding:18px}}
 .tix{width:100%;display:flex;flex-direction:column;gap:10px}.tk{position:relative;display:flex;gap:12px;align-items:center;border-radius:14px;padding:12px 16px;background:linear-gradient(90deg,rgba(115,129,255,.22),rgba(155,92,255,.14));border:1px dashed rgba(255,255,255,.28)}.tk:nth-child(2){background:linear-gradient(90deg,rgba(255,178,30,.22),rgba(255,79,163,.12));transform:translateX(10px)}.tk:nth-child(3){transform:translateX(-6px)}
 .tk:before,.tk:after{content:"";position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:var(--panel,#16163f);transform:translateY(-50%)}.tk:before{left:-8px}.tk:after{right:-8px}.tk b{font-size:24px}.tk strong{display:block;font-size:15px}.tk small{color:#b9bce0;font-size:12px}
+@media(max-width:800px){.hero .bg{background-image:url(assets/home/hero-800.webp)}}
+footer .aff{width:100%;margin-top:10px;font-size:12px;color:var(--t3)}
 </style>
 <script nowprocket data-noptimize="1" data-cfasync="false" data-wpfc-render="false" seraph-accel-crit="1" data-no-defer="1" data-cmp-ab="2">
 (function () {
@@ -447,7 +450,7 @@ document.head.appendChild(script);
     <p class="hsub" data-i="hsub">See what's happening across the city right now, and find someone to go with. Thai or English, always in public places.</p>
     <div class="who" role="radiogroup" aria-label="I am"><label><input type="radio" name="role_h" value="local" checked><span data-i="w_l">🏠 I live in Bangkok</span></label><label><input type="radio" name="role_h" value="visit"><span data-i="w_v">✈️ I'm visiting</span></label><label><input type="radio" name="role_h" value="venue"><span data-i="w_b">☕ I run a venue</span></label></div>
     <form class="join" novalidate><input type="email" required placeholder="Your email" data-ph="ph" aria-label="Email"><button class="btn" data-i="cta">Get early access</button></form>
-    <p class="fine"><span data-i="fine">Free. We only use this to tell you when we open.</span> <a href="privacy.html" data-i="pv">Privacy</a></p><p class="ferr" role="alert"></p>
+    <p class="fine"><span data-i="fine">Free. We only use this to tell you when we open.</span> <a href="/privacy" data-i="pv">Privacy</a></p><p class="ferr" role="alert"></p>
   </div></div>
 </header>
 
@@ -522,32 +525,30 @@ document.head.appendChild(script);
 
 
 <section class="rew" id="rewards"><div class="wrap">
-  <div class="eyebrow rv" data-i="r_eb">Post Reels. Win real rewards.</div>
-  <h2 class="disp rv" data-i="r_h">Share Bangkok. <i class="g">Win every day.</i></h2>
-  <p class="lead rv" data-i="r_s">Film a short Reel of a real Bangkok spot you love. The best Reels of each day and each week win rewards worth real money.</p>
+  <div class="eyebrow rv" data-i="r_eb">Kring Locals</div>
+  <h2 class="disp rv" data-i="r_h">Show your Bangkok. <i class="g">Top 5 every day.</i></h2>
+  <p class="lead rv" data-i="r_s">Kring Locals post short clips of real Bangkok spots they love. The Top 5 of each day and each week get rewards with real money value.</p>
   <div class="rgrid" id="rgrid">
     <div class="rc rv">
-      <div class="viz"><div class="fan"><div class="cd"><span data-i="cd_l">🔔 Board closes at midnight</span><b id="cdt">--:--:--</b></div><div class="reels"><div class="rl" style="background-image:url(assets/home/rewards/r1.jpg)"><i>1</i><em>฿300</em></div><div class="rl" style="background-image:url(assets/home/rewards/r2.jpg)"><i>2</i><em>฿200</em></div><div class="rl" style="background-image:url(assets/home/rewards/r3.jpg)"><i>3</i><em>฿150</em></div><div class="rl" style="background-image:url(assets/home/rewards/r4.jpg)"><i>4</i><em>฿100</em></div><div class="rl" style="background-image:url(assets/home/rewards/r5.jpg)"><i>★</i><em>฿100</em></div></div></div></div>
+      <div class="viz"><div class="fan"><div class="cd"><span data-i="cd_l">🔔 Board closes at midnight</span><b id="cdt">--:--:--</b></div><div class="reels"><div class="rl" style="background-image:url(assets/home/rewards/r1.jpg)"><i>1</i></div><div class="rl" style="background-image:url(assets/home/rewards/r2.jpg)"><i>2</i></div><div class="rl" style="background-image:url(assets/home/rewards/r3.jpg)"><i>3</i></div><div class="rl" style="background-image:url(assets/home/rewards/r4.jpg)"><i>4</i></div><div class="rl" style="background-image:url(assets/home/rewards/r5.jpg)"><i>5</i></div></div></div></div>
       <div class="k" data-i="r1k">Daily · until midnight</div>
-      <h3 data-i="r1h">Top 4 every day, plus a rising star</h3>
-      <p data-i="r1p">The daily board closes at midnight, Bangkok time. #1 wins ฿300, #2 ฿200, #3 ฿150 and #4 ฿100. The best creator who hasn't won yet gets ฿100 too. Win 3 days in a row for an extra ฿100.</p>
+      <h3 data-i="r1h">Top 5 every day</h3>
+      <p data-i="r1p">The daily board closes at midnight, Bangkok time. Ranks move live with likes, saves and shares from real people.</p>
     </div>
     <div class="rc rv">
-      <div class="viz"><div class="wk"><div class="wkimg" style="background-image:url(assets/home/rewards/week.jpg)"><span class="st" data-i="bw">★ Creator of the week</span><svg class="rings" viewBox="0 0 120 70"><circle cx="40" cy="35" r="26" fill="none" stroke="#7381FF" stroke-width="7"/><circle cx="80" cy="35" r="26" fill="none" stroke="#FF4FA3" stroke-width="7"/></svg><em data-i="bwc">#1 · ฿800</em></div><div class="wkr"><span>2</span><span>3</span><span>4</span><b data-i="wk25">฿500 · ฿300 · ฿200</b></div></div></div>
+      <div class="viz"><div class="wk"><div class="wkimg" style="background-image:url(assets/home/rewards/week.jpg)"><span class="st" data-i="bw">★ Local of the week</span><svg class="rings" viewBox="0 0 120 70"><circle cx="40" cy="35" r="26" fill="none" stroke="#7381FF" stroke-width="7"/><circle cx="80" cy="35" r="26" fill="none" stroke="#FF4FA3" stroke-width="7"/></svg><em data-i="bwc">#1</em></div><div class="wkr"><span>2</span><span>3</span><span>4</span><span>5</span></div></div></div>
       <div class="k" data-i="r2k">Weekly</div>
-      <h3 data-i="r2h">Top 4 of the week</h3>
-      <p data-i="r2p">Every week the best creators win again: #1 ฿800, #2 ฿500, #3 ฿300, #4 ฿200. The best Reels are also featured on Kring.</p>
+      <h3 data-i="r2h">Top 5 of the week</h3>
+      <p data-i="r2p">Every week the Top 5 are featured on Kring and get bigger rewards than the daily board.</p>
     </div>
     <div class="rc rv">
-      <div class="viz"><div class="tix"><div class="tk"><b>💸</b><div><strong data-i="g1">Real money value</strong><small data-i="g1s">Every reward is worth what it says</small></div></div><div class="tk"><b>📲</b><div><strong data-i="g2">Straight to your phone</strong><small data-i="g2s">Claim in the app, get a code or link</small></div></div><div class="tk"><b>🌱</b><div><strong data-i="g3">No followers needed</strong><small data-i="g3s">A new account can win on day one</small></div></div></div></div>
+      <div class="viz"><div class="tix"><div class="tk"><b>💸</b><div><strong data-i="g1">Real money value</strong><small data-i="g1s">Every reward is worth what it says</small></div></div><div class="tk"><b>📲</b><div><strong data-i="g2">Straight to your phone</strong><small data-i="g2s">Claim in the app, get a code or link</small></div></div><div class="tk"><b>🌱</b><div><strong data-i="g3">No followers needed</strong><small data-i="g3s">New accounts count from day one</small></div></div></div></div>
       <div class="k" data-i="r3k">Your rewards</div>
       <h3 data-i="r3h">Easy to claim</h3>
-      <p data-i="r3p">Open My rewards, tap Claim and pick one of the options shown, all at the same value. We'll share the full list before launch.</p>
+      <p data-i="r3p">Open My rewards in the app and pick one of the options shown, all at the same value.</p>
     </div>
   </div>
   <div class="rdots" id="rdots"><i class="on"></i><i></i><i></i></div>
-  <div class="rank rv"><h3 data-i="rk_h">How Reels are ranked</h3><p data-i="rk_p">Your best Reel of the day is scored by real people, not by followers.</p><div class="rkr"><div class="rkt"><b data-i="rk1">Likes</b><span data-i="rk1s">from people who watched it</span></div><div class="rkb"><i style="width:20%"></i></div><em>×1</em></div><div class="rkr"><div class="rkt"><b data-i="rk2">Saves</b><span data-i="rk2s">people keep it to go later</span></div><div class="rkb"><i style="width:60%"></i></div><em>×3</em></div><div class="rkr"><div class="rkt"><b data-i="rk3">Shares</b><span data-i="rk3s">people open your link outside Kring</span></div><div class="rkb"><i style="width:100%"></i></div><em>×5</em></div><div class="rkr"><div class="rkt"><b data-i="rk4">Visitors to Bangkok</b><span data-i="rk4s">their likes, saves and shares count double</span></div><div class="rkb"><i style="width:40%"></i></div><em>×2</em></div><small data-i="rk_n">Ties: the earlier post wins.</small></div>
-  <p class="trav rv" data-i="r_tr"><b>Fair play:</b> winners come from a public score, never luck. Likes from brand-new or duplicate accounts don't count. We never ask for passwords or bank details.</p>
 </div></section>
 
 <section class="trust"><div class="wrap"><div class="tgrid">
@@ -572,25 +573,25 @@ document.head.appendChild(script);
     <h2 class="disp" data-i="fh">Kring, <i class="g">let's go.</i></h2>
     <div class="who" role="radiogroup" aria-label="I am"><label><input type="radio" name="role_f" value="local" checked><span data-i="w_l">🏠 I live in Bangkok</span></label><label><input type="radio" name="role_f" value="visit"><span data-i="w_v">✈️ I'm visiting</span></label><label><input type="radio" name="role_f" value="venue"><span data-i="w_b">☕ I run a venue</span></label></div>
     <form class="join" novalidate><input type="email" required placeholder="Your email" data-ph="ph" aria-label="Email"><button class="btn" data-i="cta">Get early access</button></form>
-    <p class="fine"><span data-i="fine">Free. We only use this to tell you when we open.</span> <a href="privacy.html" data-i="pv">Privacy</a></p><p class="ferr" role="alert"></p>
+    <p class="fine"><span data-i="fine">Free. We only use this to tell you when we open.</span> <a href="/privacy" data-i="pv">Privacy</a></p><p class="ferr" role="alert"></p>
   </div>
 </section>
 
-<footer><div class="wrap"><span>© 2026 Kring · กริ๊ง! · Bangkok</span><span><a href="safety.html" data-i="ft_s">Safety</a><a href="privacy.html" data-i="pv">Privacy</a><a href="terms.html" data-i="tm">Terms</a><a href="delete-account.html" data-i="ft_d">Delete account</a><a href="contact.html" data-i="ft_c">Contact</a></span></div></footer>
+<footer><div class="wrap"><span>© 2026 Kring (กริ๊ง!) Bangkok</span><span><a href="/safety" data-i="ft_s">Safety</a><a href="/privacy" data-i="pv">Privacy</a><a href="/terms" data-i="tm">Terms</a><a href="/delete-account" data-i="ft_d">Delete account</a><a href="/contact" data-i="ft_c">Contact</a></span></div><div class="wrap"><p class="aff" data-i="ft_aff">Some travel links may earn Kring a small commission, at no extra cost to you.</p></div></footer>
 
 <script>
 // Inline the logo so each copy can be animated on its own
 (function(){const sym=document.getElementById('kr').innerHTML;document.querySelectorAll('svg.logo-svg').forEach(s=>s.innerHTML=sym)})();
-const TH={rk_n:"คะแนนเท่ากัน: คนโพสต์ก่อนชนะ",rk5s:"ปักหมุดร้าน แคปชันไทย + อังกฤษ",rk5:"โบนัสความตั้งใจ",rk4s:"ถูกใจ บันทึก และแชร์จากนักท่องเที่ยวนับสองเท่า",rk4:"นักท่องเที่ยว",rk3s:"คนเปิดลิงก์ของคุณนอกกริ๊ง!",rk3:"แชร์",rk2s:"คนเก็บไว้เพื่อไปทีหลัง",rk2:"บันทึก",rk1s:"จากคนที่ดูคลิป",rk1:"ถูกใจ",rk_p:"รีลที่ดีที่สุดของคุณในแต่ละวันได้คะแนนจากคนจริง ไม่ใช่จากจำนวนผู้ติดตาม",rk_h:"จัดอันดับรีลยังไง",g3s:"บัญชีใหม่ก็ชนะได้ตั้งแต่วันแรก",g3:"ไม่ต้องมีผู้ติดตาม",g2s:"กดรับในแอป ได้โค้ดหรือลิงก์",g2:"ส่งตรงถึงมือถือ",g1s:"รางวัลมีมูลค่าตามที่บอก",g1:"มูลค่าเป็นเงินจริง",wk25:"฿500 · ฿300 · ฿200",bwc:"อันดับ 1 · ฿800",bw:"★ ครีเอเตอร์แห่งสัปดาห์",cd_l:"🔔 ปิดบอร์ดเที่ยงคืน",r_eb:'โพสต์รีล รับรางวัลมูลค่าจริง',w_l:"🏠 อยู่กรุงเทพฯ",w_v:"✈️ มาเที่ยว",w_b:"☕ เป็นเจ้าของร้าน",ft_s:"ความปลอดภัย",ft_d:"ลบบัญชี",ft_c:"ติดต่อ",h_eb:"ลองเลย",h_h:'กดค้างเพื่อ <i class="g">กริ๊ง!</i>',h_s:"สองคน หนึ่งแพลน กดค้างที่วงแหวน",pc_t:"คืนนี้",pc_t2:"พรุ่งนี้",pc1:"ล่องเรือชมพระอาทิตย์ตก · 6 โมงเย็น",pc1s:"ท่าเรือสาทร · ไป 2 คน",pc2:"ตลาดนัดกลางคืน · 1 ทุ่ม",pc2s:"รัชดา · ไป 3 คน",pc3:"รันคลับ · 7 โมงเช้า",pc3s:"สวนลุมพินี · ไป 5 คน",h_hint:"กดค้างไว้",h_done:'นี่แหละกริ๊ง! <i class="g">สองคน หนึ่งแพลน</i>',h_again:"กริ๊งอีกครั้ง",
-r_h:'แชร์กรุงเทพฯ <i class="g">รับรางวัลทุกวัน</i>',r_s:'ถ่ายคลิปสั้นของที่จริงในกรุงเทพฯ ที่คุณชอบ รีลที่ดีที่สุดของแต่ละวันและแต่ละสัปดาห์ได้รางวัลที่มีมูลค่าเป็นเงินจริง',
-d1:"จ.",d2:"อ.",d3:"พ.",d4:"พฤ.",d5:"ศ.",d6:"ส.",d7:"อา.",r1x:"🛡 ข้ามได้ฟรี 2 วันต่อสัปดาห์",r1k:'รายวัน · ถึงเที่ยงคืน',r1h:'ทุกวัน 4 อันดับ และดาวรุ่งอีก 1',r1p:'บอร์ดรายวันปิดเวลาเที่ยงคืน ตามเวลากรุงเทพฯ อันดับ 1 รับ ฿300 อันดับ 2 ฿200 อันดับ 3 ฿150 อันดับ 4 ฿100 และครีเอเตอร์ที่ยังไม่เคยชนะที่ดีที่สุดรับ ฿100 ชนะ 3 วันติดรับเพิ่มอีก ฿100',
-lv1:"KRING MEMBER · อัญชัน",mnm:"คนรู้จริงกรุงเทพฯ",r2k:'รายสัปดาห์',r2h:'4 อันดับประจำสัปดาห์',r2p:'ทุกสัปดาห์ครีเอเตอร์ที่ดีที่สุดได้รางวัลอีก: อันดับ 1 ฿800 อันดับ 2 ฿500 อันดับ 3 ฿300 อันดับ 4 ฿200 และรีลที่ดีที่สุดได้ขึ้นโชว์บนกริ๊ง!',
-r3k:'รางวัลของคุณ',r3h:'รับรางวัลง่าย',r3p:'เปิด รางวัลของฉัน กด รับ แล้วเลือกหนึ่งตัวเลือกที่แสดง มูลค่าเท่ากันทุกตัวเลือก เราจะแจ้งรายการทั้งหมดก่อนเปิดตัว',r_tr:'<b>ยุติธรรม:</b> ผู้ชนะมาจากคะแนนที่เปิดเผย ไม่ใช่โชค การถูกใจจากบัญชีใหม่หรือบัญชีซ้ำไม่นับ เราไม่เคยขอรหัสผ่านหรือข้อมูลบัญชีธนาคาร',
+const TH={g3:"ไม่ต้องมีผู้ติดตาม",g2s:"กดรับในแอป ได้โค้ดหรือลิงก์",g2:"ส่งตรงถึงมือถือ",g1s:"รางวัลมีมูลค่าตามที่บอก",g1:"มูลค่าเป็นเงินจริง",w_l:"🏠 อยู่กรุงเทพฯ",w_v:"✈️ มาเที่ยว",w_b:"☕ เป็นเจ้าของร้าน",ft_s:"ความปลอดภัย",ft_d:"ลบบัญชี",ft_c:"ติดต่อ",h_eb:"ลองเลย",h_h:'กดค้างเพื่อ <i class="g">กริ๊ง!</i>',h_s:"สองคน หนึ่งแพลน กดค้างที่วงแหวน",pc_t:"คืนนี้",pc_t2:"พรุ่งนี้",pc1:"ล่องเรือชมพระอาทิตย์ตก · 6 โมงเย็น",pc1s:"ท่าเรือสาทร · ไป 2 คน",pc2:"ตลาดนัดกลางคืน · 1 ทุ่ม",pc2s:"รัชดา · ไป 3 คน",pc3:"รันคลับ · 7 โมงเช้า",pc3s:"สวนลุมพินี · ไป 5 คน",h_hint:"กดค้างไว้",h_done:'นี่แหละกริ๊ง! <i class="g">สองคน หนึ่งแพลน</i>',h_again:"กริ๊งอีกครั้ง",
+
+r1k:'รายวัน · ถึงเที่ยงคืน',
+r2k:'รายสัปดาห์',
+r3k:'รางวัลของคุณ',r3h:'รับรางวัลง่าย',
 
 cta:"ลงชื่อรับสิทธิ์ก่อน",eb:"กรุงเทพฯ · เปิดให้ใช้แล้ว ช่วงทดลองใช้",
 h1:'กรุงเทพฯ สนุกกว่า <i class="g">เมื่อไปด้วยกัน</i>',
 hsub:"ดูว่าตอนนี้ที่ไหนในเมืองมีอะไรน่าไป แล้วหาเพื่อนไปด้วยกัน คุยไทยหรืออังกฤษก็ได้ นัดเจอในที่สาธารณะเสมอ",
-ph:"อีเมลของคุณ",fine:"ฟรี เราใช้อีเมลนี้เพื่อแจ้งเมื่อเปิดตัวเท่านั้น",
+ph:"อีเมลของคุณ",
 app_eb:"ในแอป",app_h:'ทั้งเมือง <i class="g">อยู่ในมือคุณ</i>',
 t1:"ฟีดสด",t1p:"ดูว่าคนในอารีย์ สยาม และทองหล่อ กำลังโพสต์อะไรอยู่ตอนนี้",
 t2:"ถามคนไทย",t2p:"คำตอบจริงจากคนที่อยู่ที่นี่ มี ✓ เมื่อยืนยันตัวตนแล้ว",
@@ -606,7 +607,21 @@ s_eb:"ความปลอดภัย",s_h:"ออกแบบมาเพื�
 s1:"ส่งได้หนึ่งข้อความก่อนอีกฝ่ายตอบ ห้ามใส่เบอร์โทรหรือลิงก์ในข้อความแรก",s2:"นัดกันที่คาเฟ่ ตลาด และสถานที่ต่าง ๆ ไม่ใช่ที่พักส่วนตัว",s3:"บล็อกและรายงานในแตะเดียว ดาวน์โหลดหรือลบข้อมูลได้ตลอด (PDPA)",
 tp:"ตำรวจท่องเที่ยว",em:"เหตุฉุกเฉิน",amb:"รถพยาบาล",
 v_eb:"สำหรับคาเฟ่และร้านค้า",v_h:"ลูกค้าใหม่ในช่วงเวลาที่ร้านเลือก",v1:"ลูกค้าใหม่ ทั้งคนในย่านและนักท่องเที่ยว ในช่วงเวลาที่ร้านเลือก",v2:"ร้านกำหนดสิทธิ์และจำนวนต่อวันเอง ลูกค้ากด \"ฉันอยู่ที่ร้าน\" แล้วโชว์บัตรสด",v3:"เข้าร่วมฟรี ไม่มีค่าธรรมเนียม ไม่มี GP",v_cta:"สมัครร้านของคุณ",
-fh:'กริ๊ง! <i class="g">ไปกัน</i>',pv:"ความเป็นส่วนตัว",tm:"ข้อกำหนด"
+fh:'กริ๊ง! <i class="g">ไปกัน</i>',pv:"ความเป็นส่วนตัว",tm:"ข้อกำหนด",
+r_eb:"Kring Locals · โลคอลกริ๊ง!",
+r_h:"โชว์กรุงเทพฯ ของคุณ <i class=\"g\">Top 5 ทุกวัน</i>",
+r_s:"โลคอลกริ๊ง! โพสต์คลิปสั้นของที่จริงในกรุงเทพฯ ที่ชอบ Top 5 ของแต่ละวันและแต่ละสัปดาห์ได้รับรางวัลมูลค่าเงินจริง",
+cd_l:"🔔 ปิดบอร์ดเที่ยงคืน",
+r1h:"Top 5 ทุกวัน",
+r1p:"บอร์ดรายวันปิดเที่ยงคืน ตามเวลากรุงเทพฯ อันดับขยับสดตามยอดถูกใจ บันทึก และแชร์จากคนจริง",
+bw:"★ โลคอลประจำสัปดาห์",
+bwc:"อันดับ 1",
+r2h:"Top 5 ประจำสัปดาห์",
+r2p:"ทุกสัปดาห์ Top 5 ได้ขึ้นโชว์บนกริ๊ง! และได้รางวัลมูลค่าสูงกว่าบอร์ดรายวัน",
+g3s:"บัญชีใหม่ก็ติดอันดับได้ตั้งแต่วันแรก",
+r3p:"เปิด รางวัลของฉัน ในแอป แล้วเลือกหนึ่งตัวเลือกที่แสดง มูลค่าเท่ากันทุกตัวเลือก",
+fine:"ฟรี เราใช้อีเมลนี้เพื่อแจ้งคุณเมื่อเราเปิดเท่านั้น",
+ft_aff:"บางลิงก์ท่องเที่ยวอาจทำให้ Kring ได้ค่าคอมมิชชันเล็กน้อย โดยคุณไม่ต้องจ่ายเพิ่ม"
 };
 const EN={};document.querySelectorAll('[data-i]').forEach(e=>{if(!(e.dataset.i in EN))EN[e.dataset.i]=e.innerHTML});
 document.querySelectorAll('[data-ph]').forEach(e=>EN[e.dataset.ph]=e.placeholder);

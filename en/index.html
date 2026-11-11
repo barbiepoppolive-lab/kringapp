@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kring (กริ๊ง!) Bangkok · Bangkok is better together</title>
+<meta name="description" content="Kring (กริ๊ง!) Bangkok: see what's happening across Bangkok right now and find someone to go with. Thai or English, always in public places.">
+<link rel="canonical" href="https://kringapp.com/en/">
+<link rel="alternate" hreflang="en" href="https://kringapp.com/en/">
+<link rel="alternate" hreflang="th" href="https://kringapp.com/th/">
+<link rel="alternate" hreflang="x-default" href="https://kringapp.com/">
+<meta name="theme-color" content="#12123A">
+<meta name="color-scheme" content="dark">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Kring">
+<meta property="og:url" content="https://kringapp.com/en/"><meta property="og:locale" content="en_US">
+<meta property="og:title" content="Kring (กริ๊ง!) Bangkok · Bangkok is better together">
+<meta property="og:description" content="Kring (กริ๊ง!) Bangkok: see what's happening across Bangkok right now and find someone to go with. Thai or English, always in public places.">
+<meta property="og:image" content="https://kringapp.com/assets/home/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" as="image" href="/assets/home/hero.webp" type="image/webp" media="(min-width:801px)">
+<link rel="preload" as="image" href="/assets/home/hero-800.webp" type="image/webp" media="(max-width:800px)">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://kringapp.com/#org","name":"Kring","alternateName":["กริ๊ง!","Kring (กริ๊ง!) Bangkok"],"url":"https://kringapp.com/","logo":"https://kringapp.com/icon-512.png","slogan":"Bangkok is better together.","areaServed":{"@type":"City","name":"Bangkok"},"knowsLanguage":["th","en"],"sameAs":["https://www.instagram.com/kring.bkk/","https://line.me/R/ti/p/@194hsqbc"]},{"@type":"WebSite","@id":"https://kringapp.com/#web","url":"https://kringapp.com/","name":"Kring","alternateName":"กริ๊ง!","inLanguage":["th","en"],"publisher":{"@id":"https://kringapp.com/#org"}},{"@type":"MobileApplication","name":"Kring (กริ๊ง!)","url":"https://kringapp.com/app/","applicationCategory":"SocialNetworkingApplication","operatingSystem":"Android, iOS (web app)","inLanguage":["th","en"],"offers":{"@type":"Offer","price":"0","priceCurrency":"THB"},"publisher":{"@id":"https://kringapp.com/#org"}},{"@type":"FAQPage","url":"https://kringapp.com/en/","inLanguage":"en","mainEntity":[{"@type":"Question","name":"What is Kring (กริ๊ง!) Bangkok?","acceptedAnswer":{"@type":"Answer","text":"Kring (กริ๊ง!) is a Bangkok people app. Locals and visitors post short clips of real Bangkok spots, find people into the same things, and meet at cafés and other public places. Thai or English, with built-in translation."}},{"@type":"Question","name":"Is Kring free?","acceptedAnswer":{"@type":"Answer","text":"Yes. Signing up and using Kring is free."}},{"@type":"Question","name":"Where do people meet on Kring?","acceptedAnswer":{"@type":"Answer","text":"Always in public places: partner cafés, markets and venues. Never private addresses."}},{"@type":"Question","name":"Which areas of Bangkok?","acceptedAnswer":{"@type":"Answer","text":"All of Bangkok, with the most activity in Ari, Siam, Thonglor, Ekkamai and Silom."}},{"@type":"Question","name":"How do I sign up?","acceptedAnswer":{"@type":"Answer","text":"Open kringapp.com/app and continue with LINE or your email."}}]}]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&amp;family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&amp;family=Instrument+Serif:ital@0;1&amp;display=swap" rel="stylesheet">
+<style>
+:root{
+  --deep:#0D0D2E;--ink:#12123A;--panel:#1A1A47;--line:rgba(255,247,236,.12);
+  --cream:#FFF7EC;--blue:#5B6CFF;--lblue:#3440E0;--pink:#FF4FA3;--orange:#FF8A3D;--mint:#6EE7A8;--glow:#FBE4A8;
+  --t2:rgba(255,247,236,.74);--t3:rgba(255,247,236,.5);
+  --grad:linear-gradient(90deg,var(--orange),var(--pink));
+  --serif:'Instrument Serif',Georgia,serif;--sans:'Bricolage Grotesque','Anuphan',system-ui,sans-serif;--thai:'Anuphan',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--cream);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+html[lang=th] body{font-family:var(--thai)}
+img{display:block;max-width:100%}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+@media(max-width:600px){.wrap{padding:0 18px}}
+.eyebrow{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--t2)}
+html[lang=th] .eyebrow{letter-spacing:.05em;font-size:13px}
+.g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;padding-right:.06em}
+.disp{font-family:var(--serif);font-weight:400;letter-spacing:-.015em}
+html[lang=th] .disp{font-family:var(--thai);font-weight:600;letter-spacing:-.01em}
+.logo-svg{display:block;overflow:visible}
+
+/* INTRO */
+#intro{position:fixed;inset:0;z-index:100;background:radial-gradient(60% 60% at 50% 50%,#1c1c55 0,var(--deep) 72%);display:grid;place-items:center;cursor:pointer}
+#intro .stage{position:relative;display:flex;flex-direction:column;align-items:center}
+#intro .mk{width:min(52vw,280px);height:auto}
+#intro:not(.play) .mk{opacity:0}
+#intro .ring-b,#intro .ring-p{stroke-dasharray:1420;stroke-dashoffset:1420}
+#intro .gB{transform:translateX(-120px)}
+#intro .gP{transform:translateX(120px)}
+#intro .lens{opacity:0}
+#intro.play .ring-b{animation:draw .95s cubic-bezier(.6,0,.2,1) .15s forwards}
+#intro.play .ring-p{animation:draw .95s cubic-bezier(.6,0,.2,1) .28s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+#intro.play .gB{animation:snap .6s cubic-bezier(.3,1.5,.5,1) 1.05s forwards}
+#intro.play .gP{animation:snap .6s cubic-bezier(.3,1.5,.5,1) 1.05s forwards}
+@keyframes snap{to{transform:none}}
+#intro.play .lens{animation:ignite .8s ease-out 1.5s forwards}
+@keyframes ignite{0%{opacity:0}30%{opacity:1;filter:brightness(2.1)}100%{opacity:1;filter:none}}
+#intro .flare{position:absolute;left:50%;top:calc(min(52vw,280px)/2);width:14px;height:14px;margin:-7px;border-radius:50%;background:var(--glow);box-shadow:0 0 40px 22px rgba(251,228,168,.8),0 0 140px 70px rgba(91,108,255,.38);opacity:0}
+#intro.play .flare{animation:flare 1s ease-out 1.5s forwards}
+@keyframes flare{0%{opacity:0;transform:scale(.2)}30%{opacity:1;transform:scale(1.7)}100%{opacity:0;transform:scale(.5)}}
+#intro .wv{position:absolute;left:50%;top:calc(min(52vw,280px)/2);width:260px;height:260px;margin:-130px;border-radius:50%;border:2px solid var(--pink);opacity:0}
+#intro .wv.b{border-color:var(--blue)}
+#intro.play .wv{animation:wv 1.3s cubic-bezier(.2,.6,.3,1) 1.55s}
+#intro.play .wv.b{animation-delay:1.78s}
+@keyframes wv{0%{opacity:.9;transform:scale(.5)}100%{opacity:0;transform:scale(2.7)}}
+#intro .word{margin-top:22px;display:flex;align-items:baseline;gap:12px;opacity:0}
+#intro.play .word{animation:wd .8s cubic-bezier(.2,.8,.2,1) 1.85s forwards}
+@keyframes wd{from{opacity:0;transform:translateY(14px);letter-spacing:.14em}to{opacity:1;transform:none;letter-spacing:0}}
+#intro .word b{font-family:var(--thai);font-weight:700;font-size:40px}
+#intro .word span{font-family:var(--serif);font-size:34px;color:var(--t2)}
+#intro.out .word{animation:none;opacity:0;transition:opacity .25s}
+#intro.out .mk{transform-origin:50% 50%;animation:through 1s cubic-bezier(.75,0,.55,1) forwards}
+@keyframes through{to{transform:scale(22);opacity:0}}
+#intro.out{animation:fadeI .75s ease .4s forwards}
+@keyframes fadeI{to{opacity:0;visibility:hidden}}
+#intro .skip{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--t3)}
+
+/* NAV */
+nav{position:fixed;inset:0 0 auto 0;z-index:50;transition:background .4s,border-color .4s;border-bottom:1px solid transparent}
+nav.s{background:rgba(18,18,58,.8);backdrop-filter:blur(18px) saturate(140%);border-color:var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:72px}
+.brand{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none;font-weight:700;font-size:19px}
+.brand .logo-svg{width:42px;height:42px}
+.brand:hover .logo-svg{animation:ding .7s ease}
+@keyframes ding{20%{transform:rotate(-12deg)}40%{transform:rotate(9deg)}60%{transform:rotate(-5deg)}80%{transform:rotate(3deg)}}
+.brand .lens{animation:pulse 3.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{filter:none}50%{filter:brightness(1.35)}}
+.nr{display:flex;gap:10px;align-items:center}
+.lang{display:flex;border:1px solid rgba(255,247,236,.25);border-radius:99px;padding:3px}
+.lang button{border:0;background:none;color:var(--t2);font:500 13px var(--sans);padding:6px 11px;border-radius:99px;cursor:pointer}
+.lang button.on{background:var(--cream);color:var(--ink)}
+.btn{display:inline-block;border:0;cursor:pointer;text-decoration:none;background:var(--grad);color:#fff;font:700 15px var(--sans);padding:14px 22px;border-radius:99px;white-space:nowrap;box-shadow:0 10px 30px -10px rgba(255,79,163,.6)}
+html[lang=th] .btn{font-family:var(--thai)}
+.navcta{display:none;padding:10px 16px;font-size:14px}
+@media(min-width:700px){.navcta{display:inline-block}}
+
+/* HERO */
+.hero{position:relative;height:100svh;min-height:680px;overflow:hidden;display:flex;align-items:flex-end}
+.hero .bg{position:absolute;inset:0;background:url(/assets/home/hero.webp) center 62%/cover;transform:scale(1.1)}
+.ready .hero .bg{animation:kb 22s ease-out forwards}
+@keyframes kb{to{transform:scale(1)}}
+.hero:before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(18,18,58,.55) 0%,rgba(18,18,58,.05) 28%,rgba(18,18,58,.12) 45%,rgba(18,18,58,.86) 80%,var(--ink) 100%),linear-gradient(90deg,rgba(18,18,58,.55),transparent 62%)}
+.hero:after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(91,108,255,.22),rgba(255,79,163,.14));mix-blend-mode:color}
+.hcopy{position:relative;z-index:2;width:100%;padding-bottom:90px}
+.hcopy .eyebrow{color:var(--cream);text-shadow:0 1px 12px rgba(0,0,0,.45)}
+h1{font-size:clamp(56px,9.2vw,136px);line-height:.92;margin:16px 0 22px;max-width:900px}
+h1 i{font-style:italic}
+html[lang=th] h1{font-size:clamp(46px,7.4vw,104px);line-height:1.14}
+html[lang=th] h1 i,html[lang=th] .disp i{font-style:normal}
+.hsub{font-size:clamp(17px,1.5vw,20px);line-height:1.55;color:var(--t2);max-width:540px}
+.join{margin-top:30px;display:flex;gap:6px;max-width:520px;background:rgba(255,247,236,.1);border:1px solid rgba(255,247,236,.24);backdrop-filter:blur(16px);border-radius:99px;padding:6px}
+.join input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--cream);font:16px var(--sans);padding:0 16px}
+.join input::placeholder{color:var(--t3)}
+.fine{margin-top:12px;font-size:13px;color:var(--t3)}
+@media(max-width:700px){.hero:before{background:linear-gradient(180deg,rgba(18,18,58,.5) 0%,rgba(18,18,58,.1) 22%,rgba(18,18,58,.72) 50%,rgba(18,18,58,.94) 78%,var(--ink) 100%)}.hero .bg{background-position:60% 70%}.join .btn{padding:13px 16px;font-size:14px}}
+
+/* APP CAROUSEL */
+.story{padding:110px 0 110px;background:radial-gradient(55% 50% at 72% 50%,rgba(91,108,255,.18),transparent 70%),radial-gradient(35% 40% at 82% 72%,rgba(255,79,163,.12),transparent 70%)}
+.car{display:grid;gap:50px;align-items:center}
+@media(min-width:900px){.car{grid-template-columns:1fr 1fr;gap:80px}}
+.ctop h2{font-size:clamp(44px,5.4vw,76px);line-height:.98;margin:14px 0 28px}
+html[lang=th] .ctop h2{line-height:1.2}
+.tabs{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.tab{position:relative;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;color:var(--t3);font:500 18px var(--sans);padding:17px 0;cursor:pointer;transition:color .3s}
+html[lang=th] .tab{font-family:var(--thai)}
+.tab b{display:block;font-weight:700}
+.tab span{display:block;max-height:0;overflow:hidden;opacity:0;font-size:15.5px;line-height:1.55;color:var(--t2);font-weight:400;transition:max-height .5s,opacity .5s,margin .5s}
+.tab.on{color:var(--cream)}
+.tab.on span{max-height:120px;opacity:1;margin-top:6px}
+.tab i{position:absolute;left:0;bottom:-1px;height:2px;width:0;background:var(--grad)}
+.tab.on i{animation:prog 6s linear forwards}
+.car.paused .tab.on i{animation-play-state:paused}
+@keyframes prog{to{width:100%}}
+.cphone{display:grid;place-items:center;touch-action:pan-y;position:relative}
+.cphone:before{content:"";position:absolute;width:75%;height:70%;border-radius:50%;background:radial-gradient(circle,rgba(91,108,255,.5),rgba(255,79,163,.2) 50%,transparent 70%);filter:blur(34px)}
+.phone{position:relative;width:min(340px,76vw);aspect-ratio:390/844;border-radius:54px;padding:10px;background:linear-gradient(145deg,#3a3a5c,#15153a 40%,#2b2b52);box-shadow:0 70px 120px -40px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.1),inset 0 0 0 1px rgba(255,255,255,.14)}
+.phone .scr{position:relative;width:100%;height:100%;border-radius:45px;overflow:hidden;background:var(--ink)}
+.phone .scr img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.03);transition:opacity .7s,transform .9s}
+.phone .scr img.on{opacity:1;transform:none}
+.dots{display:none;gap:7px;justify-content:center;margin-top:18px}
+.dots i{width:7px;height:7px;border-radius:99px;background:rgba(255,247,236,.3);transition:width .3s}
+.dots i.on{width:22px;background:var(--pink)}
+.exn{text-align:center;font-size:12px;color:var(--t3);margin-top:22px}
+@media(max-width:899px){.pcol{order:-1}.dots{display:flex}.tab{font-size:17px;padding:14px 0}}
+
+/* AUDIENCES */
+.aud{padding:20px 0 110px}
+.aud h2{font-size:clamp(42px,5.2vw,76px);line-height:.98;margin:14px 0 40px;max-width:820px}
+html[lang=th] .aud h2{line-height:1.2}
+.agrid{display:grid;gap:18px}
+@media(min-width:900px){.agrid{grid-template-columns:1fr 1fr}}
+.acard{position:relative;border-radius:30px;overflow:hidden;min-height:540px;display:flex;align-items:flex-end;isolation:isolate}
+.acard .bg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:-2;transition:transform 1.4s}
+.acard:hover .bg{transform:scale(1.04)}
+.acard:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(18,18,58,0) 25%,rgba(18,18,58,.95) 80%)}
+.acard .in{padding:34px}
+.acard .tag{display:inline-block;font-size:12px;letter-spacing:.14em;text-transform:uppercase;border-radius:99px;padding:7px 13px;margin-bottom:16px;background:rgba(18,18,58,.5);backdrop-filter:blur(8px)}
+.acard.l .tag{box-shadow:inset 0 0 0 1.5px var(--blue)}
+.acard.v .tag{box-shadow:inset 0 0 0 1.5px var(--pink)}
+.acard h3{font-size:clamp(32px,3.2vw,46px);line-height:1.02;margin-bottom:14px}
+html[lang=th] .acard h3{line-height:1.25}
+.acard p{font-size:16.5px;line-height:1.6;color:var(--t2);max-width:460px}
+@media(max-width:899px){.agrid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;margin:0 -18px;padding:0 18px 6px;scrollbar-width:none}.agrid::-webkit-scrollbar{display:none}.acard{flex:0 0 86%;scroll-snap-align:center;min-height:470px}}
+
+/* TRUST */
+.trust{padding:0 0 110px}
+.tgrid{display:grid;gap:18px}
+@media(min-width:900px){.tgrid{grid-template-columns:1fr 1fr}}
+.tc{border-radius:30px;padding:40px;background:var(--panel);border:1px solid var(--line)}
+@media(max-width:600px){.tc{padding:30px 24px}}
+.tc h3{font-size:clamp(34px,3.4vw,48px);line-height:1.02;margin:12px 0 18px}
+html[lang=th] .tc h3{line-height:1.25}
+.tc ul{list-style:none;display:grid;gap:12px;color:var(--t2);font-size:16px;line-height:1.5}
+.tc li{display:flex;gap:12px}
+.tc li:before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--mint);margin-top:8px}
+.tc.ven{background:linear-gradient(150deg,#1d1d58,#2c1644)}
+.tc.ven li:before{background:var(--orange)}
+.tc .btn{margin-top:26px}
+.sos{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.sos>span{border-radius:14px;padding:10px 14px;background:#2a1430;border:1px solid #6a2a50;font-size:14px}
+.sos b{font-size:18px;margin-right:6px}
+
+/* FINAL */
+.final{position:relative;min-height:86vh;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;text-align:center;overflow:hidden}
+.final .bg{position:absolute;inset:0;background:url(/assets/home/twilight.jpg) center/cover}
+.final:after{content:"";position:absolute;inset:0;background:radial-gradient(60% 60% at 50% 50%,rgba(18,18,58,.55),rgba(18,18,58,.95))}
+.final .in{position:relative;z-index:2;width:100%;max-width:680px;padding:0 20px}
+.final .logo-svg{width:120px;height:120px;margin:0 auto 14px}
+.final h2{font-size:clamp(56px,8vw,120px);line-height:.95}
+html[lang=th] .final h2{line-height:1.15}
+.final h2 i{font-style:italic}
+.final .join{margin:32px auto 0}
+.final .ring-b,.final .ring-p{stroke-dasharray:1420;stroke-dashoffset:1420;transition:stroke-dashoffset 1.6s cubic-bezier(.6,0,.2,1)}
+.final .ring-p{transition-delay:.2s}
+.final .lens{opacity:0;transition:opacity .8s 1.4s}
+.final .in.in .ring-b,.final .in.in .ring-p{stroke-dashoffset:0}
+.final .in.in .lens{opacity:1}
+footer{padding:36px 0 52px;color:var(--t3);font-size:13.5px}
+/* v4: photo backgrounds behind sections */
+.hold,.story,.rew,.trust{position:relative;isolation:isolate}
+.hold:before,.story:before,.rew:before,.trust:before{content:"";position:absolute;inset:0;z-index:-2;background-size:cover;background-position:center;filter:saturate(1.1)}
+.hold:after,.story:after,.rew:after,.trust:after{content:"";position:absolute;inset:0;z-index:-1}
+.hold:before{background-image:url(/assets/home/tuktuk.jpg);filter:blur(3px) saturate(1.2);transform:scale(1.05)}
+.hold:after{background:radial-gradient(45% 50% at 50% 55%,rgba(29,29,90,.72),rgba(18,18,58,.94) 80%)}
+.story:before{background-image:url(/assets/home/cafe.jpg);background-position:center 40%}
+.story:after{background:linear-gradient(180deg,rgba(18,18,58,.97),rgba(18,18,58,.70) 30%,rgba(18,18,58,.74) 70%,rgba(18,18,58,.97))}
+.rew{padding-top:100px}
+.rew:before{background-image:url(/assets/home/river.jpg);background-position:center 60%;background-attachment:scroll}
+.rew:after{background:linear-gradient(180deg,rgba(18,18,58,.97),rgba(18,18,58,.66) 25%,rgba(18,18,58,.80) 70%,rgba(18,18,58,.98))}
+.trust{padding-top:100px}
+.trust:before{background-image:url(/assets/home/hero.webp);background-position:center 30%}
+.trust:after{background:linear-gradient(180deg,rgba(18,18,58,.98),rgba(18,18,58,.80) 35%,rgba(18,18,58,.92))}
+.tc{background:rgba(26,26,74,.62);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.tc.ven{background:linear-gradient(160deg,rgba(18,18,58,.80),rgba(44,22,68,.90) 60%),url(/assets/home/cafe.jpg) center/cover}
+.sos{flex-wrap:wrap}
+footer a{white-space:nowrap}
+html,body{overflow-x:clip}
+/* v4b: phone chips for app tabs + swipe rewards */
+.tdesc{display:none}
+@media(max-width:899px){
+ .tabs{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;gap:8px;border-top:0;margin:0 -20px;padding:2px 20px 6px;scrollbar-width:none;scroll-snap-type:x proximity}
+ .tabs::-webkit-scrollbar{display:none}
+ .tab{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;padding:9px 15px;font-size:14.5px;background:rgba(26,26,74,.55);scroll-snap-align:start}
+ .tab span,.tab i{display:none}
+ .tab.on{background:var(--grad);border-color:transparent;color:#fff}
+ .tdesc{display:block;color:var(--t2);font-size:15.5px;line-height:1.55;margin-top:14px;min-height:3.2em}
+ .ctop h2{margin-bottom:20px}
+ .car{grid-template-columns:minmax(0,1fr)} .ctop{min-width:0}
+ #rgrid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:14px;margin:0 -20px;padding:0 20px 8px;scrollbar-width:none}
+ #rgrid::-webkit-scrollbar{display:none}
+ #rgrid>.rc{flex:0 0 84%;scroll-snap-align:center;min-height:400px}
+ .rdots{display:flex;gap:7px;justify-content:center;margin-top:14px}
+ .rdots i{width:7px;height:7px;border-radius:99px;background:rgba(255,247,236,.3);transition:width .3s}
+ .rdots i.on{width:22px;background:var(--pink)}
+}
+@media(min-width:900px){.rdots{display:none}}
+
+.final{min-height:auto;padding:110px 0 120px}
+
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px}
+footer a{color:inherit;text-decoration:none;margin-left:18px}
+
+.rv{opacity:0;transform:translateY(26px);transition:opacity .9s ease,transform .9s ease}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){#intro{display:none}.hero .bg{animation:none!important;transform:none}.rv{opacity:1;transform:none}}
+
+/* ---------- LIVE CITY ---------- */
+#city{position:absolute;inset:0;z-index:2;pointer-events:none}
+.hcopy{z-index:3}
+#nodes{position:absolute;inset:0;z-index:2;pointer-events:none}
+.nd{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;letter-spacing:.04em;color:var(--cream);text-shadow:0 1px 8px rgba(0,0,0,.6);white-space:nowrap}
+.nd i{position:relative;width:9px;height:9px;border-radius:50%;background:var(--cream);box-shadow:0 0 12px 3px rgba(255,247,236,.55)}
+.nd i:after{content:"";position:absolute;inset:-7px;border-radius:50%;border:1px solid rgba(255,247,236,.55);animation:np 2.6s ease-out infinite}
+.nd:nth-child(2n) i:after{animation-delay:1.1s}
+@keyframes np{from{transform:scale(.4);opacity:1}to{transform:scale(2.2);opacity:0}}
+.pop{position:absolute;z-index:2;transform:translate(-50%,-110%) scale(.7);opacity:0;pointer-events:none;display:flex;align-items:center;gap:9px;padding:9px 13px 9px 9px;border-radius:16px;background:rgba(18,18,58,.62);backdrop-filter:blur(14px);border:1px solid rgba(255,247,236,.22);box-shadow:0 14px 40px -12px rgba(0,0,0,.6);font-size:13px;white-space:nowrap;transition:opacity .45s,transform .55s cubic-bezier(.2,1.4,.4,1)}
+.pop.on{opacity:1;transform:translate(-50%,-125%) scale(1)}
+.pop.off{opacity:0;transform:translate(-50%,-150%) scale(.95)}
+.pop svg{width:26px;height:26px;flex:none}
+.pop b{display:block;font-weight:700}
+.pop small{display:block;color:var(--t2);font-size:11.5px}
+html[lang=th] .pop{font-family:var(--thai)}
+
+/* ---------- HOLD TO KRING ---------- */
+.hold{position:relative;padding:120px 0;text-align:center;overflow:hidden;background:radial-gradient(50% 55% at 50% 55%,#1d1d5a 0,var(--ink) 75%)}
+.hold h2{font-size:clamp(50px,7vw,104px);line-height:.95;margin:14px 0 14px}
+html[lang=th] .hold h2{line-height:1.15}
+.hold .sub{color:var(--t2);font-size:18px}
+.hstage{position:relative;height:440px;margin-top:20px;display:grid;place-items:center}
+.hbtn{position:relative;z-index:3;width:250px;height:250px;border-radius:50%;border:0;background:radial-gradient(circle,rgba(91,108,255,.18),rgba(18,18,58,0) 70%);cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;transition:transform .2s}
+.hbtn .logo-svg{width:190px;height:190px;margin:auto;pointer-events:none}
+.hbtn .prog{position:absolute;inset:0;pointer-events:none}
+.hbtn .prog circle{fill:none;stroke-width:3}
+.hbtn .prog .tr{stroke:rgba(255,247,236,.12)}
+.hbtn .prog .fg{stroke:url(#hg);stroke-linecap:round;stroke-dasharray:766;stroke-dashoffset:766;transform:rotate(-90deg);transform-origin:50% 50%}
+.hbtn:focus-visible{outline:2px solid var(--pink);outline-offset:6px}
+.hint{position:relative;z-index:3;margin-top:4px;font-size:14px;color:var(--t3);letter-spacing:.06em}
+.hint .k{display:inline-block;animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-4px)}}
+.shock{position:absolute;left:50%;top:50%;width:250px;height:250px;margin:-125px;border-radius:50%;border:2px solid var(--pink);opacity:0;pointer-events:none}
+.shock.b{border-color:var(--blue)}
+.shock.g{border:0;background:radial-gradient(circle,rgba(251,228,168,.9),rgba(251,228,168,0) 60%)}
+.rung .shock{animation:shk 1.2s cubic-bezier(.2,.6,.3,1) forwards}
+.rung .shock.b{animation-delay:.15s}
+.rung .shock.g{animation:glw .9s ease-out forwards}
+@keyframes shk{0%{opacity:.9;transform:scale(.6)}100%{opacity:0;transform:scale(5)}}
+@keyframes glw{0%{opacity:1;transform:scale(.3)}100%{opacity:0;transform:scale(2.6)}}
+.rung .hbtn{animation:jig .6s ease}
+@keyframes jig{20%{transform:rotate(-8deg) scale(1.06)}40%{transform:rotate(6deg) scale(1.04)}60%{transform:rotate(-4deg)}80%{transform:rotate(2deg)}}
+.pc{position:absolute;left:50%;top:50%;z-index:2;width:220px;padding:14px 16px;border-radius:20px;text-align:left;background:rgba(26,26,71,.85);backdrop-filter:blur(12px);border:1px solid var(--line);box-shadow:0 20px 50px -20px rgba(0,0,0,.7);opacity:0;transform:translate(-50%,-50%) scale(.4);transition:opacity .5s,transform .8s cubic-bezier(.2,1.3,.35,1)}
+.pc .t{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mint)}
+.pc b{display:block;font-size:17px;margin:4px 0 2px}
+.pc small{color:var(--t2);font-size:13px}
+html[lang=th] .pc{font-family:var(--thai)}
+.rung .pc{opacity:1}
+.rung .pc:nth-of-type(1){transform:translate(calc(-50% - 320px),calc(-50% - 80px)) rotate(-6deg)}
+.rung .pc:nth-of-type(2){transform:translate(calc(-50% + 320px),calc(-50% - 110px)) rotate(5deg);transition-delay:.08s}
+.rung .pc:nth-of-type(3){transform:translate(calc(-50% + 300px),calc(-50% + 60px)) rotate(-3deg);transition-delay:.16s}
+@media(max-width:760px){.hstage{height:auto;display:flex;flex-direction:column;align-items:center}.hstage>div:not(.pc){order:0}.pc{position:relative;left:auto;top:auto;order:1;display:none;transform:translateY(20px) scale(.9);margin:8px 0;width:min(300px,86vw)}.rung .pc{display:block;animation:pcin .6s cubic-bezier(.2,1.3,.35,1) both}.rung .pc:nth-of-type(1){transform:rotate(-2deg);animation-delay:.1s}.rung .pc:nth-of-type(2){transform:rotate(2deg);animation-delay:.2s}.rung .pc:nth-of-type(3){transform:rotate(-1deg);animation-delay:.3s}.shock{top:125px}.hbtn{width:230px;height:230px}.hbtn .logo-svg{width:170px;height:170px}}
+@keyframes pcin{from{opacity:0;translate:0 24px;scale:.9}to{opacity:1;translate:0 0;scale:1}}
+.done-msg{position:relative;z-index:3;margin-top:8px;min-height:60px;opacity:0;transform:translateY(10px);transition:opacity .6s .5s,transform .6s .5s}
+.rung .done-msg{opacity:1;transform:none}
+.done-msg h3{font-size:clamp(28px,3vw,40px)}
+.again{margin-top:10px;background:none;border:1px solid rgba(255,247,236,.3);color:var(--cream);font:500 14px var(--sans);padding:9px 16px;border-radius:99px;cursor:pointer}
+html[lang=th] .again{font-family:var(--thai)}
+
+/* ---------- REWARDS ---------- */
+.rew{padding:0 0 110px}
+.rew h2{font-size:clamp(42px,5.2vw,76px);line-height:.98;margin:14px 0 14px;max-width:880px}
+html[lang=th] .rew h2{line-height:1.2}
+.rew .lead{color:var(--t2);font-size:18px;max-width:620px;margin-bottom:40px}
+.rgrid{display:grid;gap:18px}
+@media(min-width:960px){.rgrid{grid-template-columns:repeat(3,1fr)}}
+.rc{position:relative;border-radius:30px;padding:30px;background:var(--panel);border:1px solid var(--line);overflow:hidden;min-height:430px;display:flex;flex-direction:column}
+.rc .viz{flex:1;display:grid;place-items:center;min-height:210px;margin-bottom:22px}
+.rc h3{font-size:24px;font-weight:700;margin-bottom:8px}
+.rc p{color:var(--t2);font-size:15.5px;line-height:1.55}
+.rc .k{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--t3);margin-bottom:10px}
+html[lang=th] .rc .k{letter-spacing:.04em}
+.streak{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;width:100%}
+.day{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:11px;color:var(--t3)}
+.day i{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:17px;background:rgba(255,247,236,.06);border:1px solid var(--line);transition:all .4s}
+.lit .day.y i{background:var(--grad);border-color:transparent;box-shadow:0 6px 18px -6px rgba(255,79,163,.8)}
+.lit .day.s i{background:rgba(91,108,255,.25);border-color:var(--blue)}
+.lit .day.t i{border:2px solid var(--pink);animation:tp 1.4s ease-in-out infinite}
+@keyframes tp{50%{box-shadow:0 0 0 6px rgba(255,79,163,.18)}}
+.skips{margin-top:16px;font-size:13px;color:var(--t2);text-align:center}
+.mcard{width:100%;max-width:300px;aspect-ratio:1.6;border-radius:20px;padding:18px;position:relative;overflow:hidden;color:#fff;background:linear-gradient(135deg,#2a2fbf,#5B6CFF 55%,#FF4FA3);box-shadow:0 24px 50px -20px rgba(91,108,255,.7);transition:background 1s}
+.mcard:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.35) 48%,transparent 62%);transform:translateX(-120%)}
+.lit .mcard:before{animation:sheen 1.6s ease 1.2s}
+@keyframes sheen{to{transform:translateX(120%)}}
+.mcard .lv{font-size:10.5px;letter-spacing:.14em;font-weight:700;background:rgba(0,0,0,.22);display:inline-block;padding:5px 9px;border-radius:99px}
+.mcard .nm{position:absolute;left:18px;bottom:44px;font-size:20px;font-weight:700}
+.mcard .bar{position:absolute;left:18px;right:18px;bottom:20px;height:6px;border-radius:6px;background:rgba(255,255,255,.25);overflow:hidden}
+.mcard .bar i{display:block;height:100%;width:8%;border-radius:6px;background:#fff;transition:width 1.6s cubic-bezier(.4,0,.2,1) .3s}
+.mcard .logo-svg{position:absolute;right:14px;top:12px;width:44px;height:44px}
+.lit .mcard .bar i{width:100%}
+.mcard.tea{background:linear-gradient(135deg,#6b3a14,#c4662a 55%,#FF8A3D)}
+.mcard.tea .bar i{width:22%!important;transition:none}
+.bow{position:relative;width:100%;max-width:240px;aspect-ratio:3/4;border-radius:20px;background:url(/assets/home/river.jpg) center/cover;box-shadow:0 24px 50px -20px rgba(0,0,0,.8);transform:rotateY(80deg) rotate(4deg);opacity:0;transition:transform 1.1s cubic-bezier(.2,1.2,.35,1) .3s,opacity .5s .3s}
+.lit .bow{transform:rotate(-3deg);opacity:1}
+.bow .st{position:absolute;left:12px;top:12px;font-size:12px;font-weight:700;color:#3a2600;background:linear-gradient(90deg,#ffd76a,#ffb23d);border-radius:99px;padding:6px 10px;box-shadow:0 6px 16px -4px rgba(255,178,61,.8)}
+.bow .cap{position:absolute;left:12px;right:12px;bottom:12px;font-size:12.5px;background:rgba(18,18,58,.7);backdrop-filter:blur(8px);border-radius:12px;padding:8px 10px}
+.trav{margin-top:22px;text-align:center;color:var(--t2);font-size:15.5px}
+.trav b{color:var(--cream)}
+
+/* 3D phone */
+.cphone{perspective:1200px}
+.phone{transition:transform .25s ease-out;transform-style:preserve-3d;will-change:transform}
+.phone .glare{position:absolute;inset:0;border-radius:54px;pointer-events:none;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.12) 50%,transparent 65%);background-size:250% 100%;background-position:var(--gx,50%) 0;z-index:3}
+@media (prefers-reduced-motion:reduce){.rung .pc,.lit .bow{transition:none}.nd i:after{animation:none}}
+
+.who{display:flex;gap:6px;flex-wrap:wrap;margin-top:26px}
+.final .who{justify-content:center;margin-top:28px}
+.who label{cursor:pointer}
+.who input{position:absolute;opacity:0;pointer-events:none}
+.who span{display:inline-block;font-size:13.5px;padding:7px 12px;border-radius:99px;border:1px solid rgba(255,247,236,.22);background:rgba(18,18,58,.35);backdrop-filter:blur(10px);color:var(--t2)}
+.who input:checked+span{border-color:var(--pink);color:var(--cream);background:rgba(255,79,163,.18)}
+.who input:focus-visible+span{outline:2px solid var(--pink)}
+.who+.join{margin-top:12px}
+.fine a{color:var(--t2)}
+.ferr{min-height:18px;margin-top:6px;font-size:13px;color:#ffb3cf}
+.podium{display:flex;gap:6px;align-items:flex-end;justify-content:center;width:100%}.podium .pr{flex:1;max-width:58px;border-radius:12px;background:rgba(255,178,30,.14);border:1px solid rgba(255,178,30,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 2px;gap:2px}.podium .pr:nth-child(1){height:110px;background:rgba(255,178,30,.3)}.podium .pr:nth-child(2),.podium .pr:nth-child(3){height:86px}.podium .pr:nth-child(4),.podium .pr:nth-child(5){height:70px}.podium b{font-size:20px}.podium span{font-size:12px;opacity:.9}.gifts{display:flex;flex-direction:column;gap:8px;width:100%}.gifts span{background:rgba(115,129,255,.16);border:1px solid rgba(115,129,255,.4);border-radius:12px;padding:9px 12px;font-size:14px}
+.fan{width:100%;display:flex;flex-direction:column;gap:12px;align-items:center}.cd{display:flex;gap:10px;align-items:center;background:rgba(255,178,30,.12);border:1px solid rgba(255,178,30,.5);border-radius:99px;padding:7px 14px;font-size:13px}.cd b{font-variant-numeric:tabular-nums;color:#FFB21E;font-size:15px}
+.reels{display:flex;justify-content:center;align-items:flex-end;width:100%;height:190px}.rl{position:relative;width:74px;height:132px;margin:0 -9px;border-radius:14px;background:#222 center/cover;border:2px solid rgba(255,255,255,.18);box-shadow:0 14px 28px -10px rgba(0,0,0,.8);animation:rlf 4s ease-in-out infinite}
+.rl:nth-child(1){order:3;width:100px;height:178px;z-index:5;border:3px solid #FFB21E;box-shadow:0 0 0 4px rgba(255,178,30,.18),0 20px 40px -10px rgba(255,178,30,.55)}.rl:nth-child(2){order:2;z-index:4;transform:rotate(-6deg)}.rl:nth-child(3){order:4;z-index:4;transform:rotate(6deg)}.rl:nth-child(4){order:1;z-index:3;transform:rotate(-11deg) translateY(8px)}.rl:nth-child(5){order:5;z-index:3;transform:rotate(11deg) translateY(8px)}
+.rl i{position:absolute;top:6px;left:6px;width:22px;height:22px;border-radius:50%;background:#12123a;border:1.5px solid #fff;font-style:normal;font-weight:800;font-size:12px;display:grid;place-items:center}.rl:nth-child(1) i{background:linear-gradient(135deg,#FFE08A,#FFB21E);color:#3a2600;border:0;width:28px;height:28px;font-size:15px}
+.rl em{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);font-style:normal;font-weight:800;font-size:11px;background:rgba(18,18,58,.82);border-radius:99px;padding:3px 8px;white-space:nowrap}.rl:nth-child(1) em{background:#FFB21E;color:#3a2600;font-size:13px}
+@keyframes rlf{50%{translate:0 -4px}}.rl:nth-child(2){animation-delay:.4s}.rl:nth-child(3){animation-delay:.8s}.rl:nth-child(4){animation-delay:1.2s}.rl:nth-child(5){animation-delay:1.6s}
+.wk{width:100%;display:flex;flex-direction:column;align-items:center;gap:12px}.wkimg{position:relative;width:150px;height:240px;border-radius:20px;background:#222 center/cover;border:3px solid #FFB21E;box-shadow:0 0 40px -6px rgba(255,178,30,.6),0 24px 50px -20px rgba(0,0,0,.8);transform:rotate(-3deg)}
+.wkimg .st{position:absolute;left:-10px;top:12px;font-size:12px;font-weight:800;color:#3a2600;background:linear-gradient(90deg,#ffd76a,#ffb23d);border-radius:99px;padding:6px 10px;white-space:nowrap}.wkimg .rings{position:absolute;right:-18px;top:-16px;width:62px;filter:drop-shadow(0 0 8px rgba(115,129,255,.7))}
+.wkimg em{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);font-style:normal;font-weight:800;font-size:15px;background:#FFB21E;color:#3a2600;border-radius:99px;padding:5px 12px;white-space:nowrap}
+.wkr{display:flex;gap:6px;align-items:center}.wkr span{width:26px;height:26px;border-radius:50%;background:rgba(115,129,255,.22);border:1px solid rgba(115,129,255,.6);display:grid;place-items:center;font-weight:800;font-size:12px}.wkr b{margin-left:6px;font-size:14px;color:#cfd3ff}
+@media(max-width:560px){.reels{height:160px}.rl{width:56px;height:100px;margin:0 -8px}.rl:nth-child(1){width:84px;height:150px}.rl em{font-size:10px;padding:2px 6px}.wkimg{width:130px;height:208px}}
+.rank{margin:34px auto 6px;max-width:760px;background:var(--panel,#16163f);border:1px solid var(--line,rgba(255,255,255,.12));border-radius:26px;padding:24px 26px}.rank h3{font-size:22px;margin:0 0 4px}.rank>p{color:var(--t2,#b9bce0);margin:0 0 16px;font-size:15px}.rkr{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 34px;gap:12px;align-items:center;padding:9px 0;border-top:1px solid rgba(255,255,255,.07)}.rkt b{display:block;font-size:15px}.rkt span{font-size:12.5px;color:#a9acd6}.rkb{height:10px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}.rkb i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#7381FF,#9B5CFF,#FFB21E)}.rkr em{font-style:normal;font-weight:800;color:#FFB21E;text-align:right}.rank small{display:block;margin-top:12px;color:#a9acd6;font-size:12.5px}@media(max-width:560px){.rkr{grid-template-columns:1fr 70px 30px}.rank{padding:18px}}
+.tix{width:100%;display:flex;flex-direction:column;gap:10px}.tk{position:relative;display:flex;gap:12px;align-items:center;border-radius:14px;padding:12px 16px;background:linear-gradient(90deg,rgba(115,129,255,.22),rgba(155,92,255,.14));border:1px dashed rgba(255,255,255,.28)}.tk:nth-child(2){background:linear-gradient(90deg,rgba(255,178,30,.22),rgba(255,79,163,.12));transform:translateX(10px)}.tk:nth-child(3){transform:translateX(-6px)}
+.tk:before,.tk:after{content:"";position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:var(--panel,#16163f);transform:translateY(-50%)}.tk:before{left:-8px}.tk:after{right:-8px}.tk b{font-size:24px}.tk strong{display:block;font-size:15px}.tk small{color:#b9bce0;font-size:12px}
+@media(max-width:800px){.hero .bg{background-image:url(/assets/home/hero-800.webp)}}
+footer .aff{width:100%;margin-top:10px;font-size:12px;color:var(--t3)}
+</style>
+<script nowprocket="" data-noptimize="1" data-cfasync="false" data-wpfc-render="false" seraph-accel-crit="1" data-no-defer="1" data-cmp-ab="2">
+(function () {
+var script = document.createElement("script");
+script.async = 1;
+script.setAttribute("data-cmp-ab","2");
+script.src = 'https://emrldtp.com/NTg5Njc1.js?t=589675';
+document.head.appendChild(script);
+})();
+</script>
+</head>
+<body>
+
+<!-- Kring mark: blue + pink rings with the glowing lens, as in the app icon -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="lensG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6874FB"></stop><stop offset=".38" stop-color="#3946E3"></stop>
+      <stop offset=".52" stop-color="#FBE4A8"></stop><stop offset=".6" stop-color="#C47FB8"></stop>
+      <stop offset=".78" stop-color="#A14FBF"></stop><stop offset="1" stop-color="#CE4BB1"></stop>
+    </linearGradient>
+    <linearGradient id="coreG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".15"></stop><stop offset=".32" stop-color="#F9F1D9"></stop>
+      <stop offset=".6" stop-color="#FBE4A8"></stop><stop offset="1" stop-color="#FBE4A8" stop-opacity="0"></stop>
+    </linearGradient>
+    <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5B6CFF"></stop><stop offset=".5" stop-color="#FF4FA3"></stop><stop offset="1" stop-color="#FF8A3D"></stop></linearGradient>
+    <clipPath id="cA"><circle cx="392" cy="512" r="226"></circle></clipPath>
+    <clipPath id="cAi"><circle cx="392" cy="512" r="150"></circle></clipPath>
+    <symbol id="kr" viewBox="0 0 1024 1024">
+      <g class="gB"><circle class="ring-b" cx="392" cy="512" r="225" fill="none" stroke="#3440E0" stroke-width="60"></circle></g>
+      <g class="gP"><circle class="ring-p" cx="632" cy="512" r="225" fill="none" stroke="#FF4FA3" stroke-width="60"></circle></g>
+      <g class="lens">
+        <g clip-path="url(#cA)"><circle cx="632" cy="512" r="226" fill="url(#lensG)"></circle></g>
+        <g clip-path="url(#cAi)"><circle cx="632" cy="512" r="150" fill="url(#coreG)"></circle></g>
+        <g clip-path="url(#cA)"><circle cx="632" cy="512" r="225" fill="none" stroke="#FF4FA3" stroke-width="60"></circle></g>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="intro" aria-hidden="true">
+  <div class="stage">
+    <span class="wv"></span><span class="wv b"></span><span class="flare"></span>
+    <svg class="logo-svg mk" viewBox="0 0 1024 1024"><use href="#kr"></use></svg>
+    <div class="word"><b>กริ๊ง!</b><span>Kring</span></div>
+  </div>
+  <div class="skip">Tap to skip</div>
+</div>
+
+<nav id="nav"><div class="wrap">
+  <a class="brand" href="#"><svg class="logo-svg" viewBox="0 0 1024 1024"><use href="#kr"></use></svg>Kring<span style="opacity:.55;font-weight:500;font-family:var(--thai)">กริ๊ง!</span></a>
+  <div class="nr"><div class="lang"><button data-l="en" class="on">EN</button><button data-l="th">ไทย</button></div><a class="btn navcta" href="#join" data-i="cta">Get early access</a></div>
+</div></nav>
+
+<header class="hero">
+  <div class="bg" role="img" aria-label="Bangkok skyline and the Chao Phraya river at sunset"></div>
+  <canvas id="city" aria-hidden="true"></canvas><div id="nodes" aria-hidden="true"></div>
+  <div class="hcopy"><div class="wrap">
+    <div class="eyebrow" data-i="eb">Bangkok · Now open, early access</div>
+    <h1 class="disp" data-i="h1">Bangkok is better <i class="g">together.</i></h1>
+    <p class="hsub" data-i="hsub">See what's happening across the city right now, and find someone to go with. Thai or English, always in public places.</p>
+    <div class="who" role="radiogroup" aria-label="I am"><label><input type="radio" name="role_h" value="local" checked=""><span data-i="w_l">🏠 I live in Bangkok</span></label><label><input type="radio" name="role_h" value="visit"><span data-i="w_v">✈️ I'm visiting</span></label><label><input type="radio" name="role_h" value="venue"><span data-i="w_b">☕ I run a venue</span></label></div>
+    <form class="join" novalidate=""><input type="email" required="" placeholder="Your email" data-ph="ph" aria-label="Email"><button class="btn" data-i="cta">Get early access</button></form>
+    <p class="fine"><span data-i="fine">Free. We only use this to tell you when we open.</span> <a href="/privacy" data-i="pv">Privacy</a></p><p class="ferr" role="alert"></p>
+  </div></div>
+</header>
+
+<section class="hold" id="try"><div class="wrap">
+  <div class="eyebrow rv" data-i="h_eb">Try it</div>
+  <h2 class="disp rv" data-i="h_h">Hold to <i class="g">กริ๊ง!</i></h2>
+  <p class="sub rv" data-i="h_s">Two people. One plan. Press and hold the rings.</p>
+  <div class="hstage" id="hstage">
+    <span class="shock g"></span><span class="shock"></span><span class="shock b"></span>
+    <div class="pc"><div class="t" data-i="pc_t">Tonight</div><b data-i="pc1">Sunset ferry · 6pm</b><small data-i="pc1s">Sathorn pier · 2 going</small></div>
+    <div class="pc"><div class="t" data-i="pc_t">Tonight</div><b data-i="pc2">Night market · 7pm</b><small data-i="pc2s">Ratchada · 3 going</small></div>
+    <div class="pc"><div class="t" data-i="pc_t2">Tomorrow</div><b data-i="pc3">Run club · 7am</b><small data-i="pc3s">Lumphini Park · 5 going</small></div>
+    <div>
+      <button class="hbtn" id="hbtn" aria-label="Hold to ring">
+        <svg class="prog" viewBox="0 0 250 250"><circle class="tr" cx="125" cy="125" r="122"></circle><circle class="fg" id="hprog" cx="125" cy="125" r="122"></circle></svg>
+        <svg class="logo-svg" viewBox="0 0 1024 1024"><use href="#kr"></use></svg>
+      </button>
+      <div class="hint" id="hint"><span class="k">●</span> <span data-i="h_hint">Press &amp; hold</span></div>
+      <div class="done-msg"><h3 class="disp" data-i="h_done">That's Kring. <i class="g">Two people, one plan.</i></h3><button class="again" id="again" data-i="h_again">Ring again</button></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="story" id="app"><div class="wrap">
+  <div class="car">
+    <div class="ctop rv">
+      <div class="eyebrow" data-i="app_eb">Inside the app</div>
+      <h2 class="disp" data-i="app_h">The whole city, <i class="g">in your pocket.</i></h2>
+      <div class="tabs">
+        <button class="tab on" data-t="0"><b data-i="t1">Live feed</b><span data-i="t1p">What people in Ari, Siam and Thonglor are posting right now.</span><i></i></button>
+        <button class="tab" data-t="1"><b data-i="t2">Ask a Thai</b><span data-i="t2p">Real answers from people who live here, marked ✓ when verified.</span><i></i></button>
+        <button class="tab" data-t="2"><b data-i="t3">People</b><span data-i="t3p">Find someone into the same things. Say hi with one message.</span><i></i></button>
+        <button class="tab" data-t="3"><b data-i="t4">Chat that translates</b><span data-i="t4p">Thai on one side, English on the other. Plans in public places.</span><i></i></button>
+        <button class="tab" data-t="4"><b data-i="t5">Kring treats</b><span data-i="t5p">Café treats from partner cafés. Two taps, show it at the counter.</span><i></i></button>
+        <button class="tab" data-t="5"><b data-i="t6">Safety</b><span data-i="t6p">Tourist Police 1155, 191 and your embassy inside every chat.</span><i></i></button>
+      </div>
+      <p class="tdesc" id="tdesc"></p>
+    </div>
+    <div class="pcol">
+      <div class="cphone">
+        <div class="phone"><div class="scr">
+          <img class="on" src="/assets/home/app_feed.jpg" alt="Kring live feed screen">
+          <img loading="lazy" decoding="async" src="/assets/home/app_ask.jpg" alt="Ask a Thai screen">
+          <img loading="lazy" decoding="async" src="/assets/home/app_people.jpg" alt="People screen">
+          <img loading="lazy" decoding="async" src="/assets/home/app_chat.jpg" alt="Translated chat screen">
+          <img loading="lazy" decoding="async" src="/assets/home/app_deals.jpg" alt="Kring treats screen">
+          <img loading="lazy" decoding="async" src="/assets/home/app_safety.jpg" alt="Safety screen">
+        </div></div>
+      </div>
+      <div class="dots"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+  </div>
+  <p class="exn" data-i="exn">Real app screens with example content.</p>
+</div></section>
+
+<section class="aud" id="people"><div class="wrap">
+  <div class="eyebrow rv" data-i="aud_eb">Who it's for</div>
+  <h2 class="disp rv" data-i="aud_h">One city. <i class="g">Two ways to love it.</i></h2>
+  <div class="agrid">
+    <article class="acard l rv"><div class="bg" style="background-image:url(/assets/home/twilight.jpg)"></div><div class="in">
+      <span class="tag" data-i="a1t">If you live here</span>
+      <h3 class="disp" data-i="a1h">Got a plan? Find someone to go with.</h3>
+      <p data-i="a1p">Post the gig, the class or the new café and find someone who wants to go too. Answer visitors' questions, earn levels and café treats.</p>
+    </div></article>
+    <article class="acard v rv"><div class="bg" style="background-image:url(/assets/home/tuktuk.jpg)"></div><div class="in">
+      <span class="tag" data-i="a2t">If you're visiting</span>
+      <h3 class="disp" data-i="a2h">Skip the tourist list. Go where Bangkok goes.</h3>
+      <p data-i="a2p">Live posts from every neighbourhood, straight answers from people who live here, and a chat that speaks your language.</p>
+    </div></article>
+  </div>
+</div></section>
+
+
+<section class="rew" id="rewards"><div class="wrap">
+  <div class="eyebrow rv" data-i="r_eb">Kring Locals</div>
+  <h2 class="disp rv" data-i="r_h">Show your Bangkok. <i class="g">Top 5 every day.</i></h2>
+  <p class="lead rv" data-i="r_s">Kring Locals post short clips of real Bangkok spots they love. The Top 5 of each day and each week get rewards with real money value.</p>
+  <div class="rgrid" id="rgrid">
+    <div class="rc rv">
+      <div class="viz"><div class="fan"><div class="cd"><span data-i="cd_l">🔔 Board closes at midnight</span><b id="cdt">--:--:--</b></div><div class="reels"><div class="rl" style="background-image:url(/assets/home/rewards/r1.jpg)"><i>1</i></div><div class="rl" style="background-image:url(/assets/home/rewards/r2.jpg)"><i>2</i></div><div class="rl" style="background-image:url(/assets/home/rewards/r3.jpg)"><i>3</i></div><div class="rl" style="background-image:url(/assets/home/rewards/r4.jpg)"><i>4</i></div><div class="rl" style="background-image:url(/assets/home/rewards/r5.jpg)"><i>5</i></div></div></div></div>
+      <div class="k" data-i="r1k">Daily · until midnight</div>
+      <h3 data-i="r1h">Top 5 every day</h3>
+      <p data-i="r1p">The daily board closes at midnight, Bangkok time. Ranks move live with likes, saves and shares from real people.</p>
+    </div>
+    <div class="rc rv">
+      <div class="viz"><div class="wk"><div class="wkimg" style="background-image:url(/assets/home/rewards/week.jpg)"><span class="st" data-i="bw">★ Local of the week</span><svg class="rings" viewBox="0 0 120 70"><circle cx="40" cy="35" r="26" fill="none" stroke="#7381FF" stroke-width="7"></circle><circle cx="80" cy="35" r="26" fill="none" stroke="#FF4FA3" stroke-width="7"></circle></svg><em data-i="bwc">#1</em></div><div class="wkr"><span>2</span><span>3</span><span>4</span><span>5</span></div></div></div>
+      <div class="k" data-i="r2k">Weekly</div>
+      <h3 data-i="r2h">Top 5 of the week</h3>
+      <p data-i="r2p">Every week the Top 5 are featured on Kring and get bigger rewards than the daily board.</p>
+    </div>
+    <div class="rc rv">
+      <div class="viz"><div class="tix"><div class="tk"><b>💸</b><div><strong data-i="g1">Real money value</strong><small data-i="g1s">Every reward is worth what it says</small></div></div><div class="tk"><b>📲</b><div><strong data-i="g2">Straight to your phone</strong><small data-i="g2s">Claim in the app, get a code or link</small></div></div><div class="tk"><b>🌱</b><div><strong data-i="g3">No followers needed</strong><small data-i="g3s">New accounts count from day one</small></div></div></div></div>
+      <div class="k" data-i="r3k">Your rewards</div>
+      <h3 data-i="r3h">Easy to claim</h3>
+      <p data-i="r3p">Open My rewards in the app and pick one of the options shown, all at the same value.</p>
+    </div>
+  </div>
+  <div class="rdots" id="rdots"><i class="on"></i><i></i><i></i></div>
+</div></section>
+
+<section class="trust"><div class="wrap"><div class="tgrid">
+  <div class="tc rv" id="safety">
+    <div class="eyebrow" data-i="s_eb">Safety</div>
+    <h3 class="disp" data-i="s_h">Built for public places and real plans.</h3>
+    <ul><li data-i="s1">One message before a reply. No phone numbers or links in a first hello.</li><li data-i="s2">Plans happen at cafés, markets and venues, never private addresses.</li><li data-i="s3">Block and report in one tap. Download or delete your data any time (PDPA).</li></ul>
+    <div class="sos"><span><b>1155</b><span data-i="tp">Tourist Police</span></span><span><b>191</b><span data-i="em">Emergency</span></span><span><b>1669</b><span data-i="amb">Ambulance</span></span></div>
+  </div>
+  <div class="tc ven rv" id="venues">
+    <div class="eyebrow" data-i="v_eb">For cafés &amp; venues</div>
+    <h3 class="disp" data-i="v_h">New customers at the times you choose.</h3>
+    <ul><li data-i="v1">New customers, people nearby and visitors, at the times you choose.</li><li data-i="v2">You set the treat and a daily limit. Customers tap "I'm here" and show a live pass.</li><li data-i="v3">Free to join. No fees, no commission.</li></ul>
+    <a class="btn" href="/app/#apply" data-role="venue" data-i="v_cta">Sign up your café</a>
+  </div>
+</div></div></section>
+
+<section class="final" id="join">
+  <div class="bg"></div>
+  <div class="in rv">
+    <svg class="logo-svg" viewBox="0 0 1024 1024"><use href="#kr"></use></svg>
+    <h2 class="disp" data-i="fh">Kring, <i class="g">let's go.</i></h2>
+    <div class="who" role="radiogroup" aria-label="I am"><label><input type="radio" name="role_f" value="local" checked=""><span data-i="w_l">🏠 I live in Bangkok</span></label><label><input type="radio" name="role_f" value="visit"><span data-i="w_v">✈️ I'm visiting</span></label><label><input type="radio" name="role_f" value="venue"><span data-i="w_b">☕ I run a venue</span></label></div>
+    <form class="join" novalidate=""><input type="email" required="" placeholder="Your email" data-ph="ph" aria-label="Email"><button class="btn" data-i="cta">Get early access</button></form>
+    <p class="fine"><span data-i="fine">Free. We only use this to tell you when we open.</span> <a href="/privacy" data-i="pv">Privacy</a></p><p class="ferr" role="alert"></p>
+  </div>
+</section>
+
+<footer><div class="wrap"><span>© 2026 Kring (กริ๊ง!) Bangkok</span><span><a href="/safety" data-i="ft_s">Safety</a><a href="/privacy" data-i="pv">Privacy</a><a href="/terms" data-i="tm">Terms</a><a href="/delete-account" data-i="ft_d">Delete account</a><a href="/contact" data-i="ft_c">Contact</a></span></div><div class="wrap"><p class="aff" data-i="ft_aff">Some travel links may earn Kring a small commission, at no extra cost to you.</p></div></footer>
+
+<script>
+// Inline the logo so each copy can be animated on its own
+(function(){const sym=document.getElementById('kr').innerHTML;document.querySelectorAll('svg.logo-svg').forEach(s=>s.innerHTML=sym)})();
+const TH={g3:"ไม่ต้องมีผู้ติดตาม",g2s:"กดรับในแอป ได้โค้ดหรือลิงก์",g2:"ส่งตรงถึงมือถือ",g1s:"รางวัลมีมูลค่าตามที่บอก",g1:"มูลค่าเป็นเงินจริง",w_l:"🏠 อยู่กรุงเทพฯ",w_v:"✈️ มาเที่ยว",w_b:"☕ เป็นเจ้าของร้าน",ft_s:"ความปลอดภัย",ft_d:"ลบบัญชี",ft_c:"ติดต่อ",h_eb:"ลองเลย",h_h:'กดค้างเพื่อ <i class="g">กริ๊ง!</i>',h_s:"สองคน หนึ่งแพลน กดค้างที่วงแหวน",pc_t:"คืนนี้",pc_t2:"พรุ่งนี้",pc1:"ล่องเรือชมพระอาทิตย์ตก · 6 โมงเย็น",pc1s:"ท่าเรือสาทร · ไป 2 คน",pc2:"ตลาดนัดกลางคืน · 1 ทุ่ม",pc2s:"รัชดา · ไป 3 คน",pc3:"รันคลับ · 7 โมงเช้า",pc3s:"สวนลุมพินี · ไป 5 คน",h_hint:"กดค้างไว้",h_done:'นี่แหละกริ๊ง! <i class="g">สองคน หนึ่งแพลน</i>',h_again:"กริ๊งอีกครั้ง",
+
+r1k:'รายวัน · ถึงเที่ยงคืน',
+r2k:'รายสัปดาห์',
+r3k:'รางวัลของคุณ',r3h:'รับรางวัลง่าย',
+
+cta:"ลงชื่อรับสิทธิ์ก่อน",eb:"กรุงเทพฯ · เปิดให้ใช้แล้ว ช่วงทดลองใช้",
+h1:'กรุงเทพฯ สนุกกว่า <i class="g">เมื่อไปด้วยกัน</i>',
+hsub:"ดูว่าตอนนี้ที่ไหนในเมืองมีอะไรน่าไป แล้วหาเพื่อนไปด้วยกัน คุยไทยหรืออังกฤษก็ได้ นัดเจอในที่สาธารณะเสมอ",
+ph:"อีเมลของคุณ",
+app_eb:"ในแอป",app_h:'ทั้งเมือง <i class="g">อยู่ในมือคุณ</i>',
+t1:"ฟีดสด",t1p:"ดูว่าคนในอารีย์ สยาม และทองหล่อ กำลังโพสต์อะไรอยู่ตอนนี้",
+t2:"ถามคนไทย",t2p:"คำตอบจริงจากคนที่อยู่ที่นี่ มี ✓ เมื่อยืนยันตัวตนแล้ว",
+t3:"ผู้คน",t3p:"หาคนที่ชอบอะไรเหมือนกัน ทักทายได้ด้วยข้อความเดียว",
+t4:"แชตที่แปลให้เอง",t4p:"ฝั่งหนึ่งพิมพ์ไทย อีกฝั่งอ่านอังกฤษ นัดกันในที่สาธารณะ",
+t5:"Kring treat",t5p:"ของดีจากคาเฟ่พาร์ทเนอร์ กด 2 ครั้ง โชว์ที่เคาน์เตอร์",
+t6:"ความปลอดภัย",t6p:"ตำรวจท่องเที่ยว 1155 เหตุฉุกเฉิน 191 และสถานทูต อยู่ในทุกแชต",
+exn:"หน้าจอจริงของแอป พร้อมเนื้อหาตัวอย่าง",
+aud_eb:"เหมาะกับใคร",aud_h:'เมืองเดียว <i class="g">รักได้สองแบบ</i>',
+a1t:"ถ้าคุณอยู่ที่นี่",a1h:"มีแพลนแล้ว? หาคนไปด้วยกันได้เลย",a1p:"โพสต์คอนเสิร์ต คลาส หรือคาเฟ่เปิดใหม่ แล้วหาคนที่อยากไปเหมือนกัน ตอบคำถามนักท่องเที่ยว เก็บเลเวลและรับของดีจากคาเฟ่",
+a2t:"ถ้าคุณมาเที่ยว",a2h:"ข้ามลิสต์นักท่องเที่ยว ไปที่ที่คนกรุงเทพฯ ไปจริง",a2p:"โพสต์สดจากทุกย่าน คำตอบตรง ๆ จากคนที่อยู่ที่นี่ และแชตที่พูดภาษาของคุณ",
+s_eb:"ความปลอดภัย",s_h:"ออกแบบมาเพื่อที่สาธารณะและแพลนจริง",
+s1:"ส่งได้หนึ่งข้อความก่อนอีกฝ่ายตอบ ห้ามใส่เบอร์โทรหรือลิงก์ในข้อความแรก",s2:"นัดกันที่คาเฟ่ ตลาด และสถานที่ต่าง ๆ ไม่ใช่ที่พักส่วนตัว",s3:"บล็อกและรายงานในแตะเดียว ดาวน์โหลดหรือลบข้อมูลได้ตลอด (PDPA)",
+tp:"ตำรวจท่องเที่ยว",em:"เหตุฉุกเฉิน",amb:"รถพยาบาล",
+v_eb:"สำหรับคาเฟ่และร้านค้า",v_h:"ลูกค้าใหม่ในช่วงเวลาที่ร้านเลือก",v1:"ลูกค้าใหม่ ทั้งคนในย่านและนักท่องเที่ยว ในช่วงเวลาที่ร้านเลือก",v2:"ร้านกำหนดสิทธิ์และจำนวนต่อวันเอง ลูกค้ากด \"ฉันอยู่ที่ร้าน\" แล้วโชว์บัตรสด",v3:"เข้าร่วมฟรี ไม่มีค่าธรรมเนียม ไม่มี GP",v_cta:"สมัครร้านของคุณ",
+fh:'กริ๊ง! <i class="g">ไปกัน</i>',pv:"ความเป็นส่วนตัว",tm:"ข้อกำหนด",
+r_eb:"Kring Locals · โลคอลกริ๊ง!",
+r_h:"โชว์กรุงเทพฯ ของคุณ <i class=\"g\">Top 5 ทุกวัน</i>",
+r_s:"โลคอลกริ๊ง! โพสต์คลิปสั้นของที่จริงในกรุงเทพฯ ที่ชอบ Top 5 ของแต่ละวันและแต่ละสัปดาห์ได้รับรางวัลมูลค่าเงินจริง",
+cd_l:"🔔 ปิดบอร์ดเที่ยงคืน",
+r1h:"Top 5 ทุกวัน",
+r1p:"บอร์ดรายวันปิดเที่ยงคืน ตามเวลากรุงเทพฯ อันดับขยับสดตามยอดถูกใจ บันทึก และแชร์จากคนจริง",
+bw:"★ โลคอลประจำสัปดาห์",
+bwc:"อันดับ 1",
+r2h:"Top 5 ประจำสัปดาห์",
+r2p:"ทุกสัปดาห์ Top 5 ได้ขึ้นโชว์บนกริ๊ง! และได้รางวัลมูลค่าสูงกว่าบอร์ดรายวัน",
+g3s:"บัญชีใหม่ก็ติดอันดับได้ตั้งแต่วันแรก",
+r3p:"เปิด รางวัลของฉัน ในแอป แล้วเลือกหนึ่งตัวเลือกที่แสดง มูลค่าเท่ากันทุกตัวเลือก",
+fine:"ฟรี เราใช้อีเมลนี้เพื่อแจ้งคุณเมื่อเราเปิดเท่านั้น",
+ft_aff:"บางลิงก์ท่องเที่ยวอาจทำให้ Kring ได้ค่าคอมมิชชันเล็กน้อย โดยคุณไม่ต้องจ่ายเพิ่ม"
+};
+const EN={};document.querySelectorAll('[data-i]').forEach(e=>{if(!(e.dataset.i in EN))EN[e.dataset.i]=e.innerHTML});
+document.querySelectorAll('[data-ph]').forEach(e=>EN[e.dataset.ph]=e.placeholder);
+function setLang(l){const D=l==='th'?TH:EN;document.documentElement.lang=l;
+ document.querySelectorAll('[data-i]').forEach(e=>{const v=D[e.dataset.i];if(v!==undefined)e.innerHTML=v});
+ document.querySelectorAll('[data-ph]').forEach(e=>{const v=D[e.dataset.ph];if(v)e.placeholder=v});
+ document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.l===l));
+ try{localStorage.setItem('kr_lang',l)}catch(e){}}
+document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{try{localStorage.setItem('kr_lang',b.dataset.l)}catch(e){}location.href='/'+b.dataset.l+'/'});
+let sv=null;try{sv=localStorage.getItem('kr_lang')}catch(e){}
+const QS=new URLSearchParams(location.search);
+setLang('en');
+const WL='https://pedxoxpammnyfnizljyj.supabase.co/rest/v1/kr6_waitlist',WK='sb_publishable_SaAf7mILfPPpCeAEvj79bA_Vz8JnCBN';
+const WH={'Content-Type':'application/json','apikey':WK,'Authorization':'Bearer '+WK,'Prefer':'return=minimal'};
+const REF=(QS.get('ref')||'').replace(/[^a-z0-9_-]/gi,'').slice(0,40);
+async function jw(f){const b=f.querySelector('button'),inp=f.querySelector('input[type=email]'),err=f.parentElement.querySelector('.ferr');
+ const th=document.documentElement.lang==='th',v=(inp.value||'').trim();
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)){if(err)err.textContent=th?'กรุณาใส่อีเมลให้ถูกต้อง':'Please enter a valid email.';inp.focus();return false}
+ const roleEl=f.parentElement.querySelector('.who input:checked'),role=roleEl?roleEl.value:'local',lang=th?'th':'en';
+ const note=('homepage-7nov · '+(role==='local'?'lives in Bangkok':role==='visit'?'visiting':'venue')+(REF?' | ref:'+REF:'')).slice(0,300);
+ const label=b.textContent;b.disabled=true;b.textContent=th?'กำลังส่ง…':'Sending…';if(err)err.textContent='';
+ try{let body=role==='venue'?{kind:'business',business_name:'(homepage signup)',business_type:'venue',area:'Bangkok',contact:v.slice(0,120),email:v.slice(0,120),note,lang,consent:true}
+   :{kind:role==='visit'?'traveller':'host',contact:v.slice(0,120),note,lang,consent:true,area:'Bangkok'};
+  let r=await fetch(WL,{method:'POST',headers:WH,body:JSON.stringify(body)});
+  if(r.status===400){const alt={kind:role==='visit'?'traveller':'host',contact:v.slice(0,120),note:(role==='venue'?'[VENUE] ':'')+note,lang,consent:true};r=await fetch(WL,{method:'POST',headers:WH,body:JSON.stringify(alt)})}
+  if(!r.ok)throw new Error(r.status);
+  inp.value='';b.textContent=th?'ลงชื่อแล้ว ✓':"You're on the list ✓";
+ }catch(e){b.disabled=false;b.textContent=label;if(err)err.textContent=th?'ส่งไม่สำเร็จ ลองอีกครั้งนะ':'Something went wrong. Please try again.'}
+ return false}
+document.querySelectorAll('form.join').forEach(f=>f.addEventListener('submit',e=>{e.preventDefault();jw(f)}));
+document.querySelectorAll('[data-role]').forEach(a=>a.addEventListener('click',()=>{const r=document.querySelector('#join .who input[value="'+a.dataset.role+'"]');if(r)r.checked=true}));
+const nav=document.getElementById('nav');addEventListener('scroll',()=>nav.classList.toggle('s',scrollY>40),{passive:true});
+
+// Intro: rings draw in from both sides -> snap and interlock -> lens ignites with a bell wave -> fly through the lens into the city
+(function(){const el=document.getElementById('intro');let seen=null;try{seen=sessionStorage.getItem('kr_intro3')}catch(e){}
+ const start=()=>document.body.classList.add('ready');
+ if(seen||QS.has('nointro')||matchMedia('(prefers-reduced-motion: reduce)').matches){el.remove();start();return}
+ document.documentElement.style.overflow='hidden';
+ let ended=false;const end=()=>{if(ended)return;ended=true;el.classList.add('out');start();document.documentElement.style.overflow='';try{sessionStorage.setItem('kr_intro3','1')}catch(e){}setTimeout(()=>el.remove(),1300)};
+ requestAnimationFrame(()=>el.classList.add('play'));
+ setTimeout(end,3100);el.addEventListener('click',end);})();
+
+// App carousel
+const shots=[...document.querySelectorAll('.phone .scr img')],tabs=[...document.querySelectorAll('.tab')],dots=[...document.querySelectorAll('.dots i')],car=document.querySelector('.car');
+let cur=0,timer=null;const DUR=6000;
+function go(i){cur=(i+tabs.length)%tabs.length;shots.forEach((s,k)=>s.classList.toggle('on',k===cur));dots.forEach((d,k)=>d.classList.toggle('on',k===cur));
+ tabs.forEach((t,k)=>{t.classList.toggle('on',k===cur);const bar=t.querySelector('i');bar.style.animation='none';void bar.offsetWidth;bar.style.animation=''});const td=document.getElementById('tdesc');if(td){const sp=tabs[cur].querySelector('span');td.textContent=sp?sp.textContent:''}const tw=tabs[cur].parentElement;if(tw&&tw.scrollWidth>tw.clientWidth){tw.scrollTo({left:tabs[cur].offsetLeft-20,behavior:'smooth'})}restart()}
+function restart(){clearTimeout(timer);if(!car.classList.contains('paused'))timer=setTimeout(()=>go(cur+1),DUR)}
+tabs.forEach((t,k)=>t.onclick=()=>go(k));
+car.addEventListener('mouseenter',()=>{car.classList.add('paused');clearTimeout(timer)});
+car.addEventListener('mouseleave',()=>{car.classList.remove('paused');restart()});
+let sx=null;const cp=document.querySelector('.cphone');
+cp.addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});
+cp.addEventListener('touchend',e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>40)go(cur+(dx<0?1:-1));sx=null});
+new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)go(cur);else clearTimeout(timer)}),{threshold:.35}).observe(car);
+
+
+// ---------- Live city ----------
+(function(){
+ const hero=document.querySelector('.hero'),cv=document.getElementById('city'),nodesEl=document.getElementById('nodes');if(!cv)return;
+ const ctx=cv.getContext('2d');let W,H,D=Math.min(devicePixelRatio||1,2);
+ const PL={en:[["Sunset ferry","6pm · 2 going"],["Night market","7pm · 3 going"],["Riverside gig","9pm · 2 going"],["Matcha break","now · 2 going"],["Gallery hop","Sat 2pm · 4 going"],["Street food walk","8pm · 3 going"],["Run club","7am · 5 going"]],
+  th:[["ล่องเรือดูพระอาทิตย์ตก","6 โมงเย็น · ไป 2 คน"],["ตลาดนัดกลางคืน","1 ทุ่ม · ไป 3 คน"],["ดนตรีสดริมน้ำ","3 ทุ่ม · ไป 2 คน"],["พักกินมัทฉะ","ตอนนี้ · ไป 2 คน"],["เดินดูแกลเลอรี่","ส. บ่าย 2 · ไป 4 คน"],["เดินกินสตรีทฟู้ด","2 ทุ่ม · ไป 3 คน"],["รันคลับ","7 โมงเช้า · ไป 5 คน"]]};
+ const N=[["Ari",.71,.40,.30,.19],["Siam",.75,.57,.58,.23],["Thonglor",.93,.45,.80,.15],["Talat Noi",.67,.70,.14,.29],["Yaowarat",.80,.76,.42,.31],["Silom",.89,.63,.86,.29],["Chatuchak",.82,.29,.10,.13]];
+ let pts=[];
+ function layout(){const r=hero.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*D;cv.height=H*D;cv.style.width=W+'px';cv.style.height=H+'px';ctx.setTransform(D,0,0,D,0,0);
+  const m=W<900;nodesEl.innerHTML='';pts=N.map(n=>{const x=(m?n[3]:n[1])*W,y=(m?n[4]:n[2])*H;const d=document.createElement('div');d.className='nd';d.style.left=x+'px';d.style.top=y+'px';d.innerHTML='<i></i>'+n[0];nodesEl.appendChild(d);return{x,y}})}
+ layout();addEventListener('resize',layout);
+ const links=[];let lastPick=-1,k=0;
+ const sym=document.getElementById('kr').innerHTML;
+ function spawn(){let a=Math.floor(Math.random()*pts.length),b;do{b=Math.floor(Math.random()*pts.length)}while(b===a);
+  const A=pts[a],B=pts[b],dx=B.x-A.x,dy=B.y-A.y,dist=Math.hypot(dx,dy);const C={x:(A.x+B.x)/2,y:(A.y+B.y)/2-Math.max(60,dist*.45)};
+  links.push({A,B,C,t0:performance.now(),popped:false});}
+ function bz(L,t){const u=1-t;return{x:u*u*L.A.x+2*u*t*L.C.x+t*t*L.B.x,y:u*u*L.A.y+2*u*t*L.C.y+t*t*L.B.y}}
+ function seg(L,t0,t1,col,alpha){ctx.beginPath();const n=28;for(let i=0;i<=n;i++){const p=bz(L,t0+(t1-t0)*i/n);i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)}ctx.strokeStyle=col;ctx.globalAlpha=alpha;ctx.lineWidth=2.2;ctx.shadowColor=col;ctx.shadowBlur=14;ctx.stroke();ctx.globalAlpha=1;ctx.shadowBlur=0}
+ function pop(L){const m=bz(L,.5);const lang=document.documentElement.lang==='th'?'th':'en';const pl=PL[lang][k++%7];const el=document.createElement('div');el.className='pop';el.style.left=m.x+'px';el.style.top=m.y+'px';
+  el.innerHTML=`<svg viewBox="0 0 1024 1024">${sym}</svg><div><b>${pl[0]}</b><small>${pl[1]}</small></div>`;nodesEl.appendChild(el);requestAnimationFrame(()=>el.classList.add('on'));setTimeout(()=>el.classList.add('off'),2600);setTimeout(()=>el.remove(),3300)}
+ function frame(now){ctx.clearRect(0,0,W,H);
+  for(let i=links.length-1;i>=0;i--){const L=links[i],e=(now-L.t0)/1000;
+   const g=Math.min(1,e/1.1),s=.5*(1-Math.pow(1-g,3));const fade=e<2.2?1:Math.max(0,1-(e-2.2)/1.2);
+   seg(L,0,s,'#5B6CFF',.95*fade);seg(L,1-s,1,'#FF4FA3',.95*fade);
+   if(g<1){const pa=bz(L,s),pb=bz(L,1-s);[[pa,'#9aa5ff'],[pb,'#ff9fd0']].forEach(([p,c])=>{ctx.beginPath();ctx.arc(p.x,p.y,3.2,0,7);ctx.fillStyle=c;ctx.shadowColor=c;ctx.shadowBlur=16;ctx.fill();ctx.shadowBlur=0})}
+   else{const m=bz(L,.5),f=Math.max(0,1-(e-1.1)/.7);if(f>0){ctx.beginPath();ctx.arc(m.x,m.y,4+26*(1-f),0,7);ctx.fillStyle=`rgba(251,228,168,${.9*f})`;ctx.shadowColor='#FBE4A8';ctx.shadowBlur=30;ctx.fill();ctx.shadowBlur=0}
+    if(!L.popped){L.popped=true;pop(L)}}
+   if(e>3.5)links.splice(i,1)}
+  requestAnimationFrame(frame)}
+ requestAnimationFrame(frame);
+ let iv=null;const startLoop=()=>{if(iv)return;spawn();iv=setInterval(()=>{if(!document.hidden)spawn()},2600)};
+ new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){startLoop()}else{clearInterval(iv);iv=null}})).observe(hero);
+})();
+
+// ---------- Hold to Kring ----------
+(function(){
+ const btn=document.getElementById('hbtn'),stage=document.getElementById('hstage'),prog=document.getElementById('hprog');if(!btn)return;
+ let gB,gP,lens;function grab(){gB=btn.querySelector('.gB');gP=btn.querySelector('.gP');lens=btn.querySelector('.lens')}
+ let p=0,holding=false,raf=null,done=false,last=0;const HOLD=1.15;
+ function render(){if(!gB)grab();const off=170*(1-p);gB.setAttribute('transform',`translate(${-off},0)`);gP.setAttribute('transform',`translate(${off},0)`);
+  lens.style.opacity=Math.max(0,(p-.55)/.45)*.9;lens.style.filter=`brightness(${1+p})`;prog.style.strokeDashoffset=766*(1-p);btn.style.transform=holding?`scale(${1+.05*p})`:''}
+ function tick(now){const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(holding){p=Math.min(1,p+dt/HOLD);if(p>=1){ring();return}}else{p=Math.max(0,p-dt*2.2)}
+  render();if(holding||p>0)raf=requestAnimationFrame(tick);else raf=null}
+ function start(e){if(done)return;e&&e.preventDefault();holding=true;try{navigator.vibrate&&navigator.vibrate(12)}catch(_){}ensureAudio();last=performance.now();if(!raf)raf=requestAnimationFrame(tick)}
+ function stop(){if(done)return;holding=false;if(!raf&&p>0){last=performance.now();raf=requestAnimationFrame(tick)}}
+ let ac=null;function ensureAudio(){try{if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)()}if(ac.state==='suspended')ac.resume()}catch(_){}}
+ function bell(t0,f,g){[[1,1],[2.76,.45],[5.4,.22],[8.9,.1]].forEach(([m,a])=>{const o=ac.createOscillator(),v=ac.createGain();o.type='sine';o.frequency.value=f*m;v.gain.setValueAtTime(0,t0);v.gain.linearRampToValueAtTime(g*a,t0+.006);v.gain.exponentialRampToValueAtTime(.0001,t0+1.8/Math.sqrt(m));o.connect(v).connect(ac.destination);o.start(t0);o.stop(t0+2)})}
+ function chime(){if(!ac)return;const t=ac.currentTime+.01;bell(t,1318.5,.16);bell(t+.13,1975.5,.12)}
+ function ring(){done=true;holding=false;p=1;render();lens.style.opacity=1;lens.style.filter="none";btn.style.transform='';cancelAnimationFrame(raf);raf=null;chime();try{navigator.vibrate&&navigator.vibrate([30,40,60])}catch(_){}
+  stage.classList.remove('rung');void stage.offsetWidth;stage.classList.add('rung');document.getElementById('hint').style.visibility='hidden'}
+ btn.addEventListener('pointerdown',start);['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,stop));
+ btn.addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat)start(e)});btn.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter')stop()});
+ btn.addEventListener('contextmenu',e=>e.preventDefault());
+ document.getElementById('again').onclick=()=>{stage.classList.remove('rung');done=false;p=0;render();document.getElementById('hint').style.visibility=''};
+ setTimeout(()=>{grab();render()},0);
+})();
+
+// ---------- Rewards reveal ----------
+(function(){const g=document.getElementById('rgrid');if(!g)return;const mc=document.getElementById('mcard');
+ new IntersectionObserver((es,o)=>es.forEach(e=>{if(e.isIntersecting){o.disconnect();
+  const days=[...g.querySelectorAll('.day')];days.forEach(d=>d.style.opacity=.35);g.classList.add('lit');days.forEach((d,i)=>setTimeout(()=>{d.style.transition='opacity .3s';d.style.opacity=1},150*i));
+  mc&&setTimeout(()=>{mc.classList.add('tea');mc.querySelector('.lv').textContent=document.documentElement.lang==='th'?'KRING MEMBER · ชาไทย':'KRING MEMBER · THAI TEA'},2300)}}),{threshold:.3}).observe(g)})();
+
+// ---------- 3D phone ----------
+(function(){const cp=document.querySelector('.cphone'),ph=cp&&cp.querySelector('.phone');if(!ph||matchMedia('(hover:none)').matches)return;
+ const gl=document.createElement('div');gl.className='glare';ph.appendChild(gl);
+ cp.addEventListener('mousemove',e=>{const r=cp.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;ph.style.transform=`rotateY(${x*16}deg) rotateX(${-y*12}deg)`;ph.style.setProperty('--gx',`${50+x*80}%`)});
+ cp.addEventListener('mouseleave',()=>{ph.style.transform=''})})();
+
+// Reveal on scroll
+const ro=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');ro.unobserve(e.target)}}),{threshold:.15});
+document.querySelectorAll('.rv').forEach(e=>ro.observe(e));
+</script>
+
+<script>new MutationObserver(()=>{const t=document.querySelector('.tab.on span'),d=document.getElementById('tdesc');if(t&&d)setTimeout(()=>d.textContent=t.textContent,0)}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});</script>
+<script>(function(){const g=document.getElementById('rgrid'),d=document.getElementById('rdots');if(!g||!d)return;const ds=[...d.children];g.addEventListener('scroll',()=>{const cs=[...g.children];let best=0,bd=1e9;cs.forEach((c,k)=>{const dd=Math.abs(c.offsetLeft-g.scrollLeft-20);if(dd<bd){bd=dd;best=k}});ds.forEach((x,k)=>x.classList.toggle('on',k===best))},{passive:true})})();</script>
+<script>(function(){const el=document.getElementById('cdt');if(!el)return;function t(){const n=new Date(),bkk=new Date(n.getTime()+(n.getTimezoneOffset()+420)*60000);const tgt=new Date(bkk);tgt.setHours(24,0,0,0);if(bkk>=tgt)tgt.setDate(tgt.getDate()+1);let d=Math.floor((tgt-bkk)/1000);const h=String(Math.floor(d/3600)).padStart(2,'0'),m=String(Math.floor(d%3600/60)).padStart(2,'0'),sec=String(d%60).padStart(2,'0');el.textContent=h+':'+m+':'+sec}t();setInterval(t,1000)})();</script>
+
+</body></html>
