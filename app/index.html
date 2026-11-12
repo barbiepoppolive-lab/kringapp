@@ -46,5 +46,5 @@
         });
       }
     </script>
-  </body>
+  <script>/* Kring link-visit counter (supabase 0043_link_visits): 1 row per tab session per ?ref=, no cookies, no personal data */(function(){try{if(/\bLine\//i.test(navigator.userAgent)&&!/[?&]openExternalBrowser=1/.test(location.search))return;var r=(new URLSearchParams(location.search).get('ref')||'').toLowerCase();if(!/^[a-z0-9_-]{1,40}$/.test(r))r=null;var k='kr_lv:'+(r||''),s=null;try{if(sessionStorage.getItem(k))return;s=Math.random().toString(36).slice(2,12)||null;sessionStorage.setItem(k,s||'1')}catch(e){}var h='';try{h=document.referrer?new URL(document.referrer).host:''}catch(e){}var K='sb_publishable_SaAf7mILfPPpCeAEvj79bA_Vz8JnCBN';setTimeout(function(){try{fetch('https://pedxoxpammnyfnizljyj.supabase.co/rest/v1/link_visits',{method:'POST',keepalive:true,credentials:'omit',headers:{apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({ref:r,path:(location.pathname||'/').slice(0,200),referrer:h.slice(0,200)||null,session_id:s})}).catch(function(){})}catch(e){}},0)}catch(e){}})();</script></body>
 </html>
