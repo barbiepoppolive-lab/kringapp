@@ -10,6 +10,7 @@ import { basePath, bkkTime, el, rpc, staffLink, v5Client } from './shared';
 import { checklistCsv, type Check } from './reelsAdmin';
 import { mentionsKring } from './socialAdmin';
 import { lineMessage, splitTreat, standLink, uploadPhotos } from './adminHelpers';
+import { IG_TOP, type IgDm } from './igData';
 import './admin2.css';
 
 // ───────────────────────────── types (same rows as v1) ─────────────────────────────
@@ -220,7 +221,7 @@ async function loadCounts() {
     rpc<App[]>('kr8_admin_applications', { p_status: 'pending' }).catch(() => [] as App[]),
   ]);
   counts = { reels: reels.length, faces: faces.length, reports: reports.length, hiddenNow: reports.filter((r) => r.post_hidden).length,
-    replies: social.filter((s) => s.status === 'pending').length + redditToday().length, venues: apps.length, status: st };
+    replies: social.filter((s) => s.status === 'pending').length + redditToday().length + igToday().length, venues: apps.length, status: st };
   return counts;
 }
 
@@ -236,7 +237,7 @@ async function todoView() {
     el('a', { class: `tile ${cls} ${n ? '' : 'zero'}`, href, id }, el('span', { class: 'go' }, ic('chev')), el('span', { class: 'n' }, String(n)),
       el('span', {}, el('span', { class: 't', style: 'display:block' }, title), hint ? el('span', { class: 'h', style: 'display:block' }, hint) : null));
   const st = c.status;
-  const nextAt = st ? (Date.parse(st.next_allowed_at) > Date.now() ? `Next at ${bkkTime(st.next_allowed_at, false)}` : `${st.sent_today}/${st.max_per_day} sent today`) : '';
+  void st;
   const total = c.reels + c.faces + c.reports + c.replies + c.venues;
   const venueTile = el('a', { class: `tile wide ${c.venues ? '' : 'zero'}`, href: '#q/venues', id: 'todo-venues' }, el('span', { class: 'n' }, String(c.venues)),
     el('span', { class: 'grow' }, el('span', { class: 't', style: 'display:block' }, c.venues === 1 ? 'New venue' : 'New venues'), el('span', { class: 'h', style: 'display:block' }, 'Waiting for approval')),
@@ -247,7 +248,7 @@ async function todoView() {
       tile('todo-reels', '#q/reels', c.reels, 'Reels waiting', 'pink', 'Approve or hide'),
       tile('todo-faces', '#q/faces', c.faces, 'Face checks', 'blue', 'Verify members'),
       tile('todo-reports', '#q/reports', c.reports, 'Reports', 'red', c.hiddenNow ? `${c.hiddenNow} Reel hidden now` : 'Open reports'),
-      tile('todo-replies', '#q/replies', c.replies, 'Replies to send', '', nextAt || 'Reddit drafts'),
+      tile('todo-replies', '#q/replies', c.replies, 'Replies to send', '', 'Reddit + Instagram'),
       venueTile),
     total ? el('div', { class: 'est' }, ic('clock'), `About ${total} min in all`) : '');
 }
@@ -498,9 +499,15 @@ async function replyQueue() {
   const rItems: QItem[] = redditToday().map((x) => ({ ...x, reddit: true as const }));
   const note = pace.max === 0 ? el('div', { class: 'tip', id: 'redditNote', style: 'margin:0 0 12px' }, ic('info'), `Reddit: day ${pace.day} of 3 is read only, no comments today.`)
     : !rItems.length ? el('div', { class: 'tip', id: 'redditNote', style: 'margin:0 0 12px' }, ic('info'), pace.left ? 'Reddit: all suggested comments used.' : 'Reddit: limit reached, come back tomorrow.') : null;
-  const all: QItem[] = [...rItems, ...rows];
+  const igItems = igToday();
+  const igSt = igLoad();
+  const igNote = igPaused(igSt) ? `Instagram paused until ${bkkTime(igSt.pausedUntil!)} (More → Instagram).`
+    : !igItems.length && igPace(igSt).left === 0 ? 'Instagram: 10 DMs sent today, come back tomorrow.' : '';
+  const notes = [note, igNote ? el('div', { class: 'tip', id: 'igNote', style: 'margin:0 0 12px' }, ic('info'), igNote) : null].filter(Boolean) as HTMLElement[];
+  const all: QItem[] = [...rItems, ...igItems, ...rows];
   queue<QItem>('Replies to send', all, (q, api) => {
     if ('reddit' in q) return redditCard(q, api);
+    if ('ig' in q) return igCard(q, api);
     const r = q;
     const out = el('div', {});
     const text = el('pre', { class: 'reply', 'data-text': r.id }, r.final_text || r.reply_text);
@@ -558,7 +565,7 @@ async function replyQueue() {
     for (const b of [edit, auto, skipT]) b.style.flex = '1';
     api.actions(bar);
     return card;
-  }, '#todo', note);
+  }, '#todo', notes.length ? el('div', {}, ...notes) : null);
 }
 
 // ───────────────────────────── New venue queue ─────────────────────────────
@@ -1064,7 +1071,72 @@ function rPace(st: RState) {
   const last = Object.values(st.posted).sort().pop() || null;
   return { day, min, max, phase, done: times.length, left: Math.max(0, max - times.length), last };
 }
-type QItem = Social | (RItem & { reddit: true });
+type IgCard = { id: string; ig: IgDm; step: 0 | 1 | 2; th: string; en: string };
+type QItem = Social | (RItem & { reddit: true }) | IgCard;
+
+// ───────────────────────────── Instagram DMs (IG_NANO_MICRO_13NOV.md top 15) ─────────────────────────────
+// Max 10 IG DMs a day (first DMs + follow-ups), file send order; nudge at day 3–4, last check-in at day 7–10; "Paused 48 h" after any IG warning.
+const IG_MAX = 10;
+const IG_NUDGE: [string, string][] = [
+  ['สวัสดีอีกครั้งครับ ไม่ได้อยากกวนนะครับ แค่อยากเช็กว่าเห็นข้อความเรื่อง Kring Local แล้วหรือยัง ถ้าสนใจคุยต่อ ทักกลับมาได้เลยนะครับ 🙏',
+    'Hi again, not trying to bother you, just checking whether you saw my message about being a Kring Local. If you\'d like to chat, just reply anytime 🙏'],
+  ['ขอทักเป็นครั้งสุดท้ายนะครับ ถ้าช่วงนี้ยังไม่สะดวกก็ไม่เป็นไรเลยครับ ถ้าวันไหนอยากลองเป็น Kring Local ทักมาได้ตลอดเลยครับ ขอบคุณมากครับ',
+    'One last note from me. If now isn\'t a good time, no worries at all. If you ever want to try being a Kring Local, message me anytime. Thanks so much.'],
+];
+type IgState = { sent: Record<string, string>; f1: Record<string, string>; f2: Record<string, string>; skipped: Record<string, string>; pausedUntil: string | null };
+const IG_KEY = 'kr8-admin-ig';
+function igLoad(): IgState {
+  let s: Partial<IgState> = {};
+  try { s = JSON.parse(LS(IG_KEY) || '{}') || {}; } catch { s = {}; }
+  return { sent: s.sent || {}, f1: s.f1 || {}, f2: s.f2 || {}, skipped: s.skipped || {}, pausedUntil: s.pausedUntil || null };
+}
+function igSave(st: IgState) { LS(IG_KEY, JSON.stringify(st)); }
+const igPaused = (st: IgState) => !!st.pausedUntil && Date.parse(st.pausedUntil) > Date.now();
+const daysSince = (iso: string) => Math.round((Date.parse(bkkToday()) - Date.parse(bkkDate(iso))) / 86400_000);
+function igPace(st: IgState) {
+  const today = bkkToday();
+  const done = [st.sent, st.f1, st.f2].reduce((n, m) => n + Object.values(m).filter((t) => bkkDate(t) === today).length, 0);
+  return { done, max: IG_MAX, left: Math.max(0, IG_MAX - done) };
+}
+/** Today's IG cards: due follow-ups first, then new DMs in send order, capped by the daily max (none while paused). */
+function igToday(): IgCard[] {
+  const st = igLoad();
+  if (igPaused(st)) return [];
+  const out: IgCard[] = [];
+  for (const ig of IG_TOP) {
+    const t = st.sent[ig.h]; if (!t) continue;
+    const id1 = 'ig1:' + ig.h, id2 = 'ig2:' + ig.h;
+    const f1Done = st.f1[ig.h] || st.skipped[id1];
+    if (!f1Done && daysSince(t) >= 3) out.push({ id: id1, ig, step: 1, th: IG_NUDGE[0][0], en: IG_NUDGE[0][1] });
+    else if (f1Done && !st.f2[ig.h] && !st.skipped[id2] && daysSince(t) >= 7) out.push({ id: id2, ig, step: 2, th: IG_NUDGE[1][0], en: IG_NUDGE[1][1] });
+  }
+  for (const ig of IG_TOP) if (!st.sent[ig.h] && !st.skipped['ig:' + ig.h]) out.push({ id: 'ig:' + ig.h, ig, step: 0, th: ig.th, en: ig.en });
+  return out.slice(0, igPace(st).left);
+}
+function igCard(c: IgCard, api: QApi): HTMLElement {
+  const st0 = igLoad();
+  const setK = (k: 'sent' | 'skip') => async () => {
+    const u = igLoad(); const now = new Date().toISOString();
+    if (k === 'skip') u.skipped[c.id] = now; else if (c.step === 0) u.sent[c.ig.h] = now; else if (c.step === 1) u.f1[c.ig.h] = now; else u.f2[c.ig.h] = now;
+    igSave(u);
+  };
+  const stepLbl = c.step === 0 ? 'First DM' : c.step === 1 ? `Follow-up 1 · sent ${daysSince(st0.sent[c.ig.h])} days ago` : `Last check-in · sent ${daysSince(st0.sent[c.ig.h])} days ago`;
+  const card = el('div', { 'data-ig': c.id },
+    el('div', { class: 'card' },
+      el('div', { class: 'row wrap', style: 'gap:8px' }, pill('Instagram · @' + c.ig.h, 'p'), pill(stepLbl, c.step ? 'a' : '')),
+      el('div', { class: 'dim sm', style: 'margin-top:8px', id: 'igMeta' }, `${c.ig.tier} · ${c.ig.followers} · ${c.ig.niche}`),
+      c.step === 0 ? el('div', { class: 'faint xs', style: 'margin-top:4px' }, 'Mentions: ' + c.ig.ref) : null,
+      el('pre', { class: 'reply', id: 'igText-' + c.id, lang: 'th' }, c.th),
+      el('details', { id: 'igEn-' + c.id, style: 'margin-top:10px' }, el('summary', { class: 'dim sm', style: 'cursor:pointer' }, 'Show English'),
+        el('p', { class: 'sm', style: 'margin:8px 0 0' }, c.en))),
+    el('div', { class: 'tip' }, ic('info'), 'Check their last post is under 30 days old and read the DM thread first. 5–15 min apart, 11:00–21:00. Stop 48 h on any IG warning.'));
+  const go = el('a', { class: 'btn pri big full', href: 'https://instagram.com/' + c.ig.h, target: '_blank', rel: 'noopener noreferrer', id: 'igGo-' + c.id }, ic('copy'), 'Copy & open');
+  go.onclick = () => { void copyText(c.th).then((ok) => toast(ok ? 'Thai DM copied · tap Message, then paste' : 'Could not copy · select the text and copy it', { ms: 4000 })); };
+  const mark = btn('go', [ic('check'), 'Mark sent'], () => { const p = igPace(igLoad()); api.done(`Sent · ${p.done + 1}/${p.max} IG today`, setK('sent')); }, { id: 'igMark-' + c.id });
+  const skip = btn('ghost', [ic('skip'), 'Skip'], () => api.done('Skipped', setK('skip')), { id: 'igSkip-' + c.id });
+  api.actions(el('div', {}, go, el('div', { class: 'two', style: 'margin-top:10px' }, skip, mark)));
+  return card;
+}
 /** Today's Reddit comments for the Replies queue: only as many as the playbook allows today (none on read-only days). */
 function redditToday(): RItem[] {
   const st = rLoad(); const p = rPace(st);
@@ -1133,6 +1205,13 @@ function redditView() {
 }
 
 // ───────────────────────────── More + history ─────────────────────────────
+function igPauseRow(): HTMLElement {
+  const st = igLoad(); const p = igPace(st); const on = igPaused(st);
+  const sent = Object.keys(st.sent).length;
+  return el('div', { class: 'li', id: 'igRow' }, el('span', { class: 'ic' }, ic('send')),
+    el('span', { class: 'grow' }, el('b', {}, 'Instagram DMs'), el('span', { class: 's', id: 'igSub' }, on ? `Paused until ${bkkTime(st.pausedUntil!)}` : `${p.done}/${p.max} today · ${sent}/${IG_TOP.length} sent`)),
+    sw('igPause', 'Paused 48 h', on, (v) => { const u = igLoad(); u.pausedUntil = v ? new Date(Date.now() + 48 * 3600_000).toISOString() : null; igSave(u); counts = null; toast(v ? 'Instagram paused for 48 h' : 'Instagram back on', { ms: 2500 }); moreView(); }));
+}
 function moreView() {
   const li = (href: string, icon: string, title: string, sub: string, id: string) => el('a', { class: 'li', href, id }, el('span', { class: 'ic' }, ic(icon)), el('span', { class: 'grow' }, el('b', {}, title), el('span', { class: 's' }, sub)), ic('chev'));
   const out = el('button', { type: 'button', class: 'li red', id: 'signOut' }, el('span', { class: 'ic' }, ic('out')), el('span', { class: 'grow' }, el('b', {}, 'Sign out')));
@@ -1146,6 +1225,7 @@ function moreView() {
     li('#history/replies', 'send', 'Sent and skipped replies', 'Reddit queue history', 'histReplies'),
     el('div', { class: 'sec' }, 'Outreach'),
     li('#reddit', 'msg', 'Reddit plan', 'Pacing, start date, checklist and history', 'moreReddit'),
+    igPauseRow(),
     el('div', { class: 'sec' }, 'Rules'),
     li('#rules', 'book', 'House rules', 'Reels, reports, faces, replies, payouts, venues', 'rulesLink'),
     el('div', { class: 'sec' }, 'Account'),
