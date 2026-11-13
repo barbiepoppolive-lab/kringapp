@@ -220,7 +220,7 @@ async function loadCounts() {
     rpc<App[]>('kr8_admin_applications', { p_status: 'pending' }).catch(() => [] as App[]),
   ]);
   counts = { reels: reels.length, faces: faces.length, reports: reports.length, hiddenNow: reports.filter((r) => r.post_hidden).length,
-    replies: social.filter((s) => s.status === 'pending').length, venues: apps.length, status: st };
+    replies: social.filter((s) => s.status === 'pending').length + redditToday().length, venues: apps.length, status: st };
   return counts;
 }
 
@@ -248,13 +248,13 @@ async function todoView() {
       tile('todo-faces', '#q/faces', c.faces, 'Face checks', 'blue', 'Verify members'),
       tile('todo-reports', '#q/reports', c.reports, 'Reports', 'red', c.hiddenNow ? `${c.hiddenNow} Reel hidden now` : 'Open reports'),
       tile('todo-replies', '#q/replies', c.replies, 'Replies to send', '', nextAt || 'Reddit drafts'),
-      venueTile, redditTile()),
+      venueTile),
     total ? el('div', { class: 'est' }, ic('clock'), `About ${total} min in all`) : '');
 }
 
 // ───────────────────────────── queue frame ─────────────────────────────
 type QApi = { done: (label: string, write: () => Promise<unknown>) => void; next: () => void; skip: () => void; actions: (el: HTMLElement) => void };
-function queue<T extends { id: string }>(title: string, items: T[], renderItem: (it: T, api: QApi) => HTMLElement, onEmptyBack = '#todo') {
+function queue<T extends { id: string }>(title: string, items: T[], renderItem: (it: T, api: QApi) => HTMLElement, onEmptyBack = '#todo', note?: HTMLElement | null) {
   const total = items.length;
   let doneN = 0;
   const list = [...items];
@@ -264,7 +264,7 @@ function queue<T extends { id: string }>(title: string, items: T[], renderItem: 
   const top = el('div', { class: 'qh' }, el('div', { class: 'row' }, close, el('h2', { class: 'grow' }, title), cnt), el('div', { class: 'bar' }, bar));
   const body = el('div', {});
   const act = el('div', { class: 'qact' }, el('div', {}));
-  const s = el('div', { class: 'scr q' }, top, body);
+  const s = el('div', { class: 'scr q' }, top, note || null, body);
   app.replaceChildren(s, act);
   const show = () => {
     window.scrollTo(0, 0);
@@ -494,7 +494,14 @@ async function replyQueue() {
   try { [rows, st] = await Promise.all([rpc<Social[]>('kr8_admin_social_list', { p_status: 'pending' }), rpc<SStatus[]>('kr8_social_status').then((r) => r[0] || null)]); }
   catch (e) { app.replaceChildren(el('div', { class: 'scr' }, errP(e))); return; }
   rows = rows.filter((r) => r.status === 'pending');
-  queue('Replies to send', rows, (r, api) => {
+  const pace = rPace(rLoad());
+  const rItems: QItem[] = redditToday().map((x) => ({ ...x, reddit: true as const }));
+  const note = pace.max === 0 ? el('div', { class: 'tip', id: 'redditNote', style: 'margin:0 0 12px' }, ic('info'), `Reddit: day ${pace.day} of 3 is read only, no comments today.`)
+    : !rItems.length ? el('div', { class: 'tip', id: 'redditNote', style: 'margin:0 0 12px' }, ic('info'), pace.left ? 'Reddit: all suggested comments used.' : 'Reddit: limit reached, come back tomorrow.') : null;
+  const all: QItem[] = [...rItems, ...rows];
+  queue<QItem>('Replies to send', all, (q, api) => {
+    if ('reddit' in q) return redditCard(q, api);
+    const r = q;
     const out = el('div', {});
     const text = el('pre', { class: 'reply', 'data-text': r.id }, r.final_text || r.reply_text);
     const card = el('div', { 'data-social': r.id },
@@ -551,7 +558,7 @@ async function replyQueue() {
     for (const b of [edit, auto, skipT]) b.style.flex = '1';
     api.actions(bar);
     return card;
-  });
+  }, '#todo', note);
 }
 
 // ───────────────────────────── New venue queue ─────────────────────────────
@@ -1057,12 +1064,26 @@ function rPace(st: RState) {
   const last = Object.values(st.posted).sort().pop() || null;
   return { day, min, max, phase, done: times.length, left: Math.max(0, max - times.length), last };
 }
-function redditTile(): HTMLElement {
-  const p = rPace(rLoad());
-  const hint = p.max === 0 ? `Day ${p.day} · read only, no comments yet` : p.left ? `Day ${p.day} · ${p.done}/${p.max} done today` : `Day ${p.day} · limit reached, come back tomorrow`;
-  return el('a', { class: `tile wide ${p.left ? '' : 'zero'}`, href: '#reddit', id: 'todo-reddit' }, el('span', { class: 'n' }, String(p.left)),
-    el('span', { class: 'grow' }, el('span', { class: 't', style: 'display:block' }, `Reddit: ${p.left} today`), el('span', { class: 'h', style: 'display:block' }, hint)),
-    el('span', { class: 'go', style: 'position:static' }, ic('chev')));
+type QItem = Social | (RItem & { reddit: true });
+/** Today's Reddit comments for the Replies queue: only as many as the playbook allows today (none on read-only days). */
+function redditToday(): RItem[] {
+  const st = rLoad(); const p = rPace(st);
+  return R_SEED.filter((r) => !st.posted[r.id] && !st.skipped[r.id]).slice(0, p.left);
+}
+function redditCard(r: RItem, api: QApi): HTMLElement {
+  const setK = (k: 'posted' | 'skipped') => async () => { const u = rLoad(); u[k][r.id] = new Date().toISOString(); rSave(u); };
+  const card = el('div', { 'data-reddit': r.id },
+    el('div', { class: 'card' },
+      el('div', { class: 'row' }, pill('Reddit · r/' + r.sub, 'p')),
+      el('div', { style: 'margin-top:10px;font:600 17px/1.3 var(--h)', id: 'redditTitle' }, r.title),
+      el('pre', { class: 'reply', id: 'redditText-' + r.id }, r.text)),
+    el('div', { class: 'tip' }, ic('info'), 'Edit it to fit the thread. No link, never name the app, 2+ hours apart.'));
+  const go = el('a', { class: 'btn pri big full', href: r.url, target: '_blank', rel: 'noopener noreferrer', id: 'redditGo-' + r.id }, ic('copy'), 'Copy & open');
+  go.onclick = () => { void copyText(r.text).then((ok) => toast(ok ? 'Copied · long-press the comment box and paste' : 'Could not copy · select the text and copy it', { ms: 4000 })); };
+  const mark = btn('go', [ic('check'), 'Mark posted'], () => { const p = rPace(rLoad()); api.done(`Posted · ${p.done + 1}/${p.max} today`, setK('posted')); }, { id: 'redditMark-' + r.id });
+  const skip = btn('ghost', [ic('skip'), 'Skip'], () => api.done('Skipped', setK('skipped')), { id: 'redditSkip-' + r.id });
+  api.actions(el('div', {}, go, el('div', { class: 'two', style: 'margin-top:10px' }, skip, mark)));
+  return card;
 }
 async function copyText(t: string): Promise<boolean> {
   try { await navigator.clipboard.writeText(t); return true; } catch { /* fall back */ }
@@ -1081,26 +1102,6 @@ function redditView() {
       `Day ${p.day} of 3 is read only: read, upvote and join the subs, verify the email. No comments yet.`)
     : full ? el('div', { class: 'warnbox', id: 'redditLimit' }, ic('warn'), 'Limit reached, come back tomorrow.')
       : gap > 0 ? el('div', { class: 'tip', id: 'redditGap' }, ic('clock'), `Next one after ${bkkTime(new Date(Date.parse(p.last!) + 2 * 3600_000).toISOString(), false)} (2+ hours apart).`) : null;
-  const queueItems = R_SEED.filter((r) => !st.posted[r.id] && !st.skipped[r.id]);
-  const card = (r: RItem) => {
-    const c = el('div', { class: 'card', 'data-reddit': r.id },
-      el('div', { class: 'row' }, pill('r/' + r.sub, 'p')),
-      el('div', { style: 'margin-top:10px;font:600 16px/1.3 var(--h)' }, r.title),
-      el('pre', { class: 'reply', id: 'redditText-' + r.id }, r.text));
-    const copy = btn('pri', [ic('copy'), 'Copy'], async () => { toast(await copyText(r.text) ? 'Copied · edit it to fit the thread, then paste' : 'Could not copy · select the text and copy it', { ms: 3000 }); }, { id: 'redditCopy-' + r.id });
-    const open = el('a', { class: 'btn ghost', href: r.url, target: '_blank', rel: 'noopener noreferrer', id: 'redditOpen-' + r.id }, ic('open'), 'Open thread');
-    const mark = btn('go full', [ic('check'), 'Mark posted'], () => {
-      const cur = rLoad(); if (rPace(cur).left === 0) { toast('Limit reached, come back tomorrow.', { ms: 3000 }); return; }
-      cur.posted[r.id] = new Date().toISOString(); rSave(cur);
-      toast(`Posted · ${rPace(cur).done}/${rPace(cur).max} today`, { ms: 5000, undo: () => { const u = rLoad(); delete u.posted[r.id]; rSave(u); redditView(); } });
-      redditView();
-    }, { id: 'redditMark-' + r.id, disabled: full });
-    const skip = el('button', { type: 'button', class: 'skip', id: 'redditSkip-' + r.id }, ic('skip'), 'Skip');
-    skip.onclick = () => { const cur = rLoad(); cur.skipped[r.id] = new Date().toISOString(); rSave(cur); toast('Skipped', { ms: 4000, undo: () => { const u = rLoad(); delete u.skipped[r.id]; rSave(u); redditView(); } }); redditView(); };
-    c.append(el('div', { class: 'two', style: 'grid-template-columns:1fr 1fr;margin-top:12px' }, copy, open), el('div', { style: 'margin-top:10px' }, mark), skip);
-    if (full) (mark as HTMLButtonElement).title = 'Limit reached, come back tomorrow.';
-    return c;
-  };
   const hist = [
     ...Object.entries(st.posted).map(([id, at]) => ({ id, at, kind: 'posted' as const })),
     ...Object.entries(st.skipped).map(([id, at]) => ({ id, at, kind: 'skipped' as const })),
@@ -1113,7 +1114,7 @@ function redditView() {
       h.kind === 'posted' ? el('a', { class: 'icb', href: r.url, target: '_blank', rel: 'noopener noreferrer', 'aria-label': 'Open thread' }, ic('open')) : null, back);
   };
   screen('more',
-    el('div', { class: 'row', style: 'margin:6px 0 16px' }, el('a', { class: 'icb', href: '#todo', 'aria-label': 'Back' }, ic('back')), el('h1', { style: 'font-size:26px' }, 'Reddit')),
+    el('div', { class: 'row', style: 'margin:6px 0 16px' }, el('a', { class: 'icb', href: '#more', 'aria-label': 'Back' }, ic('back')), el('h1', { style: 'font-size:26px' }, 'Reddit plan')),
     el('details', { class: 'card', id: 'redditChecklist' },
       el('summary', {}, el('span', { class: 'grow' }, el('b', {}, 'Before you post'), el('span', { class: 'dim sm' }, 'Comments only · no links · never name the app')), ic('chev')),
       el('div', { class: 'in' }, el('ul', { style: 'margin:0;padding-left:20px;line-height:1.55' }, ...R_CHECK.map((t) => el('li', {}, t))))),
@@ -1125,9 +1126,8 @@ function redditView() {
       el('summary', {}, el('span', { class: 'grow' }, el('b', { style: 'font-size:15px' }, `Started ${fmt(st.start)}`), el('span', { class: 'dim sm' }, 'Days 1–3 read · then 2–3 a day for two weeks · then 3–5')), ic('chev')),
       el('div', { class: 'in' }, el('label', { class: 'f' }, 'Start date (day 1)', startIn))),
     status,
-    el('div', { class: 'sec' }, `Suggested comments · ${queueItems.length}`),
-    queueItems.length ? el('div', { id: 'redditQueue' }, ...queueItems.map(card)) : empty('Queue empty', 'All 10 posted or skipped.'),
-    el('div', { class: 'tip' }, ic('info'), 'Treat these as patterns, not paste-ins: check each still fits the thread today.'),
+    el('a', { class: 'li', href: '#q/replies', id: 'redditToQueue', style: 'margin-top:12px' }, el('span', { class: 'ic' }, ic('send')),
+      el('span', { class: 'grow' }, el('b', {}, `Today's comments · ${redditToday().length}`), el('span', { class: 's' }, 'In To do → Replies to send')), ic('chev')),
     el('div', { class: 'sec' }, `History · ${hist.length}`),
     hist.length ? el('div', { id: 'redditHistory' }, ...hist.map(histRow)) : el('p', { class: 'faint sm', id: 'redditHistory' }, 'Nothing posted yet.'));
 }
@@ -1145,7 +1145,7 @@ function moreView() {
     li('#history/faces', 'face', 'Past face checks', 'Approved and rejected', 'histFaces'),
     li('#history/replies', 'send', 'Sent and skipped replies', 'Reddit queue history', 'histReplies'),
     el('div', { class: 'sec' }, 'Outreach'),
-    li('#reddit', 'msg', 'Reddit', 'Comment-only plan · today\'s target and queue', 'moreReddit'),
+    li('#reddit', 'msg', 'Reddit plan', 'Pacing, start date, checklist and history', 'moreReddit'),
     el('div', { class: 'sec' }, 'Rules'),
     li('#rules', 'book', 'House rules', 'Reels, reports, faces, replies, payouts, venues', 'rulesLink'),
     el('div', { class: 'sec' }, 'Account'),
