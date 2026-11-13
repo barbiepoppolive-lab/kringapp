@@ -1,0 +1,18 @@
+/* Owner print-files page: cream paper, pink + tea orange, Thai first. Overrides the dark admin palette from venue.css. */
+:root { color-scheme: light; --text: #2A1E16; --line: #EADFD2; }
+html, body { background: #FFF7EC; color: #2A1E16; font-family: 'Anuphan', 'Plus Jakarta Sans', 'Noto Sans Thai', system-ui, sans-serif; }
+main.standpage { max-width: 560px; }
+.standpage .top { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; }
+.standpage .top b { font: 800 20px 'Bricolage Grotesque', 'Anuphan', sans-serif; background: linear-gradient(90deg, #FF8A3D, #FF4FA3); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.standpage .tx .en { color: #7A6A5C; }
+.standpage h1 { font: 800 24px/1.2 'Anuphan', sans-serif; margin: 6px 0 2px; }
+.standpage h2 { font-size: 17px; margin: 0 0 4px; }
+.standpage .muted { color: #7A6A5C; margin: 0 0 10px; font-size: 13.5px; }
+.standpage .note { background: #FFE9F2; border-radius: 12px; padding: 8px 12px; font-size: 13px; }
+.standpage .pcard { background: #fff; border-radius: 20px; padding: 16px; margin: 14px 0; box-shadow: 0 6px 20px -12px rgba(42,30,22,.4); }
+.standpage canvas.preview { display: block; width: 100%; max-width: 320px; height: auto; margin: 6px auto 14px; border-radius: 10px; box-shadow: 0 8px 24px -10px rgba(42,30,22,.45); }
+.standpage #stickerCanvas { max-width: 260px; border-radius: 50%; }
+.standpage button.big { background: linear-gradient(90deg, #FF8A3D, #FF4FA3); color: #fff; flex: 1 1 auto; }
+.standpage button.big .en { color: rgba(255,255,255,.9); }
+.standpage button.ghost { color: #2A1E16; border-color: #EADFD2; }
+.standpage .err { color: #C62F5E; font-weight: 700; padding: 40px 0; text-align: center; }

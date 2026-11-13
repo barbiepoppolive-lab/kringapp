@@ -1,0 +1,115 @@
+/* =====================================================================================================================
+ * KRING VISUAL V2 · "Floating" motion (founder pick, P3 · Motion = Floating). Owner: V1. Shared by every screen.
+ *
+ *   .kf-hero      THE one floating hero of a screen: drifts 0 → −4 px with a 1° tilt, 7 s, ease-in-out, forever.
+ *   .kf-hero-alt  same idea, a second rhythm (−3 px, +1.5°, 6.5 s) for a hero that sits next to another float.
+ *   .kf-spec      an empty child <span className="kf-spec" aria-hidden="true" /> inside a positioned host:
+ *                 a slow specular light sweep across the host every 8 s (clipped to the host's radius).
+ *   .kf-press     press = scale .98 with a soft spring back (on :active). Never moves at rest.
+ *   .kf-stagger   its direct children rise in ONCE, 40 ms apart (--i is set automatically, or pass style={{'--i': n}}).
+ *   .kf-sheet     a sheet panel that rises with the soft spring (.56 s) when it gets [data-open="true"] / .is-open.
+ *
+ * Budget: ≤ 2 things moving at rest per screen (the header logo + ONE .kf-hero). Transform/opacity only — the float
+ * uses the individual `translate` / `rotate` properties, so it composes with any transform the element already has.
+ * Off-screen = paused: give the hero `ref={useFloatRef()}` (src/design/floating.ts) → it carries data-inview="false"
+ * while hidden. A hidden tab/app pauses everything via html[data-kf-hidden]. Reduced motion = completely still.
+ * =================================================================================================================== */
+
+@keyframes kf-float {
+  0%, 100% { translate: 0 0; rotate: 0deg; }
+  50% { translate: 0 -4px; rotate: -1deg; }
+}
+@keyframes kf-float-alt {
+  0%, 100% { translate: 0 0; rotate: 0deg; }
+  50% { translate: 0 -3px; rotate: 1.5deg; }
+}
+@keyframes kf-sweep {
+  0%, 70% { transform: translateX(-140%) skewX(-14deg); opacity: 0; }
+  73% { opacity: 1; }
+  95% { transform: translateX(340%) skewX(-14deg); opacity: 1; }
+  100% { transform: translateX(340%) skewX(-14deg); opacity: 0; }
+}
+@keyframes kf-rise {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+.kf-hero { animation: kf-float 7s ease-in-out infinite; will-change: translate; }
+.kf-hero-alt { animation: kf-float-alt 6.5s ease-in-out infinite; will-change: translate; }
+
+.kf-spec {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.kf-spec::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 42%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.14) 50%, transparent);
+  transform: translateX(-140%) skewX(-14deg);
+  opacity: 0;
+  animation: kf-sweep 8s ease-in-out infinite;
+}
+
+.kf-press {
+  transition: scale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.kf-press:active {
+  scale: 0.98;
+  transition-duration: 0.12s;
+}
+
+.kf-stagger > * {
+  animation: kf-rise 0.42s cubic-bezier(0.3, 1.3, 0.5, 1) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
+}
+/* --i is written once per child by installFloatingVisibility()'s observer (no :nth-child rules: each one would be
+   tested against every element on every style recalc) */
+
+.kf-sheet {
+  transition: transform 0.56s cubic-bezier(0.3, 1.25, 0.5, 1);
+}
+
+/* paused: off-screen (useFloatRef / watchInView), or the whole app hidden */
+.kf-hero[data-inview='false'],
+.kf-hero-alt[data-inview='false'],
+[data-inview='false'] > .kf-spec::before,
+[data-inview='false'] .kf-hero,
+html[data-kf-hidden] .kf-hero,
+html[data-kf-hidden] .kf-hero-alt,
+html[data-kf-hidden] .kf-spec::before {
+  animation-play-state: paused;
+}
+
+/* reduced motion = still (both the OS setting and the in-app switch) */
+@media (prefers-reduced-motion: reduce) {
+  .kf-hero,
+  .kf-hero-alt,
+  .kf-spec::before,
+  .kf-stagger > * {
+    animation: none !important;
+  }
+  .kf-press,
+  .kf-press:active {
+    transition: none !important;
+    scale: 1 !important;
+  }
+  .kf-sheet { transition-duration: 0.15s; }
+}
+html[data-reduce-motion='true'] .kf-hero,
+html[data-reduce-motion='true'] .kf-hero-alt,
+html[data-reduce-motion='true'] .kf-spec::before,
+html[data-reduce-motion='true'] .kf-stagger > * {
+  animation: none !important;
+}
+html[data-reduce-motion='true'] .kf-press,
+html[data-reduce-motion='true'] .kf-press:active {
+  transition: none !important;
+  scale: 1 !important;
+}

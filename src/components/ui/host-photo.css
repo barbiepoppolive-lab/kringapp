@@ -1,0 +1,35 @@
+/* KRING VISUAL V2 · HostPhoto fallback (owner V2). Vivid per-host gradient + dark silhouette with a coloured rim;
+   with `scene` the gradient becomes a blurred, tinted scene photo. Never a letter, never a brown block. */
+.hp.hp-v2 {
+  background:
+    radial-gradient(80% 64% at 74% 6%, hsl(var(--hp-h, 234) 96% 68% / .78), transparent 62%),
+    radial-gradient(90% 70% at 0% 100%, hsl(var(--hp-h2, 268) 90% 58% / .55), transparent 66%),
+    linear-gradient(164deg, hsl(var(--hp-h, 234) 88% 52%), hsl(var(--hp-h2, 268) 82% 20%));
+}
+.hp.hp-v2::before,
+.hp.hp-v2::after { content: none; }
+.hp-v2 > .hp-scene {
+  /* a tiny pre-softened JPEG scaled up = a blur with no filter cost */
+  position: absolute; inset: 0; z-index: -2;
+  background-size: cover; background-position: center;
+}
+.hp-v2.has-scene::after {
+  /* the host's colour washed over the scene */
+  content: ''; position: absolute; inset: 0; z-index: -1; left: 0; translate: none; width: auto; aspect-ratio: auto; border-radius: 0;
+  background: linear-gradient(180deg, hsl(var(--hp-h, 234) 90% 56% / .26), hsl(var(--hp-h2, 268) 80% 20% / .5));
+}
+.hp-v2 > .hp-sil {
+  position: absolute; z-index: 0; left: 50%; bottom: 0; width: 84%; height: 64%; translate: -50% 0;
+  overflow: visible;
+}
+.hp-v2.is-round > .hp-sil { width: 100%; height: 86%; }
+.hp-sil-fill { fill: #070812; opacity: .9; }
+.hp-sil-rim {
+  fill: none;
+  stroke: hsl(var(--hp-h, 234) 92% 70% / .75);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.hp-v2.is-loaded > .hp-scene,
+.hp-v2.is-loaded > .hp-sil { display: none; }

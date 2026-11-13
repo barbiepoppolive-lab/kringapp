@@ -1,0 +1,28 @@
+/* "For your trip" partner cards (Deals tab). Night navy cards, one accent per card; no yellow (monarchy rule). */
+.ktrip { margin: 22px 0 8px; }
+.ktrip-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 0 2px 8px; }
+.ktrip-head h3 { margin: 0; font: 800 20px 'Bricolage Grotesque', 'Anuphan', sans-serif; color: #fff; }
+.ktrip-trust { color: #3DDC97; font-weight: 700; font-size: 13px; white-space: nowrap; }
+.ktrip-disc { margin: 0 0 12px; padding: 9px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.04); color: rgba(255,255,255,.8); font-size: 12.5px; line-height: 1.4; }
+.ktrip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ktrip-card { display: flex; flex-direction: column; gap: 3px; padding: 14px 12px 12px; border-radius: 20px; background: #1D1E52; border: 1px solid rgba(255,255,255,.1); min-width: 0; }
+.ktrip-kick { font-size: 10.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.ktrip-name { color: #fff; font-size: 15px; line-height: 1.25; }
+.ktrip-sub { color: rgba(255,255,255,.72); font-size: 12.5px; line-height: 1.3; flex: 1; }
+.ktrip-cta { margin-top: 10px; display: block; text-align: center; padding: 9px 6px; border-radius: 999px; font-weight: 800; font-size: 13px; text-decoration: none; border: 1.5px solid currentColor; }
+.ktrip-card.blue .ktrip-kick { color: #FF8A3D; } .ktrip-card.blue .ktrip-cta { color: #fff; background: rgba(115,129,255,.28); border-color: #7381FF; }
+.ktrip-card.green .ktrip-kick, .ktrip-card.green .ktrip-cta { color: #3DDC97; } .ktrip-card.green .ktrip-cta { background: rgba(61,220,151,.12); }
+.ktrip-card.pink .ktrip-kick { color: #FF4FA3; } .ktrip-card.pink .ktrip-cta { color: #fff; background: rgba(255,79,163,.22); border-color: #FF4FA3; }
+.ktrip-card.tea .ktrip-kick, .ktrip-card.tea .ktrip-cta { color: #FF8A3D; } .ktrip-card.tea .ktrip-cta { background: rgba(255,138,61,.14); }
+@media (max-width: 340px) { .ktrip-grid { grid-template-columns: 1fr; } }
+/* v2 (affiliate ticket): whole card is the link, colour "photo" panel first */
+a.ktrip-card { text-decoration: none; padding: 0 0 12px; overflow: hidden; }
+a.ktrip-card > :not(.ktrip-photo) { margin-left: 12px; margin-right: 12px; }
+.ktrip-photo { display: grid; place-items: center; height: 92px; margin-bottom: 8px; }
+.ktrip-photo i { font-style: normal; font-size: 40px; filter: drop-shadow(0 4px 10px rgba(0,0,0,.3)); }
+.ktrip-card.blue .ktrip-photo { background: linear-gradient(135deg, #3B45E6, #7381FF); }
+.ktrip-card.green .ktrip-photo { background: linear-gradient(135deg, #1FA36B, #3DDC97); }
+.ktrip-card.pink .ktrip-photo { background: linear-gradient(135deg, #C2306E, #FF4FA3); }
+.ktrip-card.tea .ktrip-photo { background: linear-gradient(135deg, #E0601F, #FF8A3D); }
+.ktrip-grid + .ktrip-disc { margin: 10px 0 0; }
+.ktrip-kick { text-transform: none; letter-spacing: 0; font-size: 12px; }

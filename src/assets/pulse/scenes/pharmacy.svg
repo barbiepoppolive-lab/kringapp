@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Pharmacy and recovery">
+<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6EE7B7"/><stop offset=".55" stop-color="#047857"/><stop offset="1" stop-color="#051B14"/></linearGradient>
+<radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#5EEAD4" stop-opacity=".85"/><stop offset="1" stop-color="#5EEAD4" stop-opacity="0"/></radialGradient></defs>
+<rect width="96" height="96" rx="14" fill="url(#sky)"/>
+<rect y="62" width="96" height="34" fill="#041510"/>
+<circle cx="48" cy="40" r="24" fill="url(#glow)"/>
+<rect x="22" y="28" width="34" height="34" rx="6" fill="#F7F8F8"/>
+<rect x="36" y="35" width="6" height="20" rx="1.5" fill="#047857"/>
+<rect x="29" y="42" width="20" height="6" rx="1.5" fill="#047857"/>
+<path d="M70 28c0 0 10 12 10 19a10 10 0 0 1-20 0c0-7 10-19 10-19z" fill="#F7F8F8"/>
+<path d="M70 34c0 0 6 8 6 13a6 6 0 0 1-12 0c0-5 6-13 6-13z" fill="#34D399"/>
+<rect x="26" y="70" width="44" height="10" rx="5" fill="#F7F8F8"/>
+<path d="M48 70h17a5 5 0 0 1 0 10H48z" fill="#FFB830"/>
+</svg>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="hotel">
+<defs><radialGradient id="g" cx="30%" cy="22%" r="95%"><stop offset="0" stop-color="#94A3B8"/><stop offset=".55" stop-color="#334155"/><stop offset="1" stop-color="#0B0F14"/></radialGradient></defs>
+<rect width="96" height="96" rx="14" fill="url(#g)"/>
+<g fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" transform="translate(28 28) scale(1.666)"><path d="M3 21V9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12M3 21h18M7 11h2M11 11h2M15 11h2M7 15h2M11 15h2M15 15h2M10 21v-4h4v4"/></g>
+</svg>

@@ -1,0 +1,469 @@
+/*
+ * Chonn! Depth Build · Agent C · deep pages (Pulse, Chats, Wallet, Onboarding, Rewards, help/tasks surfaces).
+ * Borderless depth surfaces: light does the work (top rim + soft depth shadow), never 1px lines.
+ * Motion: one-shot by default, transforms/opacity only, every animation has a reduced-motion fallback.
+ * Uses Agent A's tokens (--rim, --shadow-depth, --glow, --accent-soft …) with safe fallbacks.
+ */
+
+:root {
+  --dm-rim: var(--rim, rgba(255, 255, 255, 0.14));
+  --dm-depth: var(--shadow-depth, 0 20px 40px -20px rgba(0, 0, 0, 0.85));
+  --dm-surface: color-mix(in srgb, var(--surface-1) 86%, transparent);
+  --dm-surface-2: color-mix(in srgb, var(--surface-2) 92%, transparent);
+  --dm-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --dm-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ---------- shared depth primitives (scoped dm-*) ---------- */
+
+/* hairline gradient between rows, painted as a 1px background so flex rows are untouched */
+
+/* one search surface (Pulse + Chats) */
+
+/* depth icon tiles (Pulse tools row + Wallet four tiles) */
+.dm-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding-top: 2px; }
+.dm-tiles > .ux-tile,
+.dm-tiles > .dm-tile {
+  position: relative;
+  background: transparent !important;
+  border: 0;
+  min-height: 0;
+  padding: 0;
+  gap: 6px;
+  color: var(--text-2);
+  text-decoration: none;
+}
+.dm-tiles .ux-tile-icon,
+.dm-tiles .dm-tile-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  font-size: 22px;
+  font-style: normal;
+  line-height: 1;
+  background: var(--dm-surface);
+  box-shadow: inset 0 1px 0 var(--dm-rim), var(--dm-depth);
+}
+.dm-tiles .ux-tile-label,
+.dm-tiles .dm-tile-label { font-size: 11px !important; font-weight: 600; color: var(--text-2); }
+.dm-tiles .is-sos .ux-tile-icon,
+.dm-tiles .is-sos .dm-tile-icon { color: var(--danger-text); }
+.dm-tiles .is-sos .ux-tile-label,
+.dm-tiles .is-sos .dm-tile-label { color: var(--danger-text); }
+
+/* SOS hold disc inside a depth tile (LivingIcons.SosHold keeps its own ring + done state) */
+.dm-tiles .is-sos .ux-sos-hold.ux-tile-icon {
+  border-radius: 50%;
+  background: var(--danger-soft);
+  color: var(--danger-text);
+  font-size: 22px;
+  box-shadow: inset 0 1px 0 var(--dm-rim), var(--dm-depth);
+}
+
+/* ---------- PULSE ---------- */
+
+/* Bundles: borderless items, switches carry rim light */
+.dm-bundle .ux-bundle-item {
+  border: 0;
+  background: var(--dm-surface);
+  box-shadow: inset 0 1px 0 var(--dm-rim), var(--dm-depth);
+}
+.dm-bundle .ux-bundle-item img { box-shadow: inset 0 1px 0 var(--dm-rim); }
+.dm-bundle .ux-savings-hero { border: 0; box-shadow: inset 0 1px 0 var(--dm-rim), var(--dm-depth); }
+.dm-bundle .ux-switch {
+  background-color: var(--surface-3);
+  box-shadow: inset 0 1px 0 var(--dm-rim), inset 0 -1px 2px rgba(0, 0, 0, 0.35);
+}
+.dm-bundle .ux-switch::after { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 6px rgba(0, 0, 0, 0.35); }
+.dm-bundle .ux-switch[aria-checked='true'] {
+  background-color: var(--gold, var(--accent));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 0 14px -4px var(--glow);
+}
+.dm-bundle .ux-seg { border: 0; background: var(--dm-surface); box-shadow: inset 0 1px 0 var(--dm-rim); }
+
+/* ---------- CHATS ---------- */
+
+/* chat room plan bar = rim-lit ticket */
+
+/* luxury empty state */
+.dm-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 26px 16px 22px; text-align: center; }
+
+/* ---------- WALLET ---------- */
+.ux-card.ux-balance.dm-wallet-card {
+  border: 0;
+  background: linear-gradient(165deg, var(--accent-soft), var(--surface-1) 65%);
+  box-shadow: inset 0 1px 0 var(--dm-rim), var(--dm-depth);
+  transform-style: preserve-3d;
+  transition: transform 220ms var(--dm-spring), box-shadow 220ms ease;
+}
+.ux-card.ux-balance.dm-wallet-card.is-glow { box-shadow: inset 0 1px 0 var(--dm-rim), 0 0 32px -12px var(--glow), var(--dm-depth); }
+.dm-wallet-card .ux-balance-amount { font-size: 40px; font-weight: 800; line-height: 1.05; }
+
+.dm-disc-group {
+  border-radius: 20px;
+  padding: 2px 0;
+  background: var(--dm-surface);
+  box-shadow: inset 0 1px 0 var(--dm-rim), var(--dm-depth);
+}
+.dm-disc-group > div { position: relative; }
+.dm-disc-group > div + div::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 14px;
+  right: 14px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line-2, var(--dm-rim)), transparent);
+}
+.dm-disc-group .ux-disc { background: transparent; border: 0; border-radius: 20px; }
+.dm-disc-group .ux-disc-body { padding: 0 10px 10px; }
+
+.dm-empty-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 12px 14px;
+  border-radius: 20px;
+  background: var(--dm-surface);
+  box-shadow: inset 0 1px 0 var(--dm-rim), var(--dm-depth);
+}
+.dm-empty-row > .dm-empty-ico { flex: none; font-size: 20px; }
+.dm-wallet .ux-row { border: 0; }
+.dm-wallet .ux-seg { border: 0; background: var(--dm-surface); box-shadow: inset 0 1px 0 var(--dm-rim); }
+
+/* blocked list panel */
+.dm-blocked {
+  border: 0;
+  background: var(--dm-surface);
+  box-shadow: inset 0 1px 0 var(--dm-rim), var(--dm-depth);
+}
+.dm-blocked .ux-input { border: 0; background: var(--surface-2); box-shadow: inset 0 1px 0 var(--dm-rim); }
+
+/* ---------- ONBOARDING ---------- */
+.dm-onb .ux-input { border: 0; background: var(--dm-surface); box-shadow: inset 0 1px 0 var(--dm-rim), var(--dm-depth); }
+.dm-onb .ux-input:focus { outline: 0; box-shadow: inset 0 1px 0 var(--dm-rim), inset 0 0 0 1px var(--accent), var(--dm-depth); }
+.dm-onb .ux-pill { border: 0; box-shadow: inset 0 1px 0 var(--dm-rim); }
+
+.dm-onb .ux-disc { border: 0; background: var(--dm-surface); box-shadow: inset 0 1px 0 var(--dm-rim), var(--dm-depth); }
+
+.dm-onb-vcheck { position: absolute; right: 6px; bottom: 6px; }
+
+/* ---------- REWARDS ---------- */
+
+/* ---------- surfaces-only scopes (TasksAndGamesDrawer, FeatureIncentiveOverlay) ---------- */
+.dm-depth-scope,
+.dm-depth-scope :where(.border, .border-2, .border-t, .border-b, [class*=' border-'], [class^='border-']):not(input):not(textarea):not(select) {
+  border-color: transparent !important;
+}
+.dm-depth-scope :where(.rounded-2xl, .rounded-3xl)[class*='bg-']:not(input):not(textarea) {
+  box-shadow: inset 0 1px 0 var(--dm-rim), var(--dm-depth);
+}
+.dm-depth-scope :where(.rounded-xl, .rounded-full)[class*='bg-']:not(input):not(textarea) {
+  box-shadow: inset 0 1px 0 var(--dm-rim);
+}
+.dm-depth-scope.dm-depth-root { box-shadow: inset 0 1px 0 var(--dm-rim), var(--dm-depth); }
+.dm-sheet-surface { border: 0 !important; box-shadow: inset 0 1px 0 var(--dm-rim), 0 -20px 40px -20px rgba(0, 0, 0, 0.85); }
+.dm-help-cards .ux-row { border: 0; background: var(--dm-surface); box-shadow: inset 0 1px 0 var(--dm-rim), var(--dm-depth); }
+.dm-help-cards .dm-icon-tile { background: var(--dm-surface-2) !important; box-shadow: inset 0 1px 0 var(--dm-rim); }
+
+@media (prefers-reduced-motion: reduce) {
+  
+  .ux-card.ux-balance.dm-wallet-card{ transition: none; }
+}
+
+/* =====================================================================================================
+ * NEXT95 · G3 · guide demos (`gd-`): a 3-second mock of the real screen above each guide page.
+ * Timeline (3.2 s, plays 3×, rests on the final state): finger glides in → presses the control at ~46% →
+ * the "before" fades out and the "after" rises in. 3-state demos (extend): ask at ~34%, wait, accepted at ~78%.
+ * Transforms / opacity only. Reduced motion (OS or in-app) → final state, no finger.
+ * ===================================================================================================== */
+.gd {
+  --gd-dur: 3.2s; --gd-n: 3; --gd-ease: cubic-bezier(0.45, 0, 0.2, 1);
+  --gd-shade: color-mix(in srgb, var(--surface-0) 85%, transparent);
+  position: relative; height: 184px; margin: 0 0 22px; padding: 14px; overflow: hidden; border-radius: 22px;
+  display: flex; flex-direction: column; justify-content: center; gap: 10px;
+  background:
+    radial-gradient(90% 70% at 50% 0%, color-mix(in srgb, var(--gold) 11%, transparent), transparent 70%),
+    var(--surface-1);
+  box-shadow: inset 0 1px 0 var(--dm-rim), 0 20px 34px -22px var(--gd-shade);
+  color: var(--text-1); font-size: 13px; text-align: left; user-select: none; pointer-events: none;
+}
+.gd b { font-weight: 750; }
+.gd small { font-size: 11.5px; line-height: 1.35; color: var(--text-2); }
+.gd-mono { font-family: var(--font-mono, ui-monospace, monospace); font-size: 9.5px; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; color: var(--text-2); }
+.gd-dim { color: var(--text-3); }
+.gd-gold { color: var(--gold); }
+.gd-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.gd-col { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.gd-ic { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
+.gd-swap { display: grid; min-width: 0; }
+.gd-swap > * { grid-area: 1 / 1; min-width: 0; }
+.gd-under { text-align: center; }
+
+/* the moving parts */
+.gd-tap { position: relative; display: inline-flex; min-width: 0; }
+.gd-tap.is-grow { flex: 1; }
+.gd-press { display: inline-flex; width: 100%; animation: gd-press var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+.gd-ripple { position: absolute; left: 50%; top: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; background: color-mix(in srgb, var(--text-1) 40%, transparent); opacity: 0; animation: gd-ripple var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+.gd-finger { position: absolute; left: 50%; top: 50%; z-index: 3; width: 22px; height: 32px; margin: -3px 0 0 -11px; transform-origin: 50% 10%; animation: gd-finger var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+/* ROUND5 · a fingertip, not a grey disc: warm pad + nail, a soft contact shadow, tip on the tap point */
+.gd-finger-svg { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 5px 8px var(--gd-shade)); }
+.gd-finger-pad { fill: color-mix(in srgb, var(--champagne) 38%, white); fill-opacity: 0.95; stroke: color-mix(in srgb, var(--gold) 45%, black); stroke-opacity: 0.45; stroke-width: 1; }
+.gd-finger-nail { fill: color-mix(in srgb, var(--champagne) 10%, white); stroke: color-mix(in srgb, var(--gold) 45%, black); stroke-opacity: 0.25; stroke-width: 0.8; }
+.gd-por.is-anon { display: grid; place-items: center; background: var(--surface-2); color: var(--text-3); }
+.gd-por.is-anon svg { width: 62%; height: 62%; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
+.gd-finger.is-hold { animation-name: gd-finger-hold; }
+.gd-pre { animation: gd-out var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+.gd-post { animation: gd-in var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+.gd-a3 { animation: gd-a3 var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+.gd-b3 { animation: gd-b3 var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+.gd-c3 { animation: gd-c3 var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+.is-extend .gd-press { animation-name: gd-press-early; }
+.is-extend .gd-ripple { animation-name: gd-ripple-early; }
+.is-extend .gd-finger { animation-name: gd-finger-early; }
+
+@keyframes gd-finger {
+  0% { opacity: 0; transform: translate(40px, 34px) scale(1); }
+  16% { opacity: 1; transform: translate(40px, 34px) scale(1); }
+  40% { opacity: 1; transform: translate(0, 0) scale(1); }
+  46% { transform: translate(0, 0) scale(0.78); }
+  54% { opacity: 1; transform: translate(0, 0) scale(1); }
+  68%, 100% { opacity: 0; transform: translate(10px, 14px) scale(1); }
+}
+@keyframes gd-finger-hold {
+  0% { opacity: 0; transform: translate(40px, 34px) scale(1); }
+  14% { opacity: 1; transform: translate(40px, 34px) scale(1); }
+  30% { opacity: 1; transform: translate(0, 0) scale(1); }
+  34%, 68% { opacity: 1; transform: translate(0, 0) scale(0.78); }
+  74% { opacity: 1; transform: translate(0, 0) scale(1); }
+  86%, 100% { opacity: 0; transform: translate(10px, 14px) scale(1); }
+}
+@keyframes gd-finger-early {
+  0% { opacity: 0; transform: translate(40px, 34px) scale(1); }
+  12% { opacity: 1; transform: translate(40px, 34px) scale(1); }
+  28% { opacity: 1; transform: translate(0, 0) scale(1); }
+  33% { transform: translate(0, 0) scale(0.78); }
+  40% { opacity: 1; transform: translate(0, 0) scale(1); }
+  50%, 100% { opacity: 0; transform: translate(10px, 14px) scale(1); }
+}
+@keyframes gd-press { 0%, 43% { transform: none; } 47% { transform: scale(0.94); } 54%, 100% { transform: none; } }
+@keyframes gd-press-early { 0%, 30% { transform: none; } 34% { transform: scale(0.94); } 40%, 100% { transform: none; } }
+@keyframes gd-ripple { 0%, 44% { opacity: 0; transform: scale(0.4); } 48% { opacity: 0.55; } 68%, 100% { opacity: 0; transform: scale(2.4); } }
+@keyframes gd-ripple-early { 0%, 31% { opacity: 0; transform: scale(0.4); } 35% { opacity: 0.55; } 55%, 100% { opacity: 0; transform: scale(2.4); } }
+@keyframes gd-out { 0%, 48% { opacity: 1; transform: none; } 56%, 100% { opacity: 0; transform: translateY(-5px); } }
+@keyframes gd-in { 0%, 50% { opacity: 0; transform: translateY(7px) scale(0.98); } 62%, 100% { opacity: 1; transform: none; } }
+@keyframes gd-a3 { 0%, 36% { opacity: 1; transform: none; } 42%, 100% { opacity: 0; transform: translateY(-5px); } }
+@keyframes gd-b3 { 0%, 38% { opacity: 0; transform: translateY(6px); } 46%, 70% { opacity: 1; transform: none; } 76%, 100% { opacity: 0; transform: translateY(-5px); } }
+@keyframes gd-c3 { 0%, 74% { opacity: 0; transform: translateY(6px) scale(0.98); } 84%, 100% { opacity: 1; transform: none; } }
+
+/* shared bits */
+.gd-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 32px; padding: 0 14px; border-radius: 999px; font-size: 12.5px; font-weight: 800; white-space: nowrap; color: var(--text-1); background: color-mix(in srgb, var(--text-1) 10%, transparent); }
+.gd-btn.is-gold { color: var(--on-accent); background: linear-gradient(180deg, var(--gold-light), var(--gold)); }
+.gd-btn.is-quiet { color: var(--text-2); }
+.gd-btn.is-block { width: 100%; }
+.gd-chip { display: inline-flex; align-items: center; justify-content: center; min-height: 30px; padding: 0 12px; border-radius: 999px; font-size: 12px; font-weight: 750; white-space: nowrap; color: var(--text-2); background: color-mix(in srgb, var(--text-1) 8%, transparent); }
+.gd-chip.is-on { color: var(--surface-0); background: var(--text-1); }
+.gd-pill { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 800; color: var(--gold); background: var(--accent-soft); white-space: nowrap; justify-self: start; }
+.gd-ok { display: flex; align-items: center; gap: 8px; min-height: 32px; font-size: 13px; font-weight: 700; color: var(--success-text); }
+.gd-ok b { color: var(--text-1); }
+.gd-ok.is-small { font-size: 12px; min-height: 0; }
+.gd-por { display: block; background-size: cover; background-position: 50% 30%; }
+.gd-por.is-av { flex: none; width: 34px; height: 34px; border-radius: 50%; box-shadow: 0 0 0 2px var(--surface-1), 0 0 0 3.5px color-mix(in srgb, var(--gold) 60%, transparent); }
+.gd-scrim { position: absolute; inset: 0; background: linear-gradient(transparent 30%, color-mix(in srgb, var(--surface-0) 92%, transparent)); }
+.gd-plan-t { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 1px; }
+.gd-plan-t b, .gd-plan-t small { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* lock: the Meet card, Clink → ฿300 held */
+.gd.is-lock { padding: 0; }
+.gd-wide { position: relative; height: 100%; }
+.gd-por.is-wide { position: absolute; inset: 0; }
+.gd-wide-m { position: absolute; left: 14px; right: 14px; bottom: 14px; display: flex; flex-direction: column; gap: 4px; }
+.gd-name { font-size: 16px; }
+.gd-wide .gd-swap { margin-top: 4px; }
+.gd-wide .gd-tap, .gd-wide .gd-btn { width: 100%; }
+.gd-held { display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 12px; border-radius: 999px; color: var(--gold); background: color-mix(in srgb, var(--surface-0) 70%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 45%, transparent); }
+.gd-held b { font-size: 13px; white-space: nowrap; }
+.gd-held small { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--text-2); }
+
+/* card: two Meet cards, one opens */
+.gd-cards { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 100%; }
+.gd-mini-wrap, .gd-mini-wrap .gd-press { display: block; height: 100%; }
+.gd-mini { position: relative; display: block; height: 100%; overflow: hidden; border-radius: 16px; box-shadow: inset 0 1px 0 var(--dm-rim); }
+.gd-mini .gd-por { position: absolute; inset: 0; }
+.gd-mini.is-dim { opacity: 0.75; }
+.gd-mini b { position: absolute; left: 10px; bottom: 9px; font-size: 13px; }
+.gd-mini-tag { position: absolute; left: 8px; top: 8px; padding: 3px 7px; border-radius: 999px; font-family: var(--font-mono, ui-monospace, monospace); font-size: 8.5px; font-weight: 600; letter-spacing: 0.1em; color: var(--text-1); background: color-mix(in srgb, var(--surface-0) 60%, transparent); }
+.gd-panel { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 16px; background: var(--surface-2); box-shadow: inset 0 1px 0 var(--dm-rim), 0 -12px 24px -10px var(--gd-shade); }
+
+/* price: floor vs ours */
+.gd-ticket { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 18px; background: var(--surface-2); box-shadow: inset 0 1px 0 var(--dm-rim), 0 14px 22px -14px var(--gd-shade); }
+.gd-ticket-ic { display: grid; place-items: center; flex: none; width: 50px; height: 50px; border-radius: 14px; font-size: 22px; background: linear-gradient(135deg, color-mix(in srgb, var(--cyan) 30%, transparent), color-mix(in srgb, var(--violet) 30%, transparent)); }
+.gd-ticket-t { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 3px; }
+.gd-ticket-t > b, .gd-ticket-t > small { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.gd-prices-tap { align-self: flex-start; margin-top: 4px; }
+.gd-prices { display: flex; align-items: baseline; gap: 12px; }
+.gd-prices em { display: block; font-style: normal; font-family: var(--font-mono, ui-monospace, monospace); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.gd-floor s { position: relative; font-size: 13px; font-weight: 700; color: var(--text-2); text-decoration: none; }
+.gd-floor s::after { content: ''; position: absolute; left: -2px; right: -2px; top: 52%; height: 1.5px; background: var(--danger-text); transform-origin: 0 50%; animation: gd-strike var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+@keyframes gd-strike { 0%, 48% { transform: scaleX(0); } 60%, 100% { transform: scaleX(1); } }
+.gd-ours b { font-size: 19px; font-weight: 800; color: var(--gold); }
+.gd-post-inline { animation: gd-in var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+.gd-save { position: absolute; right: 12px; top: 12px; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 800; color: var(--success-text); background: var(--success-soft); }
+
+/* extend: plan bar → ask → accepted */
+.gd-plan { display: flex; flex-direction: column; gap: 12px; }
+.gd-planbar, .gd-req-h { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; background: var(--surface-2); box-shadow: inset 0 1px 0 var(--dm-rim); }
+.gd-plan > .gd-swap { min-height: 34px; align-items: center; }
+.gd-waiting { display: flex; align-items: center; gap: 5px; min-width: 0; }
+.gd-waiting i { width: 6px; height: 6px; flex: none; border-radius: 50%; background: var(--info-text); animation: gd-dot 900ms ease-in-out 3 both; }
+.gd-waiting i:nth-child(2) { animation-delay: 150ms; }
+.gd-waiting i:nth-child(3) { animation-delay: 300ms; }
+.gd-waiting small { margin-left: 6px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+@keyframes gd-dot { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+.is-green { color: var(--success-text) !important; font-weight: 700; }
+.is-red { color: var(--danger-text) !important; }
+
+/* accept / share / online: a request card with two buttons */
+.gd-req { display: flex; flex-direction: column; gap: 12px; }
+.gd-amt { flex: none; font-size: 17px; color: var(--gold); }
+.gd-req .gd-row { gap: 8px; }
+.gd-req .gd-swap { min-height: 34px; align-items: center; }
+.gd-toggle { position: relative; display: block; width: 46px; height: 28px; border-radius: 999px; background: var(--surface-4); }
+.gd-toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--text-3); animation: gd-knob var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+.gd-toggle::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, var(--gold-light), var(--gold)); opacity: 0; animation: gd-in var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+@keyframes gd-knob { 0%, 48% { transform: none; background: var(--text-3); } 58%, 100% { transform: translateX(18px); background: var(--on-accent); } }
+.gd-toast { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; background: color-mix(in srgb, var(--gold) 12%, var(--surface-2)); box-shadow: inset 0 1px 0 var(--dm-rim); }
+
+/* claim: grey → gold → coins */
+.gd-task { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; column-gap: 12px; row-gap: 12px; padding: 12px; border-radius: 18px; background: var(--surface-2); box-shadow: inset 0 1px 0 var(--dm-rim); }
+.gd-task-ic { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 13px; font-size: 19px; background: color-mix(in srgb, var(--text-1) 7%, transparent); }
+.gd-claim { animation: gd-claim var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+@keyframes gd-claim { 0%, 18% { color: var(--text-3); background: color-mix(in srgb, var(--text-1) 8%, transparent); } 28%, 100% { color: var(--on-accent); background: var(--gold); } }
+.gd-bal { grid-column: 1 / -1; display: flex; justify-content: flex-end; font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; color: var(--text-3); }
+.gd-bal b { color: var(--gold); }
+
+/* translate: one bubble flips language */
+.gd-chat { display: flex; flex-direction: column; gap: 8px; }
+.gd-bubble { max-width: 82%; padding: 9px 12px; border-radius: 16px; font-size: 13px; line-height: 1.4; }
+.gd-bubble.is-them { align-self: flex-start; background: color-mix(in srgb, var(--text-1) 9%, transparent); color: var(--text-2); }
+.gd-bubble-tap { align-self: flex-end; max-width: 86%; }
+.gd-bubble.is-me { max-width: none; color: var(--on-accent); background: linear-gradient(180deg, var(--gold-light), var(--gold)); }
+.gd-lang { display: inline-block; margin-right: 4px; padding: 0 5px; border-radius: 5px; font-style: normal; font-family: var(--font-mono, ui-monospace, monospace); font-size: 9.5px; font-weight: 700; vertical-align: 1px; background: color-mix(in srgb, var(--surface-0) 18%, transparent); }
+
+/* gift: the tray stays as it is — a rose pops */
+.gd-gifts { position: relative; display: flex; flex-direction: column; gap: 10px; }
+.gd-tray { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.gd-tray > span, .gd-tray .gd-tap, .gd-tray .gd-press { display: block; width: 100%; }
+.gd-gift { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 0 8px; border-radius: 14px; background: color-mix(in srgb, var(--text-1) 6%, transparent); }
+.gd-gift-e { font-size: 24px; line-height: 1.1; }
+.gd-gift small { font-family: var(--font-mono, ui-monospace, monospace); font-size: 10.5px; color: var(--gold); }
+.gd-float { position: absolute; left: 12%; top: -4px; z-index: 2; font-size: 34px; opacity: 0; animation: gd-float var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+@keyframes gd-float { 0%, 48% { opacity: 0; transform: translateY(40px) scale(0.5); } 62% { opacity: 1; transform: translateY(0) scale(1.15); } 80% { opacity: 1; transform: translateY(-6px) scale(1); } 100% { opacity: 0; transform: translateY(-16px) scale(1); } }
+
+/* sos: hold to fill */
+.gd-sos { display: flex; align-items: center; gap: 18px; padding: 0 6px; }
+.gd-sos-tap { flex: none; }
+.gd-sos-btn { position: relative; display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; color: var(--on-accent); background: radial-gradient(circle at 40% 35%, var(--danger-text), var(--danger)); }
+.gd-sos-btn svg { position: absolute; inset: -8px; width: 100px; height: 100px; transform: rotate(-90deg); }
+.gd-sos-btn circle { fill: none; stroke-width: 3.5; }
+.gd-sos-track { stroke: color-mix(in srgb, var(--danger-text) 25%, transparent); }
+.gd-sos-fill { stroke: var(--danger-text); stroke-linecap: round; stroke-dasharray: 176; stroke-dashoffset: 176; animation: gd-fill var(--gd-dur) linear var(--gd-n) both; }
+@keyframes gd-fill { 0%, 34% { stroke-dashoffset: 176; } 68%, 100% { stroke-dashoffset: 0; } }
+.gd-sos-btn b { position: relative; font-size: 17px; letter-spacing: 0.04em; }
+.gd-sos-t > span { display: flex; flex-direction: column; gap: 3px; }
+.gd.is-sos .gd-pre { animation-name: gd-out-late; }
+.gd.is-sos .gd-post { animation-name: gd-in-late; }
+@keyframes gd-out-late { 0%, 66% { opacity: 1; } 72%, 100% { opacity: 0; } }
+@keyframes gd-in-late { 0%, 68% { opacity: 0; transform: translateY(6px); } 78%, 100% { opacity: 1; transform: none; } }
+
+/* wallet: the metal card + chips (top-up / modes) or cash-out */
+.gd-wallet { display: flex; flex-direction: column; gap: 12px; }
+.gd-metal {
+  position: relative; display: flex; flex-direction: column; justify-content: space-between; height: 92px; padding: 12px 14px; overflow: hidden; border-radius: 16px; color: var(--surface-0);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--text-3) 70%, var(--surface-1)) 0%, var(--text-2) 24%, color-mix(in srgb, var(--text-3) 85%, var(--surface-1)) 46%, color-mix(in srgb, var(--text-1) 80%, var(--text-2)) 63%, color-mix(in srgb, var(--text-3) 70%, var(--surface-1)) 100%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text-1) 45%, transparent), 0 16px 26px -16px var(--gd-shade);
+}
+.gd-metal.is-gold { color: var(--on-accent); background: linear-gradient(135deg, var(--gold-deep) 0%, var(--accent-text) 25%, color-mix(in srgb, var(--gold-deep) 80%, var(--gold)) 48%, var(--gold-light) 64%, var(--gold-deep) 100%); }
+.gd-metal.is-flip { animation: gd-flip var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+@keyframes gd-flip { 0%, 48% { transform: perspective(600px) rotateY(0); } 54% { transform: perspective(600px) rotateY(90deg); } 60%, 100% { transform: perspective(600px) rotateY(0); } }
+.gd-metal.is-flip::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, var(--gold-deep) 0%, var(--accent-text) 25%, color-mix(in srgb, var(--gold-deep) 80%, var(--gold)) 48%, var(--gold-light) 64%, var(--gold-deep) 100%); opacity: 0; animation: gd-in var(--gd-dur) steps(1, end) var(--gd-n) both; }
+.gd-metal-k { position: relative; font-family: var(--font-mono, ui-monospace, monospace); font-size: 9.5px; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; }
+.gd-metal .gd-swap { position: relative; }
+.gd-metal .gd-swap b { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.gd-glint { position: absolute; inset: -20% -60%; opacity: 0; background: linear-gradient(100deg, transparent 44%, color-mix(in srgb, var(--gold-light) 90%, transparent) 50%, transparent 56%); animation: gd-glint var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+@keyframes gd-glint { 0%, 54% { opacity: 0; transform: translateX(-60%); } 62% { opacity: 1; } 84%, 100% { opacity: 0; transform: translateX(60%); } }
+.gd-seg { justify-content: space-between; }
+.gd-seg > * { flex: 1; }
+.gd-seg .gd-chip { width: 100%; }
+.gd-chip.is-target { animation: gd-target var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+@keyframes gd-target { 0%, 46% { color: var(--text-2); background: color-mix(in srgb, var(--text-1) 8%, transparent); } 52%, 100% { color: var(--surface-0); background: var(--text-1); } }
+.gd-seg.is-modes .gd-chip.is-was { animation: gd-was var(--gd-dur) var(--gd-ease) var(--gd-n) both; }
+@keyframes gd-was { 0%, 46% { color: var(--surface-0); background: var(--text-1); } 52%, 100% { color: var(--text-2); background: color-mix(in srgb, var(--text-1) 8%, transparent); } }
+
+/* qr coupon */
+.gd-ticket.is-qr { align-items: stretch; }
+.gd-ticket.is-qr .gd-swap { margin-top: 6px; }
+.gd-ticket.is-qr .gd-tap { align-self: flex-start; }
+.gd-ticket.is-qr .gd-row b { font-size: 18px; }
+.gd-qr { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; flex: none; width: 64px; height: 64px; padding: 6px; border-radius: 10px; background: var(--text-1); }
+.gd-qr i { border-radius: 2px; background: var(--surface-0); }
+.gd-qr i:nth-child(2n) { opacity: 0.25; }
+.gd-ticket.is-qr + .gd-under, .gd-ticket.is-qr .gd-under { position: absolute; left: 0; right: 0; bottom: -22px; }
+
+/* pack: the Starter Pack pass */
+.gd-pack { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 12px; align-items: center; }
+.gd-pass {
+  position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 4px; height: 120px; padding: 12px; overflow: hidden; border-radius: 16px;
+  background: radial-gradient(80% 70% at 85% 0%, color-mix(in srgb, var(--gold) 24%, transparent), transparent 70%), linear-gradient(135deg, var(--surface-0), var(--surface-3) 34%, var(--surface-0) 58%, var(--surface-4));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--gold) 55%, transparent), 0 16px 26px -16px var(--gd-shade);
+}
+.gd-pass .gd-mono { color: var(--accent-text, var(--gold)); }
+.gd-pass b { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; color: var(--gold); }
+.gd-pack-r { display: flex; min-width: 0; flex-direction: column; gap: 10px; }
+.gd-pack-rows { display: flex; flex-direction: column; gap: 4px; }
+.gd-pack-rows small { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; animation: gd-row 600ms var(--dm-spring) 1 both; }
+.gd-pack-rows .gd-ic { width: 13px; height: 13px; color: var(--gold); }
+@keyframes gd-row { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+
+/* driver card */
+.gd-driver { display: flex; flex-direction: column; }
+.gd-driver .gd-swap { align-items: center; }
+.gd-thai { display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 18px; color: var(--surface-0); background: var(--text-1); }
+.gd-thai b { font-size: 22px; line-height: 1.25; }
+.gd-thai small { color: color-mix(in srgb, var(--surface-0) 70%, transparent); }
+
+/* Thai reading: mono labels lose the tracking */
+html[lang='th'] .gd-mono:not(kv-x), html[lang='th'] .gd-mini-tag:not(kv-x), html[lang='th'] .gd-metal-k:not(kv-x), html[lang='th'] .gd-prices em { letter-spacing: 0; text-transform: none; }
+
+/* reduced motion: the final state, no finger */
+@media (prefers-reduced-motion: reduce) {
+  .gd *, .gd *::before, .gd *::after { animation: none !important; }
+  .gd .gd-finger, .gd .gd-ripple, .gd .gd-pre, .gd .gd-a3, .gd .gd-b3, .gd .gd-float, .gd .gd-glint { opacity: 0 !important; }
+  .gd .gd-post, .gd .gd-c3, .gd .gd-post-inline { opacity: 1 !important; transform: none !important; }
+  .gd .gd-floor s::after { transform: none; }
+  .gd .gd-sos-fill { stroke-dashoffset: 0; }
+  .gd .gd-toggle::after { transform: translateX(18px); background: var(--on-accent); }
+  .gd .gd-toggle::before { opacity: 1; }
+  .gd .gd-claim { color: var(--on-accent); background: var(--gold); }
+  .gd .gd-chip.is-target { color: var(--surface-0); background: var(--text-1); }
+  .gd .gd-seg.is-modes .gd-chip.is-was { color: var(--text-2); background: color-mix(in srgb, var(--text-1) 8%, transparent); }
+  .gd .gd-metal.is-flip::before { opacity: 1; }
+}
+html[data-reduce-motion='true'] .gd *:not(.kv-x):not(kv-x), html[data-reduce-motion='true'] .gd *::before, html[data-reduce-motion='true'] .gd *::after { animation: none !important; }
+html[data-reduce-motion='true'] .gd .gd-finger, html[data-reduce-motion='true'] .gd .gd-ripple, html[data-reduce-motion='true'] .gd .gd-pre, html[data-reduce-motion='true'] .gd .gd-a3, html[data-reduce-motion='true'] .gd .gd-b3, html[data-reduce-motion='true'] .gd .gd-float, html[data-reduce-motion='true'] .gd .gd-glint { opacity: 0 !important; }
+html[data-reduce-motion='true'] .gd .gd-post, html[data-reduce-motion='true'] .gd .gd-c3, html[data-reduce-motion='true'] .gd .gd-post-inline { opacity: 1 !important; transform: none !important; }
+html[data-reduce-motion='true'] .gd .gd-floor s::after { transform: none; }
+html[data-reduce-motion='true'] .gd .gd-sos-fill { stroke-dashoffset: 0; }
+html[data-reduce-motion='true'] .gd .gd-toggle::after { transform: translateX(18px); background: var(--on-accent); }
+html[data-reduce-motion='true'] .gd .gd-toggle::before { opacity: 1; }
+html[data-reduce-motion='true'] .gd .gd-claim { color: var(--on-accent); background: var(--gold); }
+html[data-reduce-motion='true'] .gd .gd-chip.is-target { color: var(--surface-0); background: var(--text-1); }
+html[data-reduce-motion='true'] .gd .gd-metal.is-flip::before { opacity: 1; }
+
+/* ROUND5 · Thai never letter-spaced in guide demos (crumbs, tags, price labels, metal labels) */
+:lang(th) .gd-mono:not(kv-x), :lang(th) .gd-mini-tag:not(kv-x), :lang(th) .gd-metal-k:not(kv-x), :lang(th) .gd-prices em, :lang(th) .gd-sos-btn b, :lang(th) .gd-chip:not(kv-x), :lang(th) .gd-lang:not(kv-x) { letter-spacing: 0 !important; text-transform: none; }

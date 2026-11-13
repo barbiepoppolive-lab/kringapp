@@ -1,0 +1,20 @@
+/* FIX1 · Kring Price skeleton — same boxes, same gaps as .kp (see PriceSkeleton.tsx). One sweep, no loop. */
+.kps { display: flex; flex-direction: column; gap: 14px; padding: 6px 16px 112px; }
+.kps i { display: block; position: relative; overflow: hidden; background: var(--surface-1, #15163a); box-shadow: inset 0 1px 0 var(--rim, rgba(255, 255, 255, .06)); }
+.kps > i::after, .kps-tiles i::after {
+  content: ''; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(100deg, transparent 20%, color-mix(in srgb, var(--text-1, #fff) 6%, transparent) 50%, transparent 80%);
+  animation: kpsSweep 1.1s ease-out 1 both;
+}
+.kps-title { height: 48px; width: 78%; border-radius: 10px; margin-top: 8px; }
+.kps-city { height: 54px; border-radius: 18px; }
+.kps-saved { height: 42px; border-radius: 14px; }
+.kps-card { border-radius: 20px; }
+.kps-check { height: 176px; }
+.kps-hero { height: 160px; border-radius: 22px; }
+.kps-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.kps-tiles i { height: 84px; border-radius: 16px; }
+@keyframes kpsSweep { to { transform: translateX(100%); } }
+@media (max-width: 359px) { .kps { padding: 6px 12px 112px; } .kps-tiles { gap: 6px; } }
+@media (prefers-reduced-motion: reduce) { .kps i::after { animation: none; display: none; } }
+html[data-reduce-motion='true'] .kps i::after { display: none; }
