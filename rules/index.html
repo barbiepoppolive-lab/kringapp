@@ -128,10 +128,11 @@ main{padding:6px var(--g) calc(120px + var(--sb));max-width:640px;margin:0 auto}
 <p class="en">Questions about the rules or a result: LINE @194hsqbc or ops@kringapp.com.</p></div></section>
 </main>
 <footer class="foot">© 2026 Kring (กริ๊ง!) Bangkok · <a href="/terms">ข้อกำหนด · Terms</a> · <a href="/privacy">ความเป็นส่วนตัว · Privacy</a></footer>
-<div class="cta"><a data-app href="/app/?tab=me"><b>เข้าร่วมคอมมูนิตี้ <span class="ce" lang="en">· Join the community</span></b></a></div>
+<div class="cta"><a data-app data-join href="/app/?join=1"><b>เข้าร่วมคอมมูนิตี้ <span class="ce" lang="en">· Join the community</span></b></a></div>
 <script>
 (function(){var QS=new URLSearchParams(location.search),keep={};var ref=QS.get('ref')||'';if(/^[A-Za-z0-9_-]{1,40}$/.test(ref))keep.ref=ref.toLowerCase();var src=QS.get('src')||'';if(/^[A-Za-z0-9_-]{2,40}$/.test(src))keep.src=src.toLowerCase();
 document.querySelectorAll('a[data-app],a[data-page]').forEach(function(a){try{var u=new URL(a.getAttribute('href'),location.href);for(var k in keep)u.searchParams.set(k,keep[k]);a.href=u.href}catch(e){}})})();
 </script>
+<script id="krjoin">(function(){try{var L=/\bLine\//i.test(navigator.userAgent);function fix(a){var u=new URL(a.href,location.href);u.searchParams.set("join","1");if(L){var q=new URLSearchParams();q.set("join","1");var r=u.searchParams.get("ref");if(r)q.set("ref",r);a.href="https://liff.line.me/2012552357-K6nCGLxI?"+q}else a.href=u.href}document.querySelectorAll("a[data-join]").forEach(fix);document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest("a[data-join]");if(a)fix(a)},true)}catch(e){}})();</script>
 </body>
 </html>
