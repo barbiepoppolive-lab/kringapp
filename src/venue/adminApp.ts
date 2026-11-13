@@ -159,7 +159,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 
 // ───────────────────────────── shell ─────────────────────────────
 type Tab = 'todo' | 'members' | 'top5' | 'listings' | 'more';
-let counts: { reels: number; faces: number; reports: number; hiddenNow: number; replies: number; venues: number; status: SStatus | null } | null = null;
+let counts: { reels: number; faces: number; reports: number; hiddenNow: number; replies: number; venues: number; newToday: number | null; status: SStatus | null } | null = null;
 let me = '';
 
 function tabbar(active: Tab): HTMLElement {
@@ -212,16 +212,17 @@ function signIn(msg?: string) {
 
 // ───────────────────────────── To do ─────────────────────────────
 async function loadCounts() {
-  const [reels, faces, reports, social, st, apps] = await Promise.all([
+  const [reels, faces, reports, social, st, apps, nt] = await Promise.all([
     rpc<Reel[]>('kr8_admin_reels', { p_status: 'pending', p_limit: 100 }).catch(() => [] as Reel[]),
     rpc<Face[]>('kr8_admin_verifications', { p_status: 'pending' }).catch(() => [] as Face[]),
     rpc<Report[]>('kr8_admin_reports', { p_open: true, p_limit: 200 }).catch(() => [] as Report[]),
     rpc<Social[]>('kr8_admin_social_list', { p_status: 'pending' }).catch(() => [] as Social[]),
     rpc<SStatus[]>('kr8_social_status').then((r) => r[0] || null).catch(() => null),
     rpc<App[]>('kr8_admin_applications', { p_status: 'pending' }).catch(() => [] as App[]),
+    rpc<{ real: number; test: number }>('kr8_admin_new_members_today').catch(() => null),
   ]);
   counts = { reels: reels.length, faces: faces.length, reports: reports.length, hiddenNow: reports.filter((r) => r.post_hidden).length,
-    replies: social.filter((s) => s.status === 'pending').length + redditToday().length + igToday().length, venues: apps.length, status: st };
+    replies: social.filter((s) => s.status === 'pending').length + redditToday().length + igToday().length, venues: apps.length, newToday: nt ? nt.real : null, status: st };
   return counts;
 }
 
@@ -242,7 +243,11 @@ async function todoView() {
   const venueTile = el('a', { class: `tile wide ${c.venues ? '' : 'zero'}`, href: '#q/venues', id: 'todo-venues' }, el('span', { class: 'n' }, String(c.venues)),
     el('span', { class: 'grow' }, el('span', { class: 't', style: 'display:block' }, c.venues === 1 ? 'New venue' : 'New venues'), el('span', { class: 'h', style: 'display:block' }, 'Waiting for approval')),
     el('span', { class: 'go', style: 'position:static' }, ic('chev')));
+  const newLine = c.newToday == null ? '' : el('a', { class: 'tile wide', href: '#members', id: 'todo-newmembers', style: 'margin-bottom:12px' },
+    el('span', { class: 'grow' }, el('span', { class: 't', style: 'display:block' }, `New members today: ${c.newToday}`), el('span', { class: 'h', style: 'display:block' }, 'Real sign-ups, India time · open Members')),
+    el('span', { class: 'go', style: 'position:static' }, ic('chev')));
   body.replaceChildren(
+    newLine,
     total ? '' : el('div', { class: 'clear', id: 'allClear' }, ic('check'), el('div', {}, el('b', {}, 'All clear'), el('span', { class: 'dim sm' }, 'Nothing waiting. Nice work.'))),
     el('div', { class: 'tiles' },
       tile('todo-reels', '#q/reels', c.reels, 'Reels waiting', 'pink', 'Approve or hide'),
