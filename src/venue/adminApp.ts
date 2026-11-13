@@ -1184,19 +1184,50 @@ function redditToday(): RItem[] {
   const st = rLoad(); const p = rPace(st);
   return R_SEED.filter((r) => !st.posted[r.id] && !st.skipped[r.id]).slice(0, p.left);
 }
+/** Reddit cooldown: a new low-karma account gets "you are doing that too much" if comments come faster than ~10–15 min. */
+const R_COOL_MS = 15 * 60_000;
+let rPending: { id: string; at: number } | null = null; // Mark posted inside the 5 s Undo window (not saved yet)
+function rLastPosted(exceptId: string): number {
+  const saved = Object.values(rLoad().posted).map((t) => Date.parse(t));
+  const pend = rPending && rPending.id !== exceptId ? [rPending.at] : [];
+  return Math.max(0, ...saved, ...pend);
+}
 function redditCard(r: RItem, api: QApi): HTMLElement {
   const setK = (k: 'posted' | 'skipped') => async () => { const u = rLoad(); u[k][r.id] = new Date().toISOString(); rSave(u); };
+  const coolT = el('b', { id: 'redditCoolT' }, '');
+  const cool = el('div', { class: 'warnbox', id: 'redditCool', style: 'color:var(--warn);border-color:rgba(255,196,77,.4);background:rgba(255,196,77,.07);display:none' }, ic('clock'), coolT);
   const card = el('div', { 'data-reddit': r.id },
     el('div', { class: 'card' },
       el('div', { class: 'row wrap', style: 'gap:8px' }, pill('Reddit · r/' + r.sub, 'p'), r.low ? pill('Low priority · old thread', 'a') : null),
       el('div', { style: 'margin-top:10px;font:600 17px/1.3 var(--h)', id: 'redditTitle' }, r.title),
       el('pre', { class: 'reply', id: 'redditText-' + r.id }, r.text)),
-    el('div', { class: 'tip' }, ic('info'), 'Edit it to fit the thread. No link, never name the app, 2+ hours apart.'));
+    cool,
+    el('div', { class: 'tip', id: 'redditNewAcct' }, ic('warn'), 'New account: Reddit allows about 1 comment every 10–15 min. If you see "try again later", wait and don\'t retry right away.'),
+    el('div', { class: 'tip' }, ic('info'), 'Edit it to fit the thread. No link, never name the app.'));
   const go = el('a', { class: 'btn pri big full', href: r.url, target: '_blank', rel: 'noopener noreferrer', id: 'redditGo-' + r.id }, ic('copy'), 'Copy & open');
-  go.onclick = () => { void copyText(r.text).then((ok) => toast(ok ? 'Copied · long-press the comment box and paste' : 'Could not copy · select the text and copy it', { ms: 4000 })); };
-  const mark = btn('go', [ic('check'), 'Mark posted'], () => { const p = rPace(rLoad()); api.done(`Posted · ${p.done + 1}/${p.max} today`, setK('posted')); }, { id: 'redditMark-' + r.id });
+  go.onclick = (e) => {
+    if (go.getAttribute('aria-disabled') === 'true') { e.preventDefault(); return; }
+    void copyText(r.text).then((ok) => toast(ok ? 'Copied · long-press the comment box and paste' : 'Could not copy · select the text and copy it', { ms: 4000 }));
+  };
+  const mark = btn('go', [ic('check'), 'Mark posted'], () => {
+    const p = rPace(rLoad()); rPending = { id: r.id, at: Date.now() };
+    api.done(`Posted · ${p.done + 1}/${p.max} today`, async () => { await setK('posted')(); if (rPending?.id === r.id) rPending = null; });
+  }, { id: 'redditMark-' + r.id });
   const skip = btn('ghost', [ic('skip'), 'Skip'], () => api.done('Skipped', setK('skipped')), { id: 'redditSkip-' + r.id });
-  api.actions(el('div', {}, go, el('div', { class: 'two', style: 'margin-top:10px' }, skip, mark)));
+  const later = skipBtn(api);
+  const tick = () => {
+    if (!card.isConnected && t) { clearInterval(t); return; }
+    const left = rLastPosted(r.id) + R_COOL_MS - Date.now();
+    const lock = left > 0;
+    mark.disabled = lock;
+    go.setAttribute('aria-disabled', String(lock)); go.style.opacity = lock ? '0.45' : ''; go.style.pointerEvents = lock ? 'none' : '';
+    cool.style.display = lock ? 'flex' : 'none';
+    later.style.display = lock ? 'flex' : 'none';
+    if (lock) { const sec = Math.ceil(left / 1000); coolT.textContent = `Next Reddit comment in ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; }
+  };
+  let t = 0;
+  api.actions(el('div', {}, go, el('div', { class: 'two', style: 'margin-top:10px' }, skip, mark), later));
+  tick(); t = window.setInterval(tick, 1000);
   return card;
 }
 async function copyText(t: string): Promise<boolean> {
