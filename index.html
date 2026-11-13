@@ -33,7 +33,7 @@ h1,h2,h3{font-family:var(--th);font-weight:800;line-height:1.14;letter-spacing:-
 .nw{white-space:nowrap}
 .lb{display:flex;align-items:center;gap:10px;font-family:var(--th);font-weight:600;font-size:13px;letter-spacing:.02em;margin-bottom:12px;line-height:1}
 .lb::before{content:"";width:22px;height:2px;border-radius:2px;background:var(--grad)}
-.lb small{font-family:var(--en);font-weight:600;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.78}
+.lb small{font-family:var(--en);font-weight:600;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.78}
 .sub2{font-family:var(--th);font-weight:600;font-size:17px;line-height:1.25;margin-top:14px}.sub2 small{display:block;font-family:var(--en);font-weight:500;font-size:13px;opacity:.85;margin-top:2px}
 .ex{font-family:var(--th);font-size:11.5px;line-height:1.35;opacity:.8;margin-top:10px}.ex small{display:block;font-family:var(--en);font-size:11px}
 /* top bar: blurred backdrop once scrolled, hides on scroll down, returns on scroll up */
@@ -84,7 +84,7 @@ body.past .sub{opacity:0;max-height:0;margin-top:0}
 .ir.v li{flex-direction:row;align-items:center;gap:14px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.12)}
 .ir.v li:last-child{border:0}
 .ir.v b{font-size:15.5px}
-.ir.v .soon{margin:0 0 0 8px;vertical-align:2px}.soon{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.45);font-family:var(--th);font-size:10.5px;font-weight:600;line-height:1.3;white-space:nowrap}
+.ir.v .soon{margin:0 0 0 8px;vertical-align:2px}.soon{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:99px;border:1px solid rgba(255,255,255,.45);font-family:var(--th);font-size:11.5px;font-weight:600;line-height:1.3;white-space:nowrap}
 .lnk{display:inline-flex;align-items:center;gap:10px;margin-top:14px;align-self:flex-start;min-height:44px;font-family:var(--th);font-weight:600;font-size:15px;line-height:1.15}
 .lnk small{display:block;font-family:var(--en);font-weight:500;font-size:11.5px;opacity:.78}
 .lnk i{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#14121c;font-style:normal;font-size:17px;flex:none}
@@ -201,7 +201,7 @@ body.past .sub{opacity:0;max-height:0;margin-top:0}
 .pc b{font-family:var(--th);font-size:14px;font-weight:700;line-height:1.15;display:block}
 .pc em{font-style:normal;font-family:var(--en);font-size:11px;opacity:.8;display:block}
 .pc .it{margin-top:7px;font-family:var(--th);font-size:12px;font-weight:600;line-height:1.2}
-.pc .it small{display:block;font-family:var(--en);font-weight:500;font-size:10.5px;opacity:.75}
+.pc .it small{display:block;font-family:var(--en);font-weight:500;font-size:11.5px;opacity:.75}
 .pc .hi{margin-top:8px;display:flex;align-items:center;justify-content:center;min-height:32px;border-radius:99px;background:var(--grad);font-family:var(--th);font-weight:700;font-size:12.5px}
 .pc .hi small{font-family:var(--en);font-weight:500;margin-left:4px;opacity:.9}
 /* plans strip */
@@ -266,6 +266,25 @@ body.iabon .top{visibility:hidden}
 .iab .goon{display:flex;align-items:center;justify-content:center;min-height:44px;margin-top:10px;font-size:14px;opacity:.85;text-decoration:underline}
 @media (min-width:760px){:root{--px:max(var(--g),calc(50vw - 300px))}}
 @media (prefers-reduced-motion:reduce){html{scroll-snap-type:none}*{animation:none!important;transition:none!important}.rvl,.sto .tx>*{opacity:1!important;transform:none!important}.stg img{transform:none!important;animation:none!important}.hero .tx{visibility:visible!important}}
+
+/* 13 Nov declutter + conversion */
+.sub{white-space:normal;max-height:36px}
+.sub small{display:block;margin-top:2px}
+.fin .gr{background:none;-webkit-text-fill-color:#fff;color:#fff;filter:none;text-shadow:0 0 22px rgba(255,79,163,.95),0 2px 12px rgba(16,10,44,.7)}
+.pc .hi small{font-size:11.5px}
+
+.prz{display:flex;flex-direction:column;align-items:flex-start;margin-bottom:14px}
+.prz .k{font-family:var(--th);font-weight:700;font-size:15px;line-height:1.2}
+.prz .k small,.prz .w small{font-family:var(--en);font-weight:500;font-size:12.5px;opacity:.85;margin-left:6px}
+.prz .amt{font-family:var(--en);font-weight:800;font-size:clamp(60px,18vw,76px);line-height:1;letter-spacing:-2px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 18px rgba(0,0,0,.35));padding:.04em .04em .06em 0}
+.prz .w{font-family:var(--th);font-weight:700;font-size:17px;line-height:1.2}
+.rul{display:inline-flex;align-items:baseline;gap:6px;margin-top:12px;font-family:var(--th);font-weight:700;font-size:14px;color:#fff;text-decoration:underline;text-decoration-color:rgba(255,95,174,.8);text-underline-offset:4px}
+.rul small{font-family:var(--en);font-weight:500;font-size:12.5px;opacity:.85}
+.h{line-height:1.22}
+.pc .hi{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3)}
+.fin .hd{position:relative;isolation:isolate}
+.fin .hd::before{content:"";position:absolute;inset:-40px -24px;z-index:-1;background:radial-gradient(closest-side,rgba(16,10,44,.62),rgba(16,10,44,.35) 60%,rgba(16,10,44,0));pointer-events:none}
+.fin .gr{filter:drop-shadow(0 2px 10px rgba(10,6,30,.65))}
 </style>
 </head>
 <body>
@@ -292,14 +311,14 @@ body.iabon .top{visibility:hidden}
 <h2 class="h sh rvl d1">เพื่อนใหม่<span class="gr">ในกรุงเทพฯ</span><span class="en">New friends in Bangkok, into the same things.</span></h2>
 <div class="ppl rvl d2"><div class="pc"><div class="row"><img src="/assets/site/av2.webp" alt="" loading="lazy"><span><b>พลอย ✓</b><em>Thai local</em></span></div><p class="it">ฟิล์ม · คาเฟ่<small>Film · Cafés</small></p><span class="hi">ทักทาย<small>Say hi</small></span></div>
 <div class="pc"><div class="row"><img src="/assets/site/av3.webp" alt="" loading="lazy"><span><b>Nat ✓</b><em>Here now</em></span></div><p class="it">วิ่ง · ตลาด<small>Running · Markets</small></p><span class="hi">ทักทาย<small>Say hi</small></span></div></div>
-<p class="ex rvl d2">ตัวอย่างการ์ด · ✓ ยืนยันใบหน้าแล้ว · เจอกันที่สาธารณะ เป็นกลุ่ม<small>Example cards · ✓ Face-checked · Public places, in groups</small></p></section><section class="sc blurbg" id="today" data-href="/app/?tab=feed"><div class="bg"><img class="blur" src="/assets/site/today.webp" alt="" loading="lazy" decoding="async"></div><span class="lb rvl ">วันนี้ในกรุงเทพฯ<small>Today in Bangkok</small></span>
+<p class="ex rvl d2">ตัวอย่างการ์ด · ✓ ยืนยันใบหน้าแล้ว · ที่สาธารณะ เป็นกลุ่ม<small>Example cards · ✓ Face-checked · Public places, in groups</small></p></section><section class="sc blurbg" id="today" data-href="/app/?tab=feed"><div class="bg"><img class="blur" src="/assets/site/today.webp" alt="" loading="lazy" decoding="async"></div><span class="lb rvl ">วันนี้ในกรุงเทพฯ<small>Today in Bangkok</small></span>
 <h2 class="h sh rvl d1">แพลนวันนี้<span class="en">Plans in Bangkok today. Swipe →</span></h2>
 <div class="plans rvl d2" id="plans"><a class="plan tp" data-app href="/app/?tab=feed"><img src="/assets/site/s5_skypark-s.webp" alt="" loading="lazy" style="object-position:50% 46%"><span class="ar">ยังไม่มีแพลนวันนี้ <small>· No plans yet today</small></span><h4>เป็นคนแรกที่ชวน<small>Be the first to invite</small></h4><span class="gx">โพสต์แพลน → <small>Post a plan</small></span></a>
 <a class="plan tp" data-app href="/app/?tab=feed"><img src="/assets/site/s1_sohengtai-s.webp" alt="" loading="lazy" style="object-position:50% 44%"><span class="ar">ไอเดีย <small>· Idea</small></span><h4>เย็นนี้ ตลาดน้อย<small>This evening, Talat Noi</small></h4><span class="gx">ชวนเพื่อนใหม่ → <small>Invite new friends</small></span></a>
 <a class="plan tp" data-app href="/app/?tab=feed"><img src="/assets/site/s3_lumpini-s.webp" alt="" loading="lazy" style="object-position:40% 58%"><span class="ar">ไอเดีย <small>· Idea</small></span><h4>อาทิตย์เช้า เดินสวนลุมฯ<small>Sunday morning, Lumpini walk</small></h4><span class="gx">ชวนเพื่อนใหม่ → <small>Invite new friends</small></span></a></div>
 <p class="ex rvl d2" id="plnote">แพลนจริงจากแอปเท่านั้น<small>Real plans from the app only</small></p></section><section class="sc" id="earn" data-href="/app/?tab=me" style="--op:50% 40%"><div class="bg"><img class="blur" src="/assets/site/earn.webp" alt="" loading="lazy" decoding="async"></div><div class="stg" aria-hidden="true"><img src="/assets/site/earn.webp" alt="" decoding="async" loading="lazy"></div><span class="lb rvl ">โลคอลกริ๊ง!<small>Kring Locals</small></span>
-<div class="big rvl d1"><span class="num">5</span><p>ท็อป 5<br>ทุกวัน ทุกสัปดาห์<small>Top 5, every day and every week</small></p></div>
-<h2 class="h sh rvl d1" style="font-size:clamp(26px,7.4vw,32px)">โชว์<span class="nw">กรุงเทพฯ</span><span class="nw">ของคุณ</span><br><span class="gr nw">รับรางวัลมูลค่าเงินจริง</span><span class="en">Show your Bangkok. Win prizes with real money value.</span></h2>
+<div class="prz rvl d1"><span class="k">รางวัลรวมสูงสุด<small>Up to</small></span><span class="amt">฿4,000</span><span class="w">ทุกสัปดาห์<small>in rewards every week</small></span></div>
+<h2 class="h sh rvl d1" style="font-size:clamp(26px,7.4vw,32px)">โชว์กรุงเทพฯ ของคุณ<br>ติด<span class="gr">ท็อป 5</span><span class="en">Show your Bangkok. Make the weekly Top 5.</span></h2><a class="rul rvl d2" data-page href="/rules/">ดูกติกา<small>See the rules →</small></a>
 </section><section class="sc" id="deals" data-href="/app/?tab=deals" style="--op:50% 50%"><div class="bg"><img class="blur" src="/assets/site/s7_reflection-s.webp" alt="" loading="lazy" decoding="async"></div><div class="stg" aria-hidden="true"><img src="/assets/site/s7_reflection.webp" alt="" decoding="async" loading="lazy"></div><span class="lb rvl ">ดีล<small>Deals</small></span>
 <h2 class="h sh rvl d1">ราคาสมาชิก<br><span class="gr">จองตรง</span>กับร้าน<span class="en">Member prices. Book direct with the place.</span></h2>
 <ul class="ir rvl d2"><li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M6 18L18 6"/><path d="M9.5 9h.01M14.5 15h.01"/></svg><span><b>ไม่มีค่าธรรมเนียม</b><small>No booking fee</small></span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5c4.7 0 8.5 3 8.5 6.7 0 3.9-4.4 7-9.3 8.4.4-.8.6-1.6.4-2.1C7 16.8 3.5 14.3 3.5 11.2 3.5 7.5 7.3 4.5 12 4.5z"/></svg><span><b>จองทาง LINE ร้าน</b><small>Book on their LINE</small></span></li><li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2.5v2.5H14zM18 18h2M20 14v2M14 20h2"/></svg><span><b>สแกน QR ที่ร้าน</b><small>Scan at the place</small></span></li></ul></section><section class="sc" id="venue" data-href="/app/#apply" style="--op:50% 68%"><div class="bg"><img class="blur" src="/assets/site/venue.webp" alt="" loading="lazy" decoding="async"></div><div class="stg" aria-hidden="true"><img src="/assets/site/venue.webp" alt="" decoding="async" loading="lazy"></div><span class="lb rvl ">สำหรับร้าน<small>For places</small></span>
@@ -317,7 +336,7 @@ body.iabon .top{visibility:hidden}
 <a href="/privacy">ความเป็นส่วนตัว<small>Privacy</small></a><a href="/terms">ข้อกำหนด<small>Terms</small></a>
 <a href="/delete-account">ลบบัญชี<small>Delete account</small></a><a href="/contact">ติดต่อ<small>Contact</small></a>
 <a href="https://line.me/R/ti/p/@194hsqbc">LINE<small>@194hsqbc</small></a><a href="https://instagram.com/kring.bkk">Instagram<small>@kring.bkk</small></a>
-<p>© 2026 Kring (กริ๊ง!) Bangkok</p></footer><div class="cta" id="cta"><a class="go1 tp" data-app href="/app/?tab=feed"><span class="ri"><svg viewBox="0 0 1024 1024"><use href="#kr"/></svg></span><span><b>เปิดกริ๊ง! ฟรี</b><small>Open Kring, free</small></span></a><p class="sub">ได้เพื่อนใหม่ ฟรี · <small>Make new friends, free</small></p></div><div class="iab" id="iab" role="dialog" aria-modal="true" aria-label="Open in your browser"><span class="arrow" aria-hidden="true">↗</span><div class="sheet">
+<p>© 2026 Kring (กริ๊ง!) Bangkok</p></footer><div class="cta" id="cta"><a class="go1 tp" data-app href="/app/?tab=feed"><span class="ri"><svg viewBox="0 0 1024 1024"><use href="#kr"/></svg></span><span><b>เข้าร่วมคอมมูนิตี้ตอนนี้</b><small>Join the community now</small></span></a><p class="sub">ฟรี · ไม่ต้องโหลดแอป · เข้าด้วย LINE<small>Free · No download · Sign in with LINE</small></p></div><div class="iab" id="iab" role="dialog" aria-modal="true" aria-label="Open in your browser"><span class="arrow" aria-hidden="true">↗</span><div class="sheet">
 <h4>เปิดในเบราว์เซอร์ เข้าสู่ระบบได้ลื่นกว่า<small>Open in your browser for an easy sign-in</small></h4>
 <ol><li><i>1</i><span>แตะ ⋯ มุมขวาบน<small>Tap ⋯ at the top right</small></span></li><li><i>2</i><span>เลือก "เปิดในเบราว์เซอร์"<small>Choose "Open in browser"</small></span></li></ol>
 <div class="row2"><button class="sec" data-copy type="button">คัดลอกลิงก์<small>Copy link</small></button><a class="pri" data-chrome href="#">เปิดใน Chrome<small>Open in Chrome</small></a></div>
@@ -377,7 +396,7 @@ body.iabon .top{visibility:hidden}
  var RM=matchMedia('(prefers-reduced-motion: reduce)').matches,QS=new URLSearchParams(location.search),cur=0,timer=0,DUR=5500,started=false,sub=document.querySelector('#cta .sub');
  function load(i){var s=S[i];if(!s)return;s.querySelectorAll('img[data-src]').forEach(function(m){m.src=m.dataset.src;m.removeAttribute('data-src')})}
  function show(i){if(i<0)i=0;if(i>=S.length)i=0;S[cur].classList.remove('act');cur=i;load(i);load(i+1);S[i].classList.add('act');hero.dataset.i=i;
-  if(sub&&hero.classList.contains('live'))sub.innerHTML=S[i].dataset.st+' · <small>'+S[i].dataset.se+'</small>';
+  if(sub&&hero.classList.contains('live'))sub.innerHTML=S[i].dataset.st+'<small>'+S[i].dataset.se+'</small>';
   bars.forEach(function(b,k){b.classList.remove('run');b.classList.toggle('full',k<i);if(k===i){void b.offsetWidth;b.style.setProperty('--d',DUR+'ms');RM?b.classList.add('full'):b.classList.add('run')}});
   clearTimeout(timer);if(!RM&&!QS.get('hold'))timer=setTimeout(function(){show(cur+1)},DUR)}
  window.__kr={show:show};
