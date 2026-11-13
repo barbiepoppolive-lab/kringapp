@@ -18,22 +18,18 @@
     <link rel="manifest" href="manifest.json" />
     <title>Kring</title>
     <script>
-      // LINE's in-app browser loses sign-in: reopen every Kring link in the phone's normal browser (LINE supports ?openExternalBrowser=1)
-      try {
-        if (/\bLine\//i.test(navigator.userAgent) && !/[?&]openExternalBrowser=1/.test(location.search)) {
-          var u = new URL(location.href); u.searchParams.set('openExternalBrowser', '1'); location.replace(u.toString());
-        }
-      } catch (e) {}
+      // 13 Nov funnel fix: LINE links stay inside LINE. LINE Login is one tap there (auto login); bouncing to Chrome/Safari
+      // made people type a LINE email + password they mostly never set. "Open in browser" is still offered after first value (A2HS).
       // keep the install offer for later (Add to home screen)
       window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__kr8Install = e; });
     </script>
-    <script type="module" crossorigin src="/app/assets/main-D2gCIpcs.js"></script>
+    <script type="module" crossorigin src="/app/assets/main-eIxhzf0u.js"></script>
     <link rel="modulepreload" crossorigin href="/app/assets/vendor-VmmMioK4.js">
     <link rel="modulepreload" crossorigin href="/app/assets/pdf-BtsA_sid.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/v5Live-BF6PXQT8.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/sentry-DRjngvTT.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/v5Strings-DMBTmfOd.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/v5Reel-DApUKy8l.js">
+    <link rel="modulepreload" crossorigin href="/app/assets/v5Live-W9LJQWCg.js">
+    <link rel="modulepreload" crossorigin href="/app/assets/sentry-Cwnbyx-D.js">
+    <link rel="modulepreload" crossorigin href="/app/assets/v5Strings-DGsqpaJ_.js">
+    <link rel="modulepreload" crossorigin href="/app/assets/v5Reel-B6lGmetY.js">
     <link rel="stylesheet" crossorigin href="/app/assets/main-CcCEIZ-b.css">
     <link rel="stylesheet" crossorigin href="/app/assets/fonts-v8-Cs2pmvHW.css">
   </head>
@@ -46,6 +42,6 @@
         });
       }
     </script>
-    <script>/* Kring link-visit counter (supabase 0043_link_visits): 1 row per tab session per ?ref=, no cookies, no personal data */(function(){try{if(/\bLine\//i.test(navigator.userAgent)&&!/[?&]openExternalBrowser=1/.test(location.search))return;var r=(new URLSearchParams(location.search).get('ref')||'').toLowerCase();if(!/^[a-z0-9_-]{1,40}$/.test(r))r=null;var k='kr_lv:'+(r||''),s=null;try{if(sessionStorage.getItem(k))return;s=Math.random().toString(36).slice(2,12)||null;sessionStorage.setItem(k,s||'1')}catch(e){}var h='';try{h=document.referrer?new URL(document.referrer).host:''}catch(e){}var K='sb_publishable_SaAf7mILfPPpCeAEvj79bA_Vz8JnCBN';setTimeout(function(){try{fetch('https://pedxoxpammnyfnizljyj.supabase.co/rest/v1/link_visits',{method:'POST',keepalive:true,credentials:'omit',headers:{apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({ref:r,path:(location.pathname||'/').slice(0,200),referrer:h.slice(0,200)||null,session_id:s})}).catch(function(){})}catch(e){}},0)}catch(e){}})();</script>
+    <script>/* Kring link-visit counter (supabase 0043_link_visits): 1 row per tab session per ?ref=, no cookies, no personal data */(function(){try{var r=(new URLSearchParams(location.search).get('ref')||'').toLowerCase();if(!/^[a-z0-9_-]{1,40}$/.test(r))r=null;var k='kr_lv:'+(r||''),s=null;try{if(sessionStorage.getItem(k))return;s=Math.random().toString(36).slice(2,12)||null;sessionStorage.setItem(k,s||'1')}catch(e){}var h='';try{h=document.referrer?new URL(document.referrer).host:''}catch(e){}var K='sb_publishable_SaAf7mILfPPpCeAEvj79bA_Vz8JnCBN';setTimeout(function(){try{fetch('https://pedxoxpammnyfnizljyj.supabase.co/rest/v1/link_visits',{method:'POST',keepalive:true,credentials:'omit',headers:{apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({ref:r,path:(location.pathname||'/').slice(0,200),referrer:h.slice(0,200)||null,session_id:s})}).catch(function(){})}catch(e){}},0)}catch(e){}})();</script>
   </body>
 </html>
