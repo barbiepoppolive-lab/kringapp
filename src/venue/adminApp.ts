@@ -255,7 +255,7 @@ async function todoView() {
 
 // ───────────────────────────── queue frame ─────────────────────────────
 type QApi = { done: (label: string, write: () => Promise<unknown>) => void; next: () => void; skip: () => void; actions: (el: HTMLElement) => void };
-function queue<T extends { id: string }>(title: string, items: T[], renderItem: (it: T, api: QApi) => HTMLElement, onEmptyBack = '#todo', note?: HTMLElement | null) {
+function queue<T extends { id: string }>(title: string, items: T[], renderItem: (it: T, api: QApi) => HTMLElement, onEmptyBack = '#todo', note?: HTMLElement | null, canShow?: (it: T) => boolean) {
   const total = items.length;
   let doneN = 0;
   const list = [...items];
@@ -277,7 +277,9 @@ function queue<T extends { id: string }>(title: string, items: T[], renderItem: 
         el('p', { class: 'dim' }, total ? `${total} handled.` : 'Nothing waiting.')));
       return;
     }
-    const it = list[0];
+    // canShow: the first item that may be shown now (Reddit cooling down → its cards wait; falls back to the first item)
+    const pick = canShow ? list.findIndex(canShow) : 0;
+    const it = list[pick < 0 ? 0 : pick];
     const api: QApi = {
       done: (label, write) => {
         const idx = list.indexOf(it); if (idx < 0) return;
@@ -287,7 +289,7 @@ function queue<T extends { id: string }>(title: string, items: T[], renderItem: 
         show();
       },
       next: () => { const idx = list.indexOf(it); if (idx >= 0) { list.splice(idx, 1); doneN++; } counts = null; show(); },
-      skip: () => { flushWrite(); if (list.length > 1) { list.push(list.shift()!); show(); } else toast('This is the last one'); },
+      skip: () => { flushWrite(); if (list.length > 1) { const idx = list.indexOf(it); list.splice(idx, 1); list.push(it); show(); } else toast('This is the last one'); },
       actions: (n) => act.firstElementChild!.replaceChildren(n),
     };
     body.replaceChildren(renderItem(it, api));
@@ -505,6 +507,17 @@ async function replyQueue() {
     : !igItems.length && igPace(igSt).left === 0 ? 'Instagram: 10 DMs sent today, come back tomorrow.' : '';
   const notes = [note, igNote ? el('div', { class: 'tip', id: 'igNote', style: 'margin:0 0 12px' }, ic('info'), igNote) : null].filter(Boolean) as HTMLElement[];
   const all: QItem[] = [...rItems, ...igItems, ...rows];
+  const rLocked = (q: QItem) => 'reddit' in q && rLastPosted(q.id) + R_COOL_MS > Date.now();
+  const coolLine = el('div', { class: 'tip', id: 'redditUnlock', style: 'margin:0 0 12px;display:none;color:var(--warn)' }, ic('clock'), el('span', {}));
+  notes.unshift(coolLine);
+  const coolTick = () => {
+    if (!coolLine.isConnected && coolTimer) { clearInterval(coolTimer); return; }
+    const left = rLastPosted('') + R_COOL_MS - Date.now();
+    const waiting = all.some((q) => 'reddit' in q && !rLoad().posted[q.id] && !rLoad().skipped[q.id] && q.id !== rPending?.id);
+    if (left > 0 && waiting) { const sec = Math.ceil(left / 1000); coolLine.style.display = 'flex'; coolLine.lastElementChild!.textContent = `Reddit unlocks in ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; }
+    else coolLine.style.display = 'none';
+  };
+  let coolTimer = 0;
   queue<QItem>('Replies to send', all, (q, api) => {
     if ('reddit' in q) return redditCard(q, api);
     if ('ig' in q) return igCard(q, api);
@@ -565,7 +578,8 @@ async function replyQueue() {
     for (const b of [edit, auto, skipT]) b.style.flex = '1';
     api.actions(bar);
     return card;
-  }, '#todo', notes.length ? el('div', {}, ...notes) : null);
+  }, '#todo', el('div', {}, ...notes), (q) => !rLocked(q));
+  coolTick(); coolTimer = window.setInterval(coolTick, 1000);
 }
 
 // ───────────────────────────── New venue queue ─────────────────────────────
@@ -1214,7 +1228,6 @@ function redditCard(r: RItem, api: QApi): HTMLElement {
     api.done(`Posted · ${p.done + 1}/${p.max} today`, async () => { await setK('posted')(); if (rPending?.id === r.id) rPending = null; });
   }, { id: 'redditMark-' + r.id });
   const skip = btn('ghost', [ic('skip'), 'Skip'], () => api.done('Skipped', setK('skipped')), { id: 'redditSkip-' + r.id });
-  const later = skipBtn(api);
   const tick = () => {
     if (!card.isConnected && t) { clearInterval(t); return; }
     const left = rLastPosted(r.id) + R_COOL_MS - Date.now();
@@ -1222,11 +1235,10 @@ function redditCard(r: RItem, api: QApi): HTMLElement {
     mark.disabled = lock;
     go.setAttribute('aria-disabled', String(lock)); go.style.opacity = lock ? '0.45' : ''; go.style.pointerEvents = lock ? 'none' : '';
     cool.style.display = lock ? 'flex' : 'none';
-    later.style.display = lock ? 'flex' : 'none';
     if (lock) { const sec = Math.ceil(left / 1000); coolT.textContent = `Next Reddit comment in ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; }
   };
   let t = 0;
-  api.actions(el('div', {}, go, el('div', { class: 'two', style: 'margin-top:10px' }, skip, mark), later));
+  api.actions(el('div', {}, go, el('div', { class: 'two', style: 'margin-top:10px' }, skip, mark)));
   tick(); t = window.setInterval(tick, 1000);
   return card;
 }
