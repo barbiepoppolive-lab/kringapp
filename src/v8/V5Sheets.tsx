@@ -1,9 +1,11 @@
 /** V5 sheets: real sign-in (Google + email code), member card create/edit, scannable QR pass. Only used when VITE_AUTH_LIVE=1. */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import qrcode from 'qrcode-generator';
-import { v5AcceptTerms, v5CompressImage, v5ErrCode, v5SaveCard, v5SetIgHandle, v5SendCode, v5SignInGoogle, v5SignInLine, v5TakeLinePrefill, v5VerifyCode, V5_AREAS, V5_LANGS, v5LineOn, V5_TERMS_VERSION } from './v5Live';
+import { v5StoredRef, v5AcceptTerms, v5CompressImage, v5ErrCode, v5SaveCard, v5SetIgHandle, v5SendCode, v5SignInGoogle, v5SignInLine, v5TakeLinePrefill, v5VerifyCode, V5_AREAS, V5_LANGS, v5LineOn, V5_TERMS_VERSION } from './v5Live';
 import type { V5Card, V5Me } from './v5Live';
 import { v5ErrText } from './v5Strings';
+import { inAppBrowser } from './A2HS';
+import { liffUrl } from './lineEnv';
 
 type Tx = (en: string) => string;
 type Txf = (en: string, a: string, b?: string) => string;
@@ -33,10 +35,16 @@ function useErr(L: Tx, Lf: Txf) {
   };
 }
 
-export function V5SignInSheet(props: { L: Tx; Lf: Txf; onClose: () => void; initialNotice?: string }) {
+/** Google refuses sign-in inside app browsers (LINE, Instagram, TikTok, Facebook: "disallowed_useragent"), so it is never offered there. */
+const googleHere = () => import.meta.env.VITE_GOOGLE_ON === '1' && !inAppBrowser(typeof navigator === 'undefined' ? '' : navigator.userAgent);
+/** "pich" → "Pich" for the invite line. */
+const refName = (r: string) => r.replace(/[_-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()).slice(0, 24);
+
+export function V5SignInSheet(props: { L: Tx; Lf: Txf; onClose: () => void; initialNotice?: string; invitedBy?: string }) {
   const { L, Lf } = props;
   const errText = useErr(L, Lf);
   const [step, setStep] = useState<'email' | 'code'>('email');
+  const [emailOpen, setEmailOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
@@ -68,8 +76,15 @@ export function V5SignInSheet(props: { L: Tx; Lf: Txf; onClose: () => void; init
       const r = await v5SignInGoogle();
       if (r !== 'redirect') setNotice(errText(r));
     });
+  // LIFF build + not inside LINE: "Join with LINE" opens the LINE app (liff.line.me), which asks permission natively.
+  // Inside LINE (chat browser or LIFF) the one-tap web login below stays. Empty VITE_LIFF_ID: always '' (old behaviour).
+  const liffJoin = import.meta.env.VITE_LIFF_ID && inAppBrowser(typeof navigator === 'undefined' ? '' : navigator.userAgent) !== 'line' ? liffUrl(v5StoredRef()) : '';
   const line = () =>
     run(async () => {
+      if (liffJoin) {
+        window.location.assign(liffJoin);
+        return;
+      }
       const r = await v5SignInLine();
       if (r !== 'redirect') setNotice(errText(r));
     });
@@ -99,19 +114,25 @@ export function V5SignInSheet(props: { L: Tx; Lf: Txf; onClose: () => void; init
     <div className="v8-sheet" id="sh-signin" data-v5="signin">
       <div className="grab" />
       <div className="sh-head">
-        <h3>{L('Sign in to Kring')}</h3>
+        <h3>{L('Join the community now')}</h3>
         <button type="button" className="xbtn" aria-label="Close" onClick={props.onClose}>✕</button>
       </div>
-      <p className="v5-tagline" style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 800 }}>{L('Explore Bangkok, make new friends')}</p>
+      {props.invitedBy && step === 'email' && (
+        <p id="v5Invite" style={{ ...noteStyle, background: 'rgba(6,199,85,0.16)' }}>
+          {Lf('{0} invited you to Kring. Join free, post short clips of your Bangkok and get seen.', refName(props.invitedBy))}
+        </p>
+      )}
+      <p className="v5-tagline" style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800 }}>{L('Explore Bangkok, make new friends')}</p>
+      <p className="v5-free" style={{ margin: '0 0 14px', fontSize: 12.5, fontWeight: 600, color: 'rgba(255,247,236,0.72)' }}>{L('Free · No download')}</p>
       {step === 'email' ? (
         <>
           {v5LineOn() && (
             <button type="button" className="primary-cta" id="v5LineBtn" disabled={busy} onClick={line}
-              style={{ marginBottom: 10, background: '#06C755', color: '#fff', boxShadow: 'none' }}>
-              {L('Continue with LINE')}
+              style={{ marginBottom: 10, background: '#06C755', color: '#fff', boxShadow: 'none', fontSize: 18, minHeight: 56 }}>
+              {L('Join with LINE')}
             </button>
           )}
-          {import.meta.env.VITE_GOOGLE_ON === '1' && (
+          {googleHere() && (
             <>
               <button type="button" className="primary-cta" id="v5GoogleBtn" disabled={busy} onClick={google} style={{ marginBottom: 12 }}>
                 {L('Continue with Google')}
@@ -119,14 +140,24 @@ export function V5SignInSheet(props: { L: Tx; Lf: Txf; onClose: () => void; init
               <p style={{ ...smallStyle, textAlign: 'center' }}>{L('or get a sign-in code by email')}</p>
             </>
           )}
-          {import.meta.env.VITE_GOOGLE_ON !== '1' && v5LineOn() && <p id="v5OrEmail" style={{ ...smallStyle, textAlign: 'center' }}>{L('or use email')}</p>}
-          {import.meta.env.VITE_GOOGLE_ON !== '1' && !v5LineOn() && <p style={{ ...smallStyle, textAlign: 'center' }}>{L('We’ll email you a 6-digit sign-in code')}</p>}
-          <input type="email" inputMode="email" autoComplete="email" className="hi-box" id="v5Email" style={{ marginBottom: 8 }} value={email}
+          {v5LineOn() && !emailOpen && (
+            <button type="button" className="ghost-cta" id="v5EmailBtn" disabled={busy} onClick={() => setEmailOpen(true)}
+              style={{ width: '100%', minHeight: 52, background: 'rgba(255,247,236,0.08)', border: '1px solid rgba(255,247,236,0.3)', borderRadius: 999, color: '#FFF7EC', fontWeight: 800, fontSize: 16, padding: 12, marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5" /><path d="m3.5 6.5 8.5 6.5 8.5-6.5" /></svg>
+              {L('Continue with email')}
+            </button>
+          )}
+          {(emailOpen || !v5LineOn()) && <>
+          {!googleHere() && !v5LineOn() && <p style={{ ...smallStyle, textAlign: 'center' }}>{L('We’ll email you a 6-digit sign-in code')}</p>}
+          {!googleHere() && v5LineOn() && <p id="v5OrEmail" style={{ ...smallStyle, textAlign: 'center' }}>{L('We’ll email you a 6-digit sign-in code')}</p>}
+          <input autoFocus={emailOpen} type="email" inputMode="email" autoComplete="email" className="hi-box" id="v5Email" style={{ marginBottom: 8 }} value={email}
             onChange={(e) => { setEmail(e.target.value); setNotice(''); }} onKeyDown={(e) => { if (e.key === 'Enter') sendCode(); }}
             placeholder={L('Your email address')} />
-          <button type="button" className="primary-cta" id="v5SendCode" disabled={busy} onClick={() => sendCode()} style={{ marginBottom: 12 }}>
+          <button type="button" className={v5LineOn() ? 'ghost-cta' : 'primary-cta'} id="v5SendCode" disabled={busy} onClick={() => sendCode()}
+            style={v5LineOn() ? { width: '100%', background: 'none', border: '1px solid rgba(255,247,236,0.3)', borderRadius: 999, color: '#FFF7EC', fontWeight: 800, padding: 12, marginBottom: 12 } : { marginBottom: 12 }}>
             {busy ? L('Sending…') : L('Send me a code')}
           </button>
+          </>}
           <TermsLine L={L} id="v5Terms" />
         </>
       ) : (
@@ -165,7 +196,7 @@ export function V5CardSheet(props: { L: Tx; Lf: Txf; card: V5Card | null; uiLang
   const [bio, setBio] = useState(card?.bio || '');
   const [ig, setIg] = useState(card?.ig_handle || '');
   const [area, setArea] = useState(card?.area || 'Bangkok');
-  const [who, setWho] = useState<'local' | 'traveller'>(card?.who || (props.uiLang === 'th' ? 'local' : 'traveller'));
+  const [who, setWho] = useState<'local' | 'traveller'>(card?.who || (props.uiLang === 'th' || v5StoredRef() ? 'local' : 'traveller'));
   const [photo, setPhoto] = useState<string | null>(null);
   // new card after "Continue with LINE": LINE name (editable) and LINE picture (optional, skipped if it can't be loaded)
   useEffect(() => {
@@ -177,6 +208,7 @@ export function V5CardSheet(props: { L: Tx; Lf: Txf; card: V5Card | null; uiLang
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [ageOk, setAgeOk] = useState(false);
+  const [more, setMore] = useState(!isNew);   // new card: only photo, name and 20+ first; the rest is optional (13 Nov funnel fix)
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const busyRef = useRef(false);
@@ -234,6 +266,13 @@ export function V5CardSheet(props: { L: Tx; Lf: Txf; card: V5Card | null; uiLang
       </div>
       <label style={labelStyle} htmlFor="v5Name">{L('First name')}</label>
       <input id="v5Name" className="hi-box" style={{ marginBottom: 0 }} maxLength={30} autoComplete="given-name" value={name} onChange={(e) => setName(e.target.value)} />
+      {!more && (
+        <button type="button" id="v5More" onClick={() => setMore(true)}
+          style={{ display: 'block', margin: '10px 0 4px', background: 'none', border: 0, padding: 0, color: '#FF8CC4', fontWeight: 800, fontSize: 13 }}>
+          {L('More about you (optional) ›')}
+        </button>
+      )}
+      {more && (<>
       <span style={labelStyle}>{L('Languages you speak')}</span>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }} role="group">
         {V5_LANGS.map((l) => (
@@ -257,6 +296,7 @@ export function V5CardSheet(props: { L: Tx; Lf: Txf; card: V5Card | null; uiLang
         <button type="button" id="v5WhoTraveller" className={who === 'traveller' ? 'on' : ''} aria-pressed={who === 'traveller'} onClick={() => setWho('traveller')}>{L('✈ Visiting Bangkok')}</button>
         <button type="button" id="v5WhoLocal" className={who === 'local' ? 'on' : ''} aria-pressed={who === 'local'} onClick={() => setWho('local')}>{L('🏠 I live here')}</button>
       </div>
+      </>)}
       {isNew && (
         <label style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 13.5, fontWeight: 700, margin: '4px 0 12px' }}>
           <input type="checkbox" id="v5Age" checked={ageOk} onChange={(e) => setAgeOk(e.target.checked)} style={{ width: 20, height: 20 }} />
@@ -284,7 +324,7 @@ export function V5Qr(props: { value: string; size?: number }) {
   const size = props.size || 200;
   return (
     <svg role="img" aria-label="QR code" data-qr={props.value} width={size} height={size} viewBox={`0 0 ${svg.n} ${svg.n}`} shapeRendering="crispEdges" style={{ background: '#fff', borderRadius: 12, display: 'block', margin: '10px auto' }}>
-      <path d={svg.d} fill="#0D0D2E" />
+      <path d={svg.d} fill="#0B0A12" />
     </svg>
   );
 }
