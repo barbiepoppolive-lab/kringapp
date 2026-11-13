@@ -1,0 +1,1269 @@
+/**
+ * Kring admin v2 (13 Nov): phone-first, English only, less clutter.
+ * To do (count tiles) → one-at-a-time queues (Reels, Face checks, Reports, Replies, New venues) with Skip and a 5 s Undo;
+ * Members (sources, recruiter checklist + CSV, Kring Locals by recruiter); Top 5 gifts; Listings (Stay/Do stepper, Venues → detail); More (history, rules, sign out).
+ * Every RPC and its parameters are the same as v1 (reelsAdmin / verifyAdmin / socialAdmin / stayAdmin / admin.ts).
+ */
+import { V5_AREAS, v5VerifyCode } from '../v8/v5Live';
+import { signReelPaths } from '../v8/v5Reel';
+import { basePath, bkkTime, el, rpc, staffLink, v5Client } from './shared';
+import { checklistCsv, type Check } from './reelsAdmin';
+import { mentionsKring } from './socialAdmin';
+import { lineMessage, splitTreat, standLink, uploadPhotos } from './adminHelpers';
+import './admin2.css';
+
+// ───────────────────────────── types (same rows as v1) ─────────────────────────────
+type Reel = { id: string; author_id: string; author_name: string; ref_code: string | null; area: string; body: string; created_at: string;
+  video_path: string; poster_path: string; duration_ms: number; status: 'pending' | 'approved' | 'hidden'; author_approved: number };
+type Counts = { id: string; views: number; likes: number; saves: number; shares: number; open_reports: number };
+type Face = { id: string; user_id: string; first_name: string; profile_photo: string | null; selfie_path: string | null;
+  live_check: { straight?: boolean; left?: boolean; right?: boolean; blink?: boolean; match?: number | null; device?: string };
+  status: 'pending' | 'approved' | 'rejected'; created_at: string; reviewed_at: string | null; reject_reason: string | null; approved_reels: number; account_created: string };
+type Report = { id: string; created_at: string; category: string | null; reason: string; reporter_name: string | null; target_id: string | null; target_name: string | null;
+  post_id: string | null; post_kind: string | null; post_body: string | null; video_path: string | null; poster_path: string | null; post_hidden: boolean | null;
+  post_reports: number; target_reports: number; handled_at: string | null; resolution: string | null };
+type Social = { id: string; subreddit: string; thread_url: string; thread_title: string; reply_text: string; why_helps: string; mentions_kring: boolean;
+  status: 'pending' | 'sending' | 'sent' | 'skipped'; send_mode: 'api' | 'manual' | null; final_text: string | null; result_url: string | null; error: string | null;
+  created_at: string; sent_at: string | null };
+type SStatus = { sent_today: number; max_per_day: number; next_allowed_at: string; kring_allowed: boolean };
+type App = { id: string; venue_name: string; owner_name: string; line_id: string | null; phone: string | null; category: string; band: number;
+  band1_discount_thb: number | null; band1_min_bill_thb: number | null; city: string; district: string | null; maps_url: string; referral_host_code: string | null;
+  created_at: string; photo_b64: string | null; kind: string | null; treat_text: string | null; extra_photos_b64: string[]; licensed_stay?: boolean | null };
+type Stat = { venue_id: string; name: string; area: string; status: 'live' | 'paused'; approved_at: string; approved_by: string; referral_host_code: string | null;
+  first_redeemed_at: string | null; redemptions: number; claims: number; failed_pin_tries_7d: number; pin_locked_until: string | null };
+type Guests = { venue_id: string; guests: number; live_confirmed_at: string | null; new_account_guests: number; locked_phones: number; locked_until: string | null };
+type Flags = { venue_id: string; practice: boolean; daily_cap: number; used_today: number; deal_en: string | null; deal_th: string | null; name_th: string | null; licensed_stay: boolean | null };
+type Listing = { id: string; kind: 'stay' | 'do'; name: string; name_th: string | null; area: string; blurb_en: string | null; blurb_th: string | null; photos: string[];
+  member_price_thb: number; price_unit_en: string | null; price_unit_th: string | null; saving_thb: number | null; booking_kind: 'line_oa' | 'line' | 'ig' | 'url';
+  booking_contact: string; live: boolean; live_at: string | null; taps: number; members: number; taps_7d: number; last_tap_at: string | null; by_ref: Record<string, number> };
+type Attr = { kind: 'ref' | 'src'; code: string; signed_up: number; first_reel: number; live_14d: number; three_reels_2days: number };
+type Creator = { user_id: string; first_name: string; ref_code: string | null; joined_at: string; reels_total: number; approved: number; pending: number; hidden: number;
+  first_approved_at: string | null; approved_first_14d: number; approved_last_14d: number };
+type Award = { award_id: string; period: 'day' | 'week'; period_start: string; rank: number; prize: string; reel_id: string; author_name: string; area: string; poster_path: string };
+
+// ───────────────────────────── icons ─────────────────────────────
+const P: Record<string, string> = {
+  home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M17 14.5c2.4.2 4 1.8 4.5 4.5"/>',
+  trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H4.5a3 3 0 0 0 3.5 4M16 6h3.5a3 3 0 0 1-3.5 4M12 13v4M8 20h8M9.5 17h5"/>',
+  store: '<path d="M4 9l1.5-5h13L20 9M4 9h16v2a3 3 0 0 1-5.3 1.9A3 3 0 0 1 12 14a3 3 0 0 1-2.7-1.1A3 3 0 0 1 4 11zM5 13v7h14v-7M10 20v-4h4v4"/>',
+  more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+  x: '<path d="M6 6l12 12M18 6L6 18"/>', chev: '<path d="M9 5l7 7-7 7"/>', back: '<path d="M15 5l-7 7 7 7"/>',
+  check: '<path d="M4.5 12.5l5 5 10-11"/>', eyeoff: '<path d="M3 3l18 18M10.6 6.1A9.8 9.8 0 0 1 12 6c5 0 9 6 9 6a17 17 0 0 1-3 3.5M6.6 6.6C4.2 8.2 3 12 3 12s4 6 9 6a8.7 8.7 0 0 0 4.4-1.2M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+  eye: '<path d="M2.5 12S6 6 12 6s9.5 6 9.5 6S18 18 12 18 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>',
+  heart: '<path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/>',
+  save: '<path d="M6 3.5h12v17l-6-4.5-6 4.5z"/>', share: '<path d="M14 5l6 6-6 6M20 11H10a6 6 0 0 0-6 6v1"/>',
+  flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>', link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  open: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>', play: '<path d="M7 4.5v15l12-7.5z"/>',
+  vol: '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/>', mute: '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4zM16 9.5l5 5M21 9.5l-5 5"/>',
+  skip: '<path d="M6 5l8 7-8 7M18 5v14"/>', clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>', warn: '<path d="M12 3.5l9.5 16.5h-19z"/><path d="M12 10v4.5M12 17.4v.1"/>',
+  info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.8v.1"/>', face: '<path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16"/><path d="M9.5 10v.5M14.5 10v.5M9.5 15s1 1 2.5 1 2.5-1 2.5-1"/>',
+  left: '<path d="M9 14L4.5 9.5 9 5"/><path d="M4.5 9.5H14a5.5 5.5 0 0 1 0 11h-2"/>', right: '<path d="M15 14l4.5-4.5L15 5"/><path d="M19.5 9.5H10a5.5 5.5 0 0 0 0 11h2"/>',
+  blink: '<path d="M4 10c2.5 3 5 4.5 8 4.5s5.5-1.5 8-4.5M7 13.5L5.5 16M12 14.5V17M17 13.5l1.5 2.5"/>', copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/>',
+  edit: '<path d="M4 20h4l11-11-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>', send: '<path d="M4 12l16-8-6 16-2.5-6.5z"/>', plus: '<path d="M12 5v14M5 12h14"/>', minus: '<path d="M5 12h14"/>',
+  bed: '<path d="M3 18V7M3 14h18v4M21 14v-2a3 3 0 0 0-3-3h-8v5"/><circle cx="6.5" cy="10.5" r="1.8"/>', brush: '<path d="M18 3l3 3-9 9-3-3zM9 12c-3 0-5 2-5 5 0 1.5-1 2.5-2 3 4 1 9 0 9-5z"/>',
+  lock: '<rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>', key: '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M14.5 8.5l2 2"/>',
+  pause: '<path d="M8 5v14M16 5v14"/>', msg: '<path d="M4 5h16v11H9l-5 4z"/>', print: '<path d="M7 9V3.5h10V9M7 17H4.5V9h15v8H17M7 14h10v6.5H7z"/>',
+  hist: '<path d="M3.5 12a8.5 8.5 0 1 0 2.5-6M3.5 4v4.5H8"/><path d="M12 8v4l3 2"/>', book: '<path d="M4 4.5h6a2 2 0 0 1 2 2V20a2 2 0 0 0-2-2H4zM20 4.5h-6a2 2 0 0 0-2 2V20a2 2 0 0 1 2-2h6z"/>',
+  out: '<path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5M10 16l-4-4 4-4M6 12h10"/>', trash: '<path d="M4 7h16M9 7V4.5h6V7M6 7l1 13h10l1-13"/>', reel: '<rect x="5" y="3" width="14" height="18" rx="3"/><path d="M10 9.5v5l4-2.5z"/>',
+  dl: '<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>', party: '<path d="M4 20l4.5-12L16 15.5z"/><path d="M14 4.5c0 1.5 1 2 2 2M19 9c-1 0-2 .5-2 2M20 4l-1 1M12 9l1-1"/>', spark: '<path d="M12 3l2 6.5L20.5 12 14 14l-2 7-2-7-6.5-2L10 9.5z"/>',
+};
+function ic(name: string): SVGSVGElement {
+  const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('fill', 'none'); s.setAttribute('stroke', 'currentColor');
+  s.setAttribute('stroke-width', '1.8'); s.setAttribute('stroke-linecap', 'round'); s.setAttribute('stroke-linejoin', 'round'); s.setAttribute('aria-hidden', 'true');
+  s.innerHTML = P[name] || '';
+  return s;
+}
+
+// ───────────────────────────── small helpers ─────────────────────────────
+type Kid = Node | string | null | undefined | false;
+const app = document.getElementById('app')!;
+const btn = (cls: string, kids: Kid[], onClick?: () => void, attrs: Record<string, string | boolean | undefined> = {}) => {
+  const b = el('button', { class: 'btn ' + cls, type: 'button', ...attrs }, ...kids);
+  if (onClick) b.onclick = onClick;
+  return b;
+};
+const ERR: Record<string, string> = {
+  KR8_ADMIN_ONLY: 'This account is not an admin', KR8_DEAL_WORDS: 'No percent sign, quiet-hours words, links or phone numbers',
+  KR8_DEAL_TEXT_REQUIRED: 'Add the treat words (in baht) in at least one language', KR8_ALREADY_REVIEWED: 'Already reviewed',
+  KR8_BAD_PHOTOS: 'Photo upload failed', KR8_BAD_AREA: 'Pick an area', KR8_REASON_REQUIRED: 'Give a reason (3+ characters)', KR8_NEED_PHOTO: 'At least one photo is needed',
+  KR8_NO_REEL: 'This Reel is not approved or is hidden', KR8_SOCIAL_DAY_LIMIT: '5 sent today already · send tomorrow', KR8_SOCIAL_TOO_SOON: 'Less than 20 minutes since the last one',
+  KR8_SOCIAL_RATIO: 'Not yet: Kring needs 9 replies without it first', KR8_SOCIAL_NOT_PENDING: 'Already sent or skipped', REDDIT_OFF: 'Reddit API not connected yet · use Copy + open thread',
+};
+const errText = (e: unknown) => { const m = String((e as Error)?.message || e); const k = (m.match(/KR8_[A-Z_]+|REDDIT_OFF/) || [''])[0]; return ERR[k] || 'Failed: ' + m; };
+const errP = (e: unknown) => el('p', { class: 'err' }, errText(e));
+const ago = (iso: string | null | undefined) => {
+  if (!iso) return '–';
+  const m = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 60000));
+  if (m < 60) return `${m} min ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h} h ago`;
+  const d = Math.round(h / 24);
+  return d === 1 ? 'yesterday' : `${d} days ago`;
+};
+const reelLink = (id: string) => `${location.origin}${basePath()}?reel=${encodeURIComponent(id)}`;
+const bkkToday = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
+const mondayOf = (d: string) => { const t = new Date(d + 'T00:00:00Z'); const k = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - k); return t.toISOString().slice(0, 10); };
+const addDays = (d: string, n: number) => { const t = new Date(d + 'T00:00:00Z'); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
+const loading = () => el('div', { class: 'load' }, 'Loading…');
+const empty = (title: string, sub = '') => el('div', { class: 'card empty' }, el('b', {}, title), sub);
+const pill = (txt: string, cls = '') => el('span', { class: 'pill ' + cls }, txt);
+const LS = (k: string, v?: string) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch { /* private mode */ } return null; };
+
+function sw(id: string, label: Kid, checked: boolean, onChange: (on: boolean) => void): HTMLLabelElement {
+  const inp = el('input', { type: 'checkbox', id, checked });
+  inp.onchange = () => onChange(inp.checked);
+  return el('label', { class: 'sw' }, el('span', { class: 'grow' }, label), inp, el('span', { class: 'tg' }));
+}
+
+// ───────────────────────────── sheet + toast ─────────────────────────────
+function sheet(...kids: Kid[]): { close: () => void; box: HTMLElement } {
+  const box = el('div', { class: 'sheet', role: 'dialog' }, el('div', { class: 'grab' }), ...kids);
+  const scrim = el('div', { class: 'scrim' }, box);
+  const close = () => { scrim.remove(); window.removeEventListener('hashchange', close); };
+  scrim.onclick = (e) => { if (e.target === scrim) close(); };
+  window.addEventListener('hashchange', close);
+  document.body.append(scrim);
+  return { close, box };
+}
+
+let toastEl: HTMLElement | null = null;
+function toast(text: string, opts: { undo?: () => void; ms?: number } = {}) {
+  toastEl?.remove();
+  const ms = opts.ms ?? 5000;
+  const t = el('div', { class: 'toast', role: 'status', id: 'toast' }, el('span', { class: 'grow' }, text));
+  if (opts.undo) { const u = el('button', { type: 'button', id: 'toastUndo' }, 'Undo'); u.onclick = () => { t.remove(); opts.undo!(); }; t.append(u); }
+  const bar = el('i', {}); bar.style.animationDuration = ms + 'ms'; t.append(bar);
+  const qa = document.querySelector<HTMLElement>('.qact');
+  if (qa) t.style.bottom = `${qa.offsetHeight + 6}px`;
+  document.body.append(t); toastEl = t;
+  setTimeout(() => { if (toastEl === t) { t.remove(); toastEl = null; } }, ms);
+}
+
+/** One delayed write at a time: the RPC is sent when the 5 s Undo runs out, when another action starts, or when the screen is left. */
+let pendingWrite: { run: () => Promise<unknown>; timer: number } | null = null;
+function flushWrite() {
+  if (!pendingWrite) return;
+  const p = pendingWrite; pendingWrite = null; clearTimeout(p.timer);
+  void p.run().then(() => { counts = null; }).catch((e) => toast(errText(e), { ms: 6000 }));
+}
+function laterWrite(run: () => Promise<unknown>) {
+  flushWrite();
+  pendingWrite = { run, timer: window.setTimeout(flushWrite, 5000) };
+}
+function cancelWrite() { if (pendingWrite) { clearTimeout(pendingWrite.timer); pendingWrite = null; } }
+window.addEventListener('pagehide', flushWrite);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushWrite(); });
+
+// ───────────────────────────── shell ─────────────────────────────
+type Tab = 'todo' | 'members' | 'top5' | 'listings' | 'more';
+let counts: { reels: number; faces: number; reports: number; hiddenNow: number; replies: number; venues: number; status: SStatus | null } | null = null;
+let me = '';
+
+function tabbar(active: Tab): HTMLElement {
+  const items: [Tab, string, string][] = [['todo', 'home', 'To do'], ['members', 'users', 'Members'], ['top5', 'trophy', 'Top 5'], ['listings', 'store', 'Listings'], ['more', 'more', 'More']];
+  const total = counts ? counts.reels + counts.faces + counts.reports + counts.replies + counts.venues : 0;
+  return el('div', { class: 'tabbar' }, el('nav', {}, ...items.map(([k, i, label]) =>
+    el('a', { href: '#' + k, class: k === active ? 'on' : '', id: 'tab-' + k, 'aria-current': k === active ? 'page' : undefined },
+      ic(i), label, k === 'todo' && total ? el('span', { class: 'bdg', id: 'todoBadge' }, String(total)) : null))));
+}
+function screen(active: Tab, ...kids: Kid[]): HTMLElement {
+  const s = el('div', { class: 'scr' }, ...kids);
+  app.replaceChildren(s, tabbar(active));
+  window.scrollTo(0, 0);
+  return s;
+}
+function head(kicker: string, title: string, sub?: string, right?: Kid): HTMLElement {
+  return el('div', { class: 'hd' }, el('div', { class: 'grow' }, el('div', { class: 'k' }, kicker), el('h1', {}, title), sub ? el('div', { class: 'sub' }, sub) : null), right || null);
+}
+
+// ───────────────────────────── sign in ─────────────────────────────
+function signIn(msg?: string) {
+  const email = el('input', { id: 'adminEmail', type: 'email', autocomplete: 'email', inputmode: 'email', placeholder: 'you@example.com' });
+  const send = btn('pri big full', ['Send code'], undefined, { id: 'adminSend' });
+  const out = el('div', {}, msg ? el('p', { class: 'err' }, msg) : null);
+  const form = el('div', { class: 'stack' }, el('label', { class: 'f' }, 'Admin email', email), send, out);
+  send.onclick = async () => {
+    send.disabled = true;
+    try {
+      const { error } = await (await v5Client()).auth.signInWithOtp({ email: email.value.trim().toLowerCase(), options: { shouldCreateUser: false } });
+      if (error) throw error;
+    } catch (e) { send.disabled = false; out.replaceChildren(el('p', { class: 'err' }, String((e as Error).message))); return; }
+    const code = el('input', { id: 'adminCode', inputmode: 'numeric', maxlength: '6', autocomplete: 'one-time-code', 'aria-label': '6-digit code' });
+    const boxes = el('div', { class: 'boxes' }, ...Array.from({ length: 6 }, () => el('span', {})));
+    const paint = () => { const v = code.value.replace(/\D/g, '').slice(0, 6); if (v !== code.value) code.value = v; [...boxes.children].forEach((b, i) => { b.textContent = v[i] || ''; b.className = i === v.length && document.activeElement === code ? 'cur' : ''; }); };
+    code.oninput = paint; code.onfocus = paint; code.onblur = paint;
+    const ver = btn('pri big full', ['Sign in'], undefined, { id: 'adminVerify' });
+    const again = el('button', { type: 'button', class: 'skip' }, 'Send the code again');
+    again.onclick = () => signIn();
+    const out2 = el('div', {});
+    ver.onclick = async () => {
+      ver.disabled = true;
+      try { await v5VerifyCode(email.value, code.value); void boot(); } catch (e) { ver.disabled = false; out2.replaceChildren(el('p', { class: 'err' }, (e as Error).message === 'BAD_CODE' ? 'Wrong or old code' : String((e as Error).message))); }
+    };
+    form.replaceChildren(el('label', { class: 'f' }, `6-digit code sent to ${email.value.trim()}`, el('div', { class: 'otp' }, code, boxes)), ver, out2, again);
+    code.focus(); paint();
+  };
+  app.replaceChildren(el('div', { class: 'login' }, el('div', { class: 'logo' }, 'K'), el('h1', {}, 'Kring admin'),
+    el('p', { class: 'dim', style: 'margin:6px 0 26px' }, 'Sign in with your admin email.'), form));
+}
+
+// ───────────────────────────── To do ─────────────────────────────
+async function loadCounts() {
+  const [reels, faces, reports, social, st, apps] = await Promise.all([
+    rpc<Reel[]>('kr8_admin_reels', { p_status: 'pending', p_limit: 100 }).catch(() => [] as Reel[]),
+    rpc<Face[]>('kr8_admin_verifications', { p_status: 'pending' }).catch(() => [] as Face[]),
+    rpc<Report[]>('kr8_admin_reports', { p_open: true, p_limit: 200 }).catch(() => [] as Report[]),
+    rpc<Social[]>('kr8_admin_social_list', { p_status: 'pending' }).catch(() => [] as Social[]),
+    rpc<SStatus[]>('kr8_social_status').then((r) => r[0] || null).catch(() => null),
+    rpc<App[]>('kr8_admin_applications', { p_status: 'pending' }).catch(() => [] as App[]),
+  ]);
+  counts = { reels: reels.length, faces: faces.length, reports: reports.length, hiddenNow: reports.filter((r) => r.post_hidden).length,
+    replies: social.filter((s) => s.status === 'pending').length, venues: apps.length, status: st };
+  return counts;
+}
+
+async function todoView() {
+  const now = new Date();
+  const date = now.toLocaleDateString('en-GB', { timeZone: 'Asia/Bangkok', weekday: 'short', day: 'numeric', month: 'short' });
+  const body = el('div', {}, loading());
+  screen('todo', head('Kring admin', 'To do today', date), body);
+  const c = counts || await loadCounts().catch(() => null);
+  if (!c) { body.replaceChildren(empty('Could not load', 'Pull down to try again.')); return; }
+  app.querySelector('.tabbar')?.replaceWith(tabbar('todo'));
+  const tile = (id: string, href: string, n: number, title: string, cls: string, hint?: string) =>
+    el('a', { class: `tile ${cls} ${n ? '' : 'zero'}`, href, id }, el('span', { class: 'go' }, ic('chev')), el('span', { class: 'n' }, String(n)),
+      el('span', {}, el('span', { class: 't', style: 'display:block' }, title), hint ? el('span', { class: 'h', style: 'display:block' }, hint) : null));
+  const st = c.status;
+  const nextAt = st ? (Date.parse(st.next_allowed_at) > Date.now() ? `Next at ${bkkTime(st.next_allowed_at, false)}` : `${st.sent_today}/${st.max_per_day} sent today`) : '';
+  const total = c.reels + c.faces + c.reports + c.replies + c.venues;
+  const venueTile = el('a', { class: `tile wide ${c.venues ? '' : 'zero'}`, href: '#q/venues', id: 'todo-venues' }, el('span', { class: 'n' }, String(c.venues)),
+    el('span', { class: 'grow' }, el('span', { class: 't', style: 'display:block' }, c.venues === 1 ? 'New venue' : 'New venues'), el('span', { class: 'h', style: 'display:block' }, 'Waiting for approval')),
+    el('span', { class: 'go', style: 'position:static' }, ic('chev')));
+  body.replaceChildren(
+    total ? '' : el('div', { class: 'clear', id: 'allClear' }, ic('check'), el('div', {}, el('b', {}, 'All clear'), el('span', { class: 'dim sm' }, 'Nothing waiting. Nice work.'))),
+    el('div', { class: 'tiles' },
+      tile('todo-reels', '#q/reels', c.reels, 'Reels waiting', 'pink', 'Approve or hide'),
+      tile('todo-faces', '#q/faces', c.faces, 'Face checks', 'blue', 'Verify members'),
+      tile('todo-reports', '#q/reports', c.reports, 'Reports', 'red', c.hiddenNow ? `${c.hiddenNow} Reel hidden now` : 'Open reports'),
+      tile('todo-replies', '#q/replies', c.replies, 'Replies to send', '', nextAt || 'Reddit drafts'),
+      venueTile, redditTile()),
+    total ? el('div', { class: 'est' }, ic('clock'), `About ${total} min in all`) : '');
+}
+
+// ───────────────────────────── queue frame ─────────────────────────────
+type QApi = { done: (label: string, write: () => Promise<unknown>) => void; next: () => void; skip: () => void; actions: (el: HTMLElement) => void };
+function queue<T extends { id: string }>(title: string, items: T[], renderItem: (it: T, api: QApi) => HTMLElement, onEmptyBack = '#todo') {
+  const total = items.length;
+  let doneN = 0;
+  const list = [...items];
+  const cnt = el('span', { class: 'cnt', id: 'qCount' });
+  const bar = el('i', {});
+  const close = el('a', { class: 'icb', href: onEmptyBack, 'aria-label': 'Close', id: 'qClose' }, ic('x'));
+  const top = el('div', { class: 'qh' }, el('div', { class: 'row' }, close, el('h2', { class: 'grow' }, title), cnt), el('div', { class: 'bar' }, bar));
+  const body = el('div', {});
+  const act = el('div', { class: 'qact' }, el('div', {}));
+  const s = el('div', { class: 'scr q' }, top, body);
+  app.replaceChildren(s, act);
+  const show = () => {
+    window.scrollTo(0, 0);
+    cnt.textContent = list.length ? `${Math.min(doneN + 1, total)} / ${total}` : `${total} / ${total}`;
+    bar.style.width = `${total ? (doneN / total) * 100 : 100}%`;
+    if (!list.length) {
+      act.firstElementChild!.replaceChildren(el('a', { class: 'btn pri big full', href: onEmptyBack, id: 'qDone' }, 'Back to To do'));
+      body.replaceChildren(el('div', { class: 'okhero', style: 'padding-top:60px' }, el('div', { class: 'ic' }, ic('check')), el('h2', {}, 'All done here'),
+        el('p', { class: 'dim' }, total ? `${total} handled.` : 'Nothing waiting.')));
+      return;
+    }
+    const it = list[0];
+    const api: QApi = {
+      done: (label, write) => {
+        const idx = list.indexOf(it); if (idx < 0) return;
+        list.splice(idx, 1); doneN++;
+        laterWrite(write);
+        toast(label, { undo: () => { cancelWrite(); list.unshift(it); doneN--; show(); } });
+        show();
+      },
+      next: () => { const idx = list.indexOf(it); if (idx >= 0) { list.splice(idx, 1); doneN++; } counts = null; show(); },
+      skip: () => { flushWrite(); if (list.length > 1) { list.push(list.shift()!); show(); } else toast('This is the last one'); },
+      actions: (n) => act.firstElementChild!.replaceChildren(n),
+    };
+    body.replaceChildren(renderItem(it, api));
+  };
+  show();
+}
+const skipBtn = (api: QApi) => { const b = el('button', { type: 'button', class: 'skip', id: 'qSkip' }, ic('skip'), 'Skip for now'); b.onclick = api.skip; return b; };
+
+// ───────────────────────────── Reel queue ─────────────────────────────
+function reelVideo(src: string, poster: string, chips: Kid[], overlay: Kid[]): HTMLElement {
+  const v = el('video', { src, poster, playsinline: true, loop: true, preload: 'auto', autoplay: true });
+  v.muted = true; v.defaultMuted = true; v.setAttribute('muted', '');
+  const sound = el('span', { class: 'chip' }, ic('mute'), 'Tap for sound');
+  const box = el('div', { class: 'vid' }, v, el('div', { class: 'chips' }, ...chips, sound), el('div', { class: 'ov' }, ...overlay));
+  box.onclick = () => { v.muted = !v.muted; if (v.paused) void v.play().catch(() => undefined); sound.replaceChildren(ic(v.muted ? 'mute' : 'vol'), v.muted ? 'Tap for sound' : 'Sound on'); };
+  setTimeout(() => void v.play().catch(() => undefined), 0);
+  return box;
+}
+
+async function reelQueue() {
+  app.replaceChildren(el('div', { class: 'scr' }, loading()));
+  let rows: Reel[];
+  try { rows = await rpc<Reel[]>('kr8_admin_reels', { p_status: 'pending', p_limit: 100 }); } catch (e) { app.replaceChildren(el('div', { class: 'scr' }, errP(e))); return; }
+  const [urls, cnt] = await Promise.all([
+    signReelPaths(rows.flatMap((r) => [r.video_path, r.poster_path])).catch(() => ({} as Record<string, string>)),
+    rows.length ? rpc<Counts[]>('kr8_admin_reel_counts', { p_ids: rows.map((r) => r.id) }).catch(() => [] as Counts[]) : Promise.resolve([] as Counts[]),
+  ]);
+  const cm = new Map(cnt.map((c) => [c.id, c]));
+  queue('Reels waiting', rows, (r, api) => {
+    const c = cm.get(r.id);
+    const write = (s: 'approved' | 'hidden') => () => rpc('kr8_admin_review_reel', { p_reel: r.id, p_status: s });
+    api.actions(el('div', {}, el('div', { class: 'two' },
+      btn('out-bad big', [ic('eyeoff'), 'Hide'], () => api.done('Reel hidden', write('hidden')), { id: 'hideReel-' + r.id }),
+      btn('go big', [ic('check'), 'Approve'], () => api.done('Reel approved', write('approved')), { id: 'approveReel-' + r.id })), skipBtn(api)));
+    return el('div', { 'data-reel': r.id },
+      reelVideo(urls[r.video_path] || '', urls[r.poster_path] || '', [el('span', { class: 'chip' }, ic('play'), `${Math.round(r.duration_ms / 1000)} s`)],
+        [el('b', {}, `${r.author_name} · Kring Local`), el('p', { class: 'dim' }, `${r.area} · ${ago(r.created_at)}`), r.body ? el('p', {}, r.body) : null]),
+      el('div', { class: 'facts' },
+        el('span', { class: 'fact' }, ic('link'), 'Ref ', el('b', {}, r.ref_code || '–')),
+        el('span', { class: 'fact' }, ic('check'), 'Approved before ', el('b', {}, String(r.author_approved))),
+        c ? el('span', { class: 'fact', 'data-counts': r.id }, ic('eye'), el('b', {}, String(c.views)), ic('heart'), el('b', {}, String(c.likes)), ic('save'), el('b', {}, String(c.saves)), ic('share'), el('b', {}, String(c.shares))) : null,
+        c?.open_reports ? el('span', { class: 'fact red' }, ic('flag'), el('b', {}, String(c.open_reports)), ' open reports') : null,
+        el('a', { class: 'fact', href: reelLink(r.id), target: '_blank', rel: 'noopener' }, ic('open'), 'Open Reel')));
+  });
+}
+
+// ───────────────────────────── Face queue ─────────────────────────────
+/** [button, English the admin sees, Thai sent first]. The member / owner gets "Thai\nEnglish"; the admin screen shows English only. */
+type Chip = [label: string, en: string, th: string];
+const FACE_CHIPS: Chip[] = [
+  ['Not the same person', 'The face in your profile photo and the selfie are not the same person.', 'ใบหน้าในรูปโปรไฟล์กับเซลฟี่ไม่ใช่คนเดียวกันครับ'],
+  ['Selfie not clear', 'The selfie is not clear enough. Please try again in good light.', 'เซลฟี่ยังไม่ชัดพอ ลองถ่ายใหม่ในที่ที่มีแสงสว่างนะครับ'],
+  ['Photo of a screen', 'The selfie looks like a photo of a screen. Please take a live selfie.', 'เซลฟี่ดูเหมือนถ่ายจากหน้าจอ รบกวนถ่ายเซลฟี่สดอีกครั้งนะครับ'],
+  ['Profile photo hides face', 'Your profile photo does not show your face clearly. Please change it, then try again.', 'รูปโปรไฟล์ยังเห็นหน้าไม่ชัด เปลี่ยนรูปแล้วลองยืนยันอีกครั้งนะครับ'],
+  ['No blink', 'We could not see a blink. Please try the live check again.', 'ระบบไม่เห็นการกะพริบตา ลองตรวจสดอีกครั้งนะครับ'],
+];
+/** Thai first, English under it, when the text is a chip's English (unchanged); a hand-typed reason goes as typed. */
+export function bilingualReason(text: string, chips: Chip[]): string {
+  const t = text.trim();
+  const c = chips.find((x) => x[1] === t);
+  return c ? `${c[2]}\n${c[1]}` : t;
+}
+function rejectSheet(title: string, sub: string, chips: Chip[], idBase: string, send: (why: string) => Promise<unknown>, onDone: () => void) {
+  const ta = el('textarea', { rows: '3', maxlength: '200', id: idBase + 'Why' }) as HTMLTextAreaElement;
+  const out = el('div', {});
+  const chipRow = el('div', { class: 'chips2' });
+  const note = el('p', { class: 'faint xs', style: 'margin:6px 0 0', id: idBase + 'Lang' });
+  const paint = () => { note.textContent = chips.some((x) => x[1] === ta.value.trim()) ? 'Sent in Thai + English' : 'Typed text is sent as written'; };
+  ta.oninput = paint;
+  for (const [label, text] of chips) {
+    const b = el('button', { type: 'button' }, label);
+    b.onclick = () => { ta.value = text; paint(); chipRow.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); };
+    chipRow.append(b);
+  }
+  const go = btn('bad big full', [ic('send'), 'Send · reject'], undefined, { id: idBase + 'Send' });
+  const sh = sheet(el('h3', {}, title), el('p', { class: 'dim', style: 'margin:4px 0 0' }, sub),
+    el('div', { class: 'stack' }, chipRow, el('label', { class: 'f' }, 'Text they see · you can edit', ta, note), go, out));
+  paint();
+  go.onclick = async () => {
+    if (ta.value.trim().length < 3) { out.replaceChildren(el('p', { class: 'err' }, ERR.KR8_REASON_REQUIRED)); return; }
+    flushWrite(); go.disabled = true;
+    try { await send(bilingualReason(ta.value, chips)); sh.close(); toast('Rejected · reason sent', { ms: 2500 }); onDone(); }
+    catch (e) { go.disabled = false; out.replaceChildren(errP(e)); }
+  };
+}
+
+let cleanedNote = '';
+async function selfieCleanup() {
+  try {
+    const due = await rpc<{ id: string; selfie_path: string }[]>('kr8_admin_verify_files_due');
+    if (!due.length) return;
+    const c = await v5Client();
+    const { error } = await c.storage.from('kr8-verify').remove(due.map((d) => d.selfie_path));
+    if (error) return;
+    const n = await rpc<number>('kr8_admin_mark_selfies_deleted', { p_ids: due.map((d) => d.id) });
+    if (n) { cleanedNote = `Deleted ${n} selfies older than 30 days (${bkkTime(new Date().toISOString())})`; LS('kr8-admin-cleaned', cleanedNote); }
+  } catch { /* try again next time */ }
+}
+async function signSelfies(rows: Face[]) {
+  const paths = rows.map((r) => r.selfie_path).filter((x): x is string => !!x);
+  const out: Record<string, string> = {};
+  if (!paths.length) return out;
+  const { data } = await (await v5Client()).storage.from('kr8-verify').createSignedUrls(paths, 600);
+  for (const d of data || []) if (d.path && d.signedUrl) out[d.path] = d.signedUrl;
+  return out;
+}
+function faceBody(r: Face, signed: Record<string, string>): HTMLElement {
+  const lc = r.live_check || {};
+  const m = lc.match;
+  const [cls, label] = m === null || m === undefined ? ['a', 'No score · no face found in one of the photos']
+    : m < 0.5 ? ['g', 'Very likely the same person'] : m < 0.6 ? ['g', 'Likely the same person'] : ['a', 'Look carefully: may be a different person'];
+  const pic = (src: string | null | undefined, cap: string, none: string) => el('figure', {}, src ? el('img', { src, alt: cap }) : el('div', { class: 'none' }, none), el('figcaption', { class: 'chip' }, cap));
+  const step = (on: boolean | undefined, icon: string, t: string, bad = false) => el('div', { class: on ? 'y' : bad ? 'n' : '' }, ic(icon), t);
+  const noBlink = !!lc.right && !lc.blink;
+  return el('div', { 'data-verify': r.id },
+    el('h2', { style: 'font-size:26px' }, r.first_name),
+    el('div', { class: 'dim sm', style: 'margin-top:2px' }, `Joined ${ago(r.account_created)} · ${r.approved_reels} approved Reels · sent ${ago(r.created_at)}`),
+    el('div', { class: 'pair' }, pic(r.profile_photo, 'Profile photo', 'No photo'), pic(r.selfie_path ? signed[r.selfie_path] : null, 'Live selfie', 'Selfie deleted (30 days)')),
+    el('div', { class: 'score ' + cls, 'data-match': String(m ?? '') }, el('span', { class: 'v' }, m === null || m === undefined ? '–' : m.toFixed(2)), el('b', {}, label)),
+    el('div', { class: 'steps' }, step(lc.straight, 'face', 'Straight'), step(lc.left, 'left', 'Left'), step(lc.right, 'right', 'Right'), step(lc.blink, 'blink', 'Blink', noBlink)),
+    noBlink ? el('div', { class: 'warnbox', 'data-noblink': '1' }, ic('warn'), 'Blink not detected (passed after 20 s facing the camera). Look at the selfie carefully.') : null,
+    lc.device ? el('div', { class: 'faint xs', style: 'margin-top:8px' }, lc.device) : null,
+    r.reject_reason ? el('p', { class: 'dim sm' }, 'Reason: ' + r.reject_reason) : null,
+    el('div', { class: 'tip' }, ic('info'), 'Same person, clear face, not a photo of a screen.'));
+}
+async function faceQueue() {
+  app.replaceChildren(el('div', { class: 'scr' }, loading()));
+  void selfieCleanup();
+  let rows: Face[];
+  try { rows = await rpc<Face[]>('kr8_admin_verifications', { p_status: 'pending' }); } catch (e) { app.replaceChildren(el('div', { class: 'scr' }, errP(e))); return; }
+  const signed = await signSelfies(rows).catch(() => ({} as Record<string, string>));
+  queue('Face checks', rows, (r, api) => {
+    api.actions(el('div', {}, el('div', { class: 'two' },
+      btn('out-bad big', [ic('x'), 'Reject'], () => rejectSheet('Why not?', 'The member sees this reason.', FACE_CHIPS, 'verifyReject-' + r.id,
+        (why) => rpc('kr8_admin_review_verification', { p_id: r.id, p_approve: false, p_reason: why }), api.next), { id: 'verifyReject-' + r.id }),
+      btn('go big', [ic('check'), 'Approve'], () => api.done('Verified ✓', () => rpc('kr8_admin_review_verification', { p_id: r.id, p_approve: true })), { id: 'verifyApprove-' + r.id })),
+    skipBtn(api)));
+    return faceBody(r, signed);
+  });
+}
+
+// ───────────────────────────── Report queue ─────────────────────────────
+const CAT: Record<string, string> = { spam: 'Spam or scam', unsafe: 'Unsafe, adult or harassment', stolen: 'Stolen clip or pretending to be someone',
+  wrong_place: 'Wrong place or the place is closed', block: 'Blocked the Kring Local' };
+const RES: Record<string, [string, string]> = { kept: ['Kept', 'g'], removed: ['Removed', 'r'], dismissed: ['Closed', ''] };
+function reportBody(r: Report, urls: Record<string, string>): HTMLElement {
+  const cat = r.category && CAT[r.category];
+  return el('div', { 'data-report': r.id, 'data-post': r.post_id || '' },
+    r.video_path ? reelVideo(urls[r.video_path] || '', urls[r.poster_path || ''] || '', r.post_hidden ? [el('span', { class: 'chip red' }, ic('eyeoff'), 'Hidden now (3 reported)')] : [],
+      [el('b', {}, r.target_name || '–'), r.post_body ? el('p', {}, r.post_body) : null]) : null,
+    el('div', { class: 'card', style: 'margin-top:12px' },
+      el('div', { class: 'row' }, el('span', { class: 'icb', style: 'background:rgba(255,90,107,.14);color:var(--bad)' }, ic('flag')),
+        el('div', { class: 'grow' }, el('b', { style: 'font-size:17px;display:block' }, cat || 'Report about a person'), el('span', { class: 'dim sm' }, r.post_id ? 'Reel report' : 'Chat or profile')),
+        r.resolution ? pill(RES[r.resolution]?.[0] || r.resolution, RES[r.resolution]?.[1] || '') : null),
+      !cat || r.reason ? el('p', { style: 'margin:12px 0 0' }, `“${r.reason}”`) : null,
+      el('div', { class: 'facts' },
+        el('span', { class: 'fact' }, 'About ', el('b', {}, r.target_name || '–')),
+        el('span', { class: 'fact red' }, ic('flag'), el('b', {}, String(r.post_id ? r.post_reports : r.target_reports))),
+        el('span', { class: 'fact' }, 'By ', el('b', {}, r.reporter_name || '–'), ' · ', ago(r.created_at)))),
+    r.post_id ? el('div', { class: 'tip' }, ic('info'), 'A Reel reported by 3 different people hides itself until you decide.') : null);
+}
+async function reportQueue() {
+  app.replaceChildren(el('div', { class: 'scr' }, loading()));
+  let rows: Report[];
+  try { rows = await rpc<Report[]>('kr8_admin_reports', { p_open: true, p_limit: 200 }); } catch (e) { app.replaceChildren(el('div', { class: 'scr' }, errP(e))); return; }
+  const urls = await signReelPaths(rows.flatMap((r) => (r.video_path ? [r.video_path, r.poster_path || ''] : []))).catch(() => ({} as Record<string, string>));
+  queue('Reports', rows, (r, api) => {
+    const w = (a: 'keep' | 'remove' | 'dismiss') => () => rpc('kr8_admin_resolve_report', { p_report: r.id, p_action: a });
+    api.actions(el('div', {}, r.post_id
+      ? el('div', { class: 'two' }, btn('out-bad big', [ic('trash'), 'Remove'], () => api.done('Removed from feed', w('remove')), { id: 'report-remove-' + r.id }),
+        btn('go big', [ic('check'), 'Keep'], () => api.done('Kept · shown again', w('keep')), { id: 'report-keep-' + r.id }))
+      : btn('pri big full', [ic('check'), 'Close report'], () => api.done('Report closed', w('dismiss')), { id: 'report-dismiss-' + r.id }),
+    skipBtn(api)));
+    return reportBody(r, urls);
+  });
+}
+
+// ───────────────────────────── Reply queue ─────────────────────────────
+async function copyLater(textP: Promise<string>): Promise<boolean> {
+  try {
+    const CI = (window as unknown as { ClipboardItem?: typeof ClipboardItem }).ClipboardItem;
+    if (CI && navigator.clipboard?.write) { await navigator.clipboard.write([new CI({ 'text/plain': textP.then((t) => new Blob([t], { type: 'text/plain' })) })]); return true; }
+    await navigator.clipboard.writeText(await textP); return true;
+  } catch { return false; }
+}
+async function sendViaApi(id: string): Promise<{ result_url?: string; error?: string }> {
+  const c = await v5Client();
+  const { data, error } = await c.functions.invoke('social-send', { body: { id } });
+  if (!error) return data as { result_url?: string };
+  const ctx = (error as { context?: Response }).context;
+  const body = ctx && typeof ctx.json === 'function' ? await ctx.json().catch(() => null) : null;
+  return { error: (body as { error?: string } | null)?.error || String(error.message || 'SEND') };
+}
+function ruleTiles(st: SStatus | null): HTMLElement {
+  if (!st) return el('div', {});
+  const wait = Date.parse(st.next_allowed_at) - Date.now();
+  return el('div', { class: 'stats', id: 'socialStatus', style: 'margin-bottom:12px' },
+    el('div', { class: 'stat' }, el('b', {}, `${st.sent_today}/${st.max_per_day}`), el('span', {}, 'Sent today')),
+    el('div', { class: 'stat' }, el('b', { class: wait > 0 ? '' : 'okc' }, wait > 0 ? bkkTime(st.next_allowed_at, false) : 'OK'), el('span', {}, wait > 0 ? 'Next allowed' : '20-min gap')),
+    el('div', { class: 'stat' }, el('b', { class: st.kring_allowed ? 'okc' : '' }, st.kring_allowed ? 'OK' : 'Not yet'), el('span', {}, 'Kring mention')));
+}
+async function replyQueue() {
+  app.replaceChildren(el('div', { class: 'scr' }, loading()));
+  let rows: Social[]; let st: SStatus | null;
+  try { [rows, st] = await Promise.all([rpc<Social[]>('kr8_admin_social_list', { p_status: 'pending' }), rpc<SStatus[]>('kr8_social_status').then((r) => r[0] || null)]); }
+  catch (e) { app.replaceChildren(el('div', { class: 'scr' }, errP(e))); return; }
+  rows = rows.filter((r) => r.status === 'pending');
+  queue('Replies to send', rows, (r, api) => {
+    const out = el('div', {});
+    const text = el('pre', { class: 'reply', 'data-text': r.id }, r.final_text || r.reply_text);
+    const card = el('div', { 'data-social': r.id },
+      ruleTiles(st),
+      el('div', { class: 'card' },
+        el('div', { class: 'row' }, pill('r/' + r.subreddit, 'p'), el('span', { class: 'grow' }), el('span', { class: 'faint xs' }, ago(r.created_at))),
+        el('a', { href: r.thread_url, target: '_blank', rel: 'noopener noreferrer', class: 'link', style: 'display:block;margin-top:10px;font-size:16px;color:var(--text)' }, r.thread_title || r.thread_url),
+        r.why_helps ? el('p', { class: 'dim sm', style: 'margin:8px 0 0' }, 'Why it helps: ' + r.why_helps) : null,
+        text,
+        (r.mentions_kring || mentionsKring(r.reply_text)) ? el('div', { class: 'warnbox', 'data-mentions': '1', style: 'color:var(--warn);border-color:rgba(255,196,77,.4);background:rgba(255,196,77,.07)' }, ic('info'), 'Mentions Kring · a disclosure line is added') : null,
+        r.error ? el('p', { class: 'err' }, r.error) : null),
+      el('div', { class: 'tip' }, ic('info'), 'Max 5 a day · 20+ minutes apart · Kring only after 9 replies without it.'), out);
+    const copy = btn('pri big full', [ic('copy'), 'Copy + open thread'], undefined, { id: 'socialCopy-' + r.id });
+    const edit = btn('ghost sm2', [ic('edit'), 'Edit'], undefined, { id: 'socialEdit-' + r.id });
+    const auto = btn('ghost sm2', [ic('send'), 'Auto-send'], undefined, { id: 'socialSend-' + r.id });
+    const skipT = btn('ghost sm2', [ic('trash'), 'Discard'], undefined, { id: 'socialSkip-' + r.id, style: 'color:var(--bad)' });
+    const lock = (on: boolean) => { for (const b of [copy, edit, auto, skipT]) b.disabled = on; };
+    copy.onclick = async () => {
+      flushWrite(); lock(true);
+      const prep = rpc<{ text: string; thread_url: string }>('kr8_admin_social_prepare', { p_id: r.id, p_mode: 'manual' });
+      const copiedP = copyLater(prep.then((p) => p.text));
+      let p: { text: string; thread_url: string };
+      try { p = await prep; } catch (e) { lock(false); out.replaceChildren(errP(e)); return; }
+      const copied = await copiedP;
+      text.textContent = p.text;
+      try { await rpc('kr8_admin_social_done', { p_id: r.id, p_result_url: null }); } catch { /* Undo still works */ }
+      counts = null;
+      toast(copied ? 'Copied · long-press the comment box and paste' : 'Could not copy · select the text and copy it', { ms: 4000 });
+      api.actions(el('div', { class: 'stack' },
+        el('a', { class: 'btn pri big full', href: p.thread_url, target: '_blank', rel: 'noopener noreferrer', id: 'socialOpen-' + r.id }, ic('open'), 'Open thread'),
+        el('div', { class: 'two' }, btn('ghost', ['Undo (not posted)'], async () => { try { await rpc('kr8_admin_social_undo', { p_id: r.id }); toast('Undone', { ms: 2000 }); lock(false); api.actions(bar); } catch (e) { out.replaceChildren(errP(e)); } }, { id: 'socialUndo-' + r.id }),
+          btn('go', ['Next', ic('chev')], api.next, { id: 'socialNext' }))));
+      window.open(p.thread_url, '_blank', 'noopener');
+    };
+    edit.onclick = () => {
+      const ta = el('textarea', { rows: '9', id: 'socialText-' + r.id }) as HTMLTextAreaElement;
+      ta.value = r.reply_text;
+      const save = btn('pri', ['Save'], async () => {
+        try { await rpc('kr8_admin_social_edit', { p_id: r.id, p_text: ta.value }); r.reply_text = ta.value; r.final_text = null; text.textContent = ta.value; ta.replaceWith(text); api.actions(bar); toast('Saved', { ms: 2000 }); }
+        catch (e) { out.replaceChildren(errP(e)); }
+      }, { id: 'socialSave-' + r.id });
+      text.replaceWith(ta);
+      api.actions(el('div', { class: 'two' }, btn('ghost', ['Cancel'], () => { ta.replaceWith(text); api.actions(bar); }), save));
+      ta.focus();
+    };
+    auto.onclick = async () => {
+      flushWrite(); lock(true);
+      const res = await sendViaApi(r.id);
+      if (res.result_url) { toast('Posted', { ms: 2000 }); api.next(); return; }
+      lock(false); out.replaceChildren(el('p', { class: 'err' }, errText(res.error || 'SEND')));
+    };
+    skipT.onclick = () => api.done('Discarded', () => rpc('kr8_admin_social_skip', { p_id: r.id }));
+    const bar = el('div', {}, copy, el('div', { class: 'row', style: 'gap:8px;margin-top:10px' }, edit, auto, skipT), skipBtn(api));
+    for (const b of [edit, auto, skipT]) b.style.flex = '1';
+    api.actions(bar);
+    return card;
+  });
+}
+
+// ───────────────────────────── New venue queue ─────────────────────────────
+const CAT_OF: Record<string, string> = { cafe: 'coffee', dessert: 'coffee', casual: 'food', restaurant: 'food', rooftop: 'food', studio: 'classes', experience: 'fun', stay: 'stay' };
+const KIND_LABEL: Record<string, string> = { cafe: 'Café', restaurant: 'Restaurant', dessert: 'Dessert', stay: 'Place to stay' };
+const VENUE_CHIPS: Chip[] = [
+  ['Photos unclear', 'The photos are not clear enough. Please send a clear shopfront photo.', 'รูปยังไม่ชัดพอ รบกวนส่งรูปหน้าร้านที่ชัดๆ มาใหม่อีกครั้งครับ'],
+  ['Outside our areas', 'Your place is outside the areas Kring covers for now.', 'ตอนนี้ร้านของคุณยังอยู่นอกย่านที่กริ๊ง!ให้บริการครับ'],
+  ['Treat not in baht', 'Please give the treat as a baht amount, not a percent.', 'รบกวนระบุสิทธิพิเศษเป็นจำนวนเงินบาท ไม่ใช่เปอร์เซ็นต์ครับ'],
+  ['Details missing', 'Some details are missing. Please check the form and apply again.', 'ข้อมูลยังไม่ครบ รบกวนตรวจฟอร์มแล้วสมัครใหม่อีกครั้งครับ'],
+];
+type Owner = { name: string; contact?: string | null; dealTh?: string | null; dealEn?: string | null; line?: string | null; practice?: boolean };
+
+/** Welcome message for the owner (Thai + English, sent on LINE). Only the English half is shown here; Copy copies both. */
+function welcomeActions(venueId: string, owner: Owner, previewBox?: HTMLElement): HTMLElement {
+  const test = `${location.origin}${location.pathname.replace(/[^/]*$/, '')}?v=${encodeURIComponent(venueId)}`;
+  let msg = lineMessage({ name: owner.name, contact: owner.contact, link: '', dealTh: owner.dealTh, dealEn: owner.dealEn, practice: owner.practice, test });
+  const enPart = () => msg.slice(msg.indexOf('\nHello') >= 0 ? msg.indexOf('\nHello') + 1 : 0);
+  const prev = previewBox || el('div', {});
+  const paint = () => prev.replaceChildren(el('div', { class: 'msgprev', id: 'lineMsg', 'data-full-length': String(msg.length) }, enPart()));
+  paint();
+  void rpc<string>('kr8_admin_owner_key', { p_venue: venueId }).then((k) => {
+    if (!k) return;
+    msg = lineMessage({ name: owner.name, contact: owner.contact, link: staffLink(venueId).replace('staff.html', 'owner.html') + '&k=' + encodeURIComponent(k), dealTh: owner.dealTh, dealEn: owner.dealEn, practice: owner.practice, test });
+    paint();
+  }).catch(() => undefined);
+  const lid = (owner.line || '').trim();
+  const safe = lid.replace(/[^A-Za-z0-9._@-]/g, '');
+  const href = safe.startsWith('@') ? `https://line.me/R/ti/p/${safe}` : `https://line.me/R/ti/p/~${safe}`;
+  const copyMsg = () => navigator.clipboard?.writeText(msg).then(() => toast('Welcome message copied', { ms: 2500 })).catch(() => toast('Could not copy', { ms: 2500 }));
+  const main = lid
+    ? el('a', { class: 'btn pri big full', href, target: '_blank', rel: 'noopener', id: 'openLine' }, ic('msg'), `Copy message + open LINE ${lid}`)
+    : btn('pri big full', [ic('copy'), 'Copy welcome message'], () => void copyMsg(), { id: 'copyLine' });
+  if (lid) main.addEventListener('click', () => void copyMsg());
+  return el('div', { class: 'stack' }, main,
+    lid ? btn('ghost full', [ic('copy'), 'Copy message only'], () => void copyMsg(), { id: 'copyLine' }) : null,
+    el('div', { class: 'two', style: 'display:grid;grid-template-columns:1fr 1fr;gap:10px' },
+      el('a', { class: 'btn ghost', href: standLink(venueId) + '&f=sticker', target: '_blank', rel: 'noopener', id: 'dlSticker-' + venueId }, ic('print'), 'Door sticker'),
+      el('a', { class: 'btn ghost', href: standLink(venueId) + '&f=stand', target: '_blank', rel: 'noopener', id: 'dlStand-' + venueId }, ic('print'), 'A6 stand')));
+}
+
+function venueApproved(venueId: string, owner: Owner, next: () => void) {
+  const prev = el('div', {});
+  const s = el('div', { class: 'scr' },
+    el('div', { class: 'okhero', id: 'pinCard' }, el('div', { class: 'ic' }, ic('party')), el('h1', { style: 'font-size:28px' }, `${owner.name} is live`),
+      el('p', { class: 'dim', style: 'margin:6px 0 0' }, owner.practice ? 'Practice listing · hidden from Deals' : 'Now showing in Deals')),
+    el('div', { class: 'sec' }, 'Welcome message (Thai + English, English shown)'), prev,
+    el('div', { style: 'margin-top:14px' }, welcomeActions(venueId, owner, prev)),
+    el('div', { style: 'margin-top:14px' }, btn('go big full', ['Next', ic('chev')], next, { id: 'venueNext' })));
+  app.replaceChildren(s);
+  window.scrollTo(0, 0);
+}
+
+function appBody(a: App, api: QApi): HTMLElement {
+  const sel = (id: string, opts: readonly string[], v: string) => { const s = el('select', { id }); for (const o of opts) s.append(el('option', { value: o, selected: o === v }, o)); return s; };
+  const area = sel('area-' + a.id, V5_AREAS, (V5_AREAS as readonly string[]).includes(a.district || '') ? a.district! : 'Bangkok');
+  const cat = sel('cat-' + a.id, ['coffee', 'food', 'classes', 'fun', 'stay'], CAT_OF[a.kind || a.category] || 'coffee');
+  const hoursEn = el('input', { id: 'hoursEn-' + a.id, placeholder: '08:00–18:00 daily' });
+  const hoursTh = el('input', { id: 'hoursTh-' + a.id, placeholder: '08:00–18:00 (Thai)' });
+  const dealEn = el('input', { id: 'dealEn-' + a.id });
+  const dealTh = el('input', { id: 'dealTh-' + a.id });
+  if (a.treat_text) { const tr = splitTreat(a.treat_text); dealTh.value = tr.th; dealEn.value = tr.en; }
+  else if (a.band === 1) {
+    dealEn.value = `฿${a.band1_discount_thb} off when your bill is ฿${a.band1_min_bill_thb} or more`;
+    dealTh.value = `ลด ฿${a.band1_discount_thb} เมื่อยอดครบ ฿${a.band1_min_bill_thb} ขึ้นไป`;
+  }
+  const nameTh = el('input', { id: 'nameTh-' + a.id });
+  void rpc<{ name_th?: string; hours_en?: string; hours_th?: string }>('kr8_admin_app_meta', { p_application: a.id }).then((m) => {
+    if (m?.name_th && !nameTh.value) nameTh.value = m.name_th;
+    if (m?.hours_en && !hoursEn.value) hoursEn.value = m.hours_en;
+    if (m?.hours_th && !hoursTh.value) hoursTh.value = m.hours_th;
+  }).catch(() => undefined);
+  const autoSlug = a.venue_name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 32);
+  const slug = el('input', { id: 'slug-' + a.id, value: autoSlug, placeholder: 'baan-noi-cafe', autocapitalize: 'none' });
+  let practiceOn = (a.referral_host_code || '').toLowerCase() === 'bew-fw';
+  const practice = sw('practice-' + a.id, el('span', {}, el('b', { style: 'display:block' }, 'Practice listing'), el('span', { class: 'dim sm' }, 'Full flow works, hidden from Deals')), practiceOn, (on) => { practiceOn = on; });
+  const files = el('input', { id: 'photos-' + a.id, type: 'file', accept: 'image/*', multiple: true });
+  const msg = el('div', {});
+  const err = (field: HTMLElement, text: string) => { field.closest('label')?.append(el('span', { class: 'err' }, text)); field.scrollIntoView({ block: 'center' }); };
+  const photos = [a.photo_b64, ...(a.extra_photos_b64 || [])].filter((x): x is string => !!x);
+  const approve = btn('go big', [ic('check'), 'Approve · go live'], undefined, { id: 'approve-' + a.id });
+  const reject = btn('out-bad big', [ic('x'), 'Reject'], undefined, { id: 'reject-' + a.id });
+  approve.onclick = async () => {
+    msg.replaceChildren(); app.querySelectorAll('label .err').forEach((n) => n.remove());
+    if (hoursTh.value.trim().length < 3) return err(hoursTh, 'Fill in the opening hours (Thai)');
+    if (hoursEn.value.trim().length < 3) return err(hoursEn, 'Fill in the opening hours (English)');
+    flushWrite(); approve.disabled = reject.disabled = true; approve.replaceChildren('Working…');
+    try {
+      const up = await uploadPhotos(a.id, photos, files.files);
+      const r = await rpc<{ venue_id: string; pin: string; deal_th: string; deal_en: string }>('kr8_admin_approve_venue2', {
+        p_application: a.id, p_area: area.value, p_cat: cat.value, p_hours_en: hoursEn.value.trim(), p_hours_th: hoursTh.value.trim(),
+        p_photos: up, p_deal_en: dealEn.value.trim() || null, p_deal_th: dealTh.value.trim() || null, p_name_th: nameTh.value.trim() || null,
+        p_practice: practiceOn, p_slug: slug.value.trim() || null,
+      });
+      counts = null;
+      venueApproved(r.venue_id, { name: a.venue_name, contact: a.owner_name, line: a.line_id, dealTh: r.deal_th || dealTh.value.trim(), dealEn: r.deal_en || dealEn.value.trim(), practice: practiceOn }, api.next);
+    } catch (e) {
+      approve.disabled = reject.disabled = false; approve.replaceChildren(ic('check'), 'Approve · go live');
+      const code = String((e as Error).message);
+      if (code === 'KR8_DEAL_WORDS' || code === 'KR8_DEAL_TEXT_REQUIRED') err(dealEn, errText(e));
+      else if (code === 'KR8_BAD_PHOTOS' || code === 'KR8_NEED_PHOTO') err(files, errText(e));
+      else if (code === 'KR8_BAD_AREA') err(area, errText(e));
+      else msg.replaceChildren(errP(e));
+    }
+  };
+  reject.onclick = () => rejectSheet('Why not?', 'The venue sees this reason.', VENUE_CHIPS, 'confirmReject-' + a.id,
+    (why) => rpc('kr8_admin_reject_venue', { p_application: a.id, p_reason: why }), api.next);
+  api.actions(el('div', {}, el('div', { class: 'two' }, reject, approve), skipBtn(api)));
+  return el('div', { 'data-app': a.id },
+    a.photo_b64 ? el('div', { class: 'hero', style: `background-image:url(data:image/jpeg;base64,${a.photo_b64})` }) : el('div', { class: 'warnbox', style: 'margin-bottom:12px' }, ic('warn'), 'No photo · add one below before approving'),
+    a.extra_photos_b64?.length ? el('div', { class: 'pgrid', style: 'margin:-4px 0 14px' }, ...a.extra_photos_b64.map((b) => el('img', { src: `data:image/jpeg;base64,${b}`, alt: '' }))) : null,
+    el('div', { class: 'row' }, el('h2', { class: 'grow', style: 'font-size:26px' }, a.venue_name), pill(KIND_LABEL[a.kind || ''] || a.category, 'p')),
+    el('div', { class: 'facts' },
+      el('span', { class: 'fact' }, el('b', {}, a.owner_name)),
+      a.line_id ? el('span', { class: 'fact' }, 'LINE ', el('b', {}, a.line_id)) : null,
+      a.phone ? el('a', { class: 'fact', href: 'tel:' + a.phone }, a.phone) : null,
+      a.referral_host_code ? el('span', { class: 'fact' }, ic('link'), 'Ref ', el('b', {}, a.referral_host_code)) : null,
+      el('a', { class: 'fact', href: a.maps_url, target: '_blank', rel: 'noopener' }, ic('open'), [a.district, a.city].filter(Boolean).join(', ') || 'Map'),
+      el('span', { class: 'fact' }, ic('clock'), ago(a.created_at))),
+    a.treat_text ? el('div', { class: 'card', style: 'margin-top:12px' }, el('div', { class: 'faint xs' }, 'TREAT · THEIR WORDS'), el('div', { style: 'margin-top:4px;font-weight:600' }, a.treat_text)) : null,
+    a.licensed_stay ? el('p', { class: 'okc sm' }, '✓ Owner ticked "licensed to take guests"') : null,
+    el('div', { class: 'sec' }, 'Shown in the app'),
+    el('div', { class: 'stack' },
+      el('div', { class: 'g2' }, el('label', { class: 'f' }, 'Area', area), el('label', { class: 'f' }, 'Deals category', cat)),
+      el('div', { class: 'g2' }, el('label', { class: 'f' }, 'Hours (English)', hoursEn), el('label', { class: 'f' }, 'Hours (Thai)', hoursTh)),
+      el('label', { class: 'f' }, 'Deal (English) · baht, no percent', dealEn),
+      el('label', { class: 'f' }, 'Deal (Thai)', dealTh),
+      el('div', { class: 'g2' }, el('label', { class: 'f' }, 'Thai name (optional)', nameTh), el('label', { class: 'f' }, 'Link name (stand QR)', slug)),
+      el('label', { class: 'f' }, 'More photos (up to 3)', files),
+      practice),
+    msg);
+}
+async function venueQueue() {
+  app.replaceChildren(el('div', { class: 'scr' }, loading()));
+  let rows: App[];
+  try { rows = await rpc<App[]>('kr8_admin_applications', { p_status: 'pending' }); } catch (e) { app.replaceChildren(el('div', { class: 'scr' }, errP(e))); return; }
+  queue('New venues', rows, (a, api) => appBody(a, api));
+}
+
+// ───────────────────────────── Members ─────────────────────────────
+let ckRef = LS('kr8-admin-ckref') ?? 'pich';
+async function membersView() {
+  const body = el('div', {}, loading());
+  screen('members', head('Kring admin', 'Members'), body);
+  const [attr, creators] = await Promise.all([
+    rpc<Attr[]>('kr8_admin_attribution').catch(() => [] as Attr[]),
+    rpc<Creator[]>('kr8_admin_creator_counts').catch(() => [] as Creator[]),
+  ]);
+  const signed = attr.reduce((n, a) => n + a.signed_up, 0);
+  const firstReel = creators.filter((c) => c.first_approved_at).length;
+  const ckStat = el('b', {}, '…');
+  const det = (id: string, icon: string, title: string, sub: Kid, inner: HTMLElement, open = false) =>
+    el('details', { class: 'card', id, open }, el('summary', {}, el('span', { class: 'icb' }, ic(icon)), el('div', { class: 'grow' }, el('b', {}, title), el('span', { class: 'dim sm' }, sub)), ic('chev')), inner);
+  // sources
+  const src = el('div', { class: 'in', id: 'attrTable' });
+  if (!attr.length) src.append(el('p', { class: 'dim' }, 'No one has come from a link yet.'));
+  for (const a of attr) src.append(el('div', { class: 'nrow', 'data-attr': `${a.kind}:${a.code}` },
+    el('div', { class: 'row' }, el('b', { class: 'grow' }, a.code), pill(a.kind === 'ref' ? 'Recruiter' : 'Channel')),
+    el('div', { class: 'cells' }, ...([[a.signed_up, 'Signed up'], [a.first_reel, 'First Reel'], [a.live_14d, 'Live 14 d'], [a.three_reels_2days, '3 Reels 2+ d']] as [number, string][])
+      .map(([n, l]) => el('div', { class: n ? 'y' : '' }, el('b', {}, String(n)), el('span', {}, l))))));
+  // checklist
+  const ref = el('input', { id: 'ckRef', value: ckRef, autocapitalize: 'none', placeholder: 'ref code' });
+  const out = el('div', {});
+  let rows: Check[] = [];
+  const csv = btn('ghost', [ic('dl'), 'CSV'], () => {
+    const a = el('a', { href: URL.createObjectURL(new Blob(['﻿' + checklistCsv(rows)], { type: 'text/csv;charset=utf-8' })), download: `kring_recruits_${ckRef || 'all'}_${new Date().toISOString().slice(0, 10)}.csv` });
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }, { id: 'ckCsv' });
+  const load = async () => {
+    ckRef = ref.value.trim().toLowerCase(); LS('kr8-admin-ckref', ckRef);
+    try { rows = await rpc<Check[]>('kr8_admin_recruit_checklist', { p_ref: ckRef || null }); } catch (e) { out.replaceChildren(errP(e)); return; }
+    const m1 = rows.filter((r) => r.m1).length, m2 = rows.filter((r) => r.m2).length;
+    ckStat.textContent = String(m1);
+    sumLine.textContent = `${ckRef || 'all'} · ${rows.length} signed up · M1 ${m1} · M2 ${m2}`;
+    const tick = (on: boolean, l: string) => el('div', { class: on ? 'y' : '' }, el('b', {}, on ? '✓' : '–'), el('span', {}, l));
+    out.replaceChildren(el('p', { class: 'sm', 'data-summary': `${rows.length}/${m1}/${m2}`, style: 'margin:12px 0 0' }, `${rows.length} signed up · M1 ${m1} · M2 ${m2}`),
+      ...rows.map((r) => el('div', { class: 'nrow', 'data-check': r.user_id },
+        el('div', { class: 'row' }, el('b', { class: 'grow' }, r.first_name), r.m2 ? pill('M2 ✓', 'g') : r.m1 ? pill('M1 ✓', 'g') : null),
+        el('div', { class: 'faint xs' }, `${r.ref_code || r.src_code || ''} · joined ${bkkTime(r.joined_at)}`),
+        el('div', { class: 'cells' }, tick(r.approved, 'Verified'), tick(r.has_photo && r.has_area && r.has_ig, 'Profile'),
+          el('div', { class: r.approved_reels ? 'y' : '' }, el('b', {}, String(r.approved_reels)), el('span', {}, 'Reels')), tick(r.second_visit, '2nd visit')))));
+  };
+  ref.onchange = () => void load();
+  const sumLine = el('span', {}, '…');
+  const ck = el('div', { class: 'in' },
+    el('p', { class: 'dim sm', style: 'margin:0 0 10px' }, 'M1 = verified + photo, area, IG + 1 approved Reel. M2 = M1 + opened the app on a later day and sent a hello / saved 3 / 2nd Reel.'),
+    el('div', { class: 'row' }, el('label', { class: 'f grow' }, 'Recruiter code', ref), el('div', { style: 'align-self:flex-end' }, csv)), out);
+  // Kring Locals by recruiter
+  const byRef = new Map<string, Creator[]>();
+  for (const c of creators) { const k = c.ref_code || ''; byRef.set(k, [...(byRef.get(k) || []), c]); }
+  const loc = el('div', { class: 'in' }, el('p', { class: 'dim sm', style: 'margin:0' }, 'Only approved Reels count: first approved Reel, and 3 approved Reels within the first 14 days.'));
+  for (const [r, list] of byRef) {
+    const f = list.filter((c) => c.first_approved_at).length, three = list.filter((c) => c.approved_first_14d >= 3).length;
+    loc.append(el('details', { class: 'nrow', 'data-ref': r || 'none' }, el('summary', { class: 'row', style: 'cursor:pointer;list-style:none' }, el('b', { class: 'grow' }, r || 'No code'),
+      el('span', { class: 'pill g', 'data-summary': `${f}/${three}` }, `${f} first · ${three} with 3`)),
+      ...list.map((c) => el('div', { class: 'nrow', 'data-creator': c.user_id },
+        el('div', { class: 'row' }, el('span', { class: 'grow' }, c.first_name), el('span', { class: 'faint xs' }, bkkTime(c.joined_at))),
+        el('div', { class: 'cells' },
+          el('div', { class: c.first_approved_at ? 'y' : '' }, el('b', {}, c.first_approved_at ? '✓' : '–'), el('span', {}, 'First Reel')),
+          el('div', { class: c.approved_first_14d >= 3 ? 'y' : '', 'data-first14': String(c.approved_first_14d) }, el('b', {}, `${c.approved_first_14d}/3`), el('span', {}, 'First 14 d')),
+          el('div', {}, el('b', {}, String(c.approved_last_14d)), el('span', {}, 'Last 14 d')),
+          el('div', {}, el('b', { style: 'font-size:14px' }, `${c.approved}/${c.pending}/${c.hidden}`), el('span', {}, 'OK/wait/hid')))))));
+  }
+  if (!creators.length) loc.append(el('p', { class: 'dim' }, 'No Kring Locals yet.'));
+  body.replaceChildren(
+    el('div', { class: 'stats' }, el('div', { class: 'stat' }, el('b', {}, String(signed)), el('span', {}, 'From links')),
+      el('div', { class: 'stat' }, el('b', {}, String(firstReel)), el('span', {}, 'First Reel')), el('div', { class: 'stat' }, ckStat, el('span', {}, `M1 · ${ckRef || 'all'}`))),
+    el('div', { style: 'margin-top:14px' },
+      det('srcCard', 'link', 'Sources', 'Where members came from (?ref= / ?src=)', src, true),
+      det('recruitChecklist', 'check', 'Recruiter checklist', sumLine, ck),
+      det('localsCard', 'users', 'Kring Locals by recruiter', `${creators.length} Locals · ${byRef.size} codes`, loc)));
+  await load();
+}
+
+// ───────────────────────────── Top 5 ─────────────────────────────
+let giftPeriod: 'day' | 'week' = 'day';
+let giftDate = bkkToday();
+const giftPrize: Record<'day' | 'week', string> = { day: '฿300 café voucher', week: '฿1,000 dinner voucher' };
+async function top5View() {
+  const body = el('div', {}, loading());
+  const seg = el('div', { class: 'seg' }, ...(['day', 'week'] as const).map((p) => { const b = el('button', { type: 'button', class: giftPeriod === p ? 'on' : '', id: 'giftPeriod-' + p }, p === 'day' ? 'Daily' : 'Weekly'); b.onclick = () => { giftPeriod = p; void top5View(); }; return b; }));
+  const start = giftPeriod === 'week' ? mondayOf(giftDate) : giftDate;
+  const date = el('input', { type: 'date', id: 'giftDate', value: giftDate });
+  date.onchange = () => { giftDate = date.value || bkkToday(); void top5View(); };
+  const step = (n: number) => { giftDate = addDays(giftDate, n * (giftPeriod === 'week' ? 7 : 1)); void top5View(); };
+  const prize = el('input', { id: 'giftPrize', value: giftPrize[giftPeriod] });
+  prize.onchange = () => { giftPrize[giftPeriod] = prize.value; };
+  const label = giftPeriod === 'week' ? `Week of ${new Date(start + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' })}` : new Date(start + 'T00:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+  screen('top5', head('Kring admin', 'Top 5 gifts', label), seg,
+    el('div', { class: 'stepr' }, btn('ghost', [ic('back')], () => step(-1), { 'aria-label': 'Earlier' }), date, btn('ghost', [ic('chev')], () => step(1), { 'aria-label': 'Later' })),
+    el('label', { class: 'f', style: 'margin-top:12px' }, 'Gift (in baht, no percent)', prize), body);
+  const end = new Date(start + 'T00:00:00+07:00').getTime() + (giftPeriod === 'week' ? 7 : 1) * 864e5;
+  let winners: Award[] = []; let reels: Reel[] = [];
+  try { [winners, reels] = await Promise.all([rpc<Award[]>('kr8_reel_awards_list', { p_period: giftPeriod, p_start: start }), rpc<Reel[]>('kr8_admin_reels', { p_status: 'approved', p_limit: 300 })]); }
+  catch (e) { body.replaceChildren(errP(e)); return; }
+  const from = new Date(start + 'T00:00:00+07:00').getTime();
+  reels = reels.filter((r) => { const t = Date.parse(r.created_at); return t >= from && t < end; });
+  const urls = await signReelPaths([...reels.map((r) => r.poster_path), ...winners.map((w) => w.poster_path)]).catch(() => ({} as Record<string, string>));
+  const byRank = new Map(winners.map((w) => [w.rank, w]));
+  const won = new Map(winners.map((w) => [w.reel_id, w.rank]));
+  const slots = el('div', { id: 'winners' });
+  for (let k = 1; k <= 5; k++) {
+    const w = byRank.get(k);
+    if (!w) { slots.append(el('div', { class: 'slot emp', 'data-rank-empty': String(k) }, el('span', { class: 'rk', style: 'color:var(--faint)' }, `#${k}`), 'Tap a Reel below')); continue; }
+    const rm = btn('ghost', ['Remove'], async () => { await rpc('kr8_admin_unaward', { p_award: w.award_id }).catch((e) => toast(errText(e))); void top5View(); }, { id: 'unaward-' + w.award_id, style: 'min-height:40px;padding:0 12px' });
+    slots.append(el('div', { class: 'slot', 'data-rank': String(k) }, el('span', { class: 'rk' }, `#${k}`), el('img', { class: 'thumb', src: urls[w.poster_path] || '', alt: '' }),
+      el('div', { class: 'grow' }, el('b', { style: 'display:block' }, `${w.author_name} · ${w.area}`), el('span', { class: 'dim sm' }, w.prize),
+        el('a', { class: 'link xs', style: 'display:block', href: reelLink(w.reel_id), target: '_blank', rel: 'noopener', 'data-reel-link': w.reel_id }, 'Open Reel')), rm));
+  }
+  const grid = el('div', { class: 'cands', id: 'candidates' });
+  for (const r of reels) {
+    const c = el('button', { type: 'button', class: 'cand', 'data-candidate': r.id }, el('img', { src: urls[r.poster_path] || '', alt: '' }), el('span', { class: 'nm' }, `${r.author_name} · ${r.area}`),
+      won.has(r.id) ? el('span', { class: 'won' }, `#${won.get(r.id)}`) : null);
+    c.onclick = () => {
+      const ranks = el('div', { class: 'ranks' });
+      const sh = sheet(el('h3', {}, `${r.author_name} · ${r.area}`), el('p', { class: 'dim', style: 'margin:4px 0 14px' }, `Pick a rank · ${prize.value}`), ranks);
+      for (let k = 1; k <= 5; k++) {
+        const b = el('button', { type: 'button', class: byRank.has(k) ? 'tk' : '', id: `rank-${k}-${r.id}` }, `#${k}`);
+        b.onclick = async () => {
+          b.disabled = true;
+          try { await rpc('kr8_admin_award_reel', { p_reel: r.id, p_period: giftPeriod, p_start: start, p_rank: k, p_prize: prize.value }); sh.close(); toast(`#${k} · ${r.author_name}`, { ms: 2500 }); void top5View(); }
+          catch (e) { b.disabled = false; sh.box.append(errP(e)); }
+        };
+        ranks.append(b);
+      }
+    };
+    grid.append(c);
+  }
+  body.replaceChildren(el('div', { class: 'sec' }, 'Winners'), slots, el('div', { class: 'sec' }, `Approved Reels in this period · ${reels.length}`),
+    reels.length ? grid : empty('No approved Reels', 'Nothing was approved in this period.'));
+}
+
+// ───────────────────────────── Listings ─────────────────────────────
+let lseg: 'stay' | 'venues' = (LS('kr8-admin-lseg') as 'stay' | 'venues') || 'stay';
+let venueCache: { stats: Stat[]; guests: Map<string, Guests>; flags: Map<string, Flags> } | null = null;
+async function loadVenues() {
+  const [stats, g, f] = await Promise.all([rpc<Stat[]>('kr8_admin_venue_stats'), rpc<Guests[]>('kr8_admin_venue_guests').catch(() => [] as Guests[]), rpc<Flags[]>('kr8_admin_venue_flags').catch(() => [] as Flags[])]);
+  venueCache = { stats, guests: new Map(g.map((x) => [x.venue_id, x])), flags: new Map(f.map((x) => [x.venue_id, x])) };
+  return venueCache;
+}
+let listingCache: Listing[] = [];
+async function listingsView() {
+  const body = el('div', {}, loading());
+  const seg = el('div', { class: 'seg' }, ...(['stay', 'venues'] as const).map((p) => { const b = el('button', { type: 'button', class: lseg === p ? 'on' : '', id: 'lseg-' + p }, p === 'stay' ? 'Stay / Do' : 'Venues'); b.onclick = () => { lseg = p; LS('kr8-admin-lseg', p); void listingsView(); }; return b; }));
+  screen('listings', head('Kring admin', 'Listings', undefined, lseg === 'stay' ? el('a', { class: 'icb', href: '#listing/new', id: 'stayAdd', 'aria-label': 'Add a stay or do', style: 'background:var(--grad);color:#fff' }, ic('plus')) : null), seg, body);
+  try {
+    if (lseg === 'stay') {
+      const rows = listingCache = await rpc<Listing[]>('kr8_admin_listings');
+      body.replaceChildren(
+        el('p', { class: 'dim sm', style: 'margin:0 0 12px' }, `${rows.filter((r) => r.live).length} live · the partner sets the member price · hidden until you switch it live`),
+        ...(rows.length ? rows.map((l) => el('div', { class: 'lcard', id: 'stay-' + l.id, style: 'margin-bottom:12px' },
+          l.photos?.[0] ? el('div', { class: 'ph', style: `background-image:url("${encodeURI(l.photos[0])}")` }) : null,
+          el('div', { class: 'bd' },
+            el('div', { class: 'row' }, el('span', { class: 'icb', style: 'width:36px;height:36px' }, ic(l.kind === 'stay' ? 'bed' : 'brush')),
+              el('div', { class: 'grow' }, el('b', { style: 'display:block' }, l.name), el('span', { class: 'dim sm' }, `${l.area} · ฿${l.member_price_thb}${l.price_unit_en ? ' ' + l.price_unit_en : ''}${l.saving_thb ? ` · save ฿${l.saving_thb}` : ''}`)),
+              el('a', { class: 'icb', href: '#listing/edit/' + encodeURIComponent(l.id), 'aria-label': 'Edit', id: 'stayEdit-' + l.id }, ic('edit'))),
+            el('div', { class: 'facts', id: 'stayTaps-' + l.id }, el('span', { class: 'fact' }, el('b', {}, String(l.taps)), ' Book-direct taps'), el('span', { class: 'fact' }, el('b', {}, String(l.members)), ' members'),
+              el('span', { class: 'fact' }, el('b', {}, String(l.taps_7d)), ' in 7 days')),
+            Object.keys(l.by_ref || {}).length ? el('p', { class: 'faint xs', style: 'margin:8px 0 0' }, 'By ref code: ' + Object.entries(l.by_ref).map(([k, n]) => `${k} ${n}`).join(' · ')) : null,
+            l.last_tap_at ? el('p', { class: 'faint xs', style: 'margin:4px 0 0' }, 'Last tap ' + bkkTime(l.last_tap_at)) : null,
+            sw('stayLive-' + l.id, el('b', {}, l.live ? 'Live' : 'Hidden'), l.live, async (on) => {
+              try { await rpc('kr8_admin_listing_set_live', { p_id: l.id, p_live: on }); toast(on ? `${l.name} is live` : `${l.name} hidden`, { ms: 2000 }); } catch (e) { toast(errText(e)); }
+              void listingsView();
+            })))) : [empty('No listings yet', 'Tap + to add a stay or do.')]));
+    } else {
+      const v = await loadVenues();
+      body.replaceChildren(...(v.stats.length ? v.stats.map((s) => {
+        const f = v.flags.get(s.venue_id); const g = v.guests.get(s.venue_id);
+        const locked = !!s.pin_locked_until || !!g?.locked_phones;
+        return el('a', { class: 'li', href: '#venue/' + encodeURIComponent(s.venue_id), 'data-venue': s.venue_id, 'data-practice': f?.practice ? '1' : '' },
+          el('span', { class: 'ic' }, ic('store')),
+          el('span', { class: 'grow' }, el('b', {}, s.name), el('span', { class: 's' }, `${s.area} · today ${f?.used_today ?? 0}/${f?.daily_cap ?? 30}`),
+            locked ? el('span', { class: 's', style: 'color:var(--bad);display:block' }, 'Counter locked') : null),
+          f?.practice ? pill('Practice', 'a') : pill(s.status === 'live' ? 'Live' : 'Paused', s.status === 'live' ? 'g' : ''), ic('chev'));
+      }) : [empty('No approved venues yet')]));
+    }
+  } catch (e) { body.replaceChildren(errP(e)); }
+}
+
+const LFIELDS = ['id', 'kind', 'name', 'name_th', 'area', 'blurb_en', 'blurb_th', 'photos', 'member_price_thb', 'price_unit_en', 'price_unit_th', 'saving_thb', 'booking_kind', 'booking_contact'] as const;
+function listingStepper(start: Partial<Listing>, isEdit: boolean) {
+  const st: Record<string, string> = {};
+  for (const k of LFIELDS) { const v = start[k]; st[k] = Array.isArray(v) ? v.join('\n') : v === null || v === undefined ? '' : String(v); }
+  let step = 0;
+  const titles = ['Basics', 'Photos', 'Price', 'Booking'];
+  const s = el('div', { class: 'scr q' });
+  const act = el('div', { class: 'qact' }, el('div', {}));
+  app.replaceChildren(s, act);
+  const inp = (k: string, label: string, opts: { ph?: string; area?: boolean; num?: boolean; ro?: boolean } = {}) => {
+    const i = (opts.area ? el('textarea', { rows: k === 'photos' ? '4' : '2', name: k, placeholder: opts.ph }) : el('input', { name: k, placeholder: opts.ph, inputmode: opts.num ? 'numeric' : undefined, readonly: opts.ro })) as HTMLInputElement;
+    i.value = st[k]; i.oninput = () => { st[k] = i.value; preview?.(); };
+    return el('label', { class: 'f' }, label, i);
+  };
+  let preview: (() => void) | null = null;
+  const draw = () => {
+    preview = null;
+    const parts: HTMLElement[] = [];
+    if (step === 0) {
+      const kt = el('div', { class: 'kindt' }, ...(['stay', 'do'] as const).map((k) => { const b = el('button', { type: 'button', class: st.kind === k ? 'on' : '' }, ic(k === 'stay' ? 'bed' : 'brush'), k === 'stay' ? 'Stay' : 'Do'); b.onclick = () => { st.kind = k; draw(); }; return b; }));
+      parts.push(kt, inp('name', 'Name (English)'), inp('name_th', 'Name (Thai script)'),
+        el('div', { class: 'g2' }, inp('area', 'Area', { ph: 'Ari' }), inp('id', 'ID (a-z 0-9 -)', { ph: 'lub-d-silom', ro: isEdit })),
+        inp('blurb_en', 'Short line (English)', { area: true }), inp('blurb_th', 'Short line (Thai)', { area: true }));
+    } else if (step === 1) {
+      const grid = el('div', { class: 'pgrid' });
+      const paint = () => grid.replaceChildren(...st.photos.split(/\s+/).filter((u) => /^https:\/\//.test(u)).map((u) => el('img', { src: u, alt: '' })));
+      const f = inp('photos', 'Photo links (https, one per line)', { area: true });
+      f.querySelector('textarea')!.addEventListener('input', paint);
+      paint(); parts.push(grid, f);
+    } else if (step === 2) {
+      const card = el('div', { class: 'card' });
+      preview = () => card.replaceChildren(el('div', { class: 'faint xs' }, 'MEMBERS SEE'), el('b', { style: 'font:700 28px var(--h);display:block;margin-top:4px' }, `฿${st.member_price_thb || '–'}`),
+        el('span', { class: 'dim' }, st.price_unit_en || ''), st.saving_thb ? el('div', { class: 'okc sm', style: 'margin-top:4px' }, `Save ฿${st.saving_thb}`) : '');
+      preview();
+      parts.push(el('div', { class: 'g2' }, inp('member_price_thb', 'Member price ฿', { num: true }), inp('saving_thb', 'Saving ฿ (optional)', { num: true })),
+        el('div', { class: 'g2' }, inp('price_unit_en', 'Unit (English)', { ph: 'per night' }), inp('price_unit_th', 'Unit (Thai)')), card,
+        el('p', { class: 'dim sm', style: 'margin:0' }, 'The partner sets the member price. No other-site prices.'));
+    } else {
+      const via = el('div', { class: 'chips2' }, ...(['line_oa', 'line', 'ig', 'url'] as const).map((k) => { const b = el('button', { type: 'button', class: st.booking_kind === k ? 'on' : '' }, { line_oa: 'LINE OA', line: 'LINE', ig: 'Instagram', url: 'Website' }[k]); b.onclick = () => { st.booking_kind = k; draw(); }; return b; }));
+      parts.push(el('label', { class: 'f' }, 'Booking via', via), inp('booking_contact', 'Contact (LINE @id / LINE ID / IG / https link)', { ph: '@partner' }),
+        el('p', { class: 'dim sm', style: 'margin:0' }, 'Saving keeps it hidden. Switch it live from Listings.'));
+    }
+    const out = el('div', { id: 'stayMsg' });
+    s.replaceChildren(
+      el('div', { class: 'qh' }, el('div', { class: 'row' }, el('a', { class: 'icb', href: '#listings', 'aria-label': 'Close' }, ic('x')),
+        el('h2', { class: 'grow' }, isEdit ? 'Edit listing' : 'Add a stay / do'), el('span', { class: 'cnt' }, `${step + 1} / 4`))),
+      el('div', { class: 'dots' }, ...titles.map((_, i) => el('i', { class: i <= step ? 'on' : '' }))),
+      el('h2', { style: 'font-size:24px;margin-bottom:14px' }, `${step + 1} · ${titles[step]}`),
+      el('div', { class: 'stack', id: 'stayForm' }, ...parts), out);
+    const back = btn('ghost big', [ic('back'), 'Back'], () => { step--; draw(); });
+    const next = step < 3 ? btn('pri big', ['Next', ic('chev')], () => { step++; draw(); }, { id: 'stayNext' })
+      : btn('go big', [ic('check'), 'Save'], async () => {
+        const g = (k: string) => (st[k] || '').trim();
+        const payload = { ...Object.fromEntries(LFIELDS.map((k) => [k, g(k)])), photos: g('photos').split(/\s+/).filter(Boolean), member_price_thb: Number(g('member_price_thb')) || 0, saving_thb: g('saving_thb') ? Number(g('saving_thb')) : '' };
+        next.disabled = true;
+        try { await rpc('kr8_admin_listing_save', { p: payload }); toast('Saved · hidden until you switch it live', { ms: 3000 }); location.hash = '#listings'; }
+        catch (e) { next.disabled = false; out.replaceChildren(errP(e)); }
+      }, { id: 'staySave' });
+    act.firstElementChild!.replaceChildren(el('div', { class: 'two' }, step ? back : el('a', { class: 'btn ghost big', href: '#listings' }, 'Cancel'), next));
+    window.scrollTo(0, 0);
+  };
+  draw();
+}
+
+async function venueDetail(id: string) {
+  app.replaceChildren(el('div', { class: 'scr' }, loading()));
+  const v = venueCache && venueCache.stats.some((s) => s.venue_id === id) ? venueCache : await loadVenues().catch(() => null);
+  const s = v?.stats.find((x) => x.venue_id === id);
+  if (!v || !s) { app.replaceChildren(el('div', { class: 'scr' }, el('a', { class: 'btn ghost', href: '#listings' }, ic('back'), 'Back'), empty('Venue not found'))); return; }
+  const f = v.flags.get(id); const g = v.guests.get(id);
+  const refresh = async () => { await loadVenues().catch(() => undefined); void venueDetail(id); };
+  const alerts: HTMLElement[] = [];
+  if (s.pin_locked_until) alerts.push(el('div', { class: 'warnbox' }, ic('lock'), `Counter PIN locked until ${bkkTime(s.pin_locked_until, false)}`));
+  if (g?.locked_phones) alerts.push(el('div', { class: 'warnbox', 'data-locked-phones': String(g.locked_phones) }, ic('warn'), `${g.locked_phones} phone(s) paused (wrong PIN)`));
+  if (g?.new_account_guests) alerts.push(el('div', { class: 'warnbox', style: 'color:var(--warn);border-color:rgba(255,196,77,.4);background:rgba(255,196,77,.07)' }, ic('warn'), `${g.new_account_guests} brand-new account(s) · check before paying`));
+  let cap = f?.daily_cap ?? 30;
+  const capIn = el('input', { type: 'number', min: '1', max: '500', id: 'cap-' + id, value: String(cap), inputmode: 'numeric' });
+  const setCap = async (n: number) => {
+    cap = Math.max(1, Math.min(500, n)); capIn.value = String(cap);
+    try { await rpc('kr8_admin_set_daily_cap', { p_venue: id, p_cap: cap }); toast(`Uses per day: ${cap}`, { ms: 1500 }); } catch (e) { toast(errText(e)); }
+  };
+  capIn.onchange = () => void setCap(Number(capIn.value));
+  const actionLi = (icon: string, label: string, sub: string, idAttr: string, fn: () => void, red = false) => { const b = el('button', { type: 'button', class: 'li' + (red ? ' red' : ''), id: idAttr }, el('span', { class: 'ic' }, ic(icon)), el('span', { class: 'grow' }, el('b', {}, label), sub ? el('span', { class: 's' }, sub) : null), ic('chev')); b.onclick = fn; return b; };
+  const live = s.status === 'live';
+  const actions = el('div', {},
+    (s.pin_locked_until || g?.locked_phones) ? actionLi('lock', 'Unlock counter', 'Clears the PIN lock and paused phones', 'unlock-' + id, async () => { try { await rpc('kr8_admin_unlock_venue', { p_venue: id }); toast('Counter unlocked', { ms: 2000 }); } catch (e) { toast(errText(e)); } void refresh(); }) : null,
+    actionLi('msg', 'Welcome message', 'Copy for the owner on LINE', 'msg-' + id, () => {
+      const prev = el('div', {});
+      sheet(el('h3', {}, 'Welcome message'), el('p', { class: 'dim sm', style: 'margin:4px 0 12px' }, 'Thai + English are copied; English shown.'), prev,
+        el('div', { style: 'margin-top:12px' }, welcomeActions(id, { name: s.name, dealTh: f?.deal_th, dealEn: f?.deal_en, practice: !!f?.practice }, prev)));
+    }),
+    actionLi('key', 'Backup PIN', 'Only if the venue cannot use the swipe', 'reset-' + id, async () => {
+      if (!confirm(`Make a new backup PIN for ${s.name}?`)) return;
+      try {
+        const pin = await rpc<string>('kr8_admin_reset_pin', { p_venue: id });
+        const link = staffLink(id);
+        sheet(el('h3', {}, `New PIN · ${s.name}`), el('p', { class: 'dim sm', style: 'margin:4px 0 14px' }, 'Backup only · normally staff just slide. Shown once.'),
+          el('div', { class: 'pinbig', id: 'pinValue' }, pin), el('a', { class: 'link sm', href: link, target: '_blank', rel: 'noopener', id: 'staffLink', style: 'display:block;margin-top:12px;word-break:break-all' }, link),
+          el('div', { style: 'margin-top:14px' }, btn('pri full', [ic('copy'), 'Copy PIN + link'], () => void navigator.clipboard?.writeText(`PIN ${pin}\n${link}`).then(() => toast('Copied', { ms: 1500 })))));
+      } catch (e) { toast(errText(e)); }
+    }),
+    el('a', { class: 'li', href: standLink(id) + '&f=sticker', target: '_blank', rel: 'noopener', id: 'dlSticker-' + id }, el('span', { class: 'ic' }, ic('print')), el('span', { class: 'grow' }, el('b', {}, 'Door sticker 10 cm')), ic('open')),
+    el('a', { class: 'li', href: standLink(id) + '&f=stand', target: '_blank', rel: 'noopener', id: 'dlStand-' + id }, el('span', { class: 'ic' }, ic('print')), el('span', { class: 'grow' }, el('b', {}, 'A6 stand (PDF)')), ic('open')),
+    actionLi('pause', live ? 'Pause venue' : 'Resume venue', live ? 'Hides it from members' : 'Shows it to members again', 'toggle-' + id, async () => {
+      if (live && !confirm(`Pause ${s.name}?`)) return;
+      await rpc('kr8_admin_set_venue_live', { p_venue: id, p_live: !live }).catch((e) => toast(errText(e))); void refresh();
+    }, live));
+  const sc = el('div', { class: 'scr' },
+    el('div', { class: 'row', style: 'margin:6px 0 16px' }, el('a', { class: 'icb', href: '#listings', 'aria-label': 'Back', id: 'venueBack' }, ic('back')),
+      el('div', { class: 'grow' }, el('h1', { style: 'font-size:24px' }, s.name), el('div', { class: 'dim sm' }, `${s.area} · approved ${bkkTime(s.approved_at)} by ${s.approved_by}`)),
+      f?.practice ? pill('Practice', 'a') : pill(live ? 'Live' : 'Paused', live ? 'g' : '')),
+    alerts.length ? el('div', { class: 'stack', style: 'margin-bottom:14px' }, ...alerts) : null,
+    el('div', { class: 'stats four', 'data-venue': id },
+      el('div', { class: 'stat' }, el('b', { 'data-used-today': String(f?.used_today ?? 0) }, `${f?.used_today ?? 0}/${cap}`), el('span', {}, 'Used today')),
+      el('div', { class: 'stat', 'data-guests': String(g?.guests ?? '') }, el('b', {}, String(g?.guests ?? 0)), el('span', {}, 'Different guests')),
+      el('div', { class: 'stat', 'data-count': String(s.redemptions) }, el('b', {}, `${s.redemptions}/${s.claims}`), el('span', {}, 'Redeemed / claimed')),
+      el('div', { class: 'stat', 'data-live': g?.live_confirmed_at || '' }, el('b', { class: g?.live_confirmed_at ? 'okc' : '', style: 'font-size:18px' }, g?.live_confirmed_at ? bkkTime(g.live_confirmed_at) : '–'), el('span', {}, 'Live (2nd guest)'))),
+    el('p', { class: 'faint xs', style: 'margin:10px 2px 0', 'data-first': s.first_redeemed_at || '' }, `First code check ${bkkTime(s.first_redeemed_at)} · referred by ${s.referral_host_code || '–'}`),
+    el('div', { class: 'sec' }, 'Settings'),
+    el('div', { class: 'card' },
+      el('div', { class: 'row' }, el('div', { class: 'grow' }, el('b', { style: 'display:block' }, 'Uses per day'), el('span', { class: 'dim sm' }, `Today ${f?.used_today ?? 0}`)),
+        el('div', { class: 'stepr', style: 'width:180px;flex:none' }, btn('ghost', [ic('minus')], () => void setCap(cap - 1), { 'aria-label': 'Fewer' }), capIn, btn('ghost', [ic('plus')], () => void setCap(cap + 1), { 'aria-label': 'More' }))),
+      sw('practice-' + id, el('span', {}, el('b', { style: 'display:block' }, 'Practice listing'), el('span', { class: 'dim sm' }, 'Hidden from Deals')), !!f?.practice, async (on) => {
+        try { await rpc('kr8_admin_set_practice', { p_venue: id, p_on: on }); toast(on ? 'Practice on' : 'Practice off', { ms: 1500 }); } catch (e) { toast(errText(e)); }
+        void refresh();
+      })),
+    el('div', { class: 'sec' }, 'Actions'), actions);
+  app.replaceChildren(sc, tabbar('listings'));
+  window.scrollTo(0, 0);
+}
+
+// ───────────────────────────── Reddit (comment-only reputation plan, 13 Nov audit) ─────────────────────────────
+// New account, no karma: comments only, no links, never the product name. Stored on this phone (localStorage); admin writes elsewhere are RPC-only.
+type RItem = { id: string; sub: string; title: string; url: string; text: string };
+const rs = (sub: string, q: string) => `https://www.reddit.com/r/${sub}/search/?q=${encodeURIComponent(q)}&restrict_sr=1&sort=new`;
+const R_SEED: RItem[] = [
+  { id: 'r1', sub: 'Bangkok', title: 'Recently Moved to Bangkok (making friends, doesn\'t drink)', url: 'https://www.reddit.com/r/Bangkok/comments/1im1ja2/',
+    text: 'honestly the thing that worked for me was a run club. SarDine runs on saturdays and it\'s free, they move between Suan Rot Fai, Lumphini and Benjakitti so check where it is that week. Nobody cares how fast you are, and after the 3rd time people start saving you a spot for coffee after.' },
+  { id: 'r2', sub: 'Bangkok', title: 'Lonely and wanting to volunteer regularly', url: 'https://www.reddit.com/r/Bangkok/comments/1gj8pw2/',
+    text: 'Thai classes did more for my social life than anything else here. Same faces twice a week, everyone\'s a bit lost, so you end up getting lunch after. Just a heads up that a few people below are right about volunteering and visas, ask the org what they need from you first.' },
+  { id: 'r3', sub: 'Bangkok', title: 'Din Daeng: one free day alone', url: 'https://www.reddit.com/r/Bangkok/comments/1inntbl/',
+    text: 'Take the orange flag boat, it\'s 19 baht now, and get off for Chinatown. Walk Sampeng Lane in the morning before it gets packed, then do Yaowarat road after dark for food. if it\'s a monday a lot of the stalls are off so maybe flip it.' },
+  { id: 'r4', sub: 'ThailandTourism', title: 'Bangkok, Solo first time!', url: rs('ThailandTourism', 'Bangkok solo first time'),
+    text: 'You\'ll be fine, Bangkok is one of the easier cities to start with. Stay near a BTS station and half your problems are gone. Use Grab or Bolt for anything after midnight and don\'t take the tuk tuk guy who says the place you want is closed today.' },
+  { id: 'r5', sub: 'Bangkok', title: 'Non-drinking nighttime activities', url: rs('Bangkok', 'non-drinking nighttime activities'),
+    text: 'Lumphini is open till 10pm and the evening is the best time, it\'s cooler and the whole aerobics crowd comes out around 6. Huai Khwang night market is right by the MRT station of the same name and goes late. both cost you basically nothing.' },
+  { id: 'r6', sub: 'Bangkok', title: 'Indoor sports areas with courts (rainy or hot afternoon)', url: rs('Bangkok', 'indoor'),
+    text: 'BACC at National Stadium BTS is my default for this. It\'s free and the walkway from the station drops you straight in on the 3rd floor, so you never get wet. Closed mondays though, 10am to 8pm the rest of the week.' },
+  { id: 'r7', sub: 'ThailandTourism', title: 'Any "late November" Bangkok trip post (Loy Krathong)', url: rs('ThailandTourism', 'Bangkok late November'),
+    text: 'If you\'re here around the 25th, that\'s Loy Krathong. The city\'s doing riverside stuff at Rama VIII bridge from the 17th to the 29th, and Mahakan Fort has an evening thing from the 23rd to the 25th, 5 to 10pm. It gets crowded near the river so i\'d get there before 7.' },
+  { id: 'r8', sub: 'Bangkok', title: 'First Time in Bangkok | On Nut (is the area safe)', url: rs('Bangkok', 'First Time in Bangkok On Nut'),
+    text: 'On Nut is totally normal, it\'s mostly Thai families and people who work in the city. Feels quieter than Asok at night, not sketchier. Honestly the bigger risk anywhere on Sukhumvit is the traffic when you cross, not people.' },
+  { id: 'r9', sub: 'Thailand', title: 'I had to leave Thailand (lonely expat)', url: 'https://www.reddit.com/r/Thailand/comments/1csbuav/',
+    text: 'This hit home a bit. The first 3 months were the worst for me too, it only turned around once i had something fixed every week that wasn\'t work. Doesn\'t have to be big, the same café on the same morning is enough for people to start nodding at you.' },
+  { id: 'r10', sub: 'solotravel', title: 'Weekly Destination Thread: Bangkok', url: 'https://www.reddit.com/r/solotravel/comments/10gx4cq/',
+    text: 'Agree on Charoen Krung, i\'d add the morning there. Coffee around 8, walk down towards the river while it\'s still cool, and you\'ll see the street art before the crowd. Benjakitti\'s elevated walkway is good for an hour too, just check the bridge from Lumphini, someone said it was closed recently.' },
+];
+const R_CHECK = [
+  'Thread under 6 hours old, and the sub allows this kind of answer',
+  'The first sentence answers the OP\'s actual question',
+  'One real detail: a BTS/MRT station, a price in baht, a time or a day',
+  'Still true today (open hours, closed days, fares)',
+  'No lists, headers, em-dashes or AI phrases like "Great question!"',
+  'Reworded to fit the thread, never the same text twice',
+  'No link, no product name, 2+ hours since the last one',
+];
+type RState = { start: string; posted: Record<string, string>; skipped: Record<string, string> };
+const R_KEY = 'kr8-admin-reddit';
+function rLoad(): RState {
+  let s: Partial<RState> = {};
+  try { s = JSON.parse(LS(R_KEY) || '{}') || {}; } catch { s = {}; }
+  const st: RState = { start: /^\d{4}-\d{2}-\d{2}$/.test(s.start || '') ? s.start! : bkkToday(), posted: s.posted || {}, skipped: s.skipped || {} };
+  if (!s.start) rSave(st);
+  return st;
+}
+function rSave(st: RState) { LS(R_KEY, JSON.stringify(st)); }
+const bkkDate = (iso: string) => new Date(Date.parse(iso) + 7 * 3600_000).toISOString().slice(0, 10);
+/** Playbook pacing: days 1–3 read only; days 4–17 2–3 a day; then 3–5 a day. */
+function rPace(st: RState) {
+  const day = Math.max(1, Math.round((Date.parse(bkkToday()) - Date.parse(st.start)) / 86400_000) + 1);
+  const [min, max, phase] = day <= 3 ? [0, 0, 'Read only'] as const : day <= 17 ? [2, 3, 'Warm-up'] as const : [3, 5, 'Steady'] as const;
+  const today = bkkToday();
+  const times = Object.values(st.posted).filter((t) => bkkDate(t) === today).sort();
+  const last = Object.values(st.posted).sort().pop() || null;
+  return { day, min, max, phase, done: times.length, left: Math.max(0, max - times.length), last };
+}
+function redditTile(): HTMLElement {
+  const p = rPace(rLoad());
+  const hint = p.max === 0 ? `Day ${p.day} · read only, no comments yet` : p.left ? `Day ${p.day} · ${p.done}/${p.max} done today` : `Day ${p.day} · limit reached, come back tomorrow`;
+  return el('a', { class: `tile wide ${p.left ? '' : 'zero'}`, href: '#reddit', id: 'todo-reddit' }, el('span', { class: 'n' }, String(p.left)),
+    el('span', { class: 'grow' }, el('span', { class: 't', style: 'display:block' }, `Reddit: ${p.left} today`), el('span', { class: 'h', style: 'display:block' }, hint)),
+    el('span', { class: 'go', style: 'position:static' }, ic('chev')));
+}
+async function copyText(t: string): Promise<boolean> {
+  try { await navigator.clipboard.writeText(t); return true; } catch { /* fall back */ }
+  try { const ta = el('textarea', { style: 'position:fixed;opacity:0;top:0' }) as HTMLTextAreaElement; ta.value = t; document.body.append(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); return ok; } catch { return false; }
+}
+function redditView() {
+  const st = rLoad();
+  const p = rPace(st);
+  const full = p.left === 0;
+  const fmt = (d: string) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { timeZone: 'UTC', day: 'numeric', month: 'short' });
+  const startIn = el('input', { type: 'date', id: 'redditStart', value: st.start, max: bkkToday() }) as HTMLInputElement;
+  startIn.onchange = () => { if (!startIn.value) return; st.start = startIn.value; rSave(st); toast(`Start date: ${fmt(st.start)}`, { ms: 2000 }); redditView(); };
+  const gap = p.last ? Date.parse(p.last) + 2 * 3600_000 - Date.now() : 0;
+  const status = p.max === 0
+    ? el('div', { class: 'warnbox', id: 'redditReadOnly', style: 'color:var(--warn);border-color:rgba(255,196,77,.4);background:rgba(255,196,77,.07)' }, ic('info'),
+      `Day ${p.day} of 3 is read only: read, upvote and join the subs, verify the email. No comments yet.`)
+    : full ? el('div', { class: 'warnbox', id: 'redditLimit' }, ic('warn'), 'Limit reached, come back tomorrow.')
+      : gap > 0 ? el('div', { class: 'tip', id: 'redditGap' }, ic('clock'), `Next one after ${bkkTime(new Date(Date.parse(p.last!) + 2 * 3600_000).toISOString(), false)} (2+ hours apart).`) : null;
+  const queueItems = R_SEED.filter((r) => !st.posted[r.id] && !st.skipped[r.id]);
+  const card = (r: RItem) => {
+    const c = el('div', { class: 'card', 'data-reddit': r.id },
+      el('div', { class: 'row' }, pill('r/' + r.sub, 'p')),
+      el('div', { style: 'margin-top:10px;font:600 16px/1.3 var(--h)' }, r.title),
+      el('pre', { class: 'reply', id: 'redditText-' + r.id }, r.text));
+    const copy = btn('pri', [ic('copy'), 'Copy'], async () => { toast(await copyText(r.text) ? 'Copied · edit it to fit the thread, then paste' : 'Could not copy · select the text and copy it', { ms: 3000 }); }, { id: 'redditCopy-' + r.id });
+    const open = el('a', { class: 'btn ghost', href: r.url, target: '_blank', rel: 'noopener noreferrer', id: 'redditOpen-' + r.id }, ic('open'), 'Open thread');
+    const mark = btn('go full', [ic('check'), 'Mark posted'], () => {
+      const cur = rLoad(); if (rPace(cur).left === 0) { toast('Limit reached, come back tomorrow.', { ms: 3000 }); return; }
+      cur.posted[r.id] = new Date().toISOString(); rSave(cur);
+      toast(`Posted · ${rPace(cur).done}/${rPace(cur).max} today`, { ms: 5000, undo: () => { const u = rLoad(); delete u.posted[r.id]; rSave(u); redditView(); } });
+      redditView();
+    }, { id: 'redditMark-' + r.id, disabled: full });
+    const skip = el('button', { type: 'button', class: 'skip', id: 'redditSkip-' + r.id }, ic('skip'), 'Skip');
+    skip.onclick = () => { const cur = rLoad(); cur.skipped[r.id] = new Date().toISOString(); rSave(cur); toast('Skipped', { ms: 4000, undo: () => { const u = rLoad(); delete u.skipped[r.id]; rSave(u); redditView(); } }); redditView(); };
+    c.append(el('div', { class: 'two', style: 'grid-template-columns:1fr 1fr;margin-top:12px' }, copy, open), el('div', { style: 'margin-top:10px' }, mark), skip);
+    if (full) (mark as HTMLButtonElement).title = 'Limit reached, come back tomorrow.';
+    return c;
+  };
+  const hist = [
+    ...Object.entries(st.posted).map(([id, at]) => ({ id, at, kind: 'posted' as const })),
+    ...Object.entries(st.skipped).map(([id, at]) => ({ id, at, kind: 'skipped' as const })),
+  ].sort((a, b) => b.at.localeCompare(a.at));
+  const histRow = (h: typeof hist[number]) => {
+    const r = R_SEED.find((x) => x.id === h.id); if (!r) return null;
+    const back = btn('ghost', [h.kind === 'posted' ? 'Undo' : 'Restore'], () => { const u = rLoad(); delete u[h.kind][h.id]; rSave(u); toast('Back in the queue', { ms: 2000 }); redditView(); }, { id: 'redditBack-' + h.id, style: 'min-height:38px;padding:0 12px;font-size:13px' });
+    return el('div', { class: 'li', 'data-hist': h.id },
+      el('span', { class: 'grow' }, el('b', {}, r.title), el('span', { class: 's' }, `r/${r.sub} · ${h.kind === 'posted' ? 'Posted' : 'Skipped'} ${fmt(bkkDate(h.at))}, ${bkkTime(h.at, false)}`)),
+      h.kind === 'posted' ? el('a', { class: 'icb', href: r.url, target: '_blank', rel: 'noopener noreferrer', 'aria-label': 'Open thread' }, ic('open')) : null, back);
+  };
+  screen('more',
+    el('div', { class: 'row', style: 'margin:6px 0 16px' }, el('a', { class: 'icb', href: '#todo', 'aria-label': 'Back' }, ic('back')), el('h1', { style: 'font-size:26px' }, 'Reddit')),
+    el('details', { class: 'card', id: 'redditChecklist' },
+      el('summary', {}, el('span', { class: 'grow' }, el('b', {}, 'Before you post'), el('span', { class: 'dim sm' }, 'Comments only · no links · never name the app')), ic('chev')),
+      el('div', { class: 'in' }, el('ul', { style: 'margin:0;padding-left:20px;line-height:1.55' }, ...R_CHECK.map((t) => el('li', {}, t))))),
+    el('div', { class: 'stats', id: 'redditPace', style: 'margin-top:12px' },
+      el('div', { class: 'stat' }, el('b', { id: 'redditDay' }, String(p.day)), el('span', {}, `Day · ${p.phase}`)),
+      el('div', { class: 'stat' }, el('b', { id: 'redditTarget' }, p.max === 0 ? '0' : `${p.min}–${p.max}`), el('span', {}, 'Target today')),
+      el('div', { class: 'stat' }, el('b', { id: 'redditDone', class: full && p.max ? 'okc' : '' }, `${p.done}/${p.max}`), el('span', {}, 'Done today'))),
+    el('details', { class: 'card', style: 'margin-top:12px' },
+      el('summary', {}, el('span', { class: 'grow' }, el('b', { style: 'font-size:15px' }, `Started ${fmt(st.start)}`), el('span', { class: 'dim sm' }, 'Days 1–3 read · then 2–3 a day for two weeks · then 3–5')), ic('chev')),
+      el('div', { class: 'in' }, el('label', { class: 'f' }, 'Start date (day 1)', startIn))),
+    status,
+    el('div', { class: 'sec' }, `Suggested comments · ${queueItems.length}`),
+    queueItems.length ? el('div', { id: 'redditQueue' }, ...queueItems.map(card)) : empty('Queue empty', 'All 10 posted or skipped.'),
+    el('div', { class: 'tip' }, ic('info'), 'Treat these as patterns, not paste-ins: check each still fits the thread today.'),
+    el('div', { class: 'sec' }, `History · ${hist.length}`),
+    hist.length ? el('div', { id: 'redditHistory' }, ...hist.map(histRow)) : el('p', { class: 'faint sm', id: 'redditHistory' }, 'Nothing posted yet.'));
+}
+
+// ───────────────────────────── More + history ─────────────────────────────
+function moreView() {
+  const li = (href: string, icon: string, title: string, sub: string, id: string) => el('a', { class: 'li', href, id }, el('span', { class: 'ic' }, ic(icon)), el('span', { class: 'grow' }, el('b', {}, title), el('span', { class: 's' }, sub)), ic('chev'));
+  const out = el('button', { type: 'button', class: 'li red', id: 'signOut' }, el('span', { class: 'ic' }, ic('out')), el('span', { class: 'grow' }, el('b', {}, 'Sign out')));
+  out.onclick = async () => { flushWrite(); (await v5Client()).auth.signOut().catch(() => undefined); location.hash = ''; void boot(); };
+  const cleaned = cleanedNote || LS('kr8-admin-cleaned');
+  screen('more', head('Kring admin', 'More'),
+    el('div', { class: 'sec', style: 'margin-top:0' }, 'History'),
+    li('#history/reels', 'reel', 'All Reels', 'Waiting, approved and hidden', 'histReels'),
+    li('#history/reports', 'flag', 'Closed reports', 'Kept, removed and closed', 'histReports'),
+    li('#history/faces', 'face', 'Past face checks', 'Approved and rejected', 'histFaces'),
+    li('#history/replies', 'send', 'Sent and skipped replies', 'Reddit queue history', 'histReplies'),
+    el('div', { class: 'sec' }, 'Outreach'),
+    li('#reddit', 'msg', 'Reddit', 'Comment-only plan · today\'s target and queue', 'moreReddit'),
+    el('div', { class: 'sec' }, 'Rules'),
+    li('#rules', 'book', 'House rules', 'Reels, reports, faces, replies, payouts, venues', 'rulesLink'),
+    el('div', { class: 'sec' }, 'Account'),
+    el('div', { class: 'li' }, el('span', { class: 'ic' }, ic('users')), el('span', { class: 'grow' }, el('b', {}, me || 'Admin'), el('span', { class: 's' }, 'Signed in as admin'))),
+    cleaned ? el('p', { class: 'faint xs', id: 'verifyCleaned', style: 'margin:10px 4px' }, cleaned) : el('p', { class: 'faint xs', style: 'margin:10px 4px' }, 'Selfies are deleted 30 days after review (runs when Face checks open).'),
+    el('div', { style: 'margin-top:10px' }, out));
+}
+function rulesView() {
+  const r = (t: string, b: string) => el('p', {}, el('b', {}, t), b);
+  app.replaceChildren(el('div', { class: 'scr' },
+    el('div', { class: 'row', style: 'margin:6px 0 16px' }, el('a', { class: 'icb', href: '#more', 'aria-label': 'Back' }, ic('back')), el('h1', { style: 'font-size:26px' }, 'House rules')),
+    el('div', { class: 'card rules' },
+      r('Reports', 'A Reel reported by 3 different people hides itself until you decide.'),
+      r('Face checks', 'Same person, clear face, not a photo of a screen. The member sees the reject reason.'),
+      r('Selfies', 'Deleted 30 days after review.'),
+      r('Replies', 'Max 5 a day · 20+ minutes apart · Kring only after 9 replies without it. A disclosure line is added when Kring is mentioned.'),
+      r('Kring Local payouts', 'Only approved Reels count: first approved Reel, and 3 approved Reels within the first 14 days.'),
+      r('Recruiter milestones', 'M1 = verified + photo, area, IG + 1 approved Reel. M2 = M1 + opened the app on a later day and sent a hello / saved 3 / 2nd Reel.'),
+      r('Venue deals', 'In baht, never percent. No quiet-hours words, links or phone numbers.'),
+      r('Stay / Do', 'The partner sets the member price. No other-site prices. Hidden until switched live.'),
+      r('Top 5 gifts', 'In baht, no percent. Weeks start Monday.'))), tabbar('more'));
+  window.scrollTo(0, 0);
+}
+let histSeg: Record<string, string> = { reels: 'approved', faces: 'approved', replies: 'sent' };
+async function historyView(kind: string) {
+  const titles: Record<string, string> = { reels: 'All Reels', reports: 'Closed reports', faces: 'Past face checks', replies: 'Replies' };
+  const segs: Record<string, [string, string][]> = { reels: [['pending', 'Waiting'], ['approved', 'Approved'], ['hidden', 'Hidden']], faces: [['approved', 'Approved'], ['rejected', 'Rejected']], replies: [['sent', 'Sent'], ['skipped', 'Skipped']] };
+  const body = el('div', {}, loading());
+  const seg = segs[kind] ? el('div', { class: 'seg' }, ...segs[kind].map(([k, l]) => { const b = el('button', { type: 'button', class: histSeg[kind] === k ? 'on' : '', id: `hist-${kind}-${k}` }, l); b.onclick = () => { histSeg[kind] = k; void historyView(kind); }; return b; })) : null;
+  app.replaceChildren(el('div', { class: 'scr' }, el('div', { class: 'row', style: 'margin:6px 0 16px' }, el('a', { class: 'icb', href: '#more', 'aria-label': 'Back' }, ic('back')), el('h1', { style: 'font-size:26px' }, titles[kind] || 'History')), seg, body), tabbar('more'));
+  window.scrollTo(0, 0);
+  try {
+    if (kind === 'reels') {
+      const st = histSeg.reels as Reel['status'];
+      const rows = await rpc<Reel[]>('kr8_admin_reels', { p_status: st, p_limit: 100 });
+      const urls = await signReelPaths(rows.map((r) => r.poster_path)).catch(() => ({} as Record<string, string>));
+      body.replaceChildren(...(rows.length ? rows.map((r) => {
+        const row = el('div', { class: 'li', 'data-reel': r.id }, el('img', { class: 'thumb', src: urls[r.poster_path] || '', alt: '' }),
+          el('span', { class: 'grow' }, el('b', {}, r.author_name), el('span', { class: 's' }, `${r.area} · ${ago(r.created_at)}`),
+            el('a', { class: 'link xs', href: reelLink(r.id), target: '_blank', rel: 'noopener', style: 'display:block;margin-top:4px' }, 'Open Reel')));
+        const acts = el('div', { style: 'display:flex;flex-direction:column;gap:6px' });
+        const set = (s: 'approved' | 'hidden', label: string, cls: string) => btn(cls, [label], async () => {
+          try { await rpc('kr8_admin_review_reel', { p_reel: r.id, p_status: s }); toast(s === 'approved' ? 'Approved' : 'Hidden', { ms: 1500 }); row.remove(); counts = null; } catch (e) { toast(errText(e)); }
+        }, { id: (s === 'approved' ? 'approveReel-' : 'hideReel-') + r.id, style: 'min-height:40px;padding:0 12px;font-size:13px' });
+        if (r.status !== 'approved') acts.append(set('approved', 'Approve', 'go'));
+        if (r.status !== 'hidden') acts.append(set('hidden', 'Hide', 'out-bad'));
+        row.append(acts);
+        return row;
+      }) : [empty('No Reels here')]));
+    } else if (kind === 'reports') {
+      const rows = await rpc<Report[]>('kr8_admin_reports', { p_open: false, p_limit: 200 });
+      body.replaceChildren(...(rows.length ? rows.map((r) => el('div', { class: 'li', 'data-report': r.id }, el('span', { class: 'ic' }, ic('flag')),
+        el('span', { class: 'grow' }, el('b', {}, (r.category && CAT[r.category]) || 'Report about a person'), el('span', { class: 's' }, `About ${r.target_name || '–'} · by ${r.reporter_name || '–'} · ${bkkTime(r.created_at)}`),
+          !r.category && r.reason ? el('span', { class: 's', style: 'display:block' }, `“${r.reason}”`) : null),
+        r.resolution ? pill(RES[r.resolution]?.[0] || r.resolution, RES[r.resolution]?.[1] || '') : null)) : [empty('No closed reports')]));
+    } else if (kind === 'faces') {
+      const rows = await rpc<Face[]>('kr8_admin_verifications', { p_status: histSeg.faces });
+      const signed = await signSelfies(rows).catch(() => ({} as Record<string, string>));
+      body.replaceChildren(...(rows.length ? rows.map((r) => el('details', { class: 'card', style: 'margin-bottom:10px', 'data-verify': r.id },
+        el('summary', {}, r.profile_photo ? el('img', { src: r.profile_photo, alt: '', style: 'width:40px;height:40px;border-radius:12px;object-fit:cover' }) : el('span', { class: 'icb' }, ic('face')),
+          el('div', { class: 'grow' }, el('b', {}, r.first_name), el('span', { class: 'dim sm' }, `${r.status === 'approved' ? 'Approved' : 'Rejected'} · ${bkkTime(r.reviewed_at || r.created_at)}`)), ic('chev')),
+        el('div', { class: 'in' }, faceBody(r, signed)))) : [empty('Nothing here')]));
+    } else if (kind === 'replies') {
+      const rows = await rpc<Social[]>('kr8_admin_social_list', { p_status: histSeg.replies });
+      body.replaceChildren(...(rows.length ? rows.map((r) => {
+        const c = el('div', { class: 'card', 'data-social': r.id, 'data-status': r.status, style: 'margin-bottom:10px' },
+          el('div', { class: 'row' }, pill('r/' + r.subreddit, 'p'), el('span', { class: 'grow' }), pill(r.status, r.status === 'sent' ? 'g' : '')),
+          el('a', { href: r.thread_url, target: '_blank', rel: 'noopener noreferrer', style: 'display:block;margin-top:8px;font-weight:600;text-decoration:none' }, r.thread_title || r.thread_url),
+          el('pre', { class: 'reply', style: 'font-size:13.5px' }, r.final_text || r.reply_text),
+          r.sent_at ? el('p', { class: 'faint xs', style: 'margin:8px 0 0' }, `${r.send_mode || ''} · ${bkkTime(r.sent_at)}`) : null,
+          r.result_url ? el('a', { class: 'link sm', href: r.result_url, target: '_blank', rel: 'noopener noreferrer', id: 'socialResult-' + r.id }, 'See comment ↗') : null);
+        if (r.send_mode === 'manual' && r.sent_at && Date.now() - Date.parse(r.sent_at) < 2 * 3600_000)
+          c.append(el('div', { style: 'margin-top:10px' }, btn('ghost', ['Undo (not posted)'], async () => { try { await rpc('kr8_admin_social_undo', { p_id: r.id }); toast('Back in the queue', { ms: 2000 }); counts = null; void historyView('replies'); } catch (e) { toast(errText(e)); } }, { id: 'socialUndo-' + r.id })));
+        return c;
+      }) : [empty('Nothing here')]));
+    }
+  } catch (e) { body.replaceChildren(errP(e)); }
+}
+
+// ───────────────────────────── router ─────────────────────────────
+function route() {
+  flushWrite();
+  toastEl?.remove(); toastEl = null;
+  document.querySelectorAll('.scrim').forEach((n) => n.remove());
+  const h = decodeURIComponent(location.hash.replace(/^#/, '')) || 'todo';
+  const [a, b, c] = h.split('/');
+  if (a === 'q') {
+    if (b === 'reels') return void reelQueue();
+    if (b === 'faces') return void faceQueue();
+    if (b === 'reports') return void reportQueue();
+    if (b === 'replies') return void replyQueue();
+    if (b === 'venues') return void venueQueue();
+  }
+  if (a === 'members') return void membersView();
+  if (a === 'top5') return void top5View();
+  if (a === 'listings') return void listingsView();
+  if (a === 'more') return moreView();
+  if (a === 'rules') return rulesView();
+  if (a === 'reddit') return redditView();
+  if (a === 'history') return void historyView(b || 'reels');
+  if (a === 'venue' && b) return void venueDetail(b);
+  if (a === 'listing') {
+    if (b === 'new') return listingStepper({ kind: 'stay', booking_kind: 'line_oa', area: 'Bangkok' }, false);
+    if (b === 'edit' && c) { const l = listingCache.find((x) => x.id === c); if (l) return listingStepper(l, true); return void rpc<Listing[]>('kr8_admin_listings').then((rows) => { listingCache = rows; const x = rows.find((y) => y.id === c); if (x) listingStepper(x, true); else location.hash = '#listings'; }); }
+  }
+  if (a === 'todo') counts = null;
+  void todoView();
+}
+
+async function boot() {
+  const c = await v5Client();
+  const { data } = await c.auth.getSession();
+  if (!data.session) return signIn();
+  const isAdmin = await rpc<boolean>('kr8_is_admin').catch(() => false);
+  if (!isAdmin) return signIn('This account is not an admin');
+  me = data.session.user?.email || '';
+  window.onhashchange = route;
+  route();
+}
+
+export function start() { void boot(); }
