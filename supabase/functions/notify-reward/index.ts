@@ -1,7 +1,9 @@
-// notify-reward: founder email on every Rings reward claim (DB trigger kr8_claim_notify, migration 0044).
+// notify-reward: founder email on every prize claim (DB trigger kr8_claim_notify, migrations 0044 + 0047).
+// A claim pays a prize the member won: a weekly rank (1–8) or Founding Local. Rings are a score and are never spent.
 // Same pattern and secrets as notify-new-member: x-hook-secret = NOTIFY_HOOK_SECRET, Brevo = BREVO_API_KEY.
-// No stock for that brand/amount → subject "Restock <brand> ฿<amount>" so the founder can buy codes.
+// No code of that exact brand + amount in stock → subject "Restock <brand> ฿<amount>" so the founder can buy one.
 // Codes are never in the payload or the email.
+// TEST claims (is_test) send no email at all; they are only logged.
 const TO = "barbiepoppolive@gmail.com";
 const BREVO = Deno.env.get("BREVO_API_KEY")!;
 const HOOK = Deno.env.get("NOTIFY_HOOK_SECRET")!;
@@ -15,7 +17,12 @@ export function subjectFor(rec: Record<string, unknown>): string {
   const brand = BRAND[String(rec.brand)] ?? String(rec.brand);
   const test = rec.is_test ? "[TEST] " : "";
   if (rec.status === "pending") return `${test}Restock ${brand} ฿${rec.amount_thb} · ${rec.first_name}'s code is held`;
-  return `${test}Kring reward claimed: ${brand} ฿${rec.amount_thb} by ${rec.first_name}`;
+  return `${test}Kring prize claimed: ${brand} ฿${rec.amount_thb} by ${rec.first_name}`;
+}
+export function prizeFor(rec: Record<string, unknown>): string {
+  if (rec.prize_kind === "weekly") return `Weekly #${rec.prize_rank} (week of ${rec.prize_week})`;
+  if (rec.prize_kind === "founding") return `Founding Local #${rec.founding_no}`;
+  return "–";
 }
 
 Deno.serve(async (req) => {
@@ -23,13 +30,20 @@ Deno.serve(async (req) => {
   const p = await req.json();
   if (p.table !== "kr8_reward_claims") return new Response("ignored", { status: 200 });
   const rec = p.record ?? {};
+  // TEST claims: log only, never email (QA runs were flooding the founder's inbox).
+  if (rec.is_test) {
+    console.log(JSON.stringify({ table: p.table, status: rec.status, skipped: "test claim, no email", subject: subjectFor(rec) }));
+    return new Response(JSON.stringify({ skipped: "test" }), { status: 200, headers: { "Content-Type": "application/json" } });
+  }
   const stock = (p.stock ?? {}) as Record<string, number>;
-  const stockLine = ["grab", "shopeepay", "truemoney"].flatMap((b) => [100, 300, 500].map((a) => `${BRAND[b]} ฿${a}: ${stock[`${b}_${a}`] ?? 0}`)).join(" · ");
+  const stockLine = Object.keys(stock).sort().map((k) => { const [b, a] = k.split("_"); return `${BRAND[b] ?? b} ฿${a}: ${stock[k]}`; }).join(" · ") || "none";
+  const same = stock[`${rec.brand}_${rec.amount_thb}`] ?? 0;
   const rows: [string, unknown][] = [
     ["Member", `${rec.first_name} (#${String(rec.member_no ?? "").padStart(5, "0")})`],
-    ["Reward", `${BRAND[rec.brand] ?? rec.brand} ฿${rec.amount_thb}${rec.brand === "truemoney" ? ` (code worth ฿${Math.floor(Number(rec.amount_thb) * 3 / 4)})` : ""}`],
-    ["Rings", rec.rings],
-    ["Status", rec.status === "pending" ? "HELD · no code in stock. Rings are reserved; the member sees “Your code is on the way”. The code goes out by itself the moment you add one (admin → More → Reward codes)." : "Code sent to the member"],
+    ["Prize", prizeFor(rec)],
+    ["Wants", `${BRAND[rec.brand] ?? rec.brand} ฿${rec.amount_thb}${rec.brand === "truemoney" ? ` (buy a TrueMoney code worth ฿${Math.floor(Number(rec.amount_thb) * 3 / 4)}; TrueMoney keeps 25%)` : ""}`],
+    ["Status", rec.status === "pending" ? `HELD · no ${BRAND[rec.brand] ?? rec.brand} ฿${rec.amount_thb} code in stock. The member sees “Your code is on the way”. The code goes out by itself the moment you add one (admin → More → Reward codes, same brand and amount).` : "Code sent to the member"],
+    ["Same codes left", same],
     ["When", ist(rec.created_at)],
     ["Codes left (real)", stockLine],
     ...(rec.is_test ? [["Flag", "Test member — test codes only"] as [string, unknown]] : []),

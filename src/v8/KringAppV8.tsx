@@ -94,10 +94,11 @@ import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
 import type { V5Blocked, V5Card, V5FeedItem, V5Me, V5ReportReason, V5TagPlace, V5Thread } from './v5Live';
 import { V5_L, KX_L, v5ErrText } from './v5Strings';
 import { V5MintSheet } from './V5KxCard';
-import { ClaimedPage, ClaimPage, RewardsPage } from './V5KxRewards';
-import { RankingPage } from './V5KxRanking';
-import { FeedPlaceChips, PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, type PickedPlace } from './V5KxPlaces';
-import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRanking, kxRefName, type KxCardExtras, type KxClaimResult, type KxFeedExtra, type KxRewards } from './v5Kx';
+import { ClaimedPage, ClaimPage, ResultPage, RewardsPage } from './V5KxRewards';
+import { baht, MathSheet, HowSheet, RankingPage } from './V5KxRanking';
+import { FeedPlaceChips, PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, SavedReelsPage, type PickedPlace } from './V5KxPlaces';
+import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRanking, kxRefName, kxSavedReels, kxShareLink, kxShareLinkCached, kxShareOpenSeen,
+  type KxCardExtras, type KxClaimResult, type KxFeedExtra, type KxPrize, type KxRanking, type KxRewards, type KxSavedReel, type KxWeekResult } from './v5Kx';
 import { inviteCode } from './kxLogic';
 import { V5Qr, V5SignInSheet } from './V5Sheets';
 import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, showFirstReelChip } from './V5ReelNudge';
@@ -874,6 +875,8 @@ type SheetId =
   | 'claim'
   | 'claimed'
   | 'ranking'
+  | 'result'
+  | 'savedreels'
   | 'place'
   | 'reelshare'
   | 'reelmore'
@@ -1792,7 +1795,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   };
 
   const handleDockTap = (target: V8Tab) => {
-    if (sheet && ['rewards', 'claim', 'claimed', 'ranking', 'place', 'profile'].includes(sheet)) setSheet(null);
+    if (sheet && ['rewards', 'claim', 'claimed', 'ranking', 'result', 'savedreels', 'place', 'profile'].includes(sheet)) setSheet(null);
     if (target === 'feed' && tab === 'feed') {
       setOrbVisible(true);
       void refreshFeedForNewRows().then((count) => {
@@ -2081,10 +2084,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     if (!p.id) return;
     setReelSheetId(p.id);
     setSheet(which);
+    // the share link (/r/<short>) is fetched now, so the tap on Copy / Share can use it at once (phones only allow copy inside the tap)
+    if (which === 'reelshare' && live && /^[0-9a-f-]{36}$/.test(p.id)) void kxShareLink(p.id).catch(() => undefined);
   };
   const shareReel = async (p: V8FeedItem, channel: 'line' | 'copy' | 'native') => {
     if (!p.id) return;
-    const url = v5ReelLink(p.id);
+    // https://kringapp.com/r/<short>: the website logs the open (+Rings for the poster, never from LINE) and sends people to this Reel
+    const url = kxShareLinkCached(p.id) || (live && /^[0-9a-f-]{36}$/.test(p.id) ? await kxShareLink(p.id).catch(() => v5ReelLink(p.id)) : v5ReelLink(p.id));
     const text = `${p.name || 'Kring'} · ${p.area ? L(p.area) : L('All Bangkok')} · ${L('Explore Bangkok, make new friends')} · กริ๊ง!`;
     if (channel === 'line') {
       window.open(`https://line.me/R/share?text=${encodeURIComponent(`${text}\n${url}`)}`, '_blank', 'noopener');
@@ -2236,13 +2242,19 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [kxWeekRank, setKxWeekRank] = useState<number | null>(null);
   const [kxRewards, setKxRewards] = useState<KxRewards | null>(null);
   const [kxClaimFocus, setKxClaimFocus] = useState<{ id: string | null; fresh: boolean }>({ id: null, fresh: false });
+  const [kxPrizeSel, setKxPrizeSel] = useState<KxPrize | null>(null);
+  const [kxResult, setKxResult] = useState<KxWeekResult | null>(null);
+  const [kxSaved, setKxSaved] = useState<KxSavedReel[] | null>(null);
+  const [kxRankLine, setKxRankLine] = useState<string>('');
+  const [kxMathFor, setKxMathFor] = useState<string | null>(null);
+  const [kxHow, setKxHow] = useState(false);
   const [kxPlaceId, setKxPlaceId] = useState<string>('');
   const [kxFeedX, setKxFeedX] = useState<Record<string, KxFeedExtra>>({});
   const [postPlaces, setPostPlaces] = useState<PickedPlace[]>([]);
   const [placeSearchOpen, setPlaceSearchOpen] = useState(false);
   const [kxInviter, setKxInviter] = useState<string>('');
   const kxLoadRewards = async () => {
-    try { const r = await kxMyRewards(); setKxRewards(r); setKxMe((m) => (m ? { ...m, balance: r.balance, lifetime: r.lifetime, level: r.level } : m)); return r; } catch (e) { showToast(v5Msg(e)); return null; }
+    try { const r = await kxMyRewards(); setKxRewards(r); setKxMe((m) => (m ? { ...m, week: r.week, week_rank: r.rank, lifetime: r.lifetime, level: r.level, prizes: r.prizes.filter((x) => x.status === 'won').length } : m)); return r; } catch (e) { showToast(v5Msg(e)); return null; }
   };
   const kxInviteLink = (no: number | null | undefined) => `${location.origin}${import.meta.env.BASE_URL}?ref=${inviteCode(no ?? kxMe?.member_no)}`;
   const kxShareInvite = async (no?: number | null) => {
@@ -2255,7 +2267,37 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     } catch { /* closed the share sheet */ }
   };
   const kxOpenPlace = (id: string) => { setKxPlaceId(id); setSheet('place'); };
-  // daily check-in (+Rings, streak) once per Bangkok day per phone; tells the member when a held code has arrived
+  /** Share one of my Reels by its /r/<short> link (from the math sheet or the week result). */
+  const kxShareReelId = async (id: string | null) => {
+    if (!id) return;
+    let url = '';
+    try { url = await kxShareLink(id); } catch (e) { showToast(v5Msg(e)); return; }
+    try {
+      if (navigator.share) { await navigator.share({ title: 'Kring · กริ๊ง!', text: `${user.name || 'Kring'} · ${L('Explore Bangkok, make new friends')} · กริ๊ง!`, url }); return; }
+      await navigator.clipboard.writeText(url);
+      showToast(L('Link copied'));
+    } catch { /* closed the share sheet */ }
+  };
+  /** The Ranking tile's second line: the next step and what it pays. */
+  const kxTileLine = (r: KxRanking): string => {
+    const g = r.gap;
+    if (!g) return '';
+    if (g.prize_now > 0 && (g.state === 'top' || !g.target)) return Lf('{0} now', baht(g.prize_now));
+    if (g.state === 'far') return Lf('{0} to top 10', String(g.top10_need ?? g.target?.need ?? ''));
+    if (g.state === 'off' && !(r.mine && r.mine.live > 0)) return r.open_seats > 0 ? (r.open_seats === 1 ? L('1 seat open') : Lf('{0} seats open', String(r.open_seats))) : '';
+    if (g.target && g.target.prize > 0) return Lf('{0} to {1}', String(g.target.need), baht(g.target.prize));
+    return '';
+  };
+  const kxLoadSaved = () => kxSavedReels().then((rows) => { setKxSaved(rows || []); void signPosters((rows || []).slice(0, 3).map((x) => x.poster_path)); }).catch(() => setKxSaved((x) => x || []));
+  // a visitor who came through a share link (/r/<short> → ?reel=…&so=<open id>): once signed in, tell the server who it was (own opens count 0)
+  const kxOpenRef = useRef<string | null>((() => { try { const v = new URLSearchParams(location.search).get('so'); return v && /^[0-9a-f-]{36}$/.test(v) ? v : null; } catch { return null; } })());
+  useEffect(() => {
+    if (!live || !v5Uid || !kxOpenRef.current) return;
+    const id = kxOpenRef.current;
+    kxOpenRef.current = null;
+    void kxShareOpenSeen(id);
+  }, [live, v5Uid]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // on open: marks today for the streak badge (no Rings), tells the member when a held code has arrived, and shows last week's result once
   const [kxReady, setKxReady] = useState(false);
   useEffect(() => {
     if (!live || !v5Uid || !v5Card) return;
@@ -2275,9 +2317,21 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         const r = fresh[0];
         setTimeout(() => showToast(Lf('Your {0} code is ready', `${r.brand === 'grab' ? 'Grab' : r.brand === 'shopeepay' ? 'ShopeePay' : 'TrueMoney'} ฿${r.amount}`)), 1200);
         try { localStorage.setItem('kr8_ready_seen', JSON.stringify([...seen, ...fresh.map((x) => x.id)].slice(-50))); } catch { /* private mode */ }
-      } else if (c.added > 0 && seenDay !== day) {
-        setTimeout(() => showToast(c.bonus > 0 ? Lf('+{0} Rings · {1}-day streak!', String(c.added + c.bonus), String(c.streak)) : Lf('+{0} Rings · day {1} streak', String(c.added), String(c.streak))), 1500);
       }
+      // week close: the first open after Monday 00:00 shows the result once (top 10 only; winners get one-tap Claim)
+      const res = c.result;
+      if (res && res.rank <= 10) {
+        const k = `kr8_result_seen_${v5Uid}`;
+        let seenWeek = '';
+        try { seenWeek = localStorage.getItem(k) || ''; } catch { /* private mode */ }
+        if (seenWeek !== res.week) {
+          try { localStorage.setItem(k, res.week); } catch { /* private mode */ }
+          setKxResult(res);
+          setTimeout(() => { if (!sheetRef.current) setSheet('result'); }, 900);
+        }
+      }
+      if ((c.prizes ?? 0) > 0) setKxReady(true);
+      void seenDay;
     }).catch(() => undefined);
     return () => { dead = true; };
   }, [live, v5Uid, !!v5Card]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -2350,7 +2404,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       setMeProfile(p);
       void signPosters(p.reels.map((r) => r.poster_path));
       kxCardExtras().then(setKxMe).catch(() => undefined);
-      kxRanking('all').then((r) => setKxWeekRank(r.me?.rank ?? null)).catch(() => undefined);
+      kxRanking('all').then((r) => { setKxWeekRank(r.me?.rank ?? null); setKxRankLine(kxTileLine(r)); }).catch(() => undefined);
+      void kxLoadSaved();
       setMeRank(await rankOf(p.user_id));
       if (!p.verified) v5MyVerification().then((v) => setVerifyPending(v?.status === 'pending')).catch(() => undefined);
     } catch {
@@ -2613,9 +2668,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       setSheet(null);
       setTab('feed');
       triggerRingBurst();
-      showToast(r.status === 'approved'
-        ? (r.rings > 0 ? Lf('Reel posted · +{0} Rings', String(r.rings)) : L('Reel posted · กริ๊ง!'))
-        : (r.places > 0 ? L('Reel sent · Rings arrive after a quick check') : L('Reel sent · it shows in the feed after a quick check')));
+      showToast(r.status === 'approved' ? L('Reel posted · กริ๊ง!') : L('Reel sent · it shows in the feed after a quick check'));
       a2hsFirstValue('reel');
       v5Feed().then(setFeedItems).catch(() => undefined);
     } catch (e) {
@@ -3354,7 +3407,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         )}
 
         {/* Chat Bubble Top-Right on Feed & People ONLY (HIDDEN on Deals & Me) */}
-        {(tab === 'feed' || tab === 'people') && !(sheet && ['place', 'rewards', 'claim', 'claimed', 'ranking'].includes(sheet)) && (
+        {(tab === 'feed' || tab === 'people') && !(sheet && ['place', 'rewards', 'claim', 'claimed', 'ranking', 'result', 'savedreels'].includes(sheet)) && (
           <button
             type="button"
             className="chat-fab"
@@ -4145,6 +4198,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onRings={() => { setKxReady(false); setSheet('rewards'); void kxLoadRewards(); }}
               ringsDot={kxReady}
               onRanking={() => setSheet('ranking')}
+              rankLine={kxRankLine}
+              saved={kxSaved ? { count: kxSaved.length, thumbs: kxSaved.slice(0, 3).map((x) => mePosters[x.poster_path] || '').filter(Boolean) } : null}
+              onSavedReels={() => { setSheet('savedreels'); void kxLoadSaved(); }}
             />
           ) : (<>
           <div className="kp-me-head">
@@ -4355,7 +4411,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         </nav>
 
         {/* ==================== CONDITIONAL SHEETS (mounted ONLY when open) ==================== */}
-        {sheet && !['profile', 'rewards', 'claim', 'claimed', 'ranking', 'place', 'v5card'].includes(sheet) && (
+        {sheet && !['profile', 'rewards', 'claim', 'claimed', 'ranking', 'result', 'savedreels', 'place', 'v5card'].includes(sheet) && (
           <div
             className="sheet-backdrop"
             id="backdrop"
@@ -6495,16 +6551,18 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onDone={(list) => { setPostPlaces(list); if (list[0] && !postArea) setPostArea(list[0].kr_area || 'Bangkok'); setPlaceSearchOpen(false); }} />
         )}
         {sheet === 'rewards' && live && (
-          <RewardsPage L={L} Lf={Lf} lang={lang} data={kxRewards} inviteLink={kxInviteLink(kxRewards?.member_no)}
-            onBack={() => setSheet(null)} onClaim={() => setSheet('claim')}
+          <RewardsPage L={L} Lf={Lf} lang={lang} data={kxRewards}
+            onBack={() => setSheet(null)} onClaim={(p) => { setKxPrizeSel(p); setSheet('claim'); }}
+            onCode={(id) => { setKxClaimFocus({ id, fresh: false }); setSheet('claimed'); }}
             onHistory={() => { setKxClaimFocus({ id: null, fresh: false }); setSheet('claimed'); }}
-            onPost={() => kxPostAt()} onInvite={() => void kxShareInvite(kxRewards?.member_no)} onReact={() => { setSheet(null); setTab('feed'); }} />
+            onRanking={() => setSheet('ranking')} onMath={() => setKxMathFor(v5Uid || null)} />
         )}
         {sheet === 'claim' && live && (
-          <ClaimPage L={L} Lf={Lf} data={kxRewards} toast={showToast} onBack={() => setSheet('rewards')}
+          <ClaimPage L={L} Lf={Lf} lang={lang} data={kxRewards} prize={kxPrizeSel} toast={showToast} onBack={() => setSheet('rewards')}
             onDone={(r: KxClaimResult) => {
               void kxLoadRewards();
-              setKxClaimFocus({ id: r.status === 'assigned' ? r.claim_id : null, fresh: r.status === 'assigned' });
+              setKxReady(false);
+              setKxClaimFocus({ id: r.claim_id, fresh: r.status === 'assigned' });
               if (r.status === 'assigned') triggerRingBurst();
               else showToast(L('Your code is on the way'));
               setSheet('claimed');
@@ -6515,9 +6573,28 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onClose={() => setSheet('rewards')} onChanged={() => void kxLoadRewards()} />
         )}
         {sheet === 'ranking' && live && (
-          <RankingPage L={L} Lf={Lf} lang={lang} myArea={v5Card?.area || null} myPhoto={v5Card?.photo || null} myName={v5Card?.first_name || ''}
-            onBack={() => setSheet(null)} onPerson={(id) => void openProfile(id)} onEarn={() => { setSheet('rewards'); void kxLoadRewards(); }} />
+          <RankingPage L={L} Lf={Lf} lang={lang} myArea={v5Card?.area || null} myPhoto={v5Card?.photo || null} myName={v5Card?.first_name || ''} myId={v5Card ? v5Uid || null : null}
+            onBack={() => setSheet(null)} onPerson={(id) => void openProfile(id)} onPost={() => requireSignInForAction(() => kxPostAt())}
+            onShare={(reel) => void kxShareReelId(reel)} />
         )}
+        {sheet === 'result' && live && kxResult && (
+          <ResultPage L={L} Lf={Lf} lang={lang} r={kxResult} photo={v5Card?.photo || null} name={v5Card?.first_name || ''} level={kxMe?.level ?? 1} no={kxMe?.member_no ?? (v5Card as { member_no?: number } | null)?.member_no ?? null}
+            onClose={() => setSheet(null)} onPost={() => kxPostAt()} onShare={(reel) => void kxShareReelId(reel)}
+            onClaim={(id) => {
+              const amount = kxResult.prize?.amount ?? 0;
+              setKxPrizeSel({ id, kind: 'weekly', week: kxResult.week, rank: kxResult.rank, founding_no: null, amount, rings: kxResult.rings, status: 'won', claim_id: null, created_at: '' });
+              void kxLoadRewards();
+              setSheet('claim');
+            }} />
+        )}
+        {sheet === 'savedreels' && live && (
+          <SavedReelsPage L={L} Lf={Lf} rows={kxSaved} onBack={() => setSheet(null)} onBrowse={() => { setSheet(null); setTab('feed'); }} />
+        )}
+        {kxMathFor && live && sheet === 'rewards' && (
+          <MathSheet L={L} Lf={Lf} lang={lang} user={kxMathFor} onClose={() => setKxMathFor(null)} onHow={() => { setKxMathFor(null); setKxHow(true); }}
+            onShare={(reel) => { setKxMathFor(null); if (reel) void kxShareReelId(reel); else kxPostAt(); }} />
+        )}
+        {kxHow && live && sheet === 'rewards' && <HowSheet L={L} onClose={() => setKxHow(false)} />}
         {sheet === 'place' && live && kxPlaceId && (
           <PlacePage key={kxPlaceId} L={L} Lf={Lf} lang={lang} id={kxPlaceId} toast={showToast} onBack={() => setSheet(null)}
             shareUrl={(id) => `${location.origin}${import.meta.env.BASE_URL}?place=${encodeURIComponent(id)}`}

@@ -1,6 +1,6 @@
 /** Live calls for Card + Rings + Ranking + Places (migration 0044). Every Ring is decided on the server. */
 import { v5Client, V5Error, v5ErrCode } from './v5Live';
-import { BKK_BBOX, inBangkok, type Brand, type ClaimAmount } from './kxLogic';
+import { BKK_BBOX, inBangkok, type Brand, type GapState } from './kxLogic';
 import type { ReelReady, UploadedReel } from './v5Reel';
 
 async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
@@ -13,24 +13,33 @@ async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T
 }
 
 // ───────────── card ─────────────
-export interface KxCardExtras { member_no: number | null; ig_handle: string | null; tiktok_handle: string | null; lifetime: number; level: number; week: number; balance: number | null }
+export interface KxCardExtras { member_no: number | null; ig_handle: string | null; tiktok_handle: string | null; lifetime: number; level: number; week: number;
+  week_rank?: number | null; founding_no?: number | null; founding_left?: number | null; founding_thb?: number; has_reel?: boolean | null; prizes?: number | null }
 export const kxCardExtras = (user?: string | null) => rpc<KxCardExtras>('kr8_card_extras', { p_user: user || null });
 export const kxSetTiktok = (h: string) => rpc<string | null>('kr8_set_tiktok_handle', { p_handle: h });
 export const kxRefName = (code: string) => rpc<string | null>('kr8_ref_name', { p_code: code });
 
+// ───────────── the next step (pinned row) ─────────────
+export interface KxGap { state: GapState; rank: number | null; rings: number; floor: number; prize_now: number;
+  target: { rank: number; need: number; prize: number; open: boolean } | null;
+  above: { rank: number; name: string; need: number } | null; behind: { rank: number; diff: number } | null; top10_need: number | null }
+
 // ───────────── rewards ─────────────
-export interface KxClaim { id: string; brand: Brand; amount: number; rings: number; status: 'assigned' | 'pending'; value: number | null; code: string | null;
-  activation_url: string | null; used_at: string | null; created_at: string; assigned_at: string | null }
-export interface KxEarned { reason: 'reel_place' | 'likes_50' | 'friend_join' | 'friend_welcome' | 'checkin' | 'streak' | 'react3' | 'weekly_top' | 'reel_removed'; delta: number; at: string; detail: string | null; detail_th: string | null }
-export interface KxRewards { balance: number; lifetime: number; week: number; level: number; member_no: number | null; reel_place_today: boolean; best_likes: number;
-  friends: number; claims: KxClaim[]; earned: KxEarned[];
-  rules?: Record<string, number>; checked_in_today?: boolean; streak?: number; reacts_today?: number; react_done?: boolean; reel_place_week?: number }
+export interface KxPrize { id: string; kind: 'weekly' | 'founding'; week: string | null; rank: number | null; founding_no: number | null; amount: number; rings: number | null;
+  status: 'won' | 'claimed'; claim_id: string | null; created_at: string }
+export interface KxClaim { id: string; brand: Brand; amount: number; status: 'assigned' | 'pending'; value: number | null; code: string | null;
+  activation_url: string | null; used_at: string | null; created_at: string; assigned_at: string | null;
+  kind: 'weekly' | 'founding' | null; week: string | null; rank: number | null; founding_no: number | null }
+export interface KxRewards { week: number; rank: number | null; lifetime: number; level: number; gap: KxGap | null; ends_at: string; member_no: number | null;
+  founding_no: number | null; founding_left: number; floor: number; rules?: Record<string, number>; ladder: number[]; streak: number; checked_in_today: boolean;
+  prizes: KxPrize[]; claims: KxClaim[] }
 export const kxMyRewards = () => rpc<KxRewards>('kr8_my_rewards');
 export const kxRules = () => rpc<Record<string, number>>('kr8_rings_rules');
-export interface KxCheckin { added: number; streak: number; streak_len: number; bonus: number; ready: { id: string; brand: Brand; amount: number; assigned_at: string }[] }
+export interface KxWeekResult { week: string; rank: number; rings: number; reel: string | null; prize: { id: string; amount: number; status: 'won' | 'claimed' } | null; line_need: number | null; line_prize: number }
+export interface KxCheckin { added: number; streak: number; bonus: number; ready: { id: string; brand: Brand; amount: number; assigned_at: string }[]; prizes?: number; result?: KxWeekResult | null }
 export const kxCheckin = () => rpc<KxCheckin>('kr8_checkin');
 export type KxClaimResult = { status: 'assigned'; claim_id: string; brand: Brand; amount: number; value: number; code: string; activation_url: string | null }
-  | { status: 'pending'; claim_id: string; brand: Brand; amount: number; rings?: number };
+  | { status: 'pending'; claim_id: string; brand: Brand; amount: number; value?: number };
 function deviceId(): string {
   try {
     let d = localStorage.getItem('kr8_device');
@@ -38,17 +47,41 @@ function deviceId(): string {
     return d;
   } catch { return ''; }
 }
-export const kxClaim = (amount: ClaimAmount, brand: Brand) => rpc<KxClaimResult>('kr8_claim_reward', { p_amount: amount, p_brand: brand, p_device: deviceId() || null });
+/** One tap: the prize the member won, on the app they pick. The server decides everything. */
+export const kxClaimPrize = (prize: string, brand: Brand) => rpc<KxClaimResult>('kr8_claim_prize', { p_prize: prize, p_brand: brand, p_device: deviceId() || null });
 export const kxMarkUsed = (claim: string, used: boolean) => rpc<boolean>('kr8_mark_reward_used', { p_claim: claim, p_used: used });
 export interface KxRecent { first_name: string; photo: string | null; brand: Brand; amount: number; value: number; at: string }
 export const kxRecentClaims = (n = 8) => rpc<KxRecent[]>('kr8_recent_claims', { p_limit: n });
 
 // ───────────── ranking ─────────────
 export type KxScope = 'all' | 'area' | 'friends';
-export interface KxRankRow { rank: number; rings: number; user_id: string; first_name: string; photo: string | null; area: string; move: number | null; is_me: boolean }
-export interface KxRanking { week_start: string; ends_at: string; scope: KxScope; area: string | null; total: number; tenth: number | null; rows: KxRankRow[];
-  me: { rank: number; rings: number; move: number | null } | null }
+export interface KxRankRow { rank: number; all_rank: number; rings: number; prize: number; paid: boolean; needs: number | null; to_line: number | null; is_new?: boolean;
+  user_id: string; first_name: string; photo: string | null; area: string; move: number | null; is_me: boolean }
+export interface KxRanking { week_start: string; ends_at: string; scope: KxScope; area: string | null; total: number; paid_ranks: number; floor: number; posters: number;
+  min_posters: number; payout_on: boolean; open_seats: number; prizes: number[]; rows: KxRankRow[];
+  me: { rank: number; all_rank: number; rings: number; prize: number; move: number | null } | null; gap: KxGap | null;
+  mine: { pending: number; live: number; no_place: number } | null }
 export const kxRanking = (scope: KxScope) => rpc<KxRanking>('kr8_weekly_ranking', { p_scope: scope });
+export interface KxMathReel { post_id: string; posted_at: string; poster_path: string | null; place: string | null; place_th: string | null;
+  l_local: number; l_trav: number; s_local: number; s_trav: number; opens: number; score: number }
+export interface KxBreakdown { user_id: string; first_name: string; is_me: boolean; rings: number; rank: number | null; more: number;
+  weights: { like: number; save: number; open: number; mult: number; cap: number; best: number }; reels: KxMathReel[] }
+export const kxBreakdown = (user: string) => rpc<KxBreakdown>('kr8_score_breakdown', { p_user: user });
+
+// ───────────── share link (/r/<short>) ─────────────
+const shortCache = new Map<string, string>();
+/** https://kringapp.com/r/<short> (same host as the app, so previews work too). Opens are logged by the website before it sends people to the Reel. */
+export async function kxShareLink(post: string): Promise<string> {
+  let s = shortCache.get(post);
+  if (!s) { s = await rpc<string>('kr8_reel_share_link', { p_post: post }); if (s) shortCache.set(post, s); }
+  return `${location.origin}/r/${s}`;
+}
+export const kxShareLinkCached = (post: string) => (shortCache.has(post) ? `${location.origin}/r/${shortCache.get(post)}` : null);
+export const kxShareOpenSeen = (open: string) => rpc<boolean>('kr8_share_open_seen', { p_open: open }).catch(() => false);
+
+// ───────────── saved Reels ─────────────
+export interface KxSavedReel { id: string; poster_path: string; video_path: string; likes: number; name: string; saved_at: string }
+export const kxSavedReels = () => rpc<KxSavedReel[]>('kr8_my_saved_reels', { p_limit: 60 });
 
 // ───────────── places ─────────────
 export interface KxPlace { id: string; name_en: string; name_th: string | null; area: string; kr_area?: string; lat?: number; lng?: number; photo_url: string | null;

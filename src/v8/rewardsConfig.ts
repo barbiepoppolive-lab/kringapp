@@ -28,28 +28,37 @@ export function rewardFor(period: 'today' | 'week' | 'area', rank: number): numb
 }
 
 /**
- * Rings (feat/card-rewards-rank-places, founder 14 Nov 15:33). Every earn value and cap in one place.
- * These are the DEFAULTS the app shows until the server answers; the server table kr8_rings_config (migration 0046)
- * is what actually pays, and the app reads it (kr8_rings_rules / kr8_my_rewards.rules), so numbers change without a code edit.
+ * Rings (LOCKED rules, founder 15 Nov 2026). Rings = a public weekly score, never money.
+ * These are the DEFAULTS the app shows until the server answers; the server table kr8_rings_config (migration 0047) is what counts,
+ * and the app reads it (kr8_rings_rules / kr8_my_rewards.rules), so numbers change without a code edit.
  * Change a number: update kr8_rings_config.value (and this default, to keep the first paint right).
  */
 export const RINGS = {
-  rings_per_baht: 10,
-  checkin: 5,
-  streak_days: 7,
-  streak_bonus: 50,
-  react_goal: 3,
-  react: 10,
-  reel_place: 100,
-  reel_place_week_cap: 3,
-  likes_50: 0,
-  friend: 300,
-  friend_welcome: 100,
-  weekly_1: 5000,
-  weekly_2: 3000,
-  weekly_3: 2000,
-  weekly_4_10: 500,
-  claims_per_day: 3,
+  like: 1,
+  save: 3,
+  open: 5,
+  traveller_mult: 2,
+  opens_day_cap: 30,
+  best_reels: 2,
+  board_size: 10,
+  prize_1: 1500,
+  prize_2: 900,
+  prize_3: 600,
+  prize_4: 500,
+  prize_5: 400,
+  prize_6: 250,
+  prize_7: 150,
+  prize_8: 100,
+  prize_9: 0,
+  prize_10: 0,
+  /** FOUNDER DECISION: a prize rank only pays when its holder has at least this many Rings. */
+  min_rings_for_paid_seat: 25,
+  /** FOUNDER DECISION: prizes only pay in weeks with at least this many members on the board (0 = always). */
+  min_posters_for_payout: 0,
+  shopeepay_on: 0,
+  founding_on: 1,
+  founding_slots: 50,
+  founding_thb: 100,
 } as const;
 export type RingsRules = { -readonly [K in keyof typeof RINGS]: number };
 /** Server rules over the defaults (unknown keys ignored, missing keys keep the default). */

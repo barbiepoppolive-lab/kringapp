@@ -104,6 +104,7 @@ export function KxMemberCard(props: { L: Tx; Lf: Txf; p: V5Profile; kx: KxCardEx
     <div className={`kx-mecard${props.compact ? ' compact' : ''}`}>
       <NeonCard L={L} id={p.mine ? 'meCard' : 'profileCard'} photo={p.photo} name={p.first_name} level={kx?.level ?? lv.n} no={kx?.member_no ?? null}
         ig={kx ? kx.ig_handle : p.ig_handle} tt={kx?.tiktok_handle ?? null} size="me" compact={props.compact}
+        founding={kx?.founding_no ?? null}
         sub={[where, langs].filter(Boolean).join(' · ') + (p.verified ? ` · ✓ ${L('verified')}` : '')}
         pts={[L(lv.key).toLocaleUpperCase(), lv.nextKey ? Lf('{0} → {1}', fmtN(lv.toNext), L(lv.nextKey).toLocaleUpperCase()) : L('Top level')]} />
     </div>
@@ -135,6 +136,31 @@ function ReelRow(props: { reels: V5Profile['reels']; posters: Record<string, str
   );
 }
 
+/**
+ * "Founding Local · ฿100": three steps under the card, step 1 already ticked (mock m5). Shows until the member is a Founding Local;
+ * when all the spots are taken it becomes "3 steps to the board" with no ฿. The spots-left number is the true count from the server.
+ */
+export function FoundingChecklist(props: { L: Tx; Lf: Txf; kx: KxCardExtras | null | undefined; hasSocial: boolean; onLink: () => void; onPost: () => void }) {
+  const { L, Lf, kx } = props;
+  if (!kx || kx.founding_no || kx.founding_left === undefined) return null;
+  const open = (kx.founding_left ?? 0) > 0;
+  if (!open && kx.has_reel) return null;
+  const amt = `฿${fmtN(kx.founding_thb ?? 100)}`;
+  const done = 1 + (props.hasSocial ? 1 : 0) + (kx.has_reel ? 1 : 0);
+  return (
+    <div className="kx-fc" id="kxFounding" data-left={kx.founding_left ?? 0}>
+      <div className="h"><b>{open ? `${L('Founding Local')} · ${amt}` : L('3 steps to the board')}</b>{open ? <span id="kxFoundingLeft">{Lf('{0} of {1} spots left', String(kx.founding_left), '50')}</span> : null}</div>
+      <div className="bar"><i style={{ width: `${(done / 3) * 100}%` }} /></div>
+      <div className="st done"><i>✓</i><span>{L('Make your card')}</span></div>
+      <div className={`st${props.hasSocial ? ' done' : ''}`}><i>{props.hasSocial ? '✓' : '2'}</i><span>{L('Add Instagram or TikTok')}</span>
+        {props.hasSocial ? null : <button type="button" className="kx-go" id="kxFoundingAdd" onClick={props.onLink}>{L('Add')}</button>}</div>
+      <button type="button" className={`st go${kx.has_reel ? ' done' : ''}`} id="kxFoundingPost" onClick={props.onPost} disabled={!!kx.has_reel}>
+        <i>{kx.has_reel ? '✓' : '3'}</i><span>{kx.has_reel ? L('First Reel sent · in review') : L('Post your first Reel at a place')}</span>{open ? <em>{amt}</em> : null}
+      </button>
+    </div>
+  );
+}
+
 /** My Me tab */
 export function MeView(props: {
   L: Tx; Lf: Txf; p: V5Profile; rank: number | null; posters: Record<string, string>; savedCount: number; savedImgs: string[];
@@ -143,8 +169,8 @@ export function MeView(props: {
   onEdit: () => void; onShare: () => void; onCode: () => void; onSaved: () => void; onRewards: () => void; onReel: (id: string) => void;
   onPost: () => void; onVerify: () => void; firstReelChip?: React.ReactNode;
   kx?: KxCardExtras | null; weekRank?: number | null; onRings?: () => void; onRanking?: () => void; ringsDot?: boolean;
+  rankLine?: string; saved?: { count: number; thumbs: string[] } | null; onSavedReels?: () => void; onLink?: () => void;
 }) {
-  const rewardStart = useRewardStart();
   const { L, Lf, p } = props;
   const lv = p.level;
   const visits = Math.ceil(lv.need_points / 5);
@@ -163,17 +189,24 @@ export function MeView(props: {
         </span>
       </div>
       <KxMemberCard L={L} Lf={Lf} p={p} kx={props.kx} />
+      <FoundingChecklist L={L} Lf={Lf} kx={props.kx} hasSocial={!!(props.kx?.ig_handle || props.kx?.tiktok_handle || p.ig_handle)} onLink={props.onLink || props.onEdit} onPost={props.onPost} />
       <div className="kx-tiles" id="kxTiles">
         <button type="button" className="kx-mtile rw" id="kxRingsTile" onClick={props.onRings}>
-          {props.ringsDot ? <i className="kx-tdot" aria-label={L('New')} /> : null}
-          <b>{props.kx?.balance !== undefined && props.kx?.balance !== null ? fmtN(props.kx.balance) : '…'} <RingGlyph /></b>
-          <span>{L('Rings')} <i>→</i> {L('Rewards')}</span>
+          {props.ringsDot || (props.kx?.prizes ?? 0) > 0 ? <i className="kx-tdot" aria-label={L('New')} /> : null}
+          <b>{props.kx ? fmtN(props.kx.week ?? 0) : '…'} <RingGlyph /></b>
+          <span>{L('this week')} <i>→</i> {L('Rewards')}</span>
         </button>
         <button type="button" className="kx-mtile rk" id="kxRankTile" onClick={props.onRanking}>
-          <b>{props.weekRank ? `#${props.weekRank}` : '#—'}</b>
-          <span>{L('this week')} <i>→</i> {L('Ranking')}</span>
+          <b>{props.weekRank ? `#${props.weekRank}` : L('Ranking')}</b>
+          <span id="kxRankLine">{props.rankLine || <>{L('this week')} <i>→</i> {L('Ranking')}</>}</span>
         </button>
       </div>
+      <button type="button" className="kx-savedrow" id="kxSavedRow" onClick={props.onSavedReels || props.onSaved}>
+        <span className="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4.5L5 21V4a1 1 0 0 1 1-1z" /></svg></span>
+        <span className="t">{L('Saved Reels')}<small>{props.saved ? (props.saved.count === 1 ? L('1 Reel') : Lf('{0} Reels', String(props.saved.count))) : '…'}</small></span>
+        <span className="th">{(props.saved?.thumbs || []).slice(0, 3).map((u, i) => <i key={i} style={{ backgroundImage: `url('${u}')` }} />)}</span>
+        <span className="go">›</span>
+      </button>
       <Stats L={L} p={p} onList={props.onList} />
       <div className="kme-qa">
         <button type="button" id="meEdit" onClick={props.onEdit}><span>✎</span>{L('Edit profile')}</button>
@@ -199,18 +232,6 @@ export function MeView(props: {
           <small>{lv.next ? (visits === 1 ? Lf('{0} more posts or 1 partner-café visit to go', String(lv.need_points))
             : Lf('{0} more posts or {1} partner-café visits to go', String(lv.need_points), String(visits))) : L('Levels come from posts and visits, never from payment')}</small>
         </span>
-      </div>
-      <div className="kme-rows">
-        <button type="button" className="kme-tile" id="meSaved" onClick={props.onSaved}>
-          <span className="cap">{L('Saved')}</span><b>{props.savedCount}</b>
-          <span className="stack">{props.savedImgs.slice(0, 3).map((u, i) => <i key={i} style={{ backgroundImage: `url('${u}')`, ['--r' as string]: `${[-8, 4, 12][i]}deg` } as React.CSSProperties} />)}</span>
-        </button>
-        <button type="button" className="kme-tile" id="meRewards" onClick={props.onRewards}>
-          <span className="cap">{L('Rewards')}</span>
-          <b className={p.gifts ? '' : 'txt'} id="meRewardsTxt">{p.gifts ? (p.gifts === 1 ? L('1 reward') : Lf('{0} rewards', String(p.gifts)))
-            : rewardsOpen(rewardStart) ? L('Up to ฿4,000 every week') : Lf('Top 5 · rewards start {0}', fmtRewardDay(rewardStart, uiLang()))}</b>
-          <span className="gift" aria-hidden="true">🏆</span>
-        </button>
       </div>
       {p.reels.length ? (
         <ReelRow reels={p.reels} posters={props.posters} onOpen={props.onReel} pending={L('Waiting for a quick check')} />

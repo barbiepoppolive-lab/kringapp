@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import './kx.css';
 import { distM, fmtDist, fmtN, mapsUrl, togglePick } from './kxLogic';
-import { kxAddPlace, kxPhoton, kxPlacePage, kxSearchPlaces, placePhoto, type KxPlace, type KxPlacePage, type KxPlaceReel } from './v5Kx';
+import { kxAddPlace, kxPhoton, kxPlacePage, kxSearchPlaces, placePhoto, type KxPlace, type KxPlacePage, type KxPlaceReel, type KxSavedReel } from './v5Kx';
 import { signReelPaths } from './v5Reel';
 import { kxArea } from './v5Strings';
 
@@ -197,6 +197,44 @@ export function ReelViewer(props: { L: Tx; reel: KxPlaceReel; onClose: () => voi
       {src.v ? <video src={src.v} poster={src.p} autoPlay playsInline loop controls /> : <p className="kx-empty">…</p>}
       <button type="button" className="kx-ib abs" aria-label={props.L('Close')} onClick={props.onClose}>✕</button>
       <span className="kx-viewer-by">{props.reel.name}</span>
+    </div>
+  );
+}
+
+/** Me → Saved: grid of the Reels this member saved (kept on the account, newest first). Tap opens the Reel. */
+export function SavedReelsPage(props: { L: Tx; Lf: Txf; rows: KxSavedReel[] | null; onBack: () => void; onBrowse: () => void }) {
+  const { L, Lf } = props;
+  const [posters, setPosters] = useState<Record<string, string>>({});
+  const [open, setOpen] = useState<KxSavedReel | null>(null);
+  useEffect(() => {
+    let dead = false;
+    const paths = (props.rows || []).map((r) => r.poster_path).filter(Boolean);
+    if (paths.length) signReelPaths(paths).then((m) => { if (!dead) setPosters(m); }).catch(() => undefined);
+    return () => { dead = true; };
+  }, [props.rows]);
+  const rows = props.rows || [];
+  return (
+    <div className="kx-page kx-sv" id="kxSaved">
+      <div className="kx-hd2">
+        <button type="button" className="kx-bk" aria-label={L('Back')} onClick={props.onBack}>‹</button>
+        <h1>{L('Saved Reels')}</h1>
+        <span className="kx-bp" id="kxSavedCount">{props.rows === null ? '…' : rows.length === 1 ? L('1 Reel') : Lf('{0} Reels', fmtN(rows.length))}</span>
+      </div>
+      {props.rows === null ? <p className="kx-empty pad">…</p> : rows.length === 0 ? (
+        <div className="kx-sv-none" id="kxSavedEmpty">
+          <p className="kx-empty">{L('Nothing saved yet. Tap Save on a Reel and it stays here.')}</p>
+          <button type="button" className="kx-btn" onClick={props.onBrowse}>{L('See Reels')}</button>
+        </div>
+      ) : (
+        <div className="kx-svgrid" id="kxSavedGrid">
+          {rows.map((r) => (
+            <button type="button" key={r.id} className="kx-g" data-reel={r.id} style={posters[r.poster_path] ? { backgroundImage: `url('${posters[r.poster_path]}')` } : undefined} onClick={() => setOpen(r)}>
+              <span className="by">{r.name}</span><em>♥ {fmtN(r.likes)}</em>
+            </button>
+          ))}
+        </div>
+      )}
+      {open ? <ReelViewer L={L} reel={open} onClose={() => setOpen(null)} /> : null}
     </div>
   );
 }

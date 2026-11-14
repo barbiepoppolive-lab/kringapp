@@ -6,8 +6,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './kx.css';
 import { LEVEL_KEY, levelFor, memberNo, parseHandle, socialUrl, type Social } from './kxLogic';
-import { kxRules, kxSetTiktok } from './v5Kx';
-import { RINGS } from './rewardsConfig';
+import { kxSetTiktok } from './v5Kx';
 import { v5AcceptTerms, v5CompressImage, v5ErrCode, v5SaveCard, v5SetIgHandle, v5StoredRef, v5TakeLinePrefill, V5_AREAS, V5_LANGS, V5_TERMS_VERSION } from './v5Live';
 import type { V5Card, V5Me } from './v5Live';
 import { v5ErrText } from './v5Strings';
@@ -49,6 +48,8 @@ export function SocialPills(props: { ig?: string | null; tt?: string | null; com
 export interface NeonCardProps {
   L: Tx; photo: string | null; name: string; level: number; no: number | null; ig?: string | null; tt?: string | null;
   size?: 'mint' | 'me' | 'hero'; tilt?: boolean; compact?: boolean; pts?: [string, string] | null; slot?: React.ReactNode; children?: React.ReactNode; id?: string; sub?: string;
+  /** Founding Local number (first 50 members with an approved Reel): a permanent mark on the card. */
+  founding?: number | null;
 }
 /** The locked N2 card: photo full-bleed, neon pink frame, LV badge + #number on top, small name, 5-step bar, social pills. */
 export function NeonCard(p: NeonCardProps) {
@@ -57,6 +58,7 @@ export function NeonCard(p: NeonCardProps) {
       {!p.photo ? <span className="kx-n2-ph" aria-hidden="true">{(p.name || '?').trim().charAt(0).toUpperCase() || '?'}</span> : null}
       <div className="kx-n2-top"><span className={`kx-lv${TH_RE.test(levelLabel(p.L, p.level)) ? ' thai' : ''}`}>⚡ {levelLabel(p.L, p.level)}</span><span className="kx-id">{memberNo(p.no)}</span></div>
       <div className="kx-n2-b">
+        {p.founding ? <div className={`kx-fl${TH_RE.test(p.L('Founding Local')) ? ' thai' : ''}`} data-founding={p.founding}>★ {p.L('Founding Local')} #{String(p.founding).padStart(2, '0')}</div> : null}
         <div className="kx-nm">{p.name || ' '}</div>
         {p.sub ? <div className="kx-sub">{p.sub}</div> : null}
         <div className="kx-bar">{[1, 2, 3, 4, 5].map((i) => <i key={i} className={i <= p.level ? 'on' : ''} />)}</div>
@@ -154,8 +156,6 @@ export function V5MintSheet(props: {
   const [notice, setNotice] = useState('');
   const [link, setLink] = useState<Social | null>(null);
   const [minted, setMinted] = useState<{ no: number | null } | null>(null);
-  const [reelRings, setReelRings] = useState<number>(RINGS.reel_place);
-  useEffect(() => { kxRules().then((r) => { if (typeof r?.reel_place === 'number') setReelRings(r.reel_place); }).catch(() => undefined); }, []);
   const busyRef = useRef(false);
   useEffect(() => {
     if (card) return;
@@ -227,10 +227,9 @@ export function V5MintSheet(props: {
         </div>
         <p className="kx-mt-st">{who === 'local' ? L('You’re a Bangkok local') : L('You’re on Kring')} <b>{memberNo(minted.no)}</b></p>
         <div className="kx-mt-acts">
-          <button type="button" className="kx-btn" id="kxShareCard" onClick={() => props.onAfter('share', minted.no)}>{L('Share my card')}</button>
-          <button type="button" className="kx-btn ghost" id="kxFirstReel" onClick={() => props.onAfter('reel', minted.no)}>
-            {L('Post my first Reel')} <span className="gd">+{reelRings} <RingGlyph /></span>
-          </button>
+          <button type="button" className="kx-btn" id="kxFirstReel" onClick={() => props.onAfter('reel', minted.no)}>{L('Post my first Reel')}</button>
+          <button type="button" className="kx-btn ghost" id="kxShareCard" onClick={() => props.onAfter('share', minted.no)}>{L('Share my card')}</button>
+          <p className="kx-mt-tip">{L('A clip you already have works')}</p>
         </div>
       </div>
     );
