@@ -92,9 +92,15 @@ import { StayDo } from './V5StayDo';
 import { v5MyVerification } from './v5Live';
 import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
 import type { V5Blocked, V5Card, V5FeedItem, V5Me, V5ReportReason, V5TagPlace, V5Thread } from './v5Live';
-import { V5_L, v5ErrText } from './v5Strings';
-import { V5CardSheet, V5Qr, V5SignInSheet } from './V5Sheets';
-import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, shouldShowReelNudge, showFirstReelChip } from './V5ReelNudge';
+import { V5_L, KX_L, v5ErrText } from './v5Strings';
+import { V5MintSheet } from './V5KxCard';
+import { ClaimedPage, ClaimPage, RewardsPage } from './V5KxRewards';
+import { RankingPage } from './V5KxRanking';
+import { FeedPlaceChips, PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, type PickedPlace } from './V5KxPlaces';
+import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRanking, kxRefName, type KxCardExtras, type KxClaimResult, type KxFeedExtra, type KxRewards } from './v5Kx';
+import { inviteCode } from './kxLogic';
+import { V5Qr, V5SignInSheet } from './V5Sheets';
+import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, showFirstReelChip } from './V5ReelNudge';
 import { V5ReelVideo, toggleReelSound } from './V5ReelVideo';
 import { checkReel, createReel, makeAudio, prepareReel, ReelError, uploadReel, type ReelInfo, type ReelReady, type UploadedReel } from './v5Reel';
 
@@ -864,6 +870,11 @@ type SheetId =
   | 'persondetail'
   | 'v5card'
   | 'reelNudge'
+  | 'rewards'
+  | 'claim'
+  | 'claimed'
+  | 'ranking'
+  | 'place'
   | 'reelshare'
   | 'reelmore'
   | 'blocked'
@@ -1030,7 +1041,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // Safety opened from inside a chat targets that chat; from Settings it targets nobody.
   const [safetyFromChat, setSafetyFromChat] = useState(false);
   const L = (en: string): string =>
-    ((V5_L[lang] && V5_L[lang][en]) || (V9_L[lang] && V9_L[lang][en]) || (QA_L[lang] && QA_L[lang][en]) || en).replace(/&amp;/g, '&');
+    ((V5_L[lang] && V5_L[lang][en]) || (KX_L[lang] && KX_L[lang][en]) || (V9_L[lang] && V9_L[lang][en]) || (QA_L[lang] && QA_L[lang][en]) || en).replace(/&amp;/g, '&');
   const Lf = (en: string, a: string, b = ''): string => L(en).replace('{0}', a).replace('{1}', b);
   /** Real partner deals (0023) carry their own words in baht; Thai screens show Thai with English under it. */
   const dealMain = (d: V8Deal): string => (lang === 'th' ? d.dealTh || d.dealEn : d.dealEn) || '';
@@ -1781,6 +1792,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   };
 
   const handleDockTap = (target: V8Tab) => {
+    if (sheet && ['rewards', 'claim', 'claimed', 'ranking', 'place', 'profile'].includes(sheet)) setSheet(null);
     if (target === 'feed' && tab === 'feed') {
       setOrbVisible(true);
       void refreshFeedForNewRows().then((count) => {
@@ -2218,6 +2230,94 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [mePosters, setMePosters] = useState<Record<string, string>>({});
   const [otherProfile, setOtherProfile] = useState<V5Profile | null>(null);
   const [otherRank, setOtherRank] = useState<number | null>(null);
+  // Card + Rings + Ranking + Places (feat/card-rewards-rank-places)
+  const [kxMe, setKxMe] = useState<KxCardExtras | null>(null);
+  const [kxOther, setKxOther] = useState<KxCardExtras | null>(null);
+  const [kxWeekRank, setKxWeekRank] = useState<number | null>(null);
+  const [kxRewards, setKxRewards] = useState<KxRewards | null>(null);
+  const [kxClaimFocus, setKxClaimFocus] = useState<{ id: string | null; fresh: boolean }>({ id: null, fresh: false });
+  const [kxPlaceId, setKxPlaceId] = useState<string>('');
+  const [kxFeedX, setKxFeedX] = useState<Record<string, KxFeedExtra>>({});
+  const [postPlaces, setPostPlaces] = useState<PickedPlace[]>([]);
+  const [placeSearchOpen, setPlaceSearchOpen] = useState(false);
+  const [kxInviter, setKxInviter] = useState<string>('');
+  const kxLoadRewards = async () => {
+    try { const r = await kxMyRewards(); setKxRewards(r); setKxMe((m) => (m ? { ...m, balance: r.balance, lifetime: r.lifetime, level: r.level } : m)); return r; } catch (e) { showToast(v5Msg(e)); return null; }
+  };
+  const kxInviteLink = (no: number | null | undefined) => `${location.origin}${import.meta.env.BASE_URL}?ref=${inviteCode(no ?? kxMe?.member_no)}`;
+  const kxShareInvite = async (no?: number | null) => {
+    const url = kxInviteLink(no);
+    const text = `${user.name || ''} · Kring · ${L('Explore Bangkok, make new friends')}`;
+    try {
+      if (navigator.share) { await navigator.share({ title: 'Kring · กริ๊ง!', text, url }); return; }
+      await navigator.clipboard.writeText(url);
+      showToast(L('Link copied'));
+    } catch { /* closed the share sheet */ }
+  };
+  const kxOpenPlace = (id: string) => { setKxPlaceId(id); setSheet('place'); };
+  // daily check-in (+Rings, streak) once per Bangkok day per phone; tells the member when a held code has arrived
+  const [kxReady, setKxReady] = useState(false);
+  useEffect(() => {
+    if (!live || !v5Uid || !v5Card) return;
+    const day = new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
+    const key = `kr8_checkin_${v5Uid}`;
+    let seenDay = '';
+    try { seenDay = localStorage.getItem(key) || ''; } catch { /* private mode */ }
+    let dead = false;
+    kxCheckin().then((c) => {
+      if (dead) return;
+      try { localStorage.setItem(key, day); } catch { /* private mode */ }
+      let seen: string[] = [];
+      try { seen = JSON.parse(localStorage.getItem('kr8_ready_seen') || '[]'); } catch { seen = []; }
+      const fresh = (c.ready || []).filter((r) => !seen.includes(r.id));
+      if (fresh.length) {
+        setKxReady(true);
+        const r = fresh[0];
+        setTimeout(() => showToast(Lf('Your {0} code is ready', `${r.brand === 'grab' ? 'Grab' : r.brand === 'shopeepay' ? 'ShopeePay' : 'TrueMoney'} ฿${r.amount}`)), 1200);
+        try { localStorage.setItem('kr8_ready_seen', JSON.stringify([...seen, ...fresh.map((x) => x.id)].slice(-50))); } catch { /* private mode */ }
+      } else if (c.added > 0 && seenDay !== day) {
+        setTimeout(() => showToast(c.bonus > 0 ? Lf('+{0} Rings · {1}-day streak!', String(c.added + c.bonus), String(c.streak)) : Lf('+{0} Rings · day {1} streak', String(c.added), String(c.streak))), 1500);
+      }
+    }).catch(() => undefined);
+    return () => { dead = true; };
+  }, [live, v5Uid, !!v5Card]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // places + TikTok for the Reels in the feed (one call per new batch)
+  useEffect(() => {
+    if (!live) return;
+    const ids = feedItems.filter((f) => (f as { video?: string }).video && /^[0-9a-f-]{36}$/.test(f.id) && !(f.id in kxFeedX)).map((f) => f.id);
+    if (!ids.length) return;
+    let dead = false;
+    kxFeedExtras(ids).then((rows) => {
+      if (dead) return;
+      setKxFeedX((prev) => {
+        const next = { ...prev };
+        for (const id of ids) next[id] = next[id] || { post_id: id, tiktok: null, places: [] };
+        for (const r of rows || []) next[r.post_id] = r;
+        return next;
+      });
+    }).catch(() => undefined);
+    return () => { dead = true; };
+  }, [live, feedItems]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // ?place=<id> opens a place page; a member invite code (?ref=k00412) shows the friend's first name on the join sheet
+  useEffect(() => {
+    if (!live) return;
+    try {
+      const q = new URLSearchParams(location.search);
+      const pid = q.get('place');
+      if (pid && /^[0-9a-f-]{36}$/.test(pid)) kxOpenPlace(pid);
+    } catch { /* ignore */ }
+    const ref = v5StoredRef();
+    if (/^k[0-9]{5,7}$/.test(ref)) kxRefName(ref).then((n) => { if (n) setKxInviter(n); }).catch(() => undefined);
+  }, [live]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // did the member already have a card when the card sheet opened? (new card → "Card minted!")
+  const v5CardWasRef = useRef<boolean>(false);
+  useEffect(() => { if (sheet === 'v5card') v5CardWasRef.current = !!v5Card; }, [sheet]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const kxPostAt = (p?: PickedPlace) => {
+    if (p) { setPostPlaces((prev) => (prev.some((x) => x.id === p.id) ? prev : [p, ...prev].slice(0, 2))); setPostArea((a) => a || p.kr_area || 'Bangkok'); }
+    setTab('feed');
+    setPostPhotoUrl('');
+    setSheet('post');
+  };
   const [followFor, setFollowFor] = useState<{ user: string; name: string; counts: [number, number]; initial: 'followers' | 'following' } | null>(null);
   const [activityRows, setActivityRows] = useState<V5Activity[] | null>(null);
   const [activityUnread, setActivityUnread] = useState(false);
@@ -2249,6 +2349,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       const p = await v5Profile();
       setMeProfile(p);
       void signPosters(p.reels.map((r) => r.poster_path));
+      kxCardExtras().then(setKxMe).catch(() => undefined);
+      kxRanking('all').then((r) => setKxWeekRank(r.me?.rank ?? null)).catch(() => undefined);
       setMeRank(await rankOf(p.user_id));
       if (!p.verified) v5MyVerification().then((v) => setVerifyPending(v?.status === 'pending')).catch(() => undefined);
     } catch {
@@ -2286,6 +2388,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       const p = await v5Profile(id);
       setOtherProfile(p);
       setOtherRank(null);
+      setKxOther(null);
+      kxCardExtras(id).then(setKxOther).catch(() => undefined);
       setSheet('profile');
       void signPosters(p.reels.map((r) => r.poster_path));
       void rankOf(id).then(setOtherRank);
@@ -2494,9 +2598,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       setReelProgress(0);
       reelWorkRef.current.up = await uploadReel(reelWorkRef.current.ready, setReelProgress, reelWorkRef.current.up);
       setReelStage('saving');
-      const r = await createReel(reelWorkRef.current.up, reelWorkRef.current.ready, postArea, cap, postHereNow);
+      const r = postPlaces.length
+        ? await kxCreateReel(reelWorkRef.current.up, reelWorkRef.current.ready, postArea, cap, postHereNow, postPlaces.map((x) => x.id))
+        : { ...(await createReel(reelWorkRef.current.up, reelWorkRef.current.ready, postArea, cap, postHereNow)), rings: 0, places: 0 };
       if (postPlace) await v5SetReelPlace(r.id, postPlace).catch(() => undefined);
       setPostPlace('');
+      if (postPlaces.length) rememberPlaces(postPlaces);
+      setPostPlaces([]);
       URL.revokeObjectURL(reelInfo.url);
       setReelInfo(null);
       reelWorkRef.current = {};
@@ -2505,7 +2613,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       setSheet(null);
       setTab('feed');
       triggerRingBurst();
-      showToast(r.status === 'approved' ? L('Reel posted · กริ๊ง!') : L('Reel sent · it shows in the feed after a quick check'));
+      showToast(r.status === 'approved'
+        ? (r.rings > 0 ? Lf('Reel posted · +{0} Rings', String(r.rings)) : L('Reel posted · กริ๊ง!'))
+        : (r.places > 0 ? L('Reel sent · Rings arrive after a quick check') : L('Reel sent · it shows in the feed after a quick check')));
       a2hsFirstValue('reel');
       v5Feed().then(setFeedItems).catch(() => undefined);
     } catch (e) {
@@ -3244,7 +3354,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         )}
 
         {/* Chat Bubble Top-Right on Feed & People ONLY (HIDDEN on Deals & Me) */}
-        {(tab === 'feed' || tab === 'people') && (
+        {(tab === 'feed' || tab === 'people') && !(sheet && ['place', 'rewards', 'claim', 'claimed', 'ranking'].includes(sheet)) && (
           <button
             type="button"
             className="chat-fab"
@@ -3569,7 +3679,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                             {p.ig && (
                               <a className="reel-ig" href={`https://www.instagram.com/${encodeURIComponent(p.ig)}/`} target="_blank" rel="noopener noreferrer nofollow">@{p.ig}</a>
                             )}
-                            {p.ig ? ' · ' : ''}{p.langs}
+                            {p.ig ? ' · ' : ''}
+                            {kxFeedX[p.id]?.tiktok && (
+                              <><a className="reel-ig kx-feedtt" data-social="tt" href={`https://www.tiktok.com/@${encodeURIComponent(kxFeedX[p.id].tiktok as string)}`} target="_blank" rel="noopener noreferrer nofollow">♪ @{kxFeedX[p.id].tiktok}</a>{' · '}</>
+                            )}
+                            {p.langs}
                           </div>
                         </div>
                         {p.area && <span className="atag">{p.area}</span>}
@@ -3578,6 +3692,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                           <span className="atag">{L("★ Best of week")}</span>
                         )}
                       </div>
+                      {p.video && kxFeedX[p.id]?.places?.length ? (
+                        <FeedPlaceChips L={L} Lf={Lf} lang={lang} places={kxFeedX[p.id].places} onOpen={kxOpenPlace} />
+                      ) : null}
                       <div className="cap">{p.cap}</div>
                       {p.video && p.place && (
                         <button type="button" className="reel-place" data-act="place" aria-label={`${p.place.name} · ${L('See place')}`} onClick={() => openReelPlace(p.place!)}>
@@ -4023,6 +4140,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onPost={() => { setTab('feed'); setSheet('choose'); }}
               onVerify={() => setSheet('verify')}
               firstReelChip={showFirstReelChip(v5Uid, meProfile.reels.length > 0) ? <FirstReelChip onPost={() => { setTab('feed'); setSheet('choose'); }} /> : null}
+              kx={kxMe}
+              weekRank={kxWeekRank}
+              onRings={() => { setKxReady(false); setSheet('rewards'); void kxLoadRewards(); }}
+              ringsDot={kxReady}
+              onRanking={() => setSheet('ranking')}
             />
           ) : (<>
           <div className="kp-me-head">
@@ -4233,7 +4355,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         </nav>
 
         {/* ==================== CONDITIONAL SHEETS (mounted ONLY when open) ==================== */}
-        {sheet && sheet !== 'profile' && (
+        {sheet && !['profile', 'rewards', 'claim', 'claimed', 'ranking', 'place', 'v5card'].includes(sheet) && (
           <div
             className="sheet-backdrop"
             id="backdrop"
@@ -4518,7 +4640,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             L={L}
             Lf={Lf}
             initialNotice={v5SignInNotice}
-            invitedBy={v5StoredRef()}
+            invitedBy={kxInviter || v5StoredRef()}
             onClose={() => {
               setSheet(null);
               v5JoinRef.current = false;
@@ -4536,30 +4658,29 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           />
         )}
         {sheet === 'v5card' && live && (
-          <V5CardSheet
+          <V5MintSheet
             L={L}
             Lf={Lf}
-            card={v5Card}
+            card={v5Card as never}
             uiLang={lang}
             toast={showToast}
             onClose={() => setSheet(null)}
             onSaved={(me) => {
-              const wasNew = !v5Card;
               v5JoinRef.current = false;
               try { sessionStorage.removeItem('kr8_join'); } catch { /* ignore */ }
               v5ApplyMe(me);
+              kxCardExtras().then(setKxMe).catch(() => undefined);
+            }}
+            onAfter={(what, no) => {
+              if (what === 'share') { void kxShareInvite(no); return; }
+              const wasNew = !!no && !v5CardWasRef.current;
               setSheet(null);
+              if (what === 'reel') { markReelNudgeSeen(v5LastUid.current || v5Uid); pendingActionRef.current = null; kxPostAt(); return; }
               const next = pendingActionRef.current;
               pendingActionRef.current = null;
               if (next) setTimeout(() => next(), 60);
               else if (standRef.current) setTimeout(() => { setStandOpen(standRef.current); setSheet('ticket'); }, 60);   // the stand ticket comes first
-              // 13 Nov: after a new card, a soft once-only nudge to post a first Reel (never blocks; Later = small Me-tab chip)
-              else if (wasNew && shouldShowReelNudge(v5LastUid.current || v5Uid, false)) {
-                markReelNudgeSeen(v5LastUid.current || v5Uid);
-                setTimeout(() => setSheet('reelNudge'), 650);
-              }
-              // 13 Nov funnel fix: no "Get verified" pop-up right after a new card; the member is in. Verify stays on the Me tab.
-              else if (wasNew && me.card && !me.card.verified && !v5StoredRef()) setTimeout(() => setSheet('verify'), 120);
+              else if (wasNew) { markReelNudgeSeen(v5LastUid.current || v5Uid); setTab('me'); }   // the minted screen already offered the first Reel
             }}
           />
         )}
@@ -4926,6 +5047,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onChange={(e) => setPostCaption(e.target.value)}
               placeholder={L("What is good here right now?")}
             />
+            {live && (
+              <PlacePickRow L={L} Lf={Lf} lang={lang} picked={postPlaces} onOpen={() => setPlaceSearchOpen(true)}
+                onChange={(list) => { setPostPlaces(list); if (list[0] && !postArea) setPostArea(list[0].kr_area || 'Bangkok'); }} />
+            )}
             {live && reelInfo && tagPlaces.length > 0 && (
               <select
                 id="reelPlace"
@@ -6362,7 +6487,41 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               } catch (e) { showToast(v5Msg(e)); }
             }))}
             onShare={() => void shareProfile(otherProfile)}
-            onReel={openReelFromProfile} />
+            onReel={openReelFromProfile}
+            kx={kxOther} />
+        )}
+        {sheet === 'post' && live && placeSearchOpen && (
+          <PlaceSearchPage L={L} Lf={Lf} lang={lang} picked={postPlaces} toast={showToast} onBack={() => setPlaceSearchOpen(false)}
+            onDone={(list) => { setPostPlaces(list); if (list[0] && !postArea) setPostArea(list[0].kr_area || 'Bangkok'); setPlaceSearchOpen(false); }} />
+        )}
+        {sheet === 'rewards' && live && (
+          <RewardsPage L={L} Lf={Lf} lang={lang} data={kxRewards} inviteLink={kxInviteLink(kxRewards?.member_no)}
+            onBack={() => setSheet(null)} onClaim={() => setSheet('claim')}
+            onHistory={() => { setKxClaimFocus({ id: null, fresh: false }); setSheet('claimed'); }}
+            onPost={() => kxPostAt()} onInvite={() => void kxShareInvite(kxRewards?.member_no)} onReact={() => { setSheet(null); setTab('feed'); }} />
+        )}
+        {sheet === 'claim' && live && (
+          <ClaimPage L={L} Lf={Lf} data={kxRewards} toast={showToast} onBack={() => setSheet('rewards')}
+            onDone={(r: KxClaimResult) => {
+              void kxLoadRewards();
+              setKxClaimFocus({ id: r.status === 'assigned' ? r.claim_id : null, fresh: r.status === 'assigned' });
+              if (r.status === 'assigned') triggerRingBurst();
+              else showToast(L('Your code is on the way'));
+              setSheet('claimed');
+            }} />
+        )}
+        {sheet === 'claimed' && live && (
+          <ClaimedPage key={kxClaimFocus.id || 'h'} L={L} Lf={Lf} lang={lang} data={kxRewards} focus={kxClaimFocus.id} fresh={kxClaimFocus.fresh} toast={showToast}
+            onClose={() => setSheet('rewards')} onChanged={() => void kxLoadRewards()} />
+        )}
+        {sheet === 'ranking' && live && (
+          <RankingPage L={L} Lf={Lf} lang={lang} myArea={v5Card?.area || null} myPhoto={v5Card?.photo || null} myName={v5Card?.first_name || ''}
+            onBack={() => setSheet(null)} onPerson={(id) => void openProfile(id)} onEarn={() => { setSheet('rewards'); void kxLoadRewards(); }} />
+        )}
+        {sheet === 'place' && live && kxPlaceId && (
+          <PlacePage key={kxPlaceId} L={L} Lf={Lf} lang={lang} id={kxPlaceId} toast={showToast} onBack={() => setSheet(null)}
+            shareUrl={(id) => `${location.origin}${import.meta.env.BASE_URL}?place=${encodeURIComponent(id)}`}
+            onPost={(p) => requireSignInForAction(() => kxPostAt(p))} />
         )}
         {sheet === 'blocked' && (
           <div className="v8-sheet" id="sh-blocked">

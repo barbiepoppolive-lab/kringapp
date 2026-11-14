@@ -10,6 +10,9 @@ import { v5RewardStart, V5_REWARD_START_FALLBACK } from './v5Live';
 import { PerksCard } from './V5Perks';
 import { DAILY_TOTAL, fmtBaht, rewardFor, WEEKLY_TOTAL } from './rewardsConfig';
 import type { V5Activity, V5FollowRow, V5Level, V5Profile, V5TopPeriod, V5TopRow } from './v5Live';
+import { NeonCard, RingGlyph } from './V5KxCard';
+import { fmtN, levelFor } from './kxLogic';
+import type { KxCardExtras } from './v5Kx';
 
 // ── pre-season (D-11NOV-G): the board ranks from day one; rewards start on kr8_settings.reward_start_at ──
 const LOCALE: Record<string, string> = { th: 'th-TH', zh: 'zh-CN', hi: 'hi-IN', ja: 'ja-JP', ko: 'ko-KR' };
@@ -91,6 +94,22 @@ export function MemberCard(props: { L: Tx; Lf: Txf; p: V5Profile; rank: number |
   );
 }
 
+/** N2 neon card (locked 14 Nov): full photo, small name, LV + #member number, IG / TikTok pills. Level from lifetime Rings. */
+export function KxMemberCard(props: { L: Tx; Lf: Txf; p: V5Profile; kx: KxCardExtras | null | undefined; compact?: boolean }) {
+  const { L, Lf, p, kx } = props;
+  const langs = (p.langs || []).slice(0, 2).map((c) => L(LANG_NAME[c] || c)).join(' · ');
+  const where = L(p.area === 'Bangkok' ? 'Bangkok' : p.area);
+  const lv = levelFor(kx?.lifetime ?? 0);
+  return (
+    <div className={`kx-mecard${props.compact ? ' compact' : ''}`}>
+      <NeonCard L={L} id={p.mine ? 'meCard' : 'profileCard'} photo={p.photo} name={p.first_name} level={kx?.level ?? lv.n} no={kx?.member_no ?? null}
+        ig={kx ? kx.ig_handle : p.ig_handle} tt={kx?.tiktok_handle ?? null} size="me" compact={props.compact}
+        sub={[where, langs].filter(Boolean).join(' · ') + (p.verified ? ` · ✓ ${L('verified')}` : '')}
+        pts={[L(lv.key).toLocaleUpperCase(), lv.nextKey ? Lf('{0} → {1}', fmtN(lv.toNext), L(lv.nextKey).toLocaleUpperCase()) : L('Top level')]} />
+    </div>
+  );
+}
+
 function Stats(props: { L: Tx; p: V5Profile; onList: (k: 'followers' | 'following') => void }) {
   const { L, p } = props;
   return (
@@ -123,6 +142,7 @@ export function MeView(props: {
   onTop10: () => void; onList: (k: 'followers' | 'following') => void; onSettings: () => void; onActivity: () => void;
   onEdit: () => void; onShare: () => void; onCode: () => void; onSaved: () => void; onRewards: () => void; onReel: (id: string) => void;
   onPost: () => void; onVerify: () => void; firstReelChip?: React.ReactNode;
+  kx?: KxCardExtras | null; weekRank?: number | null; onRings?: () => void; onRanking?: () => void; ringsDot?: boolean;
 }) {
   const rewardStart = useRewardStart();
   const { L, Lf, p } = props;
@@ -142,7 +162,18 @@ export function MeView(props: {
           </button>
         </span>
       </div>
-      <MemberCard L={L} Lf={Lf} p={p} rank={props.rank} onTop10={props.onTop10} />
+      <KxMemberCard L={L} Lf={Lf} p={p} kx={props.kx} />
+      <div className="kx-tiles" id="kxTiles">
+        <button type="button" className="kx-mtile rw" id="kxRingsTile" onClick={props.onRings}>
+          {props.ringsDot ? <i className="kx-tdot" aria-label={L('New')} /> : null}
+          <b>{props.kx?.balance !== undefined && props.kx?.balance !== null ? fmtN(props.kx.balance) : '…'} <RingGlyph /></b>
+          <span>{L('Rings')} <i>→</i> {L('Rewards')}</span>
+        </button>
+        <button type="button" className="kx-mtile rk" id="kxRankTile" onClick={props.onRanking}>
+          <b>{props.weekRank ? `#${props.weekRank}` : '#—'}</b>
+          <span>{L('this week')} <i>→</i> {L('Ranking')}</span>
+        </button>
+      </div>
       <Stats L={L} p={p} onList={props.onList} />
       <div className="kme-qa">
         <button type="button" id="meEdit" onClick={props.onEdit}><span>✎</span>{L('Edit profile')}</button>
@@ -197,7 +228,7 @@ export function MeView(props: {
 export function ProfileView(props: {
   L: Tx; Lf: Txf; p: V5Profile; rank: number | null; posters: Record<string, string>; busy: boolean;
   onBack: () => void; onTop10: () => void; onList: (k: 'followers' | 'following') => void; onFollow: () => void; onHi: () => void;
-  onReport: () => void; onBlock: () => void; onShare: () => void; onReel: (id: string) => void;
+  onReport: () => void; onBlock: () => void; onShare: () => void; onReel: (id: string) => void; kx?: KxCardExtras | null;
 }) {
   const { L, Lf, p } = props;
   const [menu, setMenu] = useState(false);
@@ -207,7 +238,7 @@ export function ProfileView(props: {
         <button type="button" className="kme-back" id="profileBack" aria-label={L('Back')} onClick={props.onBack}>←</button>
         <button type="button" className="kme-back" aria-label={L('More')} onClick={() => setMenu((m) => !m)}>⋯</button>
       </div>
-      <MemberCard L={L} Lf={Lf} p={p} rank={props.rank} onTop10={props.onTop10} />
+      <KxMemberCard L={L} Lf={Lf} p={p} kx={props.kx} compact />
       <Stats L={L} p={p} onList={props.onList} />
       {!p.mine && (
         <div className="kme-ob">

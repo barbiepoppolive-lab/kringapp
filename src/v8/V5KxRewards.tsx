@@ -1,0 +1,303 @@
+/**
+ * Feature 2 · Rewards (approved variant 2A "Balance card"): Rings balance, Earn Rings, live claims, one-tap Claim,
+ * gold ticket with the code + Copy + Open, history with NEW / EARNED / USED and "Mark as used".
+ * 10 Rings = ฿1. Every Ring and every code is decided by the server (kr8_claim_reward); this screen only shows it.
+ */
+import { useEffect, useMemo, useState } from 'react';
+import './kx.css';
+import { ago, BRAND_NAME, BRANDS, CLAIM_AMOUNTS, claimCheck, fmtN, ringsFor, valueFor, type Brand, type ClaimAmount } from './kxLogic';
+import { ringsRules } from './rewardsConfig';
+import { kxClaim, kxMarkUsed, kxRecentClaims, type KxClaim, type KxClaimResult, type KxRecent, type KxRewards } from './v5Kx';
+import { v5ErrCode } from './v5Live';
+import { RingGlyph } from './V5KxCard';
+
+type Tx = (en: string) => string;
+type Txf = (en: string, a: string, b?: string) => string;
+
+const BRAND_BG: Record<Brand, string> = { grab: '#00b14f', shopeepay: '#ee4d2d', truemoney: '#ff7a00' };
+const BRAND_SITE: Record<Brand, string> = { grab: 'https://www.grab.com/th/', shopeepay: 'https://shopee.co.th/m/shopeepay', truemoney: 'https://www.truemoney.com/' };
+export const BrandLogo = ({ b, size }: { b: Brand; size?: number }) => (
+  <span className={`kx-brand b-${b}`} style={{ background: BRAND_BG[b], ...(size ? { width: size, height: size } : {}) }} aria-hidden="true">
+    {b === 'grab' ? 'Grab' : b === 'shopeepay' ? <>Shopee<br />Pay</> : <>True<br />Money</>}
+  </span>
+);
+const Av = ({ photo, name, size }: { photo: string | null; name: string; size: number }) => (
+  <i className="kx-av" style={{ width: size, height: size, ...(photo ? { backgroundImage: `url('${photo}')` } : {}) }} aria-hidden="true">{photo ? '' : (name || '?').charAt(0).toUpperCase()}</i>
+);
+export function agoText(L: Tx, Lf: Txf, at: string): string {
+  const a = ago(at);
+  return a.u === 'now' ? L('just now') : Lf(a.u === 'm' ? '{0}m' : a.u === 'h' ? '{0}h' : '{0}d', String(a.n));
+}
+function dayText(L: Tx, lang: string, at: string): string {
+  const d = Date.now() - Date.parse(at);
+  if (d < 60_000 * 5) return L('Just now');
+  const day = (t: number) => new Date(t + 7 * 3600_000).toISOString().slice(0, 10);
+  if (day(Date.parse(at)) === day(Date.now())) return L('Today');
+  if (day(Date.parse(at)) === day(Date.now() - 86400_000)) return L('Yesterday');
+  return new Intl.DateTimeFormat(lang === 'th' ? 'th-TH' : 'en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Bangkok' }).format(Date.parse(at));
+}
+const brandAmt = (_L: Tx, b: Brand, amount: number) => `${BRAND_NAME[b]} ฿${fmtN(valueFor(b, amount))}`;
+
+export function useRecentClaims(on: boolean) {
+  const [rows, setRows] = useState<KxRecent[] | null>(null);
+  useEffect(() => {
+    if (!on) return;
+    let dead = false;
+    const load = () => kxRecentClaims(6).then((r) => { if (!dead) setRows(r || []); }).catch(() => { if (!dead) setRows((x) => x || []); });
+    void load();
+    const id = window.setInterval(() => { if (document.visibilityState === 'visible') void load(); }, 30000);
+    return () => { dead = true; window.clearInterval(id); };
+  }, [on]);
+  return rows;
+}
+
+function LiveRow(props: { L: Tx; Lf: Txf; r: KxRecent; chip?: boolean }) {
+  const { L, Lf, r } = props;
+  return (
+    <div className={props.chip ? 'kx-livechip' : 'kx-fr'}>
+      <Av photo={r.photo} name={r.first_name} size={30} />
+      <span><b>{r.first_name}</b> {L('claimed')} <i className={`c-${r.brand}`}>{brandAmt(L, r.brand, r.amount)}</i></span>
+      <em>{agoText(L, Lf, r.at)}</em>
+    </div>
+  );
+}
+
+/**
+ * Rewards home (founder 14 Nov 15:33: keep it simple): balance card (Rings = ฿, progress to ฿100), "Today" with max 3 rows
+ * (check-in streak, react to 3 Reels, post a Reel at a place), ONE invite card, and one small live-claims line. Nothing else.
+ * Numbers come from the server config (data.rules) with rewardsConfig.RINGS as defaults.
+ */
+export function RewardsPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards | null; inviteLink: string;
+  onBack: () => void; onClaim: () => void; onHistory: () => void; onPost: () => void; onInvite: () => void; onReact: () => void }) {
+  const { L, Lf, data } = props;
+  const R = ringsRules(data?.rules);
+  const live = useRecentClaims(true);
+  const bal = data?.balance ?? 0;
+  const first = ringsFor(100) * (R.rings_per_baht / 10);
+  const pct = Math.min(100, (bal / first) * 100);
+  const streak = data?.streak ?? 0;
+  const inStreak = streak > 0 ? ((streak - 1) % R.streak_days) + 1 : 0;
+  const reacts = Math.min(R.react_goal, data?.reacts_today ?? 0);
+  const reels = data?.reel_place_week ?? 0;
+  const reelsFull = reels >= R.reel_place_week_cap;
+  return (
+    <div className="kx-page kx-rw" id="kxRewards">
+      <div className="kx-hd2">
+        <button type="button" className="kx-bk" aria-label={L('Back')} onClick={props.onBack}>‹</button>
+        <h1>{L('Rewards')}</h1>
+        <button type="button" className="kx-soft" id="kxHistoryBtn" onClick={props.onHistory}>{L('History')}</button>
+      </div>
+      <div className="kx-bal" id="kxBalance">
+        <RingGlyph white size={150} />
+        <div className="n"><span id="kxBalanceN">{data ? fmtN(bal) : '…'}</span><RingGlyph white size={40} /></div>
+        <div className="v">= <b>฿{fmtN(Math.floor(bal / R.rings_per_baht))}</b></div>
+        <div className="kx-prog">
+          <div className="tr one">
+            <i style={{ width: `${pct}%` }} />
+            <u className={bal >= first ? 'ok end' : 'end'}>{bal >= first ? L('฿100 ready') : Lf('{0} to ฿100', fmtN(first - bal))}</u>
+          </div>
+          <button type="button" className="kx-claim" id="kxClaimBtn" disabled={!data} onClick={props.onClaim}>{L('Claim')}</button>
+        </div>
+      </div>
+      <div className="kx-sec"><h2>{L('Today')}</h2><span>{Lf('{0} Rings = ฿1', String(R.rings_per_baht))}</span></div>
+      <div className="kx-tasks" id="kxToday">
+        <div className={`kx-tk${data?.checked_in_today ? ' done' : ''}`} data-today="checkin">
+          <span className="ic fire">🔥</span>
+          <span className="tx">{Lf('Day {0} of {1} streak', String(inStreak), String(R.streak_days))}
+            <span className="kx-streak">{Array.from({ length: R.streak_days }, (_, k) => <i key={k} className={k < inStreak ? 'on' : ''} />)}</span>
+            <small>{Lf('Open Kring every day · +{0} on day {1}', fmtN(R.streak_bonus), String(R.streak_days))}</small></span>
+          <span className="p">{data?.checked_in_today ? <b className="ck">✓</b> : null}+{R.checkin}</span>
+        </div>
+        <button type="button" className={`kx-tk${data?.react_done ? ' done' : ''}`} data-today="react" onClick={props.onReact}>
+          <span className="ic heart">♥</span>
+          <span className="tx">{Lf('React to {0} Reels', String(R.react_goal))}<span className="mt"><i style={{ width: `${(reacts / R.react_goal) * 100}%` }} /></span>
+            <small>{Lf('{0} of {1} today', String(reacts), String(R.react_goal))}</small></span>
+          <span className="p">{data?.react_done ? <b className="ck">✓</b> : null}+{R.react}</span>
+        </button>
+        <button type="button" className={`kx-tk${reelsFull ? ' done' : ''}`} data-today="reel" onClick={props.onPost}>
+          <span className="ic pin"><i className="kx-pin" /></span>
+          <span className="tx">{L('Post a Reel at a place')}<small>{reelsFull ? L('All done this week ✓') : Lf('{0} of {1} this week', String(reels), String(R.reel_place_week_cap))}</small></span>
+          <span className="p">{reelsFull ? <b className="ck">✓</b> : null}+{R.reel_place}</span>
+        </button>
+      </div>
+      <div className="kx-invite" id="kxInvite">
+        <div className="t">
+          <b>{L('Invite a friend')}</b>
+          <small>{Lf('They join, make a card and post their first Reel: you get +{0}, they get +{1}', fmtN(R.friend), fmtN(R.friend_welcome))}</small>
+          {data?.friends ? <em>{Lf('{0} friends joined so far', String(data.friends))}</em> : null}
+        </div>
+        <button type="button" className="kx-btn" id="kxInviteBtn" onClick={props.onInvite}>{L('Share my link')} <span className="gd">+{fmtN(R.friend)} <RingGlyph white /></span></button>
+      </div>
+      <div className="kx-liveline" id="kxLive">
+        {live && live[0] ? <LiveRow L={L} Lf={Lf} r={live[0]} chip /> : <span className="kx-livechip empty"><span className="kx-dot" />{live === null ? '…' : L('No claims yet. Yours could be the first.')}</span>}
+      </div>
+    </div>
+  );
+}
+
+/** Claim: how much → which app → one tap */
+export function ClaimPage(props: { L: Tx; Lf: Txf; data: KxRewards | null; onBack: () => void; onDone: (r: KxClaimResult) => void; toast: (m: string) => void }) {
+  const { L, Lf, data } = props;
+  const bal = data?.balance ?? 0;
+  const first = (CLAIM_AMOUNTS.find((a) => bal >= ringsFor(a)) || 100) as ClaimAmount;
+  const [amount, setAmount] = useState<ClaimAmount>(first);
+  const [brand, setBrand] = useState<Brand>('grab');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const live = useRecentClaims(true);
+  const check = claimCheck(bal, amount, brand);
+  const go = async () => {
+    if (busy) return;
+    if (check !== 'ok') { setErr(Lf('You need {0} more Rings for this one.', fmtN(ringsFor(amount) - bal))); return; }
+    setBusy(true);
+    setErr('');
+    try {
+      props.onDone(await kxClaim(amount, brand));
+    } catch (e) {
+      const c = v5ErrCode(e);
+      setErr(c === 'LOW_BALANCE' ? Lf('You need {0} more Rings for this one.', fmtN(Math.max(1, ringsFor(amount) - bal)))
+        : c === 'ONE_ACCOUNT' ? L('This phone already claimed for another account. One person, one account.')
+        : c === 'SLOW_DOWN' ? L('That’s 3 claims today. Try again tomorrow.')
+        : c === 'OFFLINE' || c === 'NETWORK' ? L('Couldn’t reach Kring. Check your connection and try again.')
+        : L('Something went wrong. Try again.'));
+    } finally { setBusy(false); }
+  };
+  return (
+    <div className="kx-page kx-cl" id="kxClaim">
+      <div className="kx-hd2">
+        <button type="button" className="kx-bk" aria-label={L('Back')} onClick={props.onBack}>‹</button>
+        <h1 className="sm">{L('Claim')}</h1>
+        <span className="kx-bp">{fmtN(bal)} <RingGlyph /></span>
+      </div>
+      <div className="kx-q">{L('How much?')}</div>
+      <div className="kx-amts">
+        {CLAIM_AMOUNTS.map((a) => {
+          const lk = bal < ringsFor(a);
+          return (
+            <button type="button" key={a} data-amount={a} className={`kx-am${amount === a ? ' on' : ''}${lk ? ' lk' : ''}`} aria-pressed={amount === a} onClick={() => { setAmount(a); setErr(''); }}>
+              <b>฿{a}</b><small>{fmtN(ringsFor(a))} <RingGlyph /></small>
+            </button>
+          );
+        })}
+      </div>
+      <div className="kx-q">{L('Get it on')}</div>
+      <div className="kx-pays">
+        {BRANDS.map((b) => (
+          <button type="button" key={b} data-brand={b} className={`kx-py${brand === b ? ' on' : ''} b-${b}`} aria-pressed={brand === b} onClick={() => { setBrand(b); setErr(''); }}>
+            <BrandLogo b={b} />
+            <span className="n">{BRAND_NAME[b]}{b === 'truemoney' ? <small>{L('TrueMoney keeps 25%')}</small> : null}</span>
+            <span className={`v${b === 'truemoney' ? ' dm' : ''}`} data-value={valueFor(b, amount)}>฿{fmtN(valueFor(b, amount))}</span>
+            <span className="rd">{brand === b ? '✓' : ''}</span>
+          </button>
+        ))}
+      </div>
+      {live && live[0] ? <div className="kx-livewrap"><LiveRow L={L} Lf={Lf} r={live[0]} chip /></div> : null}
+      <div className="kx-cl-foot">
+        {err ? <p className="kx-err center" role="alert" id="kxClaimErr">{err}</p> : <p className="kx-inst">{L('Your code arrives')} <b>{L('instantly')}</b></p>}
+        <button type="button" className="kx-btn tall" id="kxClaimGo" disabled={busy || !data} onClick={() => void go()}>
+          <b>{busy ? '…' : Lf('Claim {0}', `${brandAmt(L, brand, amount)}`)}</b>
+          <small>−{fmtN(ringsFor(amount))} <RingGlyph white /></small>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Gold ticket + history (NEW / EARNED / USED) with "Mark as used" on every code */
+export function ClaimedPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards | null; focus: string | null; fresh?: boolean; toast: (m: string) => void;
+  onClose: () => void; onChanged: () => void }) {
+  const { L, Lf, data } = props;
+  const [focus, setFocus] = useState<string | null>(props.focus);
+  const [used, setUsed] = useState<Record<string, boolean>>({});
+  const claims = data?.claims || [];
+  const c: KxClaim | undefined = claims.find((x) => x.id === focus) || claims.find((x) => x.status === 'assigned');
+  const pending = claims.filter((x) => x.status === 'pending');
+  const isUsed = (x: KxClaim) => (x.id in used ? used[x.id] : !!x.used_at);
+  const rows = useMemo(() => {
+    const list: { at: string; el: 'claim' | 'earn'; claim?: KxClaim; earn?: KxRewards['earned'][number] }[] = [
+      ...claims.map((x) => ({ at: x.assigned_at || x.created_at, el: 'claim' as const, claim: x })),
+      ...(data?.earned || []).map((e) => ({ at: e.at, el: 'earn' as const, earn: e })),
+    ];
+    return list.sort((a, b) => Date.parse(b.at) - Date.parse(a.at)).slice(0, 30);
+  }, [claims, data?.earned]);
+  const copy = async (code: string) => {
+    try { await navigator.clipboard.writeText(code); props.toast(L('Code copied')); } catch { props.toast(code); }
+  };
+  const mark = async (x: KxClaim, on: boolean) => {
+    setUsed((u) => ({ ...u, [x.id]: on }));
+    try { await kxMarkUsed(x.id, on); props.onChanged(); } catch { setUsed((u) => ({ ...u, [x.id]: !on })); props.toast(L('Something went wrong. Try again.')); }
+  };
+  const earnText = (e: KxRewards['earned'][number]) => {
+    const place = props.lang === 'th' && e.detail_th ? e.detail_th : e.detail;
+    switch (e.reason) {
+      case 'reel_place': return place ? Lf('Reel at {0}', place) : L('Reel at a place');
+      case 'likes_50': return L('Your Reel hit 50 likes');
+      case 'checkin': return L('Daily check-in');
+      case 'streak': return L('Streak bonus');
+      case 'react3': return L('Reacted to Reels');
+      case 'friend_welcome': return L('Welcome bonus');
+      case 'friend_join': return e.detail ? Lf('{0} joined with your link', e.detail) : L('A friend joined with your link');
+      case 'weekly_top': return L('Weekly top 10');
+      default: return L('Reel taken down');
+    }
+  };
+  return (
+    <div className="kx-page kx-cdp" id="kxClaimed">
+      {c ? <><div className="kx-glow" /><div className="kx-burst gold" /></> : null}
+      <button type="button" className="kx-x right" aria-label={L('Close')} onClick={props.onClose}>✕</button>
+      {c && c.code ? (
+        <>
+          <div className="kx-cd-h">{props.fresh ? L('Claimed!') : L('Your code')}</div>
+          <div className="kx-tix" id="kxTicket" data-brand={c.brand}>
+            <div className="t1"><span className="gb" style={{ background: BRAND_BG[c.brand] }}>{BRAND_NAME[c.brand]}</span><small>{L('KRING REWARD')}</small></div>
+            <div className="amt">฿{fmtN(c.value ?? valueFor(c.brand, c.amount))}</div>
+            <div className="perf" />
+            <div className="code" id="kxCode">{c.code}</div>
+            <button type="button" className="cp" id="kxCopy" onClick={() => void copy(c.code || '')}>{L('Copy')}</button>
+          </div>
+          <a className="kx-og" id="kxOpenApp" style={{ background: BRAND_BG[c.brand] }} href={c.activation_url || BRAND_SITE[c.brand]} target="_blank" rel="noopener noreferrer">
+            {Lf('Open {0}', BRAND_NAME[c.brand])}
+          </a>
+        </>
+      ) : (
+        <div className="kx-cd-none">
+          <div className="kx-cd-h">{pending.length ? L('Your code is on the way') : L('History')}</div>
+          {pending.length ? <p className="kx-restock" id="kxRestock">{L('Your Rings are reserved. We’ll let you know here the moment your code is ready.')}</p> : null}
+        </div>
+      )}
+      <div className="kx-hs"><h2>{L('History')}</h2><span>{fmtN(data?.balance ?? 0)} <RingGlyph /> {L('left')}</span></div>
+      <div className="kx-hist" id="kxHistory">
+        {rows.length === 0 ? <p className="kx-empty">{L('Nothing yet. Post a Reel at a place to earn your first Rings.')}</p> : rows.map((r, i) => {
+          if (r.el === 'claim' && r.claim) {
+            const x = r.claim;
+            const u = isUsed(x);
+            return (
+              <div key={x.id} className={`kx-r${u ? ' dim' : ''}${x.id === c?.id ? ' sel' : ''}`} data-claim={x.id} data-status={x.status}>
+                <button type="button" className="kx-r-main" onClick={() => x.code && setFocus(x.id)}>
+                  <BrandLogo b={x.brand} size={42} />
+                  <span className="n">{brandAmt(L, x.brand, x.amount)}<small>{x.status === 'pending' ? L('Your code is on the way') : dayText(L, props.lang, x.assigned_at || x.created_at)}</small></span>
+                </button>
+                {x.status === 'pending' ? <span className="kx-tg wait">{L('SOON')}</span> : (
+                  <label className="kx-used" title={L('Mark as used')}>
+                    <span className={`kx-tg ${u ? 'used' : 'new'}`}>{u ? L('USED') : L('NEW')}</span>
+                    <input type="checkbox" checked={u} aria-label={L('Mark as used')} data-mark={x.id} onChange={(e) => void mark(x, e.target.checked)} />
+                    <i className="kx-sw" />
+                  </label>
+                )}
+              </div>
+            );
+          }
+          const e = r.earn!;
+          return (
+            <div key={`e${i}`} className="kx-r" data-earn={e.reason}>
+              <span className={`kx-r-ic ${e.reason}`}>{e.reason === 'reel_place' ? <i className="kx-pin" /> : e.reason === 'likes_50' || e.reason === 'react3' ? '♥' : e.reason === 'checkin' || e.reason === 'streak' ? '🔥' : e.reason === 'friend_join' || e.reason === 'friend_welcome' ? '👋' : e.reason === 'weekly_top' ? '👑' : '–'}</span>
+              <span className="n">{earnText(e)}<small>{e.delta > 0 ? '+' : '−'}{fmtN(Math.abs(e.delta))} {L('Rings')} · {dayText(L, props.lang, e.at)}</small></span>
+              <span className={`kx-tg ${e.delta > 0 ? 'earn' : 'used'}`}>{e.delta > 0 ? L('EARNED') : L('TAKEN BACK')}</span>
+            </div>
+          );
+        })}
+      </div>
+      <p className="kx-mark-hint">{L('Used a code? Switch it to USED so you know which ones are left.')}</p>
+    </div>
+  );
+}

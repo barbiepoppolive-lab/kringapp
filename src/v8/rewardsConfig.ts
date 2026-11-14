@@ -26,3 +26,35 @@ export function rewardFor(period: 'today' | 'week' | 'area', rank: number): numb
   const t = period === 'week' ? REWARDS.week : REWARDS.today;
   return rank >= 1 && rank <= t.length ? t[rank - 1] : null;
 }
+
+/**
+ * Rings (feat/card-rewards-rank-places, founder 14 Nov 15:33). Every earn value and cap in one place.
+ * These are the DEFAULTS the app shows until the server answers; the server table kr8_rings_config (migration 0046)
+ * is what actually pays, and the app reads it (kr8_rings_rules / kr8_my_rewards.rules), so numbers change without a code edit.
+ * Change a number: update kr8_rings_config.value (and this default, to keep the first paint right).
+ */
+export const RINGS = {
+  rings_per_baht: 10,
+  checkin: 5,
+  streak_days: 7,
+  streak_bonus: 50,
+  react_goal: 3,
+  react: 10,
+  reel_place: 100,
+  reel_place_week_cap: 3,
+  likes_50: 0,
+  friend: 300,
+  friend_welcome: 100,
+  weekly_1: 5000,
+  weekly_2: 3000,
+  weekly_3: 2000,
+  weekly_4_10: 500,
+  claims_per_day: 3,
+} as const;
+export type RingsRules = { -readonly [K in keyof typeof RINGS]: number };
+/** Server rules over the defaults (unknown keys ignored, missing keys keep the default). */
+export function ringsRules(server?: Record<string, number> | null): RingsRules {
+  const out = { ...RINGS } as RingsRules;
+  for (const k of Object.keys(RINGS) as (keyof RingsRules)[]) if (server && typeof server[k] === 'number') out[k] = server[k];
+  return out;
+}

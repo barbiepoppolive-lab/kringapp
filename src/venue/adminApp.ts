@@ -1313,6 +1313,8 @@ function moreView() {
     li('#history/reports', 'flag', 'Closed reports', 'Kept, removed and closed', 'histReports'),
     li('#history/faces', 'face', 'Past face checks', 'Approved and rejected', 'histFaces'),
     li('#history/replies', 'send', 'Sent and skipped replies', 'Reddit queue history', 'histReplies'),
+    el('div', { class: 'sec' }, 'Rewards'),
+    li('#codes', 'party', 'Reward codes', 'Paste Grab / ShopeePay / TrueMoney codes · stock · held claims', 'moreCodes'),
     el('div', { class: 'sec' }, 'Outreach'),
     li('#reddit', 'msg', 'Reddit plan', 'Pacing, start date, checklist and history', 'moreReddit'),
     igPauseRow(),
@@ -1395,6 +1397,60 @@ async function historyView(kind: string) {
   } catch (e) { body.replaceChildren(errP(e)); }
 }
 
+// ───────────────────────────── reward codes (14 Nov) ─────────────────────────────
+// Paste codes per brand / amount. A held claim (member claimed while stock was 0, Rings already reserved) gets the next code
+// automatically the moment it is saved (DB trigger kr8_codes_fill). Codes are never shown here after saving.
+type StockRow = { brand: 'grab' | 'shopeepay' | 'truemoney'; amount_thb: number; available: number; held: number; given_7d: number };
+const BRANDN: Record<string, string> = { grab: 'Grab', shopeepay: 'ShopeePay', truemoney: 'TrueMoney' };
+export function parseCodes(txt: string): string[] {
+  return [...new Set(txt.split(/[\n,;]+/).map((x) => x.trim()).filter((x) => x.length >= 4 && x.length <= 200))];
+}
+async function codesView() {
+  const body = el('div', {}, loading());
+  screen('more', el('div', { class: 'row', style: 'margin:6px 0 16px' }, el('a', { class: 'icb', href: '#more', 'aria-label': 'Back' }, ic('back')), el('h1', { style: 'font-size:26px' }, 'Reward codes')), body);
+  const draw = async () => {
+    let rows: StockRow[] = [];
+    try { rows = await rpc<StockRow[]>('kr8_admin_reward_stock'); } catch (e) { body.replaceChildren(errP(e)); return; }
+    const held = rows.reduce((n, r) => n + r.held, 0);
+    const stock = el('div', { class: 'card', id: 'codesStock' },
+      el('b', {}, 'Stock now'), el('p', { class: 'faint xs', style: 'margin:4px 0 10px' }, 'Codes left · held claims waiting · given in the last 7 days. TrueMoney ฿100 = a ฿75 code (TrueMoney keeps 25%).'),
+      ...rows.map((r) => el('div', { class: 'row', style: 'justify-content:space-between;padding:6px 0;border-top:1px solid var(--line)', 'data-stock': `${r.brand}_${r.amount_thb}` },
+        el('span', {}, `${BRANDN[r.brand]} ฿${r.amount_thb}`),
+        el('span', {}, pill(`${r.available} left`, r.available ? '' : 'bad'), ' ', r.held ? pill(`${r.held} held`, 'warn') : null, ' ', el('span', { class: 'faint xs' }, `${r.given_7d} / 7d`)))));
+    const brand = el('select', { id: 'codeBrand' }, ...['grab', 'shopeepay', 'truemoney'].map((b) => el('option', { value: b }, BRANDN[b])));
+    const amount = el('select', { id: 'codeAmount' }, ...[100, 300, 500].map((a) => el('option', { value: String(a) }, `฿${a}`)));
+    const url = el('input', { id: 'codeUrl', placeholder: 'Activation link (optional, https://…)' });
+    const area = el('textarea', { id: 'codeList', rows: '6', placeholder: 'Paste codes, one per line' }) as HTMLTextAreaElement;
+    const test = el('input', { type: 'checkbox', id: 'codeTest' }) as HTMLInputElement;
+    const count = el('p', { class: 'faint xs', id: 'codeCount' }, '0 codes');
+    area.oninput = () => { count.textContent = `${parseCodes(area.value).length} codes`; };
+    const save = btn('pri big full', ['Save codes'], async () => {
+      const codes = parseCodes(area.value);
+      if (!codes.length) { toast('Paste at least one code'); return; }
+      const u = (url as HTMLInputElement).value.trim();
+      if (u && !/^https:\/\//.test(u)) { toast('The activation link must start with https://'); return; }
+      save.disabled = true;
+      try {
+        const n = await rpc<number>('kr8_admin_add_reward_codes', { p_brand: (brand as HTMLSelectElement).value, p_amount: Number((amount as HTMLSelectElement).value), p_codes: codes, p_activation_url: u || null, p_test: test.checked });
+        toast(`${n} new code${n === 1 ? '' : 's'} saved${codes.length - n ? ` · ${codes.length - n} already there` : ''}. Held claims get theirs now.`, { ms: 4000 });
+        area.value = ''; count.textContent = '0 codes';
+        await draw();
+      } catch (e) { toast(errText(e), { ms: 6000 }); } finally { save.disabled = false; }
+    }, { id: 'codeSave' });
+    body.replaceChildren(
+      held ? el('div', { class: 'card', style: 'border-color:var(--warn,#ffc44d);margin-bottom:12px' }, el('b', {}, `${held} member${held === 1 ? ' is' : 's are'} waiting for a code`), el('p', { class: 'faint xs' }, 'Their Rings are already reserved. Add the matching codes below and they go out by themselves.')) : '',
+      stock,
+      el('div', { class: 'card stack', id: 'codesForm' },
+        el('b', {}, 'Add codes'),
+        el('div', { class: 'row', style: 'gap:8px' }, el('label', { class: 'f grow' }, 'Brand', brand), el('label', { class: 'f grow' }, 'Amount', amount)),
+        el('label', { class: 'f' }, 'Codes', area), count,
+        el('label', { class: 'f' }, 'Activation link', url),
+        el('label', { class: 'row', style: 'gap:8px' }, test, el('span', {}, 'Test codes (only test members get them)')),
+        save));
+  };
+  await draw();
+}
+
 // ───────────────────────────── router ─────────────────────────────
 function route() {
   flushWrite();
@@ -1414,6 +1470,7 @@ function route() {
   if (a === 'listings') return void listingsView();
   if (a === 'more') return moreView();
   if (a === 'rules') return rulesView();
+  if (a === 'codes') return void codesView();
   if (a === 'reddit') return redditView();
   if (a === 'history') return void historyView(b || 'reels');
   if (a === 'venue' && b) return void venueDetail(b);
