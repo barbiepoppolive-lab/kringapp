@@ -1,5 +1,5 @@
 // /app/line-callback.html (T-205): LINE sends the member back here with ?code=&state=. Finish the sign-in, go back.
-import { v5ErrCode, v5FinishLine } from './v5Live';
+import { v5ErrCode, v5FinishLine, v5RefFromLineState } from './v5Live';
 import { V5_L, v5ErrText } from './v5Strings';
 
 const lang = (() => { try { return localStorage.getItem('kr8_lang') || 'en'; } catch { return 'en'; } })();
@@ -9,13 +9,14 @@ const base = (import.meta.env.BASE_URL || '/').replace(/\/?$/, '/');
 
 // take LINE's code out of the address bar before the Supabase client starts (it would read ?code= as its own)
 const search = window.location.search;
+const ref = v5RefFromLineState(new URLSearchParams(search).get('state'));
 window.history.replaceState(null, '', window.location.pathname);
 app.textContent = L('Signing you in with LINE…');
 
 v5FinishLine(search).then((next) => window.location.replace(next)).catch((e) => {
   app.replaceChildren(document.createTextNode(L(v5ErrText(v5ErrCode(e))[0])), document.createElement('br'));
   const a = document.createElement('a');
-  a.href = base;
+  a.href = `${base}?${ref ? `ref=${encodeURIComponent(ref)}&` : ''}join=1`;   // back with the join sheet open, recruiter kept
   a.textContent = L('Back to Kring');
   app.append(a);
 });

@@ -1,6 +1,6 @@
 /* Me tab — LOCKED 10 Nov (scratch/opus_venue/me_tab_locked_10nov/me_tab_locked.html). Calm luxe, hairlines, light numbers, spaced caps.
-   No yellow anywhere (monarchy rule). Colours: anchan #5B6CFF · pink #FF4FA3 · Thai tea #FF8A3D · pandan #6EE7A8 · night #0D0D2E. */
-.v8-app-root .kme { --k-line: #2A2B5E; --k-muted: #B9B3D6; --k-dim: #8E8AC0; --k-surf: #1D1E52; padding: 0 0 110px; color: #FFF7EC; font-family: 'Anuphan', 'Bricolage Grotesque', sans-serif; }
+   No yellow anywhere (monarchy rule). Colours: anchan #5B6CFF · pink #FF4FA3 · Thai tea #FF8A3D · pandan #6EE7A8 · night #0B0A12. */
+.v8-app-root .kme { --k-line: #2A2638; --k-muted: #B9B3D6; --k-dim: #8E8AC0; --k-surf: #171520; padding: 0 0 110px; color: #FFF7EC; font-family: 'Anuphan', 'Bricolage Grotesque', sans-serif; }
 .v8-app-root .kme .cap { letter-spacing: .14em; font-size: 10.5px; color: var(--k-dim); text-transform: uppercase; }
 .v8-app-root .kme button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit; }
 .v8-app-root .kme-top { display: flex; justify-content: space-between; align-items: center; padding: 22px 16px 0; }
@@ -8,7 +8,7 @@
 .v8-app-root .kme-icons { display: flex; gap: 6px; }
 .v8-app-root .kme-icons button { width: 36px; height: 36px; display: grid; place-items: center; position: relative; color: var(--k-muted); }
 .v8-app-root .kme-icons svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.v8-app-root .kme-icons .dot { position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; border-radius: 50%; background: #FF4FA3; box-shadow: 0 0 0 2px #0D0D2E; }
+.v8-app-root .kme-icons .dot { position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; border-radius: 50%; background: #FF4FA3; box-shadow: 0 0 0 2px #0B0A12; }
 .v8-app-root .kme-back { width: 36px; height: 36px; display: grid; place-items: center; font-size: 20px; color: var(--k-muted) !important; }
 
 /* member card */
@@ -27,7 +27,7 @@
 @keyframes kmeKb { from { transform: rotateY(180deg) rotateX(-16deg); } to { transform: rotateY(540deg) rotateX(-16deg); } }
 @keyframes kmeGlow { 0%, 100% { filter: drop-shadow(0 0 6px rgba(170,181,255,.6)) drop-shadow(0 0 10px rgba(255,79,163,.35)); } 50% { filter: drop-shadow(0 0 14px rgba(170,181,255,.95)) drop-shadow(0 0 20px rgba(255,79,163,.65)); } }
 .v8-app-root .kme-avw { position: absolute; left: 16px; top: 16px; width: 82px; height: 82px; perspective: 400px; }
-.v8-app-root .kme-avw .av { position: absolute; inset: 12px; border-radius: 50%; background: #2A2B5E center/cover; box-shadow: 0 0 0 2px rgba(255,247,236,.85);
+.v8-app-root .kme-avw .av { position: absolute; inset: 12px; border-radius: 50%; background: #2A2638 center/cover; box-shadow: 0 0 0 2px rgba(255,247,236,.85);
   display: grid; place-items: center; font: 300 24px 'Bricolage Grotesque', sans-serif; }
 .v8-app-root .kme-avw .cm { position: absolute; inset: 3px; border-radius: 50%;
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); }
@@ -44,7 +44,7 @@
 .v8-app-root .kme-tier small { display: block; font-size: 12px; color: rgba(255,247,236,.65); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .v8-app-root .kme-nm { position: absolute; left: 18px; right: 18px; bottom: 52px; font: 300 30px 'Bricolage Grotesque', 'Anuphan', sans-serif; letter-spacing: .2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .v8-app-root .kme-rk { position: absolute !important; left: 18px; bottom: 16px; display: flex !important; align-items: center; gap: 6px; height: 30px; padding: 0 12px 0 8px !important; border-radius: 999px;
-  background: rgba(13,13,46,.35) !important; border: 1px solid rgba(255,247,236,.25) !important; font-size: 12.5px !important; overflow: hidden; }
+  background: rgba(11,10,18,.35) !important; border: 1px solid rgba(255,247,236,.25) !important; font-size: 12.5px !important; overflow: hidden; }
 .v8-app-root .kme-rk::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%); background-size: 220% 100%; animation: kmeShine 3s linear infinite; }
 .v8-app-root .kme-rk b { font-weight: 700; }
 .v8-app-root .kme-rk .dim { opacity: .75; }
@@ -60,7 +60,7 @@
 .v8-app-root .kme-st .cap { display: block; margin-top: 2px; }
 .v8-app-root .kme-qa { display: flex; justify-content: space-around; margin: 22px 8px 0; }
 .v8-app-root .kme-qa button { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11.5px; color: var(--k-muted); }
-.v8-app-root .kme-qa span { width: 48px; height: 48px; border-radius: 50%; border: 1px solid #4A4C8A; display: grid; place-items: center; font-size: 17px; color: #FFF7EC; }
+.v8-app-root .kme-qa span { width: 48px; height: 48px; border-radius: 50%; border: 1px solid #4A4658; display: grid; place-items: center; font-size: 17px; color: #FFF7EC; }
 
 /* verify prompt (section 2) */
 .v8-app-root .kme-verify { display: flex !important; align-items: center; gap: 12px; width: calc(100% - 32px); margin: 20px 16px 0; padding: 12px 14px !important; border-radius: 18px;
@@ -86,41 +86,41 @@
 
 /* tiles + photos */
 .v8-app-root .kme-rows { margin: 12px 16px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.v8-app-root .kme-tile { border-radius: 20px; border: .5px solid var(--k-line) !important; background: rgba(29,30,82,.45) !important; padding: 12px 14px !important; height: 96px; position: relative; overflow: hidden; display: block; }
+.v8-app-root .kme-tile { border-radius: 20px; border: .5px solid var(--k-line) !important; background: rgba(23,21,32,.45) !important; padding: 12px 14px !important; height: 96px; position: relative; overflow: hidden; display: block; }
 .v8-app-root .kme-tile .cap { color: var(--k-muted); display: block; }
 .v8-app-root .kme-tile b { display: block; max-width: 70%; font: 300 21px 'Bricolage Grotesque', 'Anuphan', sans-serif; line-height: 1.15; margin-top: 4px; }
 .v8-app-root .kme-tile .stack { position: absolute; right: 10px; bottom: 10px; display: flex; }
-.v8-app-root .kme-tile .stack i { width: 30px; height: 38px; border-radius: 9px; background-size: cover; background-position: center; border: 1.5px solid #0D0D2E; margin-left: -10px; transform: rotate(var(--r)); }
+.v8-app-root .kme-tile .stack i { width: 30px; height: 38px; border-radius: 9px; background-size: cover; background-position: center; border: 1.5px solid #0B0A12; margin-left: -10px; transform: rotate(var(--r)); }
 .v8-app-root .kme-tile b.txt { font-size: 14.5px; font-weight: 500; max-width: 64%; }
 .v8-app-root .kme-tile .gift { position: absolute; right: 12px; bottom: 10px; font-size: 30px; animation: kmeBob 2.2s ease-in-out infinite; }
 .v8-app-root .kme-mom { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 12px 16px 0; }
-.v8-app-root .kme-mom button { aspect-ratio: 3/4; border-radius: 16px; background-color: #1D1E52 !important; background-position: center; background-size: cover; position: relative; overflow: hidden; }
+.v8-app-root .kme-mom button { aspect-ratio: 3/4; border-radius: 16px; background-color: #171520 !important; background-position: center; background-size: cover; position: relative; overflow: hidden; }
 .v8-app-root .kme-mom .lk { position: absolute; left: 8px; bottom: 6px; font-size: 11px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
-.v8-app-root .kme-mom .pend { position: absolute; left: 6px; right: 6px; top: 6px; font-size: 10px; line-height: 1.2; padding: 3px 6px; border-radius: 8px; background: rgba(13,13,46,.75); color: #FF8CC4; }
+.v8-app-root .kme-mom .pend { position: absolute; left: 6px; right: 6px; top: 6px; font-size: 10px; line-height: 1.2; padding: 3px 6px; border-radius: 8px; background: rgba(11,10,18,.75); color: #FF8CC4; }
 .v8-app-root .kme-first { display: block !important; margin: 12px 16px 0; width: calc(100% - 32px); padding: 16px !important; border-radius: 20px; border: 1px dashed rgba(255,247,236,.25) !important; }
 .v8-app-root .kme-first b { display: block; font-size: 15px; }
 .v8-app-root .kme-first small { display: block; font-size: 12px; color: var(--k-muted); margin-top: 3px; }
 
 /* someone else */
-.v8-app-root .kme-other { position: absolute; inset: 0; overflow-y: auto; background: #0D0D2E; z-index: 45; }
+.v8-app-root .kme-other { position: absolute; inset: 0; overflow-y: auto; background: #0B0A12; z-index: 45; }
 .v8-app-root .kme-ob { display: flex; gap: 10px; margin: 22px 16px 0; }
 .v8-app-root .kme-ob button { flex: 1; height: 50px; border-radius: 999px; display: flex !important; align-items: center; justify-content: center; gap: 8px; font-weight: 700 !important; font-size: 15px !important; text-align: center !important; }
 .v8-app-root .kme-ob .f1 { background: #5B6CFF !important; color: #fff; box-shadow: 0 8px 24px rgba(91,108,255,.45); }
 .v8-app-root .kme-ob .f1.on { background: transparent !important; border: 1px solid #5B6CFF !important; box-shadow: none; }
 .v8-app-root .kme-ob .f2 { background: #FF4FA3 !important; color: #fff; }
-.v8-app-root .kme-ob .f3 { flex: 0 0 50px !important; border: 1px solid #4A4C8A !important; }
-.v8-app-root .kme-menu { margin: 10px 16px 0; border-radius: 16px; background: #1D1E52; border: .5px solid var(--k-line); overflow: hidden; }
+.v8-app-root .kme-ob .f3 { flex: 0 0 50px !important; border: 1px solid #4A4658 !important; }
+.v8-app-root .kme-menu { margin: 10px 16px 0; border-radius: 16px; background: #171520; border: .5px solid var(--k-line); overflow: hidden; }
 .v8-app-root .kme-menu button { display: block; width: 100%; padding: 13px 16px !important; border-top: .5px solid var(--k-line) !important; font-size: 14.5px; }
 .v8-app-root .kme-menu button:first-child { border-top: 0 !important; }
 .v8-app-root .kme-menu .bad { color: #FF8CA8; }
 .v8-app-root .kme-meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 16px 0; }
-.v8-app-root .kme-meta span { padding: 6px 12px; border-radius: 999px; background: #1D1E52; font-size: 12.5px; color: #B9B3D6; }
+.v8-app-root .kme-meta span { padding: 6px 12px; border-radius: 999px; background: #171520; font-size: 12.5px; color: #B9B3D6; }
 .v8-app-root .kme-meta .g { color: #6EE7A8; }
 .v8-app-root .kme-bio { margin: 12px 16px 0; font-size: 13.5px; color: #B9B3D6; }
 .v8-app-root .kme-empty { margin: 16px; text-align: center; font-size: 13px; color: #8E8AC0; }
 
 /* sheets: Top 10, follow lists, activity, interests */
-.v8-app-root .kme-sheet { background: linear-gradient(180deg, #24237A, #15144A) !important; max-height: 86vh; overflow-y: auto; }
+.v8-app-root .kme-sheet { background: linear-gradient(180deg, #171520, #0F0E17) !important; max-height: 86vh; overflow-y: auto; }
 .v8-app-root .kme-sheet button:not(.primary-cta):not(.xbtn) { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; text-align: inherit; }
 .v8-app-root .kme-sheet .primary-cta:disabled { opacity: .45; }
 .v8-app-root .kme-ttl { display: flex; align-items: baseline; gap: 10px; }
@@ -128,7 +128,7 @@
 .v8-app-root .kme-ttl span { font-size: 12px; opacity: .7; }
 .v8-app-root .kme-seg { display: flex; gap: 6px; margin-top: 10px; }
 .v8-app-root .kme-seg button { padding: 7px 14px !important; border-radius: 99px; font-size: 12.5px !important; font-weight: 700; background: rgba(255,247,236,.08) !important; }
-.v8-app-root .kme-seg button.on { background: #FFF7EC !important; color: #15144A !important; }
+.v8-app-root .kme-seg button.on { background: #FFF7EC !important; color: #0F0E17 !important; }
 .v8-app-root .kme-pod { display: flex; justify-content: center; align-items: flex-end; gap: 10px; margin-top: 20px; perspective: 500px; }
 .v8-app-root .kme-pod .pd { width: 96px; text-align: center !important; display: flex !important; flex-direction: column; align-items: center; }
 .v8-app-root .kme-pod .pd.empty { visibility: hidden; }
@@ -154,7 +154,7 @@
 .v8-app-root .kme-list .pb { padding: 8px 12px !important; border-radius: 12px; font-size: 12px !important; font-weight: 800; background: #5B6CFF !important; color: #fff; white-space: nowrap; }
 .v8-app-root .kme-list .pb.soft { background: rgba(255,247,236,.1) !important; }
 .v8-app-root .kme-list .thumb { width: 34px; height: 46px; border-radius: 8px; background: center/cover; flex: none; }
-.v8-app-root .kme-av { display: inline-block; flex: none; width: 36px; height: 36px; border-radius: 50%; background: #2A2B5E center/cover; }
+.v8-app-root .kme-av { display: inline-block; flex: none; width: 36px; height: 36px; border-radius: 50%; background: #2A2638 center/cover; }
 .v8-app-root .kme-av-i { display: inline-grid; place-items: center; font-weight: 800; font-size: 15px; color: #FFF7EC; }
 .v8-app-root .kme-tabs2 { display: flex; gap: 18px; margin-top: 10px; border-bottom: 1px solid rgba(255,247,236,.1); padding-bottom: 8px; }
 .v8-app-root .kme-tabs2 button { font-weight: 800; font-size: 14.5px; opacity: .45; }
@@ -165,8 +165,8 @@
 .v8-app-root .kme-chips button.on { background: rgba(91,108,255,.3) !important; border-color: #5B6CFF !important; }
 
 /* settings (grouped, as locked) */
-.v8-app-root .kme-grp { border-radius: 20px; background: rgba(29,30,82,.5); border: .5px solid #2A2B5E; margin-bottom: 12px; overflow: hidden; }
-.v8-app-root .kme-grp .srow { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 13px 16px; border-top: .5px solid #2A2B5E; font-size: 14.5px;
+.v8-app-root .kme-grp { border-radius: 20px; background: rgba(23,21,32,.5); border: .5px solid #2A2638; margin-bottom: 12px; overflow: hidden; }
+.v8-app-root .kme-grp .srow { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 13px 16px; border-top: .5px solid #2A2638; font-size: 14.5px;
   background: none; border-radius: 0; margin: 0; color: inherit; text-decoration: none; cursor: pointer; }
 .v8-app-root .kme-grp .srow:first-child { border-top: 0; }
 .v8-app-root .kme-grp em { font-style: normal; color: #8E8AC0; font-size: 13.5px; white-space: nowrap; }
@@ -177,16 +177,16 @@
 .v8-app-root .kfv-p { font-size: 13.5px; color: #D8D2F0; line-height: 1.5; margin: 10px 0 12px; }
 .v8-app-root .kfv-steps { display: flex; justify-content: center; gap: 14px; margin: 14px 0 4px; font-size: 26px; }
 .v8-app-root .kfv-steps span { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: rgba(91,108,255,.18); border: 1px solid rgba(170,181,255,.4); }
-.v8-app-root .kfv-consent { border-radius: 16px; background: rgba(13,13,46,.45); border: .5px solid #2A2B5E; padding: 12px 14px; font-size: 12.5px; color: #D8D2F0; }
+.v8-app-root .kfv-consent { border-radius: 16px; background: rgba(11,10,18,.45); border: .5px solid #2A2638; padding: 12px 14px; font-size: 12.5px; color: #D8D2F0; }
 .v8-app-root .kfv-consent b { display: block; font-size: 13px; color: #FFF7EC; margin-bottom: 4px; }
 .v8-app-root .kfv-consent ul { margin: 0; padding-left: 18px; line-height: 1.5; }
 .v8-app-root .kfv-agree { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0; font-size: 13.5px; font-weight: 700; }
 .v8-app-root .kfv-agree input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: #5B6CFF; flex: none; }
 .v8-app-root .kfv-later { display: block; width: 100%; margin: 8px 0 0; padding: 10px; text-align: center !important; color: #B9B3D6 !important; font-weight: 700; }
-.v8-app-root .kfv-cam { position: relative; margin: 12px auto 0; width: 260px; height: 330px; border-radius: 28px; overflow: hidden; background: #0D0D2E; }
+.v8-app-root .kfv-cam { position: relative; margin: 12px auto 0; width: 260px; height: 330px; border-radius: 28px; overflow: hidden; background: #0B0A12; }
 .v8-app-root .kfv-cam video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 .v8-app-root .kfv-oval { position: absolute; left: 40px; right: 40px; top: 36px; bottom: 56px; border-radius: 50%; border: 3px solid rgba(255,247,236,.85);
-  box-shadow: 0 0 0 999px rgba(13,13,46,.45); transition: border-color .3s; }
+  box-shadow: 0 0 0 999px rgba(11,10,18,.45); transition: border-color .3s; }
 .v8-app-root .kfv-oval.s-left, .v8-app-root .kfv-oval.s-right, .v8-app-root .kfv-oval.s-blink { border-color: #5B6CFF; }
 .v8-app-root .kfv-oval.s-done { border-color: #6EE7A8; }
 .v8-app-root .kfv-busy { position: absolute; left: 12px; right: 12px; bottom: 14px; text-align: center; font-size: 12.5px; font-weight: 700; }
@@ -205,3 +205,24 @@
 .v8-app-root .kfv-done b { display: block; font-size: 17px; }
 .v8-app-root .kfv-err { margin: 12px 0; padding: 10px 12px; border-radius: 14px; background: rgba(255,79,163,.15); font-size: 13px; font-weight: 700; }
 .v8-app-root .kme-pre { margin: -4px 0 10px; text-align: center; font-size: 12.5px; font-weight: 700; color: #FFD27A; }
+
+/* 13 Nov: one hero number on the Top 5 sheet */
+.v8-app-root .kme-prize { display: flex; align-items: center; gap: 12px; margin: 2px 0 12px; padding: 10px 14px; border-radius: 18px; background: linear-gradient(135deg, rgba(91,108,255,.22), rgba(255,79,163,.22)); border: 1px solid rgba(255,79,163,.35); }
+.v8-app-root .kme-prize .pre { flex: none; font-size: 12px; font-weight: 700; color: rgba(255,247,236,.75); max-width: 64px; line-height: 1.2; }
+.v8-app-root .kme-prize .amt { flex: none; font: 800 26px/1 'Bricolage Grotesque', 'Anuphan', sans-serif; background: linear-gradient(90deg, #8E9BFF, #FF4FA3); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -.5px; }
+.v8-app-root .kme-prize .t { display: flex; flex-direction: column; gap: 2px; font-size: 13px; font-weight: 700; color: #FFF7EC; line-height: 1.3; }
+.v8-app-root .kme-prize small { font-size: 11.5px; font-weight: 600; color: rgba(255,247,236,.7); }
+.v8-app-root .kme-rule { font-size: 11.5px; opacity: .7; }
+.v8-app-root .kme-rule a { color: #FF8FC8; font-weight: 800; text-decoration: none; white-space: nowrap; }
+/* rewards v1: amount per rank (Today = daily, This week = weekly; config in rewardsConfig.ts) */
+.v8-app-root .kme-pod .am { font: 800 15px/1.2 'Bricolage Grotesque', sans-serif; background: linear-gradient(90deg, #8E9BFF, #FF4FA3); -webkit-background-clip: text; background-clip: text; color: transparent; margin-top: 1px; }
+.v8-app-root .kme-pod .r1 .am { font-size: 18px; }
+.v8-app-root .kme-list .am { min-width: 54px; text-align: right; font: 800 14px 'Bricolage Grotesque', sans-serif; color: #FFF7EC; }
+.v8-app-root .kme-list .p { min-width: 28px; text-align: right; font-size: 12.5px; opacity: .8; }
+.v8-app-root .kme-ladder { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 12px; }
+.v8-app-root .kme-ladder .lr { display: flex; flex-direction: column; align-items: center; padding: 7px 2px 6px; border-radius: 12px; background: rgba(255,247,236,.07); border: .5px solid rgba(255,247,236,.1); }
+.v8-app-root .kme-ladder .lr.r1 { background: linear-gradient(135deg, rgba(255,79,163,.35), rgba(91,108,255,.3)); border-color: rgba(255,79,163,.5); }
+.v8-app-root .kme-ladder i { font: 700 10.5px 'Bricolage Grotesque', sans-serif; font-style: normal; opacity: .7; }
+.v8-app-root .kme-ladder b { font: 800 14px/1.2 'Bricolage Grotesque', sans-serif; color: #FFF7EC; }
+.v8-app-root .kme-ladder .tot { grid-column: 1 / -1; text-align: center; font-size: 11.5px; font-weight: 600; opacity: .7; margin-top: 2px; }
+.v8-app-root .kme-voucher { display: flex; align-items: center; gap: 8px; margin: 14px 4px 0; padding: 9px 12px; border-radius: 14px; background: rgba(255,247,236,.07); font-size: 12.5px; font-weight: 700; color: #FFF7EC; }

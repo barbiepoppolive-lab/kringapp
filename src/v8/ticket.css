@@ -52,7 +52,7 @@ a.ktk-cta { text-decoration: none; display: inline-block; }
 .ktk-given { margin-top: 10px; background: #fff; color: #1E8E5A; border-radius: 999px; padding: 12px 22px; font: 800 16px 'Anuphan', sans-serif; }
 a.ktk-ghost { text-decoration: none; display: inline-block; }
 .a2hs { position: fixed; left: 12px; right: 12px; bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 70; display: flex; align-items: center; gap: 10px;
-  background: #1D1E52; color: #fff; border-radius: 18px; padding: 12px 12px 12px 14px; box-shadow: 0 10px 30px rgba(0,0,0,.35); font-family: 'Anuphan', sans-serif; }
+  background: #171520; color: #fff; border-radius: 18px; padding: 12px 12px 12px 14px; box-shadow: 0 10px 30px rgba(0,0,0,.35); font-family: 'Anuphan', sans-serif; }
 .a2hs-ic { position: relative; width: 34px; height: 22px; flex: none; }
 .a2hs-ic i { position: absolute; top: 0; width: 22px; height: 22px; border-radius: 50%; border: 3px solid #7381FF; }
 .a2hs-ic i + i { left: 12px; border-color: #FF4FA3; }

@@ -6,6 +6,7 @@
  */
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { NEUTRAL_IMG } from './v8Data';
+import { demoPostAvatar } from './v5DemoAvatars';
 import { appBase, lineChannel } from './lineEnv';
 import type { V8ChatMessage, V8ChatThread, V8Deal, V8FeedItem, V8HelloRequest, V8Person } from './v8Data';
 
@@ -26,7 +27,7 @@ export function v5Area(a?: string | null): string {
 /** Plain brand backdrop for a plan posted without a photo (no stock photo pretending to be the member's). */
 export const V5_PLAN_BG =
   "data:image/svg+xml;utf8," +
-  encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='400' height='700'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#2A2A8C'/><stop offset='1' stop-color='#12123A'/></linearGradient></defs><rect width='400' height='700' fill='url(#g)'/><circle cx='330' cy='120' r='90' fill='#5B6CFF' opacity='0.35'/><circle cx='70' cy='560' r='120' fill='#FF5A6B' opacity='0.18'/></svg>");
+  encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='400' height='700'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#2A2A8C'/><stop offset='1' stop-color='#15131F'/></linearGradient></defs><rect width='400' height='700' fill='url(#g)'/><circle cx='330' cy='120' r='90' fill='#5B6CFF' opacity='0.35'/><circle cx='70' cy='560' r='120' fill='#FF5A6B' opacity='0.18'/></svg>");
 
 let clientP: Promise<SupabaseClient> | null = null;
 export function v5Client(): Promise<SupabaseClient> {
@@ -151,7 +152,10 @@ const randomToken = (n: number) => b64url(crypto.getRandomValues(new Uint8Array(
 export async function v5SignInLine(): Promise<'redirect' | 'LINE_OFF' | 'NETWORK'> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return 'NETWORK';
   if (!v5LineOn()) return 'LINE_OFF';
-  const state = randomToken(24), nonce = randomToken(24), verifier = randomToken(48);
+  // the recruiter code rides in `state` too ("<random>.<ref>"), so it survives a hand-over to another browser (13 Nov funnel fix)
+  let ref = '';
+  try { ref = localStorage.getItem('kr8_ref') || ''; } catch { /* private mode */ }
+  const state = randomToken(24) + (/^[a-z0-9_-]{3,40}$/.test(ref) ? '.' + ref : ''), nonce = randomToken(24), verifier = randomToken(48);
   const challenge = b64url(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))));
   // localStorage, not sessionStorage: LINE may hand back to a new tab of the same browser
   localStorage.setItem(LINE_KEY, JSON.stringify({ state, nonce, verifier, back: window.location.pathname + window.location.search, t: Date.now() }));
@@ -167,6 +171,7 @@ export async function v5FinishLine(search: string): Promise<string> {
   try { saved = JSON.parse(localStorage.getItem(LINE_KEY) || '{}'); } catch { saved = {}; }
   localStorage.removeItem(LINE_KEY);   // one use
   const back = saved.back && saved.back.startsWith(appBase()) ? saved.back : appBase();
+  v5RefFromLineState(q.get('state'));   // keep the recruiter code on this phone whatever happens next
   if (q.get('error')) throw new V5Error('LINE_CANCEL');
   const code = q.get('code') || '';
   if (!code || !saved.state || q.get('state') !== saved.state || !saved.t || Date.now() - saved.t > 10 * 60_000) throw new V5Error('LINE_STATE');
@@ -178,6 +183,17 @@ export async function v5FinishLine(search: string): Promise<string> {
   if (v.error) throw new V5Error('LINE_FAIL');
   try { localStorage.setItem(LINE_PREFILL_KEY, JSON.stringify({ name: r.name || '', picture: r.picture || null })); } catch { /* private mode */ }
   return back;
+}
+/** "<random>.<ref>" → ref; also stores it as this phone's recruiter code if none is stored yet. */
+export function v5RefFromLineState(state: string | null): string {
+  const m = /\.([a-z0-9_-]{3,40})$/.exec(state || '');
+  if (!m) return '';
+  try { if (!localStorage.getItem('kr8_ref')) localStorage.setItem('kr8_ref', m[1]); } catch { /* private mode */ }
+  return m[1];
+}
+/** Recruiter code this phone arrived with (?ref=), or ''. */
+export function v5StoredRef(): string {
+  try { return localStorage.getItem('kr8_ref') || ''; } catch { return ''; }
 }
 /** Name + picture from LINE for a new member card (read once). */
 export function v5TakeLinePrefill(): { name: string; picture: string | null } | null {
@@ -301,7 +317,7 @@ export async function v5Feed(): Promise<V5FeedItem[]> {
     r.kind === 'ask'
       ? { id: r.id, type: 'ask', q: r.body, asker: r.author_name, area: r.area, av: r.author_photo || NEUTRAL_IMG, authorId: r.author_id || undefined, mine: !!r.mine, v5Kind: 'ask',
           answers: (r.answers || []).map((a) => ({ who: a.name, av: a.photo || NEUTRAL_IMG, txt: a.body })) }
-      : { id: r.id, type: 'photo', img: r.photo || V5_PLAN_BG, av: r.author_photo || NEUTRAL_IMG, name: r.author_name, langs: (r.author_langs || []).join(' · '),
+      : { id: r.id, type: 'photo', img: r.photo || V5_PLAN_BG, av: r.author_photo || demoPostAvatar(r.id) || NEUTRAL_IMG, name: r.author_name, langs: (r.author_langs || []).join(' · '),
           area: r.area, here: r.here, cap: r.body, hiCount: 0, authorId: r.author_id || undefined, mine: !!r.mine, v5Kind: r.kind, eventId: r.event_id || undefined,
           ...(r.kind === 'reel' ? { video: signed[r.video_path || ''], poster: signed[r.poster_path || ''] || undefined, img: signed[r.poster_path || ''] || V5_PLAN_BG,
             reelPending: r.reel_status === 'pending', likes: r.likes || 0, liked: !!r.liked, views: r.views ?? undefined,

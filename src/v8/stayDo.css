@@ -5,11 +5,11 @@
 .kstay-sub { color: #FF8A3D; font-weight: 700; font-size: 13px; white-space: nowrap; }
 .kstay-chips { display: flex; gap: 8px; margin: 0 0 10px; }
 .kstay-chips button { border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.05); color: rgba(255,255,255,.85); border-radius: 999px; padding: 7px 14px; font: 700 13px inherit; font-family: inherit; cursor: pointer; }
-.kstay-chips button.on { background: #fff; color: #12123A; border-color: #fff; }
+.kstay-chips button.on { background: #fff; color: #15131F; border-color: #fff; }
 .kstay-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
-.kstay-card { border-radius: 22px; overflow: hidden; background: #1D1E52; border: 1px solid rgba(255,255,255,.1); }
+.kstay-card { border-radius: 22px; overflow: hidden; background: #171520; border: 1px solid rgba(255,255,255,.1); }
 .kstay-photo { position: relative; height: 170px; background: linear-gradient(135deg, #3B45E6, #FF4FA3) center/cover; }
-.kstay-kind, .kstay-area { position: absolute; top: 10px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; color: #fff; background: rgba(13,13,46,.62); backdrop-filter: blur(6px); }
+.kstay-kind, .kstay-area { position: absolute; top: 10px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; color: #fff; background: rgba(11,10,18,.62); backdrop-filter: blur(6px); }
 .kstay-kind { left: 10px; } .kstay-area { right: 10px; }
 .kstay-body { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px 14px; }
 .kstay-name { color: #fff; font-size: 16px; line-height: 1.25; }

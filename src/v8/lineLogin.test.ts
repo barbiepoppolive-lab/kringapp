@@ -179,3 +179,25 @@ describe('app: Continue with LINE', () => {
     await expect(m.v5FinishLine(`?code=c1&state=${'S'.repeat(32)}`)).rejects.toMatchObject({ code: 'LINE_FAIL' });
   });
 });
+
+describe('13 Nov funnel fix: recruiter code survives LINE', () => {
+  it('rides in the LINE state and is restored on a phone that lost it', async () => {
+    localStorage.clear();
+    localStorage.setItem('kr8_ref', 'pich');
+    const m = await import('./v5Live');
+    const assign = vi.fn();
+    const orig = window.location;
+    Object.defineProperty(window, 'location', { configurable: true, value: { ...orig, origin: 'https://kringapp.com', pathname: '/app/', search: '?ref=pich', assign } });
+    try {
+      expect(await m.v5SignInLine()).toBe('redirect');
+    } finally {
+      Object.defineProperty(window, 'location', { configurable: true, value: orig });
+    }
+    const state = new URL(assign.mock.calls[0][0]).searchParams.get('state')!;
+    expect(state.endsWith('.pich')).toBe(true);
+    localStorage.clear();
+    expect(m.v5RefFromLineState(state)).toBe('pich');
+    expect(localStorage.getItem('kr8_ref')).toBe('pich');
+    expect(m.v5RefFromLineState('abc')).toBe('');
+  });
+});

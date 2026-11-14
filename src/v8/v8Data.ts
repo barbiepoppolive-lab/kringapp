@@ -183,7 +183,7 @@ export function formatTravellerCurrency(
 export const NEUTRAL_IMG =
   "data:image/svg+xml;utf8," +
   encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1D1E52"/><stop offset="1" stop-color="#2A2C6E"/></linearGradient></defs><rect width="120" height="160" fill="url(#g)"/><circle cx="52" cy="80" r="16" fill="none" stroke="#5B6CFF" stroke-width="4"/><circle cx="68" cy="80" r="16" fill="none" stroke="#FF4FA3" stroke-width="4"/></svg>'
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#171520"/><stop offset="1" stop-color="#2A2C6E"/></linearGradient></defs><rect width="120" height="160" fill="url(#g)"/><circle cx="52" cy="80" r="16" fill="none" stroke="#5B6CFF" stroke-width="4"/><circle cx="68" cy="80" r="16" fill="none" stroke="#FF4FA3" stroke-width="4"/></svg>'
   );
 
 export function isDemoOrDevEnvironment(): boolean {

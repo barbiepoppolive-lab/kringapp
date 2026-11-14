@@ -1,12 +1,14 @@
 /**
  * Me tab (LOCKED by the founder 10 Nov 01:28 IST): member card, Top 5 board, follow, activity, someone else's profile.
  * Visual source: scratch/opus_venue/me_tab_locked_10nov/ (me_tab_locked.html, top10_sheet.html, follow_screens.html).
- * Calm luxe #0D0D2E, hairlines, Bricolage light numbers, spaced caps. No yellow anywhere (monarchy rule).
+ * Calm luxe #0B0A12, hairlines, Bricolage light numbers, spaced caps. No yellow anywhere (monarchy rule).
  * One language per screen: every visible string goes through L().
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import './me.css';
 import { v5RewardStart, V5_REWARD_START_FALLBACK } from './v5Live';
+import { PerksCard } from './V5Perks';
+import { DAILY_TOTAL, fmtBaht, rewardFor, WEEKLY_TOTAL } from './rewardsConfig';
 import type { V5Activity, V5FollowRow, V5Level, V5Profile, V5TopPeriod, V5TopRow } from './v5Live';
 
 // ── pre-season (D-11NOV-G): the board ranks from day one; rewards start on kr8_settings.reward_start_at ──
@@ -120,7 +122,7 @@ export function MeView(props: {
   unread: boolean; verifyState: 'none' | 'pending' | 'verified';
   onTop10: () => void; onList: (k: 'followers' | 'following') => void; onSettings: () => void; onActivity: () => void;
   onEdit: () => void; onShare: () => void; onCode: () => void; onSaved: () => void; onRewards: () => void; onReel: (id: string) => void;
-  onPost: () => void; onVerify: () => void;
+  onPost: () => void; onVerify: () => void; firstReelChip?: React.ReactNode;
 }) {
   const rewardStart = useRewardStart();
   const { L, Lf, p } = props;
@@ -147,6 +149,7 @@ export function MeView(props: {
         <button type="button" id="meShare" onClick={props.onShare}><span>⇪</span>{L('Share card')}</button>
         <button type="button" id="meCode" onClick={props.onCode}><span>▦</span>{L('My code')}</button>
       </div>
+      <PerksCard />
       {props.verifyState !== 'verified' && (
         <button type="button" className="kme-verify" id="meVerify" onClick={props.onVerify} disabled={props.verifyState === 'pending'}>
           <span className="ic">✓</span>
@@ -174,16 +177,17 @@ export function MeView(props: {
         <button type="button" className="kme-tile" id="meRewards" onClick={props.onRewards}>
           <span className="cap">{L('Rewards')}</span>
           <b className={p.gifts ? '' : 'txt'} id="meRewardsTxt">{p.gifts ? (p.gifts === 1 ? L('1 reward') : Lf('{0} rewards', String(p.gifts)))
-            : rewardsOpen(rewardStart) ? L('Top 5 daily & weekly · real money value') : Lf('Top 5 · rewards start {0}', fmtRewardDay(rewardStart, uiLang()))}</b>
+            : rewardsOpen(rewardStart) ? L('Up to ฿4,000 every week') : Lf('Top 5 · rewards start {0}', fmtRewardDay(rewardStart, uiLang()))}</b>
           <span className="gift" aria-hidden="true">🏆</span>
         </button>
       </div>
       {p.reels.length ? (
         <ReelRow reels={p.reels} posters={props.posters} onOpen={props.onReel} pending={L('Waiting for a quick check')} />
       ) : (
+        <>{props.firstReelChip}
         <button type="button" className="kme-first" id="meFirstReel" onClick={props.onPost}>
           <b>{L('Post your first Reel')}</b><small>{L('Your Reels show here and count towards your next level')}</small>
-        </button>
+        </button></>
       )}
     </div>
   );
@@ -253,10 +257,14 @@ export function Top10Sheet(props: { L: Tx; Lf: Txf; load: (p: V5TopPeriod) => Pr
       <div className="grab" />
       <div className="kme-ttl">
         <b>🏆 {title}</b>
-        <span>{Lf('Closes at midnight · {0}', clock)}</span>
+        <span>{period === 'week' ? L('Closes Sunday 23:59') : Lf('Closes at midnight · {0}', clock)}</span>
         <button type="button" className="xbtn" aria-label="Close" onClick={props.onClose}>✕</button>
       </div>
-      {!rewardsOpen(rewardStart) && <p className="kme-pre" id="top10Preseason">{Lf('Rewards start {0}', fmtRewardDay(rewardStart, uiLang()))}</p>}
+      <div className="kme-prize" id="top10Prize">
+        <span className="pre">{L('Up to')}</span>
+        <span className="amt">฿4,000</span>
+        <span className="t">{L('in rewards every week')}<small>{rewardsOpen(rewardStart) ? L('Shared across the Top 5') : Lf('Rewards start {0}', fmtRewardDay(rewardStart, uiLang()))}</small></span>
+      </div>
       <div className="kme-seg" role="tablist">
         {(['today', 'week', 'area'] as V5TopPeriod[]).map((k) => (
           <button type="button" role="tab" key={k} id={`top10-${k}`} aria-selected={period === k} className={period === k ? 'on' : ''} onClick={() => setPeriod(k)}>
@@ -264,6 +272,14 @@ export function Top10Sheet(props: { L: Tx; Lf: Txf; load: (p: V5TopPeriod) => Pr
           </button>
         ))}
       </div>
+      {period !== 'area' && (
+        <div className="kme-ladder" id="top10Ladder" data-period={period}>
+          {[1, 2, 3, 4, 5].map((k) => (
+            <span key={k} className={`lr r${k}`} data-rank={k}><i>#{k}</i><b>{fmtBaht(rewardFor(period, k) as number)}</b></span>
+          ))}
+          <span className="tot">{period === 'week' ? Lf('{0} a week · closes Sunday 23:59', fmtBaht(WEEKLY_TOTAL)) : Lf('{0} a day · closes at midnight', fmtBaht(DAILY_TOTAL))}</span>
+        </div>
+      )}
       {rows === null ? <p className="kme-empty">…</p> : rows.length === 0 ? (
         <p className="kme-empty" id="top10Empty">{L('No Reels yet. Post one and be #1.')}</p>
       ) : (
@@ -273,7 +289,8 @@ export function Top10Sheet(props: { L: Tx; Lf: Txf; load: (p: V5TopPeriod) => Pr
               <button type="button" key={r.reel_id} className={`pd r${r.rank}`} data-rank={r.rank} onClick={() => props.onPerson(r.user_id)}>
                 <Avatar photo={r.photo} name={r.first_name} />
                 <span className="n">{r.is_me ? L('You') : r.first_name}</span>
-                <span className="s">{Lf('{0} pts', String(r.points))}{r.prize ? ` · ${r.prize}` : ''}</span>
+                <span className="s">{Lf('{0} pts', String(r.points))}</span>
+                {rewardFor(period, r.rank) !== null ? <span className="am" data-reward={rewardFor(period, r.rank)}>{fmtBaht(rewardFor(period, r.rank) as number)}</span> : null}
                 <span className="blk">{r.rank}</span>
               </button>
             ) : <span key={`e${i}`} className="pd empty" />)}
@@ -285,12 +302,14 @@ export function Top10Sheet(props: { L: Tx; Lf: Txf; load: (p: V5TopPeriod) => Pr
                 <Avatar photo={r.photo} name={r.first_name} size={36} />
                 <span className="n">{r.is_me ? `${L('You')} · ${r.first_name}` : r.first_name}<small>{[r.venue_name || r.body, L(r.area)].filter(Boolean).join(' · ')}</small></span>
                 <span className="p">{r.points}</span>
+                {rewardFor(period, r.rank) !== null && r.rank <= 5 ? <span className="am" data-reward={rewardFor(period, r.rank)}>{fmtBaht(rewardFor(period, r.rank) as number)}</span> : null}
               </button>
             ))}
           </div>
         </>
       )}
-      <p className="kme-rule">{L('Points = likes + 2 × saves + 3 × shares + views ÷ 10. Your own likes never count.')}</p>
+      <p className="kme-voucher" id="top10Voucher"><span aria-hidden="true">🎟</span>{L('Paid as TrueMoney / Starbucks / Grab vouchers')}</p>
+      <p className="kme-rule">{L('Ranked on merit.')} {L('Points = likes + 2 × saves + 3 × shares + views ÷ 10. Your own likes never count.')} <a id="top10Rules" href="/rules/" target="_blank" rel="noopener">{L('Rules')} ›</a></p>
     </div>
   );
 }

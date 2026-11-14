@@ -8,6 +8,8 @@ describe('Kring 6 Nov 2026 Locked Build (v8)', () => {
   beforeEach(() => {
     localStorage.clear();
     window.history.replaceState({}, '', '/app/');
+    // Demo Reels (v2) play only while on screen; jsdom has no IntersectionObserver.
+    vi.stubGlobal('IntersectionObserver', class { observe() {} unobserve() {} disconnect() {} takeRecords() { return []; } });
     // No network in tests: every Supabase / weather call returns an empty result.
     vi.stubGlobal(
       'fetch',
@@ -62,7 +64,7 @@ describe('Kring 6 Nov 2026 Locked Build (v8)', () => {
     window.history.replaceState({}, '', '/app/?demo=1');
     render(<KringAppV8 initialTab="people" />);
     // Demo people come from a lazy chunk (never in the production bundle).
-    await screen.findAllByText(/Fah/);
+    await screen.findAllByText(/Mint/);
     fireEvent.click(screen.getByText('Filter'));
     expect(screen.getByText('Filter people')).toBeTruthy();
 
@@ -132,14 +134,14 @@ describe('Kring 6 Nov 2026 Locked Build (v8)', () => {
     expect(screen.getByText(/YOUR KRING CARD/i)).toBeTruthy();
     expect(screen.getByText(/Sign in to say hi, claim treats and post/i)).toBeTruthy();
 
-    const cta = screen.getByRole('button', { name: /Sign in · free/i });
+    const cta = screen.getByRole('button', { name: /Join the community now/i });
     fireEvent.click(cta);
     expect(document.getElementById('sh-signin')).toBeTruthy();
   });
 
   it('sign-in sheet never fakes success in production; it shows the honest 1 Dec waitlist', () => {
     render(<KringAppV8 initialTab="me" />);
-    fireEvent.click(screen.getByRole('button', { name: /Sign in · free/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Join the community now/i }));
     expect(document.getElementById('sh-signin')).toBeTruthy();
     expect(screen.getByText(/Sign-in opens on 1 Dec · join the waitlist/i)).toBeTruthy();
     fireEvent.click(document.getElementById('waitlistJoinBtn')!);

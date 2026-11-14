@@ -36,6 +36,8 @@ export default defineConfig({
         manualChunks(id) {
           // supabase-js is only fetched when V5 live sign-in is on (VITE_AUTH_LIVE=1), so keep it out of the eager vendor chunk
           if (id.includes('node_modules/@supabase/')) return 'supabase'
+          // LIFF SDK: only fetched in a LIFF open (VITE_LIFF_ID builds), never in the eager vendor chunk
+          if (/node_modules\/(@line|@liff|whatwg-fetch|tiny-sha256)\//.test(id)) return 'liff'
           // on-device face check: only downloaded when a member starts "Get verified"
           if (id.includes('node_modules/@vladmandic/')) return 'faceapi'
           // print files (stand.html only): jsPDF and its optional helpers stay out of the app's vendor chunk

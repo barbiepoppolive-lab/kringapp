@@ -81,6 +81,7 @@ import {
   v5ProfileLink,
   V5_INTERESTS,
   v5SyncAttribution,
+  v5StoredRef,
 } from './v5Live';
 import { ActivitySheet, FollowSheet, InterestsSheet, MeView, ProfileView, Top10Sheet } from './V5Me';
 import { V5VerifySheet } from './V5Verify';
@@ -93,6 +94,7 @@ import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
 import type { V5Blocked, V5Card, V5FeedItem, V5Me, V5ReportReason, V5TagPlace, V5Thread } from './v5Live';
 import { V5_L, v5ErrText } from './v5Strings';
 import { V5CardSheet, V5Qr, V5SignInSheet } from './V5Sheets';
+import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, shouldShowReelNudge, showFirstReelChip } from './V5ReelNudge';
 import { V5ReelVideo, toggleReelSound } from './V5ReelVideo';
 import { checkReel, createReel, makeAudio, prepareReel, ReelError, uploadReel, type ReelInfo, type ReelReady, type UploadedReel } from './v5Reel';
 
@@ -861,6 +863,7 @@ type SheetId =
   | 'pdpa'
   | 'persondetail'
   | 'v5card'
+  | 'reelNudge'
   | 'reelshare'
   | 'reelmore'
   | 'blocked'
@@ -941,7 +944,7 @@ class V8ErrorBoundary extends React.Component<
         <div
           style={{
             minHeight: '100dvh',
-            background: '#12123A',
+            background: '#15131F',
             color: '#FFF7EC',
             display: 'flex',
             flexDirection: 'column',
@@ -977,7 +980,7 @@ class V8ErrorBoundary extends React.Component<
               borderRadius: 999,
               border: 0,
               background: 'linear-gradient(135deg,#FF8A3D,#FF4FA3)',
-              color: '#0D0D2E',
+              color: '#0B0A12',
               fontWeight: 800,
               fontSize: 14,
               cursor: 'pointer',
@@ -1311,6 +1314,19 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       setSignedIn(false);
     }
   };
+  // ?join=1 (website join buttons, LIFF join link): read once, then removed from the address bar so a reload does not repeat it
+  const v5JoinRef = useRef<boolean>((() => {
+    try {
+      const u = new URL(window.location.href);
+      const st = u.searchParams.get('liff.state') || '';
+      const on = u.searchParams.get('join') === '1' || /[?&]join=1\b/.test(decodeURIComponent(st));
+      // kept for this tab so it survives the LINE login / LIFF round trip, which can drop the query
+      if (on) sessionStorage.setItem('kr8_join', '1');
+      if (u.searchParams.get('join') === '1' && !st) { u.searchParams.delete('join'); history.replaceState(history.state, '', u.pathname + u.search + u.hash); }
+      return on || sessionStorage.getItem('kr8_join') === '1';
+    } catch { return false; }
+  })());
+  const v5JoinAsked = useRef<boolean>(v5JoinRef.current);
   const v5ApplySession = async (uid: string | null) => {
     if (!uid) {
       setV5Uid('');
@@ -1328,6 +1344,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       if (me.card) void v5SyncAttribution();   // signed in on a phone that opened a ?ref= / ?src= link
       if (!me.card) {
         setSheet('v5card');
+      } else if (v5JoinRef.current) {
+        // 13 Nov: a website "Join the community" tap from someone already in: their card on Me, plus the first-Reel nudge if they have no Reel yet
+        v5JoinRef.current = false;
+        try { sessionStorage.removeItem('kr8_join'); } catch { /* ignore */ }
+        setTab('me');
+        if (sheetRef.current === 'signin') setSheet(null);
+        if (!(me.posts > 0)) setTimeout(() => setSheet('reelNudge'), 400);
       } else if (sheetRef.current === 'signin') {
         setSheet(null);
         showToast(L('Signed in · กริ๊ง!'));
@@ -1498,11 +1521,27 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       setSheet('signin');
     }
     (async () => {
+      // LIFF one-tap (only in builds with VITE_LIFF_ID; empty → this block is not even in the bundle)
+      if (import.meta.env.VITE_LIFF_ID) {
+        try {
+          const r = await import('./v5Liff').then((m) => m.v5LiffBoot());
+          if (r === 'redirect' || cancelled) return;
+        } catch (e) {
+          if (cancelled) return;
+          setV5SignInNotice(v5Msg(e));
+          setSheet('signin');
+        }
+      }
       const s0 = await v5Session().catch(() => null);
       if (cancelled) return;
       v5LastUid.current = s0?.user?.id || '';
       await v5ApplySession(s0?.user?.id || null);
       setV5AuthReady(true);
+      // Recruiter / invite link (?ref=… or ?join=1) and not signed in: open the join sheet straight away, LINE first (13 Nov funnel fix)
+      try {
+        const q0 = new URLSearchParams(window.location.search);
+        if (!s0?.user?.id && (q0.get('ref') || v5JoinAsked.current) && !sheetRef.current) setSheet('signin');
+      } catch { /* ignore */ }
       off = await v5OnAuth((s1) => {
         const id = s1?.user?.id || '';
         if (id !== v5LastUid.current) {
@@ -3166,7 +3205,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               left: 14,
               right: 14,
               zIndex: 85,
-              background: 'rgba(29,30,82,0.96)',
+              background: 'rgba(23,21,32,0.96)',
               border: '1px solid rgba(255,196,77,0.55)',
               borderRadius: 14,
               padding: '8px 12px',
@@ -3193,7 +3232,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 borderRadius: 999,
                 border: 0,
                 background: '#FFC44D',
-                color: '#0D0D2E',
+                color: '#0B0A12',
                 fontWeight: 800,
                 fontSize: 11,
                 cursor: 'pointer',
@@ -3686,7 +3725,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     else { pendingActionRef.current = null; setSignInNotice(''); setSheet('signin'); }
                   }}
                 >
-                  {signedIn ? (live ? L('Post a Reel') : L('Post a photo')) : L('Sign in · free')}
+                  {signedIn ? (live ? L('Post a Reel') : L('Post a photo')) : L('Join the community now')}
                 </button>
               )}
               {!(filterLang || filterWho || filterOnline || searchQuery) && (
@@ -3697,7 +3736,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     [L('Travellers'), '#FF4FA3', '#FF8A3D'],
                     [L('Expats & nomads'), '#FF8A3D', '#5B6CFF'],
                   ].map(([label, c1, c2]) => (
-                    <div className="kp-ghost" key={label} style={{ background: `linear-gradient(160deg, ${c1}55, ${c2}22 60%, #1D1E52)` }}>
+                    <div className="kp-ghost" key={label} style={{ background: `linear-gradient(160deg, ${c1}55, ${c2}22 60%, #171520)` }}>
                       <span className="kp-ghost-rings"><i /><i /></span>
                       <span className="kp-ghost-l">{label}</span>
                     </div>
@@ -3950,7 +3989,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <TripPerks L={L} />
         </section>
 
-        {/* ==================== 4. ME SCREEN (Calm Luxe #0D0D2E) ==================== */}
+        {/* ==================== 4. ME SCREEN (Calm Luxe #0B0A12) ==================== */}
         <section
           className={`v8-screen ${tab === 'me' ? 'active' : ''}`}
           id="s-me"
@@ -3983,6 +4022,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onReel={openReelFromProfile}
               onPost={() => { setTab('feed'); setSheet('choose'); }}
               onVerify={() => setSheet('verify')}
+              firstReelChip={showFirstReelChip(v5Uid, meProfile.reels.length > 0) ? <FirstReelChip onPost={() => { setTab('feed'); setSheet('choose'); }} /> : null}
             />
           ) : (<>
           <div className="kp-me-head">
@@ -4045,7 +4085,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 setSheet('signin');
               }}
             >
-              {L('Sign in · free')}
+              {L('Join the community now')}
             </button>
           )}
           <div className="kp-qa">
@@ -4262,7 +4302,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     borderRadius: 999,
                     border: 0,
                     background: 'var(--tea)',
-                    color: '#0D0D2E',
+                    color: '#0B0A12',
                     fontWeight: 800,
                     fontSize: 12,
                     cursor: 'pointer',
@@ -4287,7 +4327,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   position: 'absolute',
                   inset: 0,
                   background:
-                    'linear-gradient(180deg,rgba(13,13,46,0.65) 0%,transparent 30%,transparent 65%,rgba(13,13,46,0.92) 100%)',
+                    'linear-gradient(180deg,rgba(11,10,18,0.65) 0%,transparent 30%,transparent 65%,rgba(11,10,18,0.92) 100%)',
                 }}
               />
               <div className="story-bars">
@@ -4478,10 +4518,21 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             L={L}
             Lf={Lf}
             initialNotice={v5SignInNotice}
+            invitedBy={v5StoredRef()}
             onClose={() => {
               setSheet(null);
+              v5JoinRef.current = false;
+              try { sessionStorage.removeItem('kr8_join'); } catch { /* ignore */ }
               setV5SignInNotice('');
             }}
+          />
+        )}
+        {sheet === 'reelNudge' && (
+          <ReelNudgeSheet
+            poster={`${import.meta.env.BASE_URL}media/demo/bangpu.jpg`}
+            video={`${import.meta.env.BASE_URL}media/demo/bangpu.mp4`}
+            onPost={() => { setReelNudgeLater(v5Uid, false); setTab('feed'); setSheet('choose'); }}
+            onLater={() => { setReelNudgeLater(v5Uid, true); setSheet(null); }}
           />
         )}
         {sheet === 'v5card' && live && (
@@ -4494,13 +4545,21 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onClose={() => setSheet(null)}
             onSaved={(me) => {
               const wasNew = !v5Card;
+              v5JoinRef.current = false;
+              try { sessionStorage.removeItem('kr8_join'); } catch { /* ignore */ }
               v5ApplyMe(me);
               setSheet(null);
               const next = pendingActionRef.current;
               pendingActionRef.current = null;
               if (next) setTimeout(() => next(), 60);
               else if (standRef.current) setTimeout(() => { setStandOpen(standRef.current); setSheet('ticket'); }, 60);   // the stand ticket comes first
-              else if (wasNew && me.card && !me.card.verified) setTimeout(() => setSheet('verify'), 120);   // "Get verified ✓" right after the card (skippable)
+              // 13 Nov: after a new card, a soft once-only nudge to post a first Reel (never blocks; Later = small Me-tab chip)
+              else if (wasNew && shouldShowReelNudge(v5LastUid.current || v5Uid, false)) {
+                markReelNudgeSeen(v5LastUid.current || v5Uid);
+                setTimeout(() => setSheet('reelNudge'), 650);
+              }
+              // 13 Nov funnel fix: no "Get verified" pop-up right after a new card; the member is in. Verify stays on the Me tab.
+              else if (wasNew && me.card && !me.card.verified && !v5StoredRef()) setTimeout(() => setSheet('verify'), 120);
             }}
           />
         )}
@@ -4829,7 +4888,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               <label
                 id="addPhotoPicker"
                 style={{
-                  background: postPhotoUrl ? 'rgba(13,13,46,0.78)' : 'var(--anchan)',
+                  background: postPhotoUrl ? 'rgba(11,10,18,0.78)' : 'var(--anchan)',
                   padding: postPhotoUrl ? '6px 10px' : '10px 18px',
                   borderRadius: 999,
                   fontSize: postPhotoUrl ? 11 : 14,
@@ -5267,11 +5326,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   setSheet('thread');
                 }}
               >
-                <div className="ic">☕</div>
+                <div className="ic">📍</div>
                 <div className="txt">
-                  <div className="k">
-                    {t.todaysPlan} · {t.publicPlaceJustYouTwo}
-                  </div>
+                  <div className="k">{t.todaysPlan}</div>
                   <div className="t">{threads[0].plan.title}</div>
                   <div className="s">
                     {threads[0].plan.venue} · {threads[0].plan.area}
@@ -5311,7 +5368,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 style={{
                   padding: '38px 20px',
                   textAlign: 'center',
-                  background: 'rgba(29,30,82,0.55)',
+                  background: 'rgba(23,21,32,0.55)',
                   borderRadius: 18,
                   border: '1px solid rgba(255,247,236,0.1)',
                 }}
@@ -5657,14 +5714,14 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               </button>
             </div>
             <div className="ticket-box">
-              <div style={{ fontSize: 12, fontWeight: 800, color: '#0D0D2E' }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#0B0A12' }}>
                 {dealVenue(activeRedeemDeal)} · {activeRedeemDeal.area}
               </div>
               <div
                 style={{
                   fontSize: 15,
                   fontWeight: 800,
-                  color: '#0D0D2E',
+                  color: '#0B0A12',
                   marginTop: 2,
                 }}
               >
@@ -6166,7 +6223,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               </button>
             </div>
             <div className="ticket-box">
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#0D0D2E' }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#0B0A12' }}>
                 {user.name} · {user.langs}
               </div>
               {live && v5Uid ? (
@@ -6351,7 +6408,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 style={{
                   padding: '28px 18px',
                   textAlign: 'center',
-                  background: 'rgba(29,30,82,0.55)',
+                  background: 'rgba(23,21,32,0.55)',
                   borderRadius: 16,
                   border: '1px solid rgba(255,247,236,0.1)',
                 }}

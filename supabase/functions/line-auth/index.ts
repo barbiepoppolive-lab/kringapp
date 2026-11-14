@@ -1,4 +1,5 @@
 // Supabase Edge Function: line-auth (T-205). Sign up / sign in with LINE. Logic in core.ts.
+// Two bodies: { code, redirect_uri, code_verifier, nonce } (LINE web login) or { liff_id_token } (LIFF, inside the LINE app).
 // Secrets (Edge Function secrets, never in the repo): LINE_LOGIN_CHANNEL_ID, LINE_LOGIN_CHANNEL_SECRET
 // (+ SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY, which Supabase provides). Deploy: see DEPLOY.md.
 import { createClient } from 'npm:@supabase/supabase-js@2'

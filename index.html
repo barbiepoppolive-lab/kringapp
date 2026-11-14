@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: https://*.supabase.co; font-src 'self' data:; connect-src 'self' https://cloudflareinsights.com https://*.supabase.co wss://*.supabase.co https://photon.komoot.io https://api.open-meteo.com https://*.ingest.us.sentry.io; base-uri 'self'; form-action 'self';" />
-    <meta name="theme-color" content="#12123A" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://static.line-scdn.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: https://*.supabase.co; font-src 'self' data:; connect-src 'self' https://api.line.me https://access.line.me https://liffsdk.line-scdn.net https://static.line-scdn.net https://cloudflareinsights.com https://*.supabase.co wss://*.supabase.co https://photon.komoot.io https://api.open-meteo.com https://*.ingest.us.sentry.io; base-uri 'self'; form-action 'self';" />
+    <meta name="theme-color" content="#0B0A12" />
     <meta name="description" content="Kring · มาเที่ยว ได้เพื่อนใหม่ · Explore Bangkok, make new friends. Short Reels of real Bangkok spots, new friends and partner-café treats for travellers and Thai locals." />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -18,17 +18,13 @@
     <link rel="manifest" href="manifest.json" />
     <title>Kring</title>
     <script>
-      // LINE's in-app browser loses sign-in: reopen every Kring link in the phone's normal browser (LINE supports ?openExternalBrowser=1)
-      try {
-        if (/\bLine\//i.test(navigator.userAgent) && !/[?&]openExternalBrowser=1/.test(location.search)) {
-          var u = new URL(location.href); u.searchParams.set('openExternalBrowser', '1'); location.replace(u.toString());
-        }
-      } catch (e) {}
+      // 13 Nov funnel fix: LINE links stay inside LINE. LINE Login is one tap there (auto login); bouncing to Chrome/Safari
+      // made people type a LINE email + password they mostly never set. "Open in browser" is still offered after first value (A2HS).
       // keep the install offer for later (Add to home screen)
       window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__kr8Install = e; });
     </script>
   </head>
-  <body class="antialiased" style="background:#12123A;margin:0">
+  <body class="antialiased" style="background:#0B0A12;margin:0">
     <div id="root"></div>
     <script type="module" src="/src/v6/main.tsx"></script>
     <script>
@@ -38,6 +34,6 @@
         });
       }
     </script>
-    <script>/* Kring link-visit counter (supabase 0043_link_visits): 1 row per tab session per ?ref=, no cookies, no personal data */(function(){try{if(/\bLine\//i.test(navigator.userAgent)&&!/[?&]openExternalBrowser=1/.test(location.search))return;var r=(new URLSearchParams(location.search).get('ref')||'').toLowerCase();if(!/^[a-z0-9_-]{1,40}$/.test(r))r=null;var k='kr_lv:'+(r||''),s=null;try{if(sessionStorage.getItem(k))return;s=Math.random().toString(36).slice(2,12)||null;sessionStorage.setItem(k,s||'1')}catch(e){}var h='';try{h=document.referrer?new URL(document.referrer).host:''}catch(e){}var K='%VITE_SUPABASE_ANON_KEY%';setTimeout(function(){try{fetch('%VITE_SUPABASE_URL%/rest/v1/link_visits',{method:'POST',keepalive:true,credentials:'omit',headers:{apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({ref:r,path:(location.pathname||'/').slice(0,200),referrer:h.slice(0,200)||null,session_id:s})}).catch(function(){})}catch(e){}},0)}catch(e){}})();</script>
+    <script>/* Kring link-visit counter (supabase 0043_link_visits): 1 row per tab session per ?ref=, no cookies, no personal data */(function(){try{var r=(new URLSearchParams(location.search).get('ref')||'').toLowerCase();if(!/^[a-z0-9_-]{1,40}$/.test(r))r=null;var k='kr_lv:'+(r||''),s=null;try{if(sessionStorage.getItem(k))return;s=Math.random().toString(36).slice(2,12)||null;sessionStorage.setItem(k,s||'1')}catch(e){}var h='';try{h=document.referrer?new URL(document.referrer).host:''}catch(e){}var K='%VITE_SUPABASE_ANON_KEY%';setTimeout(function(){try{fetch('%VITE_SUPABASE_URL%/rest/v1/link_visits',{method:'POST',keepalive:true,credentials:'omit',headers:{apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({ref:r,path:(location.pathname||'/').slice(0,200),referrer:h.slice(0,200)||null,session_id:s})}).catch(function(){})}catch(e){}},0)}catch(e){}})();</script>
   </body>
 </html>

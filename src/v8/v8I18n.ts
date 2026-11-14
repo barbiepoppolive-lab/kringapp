@@ -406,8 +406,10 @@ export const V8_STRINGS: Record<V8Lang, V8Strings> = {
 export const THAI_CHAT_TRANSLATIONS: Record<string, string> = {
   'บ่ายสองว่างไหมคะ ร้านนี้อยู่ซอยอารีย์ 2 เดินจาก BTS 3 นาทีเอง':
     'Are you free at 2pm? It is on Ari Soi 2, 3 min walk from BTS.',
-  'สั่งลาเต้งาดำเผื่อไหมคะ':
-    'Should I order a black-sesame latte for you too?',
+  'ร้านอยู่ซอยอารีย์ 2 เดินจาก BTS 3 นาทีเอง':
+    'The café is on Ari Soi 2, a 3-minute walk from BTS.',
+  'โต๊ะใหญ่ริมหน้าต่างนั่งได้ 4 คนพอดี':
+    'The big window table fits all 4 of us.',
   'สวัสดีค่ะ ยินดีที่ได้รู้จักนะคะ':
     'Hello! Nice to meet you.',
   'สวัสดีครับ ยินดีที่ได้รู้จักครับ':

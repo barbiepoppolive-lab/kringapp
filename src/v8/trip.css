@@ -5,7 +5,7 @@
 .ktrip-trust { color: #3DDC97; font-weight: 700; font-size: 13px; white-space: nowrap; }
 .ktrip-disc { margin: 0 0 12px; padding: 9px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.04); color: rgba(255,255,255,.8); font-size: 12.5px; line-height: 1.4; }
 .ktrip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.ktrip-card { display: flex; flex-direction: column; gap: 3px; padding: 14px 12px 12px; border-radius: 20px; background: #1D1E52; border: 1px solid rgba(255,255,255,.1); min-width: 0; }
+.ktrip-card { display: flex; flex-direction: column; gap: 3px; padding: 14px 12px 12px; border-radius: 20px; background: #171520; border: 1px solid rgba(255,255,255,.1); min-width: 0; }
 .ktrip-kick { font-size: 10.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .ktrip-name { color: #fff; font-size: 15px; line-height: 1.25; }
 .ktrip-sub { color: rgba(255,255,255,.72); font-size: 12.5px; line-height: 1.3; flex: 1; }

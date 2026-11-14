@@ -1,4 +1,6 @@
 // line-auth core (T-205): LINE Login code → verified LINE id_token → Kring auth user → one-time sign-in token_hash.
+// LIFF (one-tap inside the LINE app): the app sends { liff_id_token } from liff.getIDToken(); LINE's verify endpoint checks
+// it against the same LINE Login channel the LIFF app belongs to, then the same user lookup / creation / token_hash runs.
 // Pure logic: the Deno entry (index.ts) passes in the env, the admin helpers and fetch, so this runs under vitest too.
 // Never logs or returns LINE tokens. The app turns token_hash into a normal Supabase session with verifyOtp.
 
@@ -28,9 +30,40 @@ export function placeholderEmail(sub: string): string {
   return `line_${sub.toLowerCase()}@users.kringapp.com`
 }
 
+type LineClaims = { iss?: string; aud?: string; sub?: string; name?: string; picture?: string; email?: string }
+const JWT = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*$/
+
+/** LINE checks the id_token signature, expiry and audience (and our nonce when one was sent). */
+async function verifyIdToken(idToken: string, channelId: string, nonce: string | null, fetchFn: typeof fetch): Promise<LineClaims | null> {
+  try {
+    const form: Record<string, string> = { id_token: idToken, client_id: channelId }
+    if (nonce) form.nonce = nonce
+    const r = await fetchFn('https://api.line.me/oauth2/v2.1/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(form).toString(),
+    })
+    const p = (await r.json().catch(() => ({}))) as LineClaims
+    if (!r.ok) return null
+    if (p.iss !== 'https://access.line.me' || p.aud !== channelId || typeof p.sub !== 'string' || !SUB.test(p.sub)) return null
+    return p
+  } catch {
+    return null
+  }
+}
+
 export async function lineAuth(raw: unknown, env: LineEnv, admin: LineAdmin, fetchFn: typeof fetch): Promise<LineResult> {
-  if (!env.channelId || !env.channelSecret) return fail(500, 'LINE_OFF')
+  if (!env.channelId) return fail(500, 'LINE_OFF')
   const b = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  // LIFF path: the LINE app already signed the member in; no code, no secret, no redirect
+  if ('liff_id_token' in b) {
+    const t = typeof b.liff_id_token === 'string' ? b.liff_id_token : ''
+    if (!t || t.length > 4096 || !JWT.test(t)) return fail(400, 'LINE_BAD_REQUEST')
+    const p = await verifyIdToken(t, env.channelId, null, fetchFn)
+    if (!p) return fail(401, 'LINE_VERIFY')
+    return signIn(p, admin)
+  }
+  if (!env.channelSecret) return fail(500, 'LINE_OFF')
   const code = typeof b.code === 'string' ? b.code : ''
   const redirect = typeof b.redirect_uri === 'string' ? b.redirect_uri : ''
   const verifier = typeof b.code_verifier === 'string' ? b.code_verifier : ''
@@ -55,20 +88,14 @@ export async function lineAuth(raw: unknown, env: LineEnv, admin: LineAdmin, fet
   }
 
   // 2. LINE checks the id_token signature, expiry, audience and our nonce
-  let p: { iss?: string; aud?: string; sub?: string; name?: string; picture?: string; email?: string }
-  try {
-    const r = await fetchFn('https://api.line.me/oauth2/v2.1/verify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ id_token: idToken, client_id: env.channelId, nonce }).toString(),
-    })
-    p = (await r.json().catch(() => ({}))) as typeof p
-    if (!r.ok) return fail(401, 'LINE_VERIFY')
-  } catch {
-    return fail(401, 'LINE_VERIFY')
-  }
-  if (p.iss !== 'https://access.line.me' || p.aud !== env.channelId || typeof p.sub !== 'string' || !SUB.test(p.sub)) return fail(401, 'LINE_VERIFY')
-  const sub = p.sub
+  const p = await verifyIdToken(idToken, env.channelId, nonce, fetchFn)
+  if (!p) return fail(401, 'LINE_VERIFY')
+  return signIn(p, admin)
+}
+
+/** Verified LINE claims → Kring user → one-time token_hash (shared by the web-login and LIFF paths). */
+async function signIn(p: LineClaims, admin: LineAdmin): Promise<LineResult> {
+  const sub = p.sub as string
   const name = (typeof p.name === 'string' ? p.name : '').trim().slice(0, 100)
   const picture = typeof p.picture === 'string' && /^https:\/\//.test(p.picture) && p.picture.length <= 500 ? p.picture : null
   const email = typeof p.email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email) ? p.email.trim().toLowerCase() : null

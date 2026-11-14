@@ -13,3 +13,10 @@
    Without `VITE_LINE_CHANNEL_ID` the LINE button is hidden and email stays the only way in.
 
 Undo: remove `VITE_LINE_CHANNEL_ID` from the build (button disappears); `supabase functions delete line-auth`; 0038 undo lines.
+
+## LIFF one-tap (added 13 Nov) — backward compatible
+The same function also accepts `{ liff_id_token }` (from `liff.getIDToken()` in the LIFF app of the same LINE Login
+channel). It is checked with `POST https://api.line.me/oauth2/v2.1/verify` (id_token + client_id = LINE_LOGIN_CHANNEL_ID),
+then the same user lookup / creation / token_hash runs. No new secret. The old `{ code, … }` body works as before.
+Redeploy: `supabase functions deploy line-auth --no-verify-jwt --project-ref pedxoxpammnyfnizljyj`
+(needs SUPABASE_ACCESS_TOKEN in the shell; never print it).

@@ -1,0 +1,24 @@
+/* Why post on Kring: Me-tab card (swipe row) + compact strip in the first-Reel nudge */
+.v8-app-root .pk-card { margin: 18px -14px 0; }
+.v8-app-root .kme .pk-card { margin-left: -14px; margin-right: -14px; }
+.v8-app-root .pk-h { margin: 0 16px 10px; font: 700 16px/1.25 'Anuphan', 'Bricolage Grotesque', sans-serif; color: #FFF7EC; }
+.v8-app-root .pk-h small { display: block; font: 500 12px/1.3 'Bricolage Grotesque', sans-serif; opacity: .6; letter-spacing: .02em; }
+.v8-app-root .pk-grid { list-style: none; margin: 0; padding: 2px 16px 6px; display: grid; grid-auto-flow: column; grid-auto-columns: 152px; gap: 10px;
+  overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 16px; scrollbar-width: none; }
+.v8-app-root .pk-grid::-webkit-scrollbar { display: none; }
+.v8-app-root .pk-grid li { scroll-snap-align: start; display: flex; flex-direction: column; gap: 8px; padding: 14px 13px 14px; border-radius: 20px;
+  background: linear-gradient(160deg, rgba(91,108,255,.16), rgba(255,79,163,.08) 70%), #1A1824; border: .5px solid rgba(255,247,236,.12); }
+.v8-app-root .pk-ic { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; flex: none;
+  background: linear-gradient(135deg, #FF4FA3, #8C95FF); box-shadow: 0 6px 16px rgba(255,79,163,.28); }
+.v8-app-root .pk-ic svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.v8-app-root .pk-grid b { font: 700 14.5px/1.25 'Anuphan', sans-serif; color: #FFF7EC; }
+.v8-app-root .pk-grid b small { display: block; font: 600 11.5px/1.3 'Bricolage Grotesque', sans-serif; color: #FF8CC6; margin-top: 1px; }
+.v8-app-root .pk-grid .ln { font: 500 12px/1.38 'Anuphan', sans-serif; color: #D9D4F2; }
+.v8-app-root .pk-grid .ln small { display: block; font: 500 11px/1.35 'Bricolage Grotesque', sans-serif; color: #8E8AC0; margin-top: 3px; }
+.pk-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 0 0 14px; }
+.pk-strip > span { display: grid; grid-template-columns: 26px 1fr; grid-template-rows: auto auto; column-gap: 7px; align-items: center; min-width: 0; padding: 7px 6px; border-radius: 14px;
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1); }
+.pk-strip .pk-ic { grid-row: 1 / 3; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, #FF4FA3, #8C95FF); }
+.pk-strip .pk-ic svg { width: 14px; height: 14px; fill: none; stroke: #fff; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.pk-strip b { font: 700 11.5px/1.2 'Anuphan', sans-serif; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pk-strip small { font: 500 9.5px/1.2 'Bricolage Grotesque', sans-serif; color: rgba(255,255,255,.62); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
