@@ -105,7 +105,7 @@ describe('compose: one screen after the clip is picked', () => {
     render(<GoCompose {...base} stage="uploading" progress={0.4} reel={reel} caption="" onCaption={vi.fn()} people={[]} onPost={onPost}
       places={[{ id: 'pl1', name_en: 'Talat Noi', name_th: null, area: 'Old Town', kr_area: 'Bangkok', photo_url: null, lat: 13.7, lng: 100.5 }]} />);
     expect((document.getElementById('shareNowBtn') as HTMLButtonElement).disabled).toBe(true);
-    expect(document.getElementById('reelProgress')!.textContent).toBe('Uploading');
+    expect(document.getElementById('reelProgress')!.textContent).toBe('Uploading · 40%');
   });
   it('tag people: search, pick, at most 5, Done returns the list', async () => {
     const load = vi.fn().mockResolvedValue([1, 2, 3, 4, 5, 6].map((n) => person(n)));

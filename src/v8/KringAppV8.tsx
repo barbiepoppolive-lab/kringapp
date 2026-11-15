@@ -2743,6 +2743,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     switch (code) {
       case 'TOO_SHORT': return L('Reel is too short · 5–60 seconds');
       case 'TOO_LONG': return both('Clip is over 60 s · trim it and try again');
+      case 'INTERRUPTED': return both('The screen closed while your Reel was being prepared, so nothing was uploaded. Tap Post again and keep this screen open.');
       case 'EMPTY': return both('This file is empty (0 KB). Save the clip to your phone first, then pick it again.');
       case 'HEVC': return both('This clip is HEVC (High efficiency video), which this browser can’t open. Fix: Camera settings → turn off “High efficiency video” and film again, or send the clip to yourself in LINE and pick that copy.');
       case 'NOT_VERTICAL': return L('Please use a vertical (9:16) video');

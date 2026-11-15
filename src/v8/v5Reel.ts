@@ -18,7 +18,7 @@ const OUT_W = 720;
 const OUT_H = 1280;
 const META_TIMEOUT_MS = 12000;
 
-export type ReelProblem = 'NOT_VIDEO' | 'TOO_SHORT' | 'TOO_LONG' | 'NOT_VERTICAL' | 'TOO_BIG' | 'UNREADABLE' | 'EMPTY' | 'HEVC';
+export type ReelProblem = 'NOT_VIDEO' | 'TOO_SHORT' | 'TOO_LONG' | 'NOT_VERTICAL' | 'TOO_BIG' | 'UNREADABLE' | 'EMPTY' | 'HEVC' | 'INTERRUPTED';
 export class ReelError extends Error {
   constructor(public code: ReelProblem | 'UPLOAD' | 'SIGN_IN') { super(code); }
 }
@@ -181,21 +181,40 @@ export async function prepareReel(info: ReelInfo, ac: AudioContext | null, onPro
       raf = requestAnimationFrame(paint);
     };
     drawCover(ctx, v, OUT_W, OUT_H);
+    // O (15 Nov): the phone locking or switching to LINE mid-recording used to upload a cut-short clip. Now it stops and asks.
+    let hidden = false;
+    const onHide = () => { if (document.hidden) { hidden = true; v.pause(); v.dispatchEvent(new Event('ended')); } };
+    document.addEventListener('visibilitychange', onHide);
     rec.start(1000);
-    await v.play();
-    paint();
-    await new Promise<void>((r) => { v.onended = () => r(); setTimeout(r, info.durationMs + 4000); });
-    cancelAnimationFrame(raf);
-    rec.stop();
-    await done;
-    stream.getTracks().forEach((t) => t.stop());
+    try {
+      await v.play();
+      paint();
+      await new Promise<void>((r) => { v.onended = () => r(); v.addEventListener('ended', () => r(), { once: true }); setTimeout(r, info.durationMs + 4000); });
+    } finally {
+      document.removeEventListener('visibilitychange', onHide);
+      cancelAnimationFrame(raf);
+      rec.stop();
+      await done;
+      stream.getTracks().forEach((t) => t.stop());
+    }
+    const recordedMs = Math.round(v.currentTime * 1000);
+    const whole = !hidden && (v.ended || recordedMs >= info.durationMs - 500);
+    if (!whole) {
+      // never upload a shortened clip: use the original if it is small enough, otherwise ask to try again
+      if (info.file.size <= REEL_MAX_BYTES) return original();
+      throw new ReelError('INTERRUPTED');
+    }
     const blob = new Blob(parts, { type: mime.split(';')[0] });
     onProgress(1);
     if (blob.size < 20_000 || blob.size > REEL_MAX_BYTES) return original();
+    // the recorded file must be as long as the original (±0.5 s) when its header says how long it is
+    const head = blob.type.includes('mp4') ? await probeMp4(blob) : null;
+    if (head?.durationMs && Math.abs(head.durationMs - info.durationMs) > 500) return original();
     // keep whichever is smaller (a small original upload is already fast)
     if (info.file.size <= blob.size && info.file.size <= REEL_MAX_BYTES && /mp4|quicktime/i.test(info.file.type)) return original();
     return { blob, mime: blob.type, ext: blob.type.includes('webm') ? 'webm' : 'mp4', poster, durationMs: info.durationMs, width: OUT_W, height: OUT_H, shrunk: true };
-  } catch {
+  } catch (e) {
+    if (e instanceof ReelError && e.code === 'INTERRUPTED') throw e;
     return original();
   }
 }

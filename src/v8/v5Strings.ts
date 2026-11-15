@@ -2302,6 +2302,8 @@ export const KX_L: Record<string, Record<string, string>> = {
     'Install': 'ติดตั้ง',
     'Later': 'ไว้ทีหลัง',
     'The home-screen app keeps its own sign-in: sign in once more there with your email code.': 'แอปบนหน้าจอโฮมแยกการล็อกอินของตัวเอง: เข้าสู่ระบบอีกครั้งด้วยรหัสทางอีเมล',
+    'Keep this screen open until done': 'เปิดหน้านี้ค้างไว้จนเสร็จ',
+    'The screen closed while your Reel was being prepared, so nothing was uploaded. Tap Post again and keep this screen open.': 'หน้าจอถูกปิดระหว่างเตรียมรีล จึงยังไม่ได้อัปโหลด · กดโพสต์อีกครั้ง และเปิดหน้านี้ค้างไว้จนเสร็จ',
     'Close your eyes fully, then open them': 'หลับตาให้สนิท แล้วค่อยลืมตา',
     'This file is empty (0 KB). Save the clip to your phone first, then pick it again.': 'ไฟล์นี้ว่างเปล่า (0 KB) · บันทึกคลิปลงเครื่องก่อน แล้วเลือกใหม่อีกครั้ง',
     // 15 Nov: add a place that isn't on Kring yet (0054)

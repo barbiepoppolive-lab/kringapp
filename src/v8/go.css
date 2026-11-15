@@ -251,3 +251,6 @@
 .v8-app-root .bub.go-trb:focus-visible { outline: 2px solid rgba(63,240,255,.6); outline-offset: 2px; }
 .v8-app-root .bub .go-tri { position: absolute; right: 10px; bottom: 11px; width: 11px; height: 11px; opacity: .45; transition: opacity .15s, color .15s; }
 .v8-app-root .bub .go-tri.on { opacity: 1; color: #3ff0ff; }
+/* O (15 Nov): keep the screen open while the Reel is prepared */
+.v8-app-root .go-keep { margin: 8px 0 0; text-align: center; font-size: 13px; font-weight: 800; color: #ffd36b; display: flex; flex-direction: column; gap: 1px; }
+.v8-app-root .go-keep small { font-size: 11.5px; font-weight: 600; opacity: .8; }

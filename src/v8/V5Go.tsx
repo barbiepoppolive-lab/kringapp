@@ -423,8 +423,9 @@ export function GoCompose(props: {
       </button>
       {props.problem ? <div className="go-problem" id="reelProblem" role="alert">{props.problem}</div> : null}
       {busy ? (
-        <div className="go-progress" id="reelProgress"><span>{props.stage === 'preparing' ? L('Preparing your Reel') : props.stage === 'uploading' ? L('Uploading') : L('Saving')}</span><i style={{ width: `${Math.round(props.progress * 100)}%` }} /></div>
+        <div className="go-progress" id="reelProgress"><span>{props.stage === 'preparing' ? L('Preparing your Reel') : props.stage === 'uploading' ? L('Uploading') : L('Saving')} · {Math.round(props.progress * 100)}%</span><i style={{ width: `${Math.round(props.progress * 100)}%` }} /></div>
       ) : null}
+      {busy ? <p className="go-keep" id="reelKeepOpen">{L('Keep this screen open until done')}{props.lang === 'th' ? <small>Keep this screen open until done</small> : null}</p> : null}
       <div className="go-foot"><button type="button" className="go-btn" id="shareNowBtn" disabled={busy} onClick={post}>{props.stage === 'failed' ? L('Retry') : L('Post')}</button></div>
       {picker ? <PeoplePicker L={L} picked={props.people} load={props.loadPeople} onClose={() => setPicker(false)} onDone={(l) => { props.onPeople(l); setPicker(false); }} /> : null}
     </div>
