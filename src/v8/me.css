@@ -226,3 +226,6 @@
 .v8-app-root .kme-ladder b { font: 800 14px/1.2 'Bricolage Grotesque', sans-serif; color: #FFF7EC; }
 .v8-app-root .kme-ladder .tot { grid-column: 1 / -1; text-align: center; font-size: 11.5px; font-weight: 600; opacity: .7; margin-top: 2px; }
 .v8-app-root .kme-voucher { display: flex; align-items: center; gap: 8px; margin: 14px 4px 0; padding: 9px 12px; border-radius: 14px; background: rgba(255,247,236,.07); font-size: 12.5px; font-weight: 700; color: #FFF7EC; }
+/* K (15 Nov): blink step hint + Retry after 6 s */
+.v8-app-root .kfv-hint { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 0 0 8px; font-size: 14px; font-weight: 700; color: #FFD36B; }
+.v8-app-root .kfv-hint button { height: 34px; padding: 0 14px; border-radius: 17px; border: 0; background: rgba(255,255,255,.14); color: #fff; font: inherit; }

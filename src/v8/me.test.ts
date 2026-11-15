@@ -76,3 +76,32 @@ describe('Me tab helpers', () => {
     expect(untilWinners(Date.parse('2026-11-10T23:59:00+07:00'))).toBe('0h 01m');
   });
 });
+
+// K (15 Nov, member #16): monolid eyes, indoor light, eyes closed "for one second" did not register
+describe('blink step · small eyes and a slow, held closure', () => {
+  const ss = (yaw: number, ear: number, t: number): FaceSample => ({ found: true, yaw, ear, size: 0.3, centered: true, t });
+  const lead: FaceSample[] = [0.5, 0.5, 0.5, 0.5, 0.72, 0.72, 0.28, 0.28].map((y, i) => ss(y, 0.3, 1000 + i * 120));
+  const blinkFrames = (ears: number[], t0 = 3000, dt = 70) => ears.map((e, i) => ss(0.5, e, t0 + i * dt));
+  const runK = (f: FaceSample[]) => [...lead, ...f].reduce(liveNext, LIVE_START);
+  it('slow monolid closure (0.20 → 0.14 over ~1 s, eyes kept shut) passes on the hold', () => {
+    const ears = [0.2, 0.2, 0.198, 0.19, 0.18, 0.17, 0.16, 0.15, 0.145, 0.14, 0.14, 0.14, 0.14, 0.14];
+    const st = runK(blinkFrames(ears));
+    expect(st.step).toBe('done');
+    expect(st.blink).toBe(true);
+  });
+  it('the old rule missed it: the open level followed the eyes down (regression guard)', () => {
+    // same sequence at 3 frames a second still passes
+    const st = runK(blinkFrames([0.2, 0.19, 0.17, 0.15, 0.14, 0.14, 0.14], 3000, 330));
+    expect(st.blink).toBe(true);
+  });
+  it('open-eye jitter (±6 %) for 6 s does not pass as a blink', () => {
+    const ears = Array.from({ length: 85 }, (_, i) => 0.2 * (1 + 0.06 * Math.sin(i * 1.7)));
+    const st = runK(blinkFrames(ears));
+    expect(st.step).toBe('blink');
+    expect(st.blink).toBe(false);
+  });
+  it('the head turns still have to happen first', () => {
+    const st = [ss(0.5, 0.3, 0), ss(0.5, 0.3, 100), ss(0.5, 0.3, 200), ss(0.5, 0.3, 300), ...blinkFrames([0.3, 0.1, 0.1, 0.1, 0.3])].reduce(liveNext, LIVE_START);
+    expect(st.step).toBe('left');
+  });
+});

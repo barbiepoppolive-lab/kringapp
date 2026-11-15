@@ -4,7 +4,7 @@
  * to the team → "We check within 24 hours". Skippable; the Me tab keeps a reminder.
  */
 import { useEffect, useRef, useState } from 'react';
-import { FACE_CONSENT_VERSION, LIVE_START, faceDescriptor, faceDistance, grabFrame, liveNext, loadFaceApi, loadImage, sampleFace } from './v5Face';
+import { BLINK_HINT_MS, FACE_CONSENT_VERSION, LIVE_START, blinkRetry, faceDescriptor, faceDistance, grabFrame, liveNext, loadFaceApi, loadImage, sampleFace } from './v5Face';
 import type { FaceSample, LiveState, LiveStep } from './v5Face';
 import { v5RequestVerification } from './v5Live';
 
@@ -26,6 +26,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; onClose: () 
   const [stage, setStage] = useState<Stage>(props.photo ? 'intro' : 'needphoto');
   const [agree, setAgree] = useState(false);
   const [live, setLive] = useState<LiveState>(LIVE_START);
+  const retryRef = useRef(false);   // K: blink step Retry
   const [err, setErr] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -76,6 +77,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; onClose: () 
       const raw = feed && feed.length ? (feed.shift() as FaceSample) : v.readyState >= 2 ? await sampleFace(v, fast ? 224 : 320).catch(() => null) : null;
       const f = raw ? { ...raw, t: raw.t ?? Date.now() } : null;
       if (f && import.meta.env.VITE_FACE_TEST === '1') (window as unknown as { __kr8FaceLast?: FaceSample }).__kr8FaceLast = f;
+      if (retryRef.current) { retryRef.current = false; state = blinkRetry(state, f?.t ?? Date.now()); setLive(state); }
       if (f) {
         const before = state.step;
         state = liveNext(state, f);
@@ -165,6 +167,12 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; onClose: () 
             {stage === 'camera' && live.step === 'blink' && <span className="kfv-eye" aria-hidden="true"><i /></span>}
             {stage === 'camera' ? L(STEP_TEXT[live.step]) : ''}
           </p>
+          {stage === 'camera' && live.step === 'blink' && live.blinkAt && Date.now() - live.blinkAt > BLINK_HINT_MS ? (
+            <div className="kfv-hint" id="verifyBlinkHint" role="status">
+              <span>{L('Close your eyes fully, then open them')}</span>
+              <button type="button" id="verifyBlinkRetry" onClick={() => { retryRef.current = true; }}>{L('Retry')}</button>
+            </div>
+          ) : null}
           <div className="kfv-dots">{steps.map((k) => <i key={k} className={live[k as 'straight'] ? 'on' : live.step === k ? 'now' : ''} />)}</div>
         </>
       )}

@@ -100,13 +100,25 @@ export interface LiveState {
   step: LiveStep; straight: boolean; left: boolean; right: boolean; blink: boolean; openEar: number; frames: number; closed: boolean;
   /** blink step: time of its first frame, straight-face frames seen, frames with the eyes shut */
   blinkAt: number; still: number; shut: number;
+  /** blink step: shut frames in a row and when that run started (for the short "hold") */
+  shutRun: number; shutAt: number;
 }
-export const LIVE_START: LiveState = { step: 'straight', straight: false, left: false, right: false, blink: false, openEar: 0, frames: 0, closed: false, blinkAt: 0, still: 0, shut: 0 };
+export const LIVE_START: LiveState = { step: 'straight', straight: false, left: false, right: false, blink: false, openEar: 0, frames: 0, closed: false, blinkAt: 0, still: 0, shut: 0, shutRun: 0, shutAt: 0 };
 
-/** Eyes count as shut below 72 % of the open baseline and as open again above 82 % (small eyes, glasses, side light). */
-export const EYE_SHUT = 0.72, EYE_OPEN = 0.82;
+/**
+ * K (15 Nov, member #16, monolid eyes, indoor light): eyes count as shut below 76 % of the member's OWN open-eye level in
+ * the blink step, and as open again above 82 %. The open level is measured in the blink step itself (it reads frames at a
+ * different size than the straight step) and only rises quickly / sinks very slowly, so a slow, deliberate eye closure is
+ * no longer absorbed into it (that was the bug: the old average followed the eyes down). A short hold (350 ms, or 3 shut
+ * frames in a row) counts, as does a normal blink (shut, then open).
+ */
+export const EYE_SHUT = 0.76, EYE_OPEN = 0.82, EYE_HOLD_MS = 350, EYE_HOLD_FRAMES = 3;
+/** After this many ms in the blink step without success the screen shows "close your eyes fully, then open them" + Retry. */
+export const BLINK_HINT_MS = 6000;
 /** After this long in the blink step with a straight, centred face, the check moves on; the team sees whether a blink was seen. */
 export const BLINK_FALLBACK_MS = 20000;
+/** Retry button in the blink step: measure the open-eye level again from the next frame. */
+export const blinkRetry = (s: LiveState, now: number): LiveState => ({ ...s, openEar: 0, closed: false, shutRun: 0, shutAt: 0, blinkAt: s.step === 'blink' ? now : s.blinkAt });
 
 /** Pure step machine, fed one sample per frame. Turning "left" = the member's own left (nose towards the image's right). */
 export function liveNext(s: LiveState, f: FaceSample): LiveState {
@@ -124,16 +136,26 @@ export function liveNext(s: LiveState, f: FaceSample): LiveState {
       if (f.yaw > 0.66) { n.frames = s.frames + 1; if (n.frames >= 2) Object.assign(n, { left: true, step: 'right', frames: 0 }); } else n.frames = 0;
       return n;
     case 'right':
-      if (f.yaw < 0.34) { n.frames = s.frames + 1; if (n.frames >= 2) Object.assign(n, { right: true, step: 'blink', frames: 0 }); } else n.frames = 0;
+      if (f.yaw < 0.34) { n.frames = s.frames + 1; if (n.frames >= 2) Object.assign(n, { right: true, step: 'blink', frames: 0, openEar: 0, closed: false, shutRun: 0, shutAt: 0 }); } else n.frames = 0;
       return n;
     case 'blink': {
       if (f.t !== undefined && !s.blinkAt) n.blinkAt = f.t;
       if (Math.abs(f.yaw - 0.5) > 0.2) return n;                  // look back at the camera first
-      const open = s.openEar || f.ear;
       if (f.centered && Math.abs(f.yaw - 0.5) < 0.16) n.still = s.still + 1;
-      if (f.ear < open * EYE_SHUT) { n.closed = true; n.shut = s.shut + 1; }        // eyes shut…
-      else if (s.closed && f.ear > open * EYE_OPEN) return Object.assign(n, { blink: true, step: 'done' as LiveStep });   // …and open again
-      else if (!s.closed) n.openEar = open * 0.9 + f.ear * 0.1;
+      if (!s.openEar) { n.openEar = f.ear; return n; }           // first facing frame = this member's open-eye level
+      const open = s.openEar;
+      const done = (): LiveState => Object.assign(n, { blink: true, step: 'done' as LiveStep });
+      if (f.ear < open * EYE_SHUT) {                              // eyes shut…
+        n.shut = s.shut + 1; n.closed = true; n.shutRun = s.shutRun + 1;
+        n.shutAt = s.shutRun ? s.shutAt : f.t ?? 0;
+        const held = f.t !== undefined && s.shutRun > 0 && f.t - n.shutAt >= EYE_HOLD_MS;
+        if (held || n.shutRun >= EYE_HOLD_FRAMES) return done();  // …and held for a moment
+      } else {
+        n.shutRun = 0; n.shutAt = 0;
+        if (s.closed && f.ear > open * EYE_OPEN) return done();   // …or a normal blink: shut, then open again
+        if (s.closed && f.ear <= open * EYE_OPEN) { /* half open: keep waiting, do not move the open level */ }
+        else n.openEar = f.ear > open ? open * 0.6 + f.ear * 0.4 : open * 0.995 + f.ear * 0.005;   // rises fast, sinks very slowly
+      }
       // fallback: 20 s facing the camera without a clean shut → open; two shut frames still count as a blink
       if (f.t !== undefined && n.blinkAt && f.t - n.blinkAt >= BLINK_FALLBACK_MS && n.still >= 4) Object.assign(n, { blink: n.shut >= 2, step: 'done' as LiveStep });
       return n;
