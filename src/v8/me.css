@@ -241,3 +241,12 @@
 .v8-app-root .kme-list .li .who .n { display: flex; flex-direction: column; gap: 2px; }
 .v8-app-root .kme-list .li.new { background: rgba(115,129,255,.08) !important; border-radius: 12px; }
 .v8-app-root .kme-list .li .thumb { flex: none; width: 40px; height: 52px; border-radius: 8px; background-size: cover; background-position: center; }
+
+/* 15 Nov overflow guards */
+.v8-app-root .kme-list .li .who .n { min-width: 0; overflow-wrap: anywhere; }
+/* 15 Nov: Install app button in the Me header */
+.v8-app-root .kme-top { gap: 8px; }
+.v8-app-root .kme-top .cap { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v8-app-root .kp-me-head { gap: 8px; }
+.v8-app-root .kme-top .cap { letter-spacing: .12em; }
+@media (max-width: 359px) { .v8-app-root .a2s-chip { padding: 0 9px 0 8px; font-size: 11.5px; } }

@@ -254,3 +254,11 @@
 /* O (15 Nov): keep the screen open while the Reel is prepared */
 .v8-app-root .go-keep { margin: 8px 0 0; text-align: center; font-size: 13px; font-weight: 800; color: #ffd36b; display: flex; flex-direction: column; gap: 1px; }
 .v8-app-root .go-keep small { font-size: 11.5px; font-weight: 600; opacity: .8; }
+
+/* 15 Nov overflow guards */
+.v8-app-root .go-cchip { min-width: 0; flex: 0 1 auto; }
+.v8-app-root .go-crow .ct small { white-space: normal; overflow-wrap: anywhere; }
+/* 15 Nov: full-screen player text block and rail anchored to the bottom, level with each other */
+.v8-app-root .go-meta { bottom: max(16px, calc(env(safe-area-inset-bottom) + 12px)); }
+.v8-app-root .go-rail { bottom: max(16px, calc(env(safe-area-inset-bottom) + 12px)); }
+.v8-app-root .go-grad { background: linear-gradient(180deg, rgba(0,0,0,.36) 0, transparent 14%, transparent 64%, rgba(4,3,10,.86) 100%); }

@@ -668,3 +668,15 @@
 .v8-app-root .kx-prog-t { position: relative; height: 4px; border-radius: 2px; background: rgba(255,255,255,.18); overflow: hidden; }
 .v8-app-root .kx-prog-t > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: linear-gradient(90deg, var(--kx-cy), var(--kx-pk)); box-shadow: 0 0 8px rgba(63,240,255,.7); }
 .v8-app-root .kx-res-card .kx-prog { display: none; }
+
+/* 15 Nov overflow guards (found by tools/overflow_audit.py: th/en/zh/hi/ja/ko × 320–412 px × text 100–130 %).
+   Rule: text in a tile, chip, card header or button wraps, clamps with … or shrinks; it never runs outside its box. */
+.v8-app-root .kx-tiles .kx-mtile b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .kx-tiles .kx-mtile span { white-space: normal; flex-wrap: wrap; row-gap: 0; overflow-wrap: anywhere; max-width: 100%; line-height: 1.3; }
+.v8-app-root .kx-fc .h { flex-direction: column; align-items: flex-start; gap: 3px; }
+.v8-app-root .kx-fc .h b, .v8-app-root .kx-fc .h span { white-space: normal; overflow-wrap: anywhere; max-width: 100%; }
+.v8-app-root .kx-pill span { min-width: 0; white-space: nowrap; }
+.v8-app-root .kx-prog-l > span { min-width: 0; flex: 1; white-space: normal; overflow-wrap: anywhere; line-height: 1.3; }
+.v8-app-root .kx-prow .t > span > em, .v8-app-root .kx-prow .t > span > i { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v8-app-root .kx-rk .kx-div { height: auto; min-height: 34px; }
+.v8-app-root .kx-rk .kx-div span, .v8-app-root .kx-div span { white-space: normal; text-align: center; max-width: calc(100% - 24px); flex-wrap: wrap; justify-content: center; line-height: 1.35; }

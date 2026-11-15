@@ -3556,3 +3556,17 @@
 .v8-app-root .go-meta .reel-cap.open .reel-cap-t { display: block; max-height: 40vh; overflow-y: auto; }
 .v8-app-root .go-meta .reel-cap .go-h0, .v8-app-root .go-meta .reel-cap .go-h1 { color: rgba(255,247,236,.58); font-weight: 600; }
 .v8-app-root .go-meta .reel-more { padding: 0; border: 0; background: none; color: rgba(255,247,236,.75); font: inherit; font-size: 13px; font-weight: 700; }
+
+/* 15 Nov overflow guards */
+.v8-app-root .pcard .info { min-width: 0; overflow: hidden; }
+.v8-app-root .pcard .hook { max-width: 100%; }
+
+/* 15 Nov (founder): feed top = weather + chat only, small and quiet; the Reel text block sits at the bottom,
+   its last line ~12px above the tab bar, the right rail's last button level with it. */
+.v8-app-root #s-feed .spill.kp-wx { top: calc(env(safe-area-inset-top) + 12px); right: 54px; height: 32px; padding: 0 10px; font-size: 12px;
+  background: rgba(14,12,22,.32); border: 1px solid rgba(255,247,236,.1); box-shadow: none; backdrop-filter: blur(8px); color: rgba(255,247,236,.86); }
+.v8-app-root .chat-fab { top: calc(env(safe-area-inset-top) + 12px); right: 12px; width: 34px; height: 34px; background: rgba(14,12,22,.32); border-color: rgba(255,247,236,.1); backdrop-filter: blur(8px); }
+.v8-app-root .chat-fab svg { width: 17px; height: 17px; }
+.v8-app-root .slide.has-reel .reel-meta { bottom: 12px; }
+.v8-app-root .slide.has-reel .rails { bottom: 12px; }
+.v8-app-root .slide.has-reel .scrim { background: linear-gradient(180deg, rgba(11,10,18,.3) 0%, rgba(11,10,18,0) 12%, rgba(11,10,18,0) 66%, rgba(11,10,18,.82) 100%); }
