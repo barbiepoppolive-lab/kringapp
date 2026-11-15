@@ -38,8 +38,6 @@ window.__krOK=1;
  else{var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:0});var hr=function(){rv.forEach(function(e){if(e.closest('.hero'))e.classList.add('in')})};if(D.documentElement.classList.contains('opon'))addEventListener('kr:opdone',hr,{once:true});else hr();rv.forEach(function(e){if(!e.closest('.hero'))io.observe(e)})}
  // card sheen and the Reels strip only move while their panel is on screen
  var cp2=D.querySelector('.cardp');if(cp2){if('IntersectionObserver' in window)new IntersectionObserver(function(es){es.forEach(function(e){cp2.classList.toggle('live',e.isIntersecting)})},{rootMargin:'10% 0px'}).observe(cp2);else cp2.classList.add('live')}
- // chat bubbles on the talk panel arrive one by one
- var ch2=D.getElementById('chat');if(ch2){if(RM||!('IntersectionObserver' in window))ch2.classList.add('in');else new IntersectionObserver(function(es,o){es.forEach(function(e){if(e.isIntersecting){ch2.classList.add('in');o.disconnect()}})},{threshold:.4}).observe(ch2)}
  // count-up for Rings on the example board
  function cu(el){var to=+el.getAttribute('data-n');if(RM||!to){el.textContent=to.toLocaleString('en-US');return}var t0=0,d=1100;
   requestAnimationFrame(function st(t){if(!t0)t0=t;var p=Math.min(1,(t-t0)/d);el.textContent=Math.round(to*(1-Math.pow(1-p,3))).toLocaleString('en-US');if(p<1)requestAnimationFrame(st)})}
