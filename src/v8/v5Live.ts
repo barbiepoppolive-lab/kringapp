@@ -272,7 +272,7 @@ export const v5SaveCard = async (c: { first_name: string; langs: string[]; bio: 
   return me;
 };
 /** Locals-board rewards start (kr8_settings.reward_start_at, D-11NOV-G). Internal date; read once per session. */
-export const V5_REWARD_START_FALLBACK = Date.parse('2026-12-01T00:00:00+07:00');
+export const V5_REWARD_START_FALLBACK = Date.parse('2026-11-17T00:00:00+07:00');   // Q: matches kr8_settings.reward_start_at (17 Nov 2026)
 let rewardStartP: Promise<number> | null = null;
 export function v5RewardStart(): Promise<number> {
   if (!rewardStartP) {

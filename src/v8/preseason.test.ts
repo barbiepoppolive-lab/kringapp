@@ -34,3 +34,8 @@ describe('recruiter checklist CSV', () => {
     expect(csv).toContain(`"'=HYPERLINK(""x"")"`);
   });
 });
+
+import { V5_REWARD_START_FALLBACK } from './v5Live';
+describe('Q · fallback reward start matches kr8_settings.reward_start_at', () => {
+  it('17 Nov 2026, 00:00 Bangkok', () => expect(V5_REWARD_START_FALLBACK).toBe(Date.parse('2026-11-17T00:00:00+07:00')));
+});
