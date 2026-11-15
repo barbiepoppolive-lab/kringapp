@@ -1,7 +1,8 @@
 /* Go-live build (15 Nov 2026): prototype look for the player, profile grid, compose, coach marks, People and Deals. */
 .v8-app-root { --go-ez: cubic-bezier(.2,.8,.2,1); --go-gd: #ffd36b; --go-gd2: #ff9d4d; --go-gn: #19c463; --go-mu: #8d89a6; --go-sf: #14111f; --go-sf2: #1c1830; --go-ln: rgba(255,255,255,.1); }
 .v8-app-root .go-page, .v8-app-root .go-player, .v8-app-root .go-sheet, .v8-app-root .go-coach { font-family: var(--kx-j); color: #fff; }
-.v8-app-root .go-page button, .v8-app-root .go-player button, .v8-app-root .go-sheet button, .v8-app-root .go-me button { font-family: inherit; color: inherit; border: 0; background: none; cursor: pointer; touch-action: manipulation; }
+/* :where() keeps this reset weaker than the component classes below (it was hiding the gradient on Post / Follow / Done) */
+.v8-app-root :where(.go-page, .go-player, .go-sheet, .go-me) button { font-family: inherit; color: inherit; border: 0; background: none; cursor: pointer; touch-action: manipulation; }
 .v8-app-root .go-page { position: absolute; inset: 0; z-index: 46; overflow-y: auto; overflow-x: hidden; background: var(--kx-bg, #07060d); padding: max(18px, env(safe-area-inset-top)) 16px 110px; animation: go-pin .28s var(--go-ez); scrollbar-width: none; }
 .v8-app-root .go-page::-webkit-scrollbar, .v8-app-root .go-feed::-webkit-scrollbar, .v8-app-root .go-hrow::-webkit-scrollbar, .v8-app-root .go-fch::-webkit-scrollbar { display: none; }
 @keyframes go-pin { from { transform: translateX(100%); } to { transform: none; } }
@@ -87,7 +88,16 @@
 .v8-app-root .go-ptop { display: flex; gap: 14px; align-items: stretch; margin-top: 8px; }
 .v8-app-root .go-pcard { width: 46%; flex: none; }
 .v8-app-root .go-pcard .kx-mecard { margin: 0; padding: 0; }
-.v8-app-root .go-pcard .kx-n2 { width: 100%; font-size: 9px; }
+.v8-app-root .go-pcard .kx-n2 { width: 100%; border-width: 2.5px; border-radius: 18px; }
+.v8-app-root .go-pcard .kx-n2-top { top: 8px; left: 8px; right: 8px; }
+.v8-app-root .go-pcard .kx-lv { font-size: 7.5px; padding: 4px 6px; border-width: 1.5px; letter-spacing: .06em; }
+.v8-app-root .go-pcard .kx-id { font-size: 8px; padding: 4px 5px; letter-spacing: .08em; }
+.v8-app-root .go-pcard .kx-n2-b { left: 10px; right: 10px; bottom: 10px; }
+.v8-app-root .go-pcard .kx-nm { font-size: 15px; }
+.v8-app-root .go-pcard .kx-sub { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .go-pcard .kx-bar, .v8-app-root .go-pcard .kx-pts, .v8-app-root .go-pcard .kx-links { display: none; }
+.v8-app-root .go-pinfo .kx-links { margin: 0; }
+.v8-app-root .go-pcard .kx-fl { font-size: 7px; padding: 3px 6px; }
 .v8-app-root .go-pinfo { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; padding: 4px 0; }
 .v8-app-root .go-pname { font: 800 22px var(--kx-u); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .v8-app-root .go-pname i { font-style: normal; color: var(--kx-cy); font-size: 14px; margin-left: 6px; }
@@ -204,3 +214,10 @@
 .v8-app-root .go-sib.mail { background: var(--go-sf2); color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); }
 .v8-app-root .go-sib svg { width: 18px; height: 18px; flex: none; }
 @media (prefers-reduced-motion: reduce) { .v8-app-root .go-page, .v8-app-root .go-player, .v8-app-root .go-sheet, .v8-app-root .go-gt, .v8-app-root .go-hole, .v8-app-root .go-bub { animation: none !important; } }
+
+/* People tab: neon cards like the prototype (pink = Kring Local, cyan = traveller) */
+.v8-app-root #pplGrid .pcard { border: 2.5px solid var(--kx-pk); border-radius: 20px; box-shadow: 0 0 16px rgba(255,79,216,.45), inset 0 0 14px rgba(255,79,216,.25); animation: go-gin .35s var(--go-ez) backwards; }
+.v8-app-root #pplGrid .pcard[data-who="traveller"] { border-color: var(--kx-cy); box-shadow: 0 0 16px rgba(63,240,255,.45), inset 0 0 14px rgba(63,240,255,.22); }
+.v8-app-root #pplGrid .pcard .nm { font-family: var(--kx-u); font-weight: 700; text-shadow: 0 0 10px rgba(255,79,216,.8); }
+.v8-app-root .kx-tix .code.link { font-family: var(--kx-j); font-size: 14px; letter-spacing: 0; line-height: 1.25; }
+.v8-app-root .kx-tix .code.link small { display: block; font-size: 11px; opacity: .7; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

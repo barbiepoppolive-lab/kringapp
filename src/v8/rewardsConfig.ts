@@ -56,6 +56,8 @@ export const RINGS = {
   /** FOUNDER DECISION: prizes only pay in weeks with at least this many members on the board (0 = always). */
   min_posters_for_payout: 0,
   shopeepay_on: 0,
+  /** Share of a prize that lands when it is taken as TrueMoney (75 = cash-card stock that loses 25% on top-up; 100 = full value). */
+  truemoney_payout_pct: 75,
   founding_on: 1,
   founding_slots: 50,
   founding_thb: 100,

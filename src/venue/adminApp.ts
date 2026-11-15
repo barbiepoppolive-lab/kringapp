@@ -1403,7 +1403,9 @@ async function historyView(kind: string) {
 type StockRow = { brand: 'grab' | 'shopeepay' | 'truemoney'; amount_thb: number; available: number; held: number; given_7d: number };
 const BRANDN: Record<string, string> = { grab: 'Grab', shopeepay: 'ShopeePay', truemoney: 'TrueMoney' };
 export function parseCodes(txt: string): string[] {
-  return [...new Set(txt.split(/[\n,;]+/).map((x) => x.trim()).filter((x) => x.length >= 4 && x.length <= 200))];
+  // redeem links (TrueMoney vouchers arrive as https links) are kept whole: one per line
+  const parts = /https:\/\//i.test(txt) ? txt.split(/[\n\r]+|\s+(?=https:\/\/)/) : txt.split(/[\n,;]+/);
+  return [...new Set(parts.map((x) => x.trim()).filter((x) => x.length >= 4 && x.length <= 200))];
 }
 async function codesView() {
   const body = el('div', {}, loading());
@@ -1422,7 +1424,7 @@ async function codesView() {
     const brand = el('select', { id: 'codeBrand' }, ...(brands.length ? brands : ['grab', 'truemoney']).map((b) => el('option', { value: b }, BRANDN[b])));
     const amount = el('select', { id: 'codeAmount' }, ...(amounts.length ? amounts : [1500, 900, 600, 500, 400, 250, 150, 100]).map((a) => el('option', { value: String(a) }, `Prize ฿${a.toLocaleString('en-US')}`)));
     const url = el('input', { id: 'codeUrl', placeholder: 'Activation link (optional, https://…)' });
-    const area = el('textarea', { id: 'codeList', rows: '6', placeholder: 'Paste codes, one per line' }) as HTMLTextAreaElement;
+    const area = el('textarea', { id: 'codeList', rows: '6', placeholder: 'Paste codes OR redeem links (https://…), one per line' }) as HTMLTextAreaElement;
     const test = el('input', { type: 'checkbox', id: 'codeTest' }) as HTMLInputElement;
     const count = el('p', { class: 'faint xs', id: 'codeCount' }, '0 codes');
     area.oninput = () => { count.textContent = `${parseCodes(area.value).length} codes`; };
@@ -1445,7 +1447,8 @@ async function codesView() {
       el('div', { class: 'card stack', id: 'codesForm' },
         el('b', {}, 'Add codes'),
         el('div', { class: 'row', style: 'gap:8px' }, el('label', { class: 'f grow' }, 'Brand', brand), el('label', { class: 'f grow' }, 'Amount', amount)),
-        el('label', { class: 'f' }, 'Codes', area), count,
+        el('label', { class: 'f' }, 'Codes or redeem links', area), count,
+        el('p', { class: 'faint xs' }, 'TrueMoney vouchers that arrive as a link: paste the link itself, one per line. The member gets a “Redeem into TrueMoney” button.'),
         el('label', { class: 'f' }, 'Activation link', url),
         el('label', { class: 'row', style: 'gap:8px' }, test, el('span', {}, 'Test codes (only test members get them)')),
         save));

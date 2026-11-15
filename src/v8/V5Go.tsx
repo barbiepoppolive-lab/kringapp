@@ -12,7 +12,7 @@ import { fmtN } from './kxLogic';
 import { kxTagCandidates, type KxCardExtras, type KxGridReel, type KxMemberReels, type KxSavedReel, type KxTagPerson } from './v5Kx';
 import { signReelPaths, type ReelInfo } from './v5Reel';
 import { KxMemberCard } from './V5Me';
-import { RingGlyph } from './V5KxCard';
+import { RingGlyph, SocialPills } from './V5KxCard';
 import type { V5Profile } from './v5Live';
 import type { PickedPlace } from './V5KxPlaces';
 
@@ -299,6 +299,7 @@ export function GoProfilePage(props: {
           </div>
           <button type="button" className="go-score big" id="profileScore" aria-label={L('See the math')} onClick={props.onMath}>
             <RingGlyph /><b>{fmtN(props.kx?.week ?? 0)}</b><span>{L('this week')}</span></button>
+          {handle || props.kx?.tiktok_handle ? <SocialPills ig={handle} tt={props.kx?.tiktok_handle ?? null} compact /> : null}
           {!p.mine ? (
             <div className="go-pbtns">
               <button type="button" className={`go-pill${p.i_follow ? ' gh' : ''}`} id="profileFollow" disabled={props.busy} onClick={props.onFollow}>

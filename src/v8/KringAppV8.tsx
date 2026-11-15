@@ -4050,6 +4050,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               {filteredPeople.map((p) => (
                 <div
                   className="pcard"
+                  data-who={p.who}
                   key={p.id}
                   onClick={() => {
                     if (live && /^[0-9a-f-]{36}$/.test(p.id)) {

@@ -9,7 +9,9 @@ vi.mock('./v5Kx', async (orig) => ({ ...(await orig<typeof import('./v5Kx')>()),
 vi.mock('./v5Reel', () => ({ signReelPaths: vi.fn().mockImplementation(async (p: string[]) => Object.fromEntries(p.map((x) => [x, `https://signed/${x}`]))) }));
 import { addTag, CAPTION_MAX, GoCoach, GoCompose, GoMeReels, GoProfilePage, GoReelPlayer, GO_TAGS, gridToGo, hashtagsOf, hlTags, PeoplePicker, type GoReel } from './V5Go';
 import { COACH_ORDER, coachDue, coachLocal, coachMark, coachPick, coachReplay, coachSync, newCoachState } from './goCoach';
-import { ClaimedPage, ClaimPage } from './V5KxRewards';
+import { ClaimedPage, ClaimPage, isLink } from './V5KxRewards';
+import { claimBrands, tmPct, valueFor } from './kxLogic';
+import { parseCodes } from '../venue/adminApp';
 import { V5SignInSheet } from './V5Sheets';
 import { RINGS } from './rewardsConfig';
 import type { KxClaim, KxGridReel, KxPrize, KxRewards, KxTagPerson } from './v5Kx';
@@ -205,7 +207,7 @@ describe('profile grid and Me tabs', () => {
 
 describe('claim: choose ONE', () => {
   it('two radio cards with OR between them, the "claimed once" line, and ONE confirm button that follows the choice', () => {
-    render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards()} prize={prize()} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
+    render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards()} prize={prize({ kind: 'weekly', rank: 8, founding_no: null, week: '2026-11-09' })} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
     expect(document.getElementById('kxClaimOne')!.textContent).toBe('Choose one. This prize can be claimed once.');
     expect(document.querySelectorAll('[role="radio"]').length).toBe(2);
     expect(document.querySelectorAll('.kx-or').length).toBe(1);
@@ -230,6 +232,74 @@ describe('claim: choose ONE', () => {
     await waitFor(() => expect(onDone).toHaveBeenCalled());
     expect(kxMock.kxClaimPrize).toHaveBeenCalledTimes(1);
     expect(kxMock.kxClaimPrize).toHaveBeenCalledWith('pz1', 'truemoney');
+  });
+  it('Founding Local: TrueMoney is FIRST and pre-selected, Grab second, still one OR and one confirm', () => {
+    render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards()} prize={prize({ kind: 'founding' })} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
+    const radios = [...document.querySelectorAll('[role="radio"]')];
+    expect(radios.map((r) => r.getAttribute('data-brand'))).toEqual(['truemoney', 'grab']);
+    expect(radios[0].getAttribute('aria-checked')).toBe('true');
+    expect(document.querySelectorAll('.kx-or').length).toBe(1);
+    expect(document.getElementById('kxClaimGo')!.textContent).toBe('Claim with TrueMoney · ฿75');
+  });
+  it('weekly prize: Grab stays first and pre-selected', () => {
+    render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards()} prize={prize({ kind: 'weekly', rank: 4, amount: 500 })} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
+    expect([...document.querySelectorAll('[role="radio"]')].map((r) => r.getAttribute('data-brand'))).toEqual(['grab', 'truemoney']);
+    expect(document.getElementById('kxClaimGo')!.textContent).toBe('Claim with Grab · ฿500');
+  });
+  it('the TrueMoney share comes from the server config: 100 → "TrueMoney ฿100", Full value, no 75% note (weekly prizes too)', () => {
+    const full = rewards({ rules: { ...RINGS, truemoney_payout_pct: 100 } });
+    render(<ClaimPage L={L} Lf={Lf} lang="en" data={full} prize={prize({ kind: 'founding' })} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
+    const tm = document.querySelector('[data-brand="truemoney"]')!;
+    expect(tm.textContent).toContain('TrueMoney ฿100');
+    expect(tm.textContent).toContain('Full value');
+    expect(document.getElementById('kxClaim')!.textContent).not.toMatch(/75|25%|keeps/);
+    expect(document.getElementById('kxClaimGo')!.textContent).toBe('Claim with TrueMoney · ฿100');
+    cleanup();
+    render(<ClaimPage L={L} Lf={Lf} lang="en" data={full} prize={prize({ kind: 'weekly', rank: 1, amount: 1500 })} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
+    expect(document.querySelector('[data-brand="truemoney"]')!.textContent).toContain('TrueMoney ฿1,500');
+    cleanup();
+    render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards({ rules: { ...RINGS, truemoney_payout_pct: 90 } })} prize={prize({ kind: 'founding' })} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
+    expect(document.querySelector('[data-brand="truemoney"]')!.textContent).toContain('TrueMoney ฿90');
+    expect(document.querySelector('[data-brand="truemoney"]')!.textContent).toContain('90% · TrueMoney keeps 10%');
+  });
+  it('value math: config share, rounded down, never above the prize; a broken config falls back to 75', () => {
+    expect(valueFor('truemoney', 100)).toBe(75);
+    expect(valueFor('truemoney', 250, 75)).toBe(187);
+    expect(valueFor('truemoney', 250, 100)).toBe(250);
+    expect(valueFor('grab', 250, 75)).toBe(250);
+    expect(tmPct({ truemoney_payout_pct: 100 })).toBe(100);
+    expect(tmPct({ truemoney_payout_pct: 250 })).toBe(100);
+    expect(tmPct({ truemoney_payout_pct: 0 })).toBe(1);
+    expect(tmPct(null)).toBe(75);
+    expect(tmPct({ truemoney_payout_pct: Number.NaN })).toBe(75);
+    expect(claimBrands(RINGS, 'founding')).toEqual(['truemoney', 'grab']);
+    expect(claimBrands(RINGS)).toEqual(['grab', 'truemoney']);
+  });
+  it('a TrueMoney voucher that arrives as a LINK: "Redeem into TrueMoney" button opens the link, Copy copies it, the raw link is not printed as a code', () => {
+    const link = 'https://gift.truemoney.com/campaign/?v=TESTabc123';
+    render(<ClaimedPage L={L} Lf={Lf} lang="en" data={rewards({ claims: [claim({ code: link, value: 100 })] })} focus="c1" toast={() => undefined} onChanged={() => undefined} onClose={() => undefined} />);
+    const open = document.getElementById('kxOpenApp') as HTMLAnchorElement;
+    expect(open.textContent).toBe('Redeem into TrueMoney');
+    expect(open.getAttribute('href')).toBe(link);
+    expect(open.getAttribute('rel')).toContain('noopener');
+    expect(document.getElementById('kxCode')!.textContent).toBe('Your redeem linkgift.truemoney.com');
+    expect(document.getElementById('kxCopy')!.textContent).toBe('Copy link');
+    expect(document.querySelector('#kxTicket .amt')!.textContent).toBe('฿100');
+    expect(document.querySelector('#kxHistory [data-claim="c1"]')!.textContent).toContain('Claimed with TrueMoney · ฿100');
+  });
+  it('a normal code still shows as a code; a javascript: or http: "link" is never treated as a link', () => {
+    expect(isLink('https://gift.truemoney.com/x')).toBe(true);
+    expect(isLink('javascript:alert(1)')).toBe(false);
+    expect(isLink('http://insecure.example/x')).toBe(false);
+    expect(isLink('12345678901234')).toBe(false);
+    expect(isLink('https://a.b/c d')).toBe(false);
+    render(<ClaimedPage L={L} Lf={Lf} lang="en" data={rewards({ claims: [claim({ code: '12345678901234' })] })} focus="c1" toast={() => undefined} onChanged={() => undefined} onClose={() => undefined} />);
+    expect(document.getElementById('kxCode')!.textContent).toBe('12345678901234');
+    expect(document.getElementById('kxOpenApp')!.textContent).toBe('Open TrueMoney');
+  });
+  it('admin: pasted redeem links are kept whole, one per line; plain codes still split on commas', () => {
+    expect(parseCodes('https://gift.truemoney.com/c/?v=a,b;c\nhttps://gift.truemoney.com/c/?v=zz\n')).toEqual(['https://gift.truemoney.com/c/?v=a,b;c', 'https://gift.truemoney.com/c/?v=zz']);
+    expect(parseCodes('AAAA-1111, BBBB-2222\nAAAA-1111')).toEqual(['AAAA-1111', 'BBBB-2222']);
   });
   it('history shows only the option that was chosen', () => {
     render(<ClaimedPage L={L} Lf={Lf} lang="en" data={rewards({ claims: [claim()] })} focus="c1" toast={() => undefined} onChanged={() => undefined} onClose={() => undefined} />);
@@ -311,7 +381,7 @@ describe('sign-in sheet', () => {
 });
 
 // ───────── strings ─────────
-const BANNED_EN = ['rate', 'host', 'guide', 'tour', 'creator', 'gift', 'wallet', 'credit', 'coins', 'launch', 'lucky', 'draw', 'chance', 'reviews', 'stars',
+const BANNED_EN = ['wallet', 'rate', 'host', 'guide', 'tour', 'creator', 'gift', 'wallet', 'credit', 'coins', 'launch', 'lucky', 'draw', 'chance', 'reviews', 'stars',
   'hidden gem', 'alcohol', 'temples', 'temple', 'meet', 'dating', 'go together', 'find people to go with', 'beer', 'cocktail'];
 const BANNED_TH = ['ไกด์', 'โฮสต์', 'ทัวร์', 'ครีเอเตอร์', 'ของขวัญ', 'กระเป๋าเงิน', 'วอลเล็ท', 'วอลเลท', 'เครดิต', 'เหรียญ', 'เปิดตัว', 'โชค', 'ลุ้น', 'จับฉลาก', 'โอกาส',
   'รีวิว', 'ดาว', 'แอลกอฮอล์', 'เหล้า', 'เบียร์', 'วัด', 'เดท', 'เจอ', 'พบ', 'ไปด้วยกัน', 'หาคนไปด้วย', 'นัด'];
@@ -321,7 +391,7 @@ const goKeys = () => {
   for (const f of ['V5Go.tsx', 'goCoach.ts']) for (const m of fs.readFileSync(path.join(__dirname, f), 'utf8').matchAll(/\bLf?\(\s*(['"])((?:\\.|(?!\1).)*)\1/g)) keys.add(m[2].replace(/\\'/g, "'"));
   for (const k of ['People', 'Make new friends in Bangkok. Tap a card to see their Reels.', 'Everyone', 'Travellers', 'Deals', 'Perks at Bangkok places for Kring members, plus trusted partners for travellers.',
     'For Locals', 'For travellers', 'Place perks', 'Show your Kring card', 'Replay intro', 'Intro is on again', 'Choose one. This prize can be claimed once.', 'OR', 'Claim with {0} · {1}',
-    'Claimed with {0} · {1}', 'A save gives {0} 3 Rings. A like gives 1.', 'the poster', 'Post your first Reel here', 'Tap to see where your Rings came from',
+    'Claimed with {0} · {1}', '{0}% · TrueMoney keeps {1}%', 'Redeem into TrueMoney', 'Your redeem link', 'Copy link', 'Link copied', 'A save gives {0} 3 Rings. A like gives 1.', 'the poster', 'Post your first Reel here', 'Tap to see where your Rings came from',
     'Share to IG or TikTok. Each person who opens the link = +5 Rings.', 'with', 'All']) keys.add(k);
   return [...keys];
 };
@@ -339,7 +409,7 @@ describe('strings of the go-live screens', () => {
     }
   });
   it('Thai screens: compose and claim read in Thai', () => {
-    render(<ClaimPage L={TH} Lf={THf} lang="th" data={rewards()} prize={prize()} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
+    render(<ClaimPage L={TH} Lf={THf} lang="th" data={rewards()} prize={prize({ kind: 'weekly', rank: 8, founding_no: null, week: '2026-11-09' })} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
     expect(document.getElementById('kxClaimOne')!.textContent).toBe('เลือกได้ 1 ช่องทาง รางวัลนี้กดรับได้ครั้งเดียว');
     expect(document.getElementById('kxClaimGo')!.textContent).toBe('กดรับผ่าน Grab · ฿100');
     expect(document.querySelector('.kx-or')!.textContent).toBe('หรือ');

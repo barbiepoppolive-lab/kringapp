@@ -39,9 +39,18 @@ export const BRANDS = ['grab', 'shopeepay', 'truemoney'] as const;
 export type Brand = (typeof BRANDS)[number];
 export const BRAND_NAME: Record<Brand, string> = { grab: 'Grab', shopeepay: 'ShopeePay', truemoney: 'TrueMoney' };
 /** Ways to get a prize that are switched on (ShopeePay is hidden by a config flag). */
-export const claimBrands = (R: Pick<RingsRules, 'shopeepay_on'> = RINGS): Brand[] => (R.shopeepay_on === 1 ? ['grab', 'truemoney', 'shopeepay'] : ['grab', 'truemoney']);
+/** The ways to take a prize, in the order shown. Founding Local: TrueMoney first (and pre-selected); weekly prizes: Grab first. */
+export const claimBrands = (R: Pick<RingsRules, 'shopeepay_on'> = RINGS, kind?: 'weekly' | 'founding' | null): Brand[] => {
+  const two: Brand[] = kind === 'founding' ? ['truemoney', 'grab'] : ['grab', 'truemoney'];
+  return R.shopeepay_on === 1 ? [...two, 'shopeepay'] : two;
+};
+/** TrueMoney share of a prize in percent, from the server config (1–100). */
+export const tmPct = (R?: Partial<Pick<RingsRules, 'truemoney_payout_pct'>> | null): number => {
+  const n = Number(R?.truemoney_payout_pct ?? RINGS.truemoney_payout_pct);
+  return Number.isFinite(n) ? Math.min(100, Math.max(1, Math.round(n))) : RINGS.truemoney_payout_pct;
+};
 /** What the member actually gets: TrueMoney keeps 25%, so ฿100 → ฿75. Grab and ShopeePay are full value. */
-export const valueFor = (brand: Brand, amount: number) => (brand === 'truemoney' ? Math.floor((amount * 3) / 4) : amount);
+export const valueFor = (brand: Brand, amount: number, pct: number = RINGS.truemoney_payout_pct) => (brand === 'truemoney' ? Math.floor((amount * pct) / 100) : amount);
 
 export interface Actor { id: string; who: 'local' | 'traveller'; cardDone: boolean }
 export interface ShareOpen { session: string; device: string; day: string; line?: boolean; robot?: boolean; opener?: string | null }

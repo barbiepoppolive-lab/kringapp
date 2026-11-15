@@ -2259,6 +2259,11 @@ export const KX_L: Record<string, Record<string, string>> = {
     '1 seat open': 'ว่าง 1 ที่',
     '{0} seats open': 'ว่าง {0} ที่',
     '{0} to {1}': 'อีก {0} ได้ {1}',
+    '{0}% · TrueMoney keeps {1}%': '{0}% · TrueMoney หัก {1}%',
+    'Redeem into TrueMoney': 'กดรับเข้า TrueMoney',
+    'Your redeem link': 'ลิงก์รับรางวัลของคุณ',
+    'Copy link': 'คัดลอกลิงก์',
+    'Link copied': 'คัดลอกลิงก์แล้ว',
     // go-live build (15 Nov): player, profile grid, compose, claim choice, coach marks, People + Deals headers
     'Reels': 'รีล',
     'Travellers': 'นักท่องเที่ยว',

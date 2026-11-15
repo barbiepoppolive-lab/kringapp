@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
   const rows: [string, unknown][] = [
     ["Member", `${rec.first_name} (#${String(rec.member_no ?? "").padStart(5, "0")})`],
     ["Prize", prizeFor(rec)],
-    ["Wants", `${BRAND[rec.brand] ?? rec.brand} ฿${rec.amount_thb}${rec.brand === "truemoney" ? ` (buy a TrueMoney code worth ฿${Math.floor(Number(rec.amount_thb) * 3 / 4)}; TrueMoney keeps 25%)` : ""}`],
+    ["Wants", `${BRAND[rec.brand] ?? rec.brand} ฿${rec.amount_thb}${rec.brand === "truemoney" ? ` (buy a TrueMoney code worth ฿${rec.value_thb ?? Math.floor(Number(rec.amount_thb) * 3 / 4)} to the member; share set by truemoney_payout_pct)` : ""}`],
     ["Status", rec.status === "pending" ? `HELD · no ${BRAND[rec.brand] ?? rec.brand} ฿${rec.amount_thb} code in stock. The member sees “Your code is on the way”. The code goes out by itself the moment you add one (admin → More → Reward codes, same brand and amount).` : "Code sent to the member"],
     ["Same codes left", same],
     ["When", ist(rec.created_at)],

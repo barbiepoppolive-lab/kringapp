@@ -5,7 +5,7 @@
  */
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import './kx.css';
-import { ago, BRAND_NAME, claimBrands, fmtN, valueFor, type Brand } from './kxLogic';
+import { ago, BRAND_NAME, claimBrands, fmtN, tmPct, valueFor, type Brand } from './kxLogic';
 import { ringsRules } from './rewardsConfig';
 import { kxClaimPrize, kxMarkUsed, kxRecentClaims, type KxClaim, type KxClaimResult, type KxPrize, type KxRecent, type KxRewards, type KxWeekResult } from './v5Kx';
 import { v5ErrCode } from './v5Live';
@@ -15,6 +15,9 @@ import { baht, ownRow } from './V5KxRanking';
 type Tx = (en: string) => string;
 type Txf = (en: string, a: string, b?: string) => string;
 
+/** TrueMoney vouchers can arrive as a redeem link instead of a code: the admin pastes the https link as the code. */
+export const isLink = (code: string | null | undefined): boolean => /^https:\/\/[^\s]+$/i.test(code || '');
+const linkHost = (code: string | null | undefined) => { try { return new URL(code || '').host; } catch { return ''; } };
 const BRAND_BG: Record<Brand, string> = { grab: '#00b14f', shopeepay: '#ee4d2d', truemoney: '#ff7a00' };
 const BRAND_SITE: Record<Brand, string> = { grab: 'https://www.grab.com/th/', shopeepay: 'https://shopee.co.th/m/shopeepay', truemoney: 'https://www.truemoney.com/' };
 export const BrandLogo = ({ b, size }: { b: Brand; size?: number }) => (
@@ -37,7 +40,7 @@ function dayText(L: Tx, lang: string, at: string): string {
   if (day(Date.parse(at)) === day(Date.now() - 86400_000)) return L('Yesterday');
   return new Intl.DateTimeFormat(lang === 'th' ? 'th-TH' : 'en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Bangkok' }).format(Date.parse(at));
 }
-const brandAmt = (_L: Tx, b: Brand, amount: number) => `${BRAND_NAME[b]} ฿${fmtN(valueFor(b, amount))}`;
+const brandAmt = (_L: Tx, b: Brand, amount: number, value?: number | null) => `${BRAND_NAME[b]} ฿${fmtN(value ?? valueFor(b, amount))}`;
 
 export function useRecentClaims(on: boolean) {
   const [rows, setRows] = useState<KxRecent[] | null>(null);
@@ -57,7 +60,7 @@ function LiveRow(props: { L: Tx; Lf: Txf; r: KxRecent; chip?: boolean }) {
   return (
     <div className={props.chip ? 'kx-livechip' : 'kx-fr'}>
       <Av photo={r.photo} name={r.first_name} size={30} />
-      <span><b>{r.first_name}</b> {L('claimed')} <i className={`c-${r.brand}`}>{brandAmt(L, r.brand, r.amount)}</i></span>
+      <span><b>{r.first_name}</b> {L('claimed')} <i className={`c-${r.brand}`}>{brandAmt(L, r.brand, r.amount, r.value)}</i></span>
       <em>{agoText(L, Lf, r.at)}</em>
     </div>
   );
@@ -137,8 +140,9 @@ export function RewardsPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewar
 export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards | null; prize: KxPrize | null; onBack: () => void; onDone: (r: KxClaimResult) => void; toast: (m: string) => void }) {
   const { L, Lf, data, prize } = props;
   const R = ringsRules(data?.rules);
-  const brands = claimBrands(R);
-  const [brand, setBrand] = useState<Brand>('grab');
+  const pct = tmPct(R);
+  const brands = claimBrands(R, prize?.kind);
+  const [brand, setBrand] = useState<Brand>(brands[0]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const amount = prize?.amount ?? 0;
@@ -177,8 +181,8 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
             <button type="button" role="radio" data-brand={b} className={`kx-py${brand === b ? ' on' : ''} b-${b}`} aria-checked={brand === b} aria-pressed={brand === b} onClick={() => { setBrand(b); setErr(''); }}>
               <span className="rd" aria-hidden="true" />
               <BrandLogo b={b} />
-              <span className="n"><span data-value={valueFor(b, amount)}>{BRAND_NAME[b]} {baht(valueFor(b, amount))}</span>
-                <small>{b === 'truemoney' ? `75% · ${L('TrueMoney keeps 25%')}` : L('Full value')}</small></span>
+              <span className="n"><span data-value={valueFor(b, amount, pct)}>{BRAND_NAME[b]} {baht(valueFor(b, amount, pct))}</span>
+                <small>{b === 'truemoney' && pct < 100 ? Lf('{0}% · TrueMoney keeps {1}%', String(pct), String(100 - pct)) : L('Full value')}</small></span>
             </button>
           </Fragment>
         ))}
@@ -186,7 +190,7 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
       <div className="kx-cl-foot">
         {err ? <p className="kx-err center" role="alert" id="kxClaimErr">{err}</p> : <p className="kx-inst">{L('Your code arrives')} <b>{L('instantly')}</b></p>}
         <button type="button" className="kx-btn tall" id="kxClaimGo" disabled={busy || !prize} onClick={() => void go()}>
-          <b>{busy ? '…' : Lf('Claim with {0} · {1}', BRAND_NAME[brand], baht(valueFor(brand, amount)))}</b>
+          <b>{busy ? '…' : Lf('Claim with {0} · {1}', BRAND_NAME[brand], baht(valueFor(brand, amount, pct)))}</b>
         </button>
       </div>
     </div>
@@ -206,7 +210,7 @@ export function ClaimedPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewar
   const isUsed = (x: KxClaim) => (x.id in used ? used[x.id] : !!x.used_at);
   const rows = useMemo(() => claims.slice().sort((a, b) => Date.parse(b.assigned_at || b.created_at) - Date.parse(a.assigned_at || a.created_at)).slice(0, 30), [claims]);
   const copy = async (code: string) => {
-    try { await navigator.clipboard.writeText(code); props.toast(L('Code copied')); } catch { props.toast(code); }
+    try { await navigator.clipboard.writeText(code); props.toast(isLink(code) ? L('Link copied') : L('Code copied')); } catch { props.toast(code); }
   };
   const mark = async (x: KxClaim, on: boolean) => {
     setUsed((u) => ({ ...u, [x.id]: on }));
@@ -221,13 +225,14 @@ export function ClaimedPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewar
           <div className="kx-cd-h">{props.fresh ? L('Claimed!') : L('Your code')}</div>
           <div className="kx-tix" id="kxTicket" data-brand={c.brand}>
             <div className="t1"><span className="gb" style={{ background: BRAND_BG[c.brand] }}>{BRAND_NAME[c.brand]}</span><small>{prizeTitle(L, Lf, props.lang, c, true).toLocaleUpperCase()}</small></div>
-            <div className="amt">{baht(c.value ?? valueFor(c.brand, c.amount))}</div>
+            <div className="amt">{baht(c.value ?? valueFor(c.brand, c.amount, tmPct(ringsRules(data?.rules))))}</div>
             <div className="perf" />
-            <div className="code" id="kxCode">{c.code}</div>
-            <button type="button" className="cp" id="kxCopy" onClick={() => void copy(c.code || '')}>{L('Copy')}</button>
+            {isLink(c.code) ? <div className="code link" id="kxCode" data-link="1">{L('Your redeem link')}<small>{linkHost(c.code)}</small></div> : <div className="code" id="kxCode">{c.code}</div>}
+            <button type="button" className="cp" id="kxCopy" onClick={() => void copy(c.code || '')}>{isLink(c.code) ? L('Copy link') : L('Copy')}</button>
           </div>
-          <a className="kx-og" id="kxOpenApp" style={{ background: BRAND_BG[c.brand] }} href={c.activation_url || BRAND_SITE[c.brand]} target="_blank" rel="noopener noreferrer">
-            {Lf('Open {0}', BRAND_NAME[c.brand])}
+          <a className="kx-og" id="kxOpenApp" style={{ background: BRAND_BG[c.brand] }} href={isLink(c.code) ? c.code! : c.activation_url || BRAND_SITE[c.brand]} target="_blank" rel="noopener noreferrer"
+            data-redeem={isLink(c.code) || c.activation_url ? '1' : undefined}>
+            {c.brand === 'truemoney' && (isLink(c.code) || c.activation_url) ? L('Redeem into TrueMoney') : Lf('Open {0}', BRAND_NAME[c.brand])}
           </a>
         </>
       ) : (
@@ -244,7 +249,7 @@ export function ClaimedPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewar
             <div key={x.id} className={`kx-r${u ? ' dim' : ''}${x.id === c?.id ? ' sel' : ''}`} data-claim={x.id} data-status={x.status}>
               <button type="button" className="kx-r-main" onClick={() => x.code && setFocus(x.id)}>
                 <BrandLogo b={x.brand} size={42} />
-                <span className="n" data-chosen={x.brand}>{Lf('Claimed with {0} · {1}', BRAND_NAME[x.brand], baht(valueFor(x.brand, x.amount)))}<small>{prizeTitle(L, Lf, props.lang, x)} · {x.status === 'pending' ? L('Your code is on the way') : dayText(L, props.lang, x.assigned_at || x.created_at)}</small></span>
+                <span className="n" data-chosen={x.brand}>{Lf('Claimed with {0} · {1}', BRAND_NAME[x.brand], baht(x.value ?? valueFor(x.brand, x.amount, tmPct(ringsRules(data?.rules)))))}<small>{prizeTitle(L, Lf, props.lang, x)} · {x.status === 'pending' ? L('Your code is on the way') : dayText(L, props.lang, x.assigned_at || x.created_at)}</small></span>
               </button>
               {x.status === 'pending' ? <span className="kx-tg wait">{L('SOON')}</span> : (
                 <label className="kx-used" title={L('Mark as used')}>
