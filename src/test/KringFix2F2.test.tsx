@@ -264,13 +264,16 @@ describe('KRING FIX3 r4 · Wei: top-up offers exactly what is missing', () => {
 
   it('Standalone PWA manifest + ?install=1 renders borderless 1-tap pwa-install-banner', async () => {
     const manifest = (await import('../../public/manifest.json')).default
-    expect(manifest.name).toBe('Kring') // 6 Nov lock: name + launcher name = "Kring" ("Bangkok Locals" is banned wording)
-    expect(manifest.short_name).toBe('Kring')
+    // 15 Nov (J3, founder via CoS): name "กริ๊ง! Kring", launcher name "กริ๊ง!" ("Bangkok Locals" stays banned wording)
+    expect(manifest.name).toBe('กริ๊ง! Kring')
+    expect(manifest.short_name).toBe('กริ๊ง!')
+    expect(manifest.name).not.toMatch(/Bangkok Locals/)
     expect(manifest.display).toBe('standalone')
     expect(manifest.orientation).toBe('portrait')
     expect(manifest.background_color).toBe('#12123A') // 6 Nov lock: Midnight #12123A
     expect(manifest.theme_color).toBe('#12123A')
-    expect(manifest.start_url).toBe('/app/') // TWA start URL
+    expect(manifest.start_url).toBe('/app/?src=pwa') // 15 Nov J3: install source tag; scope and id stay /app/
+    expect(manifest.scope).toBe('/app/')
 
     const prevHref = window.location.href
     window.history.replaceState({}, '', '/?coins=100000&install=1')
