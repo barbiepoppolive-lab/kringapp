@@ -3527,3 +3527,6 @@
 .v8-app-root .chat-list .tm, .v8-app-root .plan-card .k, .v8-app-root .plan-pin .k, .v8-app-root .deal-invite .k, .v8-app-root .kp-cap { font-size: 11px; }
 .v8-app-root .thread-head .sub, .v8-app-root .th-head .sub { font-size: 11px; }
 .v8-app-root #sh-signin a { white-space: nowrap; }
+
+/* F (15 Nov): a pinch on a Reel never zooms the page (see zoomGuard.ts). Scroll and swipe still work. */
+.v8-app-root #s-feed, .v8-app-root .go-player, .v8-app-root .kx-viewer, .v8-app-root video { touch-action: pan-x pan-y; }

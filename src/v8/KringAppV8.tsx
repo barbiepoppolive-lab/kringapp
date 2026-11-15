@@ -107,6 +107,7 @@ import { inviteCode } from './kxLogic';
 import { V5Qr, V5SignInSheet } from './V5Sheets';
 import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, showFirstReelChip } from './V5ReelNudge';
 import { V5ReelVideo, toggleReelSound } from './V5ReelVideo';
+import { installZoomGuard } from './zoomGuard';
 import { checkReel, createReel, makeAudio, prepareReel, ReelError, uploadReel, type ReelInfo, type ReelReady, type UploadedReel } from './v5Reel';
 
 const V9_L: Record<string, Record<string, string>> = {
@@ -1033,6 +1034,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     }
     return 'en';
   });
+  useEffect(() => installZoomGuard(), []);   // F: pinching a Reel never leaves the app zoomed in
   useEffect(() => {
     try {
       document.documentElement.lang = lang;   // A-17: screen readers read Thai as Thai
