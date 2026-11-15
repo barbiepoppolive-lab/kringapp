@@ -221,3 +221,6 @@
 .v8-app-root #pplGrid .pcard .nm { font-family: var(--kx-u); font-weight: 700; text-shadow: 0 0 10px rgba(255,79,216,.8); }
 .v8-app-root .kx-tix .code.link { font-family: var(--kx-j); font-size: 14px; letter-spacing: 0; line-height: 1.25; }
 .v8-app-root .kx-tix .code.link small { display: block; font-size: 11px; opacity: .7; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* audit 15 Nov: the People search box was 18px tall (WCAG 2.2 needs 24) */
+.v8-app-root #pplSearch { min-height: 32px; }

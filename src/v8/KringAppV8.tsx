@@ -3923,6 +3923,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 </svg>
                 <input
                   id="pplSearch"
+                  aria-label={t.searchPlaceholder}
                   placeholder={t.searchPlaceholder}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
