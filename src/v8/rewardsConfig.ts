@@ -39,7 +39,7 @@ export const RINGS = {
   open: 5,
   traveller_mult: 2,
   opens_day_cap: 30,
-  best_reels: 2,
+  best_reels: 1,   // 15 Nov founder rule: only each member's best Reel counts (live kr8_rings_config.best_reels = 1)
   board_size: 10,
   prize_1: 1500,
   prize_2: 900,

@@ -116,15 +116,18 @@ describe('Rings: share-link opens', () => {
   });
 });
 
-describe('weekly score: best 2 Reels, ties, one rank per person', () => {
+describe('weekly score: best Reel only (15 Nov), ties, one rank per person', () => {
   const likes = (n: number, p = 'x') => Array.from({ length: n }, (_, i) => loc(`${p}${i}`));
-  it('a member’s weekly score = their best 2 Reels posted that week', () => {
+  it('a member’s weekly score = their ONE best Reel posted that week (founder rule 15 Nov)', () => {
     const b = weekBoard([
       reel('a1', 'ann', { likes: likes(10) }), reel('a2', 'ann', { likes: likes(40) }), reel('a3', 'ann', { likes: likes(25) }),
       reel('b1', 'ben', { likes: likes(30) }),
     ], W0);
-    expect(b.map((r) => [r.member, r.rings, r.rank])).toEqual([['ann', 65, 1], ['ben', 30, 2]]);
-    expect(b[0].reels).toEqual(['a2', 'a3']);
+    expect(b.map((r) => [r.member, r.rings, r.rank])).toEqual([['ann', 40, 1], ['ben', 30, 2]]);
+    expect(b[0].reels).toEqual(['a2']);
+    // the old two-Reel rule still works if the server config ever says 2
+    const b2 = weekBoard([reel('a1', 'ann', { likes: likes(10) }), reel('a2', 'ann', { likes: likes(40) }), reel('a3', 'ann', { likes: likes(25) })], W0, { ...RINGS, best_reels: 2 });
+    expect(b2[0].rings).toBe(65);
   });
   it('Reels posted before Monday 00:00 or after Sunday 23:59 Bangkok are another week', () => {
     const b = weekBoard([
@@ -165,7 +168,7 @@ describe('prizes (one config, baht, ranks 1–8)', () => {
     expect((R as Record<string, number>).nonsense).toBeUndefined();
   });
   it('defaults are the locked rules of 15 Nov; nothing left of the interim rules', () => {
-    expect(RINGS).toMatchObject({ like: 1, save: 3, open: 5, traveller_mult: 2, opens_day_cap: 30, best_reels: 2, min_rings_for_paid_seat: 25, min_posters_for_payout: 0,
+    expect(RINGS).toMatchObject({ like: 1, save: 3, open: 5, traveller_mult: 2, opens_day_cap: 30, best_reels: 1, min_rings_for_paid_seat: 25, min_posters_for_payout: 0,
       shopeepay_on: 0, founding_slots: 50, founding_thb: 100 });
     for (const k of ['rings_per_baht', 'checkin', 'streak_bonus', 'react', 'reel_place', 'friend', 'friend_welcome', 'weekly_1']) expect(k in RINGS).toBe(false);
   });
@@ -278,24 +281,24 @@ describe('Ranking screen', () => {
     expect(document.querySelector('[data-rank="5"] .kx-pz')!.className).toContain('off');
     expect(document.querySelector('#kxMeRow')!.textContent).toContain('Seat #6 is open · ฿250');
   });
-  it('tap any score → the math: each of the best 2 Reels, line by line', async () => {
+  it('tap any score → the math: the Reel that counts, line by line', async () => {
     kxMock.kxRanking.mockResolvedValue(ranking([row(1, 107)]));
-    kxMock.kxBreakdown.mockResolvedValue({ user_id: 'u1', first_name: 'Ploy', is_me: false, rings: 107, rank: 1, more: 1, weights: { like: 1, save: 3, open: 5, mult: 2, cap: 30, best: 2 },
-      reels: [{ post_id: 'p1', posted_at: '2026-11-10T05:00:00Z', poster_path: null, place: 'Benjakitti Forest Park', place_th: null, l_local: 16, l_trav: 3, s_local: 4, s_trav: 1, opens: 6, score: 70 },
-              { post_id: 'p2', posted_at: '2026-11-11T05:00:00Z', poster_path: null, place: 'Talat Noi', place_th: null, l_local: 14, l_trav: 1, s_local: 2, s_trav: 0, opens: 3, score: 37 }] });
+    kxMock.kxBreakdown.mockResolvedValue({ user_id: 'u1', first_name: 'Ploy', is_me: false, rings: 107, rank: 1, more: 1, weights: { like: 1, save: 3, open: 5, mult: 2, cap: 30, best: 1 },
+      reels: [{ post_id: 'p1', posted_at: '2026-11-10T05:00:00Z', poster_path: null, place: 'Benjakitti Forest Park', place_th: null, l_local: 16, l_trav: 3, s_local: 4, s_trav: 1, opens: 6, score: 70 }] });
     render(<RankingPage L={L} Lf={Lf} lang="en" myArea="Ari" myPhoto={null} myName="Mint" myId={null} onBack={() => undefined} onPerson={() => undefined} onPost={() => undefined} onShare={() => undefined} />);
     fireEvent.click(await screen.findByLabelText('See the math'));
     await waitFor(() => expect(document.querySelector('#kxMathTotal')).toBeTruthy());
     expect(kxMock.kxBreakdown).toHaveBeenCalledWith('u1');
     const first = document.querySelector('[data-math-reel="p1"]')!;
     expect([...first.querySelectorAll('.kx-ml')].map((e) => e.textContent)).toEqual(['Local likes16 × 116', 'Visitor likes3 × 26', 'Local saves4 × 312', 'Visitor saves1 × 66', 'Link opens from Instagram / TikTok6 × 530']);
-    expect(document.querySelector('#kxMathTotal')!.textContent!.replace(/\s+/g, ' ').trim()).toBe('70 + 37107');
-    expect(screen.getByText('1 more Reel this week, not counted (best 2 count)')).toBeTruthy();
+    expect(document.querySelectorAll('[data-math-reel]').length).toBe(1);
+    expect(screen.getByText('your best Reel this week')).toBeTruthy();
+    expect(screen.getByText('1 more Reel this week, not counted (only your best Reel counts)')).toBeTruthy();
     expect(document.querySelector('#kxMathShare')).toBeNull();                                   // someone else's score: no button
   });
   it('"How Rings work" is the exact founder copy, with Thai', () => {
     render(<HowSheet L={L} onClose={() => undefined} />);
-    expect(document.querySelector('#kxHowText')!.textContent).toBe('Bangkok’s best Reels, chosen by the people who love the city. A like is 1 Ring. A save is 3. Each person who opens your Reel from Instagram or TikTok is 5. When a visitor to Bangkok likes or saves your Reel, it counts double, because you showed someone the real city. Your best two Reels of the week count. Tap any score to see how it adds up.');
+    expect(document.querySelector('#kxHowText')!.textContent).toBe('Bangkok’s best Reels, chosen by the people who love the city. A like is 1 Ring. A save is 3. Each person who opens your Reel from Instagram or TikTok is 5. When a visitor to Bangkok likes or saves your Reel, it counts double, because you showed someone the real city. Only your best Reel of the week counts. Tap any score to see how it adds up.');
     expect(KX_L.th[HOW_RINGS]).toMatch(/ไลก์ = 1 ริง.*เซฟ = 3 ริง.*= 5 ริง.*สองเท่า/);
     void MathSheet;
   });

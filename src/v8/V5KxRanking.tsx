@@ -1,6 +1,6 @@
 /**
  * Weekly ranking (LOCKED rules 15 Nov; mocks overnight_15nov/01_mocks m1–m4).
- * Rings = likes ×1, saves ×3, share-link opens ×5, visitors' likes/saves ×2, best 2 Reels of the week (Mon 00:00 – Sun 23:59 Bangkok).
+ * Rings = likes ×1, saves ×3, share-link opens ×5, visitors' likes/saves ×2, your best Reel of the week (best_reels = 1 since 15 Nov) (Mon 00:00 – Sun 23:59 Bangkok).
  * Top 10 always: podium (mini N2 cards, ฿ on the pedestals), rows 4–8 with a ฿ tag, dashed PRIZE LINE, #9–10 with "12 to #8".
  * Empty paid ranks show "Open seat · ฿250". Pinned own row = the next step in Rings and what it pays. Tap any score → the math.
  * Every number comes from the server (kr8_weekly_ranking / kr8_score_breakdown); nothing is computed here.
@@ -23,7 +23,7 @@ export const baht = (n: number) => `฿${fmtN(n)}`;
 export const ringsText = (L: Tx, Lf: Txf, n: number) => (n === 1 ? L('1 Ring') : Lf('{0} Rings', fmtN(n)));
 
 /** The exact founder copy (EN) with a natural Thai version in KX_L. */
-export const HOW_RINGS = 'Bangkok’s best Reels, chosen by the people who love the city. A like is 1 Ring. A save is 3. Each person who opens your Reel from Instagram or TikTok is 5. When a visitor to Bangkok likes or saves your Reel, it counts double, because you showed someone the real city. Your best two Reels of the week count. Tap any score to see how it adds up.';
+export const HOW_RINGS = 'Bangkok’s best Reels, chosen by the people who love the city. A like is 1 Ring. A save is 3. Each person who opens your Reel from Instagram or TikTok is 5. When a visitor to Bangkok likes or saves your Reel, it counts double, because you showed someone the real city. Only your best Reel of the week counts. Tap any score to see how it adds up.';
 
 export function HowSheet(props: { L: Tx; onClose: () => void }) {
   const { L } = props;
@@ -39,7 +39,7 @@ export function HowSheet(props: { L: Tx; onClose: () => void }) {
   );
 }
 
-/** Tap any score → each of the best 2 Reels with every line of the sum (mock m3). */
+/** Tap any score → the Reel(s) that count, with every line of the sum (mock m3). One Reel since 15 Nov. */
 export function MathSheet(props: { L: Tx; Lf: Txf; lang: string; user: string; onClose: () => void; onShare?: (reel: string | null) => void; onHow: () => void }) {
   const { L, Lf } = props;
   const [d, setD] = useState<KxBreakdown | null | undefined>(undefined);
@@ -65,7 +65,7 @@ export function MathSheet(props: { L: Tx; Lf: Txf; lang: string; user: string; o
           <>
             <div className="kx-math-h">
               <h2 id="kxMathTitle">{d.is_me ? Lf('Your {0}', ringsText(L, Lf, d.rings)) : Lf('{0} · {1}', d.first_name, ringsText(L, Lf, d.rings))}</h2>
-              <span>{d.weights.best === 2 ? L('best 2 Reels this week') : Lf('best {0} Reels this week', String(d.weights.best))}</span>
+              <span>{d.weights.best <= 1 ? L('your best Reel this week') : Lf('best {0} Reels this week', String(d.weights.best))}</span>
             </div>
             {d.reels.length === 0 ? <p className="kx-empty" id="kxMathEmpty">{d.is_me ? L('No Rings yet this week. Post a Reel at a place, then share it.') : L('No Rings yet this week.')}</p> : null}
             {d.reels.map((r, i) => {
@@ -91,7 +91,7 @@ export function MathSheet(props: { L: Tx; Lf: Txf; lang: string; user: string; o
             {d.reels.length ? (
               <div className="kx-mtot" id="kxMathTotal"><span>{d.reels.map((r) => fmtN(r.score)).join(' + ')}</span><b>{fmtN(d.rings)} <RingGlyph /></b></div>
             ) : null}
-            {d.more > 0 ? <p className="kx-mnote">{d.more === 1 ? L('1 more Reel this week, not counted (best 2 count)') : Lf('{0} more Reels this week, not counted (best 2 count)', String(d.more))}</p> : null}
+            {d.more > 0 ? <p className="kx-mnote">{d.more === 1 ? L('1 more Reel this week, not counted (only your best Reel counts)') : Lf('{0} more Reels this week, not counted (only your best Reel counts)', String(d.more))}</p> : null}
             <p className="kx-mfoot">{L('Same math for everyone. Tap any score on the board to see it.')}<br />{L('Same score? The Reel posted first is ahead.')}</p>
             {d.is_me && props.onShare ? (
               <button type="button" className="kx-btn" id="kxMathShare" onClick={() => props.onShare?.(d.reels[0]?.post_id || null)}>
