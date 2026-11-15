@@ -115,6 +115,8 @@ export function useChatTranslate(on: boolean, threadId: string | null, msgs: Cha
   const mapRef = useRef(map); mapRef.current = map;
   const scope = `${threadId}|${reader}`;
   useEffect(() => { setMap({}); }, [scope]);
+  // opening the chat again gives the messages that could not be translated last time another go
+  useEffect(() => { if (on) setMap((p) => (Object.values(p).some((v) => v.s === 'fail') ? Object.fromEntries(Object.entries(p).filter(([, v]) => v.s !== 'fail')) : p)); }, [on]);
   const sig = msgs.filter((m) => m.sender === 'them').map((m) => m.id).join(',');
   useEffect(() => {
     if (!on || !threadId) return;

@@ -39,7 +39,7 @@ function provider(): Provider | null {
   const g = Deno.env.get("GEMINI_API_KEY"); const i = Deno.env.get("IAPP_API_KEY");
   // one small model of our own choosing. GEMINI_MODEL (used by other functions) is left alone so this never eats their allowance.
   const models = [Deno.env.get("TRANSLATE_GEMINI_MODEL") || "gemini-3.1-flash-lite"];
-  const gem = g ? models.map((m) => geminiProvider(g, m)) : []; const iapp = i ? [iappProvider(i)] : [];
+  const gem = g ? models.map((m) => geminiProvider(g, m, fetch, 3500, Deno.env.get("TRANSLATE_GEMINI_QUICK") !== "0")) : []; const iapp = i ? [iappProvider(i)] : [];
   return firstOf(which === "iapp" ? [...iapp, ...gem] : [...gem, ...iapp]);
 }
 
