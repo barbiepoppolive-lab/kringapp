@@ -243,15 +243,19 @@ html[lang=th] .op .opt{line-height:1.3}
 /* talk */
 .tk .tx{padding-top:66vh;padding-top:66svh}
 .chat{position:absolute;z-index:1;left:var(--gx);right:var(--gx);top:calc(62px + var(--st));display:grid;gap:6px;list-style:none}
-.chat li{max-width:88%;padding:7px 12px 8px;border-radius:18px 18px 18px 6px;background:rgba(20,17,31,.82);box-shadow:0 0 0 1px rgba(255,255,255,.16) inset,0 8px 26px rgba(0,0,0,.35);font-size:13.5px;line-height:1.32}
+.chat li{max-width:88%;padding:7px 12px 8px;border-radius:18px 18px 18px 6px;background:rgba(20,17,31,.82);box-shadow:0 0 0 1px rgba(255,255,255,.16) inset,0 8px 26px rgba(0,0,0,.35);font-size:14px;line-height:1.34}
 .chat li b{display:block;font:700 11.5px/1.2 var(--fj);letter-spacing:.02em;color:var(--cy);margin-bottom:3px}
-.chat li i{display:block;font-style:normal;font-size:12px;color:var(--mu);margin-top:3px;padding-top:3px;border-top:1px solid rgba(255,255,255,.14)}
+.chat li i{display:block;font-style:normal;font-size:13px;color:#fff;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.14)}
 .chat li.q{justify-self:end;border-radius:18px 18px 6px 18px;background:linear-gradient(90deg,#d736b4,#6a48f0)}
 .chat li.q b{color:#fff}.chat li.q i{color:#fff;border-top-color:rgba(255,255,255,.3)}
+.chat li u{display:block;text-decoration:none;font:700 9.5px/1 var(--fj);letter-spacing:.08em;text-transform:uppercase;color:var(--cy);margin-bottom:3px}
+.chat li.q u{color:#fff;opacity:.85}
+html[lang=th] .chat li u{font-size:10.5px;letter-spacing:.02em}
 .chat li.x3{display:none}
-.js .chat li{opacity:0;transform:translateY(14px) scale(.96);transition:opacity .5s var(--ez),transform .5s var(--ez);transition-delay:calc(var(--i) * .55s)}
-.js .chat.in li{opacity:1;transform:none}
-@media (prefers-reduced-motion:reduce){.js .chat li{opacity:1;transform:none;transition:none}}
+.js .chat li{opacity:0;transform:translateY(14px) scale(.96);transition:opacity .5s var(--ez),transform .5s var(--ez);transition-delay:calc(var(--i) * 1.1s)}
+.js .chat li i{opacity:0;transition:opacity .7s var(--ez);transition-delay:calc(var(--i) * 1.1s + .6s)}
+.js .chat.in li,.js .chat.in li i{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.js .chat li,.js .chat li i{opacity:1;transform:none;transition:none}}
 .sides{list-style:none;display:grid;gap:8px;margin-top:14px}
 .sides li{font-size:15.5px;line-height:1.4;text-shadow:0 1px 12px rgba(0,0,0,.8)}
 .sides b{display:inline-block;font:800 11px/1 var(--fu);letter-spacing:.04em;color:#07060d;background:var(--cy);padding:5px 8px;border-radius:999px;margin-right:8px;vertical-align:2px}
@@ -431,17 +435,16 @@ auto=setTimeout(function(){start(false)},RM?Math.max(300,1300-(performance.now()
 
 <section aria-labelledby="h-tk" class="pn tp tk" id="talk">
 <picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/talk-d.webp" type="image/webp"/><img alt="A group of Thai locals and travellers looking at a phone together on a riverside rooftop at dusk" decoding="async" height="1376" loading="lazy" src="/assets/neon/talk-m.webp" width="768"/></picture>
-<ul aria-label="Example chat on Kring" class="chat" id="chat">
-<li class="q" style="--i:0"><b>Lena · traveller</b>First day in Bangkok. Where should I go this evening?</li>
-<li lang="th" style="--i:1"><b>Mint · local</b>ไปตลาดน้อยตอนพระอาทิตย์ตกเลย ซอยสวย ริมน้ำลมดี<i lang="en">Go to Talat Noi at sunset. Pretty lanes, breezy by the river.</i></li>
-<li lang="th" style="--i:2"><b>Ton · local</b>ค่ำ ๆ ต่อเยาวราช ไฟสวยมาก เดินเล่นเพลิน<i lang="en">Then Yaowarat after dark. The lights are beautiful, great for a walk.</i></li>
-<li class="x3" lang="th" style="--i:3"><b>Ploy · local</b>พรุ่งนี้ลองอารีย์ คาเฟ่เยอะ คนชิล<i lang="en">Tomorrow try Ari. Lots of cafés, easygoing crowd.</i></li>
+<ul aria-label="Example chat between two people on Kring" class="chat" id="chat">
+<li class="q" lang="en" style="--i:0"><b>Lena · traveller</b>Hi Mint! First day in Bangkok. Which area do you love in the evening?<i lang="th"><u>Translated automatically</u>สวัสดีมิ้นท์! วันแรกในกรุงเทพฯ เลย ตอนเย็นชอบไปย่านไหน</i></li>
+<li lang="th" style="--i:1"><b>Mint · local</b>ลองตลาดน้อยตอนพระอาทิตย์ตกสิ ซอยสวย ริมน้ำลมดี<i lang="en"><u>Translated automatically</u>Try Talat Noi at sunset. Pretty lanes, breezy by the river.</i></li>
+<li class="q x3" lang="en" style="--i:2"><b>Lena · traveller</b>Sounds perfect, thank you!<i lang="th"><u>Translated automatically</u>ฟังดูดีมาก ขอบคุณนะ</i></li>
 </ul>
 <div class="tx">
 <p class="eb rv"><i></i>Talk to locals</p>
-<h2 class="rv" id="h-tk" style="--d:.08s">Ask the people who <em>actually live here</em></h2>
+<h2 class="rv" id="h-tk" style="--d:.08s">Talk to people who <em>actually live here</em></h2>
 <ul class="sides rv" style="--d:.14s"><li><b>LOCALS</b>Talk with locals, find the best places, make new friends.</li><li><b>TRAVELLERS</b>Get your itinerary and insider places by talking to people on Kring.</li></ul>
-<p class="nt rv" style="--d:.2s">Thai chats are auto-translated to English.</p>
+<p class="nt rv" style="--d:.2s">Chats are translated automatically, both ways.</p>
 <p class="rv" style="--d:.26s;margin-top:16px"><a class="btn" data-app="" data-join="" href="/app/?join=1">Open Kring<svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
 </div>
 </section>

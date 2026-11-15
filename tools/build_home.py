@@ -27,7 +27,6 @@ def build(lang):
     t = t.replace('@@TV_H@@', '<span class="th2" lang="th">ดูกรุงเทพฯ ผ่านสายตาคนที่อยู่ที่นี่ ได้แพลนเที่ยวกับที่เด็ดวงในจากโลคอลกริ๊ง!</span>' if th else '')
     t = t.replace('@@TV_L@@', '')
     t = t.replace('@@TV_TAGS@@', '<li lang="th">คุยกับคนกรุงเทพฯ</li><li lang="th">เพื่อนใหม่ เป็นกลุ่ม</li><li lang="th">ที่สาธารณะ</li>' if th else '<li>Talk to locals</li><li>New friends, in groups</li><li>Public places</li>')
-    t = t.replace('@@TK_QTH@@', '<i lang="th">วันแรกในกรุงเทพฯ เย็นนี้ไปไหนดี</i>' if th else '')
     lq = json.load(open(os.path.join(R, 'tools/lqip.json')))
     SEL = {'hero': '.hero .bg,.op .cam', 'card': '.cardp .bg', 'friends': '.fr .bg', 'talk': '.tk .bg', 'rank': '.rk .bg', 'venue': '.vn .bg', 'trav': '.tv .bg', 'end': '.en2 .bg'}
     t = t.replace('@@LQM@@', ''.join('%s{background-image:url(%s)}' % (SEL[k], lq[k + '-m']) for k in SEL))
