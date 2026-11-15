@@ -31,6 +31,12 @@ export function levelLabel(L: Tx, n: number): string {
   return `LV ${n} ${L(LEVEL_KEY[Math.min(5, Math.max(1, n)) - 1]).toLocaleUpperCase()}`;
 }
 
+/** "LV1 Local · 1,000 more Rings → Explorer" / "LV1 โลคอล · อีก 1,000 ริง → นักสำรวจ" */
+export function progLine(L: Tx, Lf: (en: string, a: string, b?: string) => string, lv: { n: number; key: string; nextKey: string | null; toNext: number }): string {
+  const head = `LV${lv.n} ${L(lv.key)}`;
+  return lv.nextKey ? `${head} · ${Lf('{0} more Rings → {1}', lv.toNext.toLocaleString('en-US'), L(lv.nextKey))}` : `${head} · ${L('Top level')}`;
+}
+
 /** IG / TikTok pills. Tapping opens instagram.com/<h> or tiktok.com/@<h>; on a phone the OS hands it to the app. */
 export function SocialPills(props: { ig?: string | null; tt?: string | null; compact?: boolean; slot?: React.ReactNode; onLinkMissing?: (k: Social) => void }) {
   const pill = (k: Social, h: string) => (
@@ -55,6 +61,8 @@ export interface NeonCardProps {
   size?: 'mint' | 'me' | 'hero'; tilt?: boolean; compact?: boolean; pts?: [string, string] | null; slot?: React.ReactNode; children?: React.ReactNode; id?: string; sub?: string;
   /** Founding Local number (first 50 members with an approved Reel): a permanent mark on the card. */
   founding?: number | null;
+  /** I (15 Nov): level progress as ONE continuous bar + one line ("LV1 Local · 1,000 more Rings → Explorer"). Segments looked like a photo carousel. */
+  prog?: { pct: number; line: string } | null;
 }
 /** The locked N2 card: photo full-bleed, neon pink frame, LV badge + #number on top, small name, 5-step bar, social pills. */
 export function NeonCard(p: NeonCardProps) {
@@ -67,8 +75,14 @@ export function NeonCard(p: NeonCardProps) {
         <div className="kx-nm">{p.name || ' '}</div>
         {p.sub ? <div className="kx-sub">{p.sub}</div> : null}
         {p.gender ? <div className="kx-grow"><GenderChip L={p.L} gender={p.gender} /></div> : null}
-        <div className="kx-bar">{[1, 2, 3, 4, 5].map((i) => <i key={i} className={i <= p.level ? 'on' : ''} />)}</div>
-        {p.pts ? <div className="kx-pts">{p.pts.map((x, i) => <span key={i} className={TH_RE.test(x) ? 'thai' : undefined}>{x}</span>)}</div> : null}
+        {p.prog ? (
+          <div className="kx-prog" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(p.prog.pct)} aria-label={p.prog.line}>
+            <div className={`kx-prog-l${TH_RE.test(p.prog.line) ? ' thai' : ''}`}><RingGlyph /><span>{p.prog.line}</span></div>
+            <div className="kx-prog-t"><i style={{ width: `${Math.max(3, Math.min(100, p.prog.pct))}%` }} /></div>
+          </div>
+        ) : (
+          <div className="kx-prog" aria-hidden="true"><div className="kx-prog-t"><i style={{ width: `${Math.min(100, Math.max(1, p.level) * 20)}%` }} /></div></div>
+        )}
         <SocialPills ig={p.ig} tt={p.tt} slot={p.slot} compact={p.compact} />
       </div>
       {p.children}
@@ -238,7 +252,7 @@ export function V5MintSheet(props: {
         <h1 className="kx-mt-h">{L('Card minted!')}</h1>
         <div className="kx-mt-card">
           <NeonCard L={L} photo={shownPhoto || null} name={name.trim()} level={1} no={minted.no} ig={ig} tt={tt} size="hero" tilt
-            pts={[L(lv.key).toLocaleUpperCase(), Lf('{0} → LV {1}', lv.toNext.toLocaleString('en-US'), '2')]} />
+            prog={{ pct: lv.pct, line: progLine(L, Lf, lv) }} />
         </div>
         <p className="kx-mt-st">{who === 'local' ? L('You’re a Bangkok local') : L('You’re on Kring')} <b>{memberNo(minted.no)}</b></p>
         <div className="kx-mt-acts">

@@ -658,3 +658,13 @@
 .v8-app-root .kx-areas { display: flex; flex-wrap: wrap; gap: 8px; }
 .v8-app-root .kx-newp-note { margin: 0; font: 600 12.5px/1.5 var(--kx-j); color: var(--kx-mu); }
 .v8-app-root .kx-newp-err { margin: 0; font: 700 13px var(--kx-j); color: #ff8ca8; }
+
+/* I (15 Nov): level progress = one continuous bar + one line (the 5 segments read as a photo-carousel indicator) */
+.v8-app-root .kx-prog { margin: 10px 0 11px; }
+.v8-app-root .kx-prog-l { display: flex; align-items: center; gap: 6px; min-width: 0; color: rgba(255,255,255,.86); font: 700 11px var(--kx-j); letter-spacing: .02em; margin-bottom: 6px; }
+.v8-app-root .kx-prog-l.thai { font-family: var(--kx-t); font-size: 11.5px; letter-spacing: 0; }
+.v8-app-root .kx-prog-l > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .kx-prog-l .kx-rg { font-size: 12px; }
+.v8-app-root .kx-prog-t { position: relative; height: 4px; border-radius: 2px; background: rgba(255,255,255,.18); overflow: hidden; }
+.v8-app-root .kx-prog-t > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: linear-gradient(90deg, var(--kx-cy), var(--kx-pk)); box-shadow: 0 0 8px rgba(63,240,255,.7); }
+.v8-app-root .kx-res-card .kx-prog { display: none; }

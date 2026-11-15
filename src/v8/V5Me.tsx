@@ -10,7 +10,7 @@ import { v5RewardStart, V5_REWARD_START_FALLBACK } from './v5Live';
 import { PerksCard } from './V5Perks';
 import { DAILY_TOTAL, fmtBaht, rewardFor, WEEKLY_TOTAL } from './rewardsConfig';
 import type { V5Activity, V5FollowRow, V5Level, V5Profile, V5TopPeriod, V5TopRow } from './v5Live';
-import { NeonCard, RingGlyph } from './V5KxCard';
+import { NeonCard, progLine, RingGlyph } from './V5KxCard';
 import { fmtN, levelFor } from './kxLogic';
 import type { KxCardExtras } from './v5Kx';
 
@@ -106,7 +106,7 @@ export function KxMemberCard(props: { L: Tx; Lf: Txf; p: V5Profile; kx: KxCardEx
         ig={kx ? kx.ig_handle : p.ig_handle} tt={kx?.tiktok_handle ?? null} size="me" compact={props.compact}
         founding={kx?.founding_no ?? null} gender={props.gender ?? null}
         sub={[where, langs].filter(Boolean).join(' · ') + (p.verified ? ` · ✓ ${L('verified')}` : '')}
-        pts={[L(lv.key).toLocaleUpperCase(), lv.nextKey ? Lf('{0} → {1}', fmtN(lv.toNext), L(lv.nextKey).toLocaleUpperCase()) : L('Top level')]} />
+        prog={{ pct: lv.pct, line: progLine(L, Lf, lv) }} />
     </div>
   );
 }
