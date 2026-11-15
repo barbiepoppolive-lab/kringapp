@@ -431,38 +431,57 @@ function ago(L: Tx, Lf: Txf, iso: string): string {
   return Lf('{0}d', String(Math.round(m / 1440)));
 }
 
-/** 🔔 Activity: follows, likes, rewards won, Reel approved */
+/** Bangkok calendar day of an ISO time */
+const bkkDayOf = (iso: string) => new Date(Date.parse(iso) + 7 * 3600_000).toISOString().slice(0, 10);
+
+/** 🔔 Activity (H, 15 Nov): full-height page, Today / Earlier, every row opens the Reel or the person, Mark all read, back. */
 export function ActivitySheet(props: { L: Tx; Lf: Txf; rows: V5Activity[] | null; posters: Record<string, string>; onClose: () => void;
-  onFollowBack: (id: string) => Promise<void>; onPerson: (id: string) => void; onReel: (id: string) => void }) {
+  onFollowBack: (id: string) => Promise<void>; onPerson: (id: string) => void; onReel: (id: string) => void; seenAt?: string; onMarkRead?: () => void }) {
   const { L, Lf } = props;
   const [back, setBack] = useState<Record<string, boolean>>({});
+  const [seen, setSeen] = useState(props.seenAt || '');
+  const today = bkkDayOf(new Date().toISOString());
+  const rows = props.rows || [];
+  const unread = rows.some((a) => !seen || a.at > seen);
+  const open = (a: V5Activity) => (a.post_id && a.kind !== 'follow' ? props.onReel(a.post_id) : a.actor_id ? props.onPerson(a.actor_id) : undefined);
+  const row = (a: V5Activity, i: number) => {
+    const thumb = a.poster_path && props.posters[a.poster_path];
+    const text = a.kind === 'follow' ? Lf('{0} started following you', a.actor_name || '')
+      : a.kind === 'like' ? (a.n > 1 ? Lf('{0} and {1} others liked your Reel', a.actor_name || '', String(a.n - 1)) : Lf('{0} liked your Reel', a.actor_name || ''))
+      : a.kind === 'gift' ? Lf('Your Reel is #{0} · {1}', String(a.rank || ''), a.prize || '')
+      : L('Your Reel is approved and live');
+    const isNew = !seen || a.at > seen;
+    return (
+      <div className={`li${isNew ? ' new' : ''}`} key={`${a.kind}-${a.at}-${i}`} data-activity={a.kind}>
+        {a.kind === 'follow' || a.kind === 'like' ? (
+          <button type="button" className="av" aria-label={a.actor_name || ''} onClick={() => a.actor_id && props.onPerson(a.actor_id)}><Avatar photo={a.actor_photo} name={a.actor_name || '?'} size={44} /></button>
+        ) : <span className="kme-av kme-av-i" style={{ width: 44, height: 44 }}>{a.kind === 'gift' ? '🏆' : '✓'}</span>}
+        <button type="button" className="who" onClick={() => open(a)}>
+          <span className="n">{text}<small>{ago(L, Lf, a.at)}</small></span>
+        </button>
+        {a.kind === 'follow' && a.actor_id && !a.i_follow && !back[a.actor_id] ? (
+          <button type="button" className="pb" data-follow-back={a.actor_id} onClick={() => { const id = a.actor_id as string; void props.onFollowBack(id).then(() => setBack((b) => ({ ...b, [id]: true }))); }}>{L('Follow back')}</button>
+        ) : thumb ? <button type="button" className="thumb" aria-label={L('Open Reel')} style={{ backgroundImage: `url('${thumb}')` }} onClick={() => a.post_id && props.onReel(a.post_id)} /> : null}
+      </div>
+    );
+  };
+  const todays = rows.filter((a) => bkkDayOf(a.at) === today);
+  const earlier = rows.filter((a) => bkkDayOf(a.at) !== today);
   return (
-    <div className="v8-sheet kme-sheet" id="sh-activity">
-      <div className="grab" />
-      <div className="kme-ttl"><b>{L('Activity')}</b><button type="button" className="xbtn" aria-label="Close" onClick={props.onClose}>✕</button></div>
-      {props.rows === null ? <p className="kme-empty">…</p> : props.rows.length === 0 ? (
+    <div className="v8-sheet kme-sheet kme-full" id="sh-activity" role="dialog" aria-label={L('Activity')}>
+      <div className="kme-ttl kme-pghd">
+        <button type="button" className="kme-bk" aria-label={L('Back')} onClick={props.onClose}>‹</button>
+        <b>{L('Activity')}</b>
+        {unread && rows.length ? <button type="button" className="kme-mark" id="activityMarkRead" onClick={() => { setSeen(rows[0].at); props.onMarkRead?.(); }}>{L('Mark all read')}</button> : null}
+      </div>
+      {props.rows === null ? <p className="kme-empty">…</p> : rows.length === 0 ? (
         <p className="kme-empty" id="activityEmpty">{L('Nothing yet. Follows, likes and rewards show up here.')}</p>
       ) : (
-        <div className="kme-list">
-          {props.rows.map((a, i) => {
-            const thumb = a.poster_path && props.posters[a.poster_path];
-            const text = a.kind === 'follow' ? Lf('{0} started following you', a.actor_name || '')
-              : a.kind === 'like' ? (a.n > 1 ? Lf('{0} and {1} others liked your Reel', a.actor_name || '', String(a.n - 1)) : Lf('{0} liked your Reel', a.actor_name || ''))
-              : a.kind === 'gift' ? Lf('Your Reel is #{0} · {1}', String(a.rank || ''), a.prize || '')
-              : L('Your Reel is approved and live');
-            return (
-              <div className="li" key={`${a.kind}-${i}`} data-activity={a.kind}>
-                <button type="button" className="who" onClick={() => (a.actor_id ? props.onPerson(a.actor_id) : a.post_id && props.onReel(a.post_id))}>
-                  {a.kind === 'follow' || a.kind === 'like' ? <Avatar photo={a.actor_photo} name={a.actor_name || '?'} size={42} />
-                    : <span className="kme-av kme-av-i" style={{ width: 42, height: 42 }}>{a.kind === 'gift' ? '🏆' : '✓'}</span>}
-                  <span className="n">{text}<small>{ago(L, Lf, a.at)}</small></span>
-                </button>
-                {a.kind === 'follow' && a.actor_id && !a.i_follow && !back[a.actor_id] ? (
-                  <button type="button" className="pb" data-follow-back={a.actor_id} onClick={() => { const id = a.actor_id as string; void props.onFollowBack(id).then(() => setBack((b) => ({ ...b, [id]: true }))); }}>{L('Follow back')}</button>
-                ) : thumb ? <span className="thumb" style={{ backgroundImage: `url('${thumb}')` }} /> : null}
-              </div>
-            );
-          })}
+        <div className="kme-list kme-scroll">
+          {todays.length ? <div className="kme-grp">{L('Today')}</div> : null}
+          {todays.map(row)}
+          {earlier.length ? <div className="kme-grp">{L('Earlier')}</div> : null}
+          {earlier.map(row)}
         </div>
       )}
     </div>

@@ -2491,6 +2491,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [followFor, setFollowFor] = useState<{ user: string; name: string; counts: [number, number]; initial: 'followers' | 'following' } | null>(null);
   const [activityRows, setActivityRows] = useState<V5Activity[] | null>(null);
   const [activityUnread, setActivityUnread] = useState(false);
+  const [activitySeenAt, setActivitySeenAt] = useState('');
   const [followBusy, setFollowBusy] = useState(false);
   const [verifyPending, setVerifyPending] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
@@ -4156,6 +4157,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onList={(k) => openFollowList(meProfile, k)}
               onSettings={() => setSheet('settings')}
               onActivity={() => {
+                try { setActivitySeenAt(localStorage.getItem('kr8_activity_seen') || ''); } catch { setActivitySeenAt(''); }   // H: rows newer than this get a dot
                 setSheet('activity');
                 setActivityUnread(false);
                 try { localStorage.setItem('kr8_activity_seen', activityRows?.[0]?.at || new Date().toISOString()); } catch { /* ignore */ }
@@ -6439,7 +6441,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onClose={() => { setSheet(null); void loadMe(); }} />
         )}
         {sheet === 'activity' && (
-          <ActivitySheet L={L} Lf={Lf} rows={activityRows} posters={mePosters} onClose={() => setSheet(null)}
+          <ActivitySheet L={L} Lf={Lf} rows={activityRows} posters={mePosters} onClose={() => setSheet(null)} seenAt={activitySeenAt}
+            onMarkRead={() => { setActivityUnread(false); try { localStorage.setItem('kr8_activity_seen', activityRows?.[0]?.at || new Date().toISOString()); } catch { /* ignore */ } }}
             onFollowBack={async (id) => { await toggleFollow(id, false); void loadMe(); }}
             onPerson={(id) => void openProfile(id)} onReel={openReelFromProfile} />
         )}

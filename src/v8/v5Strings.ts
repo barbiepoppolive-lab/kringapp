@@ -2287,6 +2287,11 @@ export const KX_L: Record<string, Record<string, string>> = {
     'This browser can’t open this clip. Fix: save it to your phone first (not only in the cloud), or send it to yourself in LINE and pick that copy.': 'เบราว์เซอร์นี้เปิดคลิปนี้ไม่ได้ · วิธีแก้: บันทึกคลิปลงเครื่องก่อน (ไม่ใช่แค่อยู่บนคลาวด์) หรือส่งคลิปให้ตัวเองใน LINE แล้วเลือกคลิปนั้น',
     'Reels can be up to 30 seconds for now. Trim it and try again.': 'ตอนนี้รีลยาวได้ไม่เกิน 30 วินาที · ตัดให้สั้นลงแล้วลองใหม่',
     'The upload didn’t finish. Tap Post again.': 'อัปโหลดยังไม่เสร็จ · กดโพสต์อีกครั้ง',
+    // H (15 Nov): notifications page
+    'Mark all read': 'อ่านทั้งหมดแล้ว',
+    'Today': 'วันนี้',
+    'Earlier': 'ก่อนหน้านี้',
+    'Open Reel': 'เปิดรีล',
     // J (15 Nov): install sheet
     'New update · tap to refresh': 'อัปเดตใหม่ · แตะเพื่อรีเฟรช',
     'Add Kring to your home screen · opens fast like an app': 'เพิ่มกริ๊ง! ลงหน้าจอ · เปิดเร็วเหมือนแอป',

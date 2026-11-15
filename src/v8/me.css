@@ -229,3 +229,15 @@
 /* K (15 Nov): blink step hint + Retry after 6 s */
 .v8-app-root .kfv-hint { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 0 0 8px; font-size: 14px; font-weight: 700; color: #FFD36B; }
 .v8-app-root .kfv-hint button { height: 34px; padding: 0 14px; border-radius: 17px; border: 0; background: rgba(255,255,255,.14); color: #fff; font: inherit; }
+/* H (15 Nov): notifications as a full-height page */
+.v8-app-root .kme-sheet.kme-full { top: 0 !important; bottom: 0 !important; max-height: none !important; height: 100% !important; border-radius: 0 !important; display: flex; flex-direction: column; overflow: hidden; padding-top: env(safe-area-inset-top) !important; }
+.v8-app-root .kme-pghd { align-items: center !important; min-height: 52px; position: sticky; top: 0; }
+.v8-app-root .kme-bk { width: 40px; height: 40px; font-size: 30px !important; line-height: 1; display: grid; place-items: center; margin-left: -8px; }
+.v8-app-root .kme-mark { font-size: 13px !important; font-weight: 800 !important; color: #8fa0ff !important; padding: 8px 4px !important; }
+.v8-app-root .kme-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+.v8-app-root .kme-grp { font-size: 12.5px; font-weight: 800; opacity: .6; letter-spacing: .04em; margin: 14px 6px 4px; text-transform: uppercase; }
+.v8-app-root .kme-list .li .av { flex: none; padding: 0; }
+.v8-app-root .kme-list .li .who { flex: 1; min-width: 0; text-align: left; }
+.v8-app-root .kme-list .li .who .n { display: flex; flex-direction: column; gap: 2px; }
+.v8-app-root .kme-list .li.new { background: rgba(115,129,255,.08) !important; border-radius: 12px; }
+.v8-app-root .kme-list .li .thumb { flex: none; width: 40px; height: 52px; border-radius: 8px; background-size: cover; background-position: center; }
