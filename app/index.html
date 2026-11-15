@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://static.line-scdn.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: https://*.supabase.co; font-src 'self' data:; connect-src 'self' https://api.line.me https://access.line.me https://liffsdk.line-scdn.net https://static.line-scdn.net https://cloudflareinsights.com https://*.supabase.co wss://*.supabase.co https://photon.komoot.io https://api.open-meteo.com https://*.ingest.us.sentry.io; base-uri 'self'; form-action 'self';" />
     <meta name="theme-color" content="#0B0A12" />
@@ -44,17 +44,25 @@
         fetch('https://pedxoxpammnyfnizljyj.supabase.co/rest/v1/link_visits', { method: 'POST', keepalive: true, credentials: 'omit', headers: { apikey: K, Authorization: 'Bearer ' + K, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
           body: JSON.stringify({ ref: 'pwa-install', path: '/app/', referrer: null, session_id: s }) }).catch(function () {}); } catch (e) {} });
     </script>
-    <script type="module" crossorigin src="/app/assets/main-WzJx7V69.js"></script>
+    <script type="module" crossorigin src="/app/assets/main-BtZaJTvJ.js"></script>
     <link rel="modulepreload" crossorigin href="/app/assets/vendor-Wp4RIG9g.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/v5Live-55BQjYtE.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/sentry-D6TVuYBY.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/v5Strings-LVx7UbhA.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/v5Reel-D4MG2daA.js">
-    <link rel="stylesheet" crossorigin href="/app/assets/main-DwL7cyFv.css">
+    <link rel="modulepreload" crossorigin href="/app/assets/v5Live-BGO4Q69h.js">
+    <link rel="modulepreload" crossorigin href="/app/assets/sentry-B0TZo7eR.js">
+    <link rel="modulepreload" crossorigin href="/app/assets/v5Strings-mG676Jra.js">
+    <link rel="modulepreload" crossorigin href="/app/assets/v5Reel-Jl9vgYig.js">
+    <link rel="stylesheet" crossorigin href="/app/assets/main-C_BtuT21.css">
     <link rel="stylesheet" crossorigin href="/app/assets/fonts-v8-CYouA3b9.css">
   </head>
   <body class="antialiased" style="background:#0B0A12;margin:0">
-    <div id="root"></div>
+    <div id="root"><!-- L (15 Nov): shown at once, before the app code arrives (slow 3G inside LINE showed 5–10 s of black). React replaces it. -->
+      <div id="kr-boot" role="status" aria-live="polite" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#0B0A12;color:#cfcbe6;font:600 15px/1.4 system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans Thai',sans-serif;text-align:center">
+        <svg width="96" height="64" viewBox="0 0 96 64" aria-hidden="true"><circle cx="36" cy="32" r="22" fill="none" stroke="#7381FF" stroke-width="7"/><circle cx="60" cy="32" r="22" fill="none" stroke="#FF4FA3" stroke-width="7"/></svg>
+        <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:.01em">กริ๊ง! Kring</div>
+        <div>กำลังโหลด… · Loading…</div>
+        <div style="width:120px;height:3px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden"><i style="display:block;width:40%;height:100%;border-radius:2px;background:linear-gradient(90deg,#7381FF,#FF4FA3);animation:krboot 1.1s ease-in-out infinite alternate"></i></div>
+        <style>@keyframes krboot{from{transform:translateX(-30%)}to{transform:translateX(180%)}}</style>
+      </div>
+    </div>
     <script>
       if ('serviceWorker' in navigator && navigator.serviceWorker) {
         window.addEventListener('load', () => {
