@@ -3452,7 +3452,7 @@
 .v8-app-root .reel-add.small { position: absolute; right: 10px; bottom: 10px; padding: 6px 10px; font-size: 11px; background: rgba(11,10,18,.78); }
 .v8-app-root .reel-rule { position: relative; z-index: 2; font-size: 12px; color: rgba(255,247,236,.72); }
 .v8-app-root .reel-len { position: absolute; left: 10px; bottom: 10px; z-index: 2; border-radius: 999px; padding: 4px 9px; background: rgba(11,10,18,.78); font-size: 11px; font-weight: 700; }
-.v8-app-root .reel-problem { margin: 8px 0 0; color: #FF8CA8; font-size: 13px; font-weight: 600; }
+.v8-app-root .reel-problem { white-space: pre-line; margin: 8px 0 0; color: #FF8CA8; font-size: 13px; font-weight: 600; }
 .v8-app-root .reel-progress { position: relative; margin: 10px 0 0; height: 30px; border-radius: 999px; background: rgba(255,247,236,.08); overflow: hidden; font-size: 12px; font-weight: 700; display: flex; align-items: center; padding: 0 12px; }
 .v8-app-root .reel-progress span { position: relative; z-index: 2; }
 .v8-app-root .reel-progress i { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(91,108,255,.55); transition: width .3s; }

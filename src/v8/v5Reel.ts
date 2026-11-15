@@ -1,6 +1,6 @@
 /**
  * Reels (0024): check, shrink, upload and sign short vertical videos.
- * - Check: video file, 5–30 s, taller than wide, ≤ 300 MB before shrinking, ≤ 50 MB after.
+ * - Check: video file, 5–60 s, taller than wide, ≤ 300 MB before shrinking, ≤ 50 MB after.
  * - Shrink (when the browser can): redraw at 720×1280 (centre crop to 9:16) and record H.264 MP4 (or WebM) at ~2 Mbit/s,
  *   so the feed starts fast. If the browser cannot, the original file goes up as it is (if ≤ 50 MB).
  * - Poster: one JPEG frame for an instant first paint.
@@ -8,50 +8,85 @@
  * - Playback: short-lived signed links, only for Reels the server lets this viewer see.
  */
 import { v5Client } from './v5Live';
+import { isHevc, probeMp4 } from './mp4Probe';
 
 export const REEL_MIN_MS = 5000;
-export const REEL_MAX_MS = 30000;
+export const REEL_MAX_MS = 60000;      // 15 Nov: 5–60 s (DB check widened in 0055; 61000 ms there)
 export const REEL_MAX_BYTES = 50 * 1024 * 1024;
 const RAW_MAX_BYTES = 300 * 1024 * 1024;
 const OUT_W = 720;
 const OUT_H = 1280;
+const META_TIMEOUT_MS = 12000;
 
-export type ReelProblem = 'NOT_VIDEO' | 'TOO_SHORT' | 'TOO_LONG' | 'NOT_VERTICAL' | 'TOO_BIG' | 'UNREADABLE';
+export type ReelProblem = 'NOT_VIDEO' | 'TOO_SHORT' | 'TOO_LONG' | 'NOT_VERTICAL' | 'TOO_BIG' | 'UNREADABLE' | 'EMPTY' | 'HEVC';
 export class ReelError extends Error {
   constructor(public code: ReelProblem | 'UPLOAD' | 'SIGN_IN') { super(code); }
 }
-export interface ReelInfo { file: File; url: string; durationMs: number; width: number; height: number }
+/** decodable = this browser could show a frame (false: we only know the header, e.g. a slow cloud file); codec from the header. */
+export interface ReelInfo { file: File; url: string; durationMs: number; width: number; height: number; decodable?: boolean; codec?: string }
 export interface ReelReady { blob: Blob; mime: string; ext: 'mp4' | 'webm' | 'mov'; poster: Blob; durationMs: number; width: number; height: number; shrunk: boolean }
 
-function loadVideo(url: string): Promise<HTMLVideoElement> {
+/** Phone pickers send odd types: '' (content:// files), application/octet-stream, video/3gpp, video/x-matroska, video/hevc … */
+export const VIDEO_EXT = /\.(mp4|m4v|mov|qt|webm|3gp|3g2|mkv|hevc|h265)$/i;
+export function looksLikeVideo(file: { name?: string; type?: string }): boolean {
+  const t = (file.type || '').toLowerCase();
+  return t.startsWith('video/') || VIDEO_EXT.test(file.name || '') || t === '' || t === 'application/octet-stream' || t === 'application/mp4';
+}
+
+function loadVideo(url: string, timeoutMs = META_TIMEOUT_MS): Promise<HTMLVideoElement> {
   return new Promise((ok, bad) => {
     const v = document.createElement('video');
-    v.preload = 'auto'; v.muted = true; v.playsInline = true; v.crossOrigin = 'anonymous';
-    v.onloadedmetadata = () => ok(v);
-    v.onerror = () => bad(new ReelError('UNREADABLE'));
+    const t = setTimeout(() => bad(new ReelError('UNREADABLE')), timeoutMs);
+    v.preload = 'auto'; v.muted = true; v.playsInline = true;
+    v.onloadedmetadata = () => { clearTimeout(t); ok(v); };
+    v.onerror = () => { clearTimeout(t); bad(new ReelError('UNREADABLE')); };
     v.src = url;
   });
 }
 
-/** Fast checks before anything is uploaded. */
-export async function checkReel(file: File): Promise<ReelInfo> {
-  if (!file || !/^video\//.test(file.type || '') && !/\.(mp4|mov|webm|m4v)$/i.test(file.name || '')) throw new ReelError('NOT_VIDEO');
-  if (file.size > RAW_MAX_BYTES) throw new ReelError('TOO_BIG');
-  const url = URL.createObjectURL(file);
-  const v = await loadVideo(url).catch((e) => { URL.revokeObjectURL(url); throw e; });
+/** Browser duration in ms, or 0. Some files report Infinity / NaN until seeked (MediaRecorder WebMs, some Android MP4s). */
+async function browserDurationMs(v: HTMLVideoElement): Promise<number> {
   let d = v.duration;
-  if (!isFinite(d)) {           // some MediaRecorder WebMs report Infinity until seeked
-    v.currentTime = 1e6;
-    await new Promise((r) => { v.ontimeupdate = r; setTimeout(r, 1500); });
-    d = v.duration;
+  if (!isFinite(d) || !(d > 0)) {
+    try {
+      v.currentTime = 1e6;
+      await new Promise((r) => { v.ontimeupdate = r; v.ondurationchange = r; setTimeout(r, 1500); });
+      d = v.duration;
+      v.currentTime = 0;
+    } catch { d = NaN; }
   }
-  const durationMs = Math.round((isFinite(d) ? d : 0) * 1000);
-  const width = v.videoWidth, height = v.videoHeight;
-  if (!width || !height || !durationMs) { URL.revokeObjectURL(url); throw new ReelError('UNREADABLE'); }
-  if (durationMs < REEL_MIN_MS - 300) { URL.revokeObjectURL(url); throw new ReelError('TOO_SHORT'); }
-  if (durationMs > REEL_MAX_MS + 900) { URL.revokeObjectURL(url); throw new ReelError('TOO_LONG'); }
-  if (height < width * 1.2) { URL.revokeObjectURL(url); throw new ReelError('NOT_VERTICAL'); }
-  return { file, url, durationMs, width, height };
+  return isFinite(d) && d > 0 ? Math.round(d * 1000) : 0;
+}
+
+/**
+ * Fast checks before anything is uploaded. Never blocks a valid clip:
+ * the browser is asked first; whatever it cannot tell us (length, size) is read from the MP4/MOV header.
+ * Only a clip that this browser cannot open AND that is HEVC gets the "HEVC" message (with how to fix it).
+ */
+export async function checkReel(file: File): Promise<ReelInfo> {
+  if (!file) throw new ReelError('NOT_VIDEO');
+  if (!file.size) throw new ReelError('EMPTY');
+  if (!looksLikeVideo(file)) throw new ReelError('NOT_VIDEO');
+  if (file.size > RAW_MAX_BYTES) throw new ReelError('TOO_BIG');
+  const head = await probeMp4(file);
+  const t = (file.type || '').toLowerCase();
+  if (!head && !t.startsWith('video/') && !VIDEO_EXT.test(file.name || '')) throw new ReelError('NOT_VIDEO');
+  const url = URL.createObjectURL(file);
+  const fail = (code: ReelProblem): never => { URL.revokeObjectURL(url); throw new ReelError(code); };
+  let v: HTMLVideoElement | null = null;
+  try { v = await loadVideo(url); } catch { v = null; }
+  let durationMs = v ? await browserDurationMs(v) : 0;
+  let width = v?.videoWidth || 0, height = v?.videoHeight || 0;
+  const decodable = !!(v && width && height);
+  if (!durationMs && head?.durationMs) durationMs = head.durationMs;
+  if (!width || !height) { width = head?.width || 0; height = head?.height || 0; }
+  if (!decodable && head && isHevc(head.codec)) fail('HEVC');
+  if (!width || !height || !durationMs) fail('UNREADABLE');
+  if (durationMs < REEL_MIN_MS - 300) fail('TOO_SHORT');
+  if (durationMs > REEL_MAX_MS + 900) fail('TOO_LONG');
+  if (height < width * 1.2) fail('NOT_VERTICAL');
+  if (v) { v.removeAttribute('src'); try { v.load(); } catch { /* jsdom */ } }
+  return { file, url, durationMs, width, height, decodable, codec: head?.codec || '' };
 }
 
 function pickMime(): string | null {
@@ -65,6 +100,24 @@ function drawCover(ctx: CanvasRenderingContext2D, v: HTMLVideoElement, w: number
   const s = Math.max(w / v.videoWidth, h / v.videoHeight);
   const dw = v.videoWidth * s, dh = v.videoHeight * s;
   ctx.drawImage(v, (w - dw) / 2, (h - dh) / 2, dw, dh);
+}
+
+/** A plain branded frame when no video frame can be drawn (the server still gets a valid JPEG poster). */
+function fallbackPoster(): Promise<Blob> {
+  return new Promise((ok) => {
+    const empty = () => ok(new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xd9])], { type: 'image/jpeg' }));
+    try {
+      const c = document.createElement('canvas'); c.width = 540; c.height = 960;
+      const ctx = c.getContext('2d');
+      if (!ctx) { empty(); return; }
+      const g = ctx.createLinearGradient(0, 0, 540, 960);
+      g.addColorStop(0, '#1F4BFF'); g.addColorStop(1, '#FF3D8B');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, 540, 960);
+      ctx.fillStyle = 'rgba(255,255,255,.9)';
+      ctx.beginPath(); ctx.moveTo(230, 420); ctx.lineTo(330, 480); ctx.lineTo(230, 540); ctx.closePath(); ctx.fill();
+      c.toBlob((b) => (b ? ok(b) : empty()), 'image/jpeg', 0.8);
+    } catch { empty(); }
+  });
 }
 
 async function posterOf(v: HTMLVideoElement, atSec: number): Promise<Blob> {
@@ -88,14 +141,17 @@ export function makeAudio(): AudioContext | null {
 }
 
 export async function prepareReel(info: ReelInfo, ac: AudioContext | null, onProgress: (p: number) => void): Promise<ReelReady> {
-  const v = await loadVideo(info.url);
-  const poster = await posterOf(v, Math.min(1, info.durationMs / 3000));
+  let vv: HTMLVideoElement | null = null;
+  if (info.decodable !== false) { try { vv = await loadVideo(info.url); } catch { vv = null; } }
+  let poster: Blob;
+  try { poster = vv && vv.videoWidth ? await posterOf(vv, Math.min(1, info.durationMs / 3000)) : await fallbackPoster(); } catch { poster = await fallbackPoster(); }
   const original = (): ReelReady => {
     if (info.file.size > REEL_MAX_BYTES) throw new ReelError('TOO_BIG');
-    const ext = /webm/i.test(info.file.type) ? 'webm' : /quicktime|\.mov$/i.test(info.file.type || info.file.name) ? 'mov' : 'mp4';
-    const mime = info.file.type || (ext === 'webm' ? 'video/webm' : ext === 'mov' ? 'video/quicktime' : 'video/mp4');
+    const { ext, mime } = uploadType(info.file);
     return { blob: info.file, mime, ext, poster, durationMs: info.durationMs, width: info.width, height: info.height, shrunk: false };
   };
+  if (!vv || !vv.videoWidth) return original();
+  const v = vv;
   const mime = pickMime();
   const canvas = document.createElement('canvas');
   if (!mime || typeof canvas.captureStream !== 'function') return original();
@@ -142,6 +198,13 @@ export async function prepareReel(info: ReelInfo, ac: AudioContext | null, onPro
   } catch {
     return original();
   }
+}
+
+/** The storage bucket only takes video/mp4, video/quicktime and video/webm (and paths ending .mp4/.mov/.webm), so odd phone types are mapped. */
+export function uploadType(file: { name?: string; type?: string }): { ext: 'mp4' | 'webm' | 'mov'; mime: string } {
+  const t = (file.type || '').toLowerCase(), n = (file.name || '').toLowerCase();
+  const ext = /webm|matroska/.test(t) || /\.(webm|mkv)$/.test(n) ? 'webm' : /quicktime/.test(t) || /\.(mov|qt)$/.test(n) ? 'mov' : 'mp4';
+  return { ext, mime: ext === 'webm' ? 'video/webm' : ext === 'mov' ? 'video/quicktime' : 'video/mp4' };
 }
 
 function uuid(): string {

@@ -383,7 +383,7 @@ export function GoCompose(props: {
     props.onPost();
   };
   const file = (
-    <input type="file" accept="video/mp4,video/quicktime,video/webm,video/*" aria-label={L('Pick a clip')} id="reelFile" style={{ display: 'none' }} disabled={busy}
+    <input type="file" accept="video/*" aria-label={L('Pick a clip')} id="reelFile" style={{ display: 'none' }} disabled={busy}
       onChange={(e) => { props.onPick(e.target.files?.[0]); e.target.value = ''; }} />
   );
   if (!reel) {
@@ -391,7 +391,7 @@ export function GoCompose(props: {
       <div className="go-page go-compose" id="goCompose" data-step="pick">
         <div className="go-hdr"><button type="button" className="go-bk" id="goComposeClose" aria-label={L('Close')} onClick={props.onClose}><IcClose /></button><h1>{L('Pick a clip')}</h1><span className="go-steps"><i className="on" /><i /></span></div>
         <div className="go-hint">💡 {L('A clip you already posted on TikTok or IG is fine')}</div>
-        <label className="go-pick" id="addReelPicker"><span className="go-pickic"><IcPlus /></span><b>{L('Pick a clip')}</b><small>{L('Vertical video · 5–30 seconds')}</small>{file}</label>
+        <label className="go-pick" id="addReelPicker"><span className="go-pickic"><IcPlus /></span><b>{L('Pick a clip')}</b><small>{L('Vertical video · 5–60 seconds')}</small>{file}</label>
         {props.problem ? <div className="go-problem" id="reelProblem" role="alert">{props.problem}</div> : null}
       </div>
     );

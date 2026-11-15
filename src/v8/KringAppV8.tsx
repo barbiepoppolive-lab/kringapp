@@ -2729,14 +2729,18 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   };
 
   const reelProblemText = (code: string): string => {
+    // fix-it messages: Thai first, English under (members often forward these to a friend who helps)
+    const both = (en: string) => (lang === 'th' && L(en) !== en ? `${L(en)}\n${en}` : L(en));
     switch (code) {
-      case 'TOO_SHORT': return L('Reel is too short · 5–30 seconds');
-      case 'TOO_LONG': return L('Reel is too long · 5–30 seconds');
+      case 'TOO_SHORT': return L('Reel is too short · 5–60 seconds');
+      case 'TOO_LONG': return both('Clip is over 60 s · trim it and try again');
+      case 'EMPTY': return both('This file is empty (0 KB). Save the clip to your phone first, then pick it again.');
+      case 'HEVC': return both('This clip is HEVC (High efficiency video), which this browser can’t open. Fix: Camera settings → turn off “High efficiency video” and film again, or send the clip to yourself in LINE and pick that copy.');
       case 'NOT_VERTICAL': return L('Please use a vertical (9:16) video');
       case 'TOO_BIG': return L('Video is too big · max 50 MB');
       case 'NOT_VIDEO': return L('Pick a video file (MP4, MOV or WebM)');
       case 'UPLOAD': return L('Upload stopped · tap Retry');
-      default: return L('This video cannot be read · try another');
+      default: return both('This browser can’t open this clip. Fix: save it to your phone first (not only in the cloud), or send it to yourself in LINE and pick that copy.');
     }
   };
   const pickReel = async (file: File | undefined) => {
@@ -4940,7 +4944,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 <div>
                   <div className="t">{live ? L('Post a Reel') : L("Post a photo or story")}</div>
                   <div className="s">
-                    {live ? L('A 5–30 second vertical video of your Bangkok') : L("Share a café, street bite, or neighbourhood moment")}
+                    {live ? L('A 5–60 second vertical video of your Bangkok') : L("Share a café, street bite, or neighbourhood moment")}
                   </div>
                 </div>
               </button>
@@ -4975,7 +4979,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   {reelInfo ? L('Change Reel') : L('＋ Add a Reel')}
                   <input
                     type="file"
-                    accept="video/mp4,video/quicktime,video/webm,video/*"
+                    accept="video/*"
                     aria-label="Add a Reel"
                     id="reelFile"
                     style={{ display: 'none' }}
@@ -4983,7 +4987,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     onChange={(e) => { void pickReel(e.target.files?.[0]); e.target.value = ''; }}
                   />
                 </label>
-                {!reelInfo && <div className="reel-rule">{L('Vertical video · 5–30 seconds')}</div>}
+                {!reelInfo && <div className="reel-rule">{L('Vertical video · 5–60 seconds')}</div>}
                 {reelInfo && <span className="reel-len">{(reelInfo.durationMs / 1000).toFixed(0)} s</span>}
               </div>
             )}
