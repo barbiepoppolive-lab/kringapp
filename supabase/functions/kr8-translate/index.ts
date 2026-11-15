@@ -2,9 +2,10 @@
 // Translates ONE chat message into the reader's language, for a member who is in that chat. Used only on phones that cannot use
 // the free on-device language pack. The provider key stays here (never in the browser). Message text is never logged.
 //   POST { message_id: number, target: "en" | "th" | … }   Authorization: Bearer <the member's sign-in token>
+//   POST { message_ids: number[] (up to 20), target }   → { status: "ok", items: [{ id, status, text? }] }   (one provider call for the lot)
 //   → { status: "ok", text, source, via } | { status: "same" | "unavailable" | "off" | "too_long" | "limit_minute" | "limit_member" | "limit_day" | "forbidden" | "sign_in" }
 // Secrets: IAPP_API_KEY (iApp Technology). GEMINI_API_KEY (+ optional TRANSLATE_GEMINI_MODEL, default gemini-3.1-flash-lite). TRANSLATE_PROVIDER = "gemini" (default) | "iapp" | "off". Caps live in the table kr8_translate_config.
-import { firstOf, geminiProvider, handle, iappProvider, type Claim, type Provider } from "./core.ts";
+import { firstOf, geminiProvider, handle, handleMany, iappProvider, type Claim, type Provider } from "./core.ts";
 
 const URL_ = Deno.env.get("SUPABASE_URL")!;
 const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -37,9 +38,10 @@ function provider(): Provider | null {
   const which = (Deno.env.get("TRANSLATE_PROVIDER") ?? "gemini").toLowerCase();
   if (which === "off") return null;
   const g = Deno.env.get("GEMINI_API_KEY"); const i = Deno.env.get("IAPP_API_KEY");
-  // one small model of our own choosing. GEMINI_MODEL (used by other functions) is left alone so this never eats their allowance.
-  const models = [Deno.env.get("TRANSLATE_GEMINI_MODEL") || "gemini-3.1-flash-lite"];
-  const gem = g ? models.map((m) => geminiProvider(g, m, fetch, 3500, Deno.env.get("TRANSLATE_GEMINI_QUICK") !== "0")) : []; const iapp = i ? [iappProvider(i)] : [];
+  // small models of our own choosing, tried in order (each has its own allowance). GEMINI_MODEL (used by other functions) is left alone.
+  const models = (Deno.env.get("TRANSLATE_GEMINI_MODELS") || Deno.env.get("TRANSLATE_GEMINI_MODEL") || "gemini-3.1-flash-lite,gemini-flash-lite-latest,gemini-flash-latest")
+    .split(",").map((m) => m.trim()).filter(Boolean);
+  const gem = g ? [geminiProvider(g, models, fetch, 9000, Deno.env.get("TRANSLATE_GEMINI_QUICK") !== "0")] : []; const iapp = i ? [iappProvider(i)] : [];
   return firstOf(which === "iapp" ? [...iapp, ...gem] : [...gem, ...iapp]);
 }
 
@@ -49,13 +51,14 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ status: "method" }, 405, origin);
   const input = await req.json().catch(() => ({}));
   const userId = await whoIs(req.headers.get("authorization"));
-  const res = await handle(input, {
+  const deps = {
     userId,
-    claim: (user, message, target) => rpc<Claim>("kr8_translate_claim", { p_user: user, p_message: message, p_target: target }),
-    store: async (message, target, source, prov, text) => { await rpc("kr8_translate_store", { p_message: message, p_target: target, p_source: source, p_provider: prov, p_text: text }); },
+    claim: (user: string, message: number, target: string) => rpc<Claim>("kr8_translate_claim", { p_user: user, p_message: message, p_target: target }),
+    store: async (message: number, target: string, source: string, prov: string, text: string) => { await rpc("kr8_translate_store", { p_message: message, p_target: target, p_source: source, p_provider: prov, p_text: text }); },
     provider: provider(),
-  });
+  };
+  const res = Array.isArray(input?.message_ids) ? await handleMany(input, deps) : await handle(input, deps);
   // numbers only: never the message, never the translation
-  console.log(JSON.stringify({ fn: "kr8-translate", status: res.body.status, via: res.body.via ?? null, message: Number(input?.message_id) || null }));
+  console.log(JSON.stringify({ fn: "kr8-translate", status: res.body.status, via: res.body.via ?? null, n: Array.isArray(input?.message_ids) ? input.message_ids.length : 1, why: res.body.why ?? null }));
   return json(res.body, res.http, origin);
 });

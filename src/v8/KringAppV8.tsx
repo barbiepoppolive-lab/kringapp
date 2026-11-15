@@ -34,7 +34,6 @@ import { RingsState } from './RiveRings';
 import { v8LiveEvents, V8PublicEvent } from './v8Events';
 import {
   V5_AUTH_LIVE,
-  v5Answer,
   v5Block,
   v5Claim,
   v5StaffUrl,
@@ -99,7 +98,7 @@ import { baht, MathSheet, HowSheet, RankingPage } from './V5KxRanking';
 import { GoCoach, GoCompose, GoMeReels, GoProfilePage, GoReelPlayer, gridToGo, hlTags, savedToGo, type CoachSpot, type GoReel } from './V5Go';
 import { coachDue, coachMark, coachPick, coachReplay, coachSync, newCoachState, type CoachKey, type CoachState } from './goCoach';
 import { shownGender } from './V5Gender';
-import { readerLang, useChatTranslate } from './v5Translate';
+import { useChatTranslate } from './v5Translate';
 import { kxGenderShown, kxMemberReels, kxReelPeople, kxTagPeople, type KxGridReel, type KxMemberReels, type KxTagPerson } from './v5Kx';
 import { FeedPlaceChips, PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, SavedReelsPage, type PickedPlace } from './V5KxPlaces';
 import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRanking, kxRefName, kxSavedReels, kxShareLink, kxShareLinkCached, kxShareOpenSeen,
@@ -856,8 +855,6 @@ type SheetId =
   | 'signin'
   | 'choose'
   | 'post'
-  | 'ask'
-  | 'answer'
   | 'filter'
   | 'inbox'
   | 'review'
@@ -1277,9 +1274,6 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       return false;
     }
   });
-  const [askQuestionText, setAskQuestionText] = useState<string>('');
-  const [answerPostId, setAnswerPostId] = useState<string>('');
-  const [answerText, setAnswerText] = useState<string>('');
 
   // Sign-in form options
   const [signInTripMode, setSignInTripMode] = useState<'trip' | 'local'>('trip');
@@ -1486,7 +1480,6 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       setThreads(demo.DEMO_THREADS);
       setActiveThreadId(demo.DEMO_THREADS[0]?.id || '');
       setActiveRedeemDealId(demo.INITIAL_DEALS[0]?.id || '');
-      setAnswerPostId('ask-quiet-cafe');
       setUser(() => {
         try {
           const raw = localStorage.getItem('kr8_user');
@@ -2843,6 +2836,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     requestAnimationFrame(() => document.querySelector(`[data-post-id="${CSS.escape(id)}"]`)?.scrollIntoView({ block: 'start' }));
   }, [feedItems]);
 
+  // "+" (15 Nov): live, it goes straight to the Reel compose screen ("Ask a Thai" is gone, so there is nothing to choose)
+  const openCreate = () => {
+    if (!live) { setSheet('choose'); return; }
+    setPostPhotoUrl('');
+    setPostCaption('');
+    setSheet('post');
+  };
   const handlePublishPost = () => {
     if (live) {
       requireSignInForAction(() =>
@@ -2943,133 +2943,6 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     });
   };
 
-  const handlePublishQuestion = () => {
-    if (live) {
-      const q = askQuestionText.trim();
-      if (!q) {
-        showToast(L('Write your question first'));
-        return;
-      }
-      requireSignInForAction(() =>
-        void v5Once('ask', async () => {
-          try {
-            await v5CreatePost({ kind: 'ask', area: 'Bangkok', body: q });
-          } catch (e) {
-            showToast(v5Msg(e));
-            return;
-          }
-          setAskQuestionText('');
-          setSheet(null);
-          setTab('feed');
-          triggerRingBurst();
-          showToast(L('Question posted · we’ll ring you when answered'));
-          v5Feed().then(setFeedItems).catch(() => undefined);
-        })
-      );
-      return;
-    }
-    if (!askQuestionText.trim()) {
-      showToast(L("Write your question first"));
-      return;
-    }
-    requireSignInForAction(() => {
-      const q = askQuestionText.trim();
-      if (!q) return;
-      if (!isOnline) {
-        const queued = enqueueOfflineAction('ask', { question: q });
-        setOfflineQueueCount(queued.length);
-        setAskQuestionText('');
-        setSheet(null);
-        showToast(L("Question queued · will post when back online"));
-        return;
-      }
-      const newAsk: V8FeedItem = {
-        id: `ask-${Date.now()}`,
-        type: 'ask',
-        q,
-        asker: `${user.name} · ${
-          user.role === 'traveller'
-            ? `Day ${user.tripDay} of ${user.tripTotalDays}`
-            : 'Thai local'
-        }`,
-        answers: [],
-      };
-      setFeedItems((prev) => [newAsk, ...prev]);
-      setAskQuestionText('');
-      setSheet(null);
-      setTab('feed');
-      triggerRingBurst();
-      showToast(L("Question posted · we’ll ring you when answered"));
-    });
-  };
-
-  const handlePublishAnswer = () => {
-    if (live) {
-      const txt = answerText.trim();
-      if (!txt) {
-        showToast(L('Write a helpful tip first'));
-        return;
-      }
-      requireSignInForAction(() =>
-        void v5Once('answer', async () => {
-          try {
-            await v5Answer(answerPostId, txt);
-          } catch (e) {
-            showToast(v5Msg(e));
-            return;
-          }
-          setAnswerText('');
-          setSheet(null);
-          triggerRingBurst();
-          v5Feed().then(setFeedItems).catch(() => undefined);
-        })
-      );
-      return;
-    }
-    if (!answerText.trim()) {
-      showToast(L("Write a helpful tip first"));
-      return;
-    }
-    requireSignInForAction(() => {
-      const txt = answerText.trim();
-      if (!txt) return;
-      setFeedItems((prev) =>
-        prev.map((item) =>
-          item.id === answerPostId
-            ? {
-                ...item,
-                answers: [
-                  ...(item.answers || []),
-                  {
-                    who: `${user.name} · ${
-                      user.role === 'local' ? 'Thai local' : 'Traveller'
-                    }`,
-                    av: user.avatar,
-                    txt,
-                  },
-                ],
-              }
-            : item
-        )
-      );
-      const nextAns = user.questionsAnsweredToday + 1;
-      const updatedUser = { ...user, questionsAnsweredToday: nextAns };
-      setUser(updatedUser);
-      try {
-        localStorage.setItem('kr8_user', JSON.stringify(updatedUser));
-      } catch {
-        // ignore
-      }
-      setAnswerText('');
-      setSheet(null);
-      triggerRingBurst();
-      showToast(
-        nextAns >= 3
-          ? '3 questions answered today · Daily Thai tea perk unlocked!'
-          : 'Answer posted · thank you!'
-      );
-    });
-  };
 
   const handleReviewDecision = (replyNow: boolean) => {
     if (live) {
@@ -3328,8 +3201,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   );
   // automatic chat translation (free on the device where the browser can; the server for everyone else)
   const chatTr = useChatTranslate(live && sheet === 'thread', activeThread?.id ?? null, activeThread?.messages ?? [], lang);
-  const [trHideOrig, setTrHideOrig] = useState<Record<string, boolean>>({});
-  const trLangName = (c: string) => L(({ th: 'Thai', en: 'English', zh: 'Chinese', hi: 'Hindi', ja: 'Japanese', ko: 'Korean' } as Record<string, string>)[c] || c.toUpperCase());
+  const [trOrig, setTrOrig] = useState<Record<string, boolean>>({});      // messages the member tapped to see the original
 
   const activeRedeemDeal = useMemo(
     () => deals.find((d) => d.id === activeRedeemDealId) || deals[0] || null,
@@ -3385,15 +3257,6 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           </div>
         );
       })}
-      <div className="slide kp-ask-full">
-        <div className="kp-ask-in">
-          <div className="kp-ask-k">{L('ASK A THAI')}</div>
-          <div className="kp-ask-q">{L('Visiting? Ask anything — real Thais answer, no AI.')}</div>
-          <button type="button" className="kp-ask-btn" onClick={() => setSheet('ask')}>
-            {L('Ask a question')}
-          </button>
-        </div>
-      </div>
       <div className="slide kp-first-slide">
         <div className="kp-ask-in">
           <div className="kp-ask-k" style={{ color: '#6EE7A8' }}>{L('YOUR PHOTO HERE')}</div>
@@ -3579,8 +3442,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <button
               type="button"
               className="kp-plus glass"
-              aria-label="Create post or ask a Thai"
-              onClick={() => setSheet('choose')}
+              aria-label="Create post"
+              onClick={openCreate}
             >
               <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
             </button>
@@ -3638,67 +3501,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               {(selectedArea === 'All Bangkok'
                 ? feedItems
                 : feedItems.filter((item) => !item.area || item.area === selectedArea)
-              ).map((p, idx) => {
-                if (p.type === 'ask') {
-                  return (
-                    <div className="slide ask-slide" key={p.id || idx}>
-                      <div className="ask-card">
-                        <div className="kicker">{L("Ask a Thai · Local Q&amp;A")}</div>
-                        <h3>{p.q}</h3>
-                        <div className="meta">{p.asker}</div>
-                        <div className="answers">
-                          {(p.answers || []).map((a, aIdx) => (
-                            <div className="ans" key={aIdx}>
-                              <img src={a.av} alt="" />
-                              <div>
-                                <div className="who">
-                                  {a.who}{' '}
-                                  {(a as { verified?: boolean }).verified === true && (
-                                  <button
-                                    type="button"
-                                    className="v"
-                                    onClick={() => setSheet('verified')}
-                                    style={{
-                                      background: 'none',
-                                      border: 0,
-                                      padding: 0,
-                                      cursor: 'pointer',
-                                    }}
-                                  >
-                                    ✓ {t.verifiedLabel}
-                                  </button>
-                                  )}
-                                </div>
-                                <div className="txt">{a.txt}</div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="ask-cta">
-                          <button
-                            type="button"
-                            className="primary"
-                            onClick={() => {
-                              setAnswerPostId(p.id);
-                              setSheet('answer');
-                            }}
-                          >
-                            {L("Answer")}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSheet('ask');
-                            }}
-                          >
-                            {L("Ask yours")}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-
+              ).filter((item) => item.type !== 'ask').map((p, idx) => {
                 if (p.type === 'deal') {
                   return (
                     <div className="slide deal-slide" key={p.id || idx}>
@@ -4361,7 +4164,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   onOpenMine={(i) => goOpenPlayer((goMine || []).map((r) => gridToGo(r, { id: v5Uid, name: v5Card?.first_name || '', photo: v5Card?.photo || null, handle: kxMe?.ig_handle }, true)), i)}
                   onOpenSaved={(i) => goOpenPlayer((kxSaved || []).map(savedToGo), i, { title: L('Saved Reels') })} />
               )}
-              firstReelChip={showFirstReelChip(v5Uid, meProfile.reels.length > 0) ? <FirstReelChip onPost={() => { setTab('feed'); setSheet('choose'); }} /> : null}
+              firstReelChip={showFirstReelChip(v5Uid, meProfile.reels.length > 0) ? <FirstReelChip onPost={() => { setTab('feed'); openCreate(); }} /> : null}
               kx={kxMe}
               weekRank={kxWeekRank}
               onRings={() => { setKxReady(false); setSheet('rewards'); void kxLoadRewards(); }}
@@ -4878,7 +4681,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <ReelNudgeSheet
             poster={`${import.meta.env.BASE_URL}media/demo/bangpu.jpg`}
             video={`${import.meta.env.BASE_URL}media/demo/bangpu.mp4`}
-            onPost={() => { setReelNudgeLater(v5Uid, false); setTab('feed'); setSheet('choose'); }}
+            onPost={() => { setReelNudgeLater(v5Uid, false); setTab('feed'); openCreate(); }}
             onLater={() => { setReelNudgeLater(v5Uid, true); setSheet(null); }}
           />
         )}
@@ -5060,7 +4863,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 lineHeight: 1.5,
               }}
             >
-              {L("We only notify you when someone replies to your hello or answers your question. Zero spam.")}
+              {L("We only notify you when someone replies to your hello. Zero spam.")}
             </p>
             <button
               type="button"
@@ -5138,20 +4941,6 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   <div className="t">{live ? L('Post a Reel') : L("Post a photo or story")}</div>
                   <div className="s">
                     {live ? L('A 5–30 second vertical video of your Bangkok') : L("Share a café, street bite, or neighbourhood moment")}
-                  </div>
-                </div>
-              </button>
-              <button
-                type="button"
-                className="choice"
-                style={{ width: '100%', textAlign: 'left', fontFamily: 'inherit', color: 'inherit' }}
-                onClick={() => setSheet('ask')}
-              >
-                <div className="ic">💬</div>
-                <div>
-                  <div className="t">{L("Ask a Thai")}</div>
-                  <div className="s">
-                    {L("Get real tips from locals on where to eat, walk, or explore")}
                   </div>
                 </div>
               </button>
@@ -5346,65 +5135,6 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           </div>
         )}
 
-        {sheet === 'ask' && (
-          <div className="v8-sheet" id="sh-ask">
-            <div className="grab" />
-            <div className="sh-head">
-              <h3>{L("Ask a Thai")}</h3>
-              <button
-                type="button"
-                className="xbtn"
-                onClick={() => setSheet(null)}
-              >
-                ✕
-              </button>
-            </div>
-            <textarea
-              className="hi-box"
-              rows={3}
-              value={askQuestionText}
-              onChange={(e) => setAskQuestionText(e.target.value)}
-              placeholder={L("Ask anything about Bangkok cafés, neighbourhoods, street food, or getting around…")}
-            />
-            <button
-              type="button"
-              className="primary-cta"
-              onClick={handlePublishQuestion}
-            >
-              {L("Post question to Feed")}
-            </button>
-          </div>
-        )}
-
-        {sheet === 'answer' && (
-          <div className="v8-sheet" id="sh-answer">
-            <div className="grab" />
-            <div className="sh-head">
-              <h3>{L("Share your local tip")}</h3>
-              <button
-                type="button"
-                className="xbtn"
-                onClick={() => setSheet(null)}
-              >
-                ✕
-              </button>
-            </div>
-            <textarea
-              className="hi-box"
-              rows={3}
-              value={answerText}
-              onChange={(e) => setAnswerText(e.target.value)}
-              placeholder={L("Name the exact soi, best time to go, or what to order…")}
-            />
-            <button
-              type="button"
-              className="primary-cta"
-              onClick={handlePublishAnswer}
-            >
-              {L("Post answer")}
-            </button>
-          </div>
-        )}
 
         {sheet === 'filter' && (
           <div className="v8-sheet" id="sh-filter">
@@ -5893,12 +5623,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   )}
                 </div>
                 <div className="sub">
-                  {live ? (
-                    <span id="trLine" data-via={chatTr.onDevice ? 'device' : 'server'}>
-                      {chatTr.onDevice ? L('Translated on your phone. Messages stay on this device.') : L('Messages are translated automatically')}
-                      {chatTr.onDevice ? null : <> · <a href="/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>{L('Privacy')}</a></>}
-                    </span>
-                  ) : <>{Lf('Speaks {0}', activeThread.langs)} · {L('Thai auto-translated')}</>}
+                  {Lf('Speaks {0}', activeThread.langs)}
                 </div>
               </div>
               <button
@@ -5912,44 +5637,29 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             </div>
 
             <div className="msgs" id="threadMsgs">
-              {live && (chatTr.pack.s === 'offer' || chatTr.pack.s === 'downloading') ? (
-                <div className="go-trpack" id="trPack" role="status">
-                  <b>{L('Free translation on this device')}</b>
-                  <p>{Lf('Download the {0} ↔ {1} pack once. Free, and your messages never leave your phone.', trLangName(chatTr.pack.source), trLangName(readerLang(lang)))}</p>
-                  {chatTr.pack.s === 'downloading' ? (
-                    <div className="go-trbar" id="trPackProgress" aria-label={Lf('Downloading… {0}%', String(chatTr.pack.pct))}><i style={{ width: `${chatTr.pack.pct}%` }} /><span>{Lf('Downloading… {0}%', String(chatTr.pack.pct))}</span></div>
-                  ) : (
-                    <div className="go-trbtns">
-                      <button type="button" id="trPackGet" className="go-pill" onClick={chatTr.download}>{L('Download')}</button>
-                      <button type="button" id="trPackNo" className="go-pill gh" onClick={chatTr.notNow}>{L('Not now')}</button>
-                    </div>
-                  )}
-                </div>
-              ) : null}
               {activeThread.messages.map((m) => {
+                // clean look (founder, 15 Nov): the bubble shows only the reader's language plus one tiny icon; a tap shows the original
                 const tr = live ? chatTr.map[m.id] : undefined;
-                const hide = tr?.s === 'ok' && trHideOrig[m.id];
+                const trText = tr?.s === 'ok' ? tr.text : (!live && m.sender === 'them' && m.translation ? m.translation : null);
+                const orig = !!trText && !!trOrig[m.id];
+                const shown = trText && !orig ? trText : m.text;
                 return (
                 <div
                   key={m.id}
                   data-msg-id={m.id}
-                  className={`bub ${m.sender === 'me' ? 'me' : 'them'}`}
+                  data-tr={trText ? (orig ? 'orig' : (tr?.s === 'ok' ? tr.via : 'demo')) : undefined}
+                  className={`bub ${m.sender === 'me' ? 'me' : 'them'}${trText ? ' go-trb' : ''}`}
+                  {...(trText ? { role: 'button', tabIndex: 0, 'aria-pressed': orig,
+                    'aria-label': `${shown}. ${orig ? L('Original. Tap to see the translation.') : L('Translated. Tap to see the original.')}`,
+                    onClick: () => setTrOrig((p) => ({ ...p, [m.id]: !p[m.id] })),
+                    onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setTrOrig((p) => ({ ...p, [m.id]: !p[m.id] })); } } } : {})}
                 >
-                  {hide ? null : (
-                  <div className={hasThaiScript(m.text) ? 'th' : ''} data-orig="1">
-                    {m.text}
-                  </div>
-                  )}
-                  {!live && m.translation && <div className="tr">{m.translation}</div>}
-                  {tr?.s === 'ok' ? (
-                    <>
-                      <div className={`tr go-tr${hide ? ' solo' : ''}${hasThaiScript(tr.text) ? ' th' : ''}`} data-tr={tr.via}>{tr.text}</div>
-                      <button type="button" className="go-trtag" data-tr-toggle={m.id} aria-pressed={!!hide}
-                        onClick={() => setTrHideOrig((p) => ({ ...p, [m.id]: !p[m.id] }))}>
-                        {L('Translated automatically')} · {hide ? L('Show original') : L('Hide original')}
-                      </button>
-                    </>
-                  ) : tr?.s === 'fail' ? <div className="go-trfail" data-tr-fail="1">{L('Translation unavailable')}</div> : null}
+                  <span className={hasThaiScript(shown) ? 'th' : ''} data-text="1">{shown}</span>
+                  {trText ? (
+                    <svg className={`go-tri${orig ? ' on' : ''}`} viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 5h9M8.5 3v2M6 5c.6 3 2.6 5.6 5.5 7M11 5c-.7 3.4-3 6.3-6.5 8" /><path d="M13 21l4-9 4 9M14.5 18h5" />
+                    </svg>
+                  ) : null}
                 </div>
                 );
               })}
@@ -6964,10 +6674,6 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   <div className="srow">
                     <span>{L("👋 New friends over coffee")}</span>
                     <b>{isDemo ? 2 : 0}</b>
-                  </div>
-                  <div className="srow">
-                    <span>{L("💬 Ask a Thai questions")}</span>
-                    <b>{isDemo ? 1 : 0}</b>
                   </div>
                 </div>
               </div>

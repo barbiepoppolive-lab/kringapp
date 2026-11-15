@@ -2,17 +2,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, render, fireEvent, waitFor } from '@testing-library/react';
 import fs from 'node:fs';
 import path from 'node:path';
-import { detectLang, firstOf, geminiPrompt, geminiProvider, handle, iappProvider, isLang, mask, nothingToTranslate, TARGETS, tidy, unmask, type Claim, type Deps, type Provider } from '../../supabase/functions/kr8-translate/core';
+import { detectLang, firstOf, geminiPrompt, geminiProvider, handle, handleMany, iappProvider, isLang, mask, nothingToTranslate, TARGETS, tidy, unmask, type Claim, type Deps, type Provider } from '../../supabase/functions/kr8-translate/core';
 import { KX_L } from './v5Strings';
 
 const liveMock = vi.hoisted(() => ({ rpc: vi.fn(), session: { access_token: 'tok' } as { access_token: string } | null }));
 vi.mock('./v5Live', () => ({ v5Client: async () => ({ auth: { getSession: async () => ({ data: { session: liveMock.session } }) }, rpc: liveMock.rpc }) }));
-import { _resetDevice, deviceSupported, needing, readerLang, serverTranslate, useChatTranslate, type ChatMsg } from './v5Translate';
+import { _resetDevice, _resetWarm, deviceSupported, needing, readerLang, serverTranslate, serverTranslateMany, useChatTranslate, type ChatMsg } from './v5Translate';
 
 const them = (id: string, text: string): ChatMsg => ({ id, sender: 'them', text });
 const me = (id: string, text: string): ChatMsg => ({ id, sender: 'me', text });
 const okFetch = (body: unknown, status = 200) => vi.fn(async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch;
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); _resetDevice(); localStorage.clear(); });
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); _resetDevice(); _resetWarm(); localStorage.clear(); });
 beforeEach(() => { liveMock.rpc.mockReset(); liveMock.rpc.mockResolvedValue({ data: [], error: null }); liveMock.session = { access_token: 'tok' }; });
 
 describe('which language is this message in', () => {
@@ -143,6 +143,37 @@ describe('the server function\'s decision (provider and database mocked)', () =>
   });
 });
 
+describe('several messages in one request', () => {
+  const claims: Record<number, Claim> = { 8: { status: 'go', text: 'แก ว่างป่ะ' }, 9: { status: 'cached', text: 'Hi', source: 'th' }, 10: { status: 'go', text: 'เจอกัน 6 โมงนะ' },
+    11: { status: 'own' }, 12: { status: 'forbidden' }, 13: { status: 'go', text: '555' }, 14: { status: 'limit_minute' } };
+  const deps = (over: Partial<Deps> = {}): Deps & { store: ReturnType<typeof vi.fn> } => ({ userId: 'u', claim: vi.fn(async (_u: string, id: number) => claims[id]), store: vi.fn(async () => undefined),
+    provider: { name: 'p', translate: vi.fn(async () => 'one'), translateMany: vi.fn(async (t: string[]) => t.map((x) => `EN:${x}`)) }, ...over }) as Deps & { store: ReturnType<typeof vi.fn> };
+  it('one provider call for the lines that need it; each line keeps its own answer; nothing original comes back', async () => {
+    const d = deps();
+    const r = await handleMany({ message_ids: [8, 9, 10, 11, 12, 13, 14], target: 'en' }, d);
+    expect(r.http).toBe(200);
+    expect(d.provider!.translateMany).toHaveBeenCalledTimes(1);
+    expect((d.provider!.translateMany as ReturnType<typeof vi.fn>).mock.calls[0][0]).toEqual(['แก ว่างป่ะ', 'เจอกัน 6 โมงนะ']);
+    expect(r.body.items!.map((x) => `${x.id}:${x.status}:${x.text ?? ''}`)).toEqual(['8:ok:EN:แก ว่างป่ะ', '9:ok:Hi', '10:ok:EN:เจอกัน 6 โมงนะ', '11:same:', '12:forbidden:', '13:same:', '14:limit_minute:']);
+    expect(d.store).toHaveBeenCalledTimes(2);
+    const d2 = deps({ provider: { name: 'p', translate: async () => 'T', translateMany: async (t: string[]) => t.map(() => 'T') } });
+    expect(JSON.stringify((await handleMany({ message_ids: [8, 10], target: 'en' }, d2)).body)).not.toMatch(/[฀-๿]/);   // the originals never come back
+  });
+  it('signed out 401; empty, too many or bad ids 400; all forbidden 403', async () => {
+    expect((await handleMany({ message_ids: [8], target: 'en' }, deps({ userId: null }))).http).toBe(401);
+    expect((await handleMany({ message_ids: [], target: 'en' }, deps())).http).toBe(400);
+    expect((await handleMany({ message_ids: Array.from({ length: 21 }, (_, i) => i + 1), target: 'en' }, deps())).http).toBe(400);
+    expect((await handleMany({ message_ids: ['x'], target: 'en' }, deps())).http).toBe(400);
+    expect((await handleMany({ message_ids: [8], target: 'xx' }, deps())).http).toBe(400);
+    expect((await handleMany({ message_ids: [12], target: 'en' }, deps())).http).toBe(403);
+  });
+  it('provider down: those lines are "unavailable", nothing stored', async () => {
+    const d = deps({ provider: { name: 'p', translate: async () => null, translateMany: async (t: string[]) => t.map(() => null) } });
+    const r = await handleMany({ message_ids: [8, 10], target: 'en' }, d);
+    expect(r.body.items!.map((x) => x.status)).toEqual(['unavailable', 'unavailable']); expect(d.store).not.toHaveBeenCalled();
+  });
+});
+
 describe('the Gemini provider and the spare', () => {
   const reply = (text: string, status = 200) => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] }), { status });
   it('sends the key in a header (never in the address), the message as data, and returns the bare translation', async () => {
@@ -166,7 +197,21 @@ describe('the Gemini provider and the spare', () => {
     expect(await geminiProvider('K', 'm', f as unknown as typeof fetch).translate('hello', 'en', 'th')).toBe('สวัสดี');
     expect(f).toHaveBeenCalledTimes(2);
     expect(await geminiProvider('K', 'm', (async () => reply('', 429)) as unknown as typeof fetch).translate('hello', 'en', 'th')).toBeNull();
+    expect(await geminiProvider('K', ['m1', 'm2'], (async (u: string) => (u.includes('/m1:') ? reply('', 429) : reply('สวัสดี'))) as unknown as typeof fetch).translate('hello', 'en', 'th')).toBe('สวัสดี');
     expect(await geminiProvider('K', 'm', (async () => { throw new Error('down'); }) as unknown as typeof fetch).translate('hello', 'en', 'th')).toBeNull();
+  });
+  it('a model whose free allowance ran out (429) or that is missing (404) hands over to the next model; the trail has statuses only', async () => {
+    const f = vi.fn(async (u: string) => (u.includes('/a:') ? reply('', 429) : u.includes('/b:') ? reply('', 404) : reply('ok')));
+    const g = geminiProvider('K', ['a', 'b', 'c'], f as unknown as typeof fetch);
+    expect(await g.translate('แก ว่างป่ะ', 'th', 'en')).toBe('ok');
+    expect(g.name).toBe('gemini:c'); expect(g.last).toMatch(/^a:429@\d+,b:404@\d+,c:200@\d+$/);
+  });
+  it('several lines go in ONE call as a JSON list and come back in order; a list of the wrong length is not trusted', async () => {
+    const f = vi.fn(async (_u: string, o: RequestInit) => { const b = JSON.parse(String(o.body)); expect(JSON.parse(b.contents[0].parts[0].text)).toEqual(['แก ว่างป่ะ', 'เจอกันนะ']);
+      expect(b.generationConfig.responseMimeType).toBe('application/json'); expect(b.systemInstruction.parts[0].text).toContain('same length'); return reply('["Free?","See you"]'); });
+    expect(await geminiProvider('K', 'm', f as unknown as typeof fetch).translateMany!(['แก ว่างป่ะ', 'เจอกันนะ'], 'th', 'en')).toEqual(['Free?', 'See you']);
+    expect(f).toHaveBeenCalledTimes(1);
+    expect(await geminiProvider('K', 'm', (async () => reply('["only one"]')) as unknown as typeof fetch).translateMany!(['a b', 'c d'], 'en', 'th')).toEqual([null, null]);
   });
   it('the spare is used only when the first one has no answer, and the name says who answered', async () => {
     const a: Provider = { name: 'a', translate: vi.fn(async () => null) }; const b: Provider = { name: 'b', translate: vi.fn(async () => 'ok') };
@@ -174,6 +219,16 @@ describe('the Gemini provider and the spare', () => {
     expect(await p.translate('x', 'th', 'en')).toBe('ok'); expect(p.name).toBe('b');
     const q = firstOf([b, a])!; await q.translate('x', 'th', 'en'); expect(a.translate).toHaveBeenCalledTimes(1); expect(q.name).toBe('b');
     expect(firstOf([])).toBeNull();
+  });
+});
+
+describe('the app: one request for many lines', () => {
+  it('sends ids only (never text) and reads each answer; limits and errors become "try later" or "stop"', async () => {
+    const f = vi.fn(async (_u: string, o: RequestInit) => { expect(JSON.parse(o.body as string)).toEqual({ message_ids: [10, 12, 13, 14], target: 'en' });
+      return new Response(JSON.stringify({ status: 'ok', items: [{ id: 10, status: 'ok', text: 'Free?' }, { id: 12, status: 'same' }, { id: 13, status: 'limit_minute' }, { id: 14, status: 'limit_day' }] }), { status: 200 }); });
+    expect(await serverTranslateMany(['10', '12', '13', '14'], 'en', f as unknown as typeof fetch)).toEqual({ 10: { status: 'ok', text: 'Free?' }, 12: { status: 'same' }, 13: { status: 'fail' }, 14: { status: 'stop' } });
+    expect(await serverTranslateMany(['10'], 'en', okFetch({ status: 'forbidden' }, 403))).toEqual({ 10: { status: 'stop' } });
+    expect(await serverTranslateMany(['10'], 'en', (async () => { throw new Error('offline'); }) as unknown as typeof fetch)).toEqual({ 10: { status: 'fail' } });
   });
 });
 
@@ -202,36 +257,37 @@ describe('the app: who needs a translation', () => {
 
 function Probe(props: { msgs: ChatMsg[]; ui: string; on?: boolean }) {
   const t = useChatTranslate(props.on ?? true, 'th1', props.msgs, props.ui);
-  return (<div><span id="pack">{t.pack.s}{t.pack.s === 'downloading' ? `:${t.pack.pct}` : ''}</span><span id="dev">{String(t.onDevice)}</span>
-    <button id="get" onClick={t.download}>get</button><button id="no" onClick={t.notNow}>no</button>
+  return (<div><span id="dev">{String(t.onDevice)}</span><button id="tap">tap</button>
     {props.msgs.map((m) => { const x = t.map[m.id]; return <p key={m.id} data-id={m.id} data-s={x?.s || ''} data-via={x && x.s === 'ok' ? x.via : ''}>{x && x.s === 'ok' ? x.text : ''}</p>; })}</div>);
 }
 const q = (id: string) => document.querySelector(`[data-id="${id}"]`)!;
 const MSGS = [them('10', 'แก ว่างป่ะ'), me('11', 'yes!'), them('12', 'เจอกัน 6 โมงนะ')];
-function stubTranslator(avail: string, opts: { failCreate?: boolean } = {}) {
-  const create = vi.fn(async (o: { monitor?: (m: EventTarget) => void }) => {
-    if (opts.failCreate) throw new Error('NotAllowedError');
-    const m = new EventTarget(); o.monitor?.(m);
-    const e = new Event('downloadprogress'); Object.assign(e, { loaded: 0.5 }); m.dispatchEvent(e);
+/** a browser Translator; "downloadable" becomes "available" once create() succeeded (the pack is in) */
+function stubTranslator(avail: string, opts: { failCreate?: boolean | (() => boolean) } = {}) {
+  let state = avail;
+  const create = vi.fn(async () => {
+    if (typeof opts.failCreate === 'function' ? opts.failCreate() : opts.failCreate) throw new Error('NotAllowedError');
+    state = 'available';
     return { translate: async (t: string) => `EN(${t})` };
   });
-  vi.stubGlobal('Translator', { availability: vi.fn(async () => avail), create });
+  vi.stubGlobal('Translator', { availability: vi.fn(async () => state), create });
   return create;
 }
+const batchOk = (text = 'srv') => vi.fn(async (_u: string, o: RequestInit) => new Response(JSON.stringify({ status: 'ok', items: (JSON.parse(String(o.body)).message_ids as number[]).map((id) => ({ id, status: 'ok', text: `${text}${id}` })) }), { status: 200 }));
 
 describe('the chat: free on the device first, the server as the fallback', () => {
-  it('no on-device translator in this browser (iPhone, Android, LINE): the server translates, stored ones first', async () => {
+  it('no on-device translator in this browser (iPhone, Android, LINE): the server translates, stored ones first, the rest in ONE request', async () => {
     expect(deviceSupported()).toBe(false);
     liveMock.rpc.mockResolvedValue({ data: [{ id: 10, text: 'Are you free?' }], error: null });
-    const f = vi.fn(async () => new Response(JSON.stringify({ status: 'ok', text: 'See you at 6' }), { status: 200 }));
-    vi.stubGlobal('fetch', f);
-    render(<Probe msgs={MSGS} ui="en" />);
-    await waitFor(() => expect(q('12').textContent).toBe('See you at 6'));
+    const f = batchOk(); vi.stubGlobal('fetch', f);
+    render(<Probe msgs={[...MSGS, them('13', 'อยู่ไหนแล้ว')]} ui="en" />);
+    await waitFor(() => expect(q('13').textContent).toBe('srv13'));
+    expect(q('12').textContent).toBe('srv12');
     expect(q('10').textContent).toBe('Are you free?');
     expect(q('10').getAttribute('data-via')).toBe('server');
-    expect(f).toHaveBeenCalledTimes(1);                       // message 10 came from the store: not asked again
+    expect(f).toHaveBeenCalledTimes(1);                       // 12 and 13 together; 10 came from the store
+    expect(JSON.parse(String((f.mock.calls[0] as unknown as [string, RequestInit])[1].body)).message_ids).toEqual([12, 13]);
     expect(q('11').getAttribute('data-s')).toBe('');          // my own message: untouched
-    expect(document.getElementById('pack')!.textContent).toBe('none');
   });
   it('pack already on the device: translated on the device, nothing is sent to the server', async () => {
     stubTranslator('available');
@@ -243,59 +299,55 @@ describe('the chat: free on the device first, the server as the fallback', () =>
     expect(f).not.toHaveBeenCalled();
     expect(liveMock.rpc).not.toHaveBeenCalled();
   });
-  it('pack can be downloaded: the member is offered it; nothing is sent anywhere until they choose', async () => {
-    const create = stubTranslator('downloadable');
-    const f = vi.fn(); vi.stubGlobal('fetch', f);
-    render(<Probe msgs={MSGS} ui="en" />);
-    await waitFor(() => expect(document.getElementById('pack')!.textContent).toBe('offer'));
-    expect(create).not.toHaveBeenCalled();                    // a download only ever starts from the member's tap
-    expect(f).not.toHaveBeenCalled();
-    await act(async () => { fireEvent.click(document.getElementById('get')!); });
-    await waitFor(() => expect(q('10').textContent).toBe('EN(แก ว่างป่ะ)'));
-    expect(document.getElementById('pack')!.textContent).toBe('ready');
-    expect(f).not.toHaveBeenCalled();
-  });
-  it('"Not now": remembered on this phone, and the server is used instead', async () => {
-    stubTranslator('downloadable');
-    const f = vi.fn(async () => new Response(JSON.stringify({ status: 'ok', text: 'srv' }), { status: 200 })); vi.stubGlobal('fetch', f);
-    render(<Probe msgs={MSGS} ui="en" />);
-    await waitFor(() => expect(document.getElementById('pack')!.textContent).toBe('offer'));
-    await act(async () => { fireEvent.click(document.getElementById('no')!); });
-    await waitFor(() => expect(q('12').textContent).toBe('srv'));
-    expect(q('12').getAttribute('data-via')).toBe('server');
-    expect(localStorage.getItem('kr8_tr_pack_no')).toBe('1');
-  });
-  it('the download fails: quietly falls back to the server', async () => {
-    stubTranslator('downloadable', { failCreate: true });
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ status: 'ok', text: 'srv' }), { status: 200 })));
-    render(<Probe msgs={MSGS} ui="en" />);
-    await waitFor(() => expect(document.getElementById('pack')!.textContent).toBe('offer'));
-    await act(async () => { fireEvent.click(document.getElementById('get')!); });
-    await waitFor(() => expect(q('10').textContent).toBe('srv'));
+  it('pack downloadable: fetched by itself on a tap (no banner, no question); later lines are free on the device', async () => {
+    let tapped = false;
+    const create = stubTranslator('downloadable', { failCreate: () => !tapped });    // the browser refuses a download without a tap
+    const f = batchOk(); vi.stubGlobal('fetch', f);
+    const { rerender } = render(<Probe msgs={MSGS} ui="en" />);
+    await waitFor(() => expect(q('12').textContent).toBe('srv12'));                // meanwhile the server answers: nobody waits
+    expect(document.body.textContent).not.toMatch(/download|pack|not now/i);
+    tapped = true;
+    await act(async () => { fireEvent.pointerDown(document.getElementById('tap')!); });
+    await waitFor(() => expect(document.getElementById('dev')!.textContent).toBe('true'));
+    expect(create).toHaveBeenCalled();
+    rerender(<Probe msgs={[...MSGS, them('14', 'ถึงแล้วนะ')]} ui="en" />);
+    await waitFor(() => expect(q('14').textContent).toBe('EN(ถึงแล้วนะ)'));
+    expect(q('14').getAttribute('data-via')).toBe('device');
+    expect(f).toHaveBeenCalledTimes(1);
   });
   it('this language pair is not on the device (e.g. the browser has no Thai pack): the server', async () => {
     stubTranslator('unavailable');
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ status: 'ok', text: 'srv' }), { status: 200 })));
+    vi.stubGlobal('fetch', batchOk());
     render(<Probe msgs={MSGS} ui="en" />);
-    await waitFor(() => expect(q('10').textContent).toBe('srv'));
+    await waitFor(() => expect(q('10').textContent).toBe('srv10'));
   });
-  it('translation fails: the message is marked "unavailable", the chat is untouched', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ status: 'unavailable' }), { status: 200 })));
+  it('a busy moment: the line stays original, is tried again by itself, then translated', async () => {
+    let n = 0;
+    const f = vi.fn(async (_u: string, o: RequestInit) => (++n === 1 ? new Response(JSON.stringify({ status: 'ok', items: [] }), { status: 200 }) : batchOk('later')(_u, o)));
+    vi.stubGlobal('fetch', f);
     render(<Probe msgs={MSGS} ui="en" />);
-    await waitFor(() => expect(q('12').getAttribute('data-s')).toBe('fail'));
-    expect(q('10').getAttribute('data-s')).toBe('fail');
+    await waitFor(() => expect(q('12').textContent).toBe('later12'));
+    expect(f).toHaveBeenCalledTimes(2);
   });
-  it('cap reached (429): asks once, stops, marks the rest unavailable (no hammering)', async () => {
-    const f = vi.fn(async () => new Response(JSON.stringify({ status: 'limit_day' }), { status: 429 })); vi.stubGlobal('fetch', f);
+  it('never more than 3 tries per line when the service stays down', async () => {
+    const f = vi.fn(async () => new Response(JSON.stringify({ status: 'ok', items: [] }), { status: 200 })); vi.stubGlobal('fetch', f);
+    render(<Probe msgs={MSGS} ui="en" />);
+    await new Promise((r) => setTimeout(r, 200));
+    expect(f).toHaveBeenCalledTimes(3);
+    expect(q('12').getAttribute('data-s')).toBe('fail');
+  });
+  it('cap reached / signed out (stop): asks once and stops (no hammering)', async () => {
+    const f = vi.fn(async () => new Response(JSON.stringify({ status: 'forbidden' }), { status: 403 })); vi.stubGlobal('fetch', f);
     render(<Probe msgs={[...MSGS, them('13', 'อยู่ไหนแล้ว'), them('14', 'ถึงแล้วนะ')]} ui="en" />);
     await waitFor(() => expect(q('14').getAttribute('data-s')).toBe('fail'));
+    await new Promise((r) => setTimeout(r, 100));
     expect(f).toHaveBeenCalledTimes(1);
   });
   it('reader already reads the language (Thai reader, Thai messages): nothing is asked', async () => {
     const f = vi.fn(); vi.stubGlobal('fetch', f);
     render(<Probe msgs={MSGS} ui="th" />);
     await new Promise((r) => setTimeout(r, 40));
-    expect(f).toHaveBeenCalledTimes(1 - 1 + (MSGS.filter((m) => m.sender === 'them' && /[a-z]/i.test(m.text) && !/[฀-๿]/.test(m.text)).length));
+    expect(f).not.toHaveBeenCalled();
   });
   it('switched off (chat closed / demo mode): nothing is asked', async () => {
     const f = vi.fn(); vi.stubGlobal('fetch', f);
@@ -305,12 +357,22 @@ describe('the chat: free on the device first, the server as the fallback', () =>
   });
 });
 
+describe('the chat screen: clean bubbles', () => {
+  const src = fs.readFileSync(path.join(__dirname, 'KringAppV8.tsx'), 'utf8');
+  const chat = src.slice(src.indexOf('<div className="msgs" id="threadMsgs">'), src.indexOf('{activeThread.dealInvite && ('));
+  it('the bubble prints one text (translation, or the original after a tap) and one tiny icon; no labels, no second block, no banner', () => {
+    expect(chat).toContain('const shown = trText && !orig ? trText : m.text;');
+    expect(chat.match(/>\{shown\}</g)!.length).toBe(1);
+    expect(chat).toContain('className={`go-tri');
+    expect(chat).not.toMatch(/Translated automatically|Show original|Hide original|Translation unavailable|go-trpack|trPack|go-trtag|className="tr"/);
+    expect(src).not.toMatch(/id="trLine"|Messages are translated automatically/);
+  });
+});
+
 describe('strings', () => {
-  const keys = ['Translated automatically', 'Show original', 'Hide original', 'Translation unavailable', 'Messages are translated automatically', 'Privacy',
-    'Translated on your phone. Messages stay on this device.', 'Free translation on this device', 'Download the {0} ↔ {1} pack once. Free, and your messages never leave your phone.', 'Download', 'Downloading… {0}%', 'Write a message…'];
-  it('every line has Thai; the tag is แปลอัตโนมัติ', () => {
+  const keys = ['Translated. Tap to see the original.', 'Original. Tap to see the translation.', 'Write a message…', 'We only notify you when someone replies to your hello. Zero spam.'];
+  it('every line has Thai', () => {
     for (const k of keys) expect(KX_L.th[k], k).toBeTruthy();
-    expect(KX_L.th['Translated automatically']).toBe('แปลอัตโนมัติ');
   });
   it('no banned word in English or Thai', () => {
     const banned = ['rate', 'host', 'guide', 'tour', 'creator', 'gift', 'wallet', 'credit', 'coins', 'launch', 'lucky', 'draw', 'chance', 'reviews', 'stars', 'meet', 'dating'];

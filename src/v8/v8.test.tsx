@@ -154,7 +154,7 @@ describe('Kring 6 Nov 2026 Locked Build (v8)', () => {
 
   it('"Post a photo" composer opens empty with an "Add photo" picker (no stock photo)', () => {
     render(<KringAppV8 />);
-    fireEvent.click(screen.getByLabelText('Create post or ask a Thai'));
+    fireEvent.click(screen.getByLabelText('Create post'));
     fireEvent.click(screen.getByText('Post a photo or story'));
     const preview = document.getElementById('postPreview') as HTMLElement;
     expect(preview).toBeTruthy();
@@ -238,8 +238,8 @@ describe('Kring 6 Nov 2026 Locked Build (v8)', () => {
     expect(document.getElementById('sh-post')).toBeFalsy();
     expect(document.getElementById('sh-signin')).toBeTruthy();
     fireEvent.click(document.querySelector('#sh-signin .xbtn') as HTMLElement);
-    fireEvent.click(screen.getByLabelText('Create post or ask a Thai'));
-    expect(document.querySelectorAll('#sh-choose button.choice').length).toBe(2);
+    fireEvent.click(screen.getByLabelText('Create post'));
+    expect(document.querySelectorAll('#sh-choose button.choice').length).toBe(1);   // 15 Nov: "Ask a Thai" removed
   });
 
   it('Deals placeholder shows no percentages or quiet-hours wording (9 Nov rule check)', () => {

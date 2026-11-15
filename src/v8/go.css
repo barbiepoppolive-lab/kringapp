@@ -246,16 +246,8 @@
 .v8-app-root .go-pg { margin-top: 6px; }
 .v8-app-root .go-pcard .kx-grow { display: none; }
 
-/* automatic chat translation */
-.v8-app-root .bub .go-tr { font-size: 13.5px; line-height: 1.4; color: #fff; }
-.v8-app-root .bub .go-tr.solo { border-top: 0; margin-top: 0; padding-top: 0; }
-.v8-app-root .go-trtag { display: inline-flex; align-items: center; min-height: 24px; margin-top: 3px; padding: 0; border: 0; background: none; font: 600 10.5px var(--kx-j, inherit); color: rgba(255,247,236,.62); cursor: pointer; text-align: left; }
-.v8-app-root .go-trfail { margin-top: 3px; font: 500 10.5px var(--kx-j, inherit); color: rgba(255,247,236,.45); }
-.v8-app-root .go-trpack { margin: 4px 0 10px; padding: 12px 14px; border-radius: 16px; background: rgba(63,240,255,.08); box-shadow: inset 0 0 0 1px rgba(63,240,255,.3); color: #e9fbff; }
-.v8-app-root .go-trpack b { display: block; font: 700 13.5px var(--kx-j, inherit); }
-.v8-app-root .go-trpack p { margin: 4px 0 10px; font: 500 12px/1.45 var(--kx-j, inherit); color: #cfeef3; }
-.v8-app-root .go-trbtns { display: flex; gap: 8px; }
-.v8-app-root .go-trbtns .go-pill { height: 36px; border: 0; color: #fff; cursor: pointer; font-family: inherit; }
-.v8-app-root .go-trbar { position: relative; height: 30px; border-radius: 99px; background: rgba(255,255,255,.1); overflow: hidden; display: grid; place-items: center; font: 700 11.5px var(--kx-j, inherit); }
-.v8-app-root .go-trbar i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, rgba(63,240,255,.5), rgba(123,92,255,.5)); transition: width .3s; }
-.v8-app-root .go-trbar span { position: relative; }
+/* automatic chat translation: only the reader's language in the bubble, one tiny icon, tap for the original */
+.v8-app-root .bub.go-trb { position: relative; padding-right: 27px; cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: text; }
+.v8-app-root .bub.go-trb:focus-visible { outline: 2px solid rgba(63,240,255,.6); outline-offset: 2px; }
+.v8-app-root .bub .go-tri { position: absolute; right: 10px; bottom: 11px; width: 11px; height: 11px; opacity: .45; transition: opacity .15s, color .15s; }
+.v8-app-root .bub .go-tri.on { opacity: 1; color: #3ff0ff; }
