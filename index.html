@@ -26,8 +26,8 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Kring" />
-    <meta name="application-name" content="Kring" />
+    <meta name="apple-mobile-web-app-title" content="กริ๊ง!" />
+    <meta name="application-name" content="กริ๊ง! Kring" />
     <link rel="icon" type="image/png" sizes="48x48" href="icon-48.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -39,6 +39,10 @@
       // made people type a LINE email + password they mostly never set. "Open in browser" is still offered after first value (A2HS).
       // keep the install offer for later (Add to home screen)
       window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__kr8Install = e; });
+      // J: count installs (one anonymous row in link_visits, ref "pwa-install", same anonymous phone id as the visit counter)
+      window.addEventListener('appinstalled', function () { try { window.__kr8Install = null; var s = null; try { s = localStorage.getItem('kr_vid'); } catch (e) {} if (s && !/^[a-z0-9]{1,40}$/.test(s)) s = null; var K = '%VITE_SUPABASE_ANON_KEY%';
+        fetch('%VITE_SUPABASE_URL%/rest/v1/link_visits', { method: 'POST', keepalive: true, credentials: 'omit', headers: { apikey: K, Authorization: 'Bearer ' + K, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+          body: JSON.stringify({ ref: 'pwa-install', path: '/app/', referrer: null, session_id: s }) }).catch(function () {}); } catch (e) {} });
     </script>
   </head>
   <body class="antialiased" style="background:#0B0A12;margin:0">
@@ -52,6 +56,6 @@
         });
       }
     </script>
-    <script>/* Kring link-visit counter (supabase 0043_link_visits): 1 row per tab session per ?ref=, no cookies, no personal data */(function(){try{var r=(new URLSearchParams(location.search).get('ref')||'').toLowerCase();if(!/^[a-z0-9_-]{1,40}$/.test(r))r=null;var k='kr_lv:'+(r||''),s=null;try{if(sessionStorage.getItem(k))return;s=(navigator.webdriver?'zztest':'')+(Math.random().toString(36).slice(2,12)||'x');sessionStorage.setItem(k,s||'1')}catch(e){}var h='';try{h=document.referrer?new URL(document.referrer).host:''}catch(e){}var K='%VITE_SUPABASE_ANON_KEY%';setTimeout(function(){try{fetch('%VITE_SUPABASE_URL%/rest/v1/link_visits',{method:'POST',keepalive:true,credentials:'omit',headers:{apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({ref:r,path:(location.pathname||'/').slice(0,200),referrer:h.slice(0,200)||null,session_id:s})}).catch(function(){})}catch(e){}},0)}catch(e){}})();</script>
+    <script>/* Kring link-visit counter (supabase 0043_link_visits): 1 row per phone per Bangkok day per ?ref= (anonymous random id kr_vid in localStorage), no cookies, no personal data */(function(){try{var r=(new URLSearchParams(location.search).get('ref')||'').toLowerCase();if(!/^[a-z0-9_-]{1,40}$/.test(r))r=null;var s=null;try{s=localStorage.getItem('kr_vid')}catch(e){}if(!s||!/^[a-z0-9]{4,40}$/.test(s)){s=(Math.random().toString(36).slice(2,12)+Math.random().toString(36).slice(2,8))||'x';try{localStorage.setItem('kr_vid',s)}catch(e){try{var s2=sessionStorage.getItem('kr_vid');if(s2)s=s2;else sessionStorage.setItem('kr_vid',s)}catch(e2){}}}if(navigator.webdriver&&s.indexOf('zztest')!==0)s=('zztest'+s).slice(0,40);var dy=new Date(Date.now()+252e5).toISOString().slice(0,10),k='kr_lv:'+dy+':'+(r||'');try{if(localStorage.getItem(k))return;for(var i=localStorage.length-1;i>=0;i--){var kk=localStorage.key(i);if(kk&&kk.indexOf('kr_lv:')===0&&kk.indexOf('kr_lv:'+dy)!==0)localStorage.removeItem(kk)}localStorage.setItem(k,'1')}catch(e){try{if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1')}catch(e2){}}var h='';try{h=document.referrer?new URL(document.referrer).host:''}catch(e){}var K='%VITE_SUPABASE_ANON_KEY%';setTimeout(function(){try{fetch('%VITE_SUPABASE_URL%/rest/v1/link_visits',{method:'POST',keepalive:true,credentials:'omit',headers:{apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({ref:r,path:(location.pathname||'/').slice(0,200),referrer:h.slice(0,200)||null,session_id:s})}).catch(function(){})}catch(e){}},0)}catch(e){}})();</script>
   </body>
 </html>

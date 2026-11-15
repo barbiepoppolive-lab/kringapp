@@ -322,7 +322,7 @@ export function isSiteVisits(v: unknown): v is SiteVisits {
 /** Real visitors = Thailand + other countries. The US is kept apart: most of it is our own testing. */
 export const realVisitors = (d: VisitDay) => d.th + d.other;
 export const visitsHeadline = (d: VisitDay) => `Site visits today: ${realVisitors(d)} (TH ${d.th} · other ${d.other})`;
-export const visitsHint = (d: VisitDay) => `${d.us ? `+${d.us} US, mostly our own testing · ` : ''}tap for 7 days`;
+export const visitsHint = (d: VisitDay) => `unique phones per day (from 16 Nov) · ${d.us ? `+${d.us} US, mostly our own testing · ` : ''}tap for 7 days`;
 export const sourceName = (ref: string) => (ref === 'direct' || ref === '(none)' || !ref ? 'direct (no link code)' : ref);
 export function joinedLine(d: VisitDay, when: 'today' | 'in 7 days'): string {
   const v = realVisitors(d);

@@ -26,8 +26,8 @@ describe('admin site visits', () => {
   it('headline counts Thailand + other countries; the US is kept apart', () => {
     expect(realVisitors(live.today)).toBe(16);
     expect(visitsHeadline(live.today)).toBe('Site visits today: 16 (TH 1 · other 15)');
-    expect(visitsHint(live.today)).toBe('+79 US, mostly our own testing · tap for 7 days');
-    expect(visitsHint({ ...live.today, us: 0 })).toBe('tap for 7 days');
+    expect(visitsHint(live.today)).toBe('unique phones per day (from 16 Nov) · +79 US, mostly our own testing · tap for 7 days');
+    expect(visitsHint({ ...live.today, us: 0 })).toBe('unique phones per day (from 16 Nov) · tap for 7 days');
   });
   it('plain-words conversion and source names', () => {
     expect(joinedLine(live.today, 'today')).toBe('0 new members from 16 visitors today (0%)');
@@ -47,7 +47,7 @@ describe('admin site visits', () => {
   });
   it('the app visit counter marks automated browsers with the zztest prefix (letters only, fits the table check)', () => {
     const html = fs.readFileSync(path.join(__dirname, '../../index.html'), 'utf8');
-    expect(html).toContain("s=(navigator.webdriver?'zztest':'')+(Math.random().toString(36).slice(2,12)||'x')");
+    expect(html).toContain("if(navigator.webdriver&&s.indexOf('zztest')!==0)s=('zztest'+s).slice(0,40)");
     expect(/^[a-z0-9]{1,40}$/.test('zztest' + 'abcdefghij')).toBe(true);
   });
 });
