@@ -91,16 +91,16 @@ import { StayDo } from './V5StayDo';
 import { v5MyVerification } from './v5Live';
 import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
 import type { V5Blocked, V5Card, V5FeedItem, V5Me, V5ReportReason, V5TagPlace, V5Thread } from './v5Live';
-import { V5_L, KX_L, v5ErrText } from './v5Strings';
+import { V5_L, KX_L, kxArea, v5ErrText } from './v5Strings';
 import { V5MintSheet } from './V5KxCard';
 import { ClaimedPage, ClaimPage, ResultPage, RewardsPage } from './V5KxRewards';
 import { baht, MathSheet, HowSheet, RankingPage } from './V5KxRanking';
-import { GoCoach, GoCompose, GoMeReels, GoProfilePage, GoReelPlayer, gridToGo, hlTags, savedToGo, type CoachSpot, type GoReel } from './V5Go';
+import { GoCoach, GoCompose, GoMeReels, GoProfilePage, GoReelPlayer, gridToGo, ReelCaption, savedToGo, type CoachSpot, type GoReel } from './V5Go';
 import { coachDue, coachMark, coachPick, coachReplay, coachSync, newCoachState, type CoachKey, type CoachState } from './goCoach';
 import { shownGender } from './V5Gender';
 import { useChatTranslate } from './v5Translate';
 import { kxGenderShown, kxMemberReels, kxReelPeople, kxTagPeople, type KxGridReel, type KxMemberReels, type KxTagPerson } from './v5Kx';
-import { FeedPlaceChips, PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, SavedReelsPage, type PickedPlace } from './V5KxPlaces';
+import { PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, SavedReelsPage, type PickedPlace } from './V5KxPlaces';
 import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRanking, kxRefName, kxSavedReels, kxShareLink, kxShareLinkCached, kxShareOpenSeen,
   type KxCardExtras, type KxClaimResult, type KxFeedExtra, type KxPrize, type KxRanking, type KxRewards, type KxSavedReel, type KxWeekResult } from './v5Kx';
 import { inviteCode } from './kxLogic';
@@ -3637,8 +3637,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               )
                         }
                       >
-                        <svg viewBox="0 0 24 24">
-                          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
+                        <svg viewBox="0 0 24 24">{/* S: waving hand (the bell read as notifications) */}
+                          <path d="M7.5 12.5V6.8a1.4 1.4 0 0 1 2.8 0v4.7M10.3 11V4.9a1.4 1.4 0 0 1 2.8 0V11M13.1 11V5.8a1.4 1.4 0 0 1 2.8 0v6.4M15.9 10.6V8.6a1.4 1.4 0 0 1 2.8 0v5.2c0 4.1-2.7 7.2-6.5 7.2-2.6 0-4.1-1.1-5.6-3.3l-2.3-3.6a1.45 1.45 0 0 1 2.3-1.75l1 1.25M3.2 6.2c.4-1.4 1.3-2.6 2.6-3.3M19.6 3.3c1.2.7 2 1.8 2.3 3.1" />
                         </svg>
                         <span className="lbl">{t.sayHi}</span>
                       </button>
@@ -3679,9 +3679,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                         </button>
                       )}
                     </div>
-                    <div className="meta">
+                    <div className={`meta${p.video ? ' reel-meta' : ''}`}>
                       <div className="who">
-                        <img className="av" src={p.av} alt={p.name || ''} />
+                        {live && (p as V5FeedItem).authorId ? (
+                          <button type="button" className="av-btn" data-act="author-av" aria-label={p.name || ''} onClick={() => void openProfile((p as V5FeedItem).authorId)}><img className="av" src={p.av} alt="" /></button>
+                        ) : <img className="av" src={p.av} alt={p.name || ''} />}
                         <div>
                           <div className="nm">
                             {live && (p as V5FeedItem).authorId ? (
@@ -3700,42 +3702,38 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                                 cursor: 'pointer',
                               }}
                             >
-                              ✓ {t.verifiedLabel}
+                              ✓{p.video ? '' : ` ${t.verifiedLabel}`}
                             </button>
                             )}
                           </div>
-                          <div className="langs">
-                            {p.ig && (
-                              <a className="reel-ig" href={`https://www.instagram.com/${encodeURIComponent(p.ig)}/`} target="_blank" rel="noopener noreferrer nofollow">@{p.ig}</a>
-                            )}
-                            {p.ig ? ' · ' : ''}
-                            {kxFeedX[p.id]?.tiktok && (
-                              <><a className="reel-ig kx-feedtt" data-social="tt" href={`https://www.tiktok.com/@${encodeURIComponent(kxFeedX[p.id].tiktok as string)}`} target="_blank" rel="noopener noreferrer nofollow">♪ @{kxFeedX[p.id].tiktok}</a>{' · '}</>
-                            )}
-                            {p.langs}
-                          </div>
+                          {/* S (15 Nov): handles + languages left the Reel overlay (they are on the profile, one tap on the name) */}
+                          {!p.video ? <div className="langs">{p.langs}</div> : null}
                         </div>
-                        {p.area && <span className="atag">{p.area}</span>}
+                        {!p.video && p.area && <span className="atag">{p.area}</span>}
                         {p.here && <span className="here">{t.hereNow}</span>}
                         {p.bestOfWeek && (
                           <span className="atag">{L("★ Best of week")}</span>
                         )}
                       </div>
-                      {p.video && kxFeedX[p.id]?.places?.length ? (
-                        <FeedPlaceChips L={L} Lf={Lf} lang={lang} places={kxFeedX[p.id].places} onOpen={kxOpenPlace} />
-                      ) : null}
-                      <div className="cap">{p.video ? hlTags(p.cap || '') : p.cap}</div>
+                      {p.video ? (() => {
+                        // S: ONE small pin "📍 place · area"; no place → the area only
+                        const kp = kxFeedX[p.id]?.places?.[0];
+                        if (kp) return (
+                          <button type="button" className="reel-pin" data-act="place" data-place-chip={kp.id} onClick={(e) => { e.stopPropagation(); kxOpenPlace(kp.id); }}>
+                            <span aria-hidden="true">📍</span><b>{lang === 'th' && kp.name_th ? kp.name_th : kp.name_en}</b>{kp.area ? <span> · {kxArea(lang, kp.area, L)}</span> : null}
+                          </button>
+                        );
+                        if (p.place) return (
+                          <button type="button" className="reel-pin" data-act="place" aria-label={`${p.place.name} · ${L('See place')}`} onClick={(e) => { e.stopPropagation(); openReelPlace(p.place!); }}>
+                            <span aria-hidden="true">📍</span><b>{lang === 'th' && p.place.nameTh ? p.place.nameTh : p.place.name}</b>{p.area ? <span> · {kxArea(lang, p.area, L)}</span> : null}
+                          </button>
+                        );
+                        return p.area ? <span className="reel-pin area" data-act="area"><span aria-hidden="true">📍</span><b>{kxArea(lang, p.area, L)}</b></span> : null;
+                      })() : null}
+                      {p.video ? <ReelCaption text={p.cap || ''} L={L} /> : <div className="cap">{p.cap}</div>}
                       {p.video && goPeople[p.id]?.length ? (
                         <p className="go-with" data-act="with">{L('with')}{goPeople[p.id].map((x) => <button type="button" key={x.user_id} onClick={() => void openProfile(x.user_id)}>@{x.first_name}</button>)}</p>
                       ) : null}
-                      {p.video && p.place && (
-                        <button type="button" className="reel-place" data-act="place" aria-label={`${p.place.name} · ${L('See place')}`} onClick={() => openReelPlace(p.place!)}>
-                          <span aria-hidden="true">📍</span>
-                          <b>{lang === 'th' && p.place.nameTh ? p.place.nameTh : p.place.name}</b>
-                          {(p.place.dealTh || p.place.dealEn) && <span> · {lang === 'th' ? p.place.dealTh || p.place.dealEn : p.place.dealEn || p.place.dealTh}</span>}
-                          <span className="go" aria-hidden="true">›</span>
-                        </button>
-                      )}
                       {p.video && (p as V5FeedItem).mine && typeof p.views === 'number' && (
                         <div className="reel-views">👁 {Lf('{0} views · only you see this', String(p.views))}</div>
                       )}

@@ -129,7 +129,7 @@ describe('Reel player', () => {
     render(<GoReelPlayer {...base} reels={list} onLike={vi.fn()} onSave={vi.fn()} />);
     const first = document.querySelector('[data-reel-id="r1"]')!;
     expect(first.querySelector('[data-go="place"]')!.textContent).toBe('Talat Noi');
-    expect(first.querySelectorAll('.go-cap span').length).toBe(2);
+    expect(first.querySelectorAll('.reel-cap .reel-cap-t span').length).toBe(2);
     expect(first.querySelector('[data-go="score"]')!.textContent).toContain('12');
     expect(first.querySelector('[data-go="with"]')!.textContent).toBe('with@TEST-P1@TEST-P2');
     expect(document.querySelectorAll('.go-reel').length).toBe(2);

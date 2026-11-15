@@ -33,6 +33,24 @@ const IcPlus = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 const IcPeople = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="9" cy="8.5" r="3.2" /><path d="M3 19.5c.5-3.300 3-5 6-5s5.500 1.700 6 5" /><circle cx="17" cy="9.5" r="2.4" /><path d="M17.5 14.5c2 .3 3.300 1.700 3.600 4" /></svg>;
 
 /** "#tags" in a caption, coloured pink / cyan in turn. Returns React nodes (never raw HTML). */
+/** S (15 Nov): Reel caption, 2 lines then "…more" (เพิ่มเติม); tap opens it in place. Hashtags muted (they sit in the 2 lines). */
+export function ReelCaption(props: { text: string; L: Tx }) {
+  const [open, setOpen] = useState(false);
+  const [long, setLong] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (el && !open) setLong(el.scrollHeight > el.clientHeight + 2);
+  }, [props.text, open]);
+  if (!props.text) return null;
+  return (
+    <div className={`cap reel-cap${open ? ' open' : ''}`} data-act="caption">
+      <div ref={ref} className="reel-cap-t">{hlTags(props.text)}</div>
+      {long && !open ? <button type="button" className="reel-more" onClick={(e) => { e.stopPropagation(); setOpen(true); }}>…{props.L('more')}</button> : null}
+    </div>
+  );
+}
+
 export function hlTags(text: string): React.ReactNode[] {
   const out: React.ReactNode[] = [];
   let n = 0; let last = 0;
@@ -181,7 +199,7 @@ export function GoReelPlayer(props: {
                   {a ? (
                     <button type="button" className="go-whob" data-go="author" disabled={!a.id} onClick={() => a.id && props.onProfile(a.id)}>
                       <span className="go-av" style={a.photo ? { backgroundImage: `url('${a.photo}')` } : undefined}>{a.photo ? null : (a.name || '?').charAt(0)}</span>
-                      <span className="go-nm"><b>{a.name}</b>{a.handle ? <small>@{a.handle}</small> : null}</span>
+                      <span className="go-nm"><b>{a.name}</b></span>
                     </button>
                   ) : null}
                   {pending ? <span className="go-score rv">{L('in review')}</span>
@@ -192,7 +210,7 @@ export function GoReelPlayer(props: {
                 {r.place ? (
                   <button type="button" className="go-place" data-go="place" onClick={() => props.onPlace?.(r.place!.id)}><IcPin /><span>{props.lang === 'th' && r.place.name_th ? r.place.name_th : r.place.name_en}</span></button>
                 ) : null}
-                {r.body ? <p className="go-cap">{hlTags(r.body)}</p> : null}
+                {r.body ? <ReelCaption text={r.body} L={L} /> : null}
                 {r.people && r.people.length ? (
                   <p className="go-with" data-go="with">{L('with')}{r.people.map((p) => <button type="button" key={p.user_id} onClick={() => props.onProfile(p.user_id)}>@{p.first_name}</button>)}</p>
                 ) : null}

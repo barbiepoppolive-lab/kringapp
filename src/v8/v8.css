@@ -3533,3 +3533,26 @@
 
 /* F (15 Nov): a pinch on a Reel never zooms the page (see zoomGuard.ts). Scroll and swipe still work. */
 .v8-app-root #s-feed, .v8-app-root .go-player, .v8-app-root .kx-viewer, .v8-app-root video { touch-action: pan-x pan-y; }
+
+/* S (15 Nov): slimmer Reel overlay: name · one place pin · 2-line caption (hashtags muted), one soft gradient at the bottom only */
+.v8-app-root .slide.has-reel .scrim { background: linear-gradient(180deg, rgba(11,10,18,.35) 0%, rgba(11,10,18,0) 14%, rgba(11,10,18,0) 72%, rgba(11,10,18,.78) 100%); }
+.v8-app-root .slide .reel-meta { bottom: 84px; }
+.v8-app-root .slide .reel-meta .who { margin-bottom: 5px; gap: 8px; }
+.v8-app-root .slide .reel-meta .av { width: 32px; height: 32px; border-width: 1.5px; }
+.v8-app-root .slide .reel-meta .av-btn { padding: 0; border: 0; background: none; line-height: 0; border-radius: 50%; }
+.v8-app-root .slide .reel-meta .nm { font-size: 14.5px; text-shadow: 0 1px 6px rgba(0,0,0,.45); }
+.v8-app-root .slide .reel-meta .v { font-size: 12px; }
+.v8-app-root .reel-pin { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; margin: 0 0 5px; padding: 3px 9px 3px 7px; border: 0; border-radius: 999px;
+  background: rgba(11,10,18,.42); backdrop-filter: blur(6px); color: rgba(255,247,236,.92); font: inherit; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .reel-pin b { font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .reel-pin span:last-child:not([aria-hidden]) { opacity: .75; flex: none; }
+.v8-app-root .slide .reel-cap { font-size: 13.5px; line-height: 1.38; }
+.v8-app-root .slide .reel-cap .reel-cap-t { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.v8-app-root .slide .reel-cap.open .reel-cap-t { display: block; -webkit-line-clamp: unset; max-height: 40vh; overflow-y: auto; }
+.v8-app-root .slide .reel-cap .go-h0, .v8-app-root .slide .reel-cap .go-h1 { color: rgba(255,247,236,.58); font-weight: 600; }
+.v8-app-root .slide .reel-more { padding: 0; margin-top: 1px; border: 0; background: none; color: rgba(255,247,236,.75); font: inherit; font-size: 13px; font-weight: 700; }
+.v8-app-root .go-meta .reel-cap { font-size: 13.5px; line-height: 1.38; margin: 4px 0 0; text-shadow: 0 1px 6px rgba(0,0,0,.45); }
+.v8-app-root .go-meta .reel-cap .reel-cap-t { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.v8-app-root .go-meta .reel-cap.open .reel-cap-t { display: block; max-height: 40vh; overflow-y: auto; }
+.v8-app-root .go-meta .reel-cap .go-h0, .v8-app-root .go-meta .reel-cap .go-h1 { color: rgba(255,247,236,.58); font-weight: 600; }
+.v8-app-root .go-meta .reel-more { padding: 0; border: 0; background: none; color: rgba(255,247,236,.75); font: inherit; font-size: 13px; font-weight: 700; }

@@ -2302,6 +2302,7 @@ export const KX_L: Record<string, Record<string, string>> = {
     'Install': 'ติดตั้ง',
     'Later': 'ไว้ทีหลัง',
     'The home-screen app keeps its own sign-in: sign in once more there with your email code.': 'แอปบนหน้าจอโฮมแยกการล็อกอินของตัวเอง: เข้าสู่ระบบอีกครั้งด้วยรหัสทางอีเมล',
+    'more': 'เพิ่มเติม',
     'Your draft is back · กริ๊ง!': 'กู้ร่างที่ทำไว้กลับมาแล้ว · กริ๊ง!',
     'Keep this screen open until done': 'เปิดหน้านี้ค้างไว้จนเสร็จ',
     'The screen closed while your Reel was being prepared, so nothing was uploaded. Tap Post again and keep this screen open.': 'หน้าจอถูกปิดระหว่างเตรียมรีล จึงยังไม่ได้อัปโหลด · กดโพสต์อีกครั้ง และเปิดหน้านี้ค้างไว้จนเสร็จ',
