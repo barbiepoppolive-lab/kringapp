@@ -11,6 +11,8 @@ WIDTHS = [320, 360, 390, 412]
 SCALES = [1.0, 1.15, 1.3]
 HVIEWS = ['me', 'me-new', 'rewards', 'claim', 'ranking', 'how', 'pick', 'compose', 'place', 'activity', 'a2hs-android', 'a2hs-ios', 'a2hs-inapp-line']
 APPVIEWS = ['feed', 'people', 'deals', 'me', 'settings']
+if os.environ.get('HVIEWS'): HVIEWS = os.environ['HVIEWS'].split(',')   # e.g. HVIEWS=rewards,rewards-new and app url '-' to skip the app
+if APP == '-': APPVIEWS = []
 
 SCAN = r"""
 (scale) => {

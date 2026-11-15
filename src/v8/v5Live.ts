@@ -67,7 +67,45 @@ async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T
     throw new V5Error(codeOf(e));
   }
   if (res.error) throw new V5Error(codeOf(res.error));
-  return res.data as T;
+  return viaEdgeUrls(res.data) as T;
+}
+/** Public bucket photos (partner/venue pictures) are shown through kringapp.com/media/pub/ (Cloudflare cache), never straight
+ *  from Supabase storage (16 Nov egress fix). Only on kringapp.com / preview hosts, where that route exists. */
+const PUB_PREFIX = `${SUPA_URL.replace(/\/$/, '')}/storage/v1/object/public/`;
+const EDGE_HOST = typeof location !== 'undefined' && /(^|\.)kringapp\.com$|\.pages\.dev$/.test(location.hostname);
+export function viaEdgeUrls<T>(v: T): T {
+  if (!EDGE_HOST || v == null) return v;
+  if (typeof v === 'string') return (v.startsWith(PUB_PREFIX) && /^kr8-venue-photos\//.test(v.slice(PUB_PREFIX.length)) ? `/media/pub/${v.slice(PUB_PREFIX.length)}` : v) as T;
+  if (Array.isArray(v)) return v.map((x) => viaEdgeUrls(x)) as T;
+  if (typeof v === 'object') { const o: Record<string, unknown> = {}; for (const [k, x] of Object.entries(v as Record<string, unknown>)) o[k] = typeof x === 'string' && x.length > 300 ? x : viaEdgeUrls(x); return o as T; }
+  return v;
+}
+/**
+ * Supabase egress (16 Nov): member photos are stored inline (data: images up to ~110 KB each) and came back inside every feed,
+ * People and inbox response, again on every refresh (the inbox every 5-30 s). Now a photo is downloaded once per phone visit:
+ * repeat calls ask PostgREST for every column except the photo ones (?select=...) and reuse the photo already here. A row from
+ * someone new, an error, or 15 minutes passing → one normal full call (so a changed photo still shows up).
+ */
+type PhotoSpec = { id: string; photo: string };
+const photoCache = new Map<string, string | null>();
+const lastFull: Record<string, number> = {};
+const FULL_EVERY_MS = 15 * 60_000;
+async function rpcLite<T>(fn: string, args: Record<string, unknown>, cols: string[], specs: PhotoSpec[]): Promise<T[]> {
+  const key = (sp: PhotoSpec, r: Record<string, unknown>) => `${fn}:${sp.photo}:${String(r[sp.id] ?? '')}`;
+  if (Date.now() - (lastFull[fn] || 0) < FULL_EVERY_MS && !(typeof navigator !== 'undefined' && navigator.onLine === false)) {
+    try {
+      const c = await v5Client();
+      const res = await c.rpc(fn, args).select(cols.filter((x) => !specs.some((sp) => sp.photo === x)).join(','));
+      const rows = viaEdgeUrls(res.data || null) as Record<string, unknown>[] | null;
+      if (!res.error && Array.isArray(rows) && rows.every((r) => specs.every((sp) => !r[sp.id] || photoCache.has(key(sp, r))))) {
+        return rows.map((r) => { const o = { ...r }; for (const sp of specs) o[sp.photo] = r[sp.id] ? photoCache.get(key(sp, r)) ?? null : null; return o as T; });
+      }
+    } catch { /* fall back to the full call */ }
+  }
+  const rows = await rpc<T[]>(fn, args);
+  lastFull[fn] = Date.now();
+  for (const r of (rows || []) as Record<string, unknown>[]) for (const sp of specs) if (r[sp.id]) photoCache.set(key(sp, r), (r[sp.photo] as string | null) ?? null);
+  return rows || [];
 }
 export function v5ErrCode(e: unknown): string {
   return e instanceof V5Error ? e.code : codeOf(e);
@@ -287,7 +325,7 @@ export const v5SetHere = (on: boolean) => rpc<void>('kr8_set_here', { p_on: on }
 // ─────────────── people / feed / treats ───────────────
 interface PersonRow { user_id: string; first_name: string; photo: string | null; langs: string[]; bio: string; area: string; who: 'local' | 'traveller'; here: boolean; verified: boolean }
 export async function v5People(): Promise<V8Person[]> {
-  const rows = await rpc<PersonRow[]>('kr8_people', { p_limit: 60 });
+  const rows = await rpcLite<PersonRow>('kr8_people', { p_limit: 60 }, ['user_id', 'first_name', 'photo', 'langs', 'bio', 'area', 'who', 'here', 'verified'], [{ id: 'user_id', photo: 'photo' }]);
   return (rows || []).map((r) => ({
     id: r.user_id,
     name: r.first_name,
@@ -309,6 +347,9 @@ interface FeedRow { id: string; kind: 'photo' | 'plan' | 'ask' | 'reel'; area: s
   answers: { id: string; body: string; name: string; who: string; photo: string | null }[]
   likes?: number | null; liked?: boolean | null; saved?: boolean | null; views?: number | null; ig_handle?: string | null;
   venue_id?: string | null; venue_name?: string | null; venue_name_th?: string | null; deal_id?: string | null; deal_en?: string | null; deal_th?: string | null }
+const FEED_COLS = ['id', 'kind', 'area', 'body', 'photo', 'event_id', 'here', 'created_at', 'video_path', 'poster_path', 'reel_status', 'author_id', 'author_name',
+  'author_photo', 'author_langs', 'author_who', 'mine', 'answers', 'likes', 'liked', 'saved', 'views', 'ig_handle', 'venue_id', 'venue_name', 'venue_name_th', 'deal_id',
+  'deal_en', 'deal_th'];
 export type V5FeedItem = V8FeedItem & { authorId?: string; mine?: boolean; v5Kind?: 'photo' | 'plan' | 'ask' | 'reel'; eventId?: string };
 /** 16 Nov perf: two callers at start-up asked for the feed at the same moment (two feed calls, two signing calls); they now share one. */
 let feedInFlight: Promise<V5FeedItem[]> | null = null;
@@ -316,25 +357,62 @@ export function v5Feed(): Promise<V5FeedItem[]> {
   if (!feedInFlight) feedInFlight = v5FeedOnce().finally(() => { setTimeout(() => { feedInFlight = null; }, 0); });
   return feedInFlight;
 }
-/** index.html starts the visitor feed request before the app code arrives (signed-out phones only); used once. */
-function takeEarlyFeed(): Promise<FeedRow[] | null> | null {
-  const w = window as unknown as { __kr8FeedPre?: Promise<FeedRow[] | null> | null };
-  const pre = w.__kr8FeedPre || null;
-  w.__kr8FeedPre = null;
-  return pre;
+/** index.html asks for the feed the moment the page starts (16 Nov perf 2): on kringapp.com it is /feed0, the visitor feed with
+ *  every Reel link already signed, from the Cloudflare edge. Elsewhere (local) it is the plain kr8_feed call for signed-out phones. */
+type EarlyFeed = { rows: FeedRow[]; signed: Record<string, string> | null; at?: number; ttl?: number } | null;
+let earlyP: Promise<EarlyFeed> | null | undefined;
+let earlyUsed = false;
+function early(): Promise<EarlyFeed> | null {
+  if (earlyP === undefined) {
+    if (typeof window === 'undefined') return (earlyP = null);
+    const w = window as unknown as { __kr8Feed0?: Promise<EarlyFeed> | null };
+    earlyP = w.__kr8Feed0 || null;
+    w.__kr8Feed0 = null;
+    if (earlyP) earlyP = earlyP.then((d) => (d && Array.isArray(d.rows) ? d : null)).catch(() => null);
+  }
+  return earlyP;
+}
+/** A session can only exist when one is stored on this phone or a sign-in is just coming back in the address. Checking this
+ *  first means a visitor's feed never waits for the Supabase library (59 KB) to download and start. */
+function maybeSignedIn(): boolean {
+  try {
+    return !!localStorage.getItem('kr8-v5-auth') || /[?&#](code|access_token|error_description)=/.test(location.search + location.hash);
+  } catch {
+    return true;
+  }
+}
+async function hasSession(): Promise<boolean> {
+  if (!maybeSignedIn()) return false;
+  const c = await v5Client();
+  const { data } = await c.auth.getSession();
+  return !!data.session;
+}
+/** Links signed by the edge are reused for the member's own feed too, so the Reel on screen does not reload when it arrives. */
+async function signedFor(rows: FeedRow[], pre: Record<string, string> | null, at?: number, ttl?: number): Promise<Record<string, string>> {
+  const m = await import('./v5Reel');
+  if (pre) m.primeSigned(pre, (at || Date.now()) + (ttl || 3600) * 1000);
+  const reelPaths = (rows || []).flatMap((r) => (r.kind === 'reel' ? [r.video_path || '', r.poster_path || ''] : []));
+  return reelPaths.length ? m.signReelPaths(reelPaths).catch(() => ({} as Record<string, string>)) : {};
+}
+/** The visitor feed index.html already fetched (or null). A signed-in member sees this first while their own feed loads. */
+export async function v5FeedPeek(): Promise<V5FeedItem[] | null> {
+  const p = early();
+  const d = p ? await p : null;
+  if (!d || !d.signed) return null;
+  return mapFeed(d.rows, await signedFor(d.rows, d.signed, d.at, d.ttl));
 }
 async function v5FeedOnce(): Promise<V5FeedItem[]> {
-  const pre = typeof window === 'undefined' ? null : takeEarlyFeed();
-  let early: FeedRow[] | null = null;
-  if (pre) {
-    const c = await v5Client();
-    const { data } = await c.auth.getSession();
-    if (!data.session) early = await pre.catch(() => null);   // a signed-in member gets their own feed (likes, saves, own Reels)
+  const p = earlyUsed ? null : early();
+  earlyUsed = true;
+  if (p && !(await hasSession())) {   // a signed-in member gets their own feed (likes, saves, own Reels)
+    const d = await p;
+    if (d) return mapFeed(d.rows, await signedFor(d.rows, d.signed, d.at, d.ttl));
   }
-  const all = Array.isArray(early) ? early : await rpc<FeedRow[]>('kr8_feed', { p_area: null, p_limit: 60 });
+  const all = await rpcLite<FeedRow>('kr8_feed', { p_area: null, p_limit: 60 }, FEED_COLS, [{ id: 'author_id', photo: 'author_photo' }, { id: 'id', photo: 'photo' }]);
+  return mapFeed(all || [], await signedFor(all || [], null));
+}
+function mapFeed(all: FeedRow[], signed: Record<string, string>): V5FeedItem[] {
   // Reels-only feed (founder 9 Nov): photo posts are no longer made; old ones still show. Reels need signed links.
-  const reelPaths = (all || []).flatMap((r) => (r.kind === 'reel' ? [r.video_path || '', r.poster_path || ''] : []));
-  const signed = reelPaths.length ? await import('./v5Reel').then((m) => m.signReelPaths(reelPaths)).catch(() => ({} as Record<string, string>)) : {};
   const rows = (all || []).filter((r) => r.kind !== 'reel' || (r.video_path && signed[r.video_path]));
   return rows.map((r) =>
     r.kind === 'ask'
@@ -386,7 +464,8 @@ export function v5TimeLabel(iso: string): string {
   return `${Math.floor(d / 86_400_000)}d`;
 }
 export async function v5Inbox(): Promise<{ threads: V5Thread[]; requests: V8HelloRequest[] }> {
-  const rows = await rpc<InboxRow[]>('kr8_inbox');
+  const rows = await rpcLite<InboxRow>('kr8_inbox', {}, ['thread_id', 'status', 'opened_by_me', 'other_id', 'other_name', 'other_photo', 'other_langs', 'other_verified',
+    'other_area', 'last_body', 'last_sender_me', 'last_at', 'unread'], [{ id: 'other_id', photo: 'other_photo' }]);
   const threads: V5Thread[] = [];
   const requests: V8HelloRequest[] = [];
   for (const r of rows || []) {
@@ -410,21 +489,25 @@ export async function v5Messages(thread: string): Promise<V8ChatMessage[]> {
 export async function v5Subscribe(onChange: () => void): Promise<() => void> {
   const c = await v5Client();
   let live = false;
+  let t: ReturnType<typeof setTimeout> | null = null;
+  const fire = () => { if (!t) t = setTimeout(() => { t = null; onChange(); }, 800); };
   const ch = c
     .channel('kr8-me')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'kr8_messages' }, () => onChange())
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'kr8_threads' }, () => onChange())
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'kr8_messages' }, () => fire())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'kr8_threads' }, () => fire())
     .subscribe((status) => {
       live = status === 'SUBSCRIBED';
       // a just-started Realtime tenant can miss events for a few seconds while it creates its replication slot
       if (live) setTimeout(() => onChange(), 6000);
     });
   const visible = () => typeof document === 'undefined' || document.visibilityState === 'visible';
-  const fast = setInterval(() => { if (!live && visible() && navigator.onLine !== false) onChange(); }, 5000);
-  const slow = setInterval(() => { if (live && visible()) onChange(); }, 30000);
+  // 16 Nov egress: fallback poll 5 s → 15 s, safety poll with Realtime up 30 s → 120 s, and a burst of events = one refresh
+  const fast = setInterval(() => { if (!live && visible() && navigator.onLine !== false) fire(); }, 15000);
+  const slow = setInterval(() => { if (live && visible()) fire(); }, 120000);
   return () => {
     clearInterval(fast);
     clearInterval(slow);
+    if (t) clearTimeout(t);
     c.removeChannel(ch).catch(() => undefined);
   };
 }

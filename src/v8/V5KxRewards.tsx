@@ -81,7 +81,7 @@ export function weekLabel(lang: string, week: string): string {
  * Rewards home: this week's Rings + rank and the next step, My prizes (one-tap Claim), the prize ladder, one live-claims line.
  * No task list, no invite card, no balance: Rings are a score.
  */
-export function RewardsPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards | null;
+export function RewardsPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards | null; fallbackWeek?: number | null;
   onBack: () => void; onClaim: (p: KxPrize) => void; onCode: (claimId: string | null) => void; onHistory: () => void; onRanking: () => void; onMath: () => void }) {
   const { L, Lf, data } = props;
   const R = ringsRules(data?.rules);
@@ -101,10 +101,14 @@ export function RewardsPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewar
       </div>
       <div className="kx-bal wk" id="kxWeek">
         <RingGlyph white size={150} />
-        <span className="cap">{L('THIS WEEK')}{data && data.streak >= 2 ? <i className="kx-stk" id="kxStreak">🔥 {Lf('{0} days in a row', String(data.streak))}</i> : null}</span>
-        <button type="button" className="n" id="kxWeekMath" aria-label={L('See the math')} onClick={props.onMath}><span id="kxWeekN">{data ? fmtN(data.week) : '…'}</span><RingGlyph white size={40} /></button>
+        {/* 16 Nov fix: the label and the Ranking pill share one row (the pill never overlaps), the streak sits on its own line */}
+        <div className="kx-wk-top">
+          <span className="cap">{L('THIS WEEK')}</span>
+          <button type="button" className="kx-rankchip" id="kxWeekRank" onClick={props.onRanking}>{data?.rank ? `#${data.rank}` : '#—'} <small>{L('Ranking')} ›</small></button>
+        </div>
+        <button type="button" className={`n${data ? '' : ' wait'}`} id="kxWeekMath" aria-label={L('See the math')} onClick={props.onMath}><span id="kxWeekN">{fmtN(data ? data.week ?? 0 : props.fallbackWeek ?? 0)}</span><RingGlyph white size={40} /></button>
+        {data && data.streak >= 2 ? <i className="kx-stk" id="kxStreak">🔥 {Lf('{0} days in a row', String(data.streak))}</i> : null}
         <div className="v" id="kxWeekNext">{data ? own.l2 : ''}</div>
-        <button type="button" className="kx-rankchip" id="kxWeekRank" onClick={props.onRanking}>{data?.rank ? `#${data.rank}` : '#—'} <small>{L('Ranking')} ›</small></button>
       </div>
       <div className="kx-sec"><h2>{L('My prizes')}</h2><span>{L('One tap to claim')}</span></div>
       <div className="kx-pzs" id="kxPrizes">

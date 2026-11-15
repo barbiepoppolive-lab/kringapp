@@ -285,6 +285,13 @@ export async function createReel(u: UploadedReel, r: ReelReady, area: string, bo
 }
 
 const signCache = new Map<string, { url: string; until: number }>();
+/** Links the edge already signed (/feed0, 16 Nov perf 2) go straight into the cache, so they are not signed a second time. */
+export function primeSigned(signed: Record<string, string>, until: number): void {
+  for (const [p, url] of Object.entries(signed || {})) {
+    const hit = signCache.get(p);
+    if (url && (!hit || hit.until < until)) signCache.set(p, { url, until });
+  }
+}
 /**
  * 16 Nov: on kringapp.com (and its previews) Reels and posters come through the site's /media/ route, which keeps each file
  * in Cloudflare's cache by path (with Range support) and sends Cache-Control: immutable. Supabase still decides who may see

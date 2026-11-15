@@ -18,7 +18,7 @@ export function toggleReelSound(e: { target: EventTarget | null; currentTarget: 
   if (v.paused) void v.play().catch(() => undefined);
 }
 
-export function V5ReelVideo({ src, poster, label, pending, onViewed }: { src: string; poster?: string; label: string; pending?: string; onViewed?: () => void }) {
+export function V5ReelVideo({ src, poster, label, pending, onViewed, first }: { src: string; poster?: string; label: string; pending?: string; onViewed?: () => void; first?: boolean }) {
   const ref = useRef<HTMLVideoElement>(null);
   const viewedRef = useRef(false);
   const onViewedRef = useRef(onViewed);
@@ -26,7 +26,7 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed }: { src: st
   const [muted, setMuted] = useState(!soundOn);
   // M (15 Nov): only the Reel on screen and the one next to it load their video; the rest show their poster and download nothing
   const boxRef = useRef<HTMLDivElement>(null);
-  const [near, setNear] = useState(false);
+  const [near, setNear] = useState(!!first);   // the first Reel shows its poster on the very first paint (no dark frame)
   const [onScreen, setOnScreen] = useState(false);
   const [mayPrefetch, setMayPrefetch] = useState(somethingPlaying);
   useEffect(() => {

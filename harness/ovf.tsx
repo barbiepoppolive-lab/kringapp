@@ -7,7 +7,8 @@ import '../src/v8/kx.css';
 import '../src/v8/me.css';
 import '../src/v8/ticket.css';
 import '../src/v8/perks.css';
-import { V5_L, KX_L } from '../src/v8/v5Strings';
+import { V5_L, KX_L, loadV5Lang } from '../src/v8/v5Strings';
+await loadV5Lang(new URLSearchParams(location.search).get('lang') || 'th');
 import * as Go from '../src/v8/V5Go';
 import * as Places from '../src/v8/V5KxPlaces';
 import * as Me from '../src/v8/V5Me';
@@ -47,6 +48,9 @@ if (view === 'me-new') el = <Me.MeView L={L} Lf={Lf as never} p={{ ...p, verifie
   onTop10={noop} onList={noop} onSettings={noop} onActivity={noop} onEdit={noop} onShare={noop} onCode={noop} onSaved={noop} onRewards={noop} onReel={noop} onPost={noop} onVerify={noop}
   kx={{ ...kx, week: 0, week_rank: null, has_reel: false, ig_handle: null, tiktok_handle: null, prizes: 0 } as never} weekRank={null} onRings={noop} onRanking={noop} saved={{ count: 0, thumbs: [] }} {...({} as never)} />;
 if (view === 'rewards') el = <Rw.RewardsPage L={L} Lf={Lf} lang={lang} data={rewards as never} onBack={noop} onClaim={noop} onCode={noop} onHistory={noop} onRanking={noop} onMath={noop} />;
+if (view === 'rewards-new') el = <Rw.RewardsPage L={L} Lf={Lf} lang={lang} data={{ ...rewards, week: 0, rank: null, streak: 2, prizes: [], gap: null } as never} onBack={noop} onClaim={noop} onCode={noop} onHistory={noop} onRanking={noop} onMath={noop} />;
+if (view === 'rewards-big') el = <Rw.RewardsPage L={L} Lf={Lf} lang={lang} data={{ ...rewards, week: 128450, rank: 10, streak: 12 } as never} onBack={noop} onClaim={noop} onCode={noop} onHistory={noop} onRanking={noop} onMath={noop} />;
+if (view === 'rewards-load') el = <Rw.RewardsPage L={L} Lf={Lf} lang={lang} data={null} onBack={noop} onClaim={noop} onCode={noop} onHistory={noop} onRanking={noop} onMath={noop} />;
 if (view === 'claim') el = <Rw.ClaimPage L={L} Lf={Lf} lang={lang} data={rewards as never} prize={prize as never} onBack={noop} onDone={noop} toast={noop} />;
 if (view === 'ranking') el = <Rk.RankingPage L={L} Lf={Lf} lang={lang} myArea="Phrom Phong" myPhoto={null} myName="Chayanuch" myId="u1" onBack={noop} onPerson={noop} onPost={noop} onShare={noop} />;
 if (view === 'how') el = <Rk.HowSheet L={L} onClose={noop} />;

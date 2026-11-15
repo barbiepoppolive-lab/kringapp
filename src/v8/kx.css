@@ -538,7 +538,7 @@
 .v8-app-root .kx-mfoot { margin: 14px 0 0; font: 600 12.5px/1.5 var(--kx-j); color: var(--kx-mu); text-align: center; }
 
 /* rewards */
-.v8-app-root .kx-bal.wk { height: 172px; }
+.v8-app-root .kx-bal.wk { height: auto; min-height: 172px; display: flex; flex-direction: column; align-items: flex-start; }
 .v8-app-root .kx-bal.wk .cap { display: flex; align-items: center; gap: 10px; font: 800 11px var(--kx-u); letter-spacing: .14em; opacity: .85; }
 .v8-app-root .kx-stk { font: 700 11px var(--kx-j); letter-spacing: 0; font-style: normal; background: rgba(7,6,13,.35); padding: 4px 9px; border-radius: 10px; }
 .v8-app-root .kx-bal.wk .n { background: none; border: 0; padding: 0; margin-top: 8px; color: #fff; position: relative; }
@@ -546,6 +546,14 @@
 .v8-app-root .kx-rankchip { position: absolute; top: 18px; right: 18px; border: 0; border-radius: 18px; padding: 8px 13px; background: rgba(7,6,13,.4); color: var(--kx-gd); font: 800 17px var(--kx-u);
   display: flex; align-items: baseline; gap: 7px; box-shadow: inset 0 0 0 1.5px rgba(255,211,107,.5); }
 .v8-app-root .kx-rankchip small { font: 700 11.5px var(--kx-j); color: #fff; opacity: .85; }
+/* 16 Nov fix: label + Ranking pill in one row (no overlap at 320 px, any language), streak on its own line, quieter rings behind */
+.v8-app-root .kx-bal.wk > .kx-rg { top: auto; bottom: -52px; right: -46px; opacity: .09; }
+.v8-app-root .kx-wk-top { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 36px; }
+.v8-app-root .kx-wk-top .cap { min-width: 0; overflow-wrap: anywhere; }
+.v8-app-root .kx-bal.wk .kx-rankchip { position: static; flex: 0 0 auto; max-width: 62%; white-space: nowrap; }
+.v8-app-root .kx-bal.wk .n.wait { opacity: .55; }
+.v8-app-root .kx-bal.wk .kx-stk { position: relative; display: inline-block; max-width: 100%; margin-top: 8px; font-size: 12px; line-height: 1.35; }
+.v8-app-root .kx-bal.wk .v { position: relative; left: auto; right: auto; bottom: auto; margin-top: 12px; }
 .v8-app-root .kx-pzs { display: flex; flex-direction: column; gap: 8px; margin: 0 18px; }
 .v8-app-root .kx-pz-none { margin: 0; padding: 16px; border-radius: 20px; background: var(--kx-sf); box-shadow: inset 0 0 0 1px var(--kx-ln); font: 600 13.5px/1.45 var(--kx-j); color: #cfc9e6; }
 .v8-app-root .kx-pzc { min-height: 72px; border-radius: 22px; display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 10px; background: var(--kx-sf); box-shadow: inset 0 0 0 1px var(--kx-ln); }

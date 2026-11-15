@@ -8,6 +8,24 @@ const TO = "barbiepoppolive@gmail.com";
 const BREVO = Deno.env.get("BREVO_API_KEY")!;
 const HOOK = Deno.env.get("NOTIFY_HOOK_SECRET")!;
 
+// 16 Nov: the TrueMoney share comes from kr8_rings_config (truemoney_payout_pct), not from value_thb (a stored column that is
+// always 3/4 of the prize) and not from a fixed 75%. Now 100 = the member gets the full prize value.
+const SUPA = Deno.env.get("SUPABASE_URL") ?? "";
+const SR = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+export async function payoutPct(): Promise<number> {
+  try {
+    const r = await fetch(`${SUPA}/rest/v1/kr8_rings_config?key=eq.truemoney_payout_pct&select=value`, { headers: { apikey: SR, Authorization: `Bearer ${SR}` } });
+    const v = Number((await r.json())?.[0]?.value);
+    return v >= 1 && v <= 100 ? v : 75;
+  } catch { return 75; }
+}
+export function wantsLine(rec: Record<string, unknown>, pct: number): string {
+  const amt = Number(rec.amount_thb);
+  if (rec.brand !== "truemoney") return `${BRAND[String(rec.brand)] ?? rec.brand} ฿${rec.amount_thb}`;
+  const worth = Math.floor((amt * pct) / 100);
+  return `TrueMoney ฿${rec.amount_thb} (buy a TrueMoney code worth ฿${worth} for the member; ${pct >= 100 ? "full value" : `TrueMoney keeps ${100 - pct}%`}, set by truemoney_payout_pct = ${pct})`;
+}
+
 const BRAND: Record<string, string> = { grab: "Grab", shopeepay: "ShopeePay", truemoney: "TrueMoney" };
 const ist = (s?: string) =>
   new Date(s ?? Date.now()).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" }) + " IST";
@@ -41,7 +59,7 @@ Deno.serve(async (req) => {
   const rows: [string, unknown][] = [
     ["Member", `${rec.first_name} (#${String(rec.member_no ?? "").padStart(5, "0")})`],
     ["Prize", prizeFor(rec)],
-    ["Wants", `${BRAND[rec.brand] ?? rec.brand} ฿${rec.amount_thb}${rec.brand === "truemoney" ? ` (buy a TrueMoney code worth ฿${rec.value_thb ?? Math.floor(Number(rec.amount_thb) * 3 / 4)} to the member; share set by truemoney_payout_pct)` : ""}`],
+    ["Wants", wantsLine(rec, rec.brand === "truemoney" ? await payoutPct() : 100)],
     ["Status", rec.status === "pending" ? `HELD · no ${BRAND[rec.brand] ?? rec.brand} ฿${rec.amount_thb} code in stock. The member sees “Your code is on the way”. The code goes out by itself the moment you add one (admin → More → Reward codes, same brand and amount).` : "Code sent to the member"],
     ["Same codes left", same],
     ["When", ist(rec.created_at)],

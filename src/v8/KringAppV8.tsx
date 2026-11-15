@@ -44,6 +44,7 @@ import {
   v5ErrCode,
   v5Export,
   v5Feed,
+  v5FeedPeek,
   v5Hello,
   v5Inbox,
   v5Me,
@@ -84,18 +85,14 @@ import {
   v5StoredRef,
 } from './v5Live';
 import { ActivitySheet, FollowSheet, InterestsSheet, LANG_NAME, MeView, Top10Sheet } from './V5Me';
-import { V5VerifySheet } from './V5Verify';
-import { StandHowSheet, V5TicketSheet } from './V5Ticket';
 import { A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip } from './A2HS';
 import { TripPerks } from './V5Trip';
 import { StayDo } from './V5StayDo';
 import { v5MyVerification } from './v5Live';
 import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
 import type { V5Blocked, V5Card, V5FeedItem, V5Me, V5ReportReason, V5TagPlace, V5Thread } from './v5Live';
-import { V5_L, KX_L, kxArea, v5ErrText } from './v5Strings';
+import { V5_L, KX_L, kxArea, v5ErrText, loadV5Lang, v5LangReady } from './v5Strings';
 import { V5MintSheet } from './V5KxCard';
-import { ClaimedPage, ClaimPage, ResultPage, RewardsPage } from './V5KxRewards';
-import { baht, MathSheet, HowSheet, RankingPage } from './V5KxRanking';
 import { GoCoach, GoCompose, GoMeReels, GoProfilePage, GoReelPlayer, gridToGo, ReelCaption, savedToGo, type CoachSpot, type GoReel } from './V5Go';
 import { coachDue, coachMark, coachPick, coachReplay, coachSync, newCoachState, type CoachKey, type CoachState } from './goCoach';
 import { shownGender } from './V5Gender';
@@ -108,6 +105,21 @@ import { inviteCode } from './kxLogic';
 import { V5Qr, V5SignInSheet } from './V5Sheets';
 import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, showFirstReelChip } from './V5ReelNudge';
 import { V5ReelVideo, toggleReelSound } from './V5ReelVideo';
+import { lazyPart, prefetchParts } from './lazyPart';
+import './kx.css';
+import { fmtN as kxFmtN } from './kxLogic';
+// 16 Nov perf 2: not needed for the first screen, so downloaded separately (see lazyPart)
+const V5VerifySheet = lazyPart(() => import('./V5Verify').then((m) => m.V5VerifySheet));
+const StandHowSheet = lazyPart(() => import('./V5Ticket').then((m) => m.StandHowSheet));
+const V5TicketSheet = lazyPart(() => import('./V5Ticket').then((m) => m.V5TicketSheet));
+const ClaimedPage = lazyPart(() => import('./V5KxRewards').then((m) => m.ClaimedPage));
+const ClaimPage = lazyPart(() => import('./V5KxRewards').then((m) => m.ClaimPage));
+const ResultPage = lazyPart(() => import('./V5KxRewards').then((m) => m.ResultPage));
+const RewardsPage = lazyPart(() => import('./V5KxRewards').then((m) => m.RewardsPage));
+const MathSheet = lazyPart(() => import('./V5KxRanking').then((m) => m.MathSheet));
+const HowSheet = lazyPart(() => import('./V5KxRanking').then((m) => m.HowSheet));
+const RankingPage = lazyPart(() => import('./V5KxRanking').then((m) => m.RankingPage));
+const baht = (n: number) => `฿${kxFmtN(n)}`;
 import { installZoomGuard } from './zoomGuard';
 import { installKeyboardFocus } from './keyboardFocus';
 import { clearSignInDraft, loadSignInDraft, saveSignInDraft } from './signInDraft';
@@ -1058,6 +1070,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [confirmDelete, setConfirmDelete] = useState(false);
   // Safety opened from inside a chat targets that chat; from Settings it targets nobody.
   const [safetyFromChat, setSafetyFromChat] = useState(false);
+  // 16 Nov perf 2: Chinese, Hindi, Japanese and Korean strings are downloaded only when chosen (English shows for a moment)
+  const [, setStringsTick] = useState(0);
+  useEffect(() => { if (!v5LangReady(lang)) void loadV5Lang(lang).then(() => setStringsTick((n) => n + 1)); }, [lang]);
   const L = (en: string): string =>
     ((V5_L[lang] && V5_L[lang][en]) || (KX_L[lang] && KX_L[lang][en]) || (V9_L[lang] && V9_L[lang][en]) || (QA_L[lang] && QA_L[lang][en]) || en).replace(/&amp;/g, '&');
   const Lf = (en: string, a: string, b = ''): string => L(en).replace('{0}', a).replace('{1}', b);
@@ -1163,6 +1178,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [feedItems, setFeedItems] = useState<V8FeedItem[]>(() =>
     []
   );
+  const [feedSettled, setFeedSettled] = useState(false);
+  useEffect(() => {   // once the feed is up, fetch the other screens quietly so opening them is instant
+    if (!feedSettled) return;
+    const id = window.setTimeout(prefetchParts, 2500);
+    return () => window.clearTimeout(id);
+  }, [feedSettled]);
+  const boot0Poster = typeof window === 'undefined' ? '' : String((window as unknown as { __kr8Poster0?: string }).__kr8Poster0 || '');
   const [stories, setStories] = useState<Record<string, V8StorySlide[]>>({});
   const [seenStoryAreas, setSeenStoryAreas] = useState<Record<string, boolean>>({});
   const [activeStoryArea, setActiveStoryArea] = useState<string>('Ari');
@@ -1490,6 +1512,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       // Prototype examples live in a separate lazy chunk that production never downloads.
       const demo = await import('./v8DemoData');
       setFeedItems(demo.INITIAL_FEED_ITEMS);
+      setFeedSettled(true);
       setStories(demo.INITIAL_STORIES);
       setPeople(demo.DEMO_PEOPLE);
       setDeals(demo.INITIAL_DEALS);
@@ -1511,13 +1534,18 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     }
     setPeopleLoading(true);
     if (live) {
-      const [p, f, d] = await Promise.all([
-        v5Card ? v5People().catch(() => [] as V8Person[]) : Promise.resolve([] as V8Person[]),
-        v5Feed().catch(() => [] as V8FeedItem[]),
-        v5Treats().catch(() => [] as V8Deal[]),
+      // 16 Nov perf 2: the feed goes on screen the moment it is here (it no longer waits for treats and people). A signed-in
+      // member first sees the visitor feed index.html already fetched, then their own. Treats and people start after the feed,
+      // so on a slow phone they do not compete with the first Reel for the network.
+      let shown = false;
+      v5FeedPeek().then((q) => { if (q && q.length) { shown = true; setFeedItems((prev) => (prev.length ? prev : q)); setFeedSettled(true); } }).catch(() => undefined);
+      const feedP = v5Feed().then((f) => { if (f.length || !shown) setFeedItems(f); }, () => { if (!shown) setFeedItems([]); }).finally(() => setFeedSettled(true));
+      const after = <T,>(f: () => Promise<T>) => Promise.race([feedP, new Promise((r) => setTimeout(r, 2500))]).then(f);
+      const [p, d] = await Promise.all([
+        v5Card ? after(() => v5People()).catch(() => [] as V8Person[]) : Promise.resolve([] as V8Person[]),
+        after(() => v5Treats()).catch(() => [] as V8Deal[]),
       ]);
       setPeople(p);
-      setFeedItems(f);
       setDeals(d);
       setClaimedDeals(Object.fromEntries(d.filter((x) => x.code).map((x) => [x.id, { claimedAt: Date.now(), used: false }])));
       setPeopleLoading(false);
@@ -2299,7 +2327,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [placeSearchOpen, setPlaceSearchOpen] = useState(false);
   const [kxInviter, setKxInviter] = useState<string>('');
   const kxLoadRewards = async () => {
-    try { const r = await kxMyRewards(); setKxRewards(r); setKxMe((m) => (m ? { ...m, week: r.week, week_rank: r.rank, lifetime: r.lifetime, level: r.level, prizes: r.prizes.filter((x) => x.status === 'won').length } : m)); return r; } catch (e) { showToast(v5Msg(e)); return null; }
+    // 16 Nov fix: one quiet retry before the error toast (the card shows the last known number, never a stuck '…')
+    try { const r = await kxMyRewards().catch(() => new Promise<void>((ok) => setTimeout(ok, 1500)).then(() => kxMyRewards())); setKxRewards(r); setKxMe((m) => (m ? { ...m, week: r.week, week_rank: r.rank, lifetime: r.lifetime, level: r.level, prizes: r.prizes.filter((x) => x.status === 'won').length } : m)); return r; } catch (e) { showToast(v5Msg(e)); return null; }
   };
   const kxInviteLink = (no: number | null | undefined) => `${location.origin}${import.meta.env.BASE_URL}?ref=${inviteCode(no ?? kxMe?.member_no)}`;
   const kxShareInvite = async (no?: number | null) => {
@@ -3550,7 +3579,12 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           {/* Vertical Snap Feed or Redesigned V9 Feed Hub */}
           {feedItems.length === 0 ? (
             <div className="feed-scroll" id="feedScroll" ref={feedScrollRef}>
-              {renderFillerSlides()}
+              {live && !feedSettled ? (
+                // 16 Nov perf 2: while the feed is on its way, keep the first Reel's poster the loading screen already showed
+                <div className="slide kr-slide-wait" aria-busy="true">
+                  {boot0Poster && <div className="bg" style={{ backgroundImage: `url('${boot0Poster}')` }} />}
+                </div>
+              ) : renderFillerSlides()}
             </div>
           ) : (
             <div className="feed-scroll" id="feedScroll" ref={feedScrollRef}>
@@ -3605,7 +3639,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 return (
                   <div className={`slide${p.video ? ' has-reel' : ''}`} key={p.id || idx} data-post-id={p.id} onClick={p.video ? (e) => handleReelTap(e, p) : undefined}>
                     {p.video ? (
-                      <V5ReelVideo src={p.video} poster={p.poster} label={`Reel · ${p.name || ''} · ${p.area || ''}`}
+                      <V5ReelVideo src={p.video} poster={p.poster} first={idx === 0} label={`Reel · ${p.name || ''} · ${p.area || ''}`}
                         pending={p.reelPending ? L('Waiting for a quick check · only you see this') : undefined}
                         onViewed={live && p.id && !p.reelPending && !(p as V5FeedItem).mine ? () => void v5LogView(p.id as string) : undefined} />
                     ) : (
@@ -6547,7 +6581,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onDone={(list) => { setPostPlaces(list); if (list[0] && !postArea) setPostArea(list[0].kr_area || 'Bangkok'); setPlaceSearchOpen(false); }} />
         )}
         {sheet === 'rewards' && live && (
-          <RewardsPage L={L} Lf={Lf} lang={lang} data={kxRewards}
+          <RewardsPage L={L} Lf={Lf} lang={lang} data={kxRewards} fallbackWeek={kxMe?.week ?? 0}
             onBack={() => setSheet(null)} onClaim={(p) => { setKxPrizeSel(p); setSheet('claim'); }}
             onCode={(id) => { setKxClaimFocus({ id, fresh: false }); setSheet('claimed'); }}
             onHistory={() => { setKxClaimFocus({ id: null, fresh: false }); setSheet('claimed'); }}
