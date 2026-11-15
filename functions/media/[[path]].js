@@ -26,6 +26,7 @@ export async function onRequest({ request, params, waitUntil }) {
   if (request.method !== 'GET' && request.method !== 'HEAD') return deny(405);
   const url = new URL(request.url);
   const path = (Array.isArray(params.path) ? params.path : [params.path]).map((s) => decodeURIComponent(s)).join('/');
+  if (path.startsWith('pub/')) return publicFile(path.slice(4), request, waitUntil);
   if (!OK_PATH.test(path)) return deny(404);
   const token = url.searchParams.get('t') || '';
   if (!/^[A-Za-z0-9._-]{20,2000}$/.test(token)) return deny(403);
@@ -86,4 +87,24 @@ export async function onRequest({ request, params, waitUntil }) {
   const out = new Headers(headers); out.set('X-Kring-Cache', 'MISS');
   // first viewer gets the whole file (a valid answer to a Range request); later range requests come from the cache
   return new Response(request.method === 'HEAD' ? null : b, { status: 200, headers: out });
+}
+
+// /media/pub/<public bucket>/<file> (16 Nov, Supabase egress): partner and venue photos from public buckets, cached at the edge by
+// path for 30 days (an upload never overwrites a name), so each photo leaves Supabase once instead of once per viewer.
+const PUBLIC_OK = /^kr8-venue-photos\/[A-Za-z0-9._\/-]{1,200}\.(jpe?g|png|webp)$/;
+async function publicFile(path, request, waitUntil) {
+  if (!PUBLIC_OK.test(path) || path.includes('..')) return deny(404);
+  const cache = caches.default;
+  const key = new Request(new URL(`/__mediapub/${path}`, request.url).toString());
+  const hit = await cache.match(key);
+  if (hit) { const h = new Headers(hit.headers); h.set('X-Kring-Cache', 'HIT'); return new Response(request.method === 'HEAD' ? null : hit.body, { status: 200, headers: h }); }
+  const r = await fetch(`${SUPA}/storage/v1/object/public/${path}`);
+  if (!r.ok) return deny(r.status === 404 || r.status === 400 ? 404 : 502);
+  const ext = path.split('.').pop().toLowerCase();
+  const headers = new Headers({ 'Content-Type': r.headers.get('content-type') || TYPES[ext] || (ext === 'png' ? 'image/png' : 'application/octet-stream'),
+    'Cache-Control': 'public, max-age=2592000', 'X-Content-Type-Options': 'nosniff' });
+  const body = await r.arrayBuffer();
+  waitUntil(cache.put(key, new Response(body, { headers })));
+  headers.set('X-Kring-Cache', 'MISS');
+  return new Response(request.method === 'HEAD' ? null : body, { status: 200, headers });
 }
