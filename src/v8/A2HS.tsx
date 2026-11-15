@@ -6,7 +6,7 @@
  *  Android Chrome: one-tap Install with the browser's own prompt (captured early in index.html as window.__kr8Install).
  *  iPhone Safari: two pictured steps (Share → Add to Home Screen) + "you sign in once more there" (separate storage).
  *  Inside LINE / Instagram / Facebook / TikTok browsers: "Open in browser" first. */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type Tx = (en: string) => string;
 const KEY = 'kr8_a2hs';
@@ -104,20 +104,74 @@ export function InstallChip(props: { L: Tx; id?: string }) {
 }
 
 type PromptEv = { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
-const promptEv = () => (window as unknown as { __kr8Install?: PromptEv | null }).__kr8Install || null;
+const W = () => window as unknown as { __kr8Install?: PromptEv | null; __kr8BipAt?: number; __kr8Installed?: boolean };
+const promptEv = () => (typeof window === 'undefined' ? null : W().__kr8Install || null);
+/** How long the sheet waits for the browser's install offer before showing the manual way (16 Nov). */
+export const BIP_WAIT_MS = 8000;
+
+/** Browser family, for the one-line manual step and the ?debug=1 line. Brave hides in a Chrome UA but exposes navigator.brave. */
+export type BrowserFamily = 'samsung' | 'brave' | 'opera' | 'miui' | 'edge' | 'firefox' | 'chrome' | 'safari' | 'other';
+export function browserFamily(ua: string, brave = false): BrowserFamily {
+  if (/SamsungBrowser/i.test(ua)) return 'samsung';
+  if (brave) return 'brave';
+  if (/OPR\/|Opera/i.test(ua)) return 'opera';
+  if (/MiuiBrowser|XiaoMi/i.test(ua)) return 'miui';
+  if (/EdgA?\//i.test(ua)) return 'edge';
+  if (/Firefox|FxiOS/i.test(ua)) return 'firefox';
+  if (/iPhone|iPad|iPod/i.test(ua) && !/CriOS/i.test(ua)) return 'safari';
+  if (/Chrome\//i.test(ua)) return 'chrome';
+  return 'other';
+}
+/** One line: where this browser keeps "install" / "add to home screen". */
+export function manualStep(f: BrowserFamily): string {
+  switch (f) {
+    case 'samsung': return 'Tap ≡ at the bottom, then “Add page to” → “Home screen”';
+    case 'brave': return 'Tap ⋮ at the bottom right, then “Add to Home screen”';
+    case 'opera': return 'Tap ⋮ at the top right, then “Add to” → “Home screen”';
+    case 'miui': return 'Tap ≡ at the bottom, then “Add to home screen”';
+    case 'firefox': return 'Tap ⋮, then “Install” (or “Add to Home screen”)';
+    case 'edge': return 'Tap ⋯ at the bottom, then “Add to phone”';
+    default: return 'Tap ⋮ at the top right, then “Install app” or “Add to Home screen”';
+  }
+}
+/** Pure: what the Install button shows right now. */
+export function installState(hasPrompt: boolean, waitedMs: number, installed: boolean): 'installed' | 'ready' | 'preparing' | 'manual' {
+  if (installed) return 'installed';
+  if (hasPrompt) return 'ready';
+  return waitedMs < BIP_WAIT_MS ? 'preparing' : 'manual';
+}
 
 export function A2HSBanner(props: { L: Tx; blocked?: boolean; force?: A2hsVariant }) {
   const { L } = props;
   const [show, setShow] = useState(false);
-  const [steps, setSteps] = useState(false);
+  const [hasPrompt, setHasPrompt] = useState(!!promptEv());
+  const [openedAt, setOpenedAt] = useState(0);
+  const [now, setNow] = useState(0);
+  const [installed, setInstalled] = useState(false);
+  const [brave, setBrave] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const wantRef = useRef(false);
   const ua = typeof navigator === 'undefined' ? '' : navigator.userAgent;
-  const variant: A2hsVariant = props.force || a2hsVariant(ua, !!promptEv());
+  const variant: A2hsVariant = props.force || a2hsVariant(ua, hasPrompt || !isIos(ua));
+  const family = browserFamily(ua, brave);
+  const debug = (() => { try { return new URLSearchParams(location.search).get('debug') === '1'; } catch { return false; } })();
   useEffect(() => {
     // asked for on purpose (button, or ?install=1 from the website): open now, whatever the snooze says
     const open = () => { if (!isStandalone()) { markShown(); setShow(true); } };
     window.addEventListener(OPEN_EVENT, open);
     try { if (new URLSearchParams(location.search).get('install') === '1') open(); } catch { /* ignore */ }
-    return () => window.removeEventListener(OPEN_EVENT, open);
+    // the browser's install offer can arrive seconds after the page: switch to one-tap the moment it does
+    const bip = () => setHasPrompt(true);
+    const done = () => { setInstalled(true); setHasPrompt(false); };
+    window.addEventListener('kr8-bip', bip);
+    window.addEventListener('appinstalled', done);
+    try { (navigator as unknown as { brave?: { isBrave?: () => Promise<boolean> } }).brave?.isBrave?.().then((b) => setBrave(!!b)).catch(() => undefined); } catch { /* ignore */ }
+    try {
+      const g = (navigator as unknown as { getInstalledRelatedApps?: () => Promise<unknown[]> }).getInstalledRelatedApps;
+      if (g) g.call(navigator).then((a) => { if (a && a.length) setInstalled(true); }).catch(() => undefined);
+    } catch { /* ignore */ }
+    if (W().__kr8Installed) setInstalled(true);
+    return () => { window.removeEventListener(OPEN_EVENT, open); window.removeEventListener('kr8-bip', bip); window.removeEventListener('appinstalled', done); };
   }, []);
   useEffect(() => {
     if (props.force) { setShow(true); return; }
@@ -131,15 +185,27 @@ export function A2HSBanner(props: { L: Tx; blocked?: boolean; force?: A2hsVarian
     const t = setInterval(check, 4000);
     return () => { window.removeEventListener(EVENT, check); clearInterval(t); };
   }, [props.blocked, props.force]);
-  if (!show) return null;
+  // a clock while the sheet waits for the install offer (stops once it is here or the wait is over)
+  useEffect(() => {
+    if (!show) return;
+    const t0 = Date.now();
+    setOpenedAt(t0); setNow(t0);
+    const t = setInterval(() => { setNow(Date.now()); if (Date.now() - t0 > BIP_WAIT_MS + 500) clearInterval(t); }, 250);
+    return () => clearInterval(t);
+  }, [show]);
   const later = () => { write(a2hsDismissed(read(), Date.now())); setShow(false); };
   const install = async () => {
     const ev = promptEv();
-    if (!ev) { setSteps(true); return; }
-    try { await ev.prompt(); await ev.userChoice; } catch { /* ignore */ }
-    (window as unknown as { __kr8Install?: null }).__kr8Install = null;   // a prompt can be used once
+    if (!ev) { wantRef.current = true; return; }   // tapped while preparing: prompt as soon as the offer arrives
+    setBusy(true);
+    try { await ev.prompt(); const c = await ev.userChoice; if (c?.outcome === 'accepted') setInstalled(true); } catch { /* ignore */ }
+    W().__kr8Install = null;   // a prompt can be used once
+    setHasPrompt(false); setBusy(false);
     later();
   };
+  useEffect(() => { if (hasPrompt && wantRef.current) { wantRef.current = false; void install(); } }, [hasPrompt]);   // eslint-disable-line react-hooks/exhaustive-deps
+  if (!show) return null;
+  const state = installState(hasPrompt, now - openedAt, installed);
   const head = (
     <>
       <span className="a2s-icon" aria-hidden="true"><i /><i /></span>
@@ -150,6 +216,12 @@ export function A2HSBanner(props: { L: Tx; blocked?: boolean; force?: A2hsVarian
       </ul>
     </>
   );
+  const manual = (
+    <details className="a2s-manual" id="a2hsManual" open={state === 'manual'}>
+      <summary>{L('Install manually')}</summary>
+      <p className="a2s-one" id="a2hsStep">{L(manualStep(family))}</p>
+    </details>
+  );
   let body: React.ReactNode;
   if (variant === 'inapp-line' || variant === 'inapp-other') {
     body = (
@@ -159,8 +231,6 @@ export function A2HSBanner(props: { L: Tx; blocked?: boolean; force?: A2hsVarian
         {variant === 'inapp-line' ? <a className="a2s-go" id="a2hsOpen" href={externalBrowserUrl(window.location.href)}>{L('Open in browser')}</a> : null}
       </>
     );
-  } else if (variant === 'android' && !steps) {
-    body = <button type="button" className="a2s-go" id="a2hsAdd" onClick={() => void install()}>{L('Install')}</button>;
   } else if (variant === 'ios') {
     body = (
       <>
@@ -171,22 +241,39 @@ export function A2HSBanner(props: { L: Tx; blocked?: boolean; force?: A2hsVarian
         <p className="a2s-note">{L('The home-screen app keeps its own sign-in: sign in once more there with your email code.')}</p>
       </>
     );
-  } else {
+  } else if (state === 'installed') {
     body = (
-      <div className="a2s-ios">
-        <div className="a2s-pic"><span className="plus" aria-hidden="true">⋮</span><small>{L('Tap ⋮ at the top right')}</small></div>
-        <div className="a2s-pic"><span className="plus" aria-hidden="true">＋</span><small>{L('Tap “Add to Home Screen”')}</small></div>
-      </div>
+      <>
+        <p className="a2s-note" id="a2hsInstalled">{L('Kring is already on your home screen. Open it from there.')}</p>
+        <a className="a2s-go" id="a2hsOpenApp" href="/app/?src=pwa">{L('Open app')}</a>
+      </>
+    );
+  } else {
+    // Android / desktop browsers: always one big Install button; it waits for the browser's offer, then installs in one tap
+    body = (
+      <>
+        <button type="button" className={`a2s-go${state === 'preparing' ? ' wait' : ''}`} id="a2hsAdd" data-state={state} disabled={busy || state === 'manual'}
+          onClick={() => void install()}>
+          {state === 'preparing' ? <><i className="a2s-spin" aria-hidden="true" />{L('Preparing…')}</> : state === 'manual' ? L('Install from the browser menu') : L('Install')}
+        </button>
+        {state !== 'ready' ? manual : null}
+      </>
     );
   }
   return (
-    <div className="a2s-wrap" id="a2hs" data-variant={variant}>
+    <div className="a2s-wrap" id="a2hs" data-variant={variant} data-state={state}>
       <button type="button" className="a2s-scrim" aria-label={L('Close')} onClick={later} />
       <div className="a2s" role="dialog" aria-modal="true" aria-label={L('Add Kring to your home screen')}>
         <i className="a2s-grab" aria-hidden="true" />
         {head}
         {body}
         <button type="button" className="a2s-later" id="a2hsLater" onClick={later}>{L('Later')}</button>
+        {debug ? (
+          <p className="a2s-debug" id="a2hsDebug">
+            {`ua=${family} · offer=${hasPrompt ? `yes@${W().__kr8BipAt ?? '?'}ms` : 'no'} · state=${state} · standalone=${isStandalone() ? 'yes' : 'no'} · installed=${installed ? 'yes' : 'no'} · waited=${Math.round((now - openedAt) / 100) / 10}s`}
+            <br />{ua.slice(0, 140)}
+          </p>
+        ) : null}
       </div>
     </div>
   );

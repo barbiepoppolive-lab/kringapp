@@ -1,6 +1,6 @@
 // T-206: install prompt only after the first value, never on first open, 7-day dismiss, in-app browsers redirected.
 import { beforeEach, describe, expect, it } from 'vitest';
-import { A2HS_SNOOZE_MS, a2hsAfter, a2hsDismissed, a2hsFirstValue, a2hsShouldShow, a2hsVariant, a2hsVisit, bkkDay, externalBrowserUrl, inAppBrowser } from './A2HS';
+import { BIP_WAIT_MS, browserFamily, installState, manualStep, A2HS_SNOOZE_MS, a2hsAfter, a2hsDismissed, a2hsFirstValue, a2hsShouldShow, a2hsVariant, a2hsVisit, bkkDay, externalBrowserUrl, inAppBrowser } from './A2HS';
 
 const T0 = Date.parse('2026-11-11T10:00:00+07:00');
 
@@ -69,5 +69,22 @@ describe('in-app browsers', () => {
   });
   it('LINE "open in browser" link keeps the page and adds openExternalBrowser=1', () => {
     expect(externalBrowserUrl('https://kringapp.com/app/?ref=pich#deals')).toBe('https://kringapp.com/app/?ref=pich&openExternalBrowser=1#deals');
+  });
+});
+
+describe('16 Nov: one-tap install even when the browser offer arrives late', () => {
+  it('Preparing… until the offer comes (up to 8 s), then one tap; manual only after the wait', () => {
+    expect(installState(false, 0, false)).toBe('preparing');
+    expect(installState(true, 300, false)).toBe('ready');
+    expect(installState(true, 20000, false)).toBe('ready');
+    expect(installState(false, BIP_WAIT_MS + 1, false)).toBe('manual');
+    expect(installState(true, 0, true)).toBe('installed');
+  });
+  it('browser families (Brave needs navigator.brave; Samsung has its own menu)', () => {
+    expect(browserFamily('Mozilla/5.0 (Linux; Android 14) SamsungBrowser/25.0 Chrome/121 Mobile')).toBe('samsung');
+    expect(browserFamily('Mozilla/5.0 (Linux; Android 14) Chrome/131 Mobile', true)).toBe('brave');
+    expect(browserFamily('Mozilla/5.0 (Linux; Android 14) Chrome/131 Mobile OPR/86')).toBe('opera');
+    expect(browserFamily('Mozilla/5.0 (Linux; Android 14) Chrome/131 Mobile')).toBe('chrome');
+    expect(manualStep('samsung')).toContain('Home screen');
   });
 });

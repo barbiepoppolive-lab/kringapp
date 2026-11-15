@@ -95,3 +95,13 @@ a.ktk-ghost { text-decoration: none; display: inline-block; }
 .a2s-chip-ic { position: relative; width: 22px; height: 14px; flex: none; }
 .a2s-chip-ic i { position: absolute; top: 0; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #7381FF; box-sizing: border-box; }
 .a2s-chip-ic i:last-child { left: 8px; border-color: #FF4FA3; }
+/* 16 Nov: the Install button waits for the browser's offer (Preparing…), then installs in one tap; manual way tucked away */
+.a2s-go.wait { opacity: .85; }
+.a2s-go:disabled { background: rgba(255,255,255,.1); color: rgba(255,255,255,.75); }
+.a2s-spin { width: 16px; height: 16px; margin-right: 10px; border-radius: 50%; border: 2.5px solid rgba(255,255,255,.35); border-top-color: #fff; animation: a2sSpin .8s linear infinite; }
+@keyframes a2sSpin { to { transform: rotate(360deg); } }
+.a2s-manual { margin-top: 10px; text-align: left; font-size: 13.5px; color: #cfcbe6; }
+.a2s-manual summary { cursor: pointer; text-align: center; font-weight: 700; color: #a7a2c4; padding: 6px 0; list-style: none; }
+.a2s-manual summary::-webkit-details-marker { display: none; }
+.a2s-one { margin: 4px 0 0; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.06); font-weight: 600; line-height: 1.45; }
+.a2s-debug { margin: 8px 0 0; font: 10.5px/1.4 ui-monospace, monospace; color: #8d89a6; text-align: left; word-break: break-all; }
