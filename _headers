@@ -50,6 +50,10 @@
 /app/sw.js
   Cache-Control: no-cache, max-age=0, must-revalidate
 
+# The installed app checks this to know a new build is out (J1, 15 Nov).
+/app/version.json
+  Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+
 /app/admin*
   X-Robots-Tag: noindex, nofollow
 

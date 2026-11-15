@@ -1,14 +1,14 @@
 {
-  "name": "Kring",
-  "short_name": "Kring",
+  "name": "กริ๊ง! Kring",
+  "short_name": "กริ๊ง!",
   "description": "มาเที่ยว ได้เพื่อนใหม่ · Explore Bangkok, make new friends. Short Reels of real Bangkok spots, new friends and partner-café treats for travellers and Thai locals.",
   "id": "/app/",
-  "start_url": "/app/",
+  "start_url": "/app/?src=pwa",
   "scope": "/app/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#12123A",
-  "theme_color": "#12123A",
+  "background_color": "#0B0A12",
+  "theme_color": "#0B0A12",
   "categories": [
     "travel",
     "social",
@@ -39,6 +39,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "/app/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
