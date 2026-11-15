@@ -31,6 +31,16 @@
 /app/assets/*
   Cache-Control: public, max-age=31536000, immutable
 
+# 16 Nov perf: app fonts and bundled media keep their file names for good (a changed file gets a new name), so phones keep them
+/app/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/app/media/*
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
+
+/media/*
+  X-Content-Type-Options: nosniff
+
 /.well-known/apple-app-site-association
   Content-Type: application/json
 

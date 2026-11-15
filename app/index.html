@@ -37,6 +37,10 @@
     <script>
       // 13 Nov funnel fix: LINE links stay inside LINE. LINE Login is one tap there (auto login); bouncing to Chrome/Safari
       // made people type a LINE email + password they mostly never set. "Open in browser" is still offered after first value (A2HS).
+      // 16 Nov perf: a visitor's feed is asked for now, in parallel with the app code (saves ~1 s on 4G). Signed-in phones skip it.
+      (function () { try { if (localStorage.getItem('kr8-v5-auth') || /[?&](demo|place|reel)=/.test(location.search)) return; var K = 'sb_publishable_SaAf7mILfPPpCeAEvj79bA_Vz8JnCBN';
+        window.__kr8FeedPre = fetch('https://pedxoxpammnyfnizljyj.supabase.co/rest/v1/rpc/kr8_feed', { method: 'POST', credentials: 'omit', headers: { apikey: K, Authorization: 'Bearer ' + K, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ p_area: null, p_limit: 60 }) }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); } catch (e) {} })();
       // keep the install offer for later (Add to home screen)
       window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__kr8Install = e; });
       // J: count installs (one anonymous row in link_visits, ref "pwa-install", same anonymous phone id as the visit counter)
@@ -44,12 +48,12 @@
         fetch('https://pedxoxpammnyfnizljyj.supabase.co/rest/v1/link_visits', { method: 'POST', keepalive: true, credentials: 'omit', headers: { apikey: K, Authorization: 'Bearer ' + K, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
           body: JSON.stringify({ ref: 'pwa-install', path: '/app/', referrer: null, session_id: s }) }).catch(function () {}); } catch (e) {} });
     </script>
-    <script type="module" crossorigin src="/app/assets/main-CbBvMMcI.js"></script>
+    <script type="module" crossorigin src="/app/assets/main-V41OYjRp.js"></script>
     <link rel="modulepreload" crossorigin href="/app/assets/vendor-Wp4RIG9g.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/v5Live-Blh7V-5P.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/sentry-CsJ51lOL.js">
+    <link rel="modulepreload" crossorigin href="/app/assets/v5Live-LzIOTSWr.js">
+    <link rel="modulepreload" crossorigin href="/app/assets/sentry-BkMmJ329.js">
     <link rel="modulepreload" crossorigin href="/app/assets/v5Strings-Wvc9PKbF.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/v5Reel--cddmDoS.js">
+    <link rel="modulepreload" crossorigin href="/app/assets/v5Reel-B4SrrDvt.js">
     <link rel="stylesheet" crossorigin href="/app/assets/main-CERiI8BH.css">
     <link rel="stylesheet" crossorigin href="/app/assets/fonts-v8-CYouA3b9.css">
   </head>

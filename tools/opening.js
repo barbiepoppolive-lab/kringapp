@@ -9,7 +9,7 @@
  // hold the reveal until the hero picture has decoded, or 3.5 s after the page started, whichever comes first
  function setReady(){if(ready)return;ready=true;if(want)go(want===2)}
  if(!himg)ready=true;else{var chk=function(){if(himg.decode)himg.decode().then(setReady,setReady);else setReady()};if(himg.complete)chk();else{himg.addEventListener('load',chk);himg.addEventListener('error',setReady)}}
- setTimeout(setReady,Math.max(0,3500-(performance.now()-T00)));
+ setTimeout(setReady,Math.max(0,1200-(performance.now()-T00)));   // 16 Nov perf: never hold the page longer than ~1.2 s for the picture
  function bell(){try{var C=window.AudioContext||window.webkitAudioContext;if(!C)return;var c=new C(),m=c.createGain();m.gain.value=.25;m.connect(c.destination);
   [0,.17].forEach(function(d){var t=c.currentTime+d;[[1,1],[2.01,.55],[2.76,.4],[5.4,.22]].forEach(function(p,i){var o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=1318*p[0];
    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(p[1],t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+1.4/(1+i*.7));o.connect(g);g.connect(m);o.start(t);o.stop(t+1.5)})})}catch(e){}}
@@ -70,12 +70,16 @@
  function go(tapped){clearTimeout(idleT);if(tapped)AN.forEach(function(x){try{x.finish()}catch(e){}});
   if(RM){op.style.opacity='0';setTimeout(function(){op.classList.add('gone');done()},400);return}
   // deliberate exit: the words lift away, the rings part, then a slow circle closes onto the hero while the whole layer fades
-  var WP=1050,pre=tapped?200:260;
+  op.style.pointerEvents='none'; // 16 Nov perf: from the first frame of the exit, taps go straight to the page under it
+  var WP=900,pre=tapped?120:200;
   if(op.animate){[op.querySelector('.opt'),op.querySelector('.opc')].forEach(function(el){if(el)el.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-12px)'}],{duration:pre,easing:'cubic-bezier(.4,0,.8,.4)',fill:'forwards'})})}
   op.classList.add('ring');op.classList.add('out');
   setTimeout(function(){if(op.animate){var w=innerWidth,h=innerHeight,cx=w*.5,cy=h*.52,R=Math.ceil(Math.sqrt(Math.pow(Math.max(cx,w-cx),2)+Math.pow(Math.max(cy,h-cy),2)));op.style.transition='none';op.animate([{clipPath:'circle('+R+'px at 50% 52%)'},{clipPath:'circle(0px at 50% 52%)'}],{duration:WP,easing:'cubic-bezier(.5,0,.2,1)',fill:'forwards'});op.animate([{opacity:1},{opacity:1,offset:.55},{opacity:0}],{duration:WP,easing:'linear',fill:'forwards'})}else op.classList.add('wipe');done()},pre);
   setTimeout(function(){op.classList.add('gone')},pre+WP+40)}
  var lk=RM?0:intro(); // reduced motion: the CSS fade-in is the whole (gentle) opening
  op.addEventListener('click',function(){start(true)});op.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '||e.key==='Escape'){e.preventDefault();start(true)}});
- auto=setTimeout(function(){start(false)},RM?Math.max(300,1300-(performance.now()-T00)):lk+1050);
+ // 16 Nov perf: the reveal starts right as the rings lock (about 1 s after the page starts), not a second later,
+ // and any touch, key or scroll anywhere opens the page at once
+ auto=setTimeout(function(){start(false)},RM?Math.max(300,1000-(performance.now()-T00)):Math.max(0,Math.min(lk+120,1100-(performance.now()-T00))));
+ ['pointerdown','touchstart','keydown','wheel'].forEach(function(ev){addEventListener(ev,function(){start(true)},{once:true,passive:true,capture:true})});
 })();
