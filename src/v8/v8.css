@@ -3570,3 +3570,13 @@
 .v8-app-root .slide.has-reel .reel-meta { bottom: 12px; }
 .v8-app-root .slide.has-reel .rails { bottom: 12px; }
 .v8-app-root .slide.has-reel .scrim { background: linear-gradient(180deg, rgba(11,10,18,.3) 0%, rgba(11,10,18,0) 12%, rgba(11,10,18,0) 66%, rgba(11,10,18,.82) 100%); }
+/* polish #7: the waving hand next to "Say hi" everywhere */
+.v8-app-root .hi-ic { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; vertical-align: -3px; margin-right: 5px; flex: none; }
+/* polish #10: one active colour on every tab (white + a small pink dot); tabs, labels and order unchanged */
+.v8-app-root .dock button.active, .v8-app-root .dock button[data-tab="people"].active, .v8-app-root .dock button[data-tab="deals"].active { color: #FFF7EC; }
+.v8-app-root .dock button { position: relative; }
+.v8-app-root .dock button.active::after { content: ''; position: absolute; bottom: 3px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: #FF4FA3; }
+/* polish #13 */
+.v8-app-root .reel-sound { width: 28px; height: 28px; top: calc(env(safe-area-inset-top) + 56px); right: 15px; background: rgba(11,10,18,.3); }
+.v8-app-root .reel-sound svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.v8-app-root .reel-sound svg path:first-child { fill: #fff; }

@@ -13,6 +13,7 @@ import {
   getOfflineQueue,
   isDemoOrDevEnvironment,
   NEUTRAL_IMG,
+  initialAvatar,
   submitWaitlistEmail,
   V8ChatThread,
   V8CurrencyInfo,
@@ -3635,7 +3636,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                         onClick={() =>
                           openSayHi(
                             p.name || 'Member',
-                            p.av || NEUTRAL_IMG,
+                            p.av || initialAvatar(p.name),
                             `${Lf('Replying to {0} post', p.area || 'Bangkok')} · ${Lf('Speaks {0}', p.langs || 'TH · EN')}`,
                 (p as { authorId?: string }).authorId
               )
@@ -3724,12 +3725,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                         const kp = kxFeedX[p.id]?.places?.[0];
                         if (kp) return (
                           <button type="button" className="reel-pin" data-act="place" data-place-chip={kp.id} onClick={(e) => { e.stopPropagation(); kxOpenPlace(kp.id); }}>
-                            <span aria-hidden="true">📍</span><b>{lang === 'th' && kp.name_th ? kp.name_th : kp.name_en}</b>{kp.area ? <span> · {kxArea(lang, kp.area, L)}</span> : null}
+                            {/* polish #12: one language per pin (Thai UI: Thai name · Thai area; a place with no Thai name stays all English) */}
+                            <span aria-hidden="true">📍</span><b>{lang === 'th' && kp.name_th ? kp.name_th : kp.name_en}</b>{kp.area ? <span> · {lang === 'th' && !kp.name_th ? kp.area : kxArea(lang, kp.area, L)}</span> : null}
                           </button>
                         );
                         if (p.place) return (
                           <button type="button" className="reel-pin" data-act="place" aria-label={`${p.place.name} · ${L('See place')}`} onClick={(e) => { e.stopPropagation(); openReelPlace(p.place!); }}>
-                            <span aria-hidden="true">📍</span><b>{lang === 'th' && p.place.nameTh ? p.place.nameTh : p.place.name}</b>{p.area ? <span> · {kxArea(lang, p.area, L)}</span> : null}
+                            <span aria-hidden="true">📍</span><b>{lang === 'th' && p.place.nameTh ? p.place.nameTh : p.place.name}</b>{p.area ? <span> · {lang === 'th' && !p.place.nameTh ? p.area : kxArea(lang, p.area, L)}</span> : null}
                           </button>
                         );
                         return p.area ? <span className="reel-pin area" data-act="area"><span aria-hidden="true">📍</span><b>{kxArea(lang, p.area, L)}</b></span> : null;
@@ -3948,7 +3950,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     }}
                   >
                     <svg viewBox="0 0 24 24">
-                      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
+                      <path d="M7.5 12.5V6.8a1.4 1.4 0 0 1 2.8 0v4.7M10.3 11V4.9a1.4 1.4 0 0 1 2.8 0V11M13.1 11V5.8a1.4 1.4 0 0 1 2.8 0v6.4M15.9 10.6V8.6a1.4 1.4 0 0 1 2.8 0v5.2c0 4.1-2.7 7.2-6.5 7.2-2.6 0-4.1-1.1-5.6-3.3l-2.3-3.6a1.45 1.45 0 0 1 2.3-1.75l1 1.25M3.2 6.2c.4-1.4 1.3-2.6 2.6-3.3M19.6 3.3c1.2.7 2 1.8 2.3 3.1" />
                     </svg>
                   </button>
                   <div className="info">
@@ -6498,7 +6500,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onBack={() => setSheet(null)}
             onList={(k) => openFollowList(otherProfile, k)}
             onFollow={() => void handleProfileFollow()}
-            onHi={() => openSayHi(otherProfile.first_name, otherProfile.photo || NEUTRAL_IMG, Lf('Speaks {0}', (otherProfile.langs || []).join(' · ')), otherProfile.user_id)}
+            onHi={() => openSayHi(otherProfile.first_name, otherProfile.photo || initialAvatar(otherProfile.first_name), Lf('Speaks {0}', (otherProfile.langs || []).join(' · ')), otherProfile.user_id)}
             onReport={() => requireSignInForAction(() => void v5Once('report-p', async () => {
               try { await v5Report({ user: otherProfile.user_id, reason: 'profile-sheet' }); showToast(qx('reportedToast')); } catch (e) { showToast(v5Msg(e)); }
             }))}

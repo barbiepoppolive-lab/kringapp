@@ -114,7 +114,7 @@ export const V8_STRINGS: Record<V8Lang, V8Strings> = {
     emptySavedTitle: 'Nothing saved yet',
     emptySavedSub: 'Tap the bookmark on any Feed photo or place to keep it here for your trip.',
     emptyChatTitle: 'No conversations yet',
-    emptyChatSub: 'Tap the bell on a Feed post or in People to send your first friendly hello.',
+    emptyChatSub: 'Tap Say hi on a Reel or in People to send your first friendly hello.',
   },
   th: {
     feed: 'ฟีด',
@@ -171,7 +171,7 @@ export const V8_STRINGS: Record<V8Lang, V8Strings> = {
     emptySavedTitle: 'ยังไม่มีรายการที่บันทึกไว้',
     emptySavedSub: 'แตะปุ่มบันทึกบนรูปในฟีดเพื่อเก็บสถานที่ที่คุณสนใจไว้ดูภายหลัง',
     emptyChatTitle: 'ยังไม่มีข้อความสนทนา',
-    emptyChatSub: 'แตะปุ่มกระดิ่งบนโพสต์หรือหน้าผู้คนเพื่อส่งคำทักทายแรกของคุณ',
+    emptyChatSub: 'แตะ “ทักทาย” บนรีลหรือหน้าผู้คน เพื่อส่งคำทักทายแรกของคุณ',
   },
   zh: {
     feed: '动态',
@@ -228,7 +228,7 @@ export const V8_STRINGS: Record<V8Lang, V8Strings> = {
     emptySavedTitle: '暂无收藏内容',
     emptySavedSub: '点击动态上的书签图标即可收藏喜欢的咖啡馆和地点。',
     emptyChatTitle: '暂无对话',
-    emptyChatSub: '点击动态或人物卡片上的铃铛图标发送第一声问候。',
+    emptyChatSub: '点击短视频或人物卡片上的「打招呼」发送第一声问候。',
   },
   hi: {
     feed: 'फ़ीड',
@@ -285,7 +285,7 @@ export const V8_STRINGS: Record<V8Lang, V8Strings> = {
     emptySavedTitle: 'अभी कुछ भी सेव नहीं है',
     emptySavedSub: 'किसी भी पोस्ट पर बुकमार्क दबाकर उसे यहाँ सेव करें।',
     emptyChatTitle: 'अभी कोई बातचीत नहीं',
-    emptyChatSub: 'अपना पहला संदेश भेजने के लिए किसी पोस्ट पर घंटी दबाएं।',
+    emptyChatSub: 'अपना पहला संदेश भेजने के लिए किसी रील पर “नमस्ते कहें” दबाएं।',
   },
   ja: {
     feed: 'フィード',
@@ -342,7 +342,7 @@ export const V8_STRINGS: Record<V8Lang, V8Strings> = {
     emptySavedTitle: '保存された項目はありません',
     emptySavedSub: 'フィードの投稿を保存するとここに表示されます。',
     emptyChatTitle: 'まだメッセージはありません',
-    emptyChatSub: 'ベルのアイコンをタップして最初の挨拶を送ってみましょう。',
+    emptyChatSub: 'リールの「挨拶する」をタップして最初の挨拶を送ってみましょう。',
   },
   ko: {
     feed: '피드',
@@ -399,7 +399,7 @@ export const V8_STRINGS: Record<V8Lang, V8Strings> = {
     emptySavedTitle: '아직 저장한 항목이 없습니다',
     emptySavedSub: '피드 게시물의 북마크를 탭해 마음에 드는 장소를 저장해 보세요.',
     emptyChatTitle: '아직 대화가 없습니다',
-    emptyChatSub: '게시물이나 프로필의 종 모양 아이콘을 눌러 첫 인사를 건네보세요.',
+    emptyChatSub: '릴이나 프로필의 ‘인사하기’를 눌러 첫 인사를 건네보세요.',
   },
 };
 

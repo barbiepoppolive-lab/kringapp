@@ -19,8 +19,11 @@ describe('guest feed avatars', () => {
     const feed = await v5Feed();
     const byId = Object.fromEntries(feed.map((f) => [f.id, f]));
     expect(byId['3670e009-c72f-5795-8481-930752ccf1de'].av).toMatch(/media\/demo\/faces\/mint\.jpg$/);
-    expect(byId['9b1f2c3d-0000-4000-8000-000000000001'].av).toBe(NEUTRAL_IMG);   // a real member is never given a face
-    expect(byId['9b1f2c3d-0000-4000-8000-000000000002'].av).toBe(NEUTRAL_IMG);   // same first name as a demo Local: still hidden
+    // a real member is never given a face (15 Nov: their Reel's still or their initial, never the Kring rings placeholder)
+    for (const id of ['9b1f2c3d-0000-4000-8000-000000000001', '9b1f2c3d-0000-4000-8000-000000000002']) {
+      expect(byId[id].av).not.toMatch(/faces\//);
+      expect(byId[id].av).not.toBe(NEUTRAL_IMG);
+    }
   });
   it('maps by exact post id only', async () => {
     const { demoPostAvatar } = await import('./v5DemoAvatars');

@@ -5,7 +5,7 @@
  * supabase-js is lazy-loaded, so the waitlist build never downloads it.
  */
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
-import { NEUTRAL_IMG } from './v8Data';
+import { initialAvatar, NEUTRAL_IMG } from './v8Data';
 import { demoPostAvatar } from './v5DemoAvatars';
 import { appBase, lineChannel } from './lineEnv';
 import type { V8ChatMessage, V8ChatThread, V8Deal, V8FeedItem, V8HelloRequest, V8Person } from './v8Data';
@@ -318,9 +318,9 @@ export async function v5Feed(): Promise<V5FeedItem[]> {
   const rows = (all || []).filter((r) => r.kind !== 'reel' || (r.video_path && signed[r.video_path]));
   return rows.map((r) =>
     r.kind === 'ask'
-      ? { id: r.id, type: 'ask', q: r.body, asker: r.author_name, area: r.area, av: r.author_photo || NEUTRAL_IMG, authorId: r.author_id || undefined, mine: !!r.mine, v5Kind: 'ask',
-          answers: (r.answers || []).map((a) => ({ who: a.name, av: a.photo || NEUTRAL_IMG, txt: a.body })) }
-      : { id: r.id, type: 'photo', img: r.photo || V5_PLAN_BG, av: r.author_photo || demoPostAvatar(r.id) || NEUTRAL_IMG, name: r.author_name, langs: (r.author_langs || []).join(' · '),
+      ? { id: r.id, type: 'ask', q: r.body, asker: r.author_name, area: r.area, av: r.author_photo || initialAvatar(r.author_name), authorId: r.author_id || undefined, mine: !!r.mine, v5Kind: 'ask',
+          answers: (r.answers || []).map((a) => ({ who: a.name, av: a.photo || initialAvatar(a.name), txt: a.body })) }
+      : { id: r.id, type: 'photo', img: r.photo || V5_PLAN_BG, av: r.author_photo || demoPostAvatar(r.id) || (r.kind === 'reel' && signed[r.poster_path || '']) || initialAvatar(r.author_name), name: r.author_name, langs: (r.author_langs || []).join(' · '),
           area: r.area, here: r.here, cap: r.body, hiCount: 0, authorId: r.author_id || undefined, mine: !!r.mine, v5Kind: r.kind, eventId: r.event_id || undefined,
           ...(r.kind === 'reel' ? { video: signed[r.video_path || ''], poster: signed[r.poster_path || ''] || undefined, img: signed[r.poster_path || ''] || V5_PLAN_BG,
             reelPending: r.reel_status === 'pending', likes: r.likes || 0, liked: !!r.liked, views: r.views ?? undefined,
@@ -371,9 +371,9 @@ export async function v5Inbox(): Promise<{ threads: V5Thread[]; requests: V8Hell
   const requests: V8HelloRequest[] = [];
   for (const r of rows || []) {
     if (r.status === 'pending' && !r.opened_by_me) {
-      requests.push({ id: r.thread_id, name: r.other_name, meta: `${r.other_area} · ${(r.other_langs || []).join(' · ')}`, img: r.other_photo || NEUTRAL_IMG, msg: r.last_body || '', verified: r.other_verified === true });
+      requests.push({ id: r.thread_id, name: r.other_name, meta: `${r.other_area} · ${(r.other_langs || []).join(' · ')}`, img: r.other_photo || initialAvatar(r.other_name), msg: r.last_body || '', verified: r.other_verified === true });
     }
-    threads.push({ id: r.thread_id, personId: r.other_id, name: r.other_name, avatar: r.other_photo || NEUTRAL_IMG, langs: (r.other_langs || []).join(' · '), verified: r.other_verified === true,
+    threads.push({ id: r.thread_id, personId: r.other_id, name: r.other_name, avatar: r.other_photo || initialAvatar(r.other_name), langs: (r.other_langs || []).join(' · '), verified: r.other_verified === true,
       lastPreview: r.last_body || '', timeLabel: v5TimeLabel(r.last_at), unread: r.unread > 0, messages: [], v5Status: r.status, v5OpenedByMe: r.opened_by_me, area: r.other_area });
   }
   return { threads, requests };

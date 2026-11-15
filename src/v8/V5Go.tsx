@@ -324,7 +324,7 @@ export function GoProfilePage(props: {
             <div className="go-pbtns">
               <button type="button" className={`go-pill${p.i_follow ? ' gh' : ''}`} id="profileFollow" disabled={props.busy} onClick={props.onFollow}>
                 {p.i_follow ? `${L('Following')} ✓` : p.follows_me ? L('Follow back') : L('Follow')}</button>
-              <button type="button" className="go-pill gh" id="profileHi" onClick={props.onHi}>{L('Say hi')}</button>
+              <button type="button" className="go-pill gh" id="profileHi" onClick={props.onHi}><svg className="hi-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 12.5V6.8a1.4 1.4 0 0 1 2.8 0v4.7M10.3 11V4.9a1.4 1.4 0 0 1 2.8 0V11M13.1 11V5.8a1.4 1.4 0 0 1 2.8 0v6.4M15.9 10.6V8.6a1.4 1.4 0 0 1 2.8 0v5.2c0 4.1-2.7 7.2-6.5 7.2-2.6 0-4.1-1.1-5.6-3.3l-2.3-3.6a1.45 1.45 0 0 1 2.3-1.75l1 1.25M3.2 6.2c.4-1.4 1.3-2.6 2.6-3.3M19.6 3.3c1.2.7 2 1.8 2.3 3.1" /></svg>{L('Say hi')}</button>
             </div>
           ) : null}
         </div>

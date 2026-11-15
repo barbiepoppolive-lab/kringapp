@@ -179,6 +179,18 @@ export function formatTravellerCurrency(
   return `≈ ${info.symbol}${Math.round(val).toLocaleString('en-US')}`;
 }
 
+/** polish #2: a member with no photo gets their initial on a soft gradient (never the Kring rings, which read as a fake account). */
+export function initialAvatar(name: string | null | undefined): string {
+  const ch = (Array.from((name || '').trim())[0] || '?').toUpperCase();
+  let h = 0;
+  for (const c of name || '?') h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const pairs = [['#5B6CFF', '#2A2C6E'], ['#FF4FA3', '#5B2A6E'], ['#6EE7A8', '#1E5B4B'], ['#FFB547', '#6E3A1E'], ['#3FD0FF', '#1E3F6E']];
+  const [a, b] = pairs[h % pairs.length];
+  const esc = ch.replace(/[<&>"']/g, '');
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="96" height="96" fill="url(#g)"/><text x="48" y="62" text-anchor="middle" font-family="Noto Sans Thai, Arial, sans-serif" font-size="44" font-weight="700" fill="#fff">${esc}</text></svg>`);
+}
+
 /** Neutral placeholder (no person, no venue) used when a real row has no photo. */
 export const NEUTRAL_IMG =
   "data:image/svg+xml;utf8," +
