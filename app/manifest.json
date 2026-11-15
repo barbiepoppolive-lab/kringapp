@@ -7,8 +7,8 @@
   "scope": "/app/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0B0A12",
-  "theme_color": "#0B0A12",
+  "background_color": "#12123A",
+  "theme_color": "#12123A",
   "categories": [
     "travel",
     "social",
