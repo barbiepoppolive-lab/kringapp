@@ -2,7 +2,7 @@
 """Build the neon home pages from tools/home_src.html.
    /index.html = Thai, /en/index.html = English. In the source, [[Thai||English]] marks a line in both languages.
    Run: python3 tools/build_home.py"""
-import re, os, html
+import re, os, html, json
 R = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 src = open(os.path.join(R, 'tools/home_src.html'), encoding='utf-8').read()
 PIN = '<svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>'
@@ -24,9 +24,14 @@ def build(lang):
     t = src.replace('@@REELS@@', reels()).replace('@@BOARD@@', board())
     th = lang == 'th'
     t = t.replace('@@TV_EB@@', ' · <span lang="th">สำหรับนักท่องเที่ยว</span>' if th else '')
-    t = t.replace('@@TV_H@@', '<span class="th2" lang="th">ดูกรุงเทพฯ ผ่านสายตาคนที่อยู่ที่นี่</span>' if th else '')
+    t = t.replace('@@TV_H@@', '<span class="th2" lang="th">ดูกรุงเทพฯ ผ่านสายตาคนที่อยู่ที่นี่ ได้แพลนเที่ยวกับที่เด็ดวงในจากโลคอลกริ๊ง!</span>' if th else '')
     t = t.replace('@@TV_L@@', '')
-    t = t.replace('@@TV_TAGS@@', '<li lang="th">เพื่อนใหม่ เป็นกลุ่ม</li><li lang="th">ที่สาธารณะ</li><li lang="th">แชตแปลภาษาให้</li>' if th else '<li>New friends, in groups</li><li>Public places</li><li>Chats translated</li>')
+    t = t.replace('@@TV_TAGS@@', '<li lang="th">คุยกับคนกรุงเทพฯ</li><li lang="th">เพื่อนใหม่ เป็นกลุ่ม</li><li lang="th">ที่สาธารณะ</li>' if th else '<li>Talk to locals</li><li>New friends, in groups</li><li>Public places</li>')
+    t = t.replace('@@TK_QTH@@', '<i lang="th">วันแรกในกรุงเทพฯ เย็นนี้ไปไหนดี</i>' if th else '')
+    lq = json.load(open(os.path.join(R, 'tools/lqip.json')))
+    SEL = {'hero': '.hero .bg,.op .cam', 'card': '.cardp .bg', 'friends': '.fr .bg', 'talk': '.tk .bg', 'rank': '.rk .bg', 'venue': '.vn .bg', 'trav': '.tv .bg', 'end': '.en2 .bg'}
+    t = t.replace('@@LQM@@', ''.join('%s{background-image:url(%s)}' % (SEL[k], lq[k + '-m']) for k in SEL))
+    t = t.replace('@@LQD@@', ''.join('%s{background-image:url(%s)}' % (SEL[k], lq[k + '-d']) for k in SEL))
     t = re.sub(r'\[\[(.*?)\|\|(.*?)\]\]', lambda m: m.group(1 if th else 2), t, flags=re.S)
     opjs = re.sub(r'/\*.*?\*/', '', open(os.path.join(R, 'tools/opening.js'), encoding='utf-8').read(), flags=re.S)
     opjs = '\n'.join(l for l in (x.strip() for x in opjs.split('\n')) if l and not l.startswith('//'))

@@ -82,16 +82,17 @@ html[lang=th] .eb{letter-spacing:.04em;font-size:13px}
 .pn:not(.hero){content-visibility:auto;contain-intrinsic-size:auto 100vh}
 .bg{position:absolute;inset:0;z-index:-2}
 .bg img{width:100%;height:100%;object-fit:cover;object-position:var(--op,50% 50%)}
-.pn::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(7,6,13,.5) 0,rgba(7,6,13,0) 16%,rgba(7,6,13,0) 44%,rgba(7,6,13,.8) 76%,var(--bg) 100%)}
+.pn::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,var(--bg) 0,rgba(7,6,13,0) 12%,rgba(7,6,13,0) 56%,rgba(7,6,13,.62) 74%,var(--bg) 100%)}
 .tx{width:100%;max-width:1240px;margin:0 auto;padding:0 var(--gx) calc(96px + var(--sb))}
 .hero .tx{padding-bottom:calc(26px + var(--sb))}
-.hero .bg img{--op:42% 50%}
-.hero .bg,.op .cam{background:#1a1420 url(data:image/webp;base64,UklGRi4BAABXRUJQVlA4ICIBAADQBgCdASoaAC8APxF8slKsJ6SiqqoBgCIJbAC7M4CJ4xw42gM+jIn5Q4/A4Soi0LC8vkUy8SCjIORwKkl2mSAA/vbXeFlLpYF0UKVlL9MoP9lqi1sVaoJd0/SUgrX/EHDG8LYNpEY2/498ipYUY8tCO5ydGpJN2pAbH2oJqp4YvDTQUPdG3xHsGd6CqOkP8mWaQV72RNDQ7kuJWV2oiUW3COI1mPZEKCotg/VnPD0KwtDpob1miLiQUgLuVl83g1nZMQTty4/JsR05WZovR2eOR/M3+SgrfG+FJ9qHpqmPyEp+7T+O7I92L98SWITnPVeIQs5K9jYqBbXCVbMIkoiIR5COdJv8UY6+Qksz9x+FEGFG/1Dttf/1+GxvKdNBV6SIAA==) 42% 50%/cover no-repeat}
-.hl .hero .bg img{transition:opacity .45s}.hl .hero .bg img:not(.ld){opacity:0}
-.hero::after{background:linear-gradient(180deg,rgba(7,6,13,.45) 0,rgba(7,6,13,0) 14%,rgba(7,6,13,0) 50%,rgba(7,6,13,.86) 74%,var(--bg) 100%)}
+.hero .bg img{--op:50% 50%}
+.hero .bg,.op .cam,.pn .bg{background-color:#14101c;background-size:cover;background-repeat:no-repeat;background-position:50% 50%}
+@@LQM@@
+.hl .hero .bg img{transition:opacity .45s}.hl .hero .bg img:not(.isld){opacity:0}
+.hero::after{background:linear-gradient(180deg,rgba(7,6,13,.4) 0,rgba(7,6,13,0) 13%,rgba(7,6,13,0) 58%,rgba(7,6,13,.7) 72%,var(--bg) 100%)}
 /* card panel */
 .cardp{justify-content:flex-start;padding-top:calc(86px + var(--st))}
-.cardp::after{background:linear-gradient(180deg,var(--bg) 0,rgba(7,6,13,.25) 12%,rgba(7,6,13,.15) 34%,rgba(7,6,13,.82) 58%,var(--bg) 100%)}
+.cardp::after{background:linear-gradient(180deg,var(--bg) 0,rgba(7,6,13,.1) 12%,rgba(7,6,13,.1) 40%,rgba(7,6,13,.7) 56%,var(--bg) 100%)}
 .cardp .tx{padding-top:26px;padding-bottom:22px}
 .kcw{perspective:900px;display:grid;place-items:center}
 .kc{position:relative;width:min(62vw,280px);aspect-ratio:3/4;border-radius:26px;padding:4px;background:linear-gradient(140deg,#ff4fd8,#ff7ae3 40%,#7b5cff);box-shadow:0 0 0 1px rgba(255,255,255,.2) inset,0 0 44px rgba(255,79,216,.75),0 0 120px rgba(255,79,216,.4),0 30px 60px rgba(0,0,0,.5);transform:rotateX(var(--rx,4deg)) rotateY(var(--ry,-9deg));transition:transform .5s var(--ez);will-change:transform}
@@ -120,13 +121,14 @@ html[lang=th] .eb{letter-spacing:.04em;font-size:13px}
 @media (prefers-reduced-motion:no-preference){.live .rl ul{animation:mq 46s linear infinite;will-change:transform}.rl:hover ul{animation-play-state:paused}}
 @media (prefers-reduced-motion:reduce){.rl{overflow-x:auto}}
 /* friends */
-.fr .bg img{--op:50% 30%}
+.fr .bg img{--op:55% 50%}
 /* ranking: one calm panel */
-.rk{justify-content:flex-start;padding-top:calc(84px + var(--st))}
-.rk::after{background:linear-gradient(180deg,var(--bg) 0,rgba(7,6,13,.74) 14%,rgba(7,6,13,.8) 60%,var(--bg) 100%)}
+.rk{justify-content:flex-start;padding-top:calc(100vw * .82)}
+.rk .bg{bottom:auto;height:calc(100vw * 1.79)}
+.rk::after{background:linear-gradient(180deg,var(--bg) 0,rgba(7,6,13,0) 8%,rgba(7,6,13,0) calc(100vw * .62),rgba(7,6,13,.72) calc(100vw * .86),var(--bg) calc(100vw * 1.5))}
 .rk .tx{display:grid;gap:22px}
 .bd{list-style:none;counter-reset:r}
-.bd li{counter-increment:r;display:grid;grid-template-columns:26px 38px 1fr auto 76px;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.14)}
+.bd li{counter-increment:r;display:grid;grid-template-columns:26px 38px 1fr auto 76px;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.14)}
 .bd li::before{content:counter(r);font:800 15px/1 var(--fu);color:#fff;text-align:center}
 .bd li:nth-child(1)::before{color:var(--gd);text-shadow:0 0 14px rgba(255,211,107,.7)}
 .bd li:nth-child(2)::before{color:var(--pk)}.bd li:nth-child(3)::before{color:var(--cy)}
@@ -144,11 +146,12 @@ html[lang=th] .eb{letter-spacing:.04em;font-size:13px}
 .fl b{flex:none;font:800 20px/1 var(--fu);color:#07060d;background:var(--gd);padding:10px 12px;border-radius:14px;box-shadow:0 0 22px rgba(255,211,107,.5)}
 .sub{font-size:clamp(15px,4vw,18px);margin-top:10px;max-width:32em;text-shadow:0 1px 12px rgba(0,0,0,.7)}
 /* travellers */
-.tv .bg img{--op:38% 50%}
+.tv .bg img{--op:50% 50%}
 .tv .th2{display:block;font:500 15px/1.5 var(--fj);letter-spacing:0;opacity:.95;margin-top:10px;text-shadow:0 1px 12px rgba(0,0,0,.8)}
 .tags{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin-top:16px}
 .tags li{font-size:13.5px;font-weight:700;padding:9px 13px;border-radius:999px;background:rgba(7,6,13,.6);border:1px solid rgba(255,255,255,.28)}
 /* end */
+.en2{min-height:80vh;min-height:80svh}
 .en2 .tx{text-align:center;padding-bottom:calc(44px + var(--sb))}
 .en2 .ld{margin-left:auto;margin-right:auto}
 .dd{display:inline-flex;align-items:baseline;gap:10px;font:800 18px/1 var(--fu);color:var(--cy);margin-bottom:14px;text-shadow:0 0 18px rgba(63,240,255,.5),0 2px 10px rgba(0,0,0,.7)}
@@ -179,7 +182,7 @@ html[lang=th] .eb{letter-spacing:.04em;font-size:13px}
 /* opening: the Kring rings (brought back unchanged from the previous home; plays on every fresh load) */
 .op{display:none;--th:var(--fu);--g:var(--gx);--ctah:40px}
 html.opon .op{display:block;animation:opsafe .01s 7s forwards}
-.op .obg{transition:opacity .5s}.op .obg:not(.ld){opacity:0!important}
+.op .obg{transition:opacity .5s}.op .obg:not(.isld){opacity:0!important}
 /* pure-CSS start: if the script is late, the locked rings and the line still fade in by themselves */
 @keyframes oprise{from{opacity:0;transform:scale(.72)}to{opacity:1;transform:none}}
 @keyframes opfade{from{opacity:0}to{opacity:1}}
@@ -232,8 +235,29 @@ html.opon .op{display:block;animation:opsafe .01s 7s forwards}
 .op .opt{text-shadow:0 2px 24px rgba(0,0,0,.6)}
 html[lang=th] .op .opt{line-height:1.3}
 @media (min-width:800px){.op .opt{font-size:48px;top:11vh}.orb{width:260px}}
+/* panels whose picture is pinned to the top of the panel (phone) */
+.tp{justify-content:flex-start}
+.tp .bg{bottom:auto;height:100vh;height:100svh}
+.tp::after{background:linear-gradient(180deg,var(--bg) 0,rgba(7,6,13,0) 10vh,rgba(7,6,13,0) 58vh,rgba(7,6,13,.75) 72vh,var(--bg) 100vh)}
+.vn .tx{padding-top:67vh;padding-top:67svh}
+/* talk */
+.tk .tx{padding-top:66vh;padding-top:66svh}
+.chat{position:absolute;z-index:1;left:var(--gx);right:var(--gx);top:calc(62px + var(--st));display:grid;gap:6px;list-style:none}
+.chat li{max-width:88%;padding:7px 12px 8px;border-radius:18px 18px 18px 6px;background:rgba(20,17,31,.82);box-shadow:0 0 0 1px rgba(255,255,255,.16) inset,0 8px 26px rgba(0,0,0,.35);font-size:13.5px;line-height:1.32}
+.chat li b{display:block;font:700 11.5px/1.2 var(--fj);letter-spacing:.02em;color:var(--cy);margin-bottom:3px}
+.chat li i{display:block;font-style:normal;font-size:12px;color:var(--mu);margin-top:3px;padding-top:3px;border-top:1px solid rgba(255,255,255,.14)}
+.chat li.q{justify-self:end;border-radius:18px 18px 6px 18px;background:linear-gradient(90deg,#d736b4,#6a48f0)}
+.chat li.q b{color:#fff}.chat li.q i{color:#fff;border-top-color:rgba(255,255,255,.3)}
+.chat li.x3{display:none}
+.js .chat li{opacity:0;transform:translateY(14px) scale(.96);transition:opacity .5s var(--ez),transform .5s var(--ez);transition-delay:calc(var(--i) * .55s)}
+.js .chat.in li{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.js .chat li{opacity:1;transform:none;transition:none}}
+.sides{list-style:none;display:grid;gap:8px;margin-top:14px}
+.sides li{font-size:15.5px;line-height:1.4;text-shadow:0 1px 12px rgba(0,0,0,.8)}
+.sides b{display:inline-block;font:800 11px/1 var(--fu);letter-spacing:.04em;color:#07060d;background:var(--cy);padding:5px 8px;border-radius:999px;margin-right:8px;vertical-align:2px}
+.sides li+li b{background:var(--pk)}
 /* venues */
-.vn .bg img{--op:50% 40%}
+.vn .bg img{--op:50% 50%}
 .btn.b2{background:rgba(7,6,13,.55);box-shadow:0 0 0 2px var(--cy) inset,0 0 26px rgba(63,240,255,.35);text-shadow:none}
 .btn.b2:hover{box-shadow:0 0 0 2px var(--cy) inset,0 0 40px rgba(63,240,255,.6)}
 /* reveal */
@@ -250,11 +274,11 @@ html[lang=th] .op .opt{line-height:1.3}
 .hero .tx{padding-bottom:48px}
 .hero h1{font-size:clamp(40px,4.3vw,66px)}
 .hero .bg img{--op:50% 30%}
-.hero .bg,.op .cam{background-image:url(data:image/webp;base64,UklGRgIBAABXRUJQVlA4IPYAAABwBwCdASooABYAPxF8rlIsKCQiqrgN+YAiCUAXwG6wLgleOKHrNqObsJ9o/RowRxU0UarQGYqMFYyAHgts+dKlq0iGcAD+8NNhvBb/poLKGME2TsVnOVTIschiWcAhjnBKfqLArUI3OdbWkLfuCUDOrG3z7qDmD167yPiJX2hrVrSmHYqyR6PjxI2z/itB+kcLivxkDV93PH0IfV4+JHL1uG8ieDKNrnL8Zz8duZDFb3USg4wQfCvdK1fWxRRxY7Jb1rxWYYUenDdcS78ULiOwkxG9ltIb9T/ULcPIBPJa/Aj/0GdwxeGwlKsvlRvy62jl5N1gAAA=);background-position:50% 30%}
+@@LQD@@
 .hero::after{background:linear-gradient(180deg,rgba(7,6,13,.5) 0,rgba(7,6,13,0) 18%,rgba(7,6,13,0) 40%,rgba(7,6,13,.78) 78%,var(--bg) 100%),linear-gradient(90deg,rgba(7,6,13,.55),rgba(7,6,13,0) 55%)}
 .pn h1,.pn h2{max-width:13.5em}
 .cardp{display:grid;grid-template-columns:1.1fr .9fr;grid-template-rows:1fr auto;align-items:center;padding:110px var(--gx) 0;column-gap:40px;max-width:none}
-.cardp::after{background:linear-gradient(90deg,rgba(7,6,13,.86) 0,rgba(7,6,13,.55) 45%,rgba(7,6,13,.2) 100%),linear-gradient(180deg,var(--bg) 0,rgba(7,6,13,0) 16%,rgba(7,6,13,0) 60%,var(--bg) 100%)}
+.cardp::after{background:linear-gradient(90deg,rgba(7,6,13,.6) 0,rgba(7,6,13,.3) 45%,rgba(7,6,13,.1) 100%),linear-gradient(180deg,var(--bg) 0,rgba(7,6,13,0) 16%,rgba(7,6,13,0) 60%,var(--bg) 100%)}
 .cardp .kcw{grid-column:2;grid-row:1}
 .cardp .tx{grid-column:1;grid-row:1;padding:0;margin:0}
 .cardp .rl{grid-column:1/-1;grid-row:2;margin:40px calc(var(--gx)*-1) 0;padding-bottom:56px}
@@ -263,14 +287,23 @@ html[lang=th] .op .opt{line-height:1.3}
 .kc .nm b{font-size:38px}.kc .lv{font-size:12px}
 .rl li{width:190px}
 .fr .bg img{--op:50% 40%}
-.fr::after,.tv::after,.vn::after{background:linear-gradient(180deg,var(--bg) 0,rgba(7,6,13,0) 18%,rgba(7,6,13,0) 40%,rgba(7,6,13,.8) 80%,var(--bg) 100%),linear-gradient(90deg,rgba(7,6,13,.5),rgba(7,6,13,0) 55%)}
-.rk{padding-top:120px;justify-content:center}
+.tp{justify-content:flex-end}.tp .bg{bottom:0;height:auto}
+.tp::after{background:linear-gradient(180deg,var(--bg) 0,rgba(7,6,13,0) 16%,rgba(7,6,13,0) 46%,rgba(7,6,13,.72) 80%,var(--bg) 100%),linear-gradient(90deg,rgba(7,6,13,.55),rgba(7,6,13,0) 55%)}
+.vn .tx,.tk .tx{padding-top:0}
+.pn.tk h2,.pn.vn h2{max-width:10.5em}
+.rk{padding-top:34vh}
+.chat{left:var(--gx);right:auto;width:min(40vw,520px);top:110px}.chat li{font-size:16px}.chat li.x3{display:block}
+.rk .bg{bottom:0;height:auto}
+.rk::after{background:linear-gradient(180deg,var(--bg) 0,rgba(7,6,13,.2) 12%,rgba(7,6,13,.55) 40%,rgba(7,6,13,.86) 70%,var(--bg) 100%)}
+.fr::after,.tv::after{background:linear-gradient(180deg,var(--bg) 0,rgba(7,6,13,0) 16%,rgba(7,6,13,0) 46%,rgba(7,6,13,.72) 80%,var(--bg) 100%),linear-gradient(90deg,rgba(7,6,13,.55),rgba(7,6,13,0) 55%)}
+.rk{padding-top:30vh;justify-content:center}
 .rk .tx{grid-template-columns:1fr 1fr;gap:64px;align-items:center}
 .bd li{padding:9px 0;grid-template-columns:30px 42px 1fr auto 96px}
 .bd img{width:42px;height:42px}.bd .n{font-size:17px}.bd .p{font-size:17px}
-.tv .bg img{--op:50% 50%}
+.tv .bg img{--op:50% 40%}
 .en2::after{background:linear-gradient(180deg,var(--bg) 0,rgba(7,6,13,.1) 18%,rgba(7,6,13,.25) 45%,rgba(7,6,13,.86) 82%,var(--bg) 100%)}
 .dd b{font-size:84px}
+.en2{min-height:100vh}
 .fab{display:none}
 .ft{padding-bottom:40px}
 }
@@ -280,7 +313,7 @@ html[lang=th] .op .opt{line-height:1.3}
 <a class="sk" href="#main">[[ข้ามไปเนื้อหา||Skip to content]]</a>
 <div aria-label="[[แตะเพื่อกริ๊ง||Tap to ring]]" class="op pre" id="op" role="button" tabindex="0">
 <svg aria-hidden="true" height="0" style="position:absolute" width="0"><filter height="180%" id="oBl" width="180%" x="-40%" y="-40%"><fegaussianblur stddeviation="26"></fegaussianblur></filter></svg>
-<div class="cam"><picture><source media="(min-width:800px)" srcset="/assets/neon/hero-d.webp" type="image/webp"/><img alt="" class="obg" onload="this.classList.add('ld')" src="/assets/neon/hero-m.webp"/></picture><i class="dk"></i>
+<div class="cam"><picture><source media="(min-width:800px)" srcset="/assets/neon/hero-d.webp" type="image/webp"/><img alt="" class="obg" onload="this.classList.add('isld')" src="/assets/neon/hero-m.webp"/></picture><i class="dk"></i>
 <p class="opt">[[กรุงเทพฯ สวยกว่า<br/>เมื่อมี<em>เพื่อน</em>||Bangkok is more beautiful <em>with friends</em>]]</p>
 <div aria-hidden="true" class="orb"><div class="br"><span class="hl"></span><span class="pulse"></span><span class="ptc"></span><div class="rg b e"><svg class="gl" viewbox="0 0 1024 1024"><circle cx="392" cy="512" fill="none" filter="url(#oBl)" r="225" stroke="#8D9BFF" stroke-width="84"></circle></svg></div><div class="rg b e"><svg class="gl" viewbox="0 0 1024 1024"><circle cx="392" cy="512" fill="none" filter="url(#oBl)" r="225" stroke="#8D9BFF" stroke-width="84"></circle></svg></div><div class="rg b e"><svg class="gl" viewbox="0 0 1024 1024"><circle cx="392" cy="512" fill="none" filter="url(#oBl)" r="225" stroke="#8D9BFF" stroke-width="84"></circle></svg></div><div class="rg p e"><svg class="gl" viewbox="0 0 1024 1024"><circle cx="632" cy="512" fill="none" filter="url(#oBl)" r="225" stroke="#FF7CC2" stroke-width="84"></circle></svg></div><div class="rg p e"><svg class="gl" viewbox="0 0 1024 1024"><circle cx="632" cy="512" fill="none" filter="url(#oBl)" r="225" stroke="#FF7CC2" stroke-width="84"></circle></svg></div><div class="rg p e"><svg class="gl" viewbox="0 0 1024 1024"><circle cx="632" cy="512" fill="none" filter="url(#oBl)" r="225" stroke="#FF7CC2" stroke-width="84"></circle></svg></div>
 <div class="rg b m"><svg class="gl" viewbox="0 0 1024 1024"><circle cx="392" cy="512" fill="none" filter="url(#oBl)" r="225" stroke="#8D9BFF" stroke-width="84"></circle></svg><svg class="sh" viewbox="0 0 1024 1024"><g class="rb"><circle cx="392" cy="512" fill="none" r="225" stroke="#5B6CFF" stroke-width="54"></circle></g></svg></div>
@@ -297,7 +330,7 @@ html[lang=th] .op .opt{line-height:1.3}
 <main id="main">
 
 <section class="pn hero" id="hero">
-<picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/hero-d.webp" type="image/webp"/><img alt="[[เพื่อนกลุ่มหนึ่งนั่งดูพลุที่สะพานพระราม 8 ริมแม่น้ำเจ้าพระยา||Friends watching fireworks by Rama VIII Bridge on the Chao Phraya river]]" fetchpriority="high" height="1182" id="heroimg" onerror="this.classList.add('ld')" onload="this.classList.add('ld')" src="/assets/neon/hero-m.webp" width="660"/></picture>
+<picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/hero-d.webp" type="image/webp"/><img alt="[[เพื่อนห้าคนนั่งริมแม่น้ำเจ้าพระยา ดูพลุที่สะพานพระราม 8||Five friends on a riverside deck watching fireworks at Rama VIII Bridge]]" fetchpriority="high" height="1254" id="heroimg" onerror="this.classList.add('isld')" onload="this.classList.add('isld')" src="/assets/neon/hero-m.webp" width="700"/></picture>
 <div class="tx">
 <p class="eb rv"><i></i>[[เปิด 1 ธ.ค. 2026 · กรุงเทพฯ||Opens 1 Dec 2026 · Bangkok]]</p>
 <h1 class="rv" style="--d:.08s">[[กรุงเทพฯ สวยกว่า<br/>เมื่อมี<em>เพื่อน</em>||Bangkok is more beautiful <em>with friends</em>]]</h1>
@@ -308,7 +341,7 @@ html[lang=th] .op .opt{line-height:1.3}
 </section>
 
 <section aria-labelledby="h-card" class="pn cardp">
-<picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/card-d.webp" type="image/webp"/><img alt="[[เพื่อนสามคนในห้องโคมไฟสีชมพู กรุงเทพฯ||Three friends in a room of pink lanterns, Bangkok]]" decoding="async" height="1612" loading="lazy" src="/assets/neon/card-m.webp" width="900"/></picture>
+<picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/card-d.webp" type="image/webp"/><img alt="[[ซอยย่านเจริญกรุงยามค่ำ ไฟนีออนสีชมพูฟ้าและผู้คนเดินเล่น||A Charoen Krung soi at night with pink and cyan neon and people strolling]]" decoding="async" height="1376" loading="lazy" src="/assets/neon/card-m.webp" width="768"/></picture>
 <div class="kcw rv"><div aria-label="[[ตัวอย่างการ์ด Kring ของพลอย||Example Kring card: Ploy]]" class="kc" id="kc" role="img"><div class="kc-in">
 <img alt="" decoding="async" height="863" loading="lazy" src="/assets/neon/cardface.webp" width="640"/>
 <span class="lv"><svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>LV 1 LOCAL</span><span class="no">#00030</span>
@@ -322,15 +355,32 @@ html[lang=th] .op .opt{line-height:1.3}
 </section>
 
 <section aria-labelledby="h-fr" class="pn fr">
-<picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/friends-d.webp" type="image/webp"/><img alt="[[เพื่อนสามคนหัวเราะกันใต้โคมแดงที่ตลาดน้อย||Three friends laughing under red lanterns in Talat Noi]]" decoding="async" height="1398" loading="lazy" src="/assets/neon/friends-m.webp" width="780"/></picture>
+<picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/friends-d.webp" type="image/webp"/><img alt="[[เพื่อนสามคนหัวเราะกันใต้โคมแดงที่ตลาดน้อย||Three friends laughing under red lanterns in Talat Noi]]" decoding="async" height="1376" loading="lazy" src="/assets/neon/friends-m.webp" width="768"/></picture>
 <div class="tx">
 <h2 class="rv" id="h-fr">[[ได้<em>เพื่อนใหม่</em><br/>ที่ชอบที่เดียวกัน||Make <em>new friends</em> who love the same places]]</h2>
 <p class="ld rv" style="--d:.1s">[[คนกรุงเทพฯ กับนักท่องเที่ยว อยู่ในฟีดเดียวกัน||Bangkok people and travellers, in one feed.]]</p>
 </div>
 </section>
 
+<section aria-labelledby="h-tk" class="pn tp tk" id="talk">
+<picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/talk-d.webp" type="image/webp"/><img alt="[[กลุ่มเพื่อนคนไทยและนักท่องเที่ยวนั่งดูมือถือด้วยกันบนดาดฟ้าริมแม่น้ำเจ้าพระยาตอนค่ำ||A group of Thai locals and travellers looking at a phone together on a riverside rooftop at dusk]]" decoding="async" height="1376" loading="lazy" src="/assets/neon/talk-m.webp" width="768"/></picture>
+<ul aria-label="[[ตัวอย่างแชตบน Kring||Example chat on Kring]]" class="chat" id="chat">
+<li class="q" style="--i:0"><b>Lena · [[นักท่องเที่ยว||traveller]]</b>First day in Bangkok. Where should I go this evening?@@TK_QTH@@</li>
+<li lang="th" style="--i:1"><b>[[มิ้นท์ · คนกรุงเทพฯ||Mint · local]]</b>ไปตลาดน้อยตอนพระอาทิตย์ตกเลย ซอยสวย ริมน้ำลมดี<i lang="en">Go to Talat Noi at sunset. Pretty lanes, breezy by the river.</i></li>
+<li lang="th" style="--i:2"><b>[[ต้น · คนกรุงเทพฯ||Ton · local]]</b>ค่ำ ๆ ต่อเยาวราช ไฟสวยมาก เดินเล่นเพลิน<i lang="en">Then Yaowarat after dark. The lights are beautiful, great for a walk.</i></li>
+<li class="x3" lang="th" style="--i:3"><b>[[พลอย · คนกรุงเทพฯ||Ploy · local]]</b>พรุ่งนี้ลองอารีย์ คาเฟ่เยอะ คนชิล<i lang="en">Tomorrow try Ari. Lots of cafés, easygoing crowd.</i></li>
+</ul>
+<div class="tx">
+<p class="eb rv"><i></i>[[คุยกับคนกรุงเทพฯ||Talk to locals]]</p>
+<h2 class="rv" id="h-tk" style="--d:.08s">[[ถามคนที่<em>อยู่ที่นี่จริง</em>||Ask the people who <em>actually live here</em>]]</h2>
+<ul class="sides rv" style="--d:.14s"><li><b>[[คนกรุงเทพฯ||LOCALS]]</b>[[คุยกับคนในเมือง หาที่เด็ด ๆ ได้เพื่อนใหม่||Talk with locals, find the best places, make new friends.]]</li><li><b>[[นักท่องเที่ยว||TRAVELLERS]]</b>[[ได้แพลนเที่ยวกับที่เด็ดวงใน จากการคุยกับคนบน Kring||Get your itinerary and insider places by talking to people on Kring.]]</li></ul>
+<p class="nt rv" style="--d:.2s">[[แชตภาษาไทย แปลเป็นอังกฤษให้อัตโนมัติ||Thai chats are auto-translated to English.]]</p>
+<p class="rv" style="--d:.26s;margin-top:16px"><a class="btn" data-app="" data-join="" href="/app/?join=1">[[เปิด Kring||Open Kring]]<svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+</div>
+</section>
+
 <section aria-labelledby="h-rk" class="pn rk" id="ranking">
-<picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/rank-d.webp" type="image/webp"/><img alt="" decoding="async" height="1291" loading="lazy" src="/assets/neon/rank-m.webp" width="720"/></picture>
+<picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/rank-d.webp" type="image/webp"/><img alt="[[เพื่อนสี่คนดูมือถือด้วยกันบนดาดฟ้าตอนพระอาทิตย์ตก||Four friends looking at a phone together on a rooftop at sunset]]" decoding="async" height="1376" loading="lazy" src="/assets/neon/rank-m.webp" width="768"/></picture>
 <div class="tx">
 <div>
 <h2 class="rv" id="h-rk">[[อันดับ<span class="cy">ประจำสัปดาห์</span>||The <span class="cy">weekly</span> ranking]]</h2>
@@ -346,17 +396,17 @@ html[lang=th] .op .opt{line-height:1.3}
 </section>
 
 <section aria-labelledby="h-tv" class="pn tv" lang="en">
-<picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/trav-d.webp" type="image/webp"/><img alt="[[กลุ่มเพื่อนมองวิวตึกกรุงเทพฯ ตอนพระอาทิตย์ตกจากสวนลอยฟ้า||A group of friends looking over the Bangkok skyline at sunset from a rooftop park]]" decoding="async" height="1612" loading="lazy" src="/assets/neon/trav-m.webp" width="900"/></picture>
+<picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/trav-d.webp" type="image/webp"/><img alt="[[กลุ่มเพื่อนคนไทยและนักท่องเที่ยวหัวเราะกันที่ท่าน้ำเจ้าพระยาตอนพระอาทิตย์ตก||A group of Thai locals and travellers laughing on a Chao Phraya pier at sunset]]" decoding="async" height="1376" loading="lazy" src="/assets/neon/trav-m.webp" width="768"/></picture>
 <div class="tx">
 <p class="eb rv"><i></i>For travellers@@TV_EB@@</p>
 <h2 class="rv" id="h-tv" style="--d:.08s">See Bangkok through the people who <em>live here</em>@@TV_H@@</h2>
-<p class="ld rv" style="--d:.14s">Reels by Kring Locals, tagged at real places.@@TV_L@@</p>
+<p class="ld rv" style="--d:.14s">Get your itinerary and insider places from Kring Locals.@@TV_L@@</p>
 <ul class="tags rv" style="--d:.2s">@@TV_TAGS@@</ul>
 </div>
 </section>
 
-<section aria-labelledby="h-vn" class="pn vn" id="venues">
-<picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/venue-d.webp" type="image/webp"/><img alt="[[ลานบ้านเก่าริมสระน้ำที่โซวเฮงไถ่ ตลาดน้อย มีคนนั่งคุยกัน||People talking beside the courtyard pool at So Heng Tai, an old house in Talat Noi]]" decoding="async" height="1376" loading="lazy" src="/assets/neon/venue-m.webp" width="768"/></picture>
+<section aria-labelledby="h-vn" class="pn tp vn" id="venues">
+<picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/venue-d.webp" type="image/webp"/><img alt="[[กลุ่มเพื่อนนั่งคุยกันในคาเฟ่ตึกเก่าสวย ๆ ในกรุงเทพฯ||A group of friends chatting in a beautiful old-shophouse cafe in Bangkok]]" decoding="async" height="1376" loading="lazy" src="/assets/neon/venue-m.webp" width="768"/></picture>
 <div class="tx">
 <p class="eb rv"><i></i>[[สำหรับคาเฟ่ ที่พัก กิจกรรม||For cafés, stays, experiences]]</p>
 <h2 class="rv" id="h-vn" style="--d:.08s">[[ได้<span class="cy">ลูกค้าใหม่</span><br/>ลงร้านฟรี||Get <span class="cy">new customers</span>. List free]]</h2>
@@ -367,7 +417,7 @@ html[lang=th] .op .opt{line-height:1.3}
 </section>
 
 <section aria-labelledby="h-end" class="pn en2">
-<picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/end-d.webp" type="image/webp"/><img alt="[[ผู้หญิงยิ้มกางแขนบนสวนลอยฟ้าเจ้าพระยาตอนฟ้าสีชมพู||A woman smiling with open arms on Chao Phraya Sky Park under a pink sky]]" decoding="async" height="1612" loading="lazy" src="/assets/neon/end-m.webp" width="900"/></picture>
+<picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/end-d.webp" type="image/webp"/><img alt="[[วิวกรุงเทพฯ และแม่น้ำเจ้าพระยาตอนฟ้าสีน้ำเงิน||Bangkok skyline and the Chao Phraya river at blue hour]]" decoding="async" height="1376" loading="lazy" src="/assets/neon/end-m.webp" width="768"/></picture>
 <div class="tx">
 <p class="dd rv" data-open="2026-12-01" id="dd"><span>[[เปิด 1 ธ.ค. 2026||Opens 1 Dec 2026]]</span></p>
 <h2 class="rv" id="h-end" style="--d:.08s">[[ทำการ์ดไว้ก่อน<br/>เป็น <em>50 คนแรก</em>||Make your card early. Be one of the <em>first 50</em>]]</h2>
