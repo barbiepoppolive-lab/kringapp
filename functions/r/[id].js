@@ -16,7 +16,8 @@ export async function onRequestGet({ request, params, env }) {
   const url = new URL(request.url);
   const short = String(params.id || '').toLowerCase();
   const home = `${url.origin}/app/`;
-  const go = (to, cookie) => new Response(null, { status: 302, headers: { Location: to, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', ...(cookie ? { 'Set-Cookie': cookie } : {}) } });
+  const SEC = { 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains', 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'X-Robots-Tag': 'noindex' };
+  const go = (to, cookie) => new Response(null, { status: 302, headers: { Location: to, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', ...SEC, ...(cookie ? { 'Set-Cookie': cookie } : {}) } });
   if (!/^[a-z0-9]{6,10}$/.test(short)) return go(home);
 
   const ua = request.headers.get('user-agent') || '';
@@ -50,9 +51,10 @@ export async function onRequestGet({ request, params, env }) {
     const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(title)}</title>
 <meta property="og:type" content="video.other"><meta property="og:site_name" content="Kring"><meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${esc(url.origin + url.pathname)}">
-<meta property="og:image" content="${esc(url.origin)}/feature-graphic-1024x500.png"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="${esc(url.origin)}/assets/home/og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(desc)}"><meta name="twitter:image" content="${esc(url.origin)}/assets/home/og.jpg">
 <meta name="robots" content="noindex"><link rel="canonical" href="${esc(to)}"></head><body><a href="${esc(to)}">${esc(title)}</a></body></html>`;
-    return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
+    return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Referrer-Policy': 'strict-origin-when-cross-origin', ...SEC } });
   }
   return go(to, cookie);
 }
