@@ -86,7 +86,7 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed }: { src: st
         ref={ref}
         className="reel-video"
         src={near ? src : undefined}
-        poster={poster}
+        poster={near ? poster : undefined}
         muted
         loop
         playsInline

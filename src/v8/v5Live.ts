@@ -310,8 +310,28 @@ interface FeedRow { id: string; kind: 'photo' | 'plan' | 'ask' | 'reel'; area: s
   likes?: number | null; liked?: boolean | null; saved?: boolean | null; views?: number | null; ig_handle?: string | null;
   venue_id?: string | null; venue_name?: string | null; venue_name_th?: string | null; deal_id?: string | null; deal_en?: string | null; deal_th?: string | null }
 export type V5FeedItem = V8FeedItem & { authorId?: string; mine?: boolean; v5Kind?: 'photo' | 'plan' | 'ask' | 'reel'; eventId?: string };
-export async function v5Feed(): Promise<V5FeedItem[]> {
-  const all = await rpc<FeedRow[]>('kr8_feed', { p_area: null, p_limit: 60 });
+/** 16 Nov perf: two callers at start-up asked for the feed at the same moment (two feed calls, two signing calls); they now share one. */
+let feedInFlight: Promise<V5FeedItem[]> | null = null;
+export function v5Feed(): Promise<V5FeedItem[]> {
+  if (!feedInFlight) feedInFlight = v5FeedOnce().finally(() => { setTimeout(() => { feedInFlight = null; }, 0); });
+  return feedInFlight;
+}
+/** index.html starts the visitor feed request before the app code arrives (signed-out phones only); used once. */
+function takeEarlyFeed(): Promise<FeedRow[] | null> | null {
+  const w = window as unknown as { __kr8FeedPre?: Promise<FeedRow[] | null> | null };
+  const pre = w.__kr8FeedPre || null;
+  w.__kr8FeedPre = null;
+  return pre;
+}
+async function v5FeedOnce(): Promise<V5FeedItem[]> {
+  const pre = typeof window === 'undefined' ? null : takeEarlyFeed();
+  let early: FeedRow[] | null = null;
+  if (pre) {
+    const c = await v5Client();
+    const { data } = await c.auth.getSession();
+    if (!data.session) early = await pre.catch(() => null);   // a signed-in member gets their own feed (likes, saves, own Reels)
+  }
+  const all = Array.isArray(early) ? early : await rpc<FeedRow[]>('kr8_feed', { p_area: null, p_limit: 60 });
   // Reels-only feed (founder 9 Nov): photo posts are no longer made; old ones still show. Reels need signed links.
   const reelPaths = (all || []).flatMap((r) => (r.kind === 'reel' ? [r.video_path || '', r.poster_path || ''] : []));
   const signed = reelPaths.length ? await import('./v5Reel').then((m) => m.signReelPaths(reelPaths)).catch(() => ({} as Record<string, string>)) : {};

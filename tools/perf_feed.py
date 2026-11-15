@@ -17,14 +17,14 @@ async def run(p):
     import time
     def on_recv(e):
         nonlocal total, first10
-        n = e.get('encodedDataLength', 0) or e.get('dataLength', 0)
+        n = e.get('encodedDataLength', 0)
         total += n
         if t0 and time.time() - t0 <= 10: first10 += n
-    urls = {}
+    urls = {}; hosts = collections.Counter()
     def on_req(e):
         u = e['request']['url']; urls[e['requestId']] = u
         base = u.split('?')[0]
-        if base.endswith(('.mp4', '.webm', '.mov')): reqs[base] += 1
+        if base.endswith(('.mp4', '.webm', '.mov')): reqs[base] += 1; hosts[u.split('/')[2] + ('/media' if '/media/' in u else '')] += 1
     def on_resp(e):
         u = e['response']['url'].split('?')[0]; t = e['type']; kinds[t] += 1
     wire = {'n': 0}
@@ -44,7 +44,7 @@ async def run(p):
     poster_ms = await pg.evaluate("() => { const e = performance.getEntriesByType('resource').find(x => /\\.jpg|poster|\\.webp/.test(x.name) && /kr8-reels|media/.test(x.name)); return e ? Math.round(e.responseEnd) : null }")
     dup = {k[-50:]: v for k, v in reqs.items() if v > 1}
     await b.close()
-    return {'first_video_frame_ms_since_navigation': ttf, 'MB_first_10s_received': round(first10 / 1e6, 2), 'MB_first_10s_finished_requests': round(wire['n'] / 1e6, 2), 'video_requests': sum(reqs.values()), 'videos': len(reqs), 'repeat_video_requests': dup}
+    return {'first_video_frame_ms_since_navigation': ttf, 'MB_first_10s_received': round(first10 / 1e6, 2), 'MB_first_10s_finished_requests': round(wire['n'] / 1e6, 2), 'video_requests': sum(reqs.values()), 'videos': len(reqs), 'repeat_video_requests': dup, 'video_hosts': dict(hosts)}
 async def main():
     async with async_playwright() as p:
         res = [await run(p) for _ in range(RUNS)]

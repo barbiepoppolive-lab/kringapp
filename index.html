@@ -37,6 +37,10 @@
     <script>
       // 13 Nov funnel fix: LINE links stay inside LINE. LINE Login is one tap there (auto login); bouncing to Chrome/Safari
       // made people type a LINE email + password they mostly never set. "Open in browser" is still offered after first value (A2HS).
+      // 16 Nov perf: a visitor's feed is asked for now, in parallel with the app code (saves ~1 s on 4G). Signed-in phones skip it.
+      (function () { try { if (localStorage.getItem('kr8-v5-auth') || /[?&](demo|place|reel)=/.test(location.search)) return; var K = '%VITE_SUPABASE_ANON_KEY%';
+        window.__kr8FeedPre = fetch('%VITE_SUPABASE_URL%/rest/v1/rpc/kr8_feed', { method: 'POST', credentials: 'omit', headers: { apikey: K, Authorization: 'Bearer ' + K, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ p_area: null, p_limit: 60 }) }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); } catch (e) {} })();
       // keep the install offer for later (Add to home screen)
       window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__kr8Install = e; });
       // J: count installs (one anonymous row in link_visits, ref "pwa-install", same anonymous phone id as the visit counter)

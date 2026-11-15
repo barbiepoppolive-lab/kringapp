@@ -3693,8 +3693,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     <div className={`meta${p.video ? ' reel-meta' : ''}`}>
                       <div className="who">
                         {live && (p as V5FeedItem).authorId ? (
-                          <button type="button" className="av-btn" data-act="author-av" aria-label={p.name || ''} onClick={() => void openProfile((p as V5FeedItem).authorId)}><img className="av" src={p.av} alt="" /></button>
-                        ) : <img className="av" src={p.av} alt={p.name || ''} />}
+                          <button type="button" className="av-btn" data-act="author-av" aria-label={p.name || ''} onClick={() => void openProfile((p as V5FeedItem).authorId)}><img className="av" src={p.av} alt="" loading="lazy" decoding="async" /></button>
+                        ) : <img className="av" src={p.av} alt={p.name || ''} loading="lazy" decoding="async" />}
                         <div>
                           <div className="nm">
                             {live && (p as V5FeedItem).authorId ? (
