@@ -159,7 +159,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 
 // ───────────────────────────── shell ─────────────────────────────
 type Tab = 'todo' | 'members' | 'top5' | 'listings' | 'more';
-let counts: { reels: number; faces: number; reports: number; hiddenNow: number; replies: number; venues: number; newToday: number | null; status: SStatus | null } | null = null;
+let counts: { reels: number; faces: number; reports: number; hiddenNow: number; replies: number; venues: number; newToday: number | null; visits: SiteVisits | null; status: SStatus | null } | null = null;
 let me = '';
 
 function tabbar(active: Tab): HTMLElement {
@@ -212,7 +212,7 @@ function signIn(msg?: string) {
 
 // ───────────────────────────── To do ─────────────────────────────
 async function loadCounts() {
-  const [reels, faces, reports, social, st, apps, nt] = await Promise.all([
+  const [reels, faces, reports, social, st, apps, nt, sv] = await Promise.all([
     rpc<Reel[]>('kr8_admin_reels', { p_status: 'pending', p_limit: 100 }).catch(() => [] as Reel[]),
     rpc<Face[]>('kr8_admin_verifications', { p_status: 'pending' }).catch(() => [] as Face[]),
     rpc<Report[]>('kr8_admin_reports', { p_open: true, p_limit: 200 }).catch(() => [] as Report[]),
@@ -220,9 +220,10 @@ async function loadCounts() {
     rpc<SStatus[]>('kr8_social_status').then((r) => r[0] || null).catch(() => null),
     rpc<App[]>('kr8_admin_applications', { p_status: 'pending' }).catch(() => [] as App[]),
     rpc<{ real: number; test: number }>('kr8_admin_new_members_today').catch(() => null),
+    rpc<SiteVisits>('kr8_admin_site_visits').catch(() => null),
   ]);
   counts = { reels: reels.length, faces: faces.length, reports: reports.length, hiddenNow: reports.filter((r) => r.post_hidden).length,
-    replies: social.filter((s) => s.status === 'pending').length + redditToday().length + igToday().length, venues: apps.length, newToday: nt ? nt.real : null, status: st };
+    replies: social.filter((s) => s.status === 'pending').length + redditToday().length + igToday().length, venues: apps.length, newToday: nt ? nt.real : null, visits: isSiteVisits(sv) ? sv : null, status: st };
   return counts;
 }
 
@@ -246,8 +247,17 @@ async function todoView() {
   const newLine = c.newToday == null ? '' : el('a', { class: 'tile wide', href: '#members', id: 'todo-newmembers', style: 'margin-bottom:12px' },
     el('span', { class: 'grow' }, el('span', { class: 't', style: 'display:block' }, `New members today: ${c.newToday}`), el('span', { class: 'h', style: 'display:block' }, 'Real sign-ups, India time · open Members')),
     el('span', { class: 'go', style: 'position:static' }, ic('chev')));
+  const visitsLine = c.visits ? (() => {
+    const b = el('button', { class: 'tile wide', type: 'button', id: 'todo-visits', style: 'margin-bottom:12px;width:100%' },
+      el('span', { class: 'grow' }, el('span', { class: 't', style: 'display:block' }, visitsHeadline(c.visits.today)),
+        el('span', { class: 'h', style: 'display:block' }, visitsHint(c.visits.today))),
+      el('span', { class: 'go', style: 'position:static' }, ic('chev')));
+    b.onclick = () => visitsSheet(c.visits!);
+    return b;
+  })() : '';
   body.replaceChildren(
     newLine,
+    visitsLine,
     total ? '' : el('div', { class: 'clear', id: 'allClear' }, ic('check'), el('div', {}, el('b', {}, 'All clear'), el('span', { class: 'dim sm' }, 'Nothing waiting. Nice work.'))),
     el('div', { class: 'tiles' },
       tile('todo-reels', '#q/reels', c.reels, 'Reels waiting', 'pink', 'Approve or hide'),
@@ -256,6 +266,48 @@ async function todoView() {
       tile('todo-replies', '#q/replies', c.replies, 'Replies to send', '', 'Reddit + Instagram'),
       venueTile),
     total ? el('div', { class: 'est' }, ic('clock'), `About ${total} min in all`) : '');
+}
+
+// ───────────────────────────── site visits (0052_kr8_admin_site_visits) ─────────────────────────────
+type VisitDay = { visitors: number; th: number; other: number; us: number; signups: number };
+export type SiteVisits = { today: VisitDay; week: VisitDay; days: (VisitDay & { day: string })[];
+  sources_today: { ref: string; visitors: number }[]; sources_week: { ref: string; visitors: number }[] };
+const isDay = (d: unknown): d is VisitDay => !!d && typeof d === 'object' && ['visitors', 'th', 'other', 'us', 'signups'].every((k) => typeof (d as Record<string, unknown>)[k] === 'number');
+export function isSiteVisits(v: unknown): v is SiteVisits {
+  const o = v as SiteVisits | null;
+  return !!o && isDay(o.today) && isDay(o.week) && Array.isArray(o.days) && o.days.every(isDay) && Array.isArray(o.sources_today) && Array.isArray(o.sources_week);
+}
+/** Real visitors = Thailand + other countries. The US is kept apart: most of it is our own testing. */
+export const realVisitors = (d: VisitDay) => d.th + d.other;
+export const visitsHeadline = (d: VisitDay) => `Site visits today: ${realVisitors(d)} (TH ${d.th} · other ${d.other})`;
+export const visitsHint = (d: VisitDay) => `${d.us ? `+${d.us} US, mostly our own testing · ` : ''}tap for 7 days`;
+export const sourceName = (ref: string) => (ref === 'direct' || ref === '(none)' || !ref ? 'direct (no link code)' : ref);
+export function joinedLine(d: VisitDay, when: 'today' | 'in 7 days'): string {
+  const v = realVisitors(d);
+  const pct = v ? Math.round((d.signups / v) * 1000) / 10 : 0;
+  return `${d.signups} new ${d.signups === 1 ? 'member' : 'members'} from ${v} ${v === 1 ? 'visitor' : 'visitors'} ${when}` + (v ? ` (${pct}%)` : '');
+}
+function visitsSheet(v: SiteVisits) {
+  const dayName = (d: string) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' });
+  const stat = (n: number, label: string) => el('div', { class: 'sv-stat' }, el('b', {}, String(n)), el('span', {}, label));
+  const srcList = v.sources_week.length
+    ? el('div', { class: 'sv-list' }, ...v.sources_week.map((s) => el('div', { class: 'sv-row' }, el('span', { class: 'grow' }, sourceName(s.ref)), el('b', {}, String(s.visitors)))))
+    : el('p', { class: 'dim sm' }, 'No visits yet.');
+  const dayList = el('div', { class: 'sv-list' }, ...v.days.map((d) => el('div', { class: 'sv-row' },
+    el('span', { class: 'sv-day' }, dayName(d.day)), el('b', {}, String(realVisitors(d))),
+    el('span', { class: 'grow faint xs', style: 'text-align:right' }, `TH ${d.th} · other ${d.other}${d.us ? ` · US ${d.us}` : ''}`))));
+  const s = sheet(
+    el('h3', {}, 'Site visits'),
+    el('p', { class: 'dim sm', style: 'margin:4px 0 14px' }, 'People who opened kringapp.com, Bangkok time. Robots and our own tests are left out. The US is not counted: most of it is our own testing.'),
+    el('div', { class: 'sv-stats' }, stat(realVisitors(v.today), 'Today'), stat(realVisitors(v.week), 'Last 7 days')),
+    el('div', { class: 'sec' }, 'Who joined'),
+    el('div', { class: 'card sv-join' }, el('div', {}, joinedLine(v.today, 'today')), el('div', { class: 'dim sm' }, joinedLine(v.week, 'in 7 days'))),
+    el('div', { class: 'sec' }, 'Where they came from · 7 days'),
+    srcList,
+    el('div', { class: 'sec' }, 'Day by day'),
+    dayList,
+    el('button', { class: 'btn ghost', type: 'button', id: 'visitsClose', style: 'width:100%;margin-top:16px' }, 'Close'));
+  (s.box.querySelector('#visitsClose') as HTMLButtonElement).onclick = s.close;
 }
 
 // ───────────────────────────── queue frame ─────────────────────────────
