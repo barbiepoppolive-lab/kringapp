@@ -2,23 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://kringapp.com/</loc>
-    <lastmod>2026-11-11</lastmod>
+    <lastmod>2026-11-15</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://kringapp.com/en/"/>
-    <xhtml:link rel="alternate" hreflang="th" href="https://kringapp.com/th/"/>
+    <xhtml:link rel="alternate" hreflang="th" href="https://kringapp.com/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://kringapp.com/"/>
   </url>
   <url>
     <loc>https://kringapp.com/en/</loc>
-    <lastmod>2026-11-11</lastmod>
+    <lastmod>2026-11-15</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://kringapp.com/en/"/>
-    <xhtml:link rel="alternate" hreflang="th" href="https://kringapp.com/th/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kringapp.com/"/>
-  </url>
-  <url>
-    <loc>https://kringapp.com/th/</loc>
-    <lastmod>2026-11-11</lastmod>
-    <xhtml:link rel="alternate" hreflang="en" href="https://kringapp.com/en/"/>
-    <xhtml:link rel="alternate" hreflang="th" href="https://kringapp.com/th/"/>
+    <xhtml:link rel="alternate" hreflang="th" href="https://kringapp.com/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://kringapp.com/"/>
   </url>
   <url>
@@ -59,14 +52,14 @@
   </url>
   <url>
     <loc>https://kringapp.com/locals/</loc>
-    <lastmod>2026-11-13</lastmod>
+    <lastmod>2026-11-15</lastmod>
   </url>
   <url>
     <loc>https://kringapp.com/partners/</loc>
-    <lastmod>2026-11-13</lastmod>
+    <lastmod>2026-11-15</lastmod>
   </url>
   <url>
     <loc>https://kringapp.com/rules/</loc>
-    <lastmod>2026-11-13</lastmod>
+    <lastmod>2026-11-15</lastmod>
   </url>
 </urlset>

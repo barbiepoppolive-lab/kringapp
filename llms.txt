@@ -1,11 +1,12 @@
 # Kring (กริ๊ง!) Bangkok
 
-> Kring (กริ๊ง!) is a Bangkok people app. Locals and visitors post short clips of real Bangkok spots, find people into the same things, and meet at partner cafés and other public places. Thai or English, with built-in translation. Free to use.
+> Kring (กริ๊ง!) is Bangkok's people app, opening 1 December 2026. People who live in Bangkok and people visiting make a card, post short Reels tagged at real Bangkok places, talk to each other and make new friends. Travellers can ask people who live here for itinerary ideas and insider places. Thai or English, with built-in chat translation. Free to use.
 
-- Website: https://kringapp.com/ (English: https://kringapp.com/en/ · Thai: https://kringapp.com/th/)
+- Website: https://kringapp.com/ (English: https://kringapp.com/en/ · Thai: https://kringapp.com/)
 - App (web, Android and iPhone browsers): https://kringapp.com/app/
 - Areas: all of Bangkok, most active in Ari, Siam, Thonglor, Ekkamai and Silom.
-- Kring Locals: people who post clips of their Bangkok; the Top 5 of each day and each week are featured.
+- Kring Locals: people who post Reels of their Bangkok; the top 8 of each week's ranking win prizes (rules: https://kringapp.com/rules/).
+- Cafés, experiences and stays can list free: https://kringapp.com/partners/
 - Safety: people always meet in public places, never private addresses.
 
 ## Key pages
@@ -18,4 +19,5 @@
 
 ## Social
 - Instagram: https://www.instagram.com/kring.bkk/
+- TikTok: https://www.tiktok.com/@kring.bkk
 - LINE: https://line.me/R/ti/p/@194hsqbc

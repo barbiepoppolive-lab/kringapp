@@ -12,8 +12,10 @@ BOARD = [('mint', 'มิ้นท์', 'Mint', 412, '฿1,500'), ('ton', 'ต�
          ('aom', 'ออม', 'Aom', 214, '฿400'), ('yui', 'ยุ้ย', 'Yui', 180, '฿250'), ('minjun', 'มินจุน', 'Minjun', 139, '฿150'), ('lena', 'ลีน่า', 'Lena', 96, '฿100'),
          ('marcus', 'มาร์คัส', 'Marcus', 71, None), ('arjun', 'อรชุน', 'Arjun', 58, None)]
 def reels():
-    one = ''.join('<li%s><img alt="" decoding="async" height="640" loading="lazy" src="/assets/neon/r-%s.webp" width="360"/><span>%s[[%s||%s]]</span></li>' % ('%s', k, PIN, th, en) for k, th, en in REELS)
-    return one.replace('<li%s>', '<li>') + one.replace('<li%s>', '<li aria-hidden="true">')
+    one = ''.join('<li%s><img alt="@@ALT@@" decoding="async" height="640" loading="lazy" src="/assets/neon/r-%s.webp" width="360"/><span>%s[[%s||%s]]</span></li>' % ('%s', k, PIN, th, en) for k, th, en in REELS)
+    import re as _r
+    first = _r.sub(r'alt="@@ALT@@"(.*?\[\[(.*?)\|\|(.*?)\]\])', lambda m: 'alt="[[%s กรุงเทพฯ||%s, Bangkok]]"%s' % (m.group(2), m.group(3), m.group(1)), one, flags=_r.S)
+    return first.replace('<li%s>', '<li>') + one.replace('alt="@@ALT@@"', 'alt=""').replace('<li%s>', '<li aria-hidden="true">')
 def board():
     o = ''
     for k, th, en, n, p in BOARD:
