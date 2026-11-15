@@ -131,7 +131,7 @@ begin
     order by p.created_at desc
     limit least(greatest(coalesce(p_limit, 60), 1), 120))
   select jsonb_build_object(
-    'user_id', p_user, 'mine', uid = p_user,
+    'user_id', p_user, 'mine', coalesce(uid = p_user, false),
     'best', (select id from rows where this_week and status = 'approved' order by rings desc, created_at asc limit 1),
     'reels', coalesce((select jsonb_agg(jsonb_build_object('id', id, 'poster_path', poster_path, 'video_path', video_path, 'body', body, 'created_at', created_at,
                  'status', status, 'likes', likes_count, 'saves', saves_count, 'this_week', this_week, 'rings', rings, 'place', place,
