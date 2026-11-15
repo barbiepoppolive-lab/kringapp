@@ -99,6 +99,7 @@ import { baht, MathSheet, HowSheet, RankingPage } from './V5KxRanking';
 import { GoCoach, GoCompose, GoMeReels, GoProfilePage, GoReelPlayer, gridToGo, hlTags, savedToGo, type CoachSpot, type GoReel } from './V5Go';
 import { coachDue, coachMark, coachPick, coachReplay, coachSync, newCoachState, type CoachKey, type CoachState } from './goCoach';
 import { shownGender } from './V5Gender';
+import { readerLang, useChatTranslate } from './v5Translate';
 import { kxGenderShown, kxMemberReels, kxReelPeople, kxTagPeople, type KxGridReel, type KxMemberReels, type KxTagPerson } from './v5Kx';
 import { FeedPlaceChips, PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, SavedReelsPage, type PickedPlace } from './V5KxPlaces';
 import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRanking, kxRefName, kxSavedReels, kxShareLink, kxShareLinkCached, kxShareOpenSeen,
@@ -3325,6 +3326,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     () => threads.find((th) => th.id === activeThreadId) || threads[0] || null,
     [threads, activeThreadId]
   );
+  // automatic chat translation (free on the device where the browser can; the server for everyone else)
+  const chatTr = useChatTranslate(live && sheet === 'thread', activeThread?.id ?? null, activeThread?.messages ?? [], lang);
+  const [trHideOrig, setTrHideOrig] = useState<Record<string, boolean>>({});
+  const trLangName = (c: string) => L(({ th: 'Thai', en: 'English', zh: 'Chinese', hi: 'Hindi', ja: 'Japanese', ko: 'Korean' } as Record<string, string>)[c] || c.toUpperCase());
 
   const activeRedeemDeal = useMemo(
     () => deals.find((d) => d.id === activeRedeemDealId) || deals[0] || null,
@@ -5888,7 +5893,12 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   )}
                 </div>
                 <div className="sub">
-                  {Lf('Speaks {0}', activeThread.langs)} · {L('Thai auto-translated')}
+                  {live ? (
+                    <span id="trLine" data-via={chatTr.onDevice ? 'device' : 'server'}>
+                      {chatTr.onDevice ? L('Translated on your phone. Messages stay on this device.') : L('Messages are translated automatically')}
+                      {chatTr.onDevice ? null : <> · <a href="/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>{L('Privacy')}</a></>}
+                    </span>
+                  ) : <>{Lf('Speaks {0}', activeThread.langs)} · {L('Thai auto-translated')}</>}
                 </div>
               </div>
               <button
@@ -5902,17 +5912,47 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             </div>
 
             <div className="msgs" id="threadMsgs">
-              {activeThread.messages.map((m) => (
+              {live && (chatTr.pack.s === 'offer' || chatTr.pack.s === 'downloading') ? (
+                <div className="go-trpack" id="trPack" role="status">
+                  <b>{L('Free translation on this device')}</b>
+                  <p>{Lf('Download the {0} ↔ {1} pack once. Free, and your messages never leave your phone.', trLangName(chatTr.pack.source), trLangName(readerLang(lang)))}</p>
+                  {chatTr.pack.s === 'downloading' ? (
+                    <div className="go-trbar" id="trPackProgress" aria-label={Lf('Downloading… {0}%', String(chatTr.pack.pct))}><i style={{ width: `${chatTr.pack.pct}%` }} /><span>{Lf('Downloading… {0}%', String(chatTr.pack.pct))}</span></div>
+                  ) : (
+                    <div className="go-trbtns">
+                      <button type="button" id="trPackGet" className="go-pill" onClick={chatTr.download}>{L('Download')}</button>
+                      <button type="button" id="trPackNo" className="go-pill gh" onClick={chatTr.notNow}>{L('Not now')}</button>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+              {activeThread.messages.map((m) => {
+                const tr = live ? chatTr.map[m.id] : undefined;
+                const hide = tr?.s === 'ok' && trHideOrig[m.id];
+                return (
                 <div
                   key={m.id}
+                  data-msg-id={m.id}
                   className={`bub ${m.sender === 'me' ? 'me' : 'them'}`}
                 >
-                  <div className={hasThaiScript(m.text) ? 'th' : ''}>
+                  {hide ? null : (
+                  <div className={hasThaiScript(m.text) ? 'th' : ''} data-orig="1">
                     {m.text}
                   </div>
-                  {m.translation && <div className="tr">{m.translation}</div>}
+                  )}
+                  {!live && m.translation && <div className="tr">{m.translation}</div>}
+                  {tr?.s === 'ok' ? (
+                    <>
+                      <div className={`tr go-tr${hide ? ' solo' : ''}${hasThaiScript(tr.text) ? ' th' : ''}`} data-tr={tr.via}>{tr.text}</div>
+                      <button type="button" className="go-trtag" data-tr-toggle={m.id} aria-pressed={!!hide}
+                        onClick={() => setTrHideOrig((p) => ({ ...p, [m.id]: !p[m.id] }))}>
+                        {L('Translated automatically')} · {hide ? L('Show original') : L('Hide original')}
+                      </button>
+                    </>
+                  ) : tr?.s === 'fail' ? <div className="go-trfail" data-tr-fail="1">{L('Translation unavailable')}</div> : null}
                 </div>
-              ))}
+                );
+              })}
 
               {activeThread.dealInvite && (
                 <div className="deal2-card">
@@ -6037,7 +6077,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleSendChatMessage();
                 }}
-                placeholder={L("Write a message (Thai auto-translates)…")}
+                placeholder={live ? L('Write a message…') : L("Write a message (Thai auto-translates)…")}
               />
               <button
                 type="button"
