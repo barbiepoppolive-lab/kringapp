@@ -5,8 +5,8 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import './kx.css';
-import { distM, fmtDist, fmtN, mapsUrl, togglePick } from './kxLogic';
-import { kxAddPlace, kxPhoton, kxPlacePage, kxSearchPlaces, placePhoto, type KxPlace, type KxPlacePage, type KxPlaceReel, type KxSavedReel } from './v5Kx';
+import { cleanPlaceName, distM, fmtDist, fmtN, isMapsLink, KX_AREAS, mapsUrl, parseMapsCoords, togglePick } from './kxLogic';
+import { kxAddPlace, kxMemberAddPlace, kxPhoton, kxPlacePage, kxSearchPlaces, placePhoto, type KxPlace, type KxPlacePage, type KxPlaceReel, type KxSavedReel } from './v5Kx';
 import { signReelPaths } from './v5Reel';
 import { kxArea } from './v5Strings';
 
@@ -96,6 +96,7 @@ export function PlaceSearchPage(props: { L: Tx; Lf: Txf; lang: string; picked: P
   const [askLoc, setAskLoc] = useState(false);
   const pos = useMyLocation(askLoc);
   const [saving, setSaving] = useState('');
+  const [adding, setAdding] = useState<null | { name: string; area: string; link: string; busy: boolean; err: string }>(null);
   const seq = useRef(0);
   useEffect(() => {
     const n = ++seq.current;
@@ -125,12 +126,36 @@ export function PlaceSearchPage(props: { L: Tx; Lf: Txf; lang: string; picked: P
   const row = (p: KxPlace) => (
     <button type="button" key={p.id} className={`kx-prow${picked.length >= 2 && !isOn(p.id) ? ' dim' : ''}`} data-place-row={p.name_en} onClick={() => void flip(p)}>
       <Thumb url={p.photo_url} size={46} />
-      <span className="t"><b>{p.name_en}</b>
+      <span className="t"><b>{p.name_en}{p.status === 'pending' ? <i className="kx-pend">{L('Waiting for check')}</i> : null}</b>
         <span>{p.name_th ? <em className="kx-th2">{p.name_th}</em> : null}<i className="ar">{kxArea(props.lang, p.area, L)}</i>{dist(p) !== null ? <i className="kx-dist">{fmtDist(dist(p))}</i> : null}</span></span>
       <span className={`kx-ck ${isOn(p.id) ? 'on' : 'off'}`}>{saving === p.id ? '…' : isOn(p.id) ? '✓' : '+'}</span>
     </button>
   );
   const recent = recentPlaces().filter((r) => !picked.some((p) => p.id === r.id));
+  // B (15 Nov): nothing found → the member can add the place. It is pending until Kring checks it, but works on their Reel now.
+  const typed = cleanPlaceName(q);
+  const exact = [...(ours || []), ...extra].some((p) => p.name_en.toLowerCase() === typed.toLowerCase() || p.name_th === typed);
+  const canAdd = typed.length >= 2 && ours !== null && !exact;
+  const startAdd = () => setAdding({ name: typed, area: 'Bangkok', link: '', busy: false, err: '' });
+  const saveNew = async () => {
+    if (!adding || adding.busy) return;
+    const name = cleanPlaceName(adding.name);
+    if (name.length < 2) { setAdding({ ...adding, err: L('Type the place name') }); return; }
+    if (adding.link && !isMapsLink(adding.link)) { setAdding({ ...adding, err: L('Paste a Google Maps link, or leave it empty') }); return; }
+    if (picked.length >= 2) { setFull(true); setAdding(null); return; }
+    setAdding({ ...adding, busy: true, err: '' });
+    try {
+      const p = await kxMemberAddPlace(name, adding.area, adding.link.trim(), parseMapsCoords(adding.link));
+      const place: PickedPlace = { id: p.id, name_en: p.name_en, name_th: p.name_th, area: p.area, kr_area: p.kr_area, photo_url: p.photo_url, lat: p.lat, lng: p.lng };
+      const r = togglePick(picked, place);
+      setPicked(r.list);
+      setFull(r.list.length === 2);
+      setAdding(null);
+      props.toast(p.status === 'pending' ? L('Place added · Kring will check it. Your Reel can use it now.') : L('Place added'));
+    } catch {
+      setAdding({ ...adding, busy: false, err: L('Couldn’t add that place. Try another one.') });
+    }
+  };
   return (
     <div className="kx-page kx-ps" id="kxPlaceSearch">
       <div className="kx-hdr">
@@ -153,6 +178,12 @@ export function PlaceSearchPage(props: { L: Tx; Lf: Txf; lang: string; picked: P
         {!pos && !q ? <button type="button" className="kx-locask" onClick={() => setAskLoc(true)}><Pin size={14} /> {L('Show places near me')}</button> : null}
         <div className="kx-sec2">{q ? L('On Kring') : pos ? L('Nearby') : L('Popular')}</div>
         {ours === null ? <p className="kx-empty">…</p> : ours.length === 0 && !extra.length ? <p className="kx-empty">{L('No places with that name yet.')}</p> : ours.map(row)}
+        {canAdd ? (
+          <button type="button" className="kx-addnew" id="kxAddNew" onClick={startAdd}>
+            <span className="pl" aria-hidden="true">＋</span>
+            <span className="t"><b>{Lf('Add ‘{0}’ as a new place', typed)}</b>{props.lang === 'th' ? <small>Add as new place</small> : <small>{L('Not on Kring yet? Add it.')}</small>}</span>
+          </button>
+        ) : null}
         {extra.length ? <><div className="kx-sec2">{L('More places in Bangkok')}</div>{extra.map(row)}</> : null}
         {!q && recent.length ? (
           <>
@@ -163,6 +194,25 @@ export function PlaceSearchPage(props: { L: Tx; Lf: Txf; lang: string; picked: P
           </>
         ) : null}
       </div>
+      {adding ? (
+        <div className="kx-newp" id="kxNewPlace" role="dialog" aria-label={L('New place')}>
+          <div className="kx-newp-in">
+            <div className="kx-hdr"><button type="button" className="kx-ib" aria-label={L('Back')} onClick={() => setAdding(null)}>‹</button><h2>{L('New place')}</h2><span /></div>
+            <label className="kx-fl"><span>{L('Place name')}</span>
+              <input id="kxNewName" value={adding.name} maxLength={80} autoComplete="off" onChange={(e) => setAdding({ ...adding, name: e.target.value, err: '' })} /></label>
+            <div className="kx-fl"><span>{L('Area')}</span>
+              <div className="kx-areas" role="radiogroup">{KX_AREAS.map((a) => (
+                <button type="button" key={a.name} role="radio" aria-checked={adding.area === a.name} className={`kx-chip${adding.area === a.name ? ' sel' : ''}`} data-area={a.name}
+                  onClick={() => setAdding({ ...adding, area: a.name })}>{kxArea(props.lang, a.name, L)}</button>
+              ))}</div></div>
+            <label className="kx-fl"><span>{L('Google Maps link (optional)')}</span>
+              <input id="kxNewLink" value={adding.link} inputMode="url" placeholder="https://maps.app.goo.gl/…" autoComplete="off" onChange={(e) => setAdding({ ...adding, link: e.target.value, err: '' })} /></label>
+            <p className="kx-newp-note">{L('Kring checks new places. Your Reel can use it right away.')}</p>
+            {adding.err ? <p className="kx-newp-err" role="alert">{adding.err}</p> : null}
+            <button type="button" className="kx-btn" id="kxNewSave" disabled={adding.busy} onClick={() => void saveNew()}>{adding.busy ? '…' : L('Add place')}</button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

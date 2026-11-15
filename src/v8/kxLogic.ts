@@ -240,3 +240,31 @@ export function ago(iso: string | number, now = Date.now()): { n: number; u: 'no
   if (m < 1440) return { n: Math.round(m / 60), u: 'h' };
   return { n: Math.round(m / 1440), u: 'd' };
 }
+
+// ───────────── member-typed places (0054) ─────────────
+/** Reel areas (same list as kr8_area_ok) with their centre, used as a rough pin when the member adds a place without a map link. */
+export const KX_AREAS: { name: string; lat: number; lng: number }[] = [
+  { name: 'Bangkok', lat: 13.7563, lng: 100.5018 }, { name: 'Ari', lat: 13.7797, lng: 100.5446 }, { name: 'Siam', lat: 13.7456, lng: 100.5341 },
+  { name: 'Thonglor', lat: 13.7325, lng: 100.583 }, { name: 'Ekkamai', lat: 13.72, lng: 100.585 }, { name: 'Phrom Phong', lat: 13.7305, lng: 100.5697 },
+  { name: 'Sukhumvit', lat: 13.738, lng: 100.56 }, { name: 'Silom', lat: 13.7286, lng: 100.534 }, { name: 'Sathorn', lat: 13.719, lng: 100.529 },
+  { name: 'Bang Rak', lat: 13.73, lng: 100.524 }, { name: 'Riverside', lat: 13.723, lng: 100.514 }, { name: 'Talad Noi', lat: 13.7322, lng: 100.5137 },
+  { name: 'Yaowarat', lat: 13.74, lng: 100.5096 }, { name: 'Chinatown', lat: 13.7405, lng: 100.51 }, { name: 'Old Town', lat: 13.752, lng: 100.494 },
+  { name: 'Ratchada', lat: 13.766, lng: 100.574 }, { name: 'Chatuchak', lat: 13.7999, lng: 100.55 },
+];
+export const areaCentre = (a: string) => KX_AREAS.find((x) => x.name === a) || KX_AREAS[0];
+
+/** Coordinates from a pasted Google Maps link (full links only; short maps.app.goo.gl links carry none). Bangkok only. */
+export function parseMapsCoords(url: string): { lat: number; lng: number } | null {
+  const u = (url || '').trim();
+  if (!/^https:\/\//i.test(u)) return null;
+  const pats = [/!3d(-?\d{1,3}\.\d+)!4d(-?\d{1,3}\.\d+)/, /@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/, /[?&](?:q|query|ll|destination|center)=(-?\d{1,3}\.\d+)(?:,|%2C)\s*(-?\d{1,3}\.\d+)/i,
+    /\/place\/(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/];
+  for (const re of pats) {
+    const m = u.match(re);
+    if (m) { const lat = +m[1], lng = +m[2]; if (inBangkok(lat, lng)) return { lat, lng }; }
+  }
+  return null;
+}
+export const isMapsLink = (url: string) => /^https:\/\/([a-z0-9-]+\.)*(google\.[a-z.]+|goo\.gl|g\.co)\//i.test((url || '').trim());
+/** Name the member typed: trimmed, single spaces, 2–80 characters. */
+export const cleanPlaceName = (q: string) => q.replace(/\s+/g, ' ').trim().slice(0, 80);

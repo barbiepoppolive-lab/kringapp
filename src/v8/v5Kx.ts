@@ -1,6 +1,6 @@
 /** Live calls for Card + Rings + Ranking + Places (migration 0044). Every Ring is decided on the server. */
 import { v5Client, V5Error, v5ErrCode } from './v5Live';
-import { BKK_BBOX, inBangkok, type Brand, type GapState } from './kxLogic';
+import { areaCentre, BKK_BBOX, inBangkok, type Brand, type GapState } from './kxLogic';
 import type { ReelReady, UploadedReel } from './v5Reel';
 
 async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
@@ -85,9 +85,31 @@ export const kxSavedReels = () => rpc<KxSavedReel[]>('kr8_my_saved_reels', { p_l
 
 // ───────────── places ─────────────
 export interface KxPlace { id: string; name_en: string; name_th: string | null; area: string; kr_area?: string; lat?: number; lng?: number; photo_url: string | null;
-  dist_m?: number | null; reels?: number; here_now?: number; source?: 'kring' | 'photon'; osm_ref?: string }
-export const kxSearchPlaces = (q: string, lat: number | null, lng: number | null, limit = 20) =>
-  rpc<KxPlace[]>('kr8_places_search', { p_q: q || null, p_lat: lat, p_lng: lng, p_limit: limit });
+  dist_m?: number | null; reels?: number; here_now?: number; source?: 'kring' | 'photon'; osm_ref?: string; status?: 'live' | 'pending' | 'rejected' }
+/** kr8_places_search2 (0054: also returns the member's own pending places); falls back to kr8_places_search before 0054 is applied. */
+export const kxSearchPlaces = (q: string, lat: number | null, lng: number | null, limit = 20) => {
+  const args = { p_q: q || null, p_lat: lat, p_lng: lng, p_limit: limit };
+  return rpc<KxPlace[]>('kr8_places_search2', args).catch((e) => {
+    if (e instanceof V5Error && e.code === 'OFFLINE') throw e;
+    return rpc<KxPlace[]>('kr8_places_search', args);
+  });
+};
+/**
+ * The member adds a place Kring doesn't know (0054 kr8_member_add_place: pending, admin approves).
+ * Before 0054 is applied the older kr8_add_place is used (same rules, area-centre pin), so the button works either way.
+ */
+export async function kxMemberAddPlace(name: string, area: string, mapsUrl: string, at: { lat: number; lng: number } | null): Promise<KxPlace> {
+  try {
+    return await rpc<KxPlace>('kr8_member_add_place', { p_name: name, p_area: area, p_maps_url: mapsUrl || null, p_lat: at?.lat ?? null, p_lng: at?.lng ?? null });
+  } catch (e) {
+    const code = e instanceof V5Error ? e.code : '';
+    if (['OFFLINE', 'SIGN_IN', 'NO_CARD', 'BAD_PLACE', 'SLOW_DOWN'].includes(code)) throw e;
+    const c = at || areaCentre(area);
+    const thai = /[\u0E00-\u0E7F]/.test(name);
+    const id = await rpc<string>('kr8_add_place', { p_name_en: name, p_name_th: thai ? name : null, p_area: area, p_lat: c.lat, p_lng: c.lng, p_osm_ref: null });
+    return { id, name_en: name, name_th: thai ? name : null, area, kr_area: 'Bangkok', lat: c.lat, lng: c.lng, photo_url: null, status: 'live' };
+  }
+}
 export const kxAddPlace = (p: KxPlace) => rpc<string>('kr8_add_place', { p_name_en: p.name_en, p_name_th: p.name_th, p_area: p.area, p_lat: p.lat, p_lng: p.lng, p_osm_ref: p.osm_ref || null });
 export interface KxPlacePage { place: { id: string; name_en: string; name_th: string | null; area: string; kr_area: string; lat: number; lng: number; photo_url: string | null; photo_credit: string | null };
   reels_count: number; here_now: number; faces: string[]; top: KxPlaceReel[]; recent: KxPlaceReel[] }

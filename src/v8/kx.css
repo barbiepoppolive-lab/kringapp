@@ -640,3 +640,21 @@
 .v8-app-root .kx-mc.empty.quiet { opacity: .3; }
 .v8-app-root .kx-tix .t1 small { max-width: 62%; }
 .v8-app-root .kx-res-card .kx-id { display: none; }
+
+/* 15 Nov · add a place that isn't on Kring yet */
+.v8-app-root .kx-addnew { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 62px; margin: 6px 0 4px; padding: 8px 12px; border: 1px dashed rgba(63,240,255,.55);
+  border-radius: 14px; background: rgba(63,240,255,.07); color: #fff; text-align: left; }
+.v8-app-root .kx-addnew .pl { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--kx-cy); color: #07060d; font: 800 22px var(--kx-j); }
+.v8-app-root .kx-addnew .t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.v8-app-root .kx-addnew b { font: 700 14.5px var(--kx-j); overflow-wrap: anywhere; }
+.v8-app-root .kx-addnew small { font: 600 12px var(--kx-j); color: var(--kx-mu); }
+.v8-app-root .kx-pend { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 8px; background: rgba(255,211,107,.16); color: var(--kx-gd); font: 700 10.5px var(--kx-j); font-style: normal; vertical-align: 2px; }
+.v8-app-root .kx-newp { position: fixed; inset: 0; z-index: 95; background: var(--kx-bg); overflow-y: auto; }
+.v8-app-root .kx-newp-in { padding: 0 16px calc(24px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; }
+.v8-app-root .kx-fl { display: flex; flex-direction: column; gap: 7px; }
+.v8-app-root .kx-fl > span { font: 700 12.5px var(--kx-j); color: var(--kx-mu); }
+.v8-app-root .kx-fl input { height: 46px; border-radius: 12px; border: 1px solid var(--kx-ln); background: var(--kx-sf); color: #fff; padding: 0 14px; font: 600 16px var(--kx-j); outline: none; }
+.v8-app-root .kx-fl input:focus { border-color: var(--kx-cy); }
+.v8-app-root .kx-areas { display: flex; flex-wrap: wrap; gap: 8px; }
+.v8-app-root .kx-newp-note { margin: 0; font: 600 12.5px/1.5 var(--kx-j); color: var(--kx-mu); }
+.v8-app-root .kx-newp-err { margin: 0; font: 700 13px var(--kx-j); color: #ff8ca8; }
