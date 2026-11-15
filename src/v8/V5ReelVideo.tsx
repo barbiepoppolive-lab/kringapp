@@ -21,6 +21,21 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed }: { src: st
   const onViewedRef = useRef(onViewed);
   onViewedRef.current = onViewed;
   const [muted, setMuted] = useState(!soundOn);
+  // M (15 Nov): only the Reel on screen and the one next to it load their video; the rest show their poster and download nothing
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') { setNear(true); return; }
+    const io = new IntersectionObserver(([e]) => setNear(e.isIntersecting), { rootMargin: '100% 0px 100% 0px', threshold: 0 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  useEffect(() => {
+    const v = ref.current;
+    if (!v || near) return;
+    if (v.getAttribute('src')) { v.pause(); v.removeAttribute('src'); try { v.load(); } catch { /* jsdom */ } }   // far away again: stop buffering
+  }, [near]);
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
@@ -50,18 +65,18 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed }: { src: st
     v.addEventListener('kr8-sound', onSound);
     v.addEventListener('timeupdate', onTime);
     return () => { io.disconnect(); v.removeEventListener('kr8-sound', onSound); v.removeEventListener('timeupdate', onTime); };
-  }, [src]);
+  }, [src, near]);
   return (
-    <div className="bg reel-bg">
+    <div className="bg reel-bg" ref={boxRef}>
       <video
         ref={ref}
         className="reel-video"
-        src={src}
+        src={near ? src : undefined}
         poster={poster}
         muted
         loop
         playsInline
-        preload="metadata"
+        preload={near ? 'auto' : 'none'}
         aria-label={label}
         data-reel="1"
       />
