@@ -2439,13 +2439,18 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     const r = el?.getBoundingClientRect();
     if (!r || !r.width || !r.height) return;
     const root = document.querySelector('.v8-app-root')?.getBoundingClientRect();
-    coachMark(st, key, !!v5Uid && !!v5Card);
+    // marked as seen when the member closes it (below), so a mark that a sheet covered straight away shows again next time
     setCoachSpot({ key, rect: { x: r.left - (root?.left || 0), y: r.top, w: r.width, h: r.height }, text });
   };
   useEffect(() => {
     if (live && v5Uid && v5Card) void coachSync(coachRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [live, v5Uid, !!v5Card]);
+  // a sheet that opens by itself (week result, sign-in…) always wins over a feed coach mark: the mark steps aside, unseen
+  useEffect(() => {
+    if (sheet && coachSpot && (coachSpot.key === 'save' || coachSpot.key === 'post')) setCoachSpot(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sheet]);
   const goSessionN = useMemo(() => {
     try { const n = Number(localStorage.getItem('kr8_sessions') || '0') + 1; localStorage.setItem('kr8_sessions', String(n)); return n; } catch { return 1; }
   }, []);
@@ -2462,7 +2467,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       coachTry(due, (k) => (k === 'post'
         ? { el: document.querySelector('#s-feed .kp-plus'), text: L('Post your first Reel here') }
         : { el: cur?.querySelector('[data-act="save"]'), text: Lf('A save gives {0} 3 Rings. A like gives 1.', cur?.querySelector('.reel-author')?.textContent?.trim().split(/\s/)[0] || L('the poster')) }));
-    }, 1400);
+    }, 2600);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [live, !!v5Card, tab, sheet, !!goPlayer, feedItems.length, kxMe?.has_reel]);
@@ -6745,7 +6750,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 : { el: el.querySelector('[data-go="share"] .go-rbi'), text: L('Share to IG or TikTok. Each person who opens the link = +5 Rings.') })), 700);
             }} />
         )}
-        {coachSpot && live && <GoCoach L={L} spot={coachSpot} onDone={() => setCoachSpot(null)} />}
+        {coachSpot && live && <GoCoach L={L} spot={coachSpot} onDone={() => { coachMark(coachRef.current, coachSpot.key as CoachKey, !!v5Uid && !!v5Card); setCoachSpot(null); }} />}
         {sheet === 'ranking' && live && (
           <RankingPage L={L} Lf={Lf} lang={lang} myArea={v5Card?.area || null} myPhoto={v5Card?.photo || null} myName={v5Card?.first_name || ''} myId={v5Card ? v5Uid || null : null}
             onBack={() => setSheet(null)} onPerson={(id) => void goOpenBest(id)} onPost={() => requireSignInForAction(() => kxPostAt())}
