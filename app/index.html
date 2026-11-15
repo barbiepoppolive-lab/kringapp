@@ -42,19 +42,21 @@
         window.__kr8FeedPre = fetch('https://pedxoxpammnyfnizljyj.supabase.co/rest/v1/rpc/kr8_feed', { method: 'POST', credentials: 'omit', headers: { apikey: K, Authorization: 'Bearer ' + K, 'Content-Type': 'application/json' },
           body: JSON.stringify({ p_area: null, p_limit: 60 }) }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); } catch (e) {} })();
       // keep the install offer for later (Add to home screen)
-      window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__kr8Install = e; });
+      // 16 Nov: keep the browser's install offer for our Install button. No preventDefault: if we never use it, Chrome's own
+      // one-tap mini-infobar can still appear. The app is told the moment it arrives (it often comes a few seconds after load).
+      window.addEventListener('beforeinstallprompt', function (e) { window.__kr8Install = e; window.__kr8BipAt = Math.round(performance.now()); try { window.dispatchEvent(new Event('kr8-bip')); } catch (x) {} });
       // J: count installs (one anonymous row in link_visits, ref "pwa-install", same anonymous phone id as the visit counter)
-      window.addEventListener('appinstalled', function () { try { window.__kr8Install = null; var s = null; try { s = localStorage.getItem('kr_vid'); } catch (e) {} if (s && !/^[a-z0-9]{1,40}$/.test(s)) s = null; var K = 'sb_publishable_SaAf7mILfPPpCeAEvj79bA_Vz8JnCBN';
+      window.addEventListener('appinstalled', function () { try { window.__kr8Install = null; window.__kr8Installed = true; var s = null; try { s = localStorage.getItem('kr_vid'); } catch (e) {} if (s && !/^[a-z0-9]{1,40}$/.test(s)) s = null; var K = 'sb_publishable_SaAf7mILfPPpCeAEvj79bA_Vz8JnCBN';
         fetch('https://pedxoxpammnyfnizljyj.supabase.co/rest/v1/link_visits', { method: 'POST', keepalive: true, credentials: 'omit', headers: { apikey: K, Authorization: 'Bearer ' + K, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
           body: JSON.stringify({ ref: 'pwa-install', path: '/app/', referrer: null, session_id: s }) }).catch(function () {}); } catch (e) {} });
     </script>
-    <script type="module" crossorigin src="/app/assets/main-V41OYjRp.js"></script>
+    <script type="module" crossorigin src="/app/assets/main-DD0PvtNW.js"></script>
     <link rel="modulepreload" crossorigin href="/app/assets/vendor-Wp4RIG9g.js">
     <link rel="modulepreload" crossorigin href="/app/assets/v5Live-LzIOTSWr.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/sentry-BkMmJ329.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/v5Strings-Wvc9PKbF.js">
+    <link rel="modulepreload" crossorigin href="/app/assets/sentry-DOB5n5oT.js">
+    <link rel="modulepreload" crossorigin href="/app/assets/v5Strings-DCQpBaxf.js">
     <link rel="modulepreload" crossorigin href="/app/assets/v5Reel-B4SrrDvt.js">
-    <link rel="stylesheet" crossorigin href="/app/assets/main-CERiI8BH.css">
+    <link rel="stylesheet" crossorigin href="/app/assets/main-CXkj1iYT.css">
     <link rel="stylesheet" crossorigin href="/app/assets/fonts-v8-CYouA3b9.css">
   </head>
   <body class="antialiased" style="background:#0B0A12;margin:0">
