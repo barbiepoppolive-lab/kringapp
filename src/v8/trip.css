@@ -26,3 +26,10 @@ a.ktrip-card > :not(.ktrip-photo) { margin-left: 12px; margin-right: 12px; }
 .ktrip-card.tea .ktrip-photo { background: linear-gradient(135deg, #E0601F, #FF8A3D); }
 .ktrip-grid + .ktrip-disc { margin: 10px 0 0; }
 .ktrip-kick { text-transform: none; letter-spacing: 0; font-size: 12px; }
+/* polish #9: one dark card style for every partner: real photo on top, white kicker, one ghost button (no per-card colours) */
+.ktrip-card.blue, .ktrip-card.green, .ktrip-card.pink, .ktrip-card.tea { background: #14121d; border-color: rgba(255,255,255,.09); }
+.ktrip-card .ktrip-photo { position: relative; height: 104px; background-size: cover; background-position: center; background-color: #1d1a29; }
+.ktrip-card .ktrip-photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(20,18,29,.85) 100%); }
+.ktrip-card .ktrip-photo i { position: absolute; left: 10px; bottom: 8px; z-index: 1; font-size: 20px; width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: rgba(11,10,18,.55); backdrop-filter: blur(6px); filter: none; }
+.ktrip-card.blue .ktrip-kick, .ktrip-card.green .ktrip-kick, .ktrip-card.pink .ktrip-kick, .ktrip-card.tea .ktrip-kick { color: rgba(255,247,236,.62); }
+.ktrip-card.blue .ktrip-cta, .ktrip-card.green .ktrip-cta, .ktrip-card.pink .ktrip-cta, .ktrip-card.tea .ktrip-cta { color: #fff; background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.28); }

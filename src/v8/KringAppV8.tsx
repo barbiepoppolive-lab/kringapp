@@ -4004,7 +4004,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           {live ? (
             <div className="go-tabh" id="goDealsHead">
               <h1>{L('Deals')}</h1>
-              <p>{L('Perks at Bangkok places for Kring members, plus trusted partners for travellers.')}</p>
+              <p>{L('Travel essentials from trusted partners for now. Café perks for members are on the way.')}</p>
               {deals.length > 0 ? (
                 <div className="go-fch" id="goDealChips">
                   {([['all', L('All')], ['perks', L('For Locals')], ['trip', L('For travellers')]] as const).map(([k, label]) => (
