@@ -43,7 +43,7 @@ export const deviceSupported = (): boolean => !!api();
 export async function deviceAvailability(source: Lang, target: Lang): Promise<Avail> {
   const t = api();
   if (!t) return 'unavailable';
-  try { const a = await t.availability({ sourceLanguage: source, targetLanguage: target }); return (['available', 'downloadable', 'downloading'] as string[]).includes(a) ? a : 'unavailable'; } catch { return 'unavailable'; }
+  try { const a = await Promise.race([t.availability({ sourceLanguage: source, targetLanguage: target }), new Promise<Avail>((r) => setTimeout(() => r('unavailable'), 3000))]); return (['available', 'downloadable', 'downloading'] as string[]).includes(a) ? a : 'unavailable'; } catch { return 'unavailable'; }
 }
 const made = new Map<string, DeviceTranslator>();
 /** Must be called from a tap (the browser only starts a download from a user action). onProgress gets 0..1. */
