@@ -108,6 +108,7 @@ import { V5Qr, V5SignInSheet } from './V5Sheets';
 import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, showFirstReelChip } from './V5ReelNudge';
 import { V5ReelVideo, toggleReelSound } from './V5ReelVideo';
 import { installZoomGuard } from './zoomGuard';
+import { installKeyboardFocus } from './keyboardFocus';
 import { installVersionWatch } from './appVersion';
 import { checkReel, createReel, makeAudio, prepareReel, ReelError, uploadReel, type ReelInfo, type ReelReady, type UploadedReel } from './v5Reel';
 
@@ -1036,6 +1037,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     return 'en';
   });
   useEffect(() => installZoomGuard(), []);   // F: pinching a Reel never leaves the app zoomed in
+  useEffect(() => installKeyboardFocus(), []);   // P: the keyboard never covers the box being typed in
   const busyRef = useRef(false);
   const [updateReady, setUpdateReady] = useState(false);
   useEffect(() => installVersionWatch(import.meta.env.BASE_URL || '/app/', () => busyRef.current, () => setUpdateReady(true)), []);   // J1
