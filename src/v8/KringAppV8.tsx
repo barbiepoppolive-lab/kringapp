@@ -2311,7 +2311,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       showToast(L('Link copied'));
     } catch { /* closed the share sheet */ }
   };
-  const kxOpenPlace = (id: string) => { setKxPlaceId(id); setSheet('place'); };
+  const [kxPlaceHalf, setKxPlaceHalf] = useState<{ half: boolean; preview: { name_en: string; name_th: string | null; area: string } | null }>({ half: false, preview: null });
+  const kxOpenPlace = (id: string, preview: { name_en: string; name_th: string | null; area: string } | null = null, half = false) => { setKxPlaceHalf({ half, preview }); setKxPlaceId(id); setSheet('place'); };
   /** Share one of my Reels by its /r/<short> link (from the math sheet or the week result). */
   const kxShareReelId = async (id: string | null) => {
     if (!id) return;
@@ -3729,7 +3730,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                         // S: ONE small pin "📍 place · area"; no place → the area only
                         const kp = kxFeedX[p.id]?.places?.[0];
                         if (kp) return (
-                          <button type="button" className="reel-pin" data-act="place" data-place-chip={kp.id} onClick={(e) => { e.stopPropagation(); kxOpenPlace(kp.id); }}>
+                          <button type="button" className="reel-pin" data-act="place" data-place-chip={kp.id} onClick={(e) => { e.stopPropagation(); kxOpenPlace(kp.id, { name_en: kp.name_en, name_th: kp.name_th, area: kp.area }, true); }}>
                             {/* polish #12: one language per pin (Thai UI: Thai name · Thai area; a place with no Thai name stays all English) */}
                             <span aria-hidden="true">📍</span><b>{lang === 'th' && kp.name_th ? kp.name_th : kp.name_en}</b>{kp.area ? <span> · {lang === 'th' && !kp.name_th ? kp.area : kxArea(lang, kp.area, L)}</span> : null}
                           </button>
@@ -6568,7 +6569,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <GoReelPlayer L={L} Lf={Lf} lang={lang} reels={goPlayer.reels} start={goPlayer.start} title={goPlayer.title} viewProfile={goPlayer.viewProfile}
             onClose={() => setGoPlayer(null)}
             onProfile={(id) => { setGoPlayer(null); void openProfile(id); }}
-            onPlace={(id) => { setGoPlayer(null); kxOpenPlace(id); }}
+            onPlace={(id) => kxOpenPlace(id, null, true)}
             onMath={(id) => setKxMathFor(id)}
             onLike={goLike} onSave={goSave} onShare={(id) => void kxShareReelId(id)}
             onActive={(r, el) => {
@@ -6603,7 +6604,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         )}
         {kxHow && live && (sheet === 'rewards' || sheet === 'profile' || !!goPlayer) && <HowSheet L={L} onClose={() => setKxHow(false)} />}
         {sheet === 'place' && live && kxPlaceId && (
-          <PlacePage key={kxPlaceId} L={L} Lf={Lf} lang={lang} id={kxPlaceId} toast={showToast} onBack={() => setSheet(null)}
+          <PlacePage key={kxPlaceId} L={L} Lf={Lf} lang={lang} id={kxPlaceId} toast={showToast} onBack={() => setSheet(null)} half={kxPlaceHalf.half} preview={kxPlaceHalf.preview}
             shareUrl={(id) => `${location.origin}${import.meta.env.BASE_URL}?place=${encodeURIComponent(id)}`}
             onPost={(p) => requireSignInForAction(() => kxPostAt(p))} />
         )}

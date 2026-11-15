@@ -680,3 +680,19 @@
 .v8-app-root .kx-prow .t > span > em, .v8-app-root .kx-prow .t > span > i { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .v8-app-root .kx-rk .kx-div { height: auto; min-height: 34px; }
 .v8-app-root .kx-rk .kx-div span, .v8-app-root .kx-div span { white-space: normal; text-align: center; max-width: calc(100% - 24px); flex-wrap: wrap; justify-content: center; line-height: 1.35; }
+
+/* polish #3: a Reel's 📍 pin opens the place as a half-sheet over the Reel, with a skeleton at once (never a black screen) */
+.v8-app-root .kx-psheet-bg { position: fixed; inset: 0; z-index: 93; border: 0; background: rgba(5,4,12,.45); }
+.v8-app-root .kx-pp.half { position: fixed; top: 34vh; bottom: 0; left: 0; right: 0; z-index: 94; border-radius: 22px 22px 0 0; padding-bottom: 110px; box-shadow: 0 -12px 40px rgba(0,0,0,.5); animation: kxUp .22s ease-out; }
+@keyframes kxUp { from { transform: translateY(30px); opacity: .6; } to { transform: none; opacity: 1; } }
+.v8-app-root .kx-pp.half .kx-grab { position: absolute; top: 8px; left: 50%; width: 40px; height: 4px; margin-left: -20px; border-radius: 2px; background: rgba(255,255,255,.35); z-index: 3; }
+.v8-app-root .kx-pp.half .kx-hero { height: 220px; border-radius: 22px 22px 0 0; }
+.v8-app-root .kx-pp.half .kx-fab { position: fixed; }
+.v8-app-root .kx-skel { position: relative; }
+.v8-app-root .kx-skel-hero { height: 200px; border-radius: 22px 22px 0 0; background: linear-gradient(110deg, #1a1726 30%, #262236 50%, #1a1726 70%); background-size: 200% 100%; animation: kxShim 1.2s linear infinite; }
+.v8-app-root .kx-skel .kx-nmb { position: relative; margin-top: -40px; }
+.v8-app-root .kx-skel-l { display: block; height: 14px; border-radius: 7px; margin: 10px 0; background: #262236; }
+.v8-app-root .kx-skel-l.w60 { width: 60%; height: 22px; } .v8-app-root .kx-skel-l.w40 { width: 40%; }
+.v8-app-root .kx-skel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 18px 16px 0; }
+.v8-app-root .kx-skel-grid i { height: 150px; border-radius: 14px; background: linear-gradient(110deg, #1a1726 30%, #262236 50%, #1a1726 70%); background-size: 200% 100%; animation: kxShim 1.2s linear infinite; }
+@keyframes kxShim { to { background-position: -200% 0; } }

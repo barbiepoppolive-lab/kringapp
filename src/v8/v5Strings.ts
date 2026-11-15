@@ -2302,6 +2302,7 @@ export const KX_L: Record<string, Record<string, string>> = {
     'Install': 'ติดตั้ง',
     'Install app': 'ติดตั้งแอป',
     'Join': 'เข้าร่วม',
+    'Place': 'สถานที่',
     'Travel essentials from trusted partners for now. Café perks for members are on the way.': 'ตอนนี้เป็นของจำเป็นสำหรับการเดินทางจากพาร์ทเนอร์ที่ไว้ใจได้ สิทธิพิเศษจากคาเฟ่สำหรับสมาชิกกำลังจะมา',
     'Photos: Wikimedia Commons': 'ภาพ: Wikimedia Commons',
     'Report': 'รายงาน',

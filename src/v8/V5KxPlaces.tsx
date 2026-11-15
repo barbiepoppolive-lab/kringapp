@@ -290,7 +290,9 @@ export function SavedReelsPage(props: { L: Tx; Lf: Txf; rows: KxSavedReel[] | nu
 }
 
 /** B4 place page */
-export function PlacePage(props: { L: Tx; Lf: Txf; lang: string; id: string; onBack: () => void; onPost: (p: PickedPlace) => void; toast: (m: string) => void; shareUrl: (id: string) => string }) {
+export function PlacePage(props: { L: Tx; Lf: Txf; lang: string; id: string; onBack: () => void; onPost: (p: PickedPlace) => void; toast: (m: string) => void; shareUrl: (id: string) => string;
+  /** polish #3: opened from a Reel's 📍 pin: a half-sheet over the Reel, filled at once with what the pin already knows */
+  half?: boolean; preview?: { name_en: string; name_th: string | null; area: string } | null }) {
   const { L, Lf } = props;
   const [d, setD] = useState<KxPlacePage | null | undefined>(undefined);
   const [tab, setTab] = useState<'top' | 'recent'>('top');
@@ -308,12 +310,29 @@ export function PlacePage(props: { L: Tx; Lf: Txf; lang: string; id: string; onB
     }).catch(() => { if (!dead) setD(null); });
     return () => { dead = true; };
   }, [props.id]);
-  if (d === undefined) return <div className="kx-page kx-pp" id="kxPlace"><p className="kx-empty pad">…</p></div>;
-  if (d === null) return (
-    <div className="kx-page kx-pp" id="kxPlace">
+  const wrap = (body: React.ReactNode) => (props.half ? (
+    <>
+      <button type="button" className="kx-psheet-bg" aria-label={L('Close')} onClick={props.onBack} />
+      <div className="kx-page kx-pp half" id="kxPlace" role="dialog" aria-label={L('Place')} data-place={props.id}><i className="kx-grab" aria-hidden="true" />{body}</div>
+    </>
+  ) : <div className="kx-page kx-pp" id="kxPlace" data-place={props.id}>{body}</div>);
+  if (d === undefined) {
+    const pv = props.preview;
+    return wrap(
+      <div className="kx-skel" id="kxPlaceSkeleton" aria-busy="true">
+        <div className="kx-skel-hero" />
+        <div className="kx-nmb">
+          {pv ? <>{pv.name_th && props.lang === 'th' ? <div className="tt2">{pv.name_th}</div> : null}<h1>{props.lang === 'th' && pv.name_th ? pv.name_th : pv.name_en}</h1>
+            <div className="ar"><Pin size={17} />{kxArea(props.lang, pv.area, L)}</div></> : <><i className="kx-skel-l w60" /><i className="kx-skel-l w40" /></>}
+        </div>
+        <div className="kx-skel-grid"><i /><i /><i /><i /></div>
+      </div>);
+  }
+  if (d === null) return wrap(
+    <>
       <div className="kx-hdr"><button type="button" className="kx-ib" aria-label={L('Back')} onClick={props.onBack}>‹</button></div>
       <p className="kx-empty pad">{L('This place isn’t on Kring any more.')}</p>
-    </div>
+    </>
   );
   const p = d.place;
   const list = tab === 'top' ? d.top : d.recent;
@@ -329,8 +348,8 @@ export function PlacePage(props: { L: Tx; Lf: Txf; lang: string; id: string; onB
       props.toast(L('Link copied'));
     } catch { /* closed */ }
   };
-  return (
-    <div className="kx-page kx-pp" id="kxPlace" data-place={p.id}>
+  return wrap(
+    <>
       <div className={`kx-hero${hero ? '' : ' none'}`} style={hero ? { backgroundImage: `url('${hero}')` } : undefined} />
       <div className="kx-hdr over">
         <button type="button" className="kx-ib" aria-label={L('Back')} onClick={props.onBack}>‹</button>
@@ -374,6 +393,6 @@ export function PlacePage(props: { L: Tx; Lf: Txf; lang: string; id: string; onB
         ＋ {L('Post a Reel here')}
       </button>
       {open ? <ReelViewer L={L} reel={open} onClose={() => setOpen(null)} /> : null}
-    </div>
+    </>
   );
 }
