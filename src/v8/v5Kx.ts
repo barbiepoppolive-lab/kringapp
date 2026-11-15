@@ -134,3 +134,17 @@ export async function kxCreateReel(u: UploadedReel, r: ReelReady, area: string, 
     p_area: area, p_body: body || null, p_here: here, p_place_ids: placeIds.length ? placeIds.slice(0, 2) : null,
   });
 }
+
+// ───────────── go-live build (0048): profile grid, tagged people, coach marks ─────────────
+export interface KxGridReel { id: string; poster_path: string; video_path: string; body: string | null; created_at: string; status: 'approved' | 'pending';
+  likes: number; saves: number; this_week: boolean; rings: number; place: { id: string; name_en: string; name_th: string | null } | null; liked: boolean; saved: boolean }
+export interface KxMemberReels { user_id: string; mine: boolean; best: string | null; reels: KxGridReel[] }
+export const kxMemberReels = (user: string) => rpc<KxMemberReels>('kr8_member_reels', { p_user: user, p_limit: 60 });
+export interface KxTagPerson { user_id: string; first_name: string; photo: string | null; who?: 'local' | 'traveller'; area?: string; ig_handle?: string | null }
+export const kxTagCandidates = (q: string) => rpc<KxTagPerson[]>('kr8_tag_candidates', { p_q: q || null, p_limit: 30 });
+export const kxTagPeople = (post: string, users: string[]) => rpc<number>('kr8_reel_tag_people', { p_post: post, p_users: users.slice(0, 5) });
+export const kxReelPeople = (ids: string[]) =>
+  (ids.length ? rpc<{ post_id: string; people: KxTagPerson[] }[]>('kr8_reel_people', { p_posts: ids.slice(0, 100) }) : Promise.resolve([] as { post_id: string; people: KxTagPerson[] }[]));
+export const kxCoachState = () => rpc<string[]>('kr8_coach_state');
+export const kxCoachSeen = (key: string) => rpc<boolean>('kr8_coach_seen', { p_key: key }).catch(() => false);
+export const kxCoachReset = () => rpc<number>('kr8_coach_reset').catch(() => 0);

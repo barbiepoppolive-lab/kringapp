@@ -333,14 +333,14 @@ describe('Claim a prize', () => {
     expect(document.querySelector('[data-brand="grab"] [data-value]')!.getAttribute('data-value')).toBe('1500');
     expect(document.querySelector('[data-brand="shopeepay"]')).toBeNull();
     fireEvent.click(tm);
-    expect(screen.getByText('Claim TrueMoney ฿1,125')).toBeTruthy();
+    expect(screen.getByText('Claim with TrueMoney · ฿1,125')).toBeTruthy();
     expect(document.querySelector('#kxClaim')!.textContent).not.toMatch(/Rings/);
   });
   it('one tap claims that prize on the chosen app', async () => {
     kxMock.kxClaimPrize.mockResolvedValue({ status: 'assigned', claim_id: 'c1', brand: 'grab', amount: 500, value: 500, code: 'TEST-123', activation_url: null });
     const onDone = vi.fn();
     render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards()} prize={prize()} onBack={() => undefined} onDone={onDone} toast={() => undefined} />);
-    fireEvent.click(screen.getByText('Claim Grab ฿500'));
+    fireEvent.click(screen.getByText('Claim with Grab · ฿500'));
     await waitFor(() => expect(onDone).toHaveBeenCalled());
     expect(kxMock.kxClaimPrize).toHaveBeenCalledWith('pz1', 'grab');
   });
@@ -348,7 +348,7 @@ describe('Claim a prize', () => {
     kxMock.kxClaimPrize.mockRejectedValue(new Error('KR8_ONE_ACCOUNT'));
     const onDone = vi.fn();
     render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards()} prize={prize()} onBack={() => undefined} onDone={onDone} toast={() => undefined} />);
-    fireEvent.click(screen.getByText('Claim Grab ฿500'));
+    fireEvent.click(screen.getByText('Claim with Grab · ฿500'));
     expect((await screen.findByRole('alert')).textContent).toContain('One person, one account');
     expect(onDone).not.toHaveBeenCalled();
   });
@@ -356,7 +356,7 @@ describe('Claim a prize', () => {
     kxMock.kxClaimPrize.mockResolvedValue({ status: 'pending', claim_id: 'p1', brand: 'grab', amount: 500, value: 500 });
     const onDone = vi.fn();
     render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards()} prize={prize()} onBack={() => undefined} onDone={onDone} toast={() => undefined} />);
-    fireEvent.click(screen.getByText('Claim Grab ฿500'));
+    fireEvent.click(screen.getByText('Claim with Grab · ฿500'));
     await waitFor(() => expect(onDone).toHaveBeenCalledWith(expect.objectContaining({ status: 'pending' })));
     cleanup();
     const held = rewards({ claims: [claim({ id: 'p1', status: 'pending', value: 500, code: null, assigned_at: null })] });

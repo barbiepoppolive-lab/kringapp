@@ -83,7 +83,7 @@ import {
   v5SyncAttribution,
   v5StoredRef,
 } from './v5Live';
-import { ActivitySheet, FollowSheet, InterestsSheet, MeView, ProfileView, Top10Sheet } from './V5Me';
+import { ActivitySheet, FollowSheet, InterestsSheet, MeView, Top10Sheet } from './V5Me';
 import { V5VerifySheet } from './V5Verify';
 import { StandHowSheet, V5TicketSheet } from './V5Ticket';
 import { A2HSBanner, a2hsFirstValue } from './A2HS';
@@ -96,6 +96,9 @@ import { V5_L, KX_L, v5ErrText } from './v5Strings';
 import { V5MintSheet } from './V5KxCard';
 import { ClaimedPage, ClaimPage, ResultPage, RewardsPage } from './V5KxRewards';
 import { baht, MathSheet, HowSheet, RankingPage } from './V5KxRanking';
+import { GoCoach, GoCompose, GoMeReels, GoProfilePage, GoReelPlayer, gridToGo, hlTags, savedToGo, type CoachSpot, type GoReel } from './V5Go';
+import { coachDue, coachMark, coachPick, coachReplay, coachSync, newCoachState, type CoachKey, type CoachState } from './goCoach';
+import { kxMemberReels, kxReelPeople, kxTagPeople, type KxGridReel, type KxMemberReels, type KxTagPerson } from './v5Kx';
 import { FeedPlaceChips, PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, SavedReelsPage, type PickedPlace } from './V5KxPlaces';
 import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRanking, kxRefName, kxSavedReels, kxShareLink, kxShareLinkCached, kxShareOpenSeen,
   type KxCardExtras, type KxClaimResult, type KxFeedExtra, type KxPrize, type KxRanking, type KxRewards, type KxSavedReel, type KxWeekResult } from './v5Kx';
@@ -2235,7 +2238,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [meRank, setMeRank] = useState<number | null>(null);
   const [mePosters, setMePosters] = useState<Record<string, string>>({});
   const [otherProfile, setOtherProfile] = useState<V5Profile | null>(null);
-  const [otherRank, setOtherRank] = useState<number | null>(null);
+  const [, setOtherRank] = useState<number | null>(null);
   // Card + Rings + Ranking + Places (feat/card-rewards-rank-places)
   const [kxMe, setKxMe] = useState<KxCardExtras | null>(null);
   const [kxOther, setKxOther] = useState<KxCardExtras | null>(null);
@@ -2372,6 +2375,110 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     setPostPhotoUrl('');
     setSheet('post');
   };
+  // ───────── go-live build (15 Nov): Reel player, profile grid, tagged people, one-time coach marks ─────────
+  const [goPlayer, setGoPlayer] = useState<{ reels: GoReel[]; start: number; viewProfile?: { id: string; name: string; photo: string | null } | null; title?: string } | null>(null);
+  const [goOtherReels, setGoOtherReels] = useState<KxMemberReels | null>(null);
+  const [goMine, setGoMine] = useState<KxGridReel[] | null>(null);
+  const [goMeTab, setGoMeTab] = useState<'reels' | 'saved'>('reels');
+  const [goDealF, setGoDealF] = useState<'all' | 'perks' | 'trip'>('all');
+  const [postPeople, setPostPeople] = useState<KxTagPerson[]>([]);
+  const [goPeople, setGoPeople] = useState<Record<string, KxTagPerson[]>>({});
+  const [coachSpot, setCoachSpot] = useState<CoachSpot | null>(null);
+  const coachRef = useRef<CoachState>(newCoachState());
+  const goLoadMine = () => { if (v5Uid) kxMemberReels(v5Uid).then((r) => setGoMine(r.reels || [])).catch(() => setGoMine((x) => x || [])); };
+  const goOpenPlayer = (reels: GoReel[], start: number, extra: { viewProfile?: { id: string; name: string; photo: string | null } | null; title?: string } = {}) => {
+    if (!reels.length) return;
+    setGoPlayer({ reels, start, ...extra });
+    kxReelPeople(reels.map((r) => r.id)).then((rows) => {
+      if (!rows || !rows.length) return;
+      const m = new Map(rows.map((x) => [x.post_id, x.people]));
+      setGoPlayer((cur) => (cur && cur.reels === reels ? { ...cur, reels: reels.map((r) => ({ ...r, people: m.get(r.id) || r.people })) } : cur));
+    }).catch(() => undefined);
+  };
+  const goIsMine = (id: string) => !!goPlayer?.reels.find((r) => r.id === id)?.mine;
+  const goLike = (id: string): Promise<{ liked: boolean; likes: number } | null> => new Promise((done) => {
+    if (goIsMine(id)) { showToast(L('That’s your own Reel.')); done(null); return; }
+    let ran = false;
+    requireSignInForAction(() => {
+      ran = true;
+      v5ToggleLike(id).then((r) => { patchFeed(id, { liked: r.liked, likes: r.likes }); done(r); }).catch((e) => { showToast(v5Msg(e)); done(null); });
+    });
+    if (!ran) { setGoPlayer(null); done(null); }
+  });
+  const goSave = (id: string): Promise<boolean | null> => new Promise((done) => {
+    let ran = false;
+    requireSignInForAction(() => {
+      ran = true;
+      v5ToggleSave(id).then((on) => {
+        setSavedIds((prev) => ({ ...prev, [id]: on }));
+        showToast(on ? L('Saved to Me') : L('Removed from Saved'));
+        void kxLoadSaved();
+        done(on);
+      }).catch((e) => { showToast(v5Msg(e)); done(null); });
+    });
+    if (!ran) { setGoPlayer(null); done(null); }
+  });
+  /** Ranking: tap a member → their best Reel of the week, full screen, with "View profile". No Reel this week → their profile. */
+  const goOpenBest = async (id: string) => {
+    try {
+      const [mr, p] = await Promise.all([kxMemberReels(id), v5Profile(id)]);
+      const ok = mr.reels.filter((r) => r.status === 'approved');
+      const best = ok.find((r) => r.id === mr.best);
+      if (!best) { void openProfile(id); return; }
+      const author = { id, name: p.first_name, photo: p.photo, handle: p.ig_handle };
+      const rest = ok.filter((r) => r.id !== best.id && r.this_week).sort((a, b) => b.rings - a.rings);
+      goOpenPlayer([best, ...rest].map((r) => gridToGo(r, author, id === v5Uid)), 0, { viewProfile: { id, name: p.first_name, photo: p.photo } });
+    } catch { void openProfile(id); }
+  };
+  const coachTry = (due: CoachKey[], find: (k: CoachKey) => { el: Element | null | undefined; text: string }) => {
+    if (!live || coachSpot) return;
+    const st = coachRef.current;
+    const key = coachPick(st, due.filter((k) => coachDue(st, k, { sheetOpen: false, onScreen: false })));
+    if (!key) return;
+    const { el, text } = find(key);
+    const r = el?.getBoundingClientRect();
+    if (!r || !r.width || !r.height) return;
+    const root = document.querySelector('.v8-app-root')?.getBoundingClientRect();
+    coachMark(st, key, !!v5Uid && !!v5Card);
+    setCoachSpot({ key, rect: { x: r.left - (root?.left || 0), y: r.top, w: r.width, h: r.height }, text });
+  };
+  useEffect(() => {
+    if (live && v5Uid && v5Card) void coachSync(coachRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live, v5Uid, !!v5Card]);
+  const goSessionN = useMemo(() => {
+    try { const n = Number(localStorage.getItem('kr8_sessions') || '0') + 1; localStorage.setItem('kr8_sessions', String(n)); return n; } catch { return 1; }
+  }, []);
+  // Feed coach marks: Save on the first Reel (mark 1); from the second visit, "+" for members with no Reel yet (mark 2)
+  useEffect(() => {
+    if (!live || !v5Card || tab !== 'feed' || sheet || goPlayer || coachSpot) return;
+    const t = setTimeout(() => {
+      if (sheetRef.current || document.querySelector('.kx-page, .go-page, .v8-sheet, .kx-shbg')) return;
+      const slides = [...document.querySelectorAll<HTMLElement>('#s-feed .slide.has-reel')];
+      const cur = slides.find((el) => { const r = el.getBoundingClientRect(); return r.top > -80 && r.top < window.innerHeight / 2; });
+      const due: CoachKey[] = [];
+      if (goSessionN >= 2 && kxMe && kxMe.has_reel === false) due.push('post');
+      if (cur?.querySelector('[data-act="save"]')) due.push('save');
+      coachTry(due, (k) => (k === 'post'
+        ? { el: document.querySelector('#s-feed .kp-plus'), text: L('Post your first Reel here') }
+        : { el: cur?.querySelector('[data-act="save"]'), text: Lf('A save gives {0} 3 Rings. A like gives 1.', cur?.querySelector('.reel-author')?.textContent?.trim().split(/\s/)[0] || L('the poster')) }));
+    }, 1400);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live, !!v5Card, tab, sheet, !!goPlayer, feedItems.length, kxMe?.has_reel]);
+  // "with @name" under Reels in the feed (one call per new batch)
+  useEffect(() => {
+    if (!live) return;
+    const ids = feedItems.filter((f) => (f as { video?: string }).video && /^[0-9a-f-]{36}$/.test(f.id) && !(f.id in goPeople)).map((f) => f.id);
+    if (!ids.length) return;
+    let dead = false;
+    kxReelPeople(ids).then((rows) => {
+      if (dead) return;
+      setGoPeople((prev) => { const next = { ...prev }; for (const id of ids) next[id] = next[id] || []; for (const r of rows || []) next[r.post_id] = r.people; return next; });
+    }).catch(() => undefined);
+    return () => { dead = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live, feedItems]);
   const [followFor, setFollowFor] = useState<{ user: string; name: string; counts: [number, number]; initial: 'followers' | 'following' } | null>(null);
   const [activityRows, setActivityRows] = useState<V5Activity[] | null>(null);
   const [activityUnread, setActivityUnread] = useState(false);
@@ -2406,6 +2513,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       kxCardExtras().then(setKxMe).catch(() => undefined);
       kxRanking('all').then((r) => { setKxWeekRank(r.me?.rank ?? null); setKxRankLine(kxTileLine(r)); }).catch(() => undefined);
       void kxLoadSaved();
+      goLoadMine();
       setMeRank(await rankOf(p.user_id));
       if (!p.verified) v5MyVerification().then((v) => setVerifyPending(v?.status === 'pending')).catch(() => undefined);
     } catch {
@@ -2445,6 +2553,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       setOtherRank(null);
       setKxOther(null);
       kxCardExtras(id).then(setKxOther).catch(() => undefined);
+      setGoOtherReels(null);
+      kxMemberReels(id).then(setGoOtherReels).catch(() => setGoOtherReels({ user_id: id, mine: false, best: null, reels: [] }));
       setSheet('profile');
       void signPosters(p.reels.map((r) => r.poster_path));
       void rankOf(id).then(setOtherRank);
@@ -2641,7 +2751,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   };
   const publishReel = async (cap: string) => {
     if (!reelInfo) return;
-    if (!postArea) { showToast(L('Add the area pin first')); return; }   // area pin is required for Reels
+    const reelArea = postArea || postPlaces[0]?.kr_area || (postPlaces.length ? 'Bangkok' : '');
+    if (!reelArea) { showToast(L('Add the area pin first')); return; }   // area pin is required for Reels
     const ac = reelWorkRef.current.ready ? null : makeAudio();   // inside the tap: lets the phone capture the sound
     try {
       if (!reelWorkRef.current.ready) {
@@ -2654,8 +2765,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       reelWorkRef.current.up = await uploadReel(reelWorkRef.current.ready, setReelProgress, reelWorkRef.current.up);
       setReelStage('saving');
       const r = postPlaces.length
-        ? await kxCreateReel(reelWorkRef.current.up, reelWorkRef.current.ready, postArea, cap, postHereNow, postPlaces.map((x) => x.id))
-        : { ...(await createReel(reelWorkRef.current.up, reelWorkRef.current.ready, postArea, cap, postHereNow)), rings: 0, places: 0 };
+        ? await kxCreateReel(reelWorkRef.current.up, reelWorkRef.current.ready, reelArea, cap, postHereNow, postPlaces.map((x) => x.id))
+        : { ...(await createReel(reelWorkRef.current.up, reelWorkRef.current.ready, reelArea, cap, postHereNow)), rings: 0, places: 0 };
+      if (postPeople.length) await kxTagPeople(r.id, postPeople.map((x) => x.user_id)).catch(() => undefined);
+      setPostPeople([]);
+      goLoadMine();
       if (postPlace) await v5SetReelPlace(r.id, postPlace).catch(() => undefined);
       setPostPlace('');
       if (postPlaces.length) rememberPlaces(postPlaces);
@@ -3748,7 +3862,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                       {p.video && kxFeedX[p.id]?.places?.length ? (
                         <FeedPlaceChips L={L} Lf={Lf} lang={lang} places={kxFeedX[p.id].places} onOpen={kxOpenPlace} />
                       ) : null}
-                      <div className="cap">{p.cap}</div>
+                      <div className="cap">{p.video ? hlTags(p.cap || '') : p.cap}</div>
+                      {p.video && goPeople[p.id]?.length ? (
+                        <p className="go-with" data-act="with">{L('with')}{goPeople[p.id].map((x) => <button type="button" key={x.user_id} onClick={() => void openProfile(x.user_id)}>@{x.first_name}</button>)}</p>
+                      ) : null}
                       {p.video && p.place && (
                         <button type="button" className="reel-place" data-act="place" aria-label={`${p.place.name} · ${L('See place')}`} onClick={() => openReelPlace(p.place!)}>
                           <span aria-hidden="true">📍</span>
@@ -3777,8 +3894,22 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           aria-label="People"
         >
           <div className="ppl-head">
+            {live ? (
+            <div className="go-tabh" style={{ padding: 0 }}>
+              <h1 className="ppl-title" id="goPeopleTitle">{L('People')}</h1>
+              <p>{L('Make new friends in Bangkok. Tap a card to see their Reels.')}</p>
+              <div className="go-fch" id="goPeopleChips">
+                {([['', L('Everyone')], ['local', 'Kring Locals'], ['traveller', L('Travellers')]] as const).map(([k, label]) => (
+                  <button type="button" key={k || 'all'} data-who={k || 'all'} className={filterWho === k ? 'on' : ''} aria-pressed={filterWho === k} onClick={() => setFilterWho(k)}>{label}</button>
+                ))}
+              </div>
+            </div>
+            ) : (
+              <>
             <h2 className="ppl-title">{L('New friends in Bangkok')}</h2>
             <p className="ppl-sub">{L('People into the same things')}</p>
+              </>
+            )}
             <div className="search-row">
               <div className="sbox">
                 <svg viewBox="0 0 24 24">
@@ -3996,7 +4127,21 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           id="s-deals"
           aria-label="Deals"
         >
-          {deals.length === 0 ? (
+          {live ? (
+            <div className="go-tabh" id="goDealsHead">
+              <h1>{L('Deals')}</h1>
+              <p>{L('Perks at Bangkok places for Kring members, plus trusted partners for travellers.')}</p>
+              {deals.length > 0 ? (
+                <div className="go-fch" id="goDealChips">
+                  {([['all', L('All')], ['perks', L('For Locals')], ['trip', L('For travellers')]] as const).map(([k, label]) => (
+                    <button type="button" key={k} data-df={k} className={goDealF === k ? 'on' : ''} aria-pressed={goDealF === k} onClick={() => setGoDealF(k)}>{label}</button>
+                  ))}
+                </div>
+              ) : <div style={{ height: 14 }} />}
+            </div>
+          ) : null}
+          {live && deals.length > 0 && goDealF !== 'trip' ? <div className="go-sech"><b>{L('Place perks')}</b><span>{L('Show your Kring card')}</span></div> : null}
+          {live && (deals.length === 0 || goDealF === 'trip') ? null : deals.length === 0 ? (
             <div className="kp-empty">
               <div className="kp-hero2">
                 <div className="kp-hero kp-hero-ghost">
@@ -4155,8 +4300,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               </div>
             </>
           )}
-          {live ? <StayDo L={L} Lf={Lf} thai={lang === 'th'} signedIn={signedIn} /> : null}
-          <TripPerks L={L} />
+          {live && goDealF !== 'perks' ? <StayDo L={L} Lf={Lf} thai={lang === 'th'} signedIn={signedIn} /> : null}
+          {!live || goDealF !== 'perks' || deals.length === 0 ? <TripPerks L={L} /> : null}
         </section>
 
         {/* ==================== 4. ME SCREEN (Calm Luxe #0B0A12) ==================== */}
@@ -4190,8 +4335,15 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onSaved={() => setSheet('saved')}
               onRewards={() => setSheet('activity')}
               onReel={openReelFromProfile}
-              onPost={() => { setTab('feed'); setSheet('choose'); }}
+              onPost={() => kxPostAt()}
               onVerify={() => setSheet('verify')}
+              onReplay={() => { void coachReplay(coachRef.current, true).then(() => { setTab('feed'); showToast(L('Intro is on again')); }); }}
+              reelsSlot={(
+                <GoMeReels L={L} Lf={Lf} mine={goMine} saved={kxSaved} tab={goMeTab} onTab={(k) => { setGoMeTab(k); if (k === 'saved') void kxLoadSaved(); }}
+                  onPost={() => kxPostAt()} onBrowse={() => setTab('feed')}
+                  onOpenMine={(i) => goOpenPlayer((goMine || []).map((r) => gridToGo(r, { id: v5Uid, name: v5Card?.first_name || '', photo: v5Card?.photo || null, handle: kxMe?.ig_handle }, true)), i)}
+                  onOpenSaved={(i) => goOpenPlayer((kxSaved || []).map(savedToGo), i, { title: L('Saved Reels') })} />
+              )}
               firstReelChip={showFirstReelChip(v5Uid, meProfile.reels.length > 0) ? <FirstReelChip onPost={() => { setTab('feed'); setSheet('choose'); }} /> : null}
               kx={kxMe}
               weekRank={kxWeekRank}
@@ -4990,7 +5142,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           </div>
         )}
 
-        {sheet === 'post' && (
+        {sheet === 'post' && live && !postEventId && !placeSearchOpen && (
+          <GoCompose L={L} Lf={Lf} lang={lang} reel={reelInfo} stage={reelStage} progress={reelProgress} problem={reelProblem}
+            caption={postCaption} onCaption={setPostCaption} places={postPlaces} onAddPlace={() => setPlaceSearchOpen(true)}
+            onRemovePlace={(id) => setPostPlaces((prev) => prev.filter((x) => x.id !== id))}
+            people={postPeople} onPeople={setPostPeople} onPick={(f) => void pickReel(f)} onPost={handlePublishPost} onClose={() => setSheet(null)} />
+        )}
+        {sheet === 'post' && !(live && !postEventId) && (
           <div className="v8-sheet" id="sh-post">
             <div className="grab" />
             <div className="sh-head">
@@ -6524,9 +6682,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             }} />
         )}
         {sheet === 'profile' && otherProfile && (
-          <ProfileView L={L} Lf={Lf} p={otherProfile} rank={otherRank} posters={mePosters} busy={followBusy}
+          <GoProfilePage L={L} Lf={Lf} lang={lang} p={otherProfile} reels={goOtherReels} busy={followBusy}
             onBack={() => setSheet(null)}
-            onTop10={() => setSheet('top10')}
             onList={(k) => openFollowList(otherProfile, k)}
             onFollow={() => void handleProfileFollow()}
             onHi={() => openSayHi(otherProfile.first_name, otherProfile.photo || NEUTRAL_IMG, Lf('Speaks {0}', (otherProfile.langs || []).join(' · ')), otherProfile.user_id)}
@@ -6543,7 +6700,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               } catch (e) { showToast(v5Msg(e)); }
             }))}
             onShare={() => void shareProfile(otherProfile)}
-            onReel={openReelFromProfile}
+            onMath={() => setKxMathFor(otherProfile.user_id)}
+            onOpen={(i) => goOpenPlayer((goOtherReels?.reels || []).map((r) => gridToGo(r, { id: otherProfile.user_id, name: otherProfile.first_name, photo: otherProfile.photo, handle: kxOther?.ig_handle || otherProfile.ig_handle }, false)), i)}
             kx={kxOther} />
         )}
         {sheet === 'post' && live && placeSearchOpen && (
@@ -6572,9 +6730,24 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <ClaimedPage key={kxClaimFocus.id || 'h'} L={L} Lf={Lf} lang={lang} data={kxRewards} focus={kxClaimFocus.id} fresh={kxClaimFocus.fresh} toast={showToast}
             onClose={() => setSheet('rewards')} onChanged={() => void kxLoadRewards()} />
         )}
+        {goPlayer && live && (
+          <GoReelPlayer L={L} Lf={Lf} lang={lang} reels={goPlayer.reels} start={goPlayer.start} title={goPlayer.title} viewProfile={goPlayer.viewProfile}
+            onClose={() => setGoPlayer(null)}
+            onProfile={(id) => { setGoPlayer(null); void openProfile(id); }}
+            onPlace={(id) => { setGoPlayer(null); kxOpenPlace(id); }}
+            onMath={(id) => setKxMathFor(id)}
+            onLike={goLike} onSave={goSave} onShare={(id) => void kxShareReelId(id)}
+            onActive={(r, el) => {
+              if (!r.mine || r.status !== 'approved') return;
+              setTimeout(() => coachTry((r.rings || 0) > 0 ? ['score', 'share'] : ['share'], (k) => (k === 'score'
+                ? { el: el.querySelector('[data-go="score"]'), text: L('Tap to see where your Rings came from') }
+                : { el: el.querySelector('[data-go="share"] .go-rbi'), text: L('Share to IG or TikTok. Each person who opens the link = +5 Rings.') })), 700);
+            }} />
+        )}
+        {coachSpot && live && <GoCoach L={L} spot={coachSpot} onDone={() => setCoachSpot(null)} />}
         {sheet === 'ranking' && live && (
           <RankingPage L={L} Lf={Lf} lang={lang} myArea={v5Card?.area || null} myPhoto={v5Card?.photo || null} myName={v5Card?.first_name || ''} myId={v5Card ? v5Uid || null : null}
-            onBack={() => setSheet(null)} onPerson={(id) => void openProfile(id)} onPost={() => requireSignInForAction(() => kxPostAt())}
+            onBack={() => setSheet(null)} onPerson={(id) => void goOpenBest(id)} onPost={() => requireSignInForAction(() => kxPostAt())}
             onShare={(reel) => void kxShareReelId(reel)} />
         )}
         {sheet === 'result' && live && kxResult && (
@@ -6590,11 +6763,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {sheet === 'savedreels' && live && (
           <SavedReelsPage L={L} Lf={Lf} rows={kxSaved} onBack={() => setSheet(null)} onBrowse={() => { setSheet(null); setTab('feed'); }} />
         )}
-        {kxMathFor && live && sheet === 'rewards' && (
+        {kxMathFor && live && (sheet === 'rewards' || sheet === 'profile' || !!goPlayer) && (
           <MathSheet L={L} Lf={Lf} lang={lang} user={kxMathFor} onClose={() => setKxMathFor(null)} onHow={() => { setKxMathFor(null); setKxHow(true); }}
             onShare={(reel) => { setKxMathFor(null); if (reel) void kxShareReelId(reel); else kxPostAt(); }} />
         )}
-        {kxHow && live && sheet === 'rewards' && <HowSheet L={L} onClose={() => setKxHow(false)} />}
+        {kxHow && live && (sheet === 'rewards' || sheet === 'profile' || !!goPlayer) && <HowSheet L={L} onClose={() => setKxHow(false)} />}
         {sheet === 'place' && live && kxPlaceId && (
           <PlacePage key={kxPlaceId} L={L} Lf={Lf} lang={lang} id={kxPlaceId} toast={showToast} onBack={() => setSheet(null)}
             shareUrl={(id) => `${location.origin}${import.meta.env.BASE_URL}?place=${encodeURIComponent(id)}`}

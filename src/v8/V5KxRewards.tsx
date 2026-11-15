@@ -3,7 +3,7 @@
  * TrueMoney 75%), the gold ticket with the code + Copy + Open, history with NEW / USED, the live claims line, and the week-close result.
  * Rings are a score, never money: prizes are baht. Every prize and every code is decided by the server (kr8_close_week / kr8_claim_prize).
  */
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import './kx.css';
 import { ago, BRAND_NAME, claimBrands, fmtN, valueFor, type Brand } from './kxLogic';
 import { ringsRules } from './rewardsConfig';
@@ -169,21 +169,24 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
           <b data-amount={amount}>{baht(amount)}</b>
         </div>
       ) : null}
-      <div className="kx-q">{L('Get it on')}</div>
-      <div className="kx-pays">
-        {brands.map((b) => (
-          <button type="button" key={b} data-brand={b} className={`kx-py${brand === b ? ' on' : ''} b-${b}`} aria-pressed={brand === b} onClick={() => { setBrand(b); setErr(''); }}>
-            <BrandLogo b={b} />
-            <span className="n">{BRAND_NAME[b]}<small>{b === 'truemoney' ? L('TrueMoney keeps 25%') : L('Full value')}</small></span>
-            <span className={`v${b === 'truemoney' ? ' dm' : ''}`} data-value={valueFor(b, amount)}>{baht(valueFor(b, amount))}</span>
-            <span className="rd">{brand === b ? '✓' : ''}</span>
-          </button>
+      <p className="kx-one" id="kxClaimOne">{L('Choose one. This prize can be claimed once.')}</p>
+      <div className="kx-pays" role="radiogroup" aria-label={L('Get it on')}>
+        {brands.map((b, i) => (
+          <Fragment key={b}>
+            {i > 0 ? <div className="kx-or" aria-hidden="true">{L('OR')}</div> : null}
+            <button type="button" role="radio" data-brand={b} className={`kx-py${brand === b ? ' on' : ''} b-${b}`} aria-checked={brand === b} aria-pressed={brand === b} onClick={() => { setBrand(b); setErr(''); }}>
+              <span className="rd" aria-hidden="true" />
+              <BrandLogo b={b} />
+              <span className="n"><span data-value={valueFor(b, amount)}>{BRAND_NAME[b]} {baht(valueFor(b, amount))}</span>
+                <small>{b === 'truemoney' ? `75% · ${L('TrueMoney keeps 25%')}` : L('Full value')}</small></span>
+            </button>
+          </Fragment>
         ))}
       </div>
       <div className="kx-cl-foot">
         {err ? <p className="kx-err center" role="alert" id="kxClaimErr">{err}</p> : <p className="kx-inst">{L('Your code arrives')} <b>{L('instantly')}</b></p>}
         <button type="button" className="kx-btn tall" id="kxClaimGo" disabled={busy || !prize} onClick={() => void go()}>
-          <b>{busy ? '…' : Lf('Claim {0}', `${brandAmt(L, brand, amount)}`)}</b>
+          <b>{busy ? '…' : Lf('Claim with {0} · {1}', BRAND_NAME[brand], baht(valueFor(brand, amount)))}</b>
         </button>
       </div>
     </div>
@@ -241,7 +244,7 @@ export function ClaimedPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewar
             <div key={x.id} className={`kx-r${u ? ' dim' : ''}${x.id === c?.id ? ' sel' : ''}`} data-claim={x.id} data-status={x.status}>
               <button type="button" className="kx-r-main" onClick={() => x.code && setFocus(x.id)}>
                 <BrandLogo b={x.brand} size={42} />
-                <span className="n">{brandAmt(L, x.brand, x.amount)}<small>{prizeTitle(L, Lf, props.lang, x)} · {x.status === 'pending' ? L('Your code is on the way') : dayText(L, props.lang, x.assigned_at || x.created_at)}</small></span>
+                <span className="n" data-chosen={x.brand}>{Lf('Claimed with {0} · {1}', BRAND_NAME[x.brand], baht(valueFor(x.brand, x.amount)))}<small>{prizeTitle(L, Lf, props.lang, x)} · {x.status === 'pending' ? L('Your code is on the way') : dayText(L, props.lang, x.assigned_at || x.created_at)}</small></span>
               </button>
               {x.status === 'pending' ? <span className="kx-tg wait">{L('SOON')}</span> : (
                 <label className="kx-used" title={L('Mark as used')}>

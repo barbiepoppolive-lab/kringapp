@@ -34,6 +34,9 @@ export default defineConfig({
       input: { main: 'index.html', admin: 'admin.html', staff: 'staff.html', stand: 'stand.html', owner: 'owner.html', lineCallback: 'line-callback.html' },
       output: {
         manualChunks(id) {
+          // Vite's own dynamic-import helper must live in the always-loaded vendor chunk. Left to Rollup it landed in the 770 kB
+          // "pdf" chunk, so every visitor downloaded jsPDF on the first screen (audit 15 Nov, finding 5).
+          if (id.includes('vite/preload-helper') || id.includes('commonjsHelpers')) return 'vendor'
           // supabase-js is only fetched when V5 live sign-in is on (VITE_AUTH_LIVE=1), so keep it out of the eager vendor chunk
           if (id.includes('node_modules/@supabase/')) return 'supabase'
           // LIFF SDK: only fetched in a LIFF open (VITE_LIFF_ID builds), never in the eager vendor chunk

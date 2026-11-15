@@ -170,6 +170,8 @@ export function MeView(props: {
   onPost: () => void; onVerify: () => void; firstReelChip?: React.ReactNode;
   kx?: KxCardExtras | null; weekRank?: number | null; onRings?: () => void; onRanking?: () => void; ringsDot?: boolean;
   rankLine?: string; saved?: { count: number; thumbs: string[] } | null; onSavedReels?: () => void; onLink?: () => void;
+  /** go-live build: the "Reels" / "Saved" tabs + grid; replaces the old saved row, the Reel strip and the long text blocks */
+  reelsSlot?: React.ReactNode; onReplay?: () => void;
 }) {
   const { L, Lf, p } = props;
   const lv = p.level;
@@ -189,7 +191,6 @@ export function MeView(props: {
         </span>
       </div>
       <KxMemberCard L={L} Lf={Lf} p={p} kx={props.kx} />
-      <FoundingChecklist L={L} Lf={Lf} kx={props.kx} hasSocial={!!(props.kx?.ig_handle || props.kx?.tiktok_handle || p.ig_handle)} onLink={props.onLink || props.onEdit} onPost={props.onPost} />
       <div className="kx-tiles" id="kxTiles">
         <button type="button" className="kx-mtile rw" id="kxRingsTile" onClick={props.onRings}>
           {props.ringsDot || (props.kx?.prizes ?? 0) > 0 ? <i className="kx-tdot" aria-label={L('New')} /> : null}
@@ -201,19 +202,22 @@ export function MeView(props: {
           <span id="kxRankLine">{props.rankLine || <>{L('this week')} <i>→</i> {L('Ranking')}</>}</span>
         </button>
       </div>
+      <FoundingChecklist L={L} Lf={Lf} kx={props.kx} hasSocial={!!(props.kx?.ig_handle || props.kx?.tiktok_handle || p.ig_handle)} onLink={props.onLink || props.onEdit} onPost={props.onPost} />
+      {props.reelsSlot ? null : (
       <button type="button" className="kx-savedrow" id="kxSavedRow" onClick={props.onSavedReels || props.onSaved}>
         <span className="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4.5L5 21V4a1 1 0 0 1 1-1z" /></svg></span>
         <span className="t">{L('Saved Reels')}<small>{props.saved ? (props.saved.count === 1 ? L('1 Reel') : Lf('{0} Reels', String(props.saved.count))) : '…'}</small></span>
         <span className="th">{(props.saved?.thumbs || []).slice(0, 3).map((u, i) => <i key={i} style={{ backgroundImage: `url('${u}')` }} />)}</span>
         <span className="go">›</span>
       </button>
+      )}
       <Stats L={L} p={p} onList={props.onList} />
       <div className="kme-qa">
         <button type="button" id="meEdit" onClick={props.onEdit}><span>✎</span>{L('Edit profile')}</button>
         <button type="button" id="meShare" onClick={props.onShare}><span>⇪</span>{L('Share card')}</button>
         <button type="button" id="meCode" onClick={props.onCode}><span>▦</span>{L('My code')}</button>
       </div>
-      <PerksCard />
+      {props.reelsSlot ? null : <PerksCard />}
       {props.verifyState !== 'verified' && (
         <button type="button" className="kme-verify" id="meVerify" onClick={props.onVerify} disabled={props.verifyState === 'pending'}>
           <span className="ic">✓</span>
@@ -224,6 +228,11 @@ export function MeView(props: {
           {props.verifyState === 'pending' ? null : <span className="go">›</span>}
         </button>
       )}
+      {props.reelsSlot ? (
+        <>{props.reelsSlot}
+        {props.onReplay ? <button type="button" className="go-replay" id="goReplay" onClick={props.onReplay}>{L('Replay intro')}</button> : null}</>
+      ) : (
+        <>
       <div className="kme-lvl" id="meLevel">
         <span className="cup" aria-hidden="true"><span className="liq" style={{ height: `${Math.max(8, Math.min(100, lv.pct))}%` }} /></span>
         <span className="t">
@@ -240,6 +249,8 @@ export function MeView(props: {
         <button type="button" className="kme-first" id="meFirstReel" onClick={props.onPost}>
           <b>{L('Post your first Reel')}</b><small>{L('Your Reels show here and count towards your next level')}</small>
         </button></>
+      )}
+        </>
       )}
     </div>
   );
