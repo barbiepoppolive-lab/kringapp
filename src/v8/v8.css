@@ -1,3 +1,6 @@
+/* C (15 Nov): Thai body text in looped Thai. ONE switch: set this to 'Anuphan' to go back to loopless Thai everywhere. */
+:root { --kr-thai-body: 'Kring Thai Looped'; }
+
 .v8-app-root {
   --mid: #15131F;
   --mid2: #0B0A12;
@@ -20,7 +23,7 @@
   min-height: 100dvh;
   background: var(--mid2);
   color: var(--coco);
-  font-family: 'Bricolage Grotesque', 'Anuphan', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   user-select: none;
   overflow: hidden;
@@ -40,7 +43,7 @@
 }
 
 .v8-app-root .th {
-  font-family: 'Anuphan', sans-serif;
+  font-family: var(--kr-thai-body), 'Anuphan', sans-serif;
   line-height: 1.75;
 }
 
@@ -3290,7 +3293,7 @@
 @keyframes kpA { from { transform: rotateY(0) rotateX(16deg) } to { transform: rotateY(360deg) rotateX(16deg) } }
 @keyframes kpB { from { transform: rotateY(180deg) rotateX(-16deg) } to { transform: rotateY(540deg) rotateX(-16deg) } }
 @keyframes kpGlow { 0%,100% { filter: drop-shadow(0 0 6px rgba(170,181,255,.6)) drop-shadow(0 0 10px rgba(255,79,163,.35)) } 50% { filter: drop-shadow(0 0 14px rgba(170,181,255,.95)) drop-shadow(0 0 20px rgba(255,79,163,.65)) } }
-.v8-app-root .kp-nm { position: absolute; left: 18px; right: 18px; bottom: 44px; font: 300 28px 'Bricolage Grotesque', 'Anuphan', sans-serif; color: #FFF7EC; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .kp-nm { position: absolute; left: 18px; right: 18px; bottom: 44px; font: 300 28px 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; color: #FFF7EC; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .v8-app-root .kp-sub { position: absolute; left: 18px; right: 18px; bottom: 18px; font-size: 12.5px; color: #D9D4F2; }
 .v8-app-root .kp-qa { display: flex; justify-content: space-around; margin: 20px 4px 0; }
 .v8-app-root .kp-qa button { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11.5px; color: #B9B3D6; background: none; border: 0; }
@@ -3316,7 +3319,7 @@
 .v8-app-root .kp-live { position: absolute; left: 16px; top: 70px; display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 5px 10px; background: rgba(14,12,22,.7); color: #6EE7A8; font-size: 12px; font-weight: 700; }
 .v8-app-root .kp-live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #6EE7A8; box-shadow: 0 0 0 3px rgba(110,231,168,.25); }
 .v8-app-root .kp-meta { position: absolute; left: 16px; right: 84px; bottom: 110px; }
-.v8-app-root .kp-meta b { display: block; font: 800 21px/1.2 'Bricolage Grotesque', 'Anuphan', sans-serif; color: #FFF7EC; margin-bottom: 4px; }
+.v8-app-root .kp-meta b { display: block; font: 800 21px/1.2 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; color: #FFF7EC; margin-bottom: 4px; }
 .v8-app-root .kp-meta span { color: #B9B3D6; font-size: 13.5px; }
 .v8-app-root .kp-side { position: absolute; right: 14px; bottom: 120px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .v8-app-root .kp-sb { width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; border: 0; color: #fff; }
@@ -3364,7 +3367,7 @@
 .v8-app-root .kp-tkt b { font: 800 26px/1 'Bricolage Grotesque', sans-serif; }
 .v8-app-root .kp-tkt s { font-size: 11.5px; opacity: .7; }
 .v8-app-root .kp-hinfo { position: absolute; left: 16px; right: 16px; bottom: 72px; display: flex; flex-direction: column; gap: 2px; color: #B9B3D6; font-size: 12.5px; }
-.v8-app-root .kp-hinfo b { font: 800 21px 'Bricolage Grotesque', 'Anuphan', sans-serif; color: #FFF7EC; }
+.v8-app-root .kp-hinfo b { font: 800 21px 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; color: #FFF7EC; }
 .v8-app-root .kp-claim { position: absolute; left: 12px; right: 12px; bottom: 12px; height: 48px; border-radius: 999px; border: 0; background: #FF8A3D; color: #3A1505; font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; z-index: 2; }
 .v8-app-root .kp-claim.small { left: 8px; right: 8px; bottom: 8px; height: 38px; font-size: 13px; }
 .v8-app-root .kp-claim.done { background: #1E1838; color: #FFB98A; box-shadow: inset 0 0 0 1.5px #FF8A3D; }
@@ -3412,7 +3415,7 @@
 .v8-app-root .ppl-head { padding-top: 18px; }
 .v8-app-root .ppl-head h2 { margin-right: 60px; }
 .v8-app-root .kp-empty { margin: 10px 0 100px; text-align: center; }
-.v8-app-root .kp-empty-t { font: 800 19px 'Bricolage Grotesque', 'Anuphan', sans-serif; color: #FFF7EC; margin-top: 6px; }
+.v8-app-root .kp-empty-t { font: 800 19px 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; color: #FFF7EC; margin-top: 6px; }
 .v8-app-root .kp-empty-s { font-size: 13px; color: #B9B3D6; line-height: 1.5; margin: 6px 12px 14px; }
 .v8-app-root .kp-empty-btn { height: 46px; padding: 0 22px; border-radius: 999px; border: 0; background: #5B6CFF; color: #fff; font-weight: 700; font-size: 14.5px; }
 .v8-app-root .kp-empty-btn.pink { background: #FF4FA3; }
@@ -3489,12 +3492,12 @@
 .v8-app-root .kp-tphoto { position: relative; aspect-ratio: 4 / 3.4; background: #2A2638 center/cover; }
 .v8-app-root .kp-tarea { position: absolute; top: 8px; right: 8px; font-size: 10.5px; font-weight: 700; color: #fff; background: rgba(14,12,22,.72); padding: 4px 8px; border-radius: 999px; }
 .v8-app-root .kp-tband { position: relative; background: linear-gradient(90deg, #FF8A3D, #FF4FA3); color: #fff; padding: 9px 11px 10px; display: flex; flex-direction: column; gap: 1px; }
-.v8-app-root .kp-tband b { font: 800 14px/1.2 'Anuphan', 'Bricolage Grotesque', sans-serif; }
+.v8-app-root .kp-tband b { font: 800 14px/1.2 var(--kr-thai-body), 'Anuphan', 'Bricolage Grotesque', sans-serif; }
 .v8-app-root .kp-tband small { font-size: 11px; opacity: .95; line-height: 1.2; }
 .v8-app-root .kp-tband i { position: absolute; bottom: -8px; width: 16px; height: 16px; border-radius: 50%; background: var(--kp-page, #15131F); }
 .v8-app-root .kp-tband i:first-of-type { left: -8px; } .v8-app-root .kp-tband i:last-of-type { right: -8px; }
 .v8-app-root .kp-tfoot { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 10px 11px 11px; color: #fff; }
-.v8-app-root .kp-tfoot b { display: block; font: 800 14px 'Bricolage Grotesque', 'Anuphan', sans-serif; }
+.v8-app-root .kp-tfoot b { display: block; font: 800 14px 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; }
 .v8-app-root .kp-tfoot small { display: block; font-size: 10.5px; opacity: .72; }
 .v8-app-root .kp-there { flex: none; background: #fff; color: #C2306E; font-weight: 800; font-size: 11.5px; padding: 6px 10px; border-radius: 999px; }
 

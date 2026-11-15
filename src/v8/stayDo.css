@@ -1,7 +1,7 @@
 /* Deals → Stay & do (T-209). Photo first, the member price is the one strong line, the saving stays quiet. No yellow. */
 .kstay { margin: 22px 0 8px; }
 .kstay-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 0 2px 8px; }
-.kstay-head h3 { margin: 0; font: 800 20px 'Bricolage Grotesque', 'Anuphan', sans-serif; color: #fff; }
+.kstay-head h3 { margin: 0; font: 800 20px 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; color: #fff; }
 .kstay-sub { color: #FF8A3D; font-weight: 700; font-size: 13px; white-space: nowrap; }
 .kstay-chips { display: flex; gap: 8px; margin: 0 0 10px; }
 .kstay-chips button { border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.05); color: rgba(255,255,255,.85); border-radius: 999px; padding: 7px 14px; font: 700 13px inherit; font-family: inherit; cursor: pointer; }

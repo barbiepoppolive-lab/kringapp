@@ -1,7 +1,7 @@
 /* "For your trip" partner cards (Deals tab). Night navy cards, one accent per card; no yellow (monarchy rule). */
 .ktrip { margin: 22px 0 8px; }
 .ktrip-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 0 2px 8px; }
-.ktrip-head h3 { margin: 0; font: 800 20px 'Bricolage Grotesque', 'Anuphan', sans-serif; color: #fff; }
+.ktrip-head h3 { margin: 0; font: 800 20px 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; color: #fff; }
 .ktrip-trust { color: #3DDC97; font-weight: 700; font-size: 13px; white-space: nowrap; }
 .ktrip-disc { margin: 0 0 12px; padding: 9px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.04); color: rgba(255,255,255,.8); font-size: 12.5px; line-height: 1.4; }
 .ktrip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
