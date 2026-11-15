@@ -89,3 +89,9 @@ a.ktk-ghost { text-decoration: none; display: inline-block; }
 /* J1: new version chip */
 .kr-upd { position: fixed; left: 50%; transform: translateX(-50%); top: calc(10px + env(safe-area-inset-top)); z-index: 97; height: 36px; padding: 0 16px; border: 0; border-radius: 18px;
   background: #5b6cff; color: #fff; font: inherit; font-size: 13.5px; font-weight: 800; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+/* 15 Nov: "Install app" button at the top of Me */
+.a2s-chip, .v8-app-root .a2s-chip { display: inline-flex; align-items: center; gap: 7px; height: 32px; max-width: 100%; padding: 0 12px 0 10px; border: 1px solid rgba(255,255,255,.16); border-radius: 16px;
+  background: rgba(115,129,255,.16); color: #fff; font: inherit; font-size: 12.5px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: none; }
+.a2s-chip-ic { position: relative; width: 22px; height: 14px; flex: none; }
+.a2s-chip-ic i { position: absolute; top: 0; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #7381FF; box-sizing: border-box; }
+.a2s-chip-ic i:last-child { left: 8px; border-color: #FF4FA3; }

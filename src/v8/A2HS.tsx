@@ -90,6 +90,19 @@ export function externalBrowserUrl(href: string): string {
   return u.toString();
 }
 
+const OPEN_EVENT = 'kr8-a2hs-open';
+/** Opens the install sheet now (the "Install app" button on Me, or /app/?install=1 from the website). */
+export function openInstallSheet() { try { window.dispatchEvent(new Event(OPEN_EVENT)); } catch { /* ignore */ } }
+/** "ติดตั้งแอป · Install app" button for the top of Me: only when Kring is not already installed. */
+export function InstallChip(props: { L: Tx; id?: string }) {
+  if (isStandalone()) return null;
+  return (
+    <button type="button" className="a2s-chip" id={props.id || 'installChip'} onClick={openInstallSheet}>
+      <span className="a2s-chip-ic" aria-hidden="true"><i /><i /></span>{props.L('Install app')}
+    </button>
+  );
+}
+
 type PromptEv = { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
 const promptEv = () => (window as unknown as { __kr8Install?: PromptEv | null }).__kr8Install || null;
 
@@ -99,6 +112,13 @@ export function A2HSBanner(props: { L: Tx; blocked?: boolean; force?: A2hsVarian
   const [steps, setSteps] = useState(false);
   const ua = typeof navigator === 'undefined' ? '' : navigator.userAgent;
   const variant: A2hsVariant = props.force || a2hsVariant(ua, !!promptEv());
+  useEffect(() => {
+    // asked for on purpose (button, or ?install=1 from the website): open now, whatever the snooze says
+    const open = () => { if (!isStandalone()) { markShown(); setShow(true); } };
+    window.addEventListener(OPEN_EVENT, open);
+    try { if (new URLSearchParams(location.search).get('install') === '1') open(); } catch { /* ignore */ }
+    return () => window.removeEventListener(OPEN_EVENT, open);
+  }, []);
   useEffect(() => {
     if (props.force) { setShow(true); return; }
     const check = () => {

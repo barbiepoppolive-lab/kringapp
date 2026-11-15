@@ -2300,6 +2300,7 @@ export const KX_L: Record<string, Record<string, string>> = {
     'Open Kring in your phone’s browser': 'เปิดกริ๊ง! ในเบราว์เซอร์ของมือถือ',
     'Then tap “Add to Home Screen” there': 'แล้วแตะ “เพิ่มไปยังหน้าจอโฮม” ที่นั่น',
     'Install': 'ติดตั้ง',
+    'Install app': 'ติดตั้งแอป',
     'Later': 'ไว้ทีหลัง',
     'The home-screen app keeps its own sign-in: sign in once more there with your email code.': 'แอปบนหน้าจอโฮมแยกการล็อกอินของตัวเอง: เข้าสู่ระบบอีกครั้งด้วยรหัสทางอีเมล',
     'more': 'เพิ่มเติม',

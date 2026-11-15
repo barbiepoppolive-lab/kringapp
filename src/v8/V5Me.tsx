@@ -11,6 +11,7 @@ import { PerksCard } from './V5Perks';
 import { DAILY_TOTAL, fmtBaht, rewardFor, WEEKLY_TOTAL } from './rewardsConfig';
 import type { V5Activity, V5FollowRow, V5Level, V5Profile, V5TopPeriod, V5TopRow } from './v5Live';
 import { NeonCard, progLine, RingGlyph } from './V5KxCard';
+import { InstallChip } from './A2HS';
 import { fmtN, levelFor } from './kxLogic';
 import type { KxCardExtras } from './v5Kx';
 
@@ -180,6 +181,7 @@ export function MeView(props: {
     <div className="kme" id="meView">
       <div className="kme-top">
         <span className="cap">{L('Your Kring')}</span>
+        <InstallChip L={L} />
         <span className="kme-icons">
           <button type="button" id="activityBtn" aria-label={L('Activity')} onClick={props.onActivity}>
             <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" /></svg>
