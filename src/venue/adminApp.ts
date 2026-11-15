@@ -244,8 +244,8 @@ async function todoView() {
   const venueTile = el('a', { class: `tile wide ${c.venues ? '' : 'zero'}`, href: '#q/venues', id: 'todo-venues' }, el('span', { class: 'n' }, String(c.venues)),
     el('span', { class: 'grow' }, el('span', { class: 't', style: 'display:block' }, c.venues === 1 ? 'New venue' : 'New venues'), el('span', { class: 'h', style: 'display:block' }, 'Waiting for approval')),
     el('span', { class: 'go', style: 'position:static' }, ic('chev')));
-  const newLine = c.newToday == null ? '' : el('a', { class: 'tile wide', href: '#members', id: 'todo-newmembers', style: 'margin-bottom:12px' },
-    el('span', { class: 'grow' }, el('span', { class: 't', style: 'display:block' }, `New members today: ${c.newToday}`), el('span', { class: 'h', style: 'display:block' }, 'Real sign-ups, India time · open Members')),
+  const newLine = c.newToday == null ? '' : el('a', { class: 'tile wide', href: '#members/all', id: 'todo-newmembers', style: 'margin-bottom:12px' },
+    el('span', { class: 'grow' }, el('span', { class: 't', style: 'display:block' }, `New members today: ${c.newToday}`), el('span', { class: 'h', style: 'display:block' }, 'Real sign-ups, India time · tap to see them')),
     el('span', { class: 'go', style: 'position:static' }, ic('chev')));
   const visitsLine = c.visits ? (() => {
     const b = el('button', { class: 'tile wide', type: 'button', id: 'todo-visits', style: 'margin-bottom:12px;width:100%' },
@@ -776,11 +776,96 @@ async function venueQueue() {
   queue('New venues', rows, (a, api) => appBody(a, api));
 }
 
+// ───────────────────────────── All members list (0053_kr8_admin_member_list) ─────────────────────────────
+export type MemberRow = { user_id: string; member_no: number | null; first_name: string | null; photo: string | null; joined_at: string;
+  ref_code: string | null; src_code: string | null; who: string | null; area: string | null; langs: string[] | null; gender: string | null; show_gender: boolean;
+  ig_handle: string | null; tiktok_handle: string | null; bio: string | null; interests: string[] | null; verified: boolean; age_ok: boolean; terms_ok: boolean;
+  last_active_at: string | null; reels_approved: number; reels_waiting: number; reels_hidden: number; card_complete: boolean; is_test: boolean };
+export type MemberList = { total: number; test_hidden: number; members: MemberRow[] };
+export function isMemberList(v: unknown): v is MemberList {
+  const o = v as MemberList | null;
+  return !!o && typeof o.total === 'number' && typeof o.test_hidden === 'number' && Array.isArray(o.members)
+    && o.members.every((m) => !!m && typeof m.user_id === 'string' && typeof m.joined_at === 'string' && typeof m.reels_approved === 'number');
+}
+const LANG: Record<string, string> = { TH: 'Thai', EN: 'English', ZH: 'Chinese', JA: 'Japanese', KO: 'Korean', HI: 'Hindi', DE: 'German', ES: 'Spanish', FR: 'French', RU: 'Russian', IT: 'Italian', AR: 'Arabic', VI: 'Vietnamese', ID: 'Indonesian', MS: 'Malay', PT: 'Portuguese', NL: 'Dutch' };
+export const langNames = (l: string[] | null) => (l || []).map((c) => LANG[c.toUpperCase()] || c).join(', ');
+const clock = (iso: string, tz: string) => new Date(iso).toLocaleTimeString('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false });
+/** "joined 15 Nov · 21:22 Bangkok · 19:52 India" (the day is the Bangkok day). */
+export function memberJoined(iso: string): string {
+  const day = new Date(iso).toLocaleDateString('en-GB', { timeZone: 'Asia/Bangkok', day: 'numeric', month: 'short' });
+  return `joined ${day} · ${clock(iso, 'Asia/Bangkok')} Bangkok · ${clock(iso, 'Asia/Kolkata')} India`;
+}
+export const memberVia = (m: Pick<MemberRow, 'ref_code' | 'src_code'>) => (m.ref_code ? `via ${m.ref_code}` : m.src_code ? `via ${m.src_code}` : 'direct');
+const handle = (h: string) => h.trim().replace(/^@+/, '').replace(/^https?:\/\/(www\.)?(instagram|tiktok)\.com\/@?/i, '').replace(/[/?#].*$/, '');
+export const igUrl = (h: string) => `https://instagram.com/${encodeURIComponent(handle(h))}`;
+export const ttUrl = (h: string) => `https://tiktok.com/@${encodeURIComponent(handle(h))}`;
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+export function cardMissing(m: Pick<MemberRow, 'photo' | 'first_name' | 'area'>): string[] {
+  return [!m.photo && 'photo', !(m.first_name || '').trim() && 'name', !(m.area || '').trim() && 'area'].filter(Boolean) as string[];
+}
+function photoSheet(m: MemberRow) {
+  const s = sheet(el('img', { class: 'ml-big', src: m.photo || '', alt: `Photo of ${m.first_name || 'member'}` }),
+    el('h3', { style: 'margin-top:12px' }, m.first_name || 'No name yet'), el('p', { class: 'dim sm', style: 'margin:2px 0 0' }, `#${m.member_no ?? '–'} · ${memberJoined(m.joined_at)}`),
+    el('button', { class: 'btn ghost', type: 'button', id: 'photoClose', style: 'width:100%;margin-top:14px' }, 'Close'));
+  (s.box.querySelector('#photoClose') as HTMLButtonElement).onclick = s.close;
+}
+export function memberRow(m: MemberRow, onPhoto: (m: MemberRow) => void = photoSheet): HTMLElement {
+  const name = m.first_name?.trim() || 'No name yet';
+  const ph = m.photo
+    ? (() => { const b = el('button', { type: 'button', class: 'ml-ph', id: 'mlPhoto-' + m.user_id, 'aria-label': `Enlarge photo of ${name}` }, el('img', { src: m.photo, alt: '', loading: 'lazy' })); b.onclick = () => onPhoto(m); return b; })()
+    : el('div', { class: 'ml-ph none', 'data-nophoto': '1' }, ic('face'), el('span', {}, 'No photo yet'));
+  const gender = m.gender ? el('span', { class: 'ml-g', 'data-gender': m.show_gender ? 'shown' : 'hidden', title: m.show_gender ? 'Shown on their card' : 'Hidden by the member' },
+    cap(m.gender), m.show_gender ? null : ic('lock')) : null;
+  const facts = [m.who === 'local' ? 'Local' : m.who === 'traveller' ? 'Traveller' : m.who ? cap(m.who) : null, m.area || null, langNames(m.langs) || null].filter(Boolean) as string[];
+  const links = [m.ig_handle && el('a', { class: 'ml-l', href: igUrl(m.ig_handle), target: '_blank', rel: 'noopener', 'data-ig': handle(m.ig_handle) }, 'IG @' + handle(m.ig_handle)),
+    m.tiktok_handle && el('a', { class: 'ml-l', href: ttUrl(m.tiktok_handle), target: '_blank', rel: 'noopener', 'data-tt': handle(m.tiktok_handle) }, 'TikTok @' + handle(m.tiktok_handle))].filter(Boolean) as HTMLElement[];
+  const miss = cardMissing(m);
+  const tick = (on: boolean, yes: string, no: string) => el('span', { class: 'pill ' + (on ? 'g' : '') }, on ? '✓ ' + yes : no);
+  return el('div', { class: 'ml-row', 'data-member': m.user_id, 'data-no': String(m.member_no ?? '') },
+    el('div', { class: 'ml-top' }, ph,
+      el('div', { class: 'ml-main' },
+        el('div', { class: 'ml-name' }, el('b', {}, name), el('span', { class: 'faint' }, `#${m.member_no ?? '–'}`), m.is_test ? pill('test', 'a') : null),
+        el('div', { class: 'dim xs' }, memberJoined(m.joined_at)),
+        el('div', { class: 'xs ml-via' }, memberVia(m)),
+        el('div', { class: 'sm ml-facts' }, facts.join(' · '), gender ? ' · ' : '', gender),
+        links.length ? el('div', { class: 'ml-links' }, ...links) : null)),
+    m.bio ? el('p', { class: 'sm ml-bio' }, m.bio) : null,
+    m.interests?.length ? el('div', { class: 'ml-int' }, ...m.interests.map((t) => pill(t))) : null,
+    el('div', { class: 'ml-ticks' }, tick(m.verified, 'Verified', 'Not verified'),
+      el('span', { class: 'pill ' + (miss.length ? 'a' : 'g'), 'data-complete': miss.length ? '0' : '1' }, miss.length ? `Card missing ${miss.join(', ')}` : '✓ Card complete')),
+    el('div', { class: 'ml-foot xs dim' },
+      el('span', { 'data-reels': `${m.reels_approved}/${m.reels_waiting}/${m.reels_hidden}` }, `Reels: ${m.reels_approved} live · ${m.reels_waiting} waiting · ${m.reels_hidden} hidden`),
+      el('span', {}, `Last seen ${ago(m.last_active_at)}`)));
+}
+let mlTest = LS('kr8-admin-mltest') === '1';
+function allMembersCard(open: boolean): HTMLElement {
+  const sub = el('span', { class: 'dim sm' }, 'Newest first, with photos');
+  const title = el('b', {}, 'All members');
+  const list = el('div', { id: 'mlList' }, loading());
+  const load = async () => {
+    list.replaceChildren(loading());
+    let r: unknown;
+    try { r = await rpc<MemberList>('kr8_admin_member_list', { p_limit: 200, p_include_test: mlTest }); } catch (e) { list.replaceChildren(errP(e)); return; }
+    if (!isMemberList(r)) { list.replaceChildren(el('p', { class: 'err' }, 'Could not read the member list')); return; }
+    title.textContent = `All members (${r.total})`;
+    sub.textContent = mlTest ? 'Newest first · test members shown' : r.test_hidden ? `Newest first · ${r.test_hidden} test members hidden` : 'Newest first';
+    list.replaceChildren(...(r.members.length ? r.members.map((m) => memberRow(m)) : [el('p', { class: 'dim' }, 'No members yet.')]),
+      r.total > r.members.length ? el('p', { class: 'faint xs', style: 'margin:10px 0 0' }, `Showing the newest ${r.members.length}.`) : '');
+  };
+  const toggle = sw('mlShowTest', el('span', { class: 'sm' }, 'Show test members'), mlTest, (on) => { mlTest = on; LS('kr8-admin-mltest', on ? '1' : '0'); void load(); });
+  void load();
+  return el('details', { class: 'card', id: 'allMembers', open },
+    el('summary', {}, el('span', { class: 'icb' }, ic('users')), el('div', { class: 'grow' }, title, sub), ic('chev')),
+    el('div', { class: 'in' }, el('div', { class: 'ml-sw' }, toggle), list));
+}
+
 // ───────────────────────────── Members ─────────────────────────────
 let ckRef = LS('kr8-admin-ckref') ?? 'pich';
-async function membersView() {
+async function membersView(jump = false) {
   const body = el('div', {}, loading());
-  screen('members', head('Kring admin', 'Members'), body);
+  const all = allMembersCard(true);
+  screen('members', head('Kring admin', 'Members'), all, body);
+  if (jump) all.scrollIntoView({ block: 'start' });
   const [attr, creators] = await Promise.all([
     rpc<Attr[]>('kr8_admin_attribution').catch(() => [] as Attr[]),
     rpc<Creator[]>('kr8_admin_creator_counts').catch(() => [] as Creator[]),
@@ -842,7 +927,7 @@ async function membersView() {
   }
   if (!creators.length) loc.append(el('p', { class: 'dim' }, 'No Kring Locals yet.'));
   body.replaceChildren(
-    el('div', { class: 'stats' }, el('div', { class: 'stat' }, el('b', {}, String(signed)), el('span', {}, 'From links')),
+    el('div', { class: 'stats', style: 'margin-top:14px' }, el('div', { class: 'stat' }, el('b', {}, String(signed)), el('span', {}, 'From links')),
       el('div', { class: 'stat' }, el('b', {}, String(firstReel)), el('span', {}, 'First Reel')), el('div', { class: 'stat' }, ckStat, el('span', {}, `M1 · ${ckRef || 'all'}`))),
     el('div', { style: 'margin-top:14px' },
       det('srcCard', 'link', 'Sources', 'Where members came from (?ref= / ?src=)', src, true),
@@ -1522,7 +1607,7 @@ function route() {
     if (b === 'replies') return void replyQueue();
     if (b === 'venues') return void venueQueue();
   }
-  if (a === 'members') return void membersView();
+  if (a === 'members') return void membersView(b === 'all');
   if (a === 'top5') return void top5View();
   if (a === 'listings') return void listingsView();
   if (a === 'more') return moreView();

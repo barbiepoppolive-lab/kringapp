@@ -292,3 +292,29 @@ button.tile.wide { font: inherit; cursor: pointer; }
 .sv-row:last-child { border-bottom: 0; }
 .sv-row b { font-variant-numeric: tabular-nums; min-width: 28px; text-align: right; }
 .sv-day { width: 92px; color: var(--dim); flex: none; }
+
+/* All members list (0053) */
+.ml-sw { border-bottom: 1px solid var(--line); margin-bottom: 2px; }
+.ml-sw .sw { min-height: 44px; }
+.ml-row { padding: 14px 0; border-top: 1px solid var(--line); }
+.ml-sw + #mlList > .ml-row:first-child { border-top: 0; }
+.ml-top { display: flex; gap: 12px; align-items: flex-start; }
+.ml-ph { flex: none; width: 72px; height: 72px; border-radius: 18px; overflow: hidden; background: var(--s2); padding: 0; border: 1px solid var(--line2); }
+.ml-ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ml-ph.none { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 1.5px dashed var(--line2); color: var(--faint); font-size: 10.5px; font-weight: 600; text-align: center; line-height: 1.15; }
+.ml-ph.none svg { width: 24px; height: 24px; }
+.ml-main { min-width: 0; flex: 1; }
+.ml-name { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.ml-name b { font: 600 17px var(--h); overflow-wrap: anywhere; }
+.ml-name .faint { font-size: 13px; }
+.ml-via { color: var(--pink); font-weight: 600; margin-top: 1px; }
+.ml-facts { margin-top: 3px; overflow-wrap: anywhere; }
+.ml-g { display: inline-flex; align-items: center; gap: 3px; }
+.ml-g svg { width: 13px; height: 13px; color: var(--warn); }
+.ml-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+.ml-l { display: inline-flex; align-items: center; min-height: 32px; padding: 0 11px; border-radius: 10px; background: var(--s2); border: 1px solid var(--line2); color: var(--text); font-size: 13px; font-weight: 600; text-decoration: none; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ml-bio { margin: 10px 0 0; color: var(--dim); overflow-wrap: anywhere; white-space: pre-line; }
+.ml-int { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.ml-ticks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.ml-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin-top: 8px; }
+.ml-big { display: block; width: 100%; max-height: 62dvh; object-fit: contain; border-radius: 18px; background: #000; }
