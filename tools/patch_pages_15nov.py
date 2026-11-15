@@ -32,8 +32,8 @@ board = ('<div class="rw rvl d2" id="rwBoard"><div class="rw-h"><span class="ex"
   + '<div class="rw-vo"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M3.5 8.5A1.5 1.5 0 015 7h14a1.5 1.5 0 011.5 1.5v2a2 2 0 000 3v2A1.5 1.5 0 0119 17H5a1.5 1.5 0 01-1.5-1.5v-2a2 2 0 000-3z"></path><path d="M14.5 7v10" stroke-dasharray="1.6 2"></path></svg><span>'
   + bi('Founding Local: 50 คนแรกที่ Reel แรกผ่านการอนุมัติ รับ ฿100', 'Founding Local: the first 50 with an approved first Reel get ฿100') + '</span></div></div>'
   + '<p class="rw-how rvl d3"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M4 17l5-5 4 3 7-8"></path><path d="M15 7h5v5"></path></svg><span>'
-  + '<span data-l="th">Rings นับแบบเปิดเผย: ไลก์ +1 · เซฟ +3 · เปิดลิงก์ที่แชร์ไป Instagram/TikTok +5 · ไลก์หรือเซฟจากนักท่องเที่ยวนับ ×2 · นับ 2 Reels ที่ดีที่สุดของสัปดาห์</span>'
-  + '<span data-l="en">Rings are counted in the open: like +1, save +3, Instagram/TikTok share-open +5. A traveller\'s like or save counts double. Your best 2 Reels of the week count. <a data-page="" href="/rules/">Rules ›</a></span></span></p>')
+  + '<span data-l="th">Rings นับแบบเปิดเผย: ไลก์ +1 · เซฟ +3 · เปิดลิงก์ที่แชร์ไป Instagram/TikTok +5 · ไลก์หรือเซฟจากนักท่องเที่ยวนับ ×2 · นับเฉพาะ Reel ที่ดีที่สุด 1 Reel ของสัปดาห์</span>'
+  + '<span data-l="en">Rings are counted in the open: like +1, save +3, Instagram/TikTok share-open +5. A traveller\'s like or save counts double. Only your best Reel of the week counts. <a data-page="" href="/rules/">Rules ›</a></span></span></p>')
 h = h[:i] + board + h[k:]
 wr('locals/index.html', h)
 
@@ -49,8 +49,8 @@ new = ('<h1>' + bi('อันดับประจำสัปดาห์', 'Th
  '<div class="prz"><span class="k">' + bi('8 อันดับแรก รวม', 'Top 8 share') + '</span><span class="amt">฿4,400</span><span class="w">' + bi('ทุกสัปดาห์', 'every week') + '</span></div>\n'
  '<p class="merit">' + bi('จัดอันดับจาก Rings เท่านั้น ทุกคนเห็นการนับ', 'Ranked on Rings only. Everyone can see the math.') + '</p>\n</section><main>\n'
  + S(1, 'ใครร่วมได้', 'Who can join', P('ทุกคนอายุ 20 ปีขึ้นไปที่มีบัญชีกริ๊ง! ร่วมฟรี ไม่ต้องซื้อหรือจ่ายอะไร หนึ่งคนหนึ่งบัญชี', 'Anyone aged 20 or over with a Kring account. Free to join. Nothing to buy or pay. One account per person.'))
- + S(2, 'อันดับประจำสัปดาห์', 'The weekly ranking', P('โพสต์ Reel แนวตั้งของคุณเองจากสถานที่จริงในกรุงเทพฯ และแท็กสถานที่ Reel ที่ผ่านการอนุมัติจะเข้าบอร์ด บอร์ดเริ่มวันจันทร์ 00:00 และปิดวันอาทิตย์ 23:59 ตามเวลากรุงเทพฯ คะแนนประจำสัปดาห์ของคุณนับจาก 2 Reels ที่ได้ Rings สูงสุดในสัปดาห์นั้น บอร์ดแสดง 10 อันดับแรกเสมอ',
-     'Post your own vertical Reel of a real Bangkok place and tag the place. Approved Reels join the board. The board runs from Monday 00:00 to Sunday 23:59, Bangkok time. Your weekly score is your best 2 Reels of that week. The board always shows a top 10.'))
+ + S(2, 'อันดับประจำสัปดาห์', 'The weekly ranking', P('โพสต์ Reel แนวตั้งของคุณเองจากสถานที่จริงในกรุงเทพฯ และแท็กสถานที่ Reel ที่ผ่านการอนุมัติจะเข้าบอร์ด บอร์ดเริ่มวันจันทร์ 00:00 และปิดวันอาทิตย์ 23:59 ตามเวลากรุงเทพฯ คะแนนประจำสัปดาห์ของคุณนับจาก Reel ที่ได้ Rings สูงสุด 1 Reelในสัปดาห์นั้น บอร์ดแสดง 10 อันดับแรกเสมอ',
+     'Post your own vertical Reel of a real Bangkok place and tag the place. Approved Reels join the board. The board runs from Monday 00:00 to Sunday 23:59, Bangkok time. Your weekly score is your best Reel of that week. The board always shows a top 10.'))
  + S(3, 'Rings คิดอย่างไร', 'How Rings work', P('ไลก์ +1 เซฟ +3 และทุกครั้งที่มีคนเปิดลิงก์ Reel ของคุณที่แชร์ไป Instagram หรือ TikTok +5 (นับสูงสุด 30 ครั้งต่อวัน การเปิดจาก LINE ไม่นับ) ไลก์หรือเซฟจากนักท่องเที่ยวนับสองเท่า หนึ่งคนนับได้ครั้งเดียวต่อหนึ่ง Reel การกดให้ Reel ของตัวเองไม่นับ แตะที่คะแนนของใครก็ได้เพื่อดูที่มา ถ้าคะแนนเท่ากัน Reel ที่โพสต์ก่อนได้อันดับสูงกว่า',
      "A like is +1. A save is +3. Each open of your Reel's link shared to Instagram or TikTok is +5 (up to 30 a day are counted; opens from LINE are not counted). A traveller's like or save counts double. One person counts once per Reel. Your own likes and saves never count. Tap anyone's score to see the breakdown. If two tie, the Reel posted first ranks higher.")
      + '<p class="sumx">' + bi('Rings = ไลก์ + 3×เซฟ + 5×เปิดลิงก์ที่แชร์', 'Rings = likes + 3×saves + 5×share-opens') + '</p>'
