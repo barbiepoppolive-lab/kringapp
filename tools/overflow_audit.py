@@ -51,7 +51,8 @@ SCAN = r"""
       if (p !== e && (boxed(ps) || /(hidden|clip)/.test(ps.overflowX))) {
         const r = p.getBoundingClientRect();
         if (r.width < 4) break;
-        if (tr.right > r.right + 1.5 || tr.left < r.left - 1.5) {
+        const below = tr.top >= r.bottom - 2;   // a caption under an icon button, not inside it
+        if (!below && (tr.right > r.right + 1.5 || tr.left < r.left - 1.5)) {
           if (!/(hidden|clip)/.test(ps.overflowX)) out.push({ kind: 'outside', el: path(e), box: label(p), txt, by: Math.round(Math.max(tr.right - r.right, r.left - tr.left)) });
           else if (!ellip(e)) out.push({ kind: 'clipped', el: path(e), box: label(p), txt, by: Math.round(Math.max(tr.right - r.right, r.left - tr.left)) });
         }

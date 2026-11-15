@@ -3604,3 +3604,5 @@
 .v8-app-root .kp-gets li { display: flex; align-items: center; gap: 12px; font-size: 14.5px; font-weight: 600; color: #FFF7EC; line-height: 1.35; }
 .v8-app-root .kp-gets svg { flex: none; width: 34px; height: 34px; padding: 7px; box-sizing: border-box; border-radius: 12px; background: rgba(115,129,255,.16); fill: none; stroke: #c9cfff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .v8-app-root #guestCard .kp-lvl:empty { display: none; }
+/* overflow sweep: rail captions sit fully under their button and never get wider than the rail */
+.v8-app-root .rail .lbl { bottom: auto; top: calc(100% + 2px); max-width: 66px; overflow: hidden; text-overflow: ellipsis; text-align: center; }
