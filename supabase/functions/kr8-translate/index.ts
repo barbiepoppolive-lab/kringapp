@@ -3,8 +3,8 @@
 // the free on-device language pack. The provider key stays here (never in the browser). Message text is never logged.
 //   POST { message_id: number, target: "en" | "th" | … }   Authorization: Bearer <the member's sign-in token>
 //   → { status: "ok", text, source, via } | { status: "same" | "unavailable" | "off" | "too_long" | "limit_minute" | "limit_member" | "limit_day" | "forbidden" | "sign_in" }
-// Secrets: IAPP_API_KEY (iApp Technology). TRANSLATE_PROVIDER = "iapp" (default) | "off". Caps live in the table kr8_translate_config.
-import { handle, iappProvider, type Claim, type Provider } from "./core.ts";
+// Secrets: IAPP_API_KEY (iApp Technology). GEMINI_API_KEY (+ optional TRANSLATE_GEMINI_MODEL, default gemini-3.1-flash-lite). TRANSLATE_PROVIDER = "gemini" (default) | "iapp" | "off". Caps live in the table kr8_translate_config.
+import { firstOf, geminiProvider, handle, iappProvider, type Claim, type Provider } from "./core.ts";
 
 const URL_ = Deno.env.get("SUPABASE_URL")!;
 const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -33,9 +33,14 @@ async function whoIs(auth: string | null): Promise<string | null> {
   } catch { return null; }
 }
 function provider(): Provider | null {
-  const which = (Deno.env.get("TRANSLATE_PROVIDER") ?? "iapp").toLowerCase();
-  const key = Deno.env.get("IAPP_API_KEY");
-  return which === "iapp" && key ? iappProvider(key) : null;
+  // TRANSLATE_PROVIDER = "gemini" (default: Gemini first, iApp as a spare) | "iapp" (iApp first) | "off"
+  const which = (Deno.env.get("TRANSLATE_PROVIDER") ?? "gemini").toLowerCase();
+  if (which === "off") return null;
+  const g = Deno.env.get("GEMINI_API_KEY"); const i = Deno.env.get("IAPP_API_KEY");
+  // one small model of our own choosing. GEMINI_MODEL (used by other functions) is left alone so this never eats their allowance.
+  const models = [Deno.env.get("TRANSLATE_GEMINI_MODEL") || "gemini-3.1-flash-lite"];
+  const gem = g ? models.map((m) => geminiProvider(g, m)) : []; const iapp = i ? [iappProvider(i)] : [];
+  return firstOf(which === "iapp" ? [...iapp, ...gem] : [...gem, ...iapp]);
 }
 
 Deno.serve(async (req) => {

@@ -104,6 +104,7 @@ const DECLINED = 'kr8_tr_pack_no';
 const declined = () => { try { return localStorage.getItem(DECLINED) === '1'; } catch { return false; } };
 export interface ChatTranslate { map: Record<string, TrState>; pack: PackState; download: () => void; notNow: () => void; onDevice: boolean }
 
+const RETRY_MS = ((import.meta as unknown as { env?: { MODE?: string } }).env?.MODE === 'test') ? 5 : 1500;
 export function useChatTranslate(on: boolean, threadId: string | null, msgs: ChatMsg[], ui: string): ChatTranslate {
   const reader = readerLang(ui);
   const [map, setMap] = useState<Record<string, TrState>>({});
@@ -152,8 +153,14 @@ export function useChatTranslate(on: boolean, threadId: string | null, msgs: Cha
         todo = todo.filter((t) => !cached[t.m.id]);
       }
       for (const x of todo.slice(-25)) {
-        const r = await serverTranslate(x.m.id, reader);
+        let r = await serverTranslate(x.m.id, reader);
         if (!alive()) return;
+        if (r.status === 'fail') {                    // a busy moment: one quiet second try before showing the note
+          await new Promise((ok) => setTimeout(ok, RETRY_MS));
+          if (!alive()) return;
+          r = await serverTranslate(x.m.id, reader);
+          if (!alive()) return;
+        }
         if (r.status === 'ok') put(x.m.id, { s: 'ok', text: r.text, via: 'server' });
         else if (r.status === 'same') put(x.m.id, { s: 'same' });
         else { put(x.m.id, { s: 'fail' }); if (r.status === 'stop') { stopped.current[scope] = true; for (const y of todo) if (!mapRef.current[y.m.id] && y.m.id !== x.m.id) put(y.m.id, { s: 'fail' }); return; } }
