@@ -5,6 +5,9 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import './kx.css';
+import './go.css';
+import { GenderChip, GenderRow, genderPayload, isGender, type Gender } from './V5Gender';
+import { kxSetGender } from './v5Kx';
 import { LEVEL_KEY, levelFor, memberNo, parseHandle, socialUrl, type Social } from './kxLogic';
 import { kxSetTiktok } from './v5Kx';
 import { v5AcceptTerms, v5CompressImage, v5ErrCode, v5SaveCard, v5SetIgHandle, v5StoredRef, v5TakeLinePrefill, V5_AREAS, V5_LANGS, V5_TERMS_VERSION } from './v5Live';
@@ -46,6 +49,8 @@ export function SocialPills(props: { ig?: string | null; tt?: string | null; com
 }
 
 export interface NeonCardProps {
+  /** shown only when the member switched "Show on my card" on */
+  gender?: string | null;
   L: Tx; photo: string | null; name: string; level: number; no: number | null; ig?: string | null; tt?: string | null;
   size?: 'mint' | 'me' | 'hero'; tilt?: boolean; compact?: boolean; pts?: [string, string] | null; slot?: React.ReactNode; children?: React.ReactNode; id?: string; sub?: string;
   /** Founding Local number (first 50 members with an approved Reel): a permanent mark on the card. */
@@ -61,6 +66,7 @@ export function NeonCard(p: NeonCardProps) {
         {p.founding ? <div className={`kx-fl${TH_RE.test(p.L('Founding Local')) ? ' thai' : ''}`} data-founding={p.founding}>★ {p.L('Founding Local')} #{String(p.founding).padStart(2, '0')}</div> : null}
         <div className="kx-nm">{p.name || ' '}</div>
         {p.sub ? <div className="kx-sub">{p.sub}</div> : null}
+        {p.gender ? <div className="kx-grow"><GenderChip L={p.L} gender={p.gender} /></div> : null}
         <div className="kx-bar">{[1, 2, 3, 4, 5].map((i) => <i key={i} className={i <= p.level ? 'on' : ''} />)}</div>
         {p.pts ? <div className="kx-pts">{p.pts.map((x, i) => <span key={i} className={TH_RE.test(x) ? 'thai' : undefined}>{x}</span>)}</div> : null}
         <SocialPills ig={p.ig} tt={p.tt} slot={p.slot} compact={p.compact} />
@@ -136,7 +142,7 @@ const Confetti = () => (
  * Editing: same live card, plus the optional fields, "Save my card".
  */
 export function V5MintSheet(props: {
-  L: Tx; Lf: Txf; card: (V5Card & { tiktok_handle?: string | null; member_no?: number | null }) | null; uiLang: string;
+  L: Tx; Lf: Txf; card: (V5Card & { tiktok_handle?: string | null; member_no?: number | null; gender?: string | null; show_gender?: boolean | null }) | null; uiLang: string;
   onSaved: (me: V5Me) => void; onClose: () => void; toast: (m: string) => void; onAfter: (what: 'share' | 'reel' | 'close', no: number | null) => void;
 }) {
   const { L, Lf, card } = props;
@@ -148,6 +154,9 @@ export function V5MintSheet(props: {
   const [ig, setIg] = useState<string | null>(card?.ig_handle || null);
   const [tt, setTt] = useState<string | null>(card?.tiktok_handle || null);
   const [area, setArea] = useState(card?.area || 'Bangkok');
+  // optional, never pre-filled: a new card starts with nothing chosen and "show" off
+  const [gender, setGender] = useState<Gender | null>(isGender(card?.gender) ? card.gender : null);
+  const [showGender, setShowGender] = useState<boolean>(isGender(card?.gender) && card?.show_gender === true);
   const [who, setWho] = useState<'local' | 'traveller'>(card?.who || (props.uiLang === 'th' || v5StoredRef() ? 'local' : 'traveller'));
   const [photo, setPhoto] = useState<string | null>(null);
   const [ageOk, setAgeOk] = useState(false);
@@ -194,6 +203,12 @@ export function V5MintSheet(props: {
         const at = await v5AcceptTerms().catch(() => null);
         if (at && me.card) me.card = { ...me.card, terms_accepted_at: at, terms_version: V5_TERMS_VERSION };
       }
+      // gender is its own small call so the card is saved even if this one fails; only sent when something changed
+      const gp = genderPayload(gender, showGender);
+      if (gp.gender !== (isGender(card?.gender) ? card.gender : null) || gp.show !== (card?.show_gender === true)) {
+        try { const r = await kxSetGender(gp.gender, gp.show); if (me.card) me.card = { ...me.card, gender: r.gender, show_gender: r.show_gender } as V5Card; }
+        catch { props.toast(L('Card saved. We couldn’t save “I am” this time, try again from Edit profile.')); }
+      } else if (me.card) me.card = { ...me.card, gender: gp.gender, show_gender: gp.show } as V5Card;
       if (isNew) {
         let linkErr = '';
         if (ig) { try { const h = await v5SetIgHandle(ig); if (me.card) me.card = { ...me.card, ig_handle: h }; } catch (e) { linkErr = errText(e); setIg(null); } }
@@ -268,6 +283,7 @@ export function V5MintSheet(props: {
             </button>
           );
         })}
+        <GenderRow L={L} value={gender} show={showGender} disabled={busy} onChange={(g, sh) => { setGender(g); setShowGender(sh); }} />
         {!more && (
           <button type="button" className="kx-more" id="v5More" onClick={() => setMore(true)}>{L('More about you (optional) ›')}</button>
         )}

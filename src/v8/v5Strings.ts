@@ -2264,6 +2264,15 @@ export const KX_L: Record<string, Record<string, string>> = {
     'Your redeem link': 'ลิงก์รับรางวัลของคุณ',
     'Copy link': 'คัดลอกลิงก์',
     'Link copied': 'คัดลอกลิงก์แล้ว',
+    // optional gender on the card (15 Nov). กะเทย: the everyday word, listed as fine to use in Thai media guidance; สาวประเภทสอง is the dated one.
+    'I am': 'ฉันเป็น',
+    'Male': 'ชาย',
+    'Female': 'หญิง',
+    'Kathoey': 'กะเทย',
+    'Prefer not to say': 'ไม่ระบุ',
+    'Show on my card': 'โชว์บนการ์ดของฉัน',
+    'Optional. You choose whether it shows on your card.': 'ไม่ใส่ก็ได้ คุณเลือกเองว่าจะโชว์บนการ์ดไหม',
+    'Card saved. We couldn’t save “I am” this time, try again from Edit profile.': 'บันทึกการ์ดแล้ว แต่ยังบันทึก “ฉันเป็น” ไม่ได้ ลองใหม่ที่แก้ไขโปรไฟล์นะ',
     // go-live build (15 Nov): player, profile grid, compose, claim choice, coach marks, People + Deals headers
     'Reels': 'รีล',
     'Travellers': 'นักท่องเที่ยว',

@@ -46,7 +46,8 @@
     <script>
       if ('serviceWorker' in navigator && navigator.serviceWorker) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker?.register?.('sw.js')?.catch(() => {});
+          // updateViaCache 'none': the browser never uses its HTTP cache for the worker file, whatever cache header the CDN puts on it
+          navigator.serviceWorker?.register?.('sw.js', { updateViaCache: 'none' })?.then?.((r) => r.update?.())?.catch(() => {});
         });
       }
     </script>

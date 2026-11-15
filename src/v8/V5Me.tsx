@@ -95,7 +95,7 @@ export function MemberCard(props: { L: Tx; Lf: Txf; p: V5Profile; rank: number |
 }
 
 /** N2 neon card (locked 14 Nov): full photo, small name, LV + #member number, IG / TikTok pills. Level from lifetime Rings. */
-export function KxMemberCard(props: { L: Tx; Lf: Txf; p: V5Profile; kx: KxCardExtras | null | undefined; compact?: boolean }) {
+export function KxMemberCard(props: { L: Tx; Lf: Txf; p: V5Profile; kx: KxCardExtras | null | undefined; compact?: boolean; gender?: string | null }) {
   const { L, Lf, p, kx } = props;
   const langs = (p.langs || []).slice(0, 2).map((c) => L(LANG_NAME[c] || c)).join(' · ');
   const where = L(p.area === 'Bangkok' ? 'Bangkok' : p.area);
@@ -104,7 +104,7 @@ export function KxMemberCard(props: { L: Tx; Lf: Txf; p: V5Profile; kx: KxCardEx
     <div className={`kx-mecard${props.compact ? ' compact' : ''}`}>
       <NeonCard L={L} id={p.mine ? 'meCard' : 'profileCard'} photo={p.photo} name={p.first_name} level={kx?.level ?? lv.n} no={kx?.member_no ?? null}
         ig={kx ? kx.ig_handle : p.ig_handle} tt={kx?.tiktok_handle ?? null} size="me" compact={props.compact}
-        founding={kx?.founding_no ?? null}
+        founding={kx?.founding_no ?? null} gender={props.gender ?? null}
         sub={[where, langs].filter(Boolean).join(' · ') + (p.verified ? ` · ✓ ${L('verified')}` : '')}
         pts={[L(lv.key).toLocaleUpperCase(), lv.nextKey ? Lf('{0} → {1}', fmtN(lv.toNext), L(lv.nextKey).toLocaleUpperCase()) : L('Top level')]} />
     </div>
@@ -171,7 +171,7 @@ export function MeView(props: {
   kx?: KxCardExtras | null; weekRank?: number | null; onRings?: () => void; onRanking?: () => void; ringsDot?: boolean;
   rankLine?: string; saved?: { count: number; thumbs: string[] } | null; onSavedReels?: () => void; onLink?: () => void;
   /** go-live build: the "Reels" / "Saved" tabs + grid; replaces the old saved row, the Reel strip and the long text blocks */
-  reelsSlot?: React.ReactNode; onReplay?: () => void;
+  reelsSlot?: React.ReactNode; onReplay?: () => void; gender?: string | null;
 }) {
   const { L, Lf, p } = props;
   const lv = p.level;
@@ -190,7 +190,7 @@ export function MeView(props: {
           </button>
         </span>
       </div>
-      <KxMemberCard L={L} Lf={Lf} p={p} kx={props.kx} />
+      <KxMemberCard L={L} Lf={Lf} p={p} kx={props.kx} gender={props.gender} />
       <div className="kx-tiles" id="kxTiles">
         <button type="button" className="kx-mtile rw" id="kxRingsTile" onClick={props.onRings}>
           {props.ringsDot || (props.kx?.prizes ?? 0) > 0 ? <i className="kx-tdot" aria-label={L('New')} /> : null}

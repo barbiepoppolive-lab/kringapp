@@ -226,6 +226,9 @@ export interface V5Card {
   terms_accepted_at?: string | null;
   terms_version?: string | null;
   interests?: string[];
+  /** optional, the member's own choice; show_gender = on their card for others */
+  gender?: string | null;
+  show_gender?: boolean | null;
 }
 export interface V5Me {
   card: V5Card | null;

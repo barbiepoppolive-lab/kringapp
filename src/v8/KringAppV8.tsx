@@ -98,7 +98,8 @@ import { ClaimedPage, ClaimPage, ResultPage, RewardsPage } from './V5KxRewards';
 import { baht, MathSheet, HowSheet, RankingPage } from './V5KxRanking';
 import { GoCoach, GoCompose, GoMeReels, GoProfilePage, GoReelPlayer, gridToGo, hlTags, savedToGo, type CoachSpot, type GoReel } from './V5Go';
 import { coachDue, coachMark, coachPick, coachReplay, coachSync, newCoachState, type CoachKey, type CoachState } from './goCoach';
-import { kxMemberReels, kxReelPeople, kxTagPeople, type KxGridReel, type KxMemberReels, type KxTagPerson } from './v5Kx';
+import { shownGender } from './V5Gender';
+import { kxGenderShown, kxMemberReels, kxReelPeople, kxTagPeople, type KxGridReel, type KxMemberReels, type KxTagPerson } from './v5Kx';
 import { FeedPlaceChips, PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, SavedReelsPage, type PickedPlace } from './V5KxPlaces';
 import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRanking, kxRefName, kxSavedReels, kxShareLink, kxShareLinkCached, kxShareOpenSeen,
   type KxCardExtras, type KxClaimResult, type KxFeedExtra, type KxPrize, type KxRanking, type KxRewards, type KxSavedReel, type KxWeekResult } from './v5Kx';
@@ -2378,6 +2379,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // ───────── go-live build (15 Nov): Reel player, profile grid, tagged people, one-time coach marks ─────────
   const [goPlayer, setGoPlayer] = useState<{ reels: GoReel[]; start: number; viewProfile?: { id: string; name: string; photo: string | null } | null; title?: string } | null>(null);
   const [goOtherReels, setGoOtherReels] = useState<KxMemberReels | null>(null);
+  const [goOtherGender, setGoOtherGender] = useState<string | null>(null);
   const [goMine, setGoMine] = useState<KxGridReel[] | null>(null);
   const [goMeTab, setGoMeTab] = useState<'reels' | 'saved'>('reels');
   const [goDealF, setGoDealF] = useState<'all' | 'perks' | 'trip'>('all');
@@ -2558,6 +2560,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       setOtherRank(null);
       setKxOther(null);
       kxCardExtras(id).then(setKxOther).catch(() => undefined);
+      setGoOtherGender(null);
+      void kxGenderShown(id).then(setGoOtherGender);
       setGoOtherReels(null);
       kxMemberReels(id).then(setGoOtherReels).catch(() => setGoOtherReels({ user_id: id, mine: false, best: null, reels: [] }));
       setSheet('profile');
@@ -4344,6 +4348,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onReel={openReelFromProfile}
               onPost={() => kxPostAt()}
               onVerify={() => setSheet('verify')}
+              gender={shownGender(v5Card)}
               onReplay={() => { void coachReplay(coachRef.current, true).then(() => { setTab('feed'); showToast(L('Intro is on again')); }); }}
               reelsSlot={(
                 <GoMeReels L={L} Lf={Lf} mine={goMine} saved={kxSaved} tab={goMeTab} onTab={(k) => { setGoMeTab(k); if (k === 'saved') void kxLoadSaved(); }}
@@ -6689,7 +6694,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             }} />
         )}
         {sheet === 'profile' && otherProfile && (
-          <GoProfilePage L={L} Lf={Lf} lang={lang} p={otherProfile} reels={goOtherReels} busy={followBusy}
+          <GoProfilePage L={L} Lf={Lf} lang={lang} p={otherProfile} reels={goOtherReels} busy={followBusy} gender={goOtherGender}
             onBack={() => setSheet(null)}
             onList={(k) => openFollowList(otherProfile, k)}
             onFollow={() => void handleProfileFollow()}

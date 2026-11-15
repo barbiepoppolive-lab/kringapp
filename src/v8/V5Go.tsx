@@ -13,6 +13,7 @@ import { kxTagCandidates, type KxCardExtras, type KxGridReel, type KxMemberReels
 import { signReelPaths, type ReelInfo } from './v5Reel';
 import { KxMemberCard } from './V5Me';
 import { RingGlyph, SocialPills } from './V5KxCard';
+import { GenderChip } from './V5Gender';
 import type { V5Profile } from './v5Live';
 import type { PickedPlace } from './V5KxPlaces';
 
@@ -270,7 +271,7 @@ export function GoMeReels(props: {
 export function GoProfilePage(props: {
   L: Tx; Lf: Txf; lang: string; p: V5Profile; kx: KxCardExtras | null | undefined; reels: KxMemberReels | null; busy: boolean;
   onBack: () => void; onFollow: () => void; onHi: () => void; onReport: () => void; onBlock: () => void; onShare: () => void;
-  onList: (k: 'followers' | 'following') => void; onOpen: (i: number) => void; onMath: () => void;
+  onList: (k: 'followers' | 'following') => void; onOpen: (i: number) => void; onMath: () => void; gender?: string | null;
 }) {
   const { L, p } = props;
   const [menu, setMenu] = useState(false);
@@ -296,6 +297,7 @@ export function GoProfilePage(props: {
           <div>
             <div className="go-pname">{p.first_name}{p.verified ? <i aria-label={L('verified')}>✓</i> : null}</div>
             <div className="go-psub">{p.who === 'traveller' ? L('Traveller') : `Kring Local · ${L(p.area)}`}</div>
+            {props.gender ? <div className="go-pg" id="profileGender"><GenderChip L={L} gender={props.gender} /></div> : null}
           </div>
           <button type="button" className="go-score big" id="profileScore" aria-label={L('See the math')} onClick={props.onMath}>
             <RingGlyph /><b>{fmtN(props.kx?.week ?? 0)}</b><span>{L('this week')}</span></button>

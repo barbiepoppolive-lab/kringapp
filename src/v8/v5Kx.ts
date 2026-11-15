@@ -148,3 +148,8 @@ export const kxReelPeople = (ids: string[]) =>
 export const kxCoachState = () => rpc<string[]>('kr8_coach_state');
 export const kxCoachSeen = (key: string) => rpc<boolean>('kr8_coach_seen', { p_key: key }).catch(() => false);
 export const kxCoachReset = () => rpc<number>('kr8_coach_reset').catch(() => 0);
+
+// ───────────── optional gender on the card (0050) ─────────────
+export const kxSetGender = (gender: string | null, show: boolean) => rpc<{ gender: 'male' | 'female' | 'kathoey' | null; show_gender: boolean }>('kr8_set_gender', { p_gender: gender, p_show: show });
+/** Someone's gender, only if they chose to show it on their card (otherwise null). */
+export const kxGenderShown = (user: string) => rpc<string | null>('kr8_gender_shown', { p_user: user }).catch(() => null);
