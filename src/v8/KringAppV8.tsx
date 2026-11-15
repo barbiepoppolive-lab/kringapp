@@ -109,6 +109,7 @@ import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, sh
 import { V5ReelVideo, toggleReelSound } from './V5ReelVideo';
 import { installZoomGuard } from './zoomGuard';
 import { installKeyboardFocus } from './keyboardFocus';
+import { clearSignInDraft, loadSignInDraft, saveSignInDraft } from './signInDraft';
 import { installVersionWatch } from './appVersion';
 import { checkReel, createReel, makeAudio, prepareReel, ReelError, uploadReel, type ReelInfo, type ReelReady, type UploadedReel } from './v5Reel';
 
@@ -1104,6 +1105,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       : (({ hi: 'INR', zh: 'CNY', ja: 'JPY', ko: 'KRW' } as Record<string, V8UserAccount['currency']>)[lang] || 'USD');
   const [signInNotice, setSignInNotice] = useState<string>('');
   const pendingActionRef = useRef<(() => void) | null>(null);
+  const draftDoneRef = useRef(false);   // N: the draft was already used on this page (email-code sign-in) or restored
 
   // Navigation & Sheets (all sheets closed by default)
   const [tab, setTab] = useState<V8Tab>(initialTab || 'feed');
@@ -1378,7 +1380,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         showToast(L('Signed in · กริ๊ง!'));
         const next = pendingActionRef.current;
         pendingActionRef.current = null;
-        if (next) setTimeout(() => next(), 60);
+        if (next) { draftDoneRef.current = true; void clearSignInDraft(); setTimeout(() => next(), 60); }
       }
     } catch (e) {
       showToast(v5Msg(e));
@@ -1580,6 +1582,31 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
   // V5: inbox + live chat (Realtime, with a polling fallback when the socket is not up).
   useEffect(() => { if (live && v5Uid && v5Card) a2hsSignedInVisit(); }, [live, v5Uid, !!v5Card]);   // J5: second visit on another day
+  // N: after a sign-in that left the page (LINE / Google), put the visitor's Reel draft or greeting back
+  useEffect(() => {
+    if (!live || !v5Uid || !v5Card || draftDoneRef.current) return;
+    draftDoneRef.current = true;
+    if (pendingActionRef.current) { void clearSignInDraft(); return; }
+    void loadSignInDraft().then(async (got) => {
+      if (!got) return;
+      await clearSignInDraft();
+      const d = got.draft;
+      if (d.kind === 'hi' && d.hi) {
+        setHiTarget({ name: d.hi.name, img: d.hi.img, context: d.hi.context, id: d.hi.id });
+        setHiMessage(d.hi.message);
+        setHiError('');
+        setSheet('hi');
+      } else if (d.kind === 'reel') {
+        if (got.video) { try { setReelInfo(await checkReel(got.video)); } catch { /* the member picks the clip again */ } }
+        setPostCaption(d.caption || '');
+        if (d.places?.length) setPostPlaces(d.places);
+        if (d.area) setPostArea(d.area);
+        setPostHereNow(!!d.here);
+        setSheet('post');
+      }
+      showToast(L('Your draft is back · กริ๊ง!'));
+    }).catch(() => undefined);
+  }, [live, v5Uid, !!v5Card]);
   useEffect(() => {
     if (!live || !v5Uid || !v5Card) return;
     let off: (() => void) | undefined;
@@ -1836,6 +1863,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       }
       const target = hiTarget;
       const body = hiMessage.trim();
+      if (!signedIn) void saveSignInDraft({ kind: 'hi', hi: { ...target, message: hiMessage } });   // N
       requireSignInForAction(() =>
         void v5Once('hello', async () => {
           if (!target.id || target.id === v5LastUid.current) {
@@ -2861,6 +2889,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   };
   const handlePublishPost = () => {
     if (live) {
+      if (!signedIn) void saveSignInDraft({ kind: 'reel', caption: postCaption, places: postPlaces, area: postArea, here: postHereNow }, reelInfo?.file);   // N
       requireSignInForAction(() =>
         void v5Once('post', async () => {
           const cap = postCaption.trim();
