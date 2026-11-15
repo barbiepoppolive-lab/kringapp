@@ -60,3 +60,32 @@ a.ktk-ghost { text-decoration: none; display: inline-block; }
 .a2hs-go { border: 0; border-radius: 999px; background: #FF4FA3; color: #fff; font: 800 14px 'Anuphan', sans-serif; padding: 9px 16px; cursor: pointer; }
 .a2hs-x { border: 0; background: transparent; color: #fff; font-size: 22px; opacity: .7; cursor: pointer; padding: 0 4px; }
 .a2hs a.a2hs-go { text-decoration: none; white-space: nowrap; }
+
+/* J (15 Nov): install sheet */
+.a2s-wrap { position: fixed; inset: 0; z-index: 96; display: flex; align-items: flex-end; justify-content: center; }
+.a2s-scrim { position: absolute; inset: 0; border: 0; background: rgba(5,4,12,.62); }
+.a2s { position: relative; width: 100%; max-width: 480px; box-sizing: border-box; padding: 10px 20px calc(18px + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0;
+  background: #14111f; color: #fff; box-shadow: 0 -10px 40px rgba(0,0,0,.5); text-align: center; animation: a2sUp .28s ease-out; font-family: inherit; }
+@keyframes a2sUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+.a2s-grab { display: block; width: 40px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.22); margin: 0 auto 14px; }
+.a2s-icon { position: relative; display: block; width: 72px; height: 72px; margin: 0 auto 12px; border-radius: 18px; background: radial-gradient(circle at 50% 120%, #1d2a8a 0, #0b0a12 60%); box-shadow: 0 6px 20px rgba(0,0,0,.4), inset 0 0 0 1px rgba(255,255,255,.08); }
+.a2s-icon i { position: absolute; top: 22px; width: 26px; height: 26px; border-radius: 50%; border: 4px solid #7381FF; box-sizing: border-box; }
+.a2s-icon i:first-child { left: 14px; }
+.a2s-icon i:last-child { left: 31px; border-color: #FF4FA3; }
+.a2s h2 { margin: 0 0 10px; font-size: 19px; line-height: 1.35; font-weight: 800; }
+.a2s-why { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 6px; color: #cfcbe6; font-size: 14px; font-weight: 600; }
+.a2s-go { display: flex; align-items: center; justify-content: center; width: 100%; height: 52px; border: 0; border-radius: 26px; background: linear-gradient(90deg, #5b6cff, #ff4fa3); color: #fff; font: inherit; font-size: 16px; font-weight: 800; text-decoration: none; }
+.a2s-later { margin-top: 8px; width: 100%; height: 44px; border: 0; background: none; color: #a7a2c4; font: inherit; font-size: 14.5px; font-weight: 700; }
+.a2s-step { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; text-align: left; font-size: 14.5px; font-weight: 700; }
+.a2s-step b { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: #5b6cff; font-size: 13px; }
+.a2s-step.dim { color: #a7a2c4; }
+.a2s-step.dim b { background: rgba(255,255,255,.14); }
+.a2s-ios { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.a2s-pic { padding: 14px 8px 10px; border-radius: 16px; background: rgba(255,255,255,.06); display: grid; justify-items: center; gap: 8px; }
+.a2s-pic small { font-size: 12.5px; font-weight: 700; color: #e8e5f7; line-height: 1.35; }
+.a2s-pic .share { width: 30px; height: 34px; background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 28' fill='none' stroke='%237a9cff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2v15M7 7l5-5 5 5M5 12H3v14h18V12h-2'/%3E%3C/svg%3E"); }
+.a2s-pic .plus { width: 34px; height: 34px; border-radius: 9px; border: 2px solid #7a9cff; display: grid; place-items: center; color: #7a9cff; font-size: 20px; font-weight: 800; box-sizing: border-box; }
+.a2s-note { margin: 0 0 6px; font-size: 12.5px; line-height: 1.45; color: #ffd36b; font-weight: 600; }
+/* J1: new version chip */
+.kr-upd { position: fixed; left: 50%; transform: translateX(-50%); top: calc(10px + env(safe-area-inset-top)); z-index: 97; height: 36px; padding: 0 16px; border: 0; border-radius: 18px;
+  background: #5b6cff; color: #fff; font: inherit; font-size: 13.5px; font-weight: 800; box-shadow: 0 6px 18px rgba(0,0,0,.35); }

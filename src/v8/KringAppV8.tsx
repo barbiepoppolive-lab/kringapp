@@ -85,7 +85,7 @@ import {
 import { ActivitySheet, FollowSheet, InterestsSheet, MeView, Top10Sheet } from './V5Me';
 import { V5VerifySheet } from './V5Verify';
 import { StandHowSheet, V5TicketSheet } from './V5Ticket';
-import { A2HSBanner, a2hsFirstValue } from './A2HS';
+import { A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit } from './A2HS';
 import { TripPerks } from './V5Trip';
 import { StayDo } from './V5StayDo';
 import { v5MyVerification } from './v5Live';
@@ -108,6 +108,7 @@ import { V5Qr, V5SignInSheet } from './V5Sheets';
 import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, showFirstReelChip } from './V5ReelNudge';
 import { V5ReelVideo, toggleReelSound } from './V5ReelVideo';
 import { installZoomGuard } from './zoomGuard';
+import { installVersionWatch } from './appVersion';
 import { checkReel, createReel, makeAudio, prepareReel, ReelError, uploadReel, type ReelInfo, type ReelReady, type UploadedReel } from './v5Reel';
 
 const V9_L: Record<string, Record<string, string>> = {
@@ -1035,6 +1036,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     return 'en';
   });
   useEffect(() => installZoomGuard(), []);   // F: pinching a Reel never leaves the app zoomed in
+  const busyRef = useRef(false);
+  const [updateReady, setUpdateReady] = useState(false);
+  useEffect(() => installVersionWatch(import.meta.env.BASE_URL || '/app/', () => busyRef.current, () => setUpdateReady(true)), []);   // J1
   useEffect(() => {
     try {
       document.documentElement.lang = lang;   // A-17: screen readers read Thai as Thai
@@ -1263,6 +1267,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [reelInfo, setReelInfo] = useState<ReelInfo | null>(null);
   const [reelProblem, setReelProblem] = useState<string>('');
   const [reelStage, setReelStage] = useState<'idle' | 'preparing' | 'uploading' | 'saving' | 'failed'>('idle');
+  busyRef.current = ['preparing', 'uploading', 'saving'].includes(reelStage) || sheet !== null;   // J1: never reload mid-upload / claim / chat
   const [reelProgress, setReelProgress] = useState(0);
   const reelWorkRef = useRef<{ ready?: ReelReady; up?: UploadedReel & { done: string[] } }>({});
   const [postKind, setPostKind] = useState<'post' | 'story'>('post');
@@ -1572,6 +1577,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   }, [live]);
 
   // V5: inbox + live chat (Realtime, with a polling fallback when the socket is not up).
+  useEffect(() => { if (live && v5Uid && v5Card) a2hsSignedInVisit(); }, [live, v5Uid, !!v5Card]);   // J5: second visit on another day
   useEffect(() => {
     if (!live || !v5Uid || !v5Card) return;
     let off: (() => void) | undefined;
@@ -2383,7 +2389,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [goPeople, setGoPeople] = useState<Record<string, KxTagPerson[]>>({});
   const [coachSpot, setCoachSpot] = useState<CoachSpot | null>(null);
   const coachRef = useRef<CoachState>(newCoachState());
-  const goLoadMine = () => { if (v5Uid) kxMemberReels(v5Uid).then((r) => setGoMine(r.reels || [])).catch(() => setGoMine((x) => x || [])); };
+  const goLoadMine = () => { if (v5Uid) kxMemberReels(v5Uid).then((r) => { setGoMine(r.reels || []); if ((r.reels || []).some((x) => x.status === 'approved')) a2hsMoment('reel_approved'); }).catch(() => setGoMine((x) => x || [])); };
   const goOpenPlayer = (reels: GoReel[], start: number, extra: { viewProfile?: { id: string; name: string; photo: string | null } | null; title?: string } = {}) => {
     if (!reels.length) return;
     setGoPlayer({ reels, start, ...extra });
@@ -6401,7 +6407,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             </div>
           </div>
         )}
-        {live && !sheet && <A2HSBanner L={L} />}
+        {live && !sheet && <A2HSBanner L={L} blocked={['preparing', 'uploading', 'saving'].includes(reelStage)} />}
+        {updateReady ? <button type="button" className="kr-upd" id="appUpdate" onClick={() => location.reload()}>{L('New update · tap to refresh')}</button> : null}
         {sheet === 'standhow' && standHowDeal && (
           <StandHowSheet L={L} venue={dealVenue(standHowDeal)} area={standHowDeal.area} treat={dealMain(standHowDeal)} mapsUrl={standHowDeal.mapsUrl}
             busy={hereBusy} onHere={() => openHerePass(standHowDeal)} onClose={() => setSheet(null)} />
@@ -6486,6 +6493,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {sheet === 'claim' && live && (
           <ClaimPage L={L} Lf={Lf} lang={lang} data={kxRewards} prize={kxPrizeSel} toast={showToast} onBack={() => setSheet('rewards')}
             onDone={(r: KxClaimResult) => {
+              a2hsMoment('claim');   // J: install nudge after a claim (shows once the claim screen is closed)
               void kxLoadRewards();
               setKxReady(false);
               setKxClaimFocus({ id: r.claim_id, fresh: r.status === 'assigned' });

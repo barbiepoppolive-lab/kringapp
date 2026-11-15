@@ -1,29 +1,52 @@
 // T-206: install prompt only after the first value, never on first open, 7-day dismiss, in-app browsers redirected.
 import { beforeEach, describe, expect, it } from 'vitest';
-import { A2HS_SNOOZE_MS, a2hsAfter, a2hsDismissed, a2hsFirstValue, a2hsShouldShow, externalBrowserUrl, inAppBrowser } from './A2HS';
+import { A2HS_SNOOZE_MS, a2hsAfter, a2hsDismissed, a2hsFirstValue, a2hsShouldShow, a2hsVariant, a2hsVisit, bkkDay, externalBrowserUrl, inAppBrowser } from './A2HS';
 
 const T0 = Date.parse('2026-11-11T10:00:00+07:00');
 
 describe('install prompt trigger', () => {
-  beforeEach(() => localStorage.clear());
-  it('never on first open: nothing to show until a first-value action', () => {
+  beforeEach(() => { localStorage.clear(); sessionStorage.clear(); });
+  it('never on first open: nothing to show until a trigger', () => {
     expect(a2hsShouldShow({}, T0, false)).toBe(false);
   });
   it('first save, hello or Reel makes it due; only the first one counts', () => {
     const s1 = a2hsAfter({}, 'hello', T0);
-    expect(s1).toEqual({ due: T0, by: 'hello' });
+    expect(s1).toMatchObject({ due: T0, by: 'hello' });
     expect(a2hsAfter(s1, 'reel', T0 + 5000)).toBe(s1);
     expect(a2hsShouldShow(s1, T0 + 1, false)).toBe(true);
   });
-  it('never inside the installed app', () => {
+  it('J: a claim always re-arms it; first approved Reel counts once', () => {
+    const d = a2hsDismissed(a2hsAfter({}, 'reel_approved', T0), T0 + 1);
+    expect(a2hsAfter(d, 'reel_approved', T0 + 2)).toBe(d);
+    expect(a2hsAfter(d, 'claim', T0 + 2).due).toBe(T0 + 2);
+  });
+  it('never inside the installed app, never while something is open, once per session', () => {
     expect(a2hsShouldShow({ due: T0 }, T0 + 1, true)).toBe(false);
+    expect(a2hsShouldShow({ due: T0 }, T0 + 1, false, { blocked: true })).toBe(false);
+    expect(a2hsShouldShow({ due: T0 }, T0 + 1, false, { shownThisSession: true })).toBe(false);
   });
-  it('dismiss hides it for 7 days, then it may show again', () => {
+  it('"Later" hides it for 3 days and needs a new trigger after that', () => {
+    expect(A2HS_SNOOZE_MS).toBe(3 * 864e5);
     const d = a2hsDismissed({ due: T0, by: 'save' }, T0 + 10);
-    expect(a2hsShouldShow(d, T0 + 10 + A2HS_SNOOZE_MS - 1, false)).toBe(false);
-    expect(a2hsShouldShow(d, T0 + 10 + A2HS_SNOOZE_MS + 1, false)).toBe(true);
+    expect(a2hsShouldShow(d, T0 + 10 + A2HS_SNOOZE_MS + 1, false)).toBe(false);
+    const again = a2hsAfter(d, 'claim', T0 + 10 + A2HS_SNOOZE_MS - 5);
+    expect(a2hsShouldShow(again, T0 + 10 + A2HS_SNOOZE_MS - 1, false)).toBe(false);
+    expect(a2hsShouldShow(again, T0 + 10 + A2HS_SNOOZE_MS + 1, false)).toBe(true);
   });
-  it('a2hsFirstValue stores the first trigger once and tells the banner', () => {
+  it('J5: second visit on a different Bangkok day, never on the first', () => {
+    const s1 = a2hsVisit({}, T0);
+    expect(s1.due).toBeUndefined();
+    expect(a2hsVisit(s1, T0 + 3600_000).due).toBeUndefined();          // same day
+    expect(a2hsVisit(s1, T0 + 864e5).by).toBe('second_day');
+    expect(bkkDay(Date.parse('2026-11-15T17:30:00Z'))).toBe('2026-11-16'); // 00:30 in Bangkok
+  });
+  it('variant: in-app first, then Android prompt, iPhone steps, other menu', () => {
+    expect(a2hsVariant('Mozilla/5.0 (iPhone) Safari Line/14.1.0', true)).toBe('inapp-line');
+    expect(a2hsVariant('Mozilla/5.0 (Linux; Android 14) Chrome/131 Mobile', true)).toBe('android');
+    expect(a2hsVariant('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Version/17.0 Mobile/15E148 Safari/604.1', false)).toBe('ios');
+    expect(a2hsVariant('Mozilla/5.0 (Linux; Android 14) SamsungBrowser/25 Mobile', false)).toBe('menu');
+  });
+  it('a2hsFirstValue stores the first trigger once and tells the sheet', () => {
     let pings = 0;
     const on = () => { pings++; };
     window.addEventListener('kr8-a2hs', on);

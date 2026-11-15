@@ -15,9 +15,21 @@ function kringNoindex(): Plugin {
   }
 }
 
+/** J1: one version string per build, baked into the bundle and written to /app/version.json (served no-cache). */
+const RELEASE = 'kring-web@' + new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')
+function kringVersionFile(): Plugin {
+  return {
+    name: 'kring-version-file',
+    apply: 'build',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ v: RELEASE }) + '\n' })
+    },
+  }
+}
+
 export default defineConfig({
-  define: { __KR8_RELEASE__: JSON.stringify('kring-web@' + new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')) },
-  plugins: [react(), kringNoindex()],
+  define: { __KR8_RELEASE__: JSON.stringify(RELEASE) },
+  plugins: [react(), kringNoindex(), kringVersionFile()],
   server: {
     allowedHosts: ['localhost', '127.0.0.1', 'kringapp.com', 'www.kringapp.com'],
     watch: {
