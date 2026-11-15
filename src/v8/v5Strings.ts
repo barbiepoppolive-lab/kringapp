@@ -2107,6 +2107,8 @@ export const KX_L: Record<string, Record<string, string>> = {
     'All Bangkok': 'ทั่วกรุงเทพฯ',
     '{0} → LV {1}': 'อีก {0} → LV {1}',
     '{0} → {1}': 'อีก {0} → {1}',
+    '{0} more Rings → {1}': 'อีก {0} ริง → {1}',
+    'Top level': 'เลเวลสูงสุด',
     // levels (LV 1 LOCAL → LV 5 LEGEND)
     'Local': 'โลคอล',
     'Explorer': 'นักสำรวจ',
@@ -2285,6 +2287,7 @@ export const KX_L: Record<string, Record<string, string>> = {
     'This browser can’t open this clip. Fix: save it to your phone first (not only in the cloud), or send it to yourself in LINE and pick that copy.': 'เบราว์เซอร์นี้เปิดคลิปนี้ไม่ได้ · วิธีแก้: บันทึกคลิปลงเครื่องก่อน (ไม่ใช่แค่อยู่บนคลาวด์) หรือส่งคลิปให้ตัวเองใน LINE แล้วเลือกคลิปนั้น',
     'Reels can be up to 30 seconds for now. Trim it and try again.': 'ตอนนี้รีลยาวได้ไม่เกิน 30 วินาที · ตัดให้สั้นลงแล้วลองใหม่',
     'The upload didn’t finish. Tap Post again.': 'อัปโหลดยังไม่เสร็จ · กดโพสต์อีกครั้ง',
+    'Close your eyes fully, then open them': 'หลับตาให้สนิท แล้วค่อยลืมตา',
     'This file is empty (0 KB). Save the clip to your phone first, then pick it again.': 'ไฟล์นี้ว่างเปล่า (0 KB) · บันทึกคลิปลงเครื่องก่อน แล้วเลือกใหม่อีกครั้ง',
     // 15 Nov: add a place that isn't on Kring yet (0054)
     'Add ‘{0}’ as a new place': 'เพิ่ม ‘{0}’ เป็นสถานที่ใหม่',
