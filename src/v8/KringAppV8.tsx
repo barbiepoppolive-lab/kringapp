@@ -83,7 +83,7 @@ import {
   v5SyncAttribution,
   v5StoredRef,
 } from './v5Live';
-import { ActivitySheet, FollowSheet, InterestsSheet, MeView, Top10Sheet } from './V5Me';
+import { ActivitySheet, FollowSheet, InterestsSheet, LANG_NAME, MeView, Top10Sheet } from './V5Me';
 import { V5VerifySheet } from './V5Verify';
 import { StandHowSheet, V5TicketSheet } from './V5Ticket';
 import { A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip } from './A2HS';
@@ -1061,6 +1061,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const L = (en: string): string =>
     ((V5_L[lang] && V5_L[lang][en]) || (KX_L[lang] && KX_L[lang][en]) || (V9_L[lang] && V9_L[lang][en]) || (QA_L[lang] && QA_L[lang][en]) || en).replace(/&amp;/g, '&');
   const Lf = (en: string, a: string, b = ''): string => L(en).replace('{0}', a).replace('{1}', b);
+  /** "TH · EN" → "ไทย · อังกฤษ" in the member's language (polish #11: no stray English codes in a Thai line) */
+  const langWords = (codes: string) => codes.split(/\s*·\s*/).filter(Boolean).map((c) => L(LANG_NAME[c.toUpperCase()] || c)).join(' · ');
   /** Real partner deals (0023) carry their own words in baht; Thai screens show Thai with English under it. */
   const dealMain = (d: V8Deal): string => (lang === 'th' ? d.dealTh || d.dealEn : d.dealEn) || '';
   const dealSub = (d: V8Deal): string => (lang === 'th' && d.dealTh && d.dealEn ? d.dealEn : '');
@@ -3637,7 +3639,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                           openSayHi(
                             p.name || 'Member',
                             p.av || initialAvatar(p.name),
-                            `${Lf('Replying to {0} post', p.area || 'Bangkok')} · ${Lf('Speaks {0}', p.langs || 'TH · EN')}`,
+                            `${Lf('Replying to {0} post', kxArea(lang, p.area || 'Bangkok', L))} · ${Lf('Speaks {0}', langWords(p.langs || 'TH · EN'))}`,
                 (p as { authorId?: string }).authorId
               )
                         }
@@ -3763,9 +3765,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             {live ? (
             <div className="go-tabh" style={{ padding: 0 }}>
               <h1 className="ppl-title" id="goPeopleTitle">{L('People')}</h1>
-              <p>{L('Make new friends in Bangkok. Tap a card to see their Reels.')}</p>
               <div className="go-fch" id="goPeopleChips">
-                {([['', L('Everyone')], ['local', 'Kring Locals'], ['traveller', L('Travellers')]] as const).map(([k, label]) => (
+                {([['', L('Everyone')], ['local', L('Kring Locals')], ['traveller', L('Travellers')]] as const).map(([k, label]) => (
                   <button type="button" key={k || 'all'} data-who={k || 'all'} className={filterWho === k ? 'on' : ''} aria-pressed={filterWho === k} onClick={() => setFilterWho(k)}>{label}</button>
                 ))}
               </div>
@@ -4655,9 +4656,6 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 <div className="sub">{hiTarget.context}</div>
               </div>
             </div>
-            <div className="hi-note">
-              <b>{L("One-message rule:")}</b> {t.oneMessageRule} ({Lf('{0} of 15 daily hellos left today · no external links or phone numbers', String(Math.max(0, 15 - dailyHelloCount)))})
-            </div>
             <div className="openers">
               {[
                 Lf('Hi {0}! Around for an iced coffee or short walk today?', hiTarget.name),
@@ -4710,6 +4708,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             >
               {t.sendHello}
             </button>
+            {/* polish #11: the one-message rule as one grey line */}
+            <p className="hi-rule" id="hiRule">{Lf('1 hello · when they reply, chat opens · {0} left today', String(Math.max(0, 15 - dailyHelloCount)))}</p>
           </div>
         )}
 
@@ -6107,7 +6107,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 <span>{L('App language')}</span><em>{({ en: 'English', th: 'ไทย', zh: '中文', hi: 'हिन्दी', ja: '日本語', ko: '한국어' } as Record<string, string>)[lang]} ›</em>
               </div>
               {langOpen && (
-                <div className="sub fchips">
+                <div className="sub fchips lang-grid">
                   {([['en', 'English'], ['th', 'ไทย'], ['zh', '中文'], ['hi', 'हिन्दी'], ['ja', '日本語'], ['ko', '한국어']] as const).map(([code, label]) => (
                     <button type="button" key={code} data-app-lang={code} className={`fchip ${lang === code ? 'on' : ''}`} onClick={() => setLang(code)}>{label}</button>
                   ))}
@@ -6133,7 +6133,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 <span>{L('Help and contact')}</span><em>ops@kringapp.com ›</em>
               </a>
               <div className="srow" role="button" tabIndex={0} id="setLegal" onClick={() => setLegalOpen((v) => !v)}>
-                <span>{L('Terms · Privacy · Partner terms')}</span><em>›</em>
+                <span>{L('Legal & privacy')}</span><em>{legalOpen ? '⌄' : '›'}</em>
               </div>
               {legalOpen && (
                 <>
@@ -6173,7 +6173,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <div className="safe-list">
               <div className="srow" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
                 <span style={{ fontWeight: 700 }}>{t.language}</span>
-                <div className="fchips">
+                <div className="fchips lang-grid">
                   {(
                     [
                       ['en', 'English'],
@@ -6256,18 +6256,18 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   <span>›</span>
                 </div>
               )}
-              <a className="srow" id="setTerms" href="/terms.html" target="_blank" rel="noopener" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <span>{L('Terms')}</span>
-                <span>↗</span>
-              </a>
-              <a className="srow" id="setPrivacy" href="/privacy.html" target="_blank" rel="noopener" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <span>{L('Privacy notice')}</span>
-                <span>↗</span>
-              </a>
-              <a className="srow" id="setPartnerTerms" href="/partner-terms.html" target="_blank" rel="noopener" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <span>{L('Partner terms')}</span>
-                <span>↗</span>
-              </a>
+              {/* polish #14: Terms / Privacy / Partner terms in one "Legal & privacy" row */}
+              <div className="srow" role="button" tabIndex={0} id="setLegal" onClick={() => setLegalOpen((v) => !v)}>
+                <span>{L('Legal & privacy')}</span>
+                <span>{legalOpen ? '⌄' : '›'}</span>
+              </div>
+              {legalOpen && (
+                <>
+                  <a className="srow sub-row" id="setTerms" href="/terms.html" target="_blank" rel="noopener" style={{ color: 'inherit', textDecoration: 'none' }}><span>{L('Terms')}</span><span>↗</span></a>
+                  <a className="srow sub-row" id="setPrivacy" href="/privacy.html" target="_blank" rel="noopener" style={{ color: 'inherit', textDecoration: 'none' }}><span>{L('Privacy notice')}</span><span>↗</span></a>
+                  <a className="srow sub-row" id="setPartnerTerms" href="/partner-terms.html" target="_blank" rel="noopener" style={{ color: 'inherit', textDecoration: 'none' }}><span>{L('Partner terms')}</span><span>↗</span></a>
+                </>
+              )}
               <a className="srow" id="setContact" href="mailto:ops@kringapp.com" style={{ color: 'inherit', textDecoration: 'none' }}>
                 <span>{L('Contact us')} · ops@kringapp.com</span>
                 <span>✉</span>
