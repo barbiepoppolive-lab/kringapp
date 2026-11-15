@@ -4,6 +4,7 @@
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(self), microphone=(self), geolocation=(self)
+  Content-Security-Policy: frame-ancestors 'self'
 
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
@@ -40,14 +41,23 @@
 /p/*
   X-Robots-Tag: noindex, nofollow
 
-/app/admin*
+# The app must never be framed by another site (clickjacking). frame-ancestors only works as a real header, not in the page's <meta> CSP.
+/app/*
   X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
+
+# The service worker must be re-checked on every visit, so a fix reaches installed phones at once.
+/app/sw.js
+  Cache-Control: no-cache, max-age=0, must-revalidate
+
+/app/admin*
+  X-Robots-Tag: noindex, nofollow
 
 /app/staff*
-  X-Frame-Options: DENY
+  X-Robots-Tag: noindex, nofollow
 
 /app/owner*
-  X-Frame-Options: DENY
+  X-Robots-Tag: noindex, nofollow
 
 /llms.txt
   Content-Type: text/plain; charset=utf-8
