@@ -67,10 +67,15 @@
   return C;
  }
  function start(tapped){if(started)return;started=true;clearTimeout(auto);if(tapped)bell();if(ready)go(tapped);else want=tapped?2:1}
- function go(tapped){clearTimeout(idleT);AN.forEach(function(x){try{x.finish()}catch(e){}});
+ function go(tapped){clearTimeout(idleT);if(tapped)AN.forEach(function(x){try{x.finish()}catch(e){}});
   if(RM){op.style.opacity='0';setTimeout(function(){op.classList.add('gone');done()},400);return}
-  op.classList.add('ring');setTimeout(function(){op.classList.add('wipe');done()},tapped?260:200);setTimeout(function(){op.classList.add('gone')},960)}
+  // deliberate exit: the words lift away, the rings part, then a slow circle closes onto the hero while the whole layer fades
+  var WP=1050,pre=tapped?200:260;
+  if(op.animate){[op.querySelector('.opt'),op.querySelector('.opc')].forEach(function(el){if(el)el.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-12px)'}],{duration:pre,easing:'cubic-bezier(.4,0,.8,.4)',fill:'forwards'})})}
+  op.classList.add('ring');op.classList.add('out');
+  setTimeout(function(){if(op.animate){var w=innerWidth,h=innerHeight,cx=w*.5,cy=h*.52,R=Math.ceil(Math.sqrt(Math.pow(Math.max(cx,w-cx),2)+Math.pow(Math.max(cy,h-cy),2)));op.style.transition='none';op.animate([{clipPath:'circle('+R+'px at 50% 52%)'},{clipPath:'circle(0px at 50% 52%)'}],{duration:WP,easing:'cubic-bezier(.5,0,.2,1)',fill:'forwards'});op.animate([{opacity:1},{opacity:1,offset:.55},{opacity:0}],{duration:WP,easing:'linear',fill:'forwards'})}else op.classList.add('wipe');done()},pre);
+  setTimeout(function(){op.classList.add('gone')},pre+WP+40)}
  var lk=RM?0:intro(); // reduced motion: the CSS fade-in is the whole (gentle) opening
  op.addEventListener('click',function(){start(true)});op.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '||e.key==='Escape'){e.preventDefault();start(true)}});
- auto=setTimeout(function(){start(false)},RM?Math.max(300,1300-(performance.now()-T00)):lk+480);
+ auto=setTimeout(function(){start(false)},RM?Math.max(300,1300-(performance.now()-T00)):lk+1050);
 })();
