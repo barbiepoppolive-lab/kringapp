@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <script>/* Kring language: ?lang= > saved choice > phone language (th* = Thai) > English. Same key as the app. Thai lives at /, English at /en/. */(function(){try{var P='@@LANG@@',S=location.search,q=(new URLSearchParams(S).get('lang')||'').toLowerCase(),l=null;if(q==='th'||q==='en'){l=q;try{localStorage.setItem('kr8_lang',q)}catch(e){}}else{try{l=localStorage.getItem('kr8_lang')}catch(e){}if(P==='en')l='en'}if(l!=='th'&&l!=='en'){if(navigator.webdriver||/bot|crawl|spider|facebookexternalhit|line-poker|preview|lighthouse|slurp/i.test(navigator.userAgent))return;var n=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||''];l=String(n[0]||'').toLowerCase().indexOf('th')===0?'th':'en'}if(l!==P)location.replace((l==='en'?'/en/':'/')+S+location.hash)}catch(e){}})();</script>
-<script>/* opening rings: once per tab session; ?noop=1 skips */(function(){try{if(/[?&]noop=/.test(location.search))return;if(sessionStorage.getItem('kr_op_seen'))return;document.documentElement.classList.add('opon')}catch(e){}})();</script>
+<script>/* js flag early; if the main script never arrives, drop it after 4 s so nothing stays hidden */document.documentElement.classList.add('js','hl');setTimeout(function(){if(!window.__krOK)document.documentElement.classList.remove('js')},4000);</script>
+<script>/* opening rings: every fresh load of the home page. Not replayed only when coming back to home from inside the site (or by Back) within 60 s. ?noop=1 skips */(function(){var H=document.documentElement;try{window.__opT0=performance.now();if(/[?&]noop=/.test(location.search))return;var t=0;try{t=+sessionStorage.getItem('kr_op_t')||0}catch(e){}var n=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0],ty=n&&n.type,inn=document.referrer&&document.referrer.indexOf(location.origin)===0;if(ty!=='reload'&&(inn||ty==='back_forward')&&Date.now()-t<60000)return;H.classList.add('opon')}catch(e){H.classList.add('opon')}})();</script>
 <meta content="notranslate" name="google"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
 <title>[[กริ๊ง! · กรุงเทพฯ สวยกว่า เมื่อมีเพื่อน||Kring · Bangkok is more beautiful with friends]]</title>
@@ -29,7 +30,6 @@
 <link href="/app/apple-touch-icon.png" rel="apple-touch-icon"/>
 <link as="image" fetchpriority="high" href="/assets/neon/hero-m.webp" media="(max-width:799px)" rel="preload" type="image/webp"/>
 <link as="image" fetchpriority="high" href="/assets/neon/hero-d.webp" media="(min-width:800px)" rel="preload" type="image/webp"/>
-<link as="font" crossorigin="" href="/fonts/unbounded-latin-800-normal.woff2" rel="preload" type="font/woff2"/>
 @@FONTPRELOAD@@
 <style>
 @font-face{font-family:Unbounded;font-weight:700;font-display:swap;src:url(/fonts/unbounded-latin-700-normal.woff2) format("woff2")}
@@ -39,8 +39,10 @@
 @font-face{font-family:"Noto Sans Thai";font-weight:500;font-display:swap;src:url(/fonts/noto-sans-thai-thai-500-normal.woff2) format("woff2");unicode-range:U+0E01-0E5B,U+200C-200D,U+25CC}
 @font-face{font-family:"Noto Sans Thai";font-weight:700;font-display:swap;src:url(/fonts/noto-sans-thai-thai-700-normal.woff2) format("woff2");unicode-range:U+0E01-0E5B,U+200C-200D,U+25CC}
 @font-face{font-family:"Noto Sans Thai";font-weight:800;font-display:swap;src:url(/fonts/noto-sans-thai-thai-800-normal.woff2) format("woff2");unicode-range:U+0E01-0E5B,U+200C-200D,U+25CC}
+@font-face{font-family:"Unb Fallback";src:local("Arial Black"),local("Arial Bold"),local("Roboto Black"),local("Roboto Bold"),local("Arial");size-adjust:108%;ascent-override:88%;descent-override:22%;line-gap-override:0%}
+@font-face{font-family:"PJ Fallback";src:local("Roboto"),local("Helvetica Neue"),local("Arial");size-adjust:102%;ascent-override:95%;descent-override:22%;line-gap-override:0%}
 :root{--bg:#07060d;--pk:#ff4fd8;--cy:#3ff0ff;--pu:#7b5cff;--gd:#ffd36b;--mu:#cfcbe2;
---fu:Unbounded,"Noto Sans Thai",system-ui,sans-serif;--fj:"Plus Jakarta Sans","Noto Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
+--fu:Unbounded,"Noto Sans Thai","Unb Fallback",system-ui,sans-serif;--fj:"Plus Jakarta Sans","Noto Sans Thai","PJ Fallback",system-ui,-apple-system,"Segoe UI",sans-serif;
 --sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px);--gx:20px;--ez:cubic-bezier(.2,.8,.2,1)}
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:var(--bg);-webkit-text-size-adjust:100%}
@@ -63,7 +65,7 @@ html[lang=th] .eb{letter-spacing:.04em;font-size:13px}
 .btn svg{width:18px;height:18px}
 .nt{font-size:13.5px;color:#fff;opacity:.92;margin-top:12px;text-shadow:0 1px 10px rgba(0,0,0,.8)}
 /* top bar */
-.top{position:fixed;z-index:20;left:0;right:0;top:0;display:flex;align-items:center;gap:4px;padding:calc(10px + var(--st)) 14px 10px;transition:background .3s,transform .35s var(--ez)}
+.top{position:fixed;z-index:20;left:0;right:0;top:0;display:flex;align-items:center;gap:2px;padding:calc(8px + var(--st)) max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));transition:background .3s,transform .35s var(--ez)}
 .top.bgd{background:rgba(7,6,13,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 .top.off{transform:translateY(-110%)}
 .logo{font:800 20px/1 var(--fu);letter-spacing:-.03em;text-shadow:0 0 18px rgba(255,79,216,.75),0 2px 10px rgba(0,0,0,.5);padding:12px 2px 12px 0;margin-right:auto}
@@ -84,6 +86,8 @@ html[lang=th] .eb{letter-spacing:.04em;font-size:13px}
 .tx{width:100%;max-width:1240px;margin:0 auto;padding:0 var(--gx) calc(96px + var(--sb))}
 .hero .tx{padding-bottom:calc(26px + var(--sb))}
 .hero .bg img{--op:42% 50%}
+.hero .bg,.op .cam{background:#1a1420 url(data:image/webp;base64,UklGRi4BAABXRUJQVlA4ICIBAADQBgCdASoaAC8APxF8slKsJ6SiqqoBgCIJbAC7M4CJ4xw42gM+jIn5Q4/A4Soi0LC8vkUy8SCjIORwKkl2mSAA/vbXeFlLpYF0UKVlL9MoP9lqi1sVaoJd0/SUgrX/EHDG8LYNpEY2/498ipYUY8tCO5ydGpJN2pAbH2oJqp4YvDTQUPdG3xHsGd6CqOkP8mWaQV72RNDQ7kuJWV2oiUW3COI1mPZEKCotg/VnPD0KwtDpob1miLiQUgLuVl83g1nZMQTty4/JsR05WZovR2eOR/M3+SgrfG+FJ9qHpqmPyEp+7T+O7I92L98SWITnPVeIQs5K9jYqBbXCVbMIkoiIR5COdJv8UY6+Qksz9x+FEGFG/1Dttf/1+GxvKdNBV6SIAA==) 42% 50%/cover no-repeat}
+.hl .hero .bg img{transition:opacity .45s}.hl .hero .bg img:not(.ld){opacity:0}
 .hero::after{background:linear-gradient(180deg,rgba(7,6,13,.45) 0,rgba(7,6,13,0) 14%,rgba(7,6,13,0) 50%,rgba(7,6,13,.86) 74%,var(--bg) 100%)}
 /* card panel */
 .cardp{justify-content:flex-start;padding-top:calc(86px + var(--st))}
@@ -170,11 +174,19 @@ html[lang=th] .eb{letter-spacing:.04em;font-size:13px}
 .iab .sec,.iab .pri{flex:1;min-height:50px;border-radius:999px;display:grid;place-items:center;font-weight:700;border:1px solid rgba(255,255,255,.3)}
 .iab .pri{background:#fff;color:#07060d;border:0}
 .iab .ok{display:none;color:var(--cy);margin-top:10px;font-size:14px}.iab .ok.on{display:block}
-.iab .goon{display:block;text-align:center;margin-top:14px;padding:12px;text-decoration:underline;color:var(--mu)}
+.iab .goon{display:grid;place-items:center;min-height:52px;margin-top:12px;border-radius:999px;font-weight:700;color:#fff;background:linear-gradient(90deg,#f23cc9,#7350ff)}
 .iab .arrow{position:absolute;right:14px;top:10px;font-size:40px;color:var(--pk)}
-/* opening: the Kring rings (brought back unchanged from the previous home; shown once per tab session) */
+/* opening: the Kring rings (brought back unchanged from the previous home; plays on every fresh load) */
 .op{display:none;--th:var(--fu);--g:var(--gx);--ctah:40px}
 html.opon .op{display:block;animation:opsafe .01s 7s forwards}
+.op .obg{transition:opacity .5s}.op .obg:not(.ld){opacity:0!important}
+/* pure-CSS start: if the script is late, the locked rings and the line still fade in by themselves */
+@keyframes oprise{from{opacity:0;transform:scale(.72)}to{opacity:1;transform:none}}
+@keyframes opfade{from{opacity:0}to{opacity:1}}
+.op.pre .rg.m{animation:oprise .7s .6s cubic-bezier(.2,.8,.2,1) both}
+.op.pre .opt{animation:opfade .6s 1s both}
+.op.pre .spk{animation:opfade .5s 1.1s both}
+@media (prefers-reduced-motion:reduce){.op.pre .rg.m{animation:opfade .7s .1s both}.op.pre .opt,.op.pre .spk{animation:opfade .5s .5s both}}
 @keyframes opsafe{to{visibility:hidden;pointer-events:none}}
 .op{position:fixed;inset:0;z-index:60;cursor:pointer;background:#07060c;transition:clip-path .68s cubic-bezier(.7,0,.2,1),opacity .4s;clip-path:circle(150% at 50% 52%)}
 .op .cam{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transform-origin:50% 52%;will-change:transform}
@@ -227,7 +239,9 @@ html[lang=th] .op .opt{line-height:1.3}
 /* reveal */
 .js .rv{opacity:0;transform:translateY(22px);transition:opacity .8s var(--ez),transform .8s var(--ez);transition-delay:var(--d,0s)}
 .js .in .rv,.js .rv.in{opacity:1;transform:none}
+.js:not(.opon) .hero .rv{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){.js .rv{opacity:1;transform:none;transition:none}.btn,.top,.fab,.kc{transition:none}}
+@media (max-width:379px){.logo{font-size:18px}.nv a{font-size:12px;padding:15px 5px}.lsw a{min-width:34px;padding:0 7px;font-size:12.5px}}
 @media (min-width:800px){
 :root{--gx:56px}
 .top{padding-left:var(--gx);padding-right:var(--gx);gap:8px}.lsw a{min-width:44px;padding:0 12px}
@@ -236,6 +250,7 @@ html[lang=th] .op .opt{line-height:1.3}
 .hero .tx{padding-bottom:48px}
 .hero h1{font-size:clamp(40px,4.3vw,66px)}
 .hero .bg img{--op:50% 30%}
+.hero .bg,.op .cam{background-image:url(data:image/webp;base64,UklGRgIBAABXRUJQVlA4IPYAAABwBwCdASooABYAPxF8rlIsKCQiqrgN+YAiCUAXwG6wLgleOKHrNqObsJ9o/RowRxU0UarQGYqMFYyAHgts+dKlq0iGcAD+8NNhvBb/poLKGME2TsVnOVTIschiWcAhjnBKfqLArUI3OdbWkLfuCUDOrG3z7qDmD167yPiJX2hrVrSmHYqyR6PjxI2z/itB+kcLivxkDV93PH0IfV4+JHL1uG8ieDKNrnL8Zz8duZDFb3USg4wQfCvdK1fWxRRxY7Jb1rxWYYUenDdcS78ULiOwkxG9ltIb9T/ULcPIBPJa/Aj/0GdwxeGwlKsvlRvy62jl5N1gAAA=);background-position:50% 30%}
 .hero::after{background:linear-gradient(180deg,rgba(7,6,13,.5) 0,rgba(7,6,13,0) 18%,rgba(7,6,13,0) 40%,rgba(7,6,13,.78) 78%,var(--bg) 100%),linear-gradient(90deg,rgba(7,6,13,.55),rgba(7,6,13,0) 55%)}
 .pn h1,.pn h2{max-width:13.5em}
 .cardp{display:grid;grid-template-columns:1.1fr .9fr;grid-template-rows:1fr auto;align-items:center;padding:110px var(--gx) 0;column-gap:40px;max-width:none}
@@ -265,7 +280,7 @@ html[lang=th] .op .opt{line-height:1.3}
 <a class="sk" href="#main">[[ข้ามไปเนื้อหา||Skip to content]]</a>
 <div aria-label="[[แตะเพื่อกริ๊ง||Tap to ring]]" class="op pre" id="op" role="button" tabindex="0">
 <svg aria-hidden="true" height="0" style="position:absolute" width="0"><filter height="180%" id="oBl" width="180%" x="-40%" y="-40%"><fegaussianblur stddeviation="26"></fegaussianblur></filter></svg>
-<div class="cam"><picture><source media="(min-width:800px)" srcset="/assets/neon/hero-d.webp" type="image/webp"/><img alt="" class="obg" decoding="async" src="/assets/neon/hero-m.webp"/></picture><i class="dk"></i>
+<div class="cam"><picture><source media="(min-width:800px)" srcset="/assets/neon/hero-d.webp" type="image/webp"/><img alt="" class="obg" onload="this.classList.add('ld')" src="/assets/neon/hero-m.webp"/></picture><i class="dk"></i>
 <p class="opt">[[กรุงเทพฯ สวยกว่า<br/>เมื่อมี<em>เพื่อน</em>||Bangkok is more beautiful <em>with friends</em>]]</p>
 <div aria-hidden="true" class="orb"><div class="br"><span class="hl"></span><span class="pulse"></span><span class="ptc"></span><div class="rg b e"><svg class="gl" viewbox="0 0 1024 1024"><circle cx="392" cy="512" fill="none" filter="url(#oBl)" r="225" stroke="#8D9BFF" stroke-width="84"></circle></svg></div><div class="rg b e"><svg class="gl" viewbox="0 0 1024 1024"><circle cx="392" cy="512" fill="none" filter="url(#oBl)" r="225" stroke="#8D9BFF" stroke-width="84"></circle></svg></div><div class="rg b e"><svg class="gl" viewbox="0 0 1024 1024"><circle cx="392" cy="512" fill="none" filter="url(#oBl)" r="225" stroke="#8D9BFF" stroke-width="84"></circle></svg></div><div class="rg p e"><svg class="gl" viewbox="0 0 1024 1024"><circle cx="632" cy="512" fill="none" filter="url(#oBl)" r="225" stroke="#FF7CC2" stroke-width="84"></circle></svg></div><div class="rg p e"><svg class="gl" viewbox="0 0 1024 1024"><circle cx="632" cy="512" fill="none" filter="url(#oBl)" r="225" stroke="#FF7CC2" stroke-width="84"></circle></svg></div><div class="rg p e"><svg class="gl" viewbox="0 0 1024 1024"><circle cx="632" cy="512" fill="none" filter="url(#oBl)" r="225" stroke="#FF7CC2" stroke-width="84"></circle></svg></div>
 <div class="rg b m"><svg class="gl" viewbox="0 0 1024 1024"><circle cx="392" cy="512" fill="none" filter="url(#oBl)" r="225" stroke="#8D9BFF" stroke-width="84"></circle></svg><svg class="sh" viewbox="0 0 1024 1024"><g class="rb"><circle cx="392" cy="512" fill="none" r="225" stroke="#5B6CFF" stroke-width="54"></circle></g></svg></div>
@@ -273,6 +288,7 @@ html[lang=th] .op .opt{line-height:1.3}
 <span class="fl"></span><span class="sw"></span><span class="sw s2"></span>
 <div class="spw"><svg class="spk" viewbox="0 0 1024 1024"><path d="M50 0C53 36 64 47 100 50C64 53 53 64 50 100C47 64 36 53 0 50C36 47 47 36 50 0Z" fill="#fff" transform="translate(462 462)"></path></svg></div></div></div>
 <p class="opc">[[แตะเพื่อกริ๊ง||Tap to ring]]</p></div></div>
+<script>@@OPJS@@</script>
 <header class="top" id="top">
 <a aria-label="[[หน้าแรก Kring||Kring home]]" class="logo" data-page="" href="@@PATH@@">Kring<b>!</b></a>
 <nav aria-label="[[เมนูหลัก||Main]]" class="nv"><a data-page="" href="/locals/">[[โลคอลกริ๊ง!||Kring Locals]]</a><a data-page="" href="/partners/">[[สำหรับร้าน||For venues]]</a><a href="/about">[[เกี่ยวกับเรา||About]]</a></nav>
@@ -281,7 +297,7 @@ html[lang=th] .op .opt{line-height:1.3}
 <main id="main">
 
 <section class="pn hero" id="hero">
-<picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/hero-d.webp" type="image/webp"/><img alt="[[เพื่อนกลุ่มหนึ่งนั่งดูพลุที่สะพานพระราม 8 ริมแม่น้ำเจ้าพระยา||Friends watching fireworks by Rama VIII Bridge on the Chao Phraya river]]" decoding="async" fetchpriority="high" height="1612" src="/assets/neon/hero-m.webp" width="900"/></picture>
+<picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/hero-d.webp" type="image/webp"/><img alt="[[เพื่อนกลุ่มหนึ่งนั่งดูพลุที่สะพานพระราม 8 ริมแม่น้ำเจ้าพระยา||Friends watching fireworks by Rama VIII Bridge on the Chao Phraya river]]" fetchpriority="high" height="1182" id="heroimg" onerror="this.classList.add('ld')" onload="this.classList.add('ld')" src="/assets/neon/hero-m.webp" width="660"/></picture>
 <div class="tx">
 <p class="eb rv"><i></i>[[เปิด 1 ธ.ค. 2026 · กรุงเทพฯ||Opens 1 Dec 2026 · Bangkok]]</p>
 <h1 class="rv" style="--d:.08s">[[กรุงเทพฯ สวยกว่า<br/>เมื่อมี<em>เพื่อน</em>||Bangkok is more beautiful <em>with friends</em>]]</h1>
@@ -370,11 +386,10 @@ html[lang=th] .op .opt{line-height:1.3}
 <div class="fab" id="fab"><a class="btn" data-app="" data-join="" href="/app/?join=1" tabindex="-1">[[เปิด Kring||Open Kring]]</a></div>
 <div aria-label="[[เปิดในเบราว์เซอร์||Open in your browser]]" aria-modal="true" class="iab" id="iab" role="dialog"><span aria-hidden="true" class="arrow">↗</span><div class="sheet">
 <h4>[[เปิดในเบราว์เซอร์ เข้าสู่ระบบได้ลื่นกว่า||Open in your browser for an easy sign-in]]</h4>
-<ol><li><i>1</i><span>[[แตะ ⋯ มุมขวาบน||Tap ⋯ at the top right]]</span></li><li><i>2</i><span>[[เลือก "เปิดในเบราว์เซอร์"||Choose "Open in browser"]]</span></li></ol>
-<div class="row2"><button class="sec" data-copy="" type="button">[[คัดลอกลิงก์||Copy link]]</button><a class="pri" data-chrome="" href="#">[[เปิดใน Chrome||Open in Chrome]]</a></div>
+<ol><li><i>1</i><span>[[แตะ ⋯ มุมขวาบน||Tap ⋯ at the top right]]</span></li><li><i>2</i><span data-ios="[[เลือก &quot;เปิดใน Safari&quot; หรือ &quot;เปิดในเบราว์เซอร์&quot;||Choose &quot;Open in Safari&quot; or &quot;Open in browser&quot;]]">[[เลือก "เปิดในเบราว์เซอร์"||Choose "Open in browser"]]</span></li></ol>
+<div class="row2"><button class="sec" data-copy="" type="button">[[คัดลอกลิงก์||Copy link]]</button><a class="pri" data-chrome="" href="#">[[เปิดใน Chrome||Open in Chrome]]</a><a class="pri" data-safari="" href="#">[[เปิดใน Safari||Open in Safari]]</a></div>
 <p class="ok">[[คัดลอกแล้ว วางในเบราว์เซอร์ได้เลย||Copied. Paste it in your browser.]]</p>
 <a class="goon" href="#">[[ไปต่อที่นี่||Continue here]]</a></div></div>
-<script>document.documentElement.classList.add('js')</script>
 <script defer="" src="/assets/neon/home.js"></script>
 </body>
 </html>

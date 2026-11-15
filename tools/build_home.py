@@ -28,9 +28,12 @@ def build(lang):
     t = t.replace('@@TV_L@@', '')
     t = t.replace('@@TV_TAGS@@', '<li lang="th">เพื่อนใหม่ เป็นกลุ่ม</li><li lang="th">ที่สาธารณะ</li><li lang="th">แชตแปลภาษาให้</li>' if th else '<li>New friends, in groups</li><li>Public places</li><li>Chats translated</li>')
     t = re.sub(r'\[\[(.*?)\|\|(.*?)\]\]', lambda m: m.group(1 if th else 2), t, flags=re.S)
+    opjs = re.sub(r'/\*.*?\*/', '', open(os.path.join(R, 'tools/opening.js'), encoding='utf-8').read(), flags=re.S)
+    opjs = '\n'.join(l for l in (x.strip() for x in opjs.split('\n')) if l and not l.startswith('//'))
+    t = t.replace('@@OPJS@@', opjs)
     t = t.replace('@@LANG@@', lang).replace('@@PATH@@', '/' if th else '/en/')
     t = t.replace('@@EN_CUR@@', 'false' if th else 'true').replace('@@TH_CUR@@', 'true' if th else 'false')
-    t = t.replace('@@FONTPRELOAD@@', '<link as="font" crossorigin="" href="/fonts/noto-sans-thai-thai-800-normal.woff2" rel="preload" type="font/woff2"/>' if th else '<link as="font" crossorigin="" href="/fonts/plus-jakarta-sans-latin-500-normal.woff2" rel="preload" type="font/woff2"/>')
+    t = t.replace('@@FONTPRELOAD@@', '<link as="font" crossorigin="" href="/fonts/noto-sans-thai-thai-800-normal.woff2" rel="preload" type="font/woff2"/>' if th else '<link as="font" crossorigin="" href="/fonts/unbounded-latin-800-normal.woff2" rel="preload" type="font/woff2"/>')
     assert '@@' not in t.replace('TikTok @kring', '').replace('Instagram @kring', '').replace('LINE @194', '').replace('p/@194', '').replace('com/@kring', '').replace('@font-face', '').replace('@media', '').replace('@keyframes', ''), 'unfilled token'
     out = os.path.join(R, 'index.html' if th else 'en/index.html')
     open(out, 'w', encoding='utf-8').write(t); print(out, len(t))
