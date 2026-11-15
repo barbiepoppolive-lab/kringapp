@@ -1764,6 +1764,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     }
   };
 
+  const peopleStills = feedItems.map((f) => f.poster || (f.video ? f.img : '')).filter((u): u is string => !!u).slice(0, 6);
   const filteredPeople = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return people.filter((p) => {
@@ -2122,8 +2123,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     }
   };
   const activeReel = feedItems.find((f) => f.id === reelSheetId);
+  const [reportStep, setReportStep] = useState(false);
   const openReelSheet = (p: V8FeedItem, which: 'reelshare' | 'reelmore') => {
     if (!p.id) return;
+    setReportStep(false);
     setReelSheetId(p.id);
     setSheet(which);
     // the share link (/r/<short>) is fetched now, so the tap on Copy / Share can use it at once (phones only allow copy inside the tap)
@@ -3885,7 +3888,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 >
                   {L("Clear filters")}
                 </button>
-              ) : (
+              ) : (!signedIn && peopleStills.length) ? null : (
                 <button
                   type="button"
                   className="kp-empty-btn pink"
@@ -3897,21 +3900,23 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   {signedIn ? (live ? L('Post a Reel') : L('Post a photo')) : L('Join the community now')}
                 </button>
               )}
-              {!(filterLang || filterWho || filterOnline || searchQuery) && (
-                <div className="kp-ghostwall" aria-hidden="true">
-                  {[
-                    [L('Your photo here'), '#5B6CFF', '#FF4FA3'],
-                    [L('Thai locals'), '#6EE7A8', '#5B6CFF'],
-                    [L('Travellers'), '#FF4FA3', '#FF8A3D'],
-                    [L('Expats & nomads'), '#FF8A3D', '#5B6CFF'],
-                  ].map(([label, c1, c2]) => (
-                    <div className="kp-ghost" key={label} style={{ background: `linear-gradient(160deg, ${c1}55, ${c2}22 60%, #171520)` }}>
-                      <span className="kp-ghost-rings"><i /><i /></span>
-                      <span className="kp-ghost-l">{label}</span>
+              {!(filterLang || filterWho || filterOnline || searchQuery) && (() => {
+                // polish #1: real Reel stills, blurred, behind one Join button (no grey placeholder cards)
+                const stills = peopleStills;
+                if (!stills.length) return null;
+                return (
+                  <div className="kp-blurwall" id="pplBlurWall">
+                    <div className="kp-blurgrid" aria-hidden="true">
+                      {stills.map((u, i) => <i key={i} style={{ backgroundImage: `url('${u}')` }} />)}
                     </div>
-                  ))}
-                </div>
-              )}
+                    {!signedIn ? (
+                      <button type="button" className="kp-blurjoin" id="pplJoin" onClick={() => { pendingActionRef.current = null; setSignInNotice(''); setSheet('signin'); }}>
+                        {L('Join')}
+                      </button>
+                    ) : null}
+                  </div>
+                );
+              })()}
             </div>
           ) : (
             <div className="ppl-grid" id="pplGrid">
@@ -4190,7 +4195,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               savedImgs={savedFeedItems.map((f) => f.poster || f.img || '').filter(Boolean)}
               unread={activityUnread}
               verifyState={meProfile.verified ? 'verified' : verifyPending ? 'pending' : 'none'}
-              onTop10={() => setSheet('top10')}
+              onTop10={() => setSheet('ranking')}
               onList={(k) => openFollowList(meProfile, k)}
               onSettings={() => setSheet('settings')}
               onActivity={() => {
@@ -4253,12 +4258,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <div className="kp-mtop">
               {signedIn ? (
                 <img className="kp-av" src={user.avatar} alt="" />
-              ) : (
-                <span className="kp-av kp-av-empty" aria-hidden="true" />
-              )}
+              ) : null}
               <span className="kp-lvl">
                 {!signedIn
-                  ? L('GUEST')
+                  ? ''
                   : user.level === 'pandan'
                   ? L('PANDAN MEMBER')
                   : user.level === 'tea'
@@ -4276,6 +4279,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           </div>
 
           {!signedIn && (
+            <ul className="kp-gets" id="guestGets">
+              <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-5.5-6.5-11A6.5 6.5 0 0 1 18.5 10c0 5.5-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.4" /></svg>{L('Post Reels of your Bangkok spots')}</li>
+              <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 12.5V6.8a1.4 1.4 0 0 1 2.8 0v4.7M10.3 11V4.9a1.4 1.4 0 0 1 2.8 0V11M13.1 11V5.8a1.4 1.4 0 0 1 2.8 0v6.4M15.9 10.6V8.6a1.4 1.4 0 0 1 2.8 0v5.2c0 4.1-2.7 7.2-6.5 7.2-2.6 0-4.1-1.1-5.6-3.3l-2.3-3.6a1.45 1.45 0 0 1 2.3-1.75l1 1.25" /></svg>{L('Say hi to locals and travellers')}</li>
+              <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M9 20h6M10 17h4v3h-4z" /></svg>{L('Weekly rewards for the top 8 Reels')}</li>
+            </ul>
+          )}
+          {!signedIn && (
               <button
               type="button"
               className="kp-signin"
@@ -4289,7 +4299,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               {L('Join the community now')}
             </button>
           )}
-          <div className="kp-qa">
+          {signedIn && <div className="kp-qa">
               <button
                 type="button"
                 onClick={() => {
@@ -4317,9 +4327,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 </span>
                 {t.myCode}
               </button>
-            </div>
+            </div>}
 
-          {(
+          {signedIn && (
             <div className="kp-level">
               <div className="kp-level-r">
                 <span className="kp-cap">{L('Next level')}</span>
@@ -5251,9 +5261,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               type="button"
               className="primary-cta"
               id="applyFilterBtn"
-              onClick={() => setSheet(null)}
+              onClick={() => { if (!signedIn && !filteredPeople.length) { pendingActionRef.current = null; setSignInNotice(''); setSheet('signin'); return; } setSheet(null); }}
             >
-              {Lf('Show {0} people', String(filteredPeople.length))}
+              {!signedIn && !filteredPeople.length ? L('Join') : Lf('Show {0} people', String(filteredPeople.length))}
             </button>
           </div>
         )}
@@ -6422,27 +6432,36 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <div className="v8-sheet" id="sh-reelmore">
             <div className="grab" />
             <div className="sh-head">
-              <h3>{L('Report this Reel')}</h3>
+              <h3>{reportStep ? L('Report this Reel') : L('More')}</h3>
               <button type="button" className="xbtn" aria-label="Close" onClick={() => setSheet(null)}>✕</button>
             </div>
-            <button type="button" className="reel-share" id="reelNotInterested" onClick={() => handleNotInterested(activeReel)}>
-              <span className="ic">🙈</span>{L('Not interested')}
-            </button>
-            <p className="reel-report-q">{L('Why are you reporting it?')}</p>
-            <div className="reel-share-list">
-              {([
-                ['spam', 'Spam or scam'],
-                ['unsafe', 'Unsafe, adult or harassment'],
-                ['stolen', 'Stolen clip or pretending to be someone'],
-                ['wrong_place', 'Wrong place or the place is closed'],
-                ['block', 'Block this Local'],
-              ] as [V5ReportReason, string][]).map(([reason, label]) => (
-                <button type="button" key={reason} className={`reel-share${reason === 'block' ? ' danger' : ''}`} data-reason={reason}
-                  onClick={() => handleReportReel(activeReel, reason)}>
-                  {L(label)}
-                </button>
-              ))}
-            </div>
+            {!reportStep ? (
+              /* polish extra: "…" opens a short menu first; the report reasons are a second step */
+              <div className="reel-share-list" id="reelMoreMenu">
+                <button type="button" className="reel-share" id="reelMoreShare" onClick={() => openReelSheet(activeReel, 'reelshare')}><span className="ic">↗</span>{L('Share')}</button>
+                <button type="button" className="reel-share" id="reelMoreSave" onClick={() => { handleToggleSave(activeReel.id); setSheet(null); }}><span className="ic">🔖</span>{activeReel.id && savedIds[activeReel.id] ? t.saved : t.save}</button>
+                <button type="button" className="reel-share" id="reelNotInterested" onClick={() => handleNotInterested(activeReel)}><span className="ic">🙈</span>{L('Not interested')}</button>
+                <button type="button" className="reel-share danger" id="reelMoreReport" onClick={() => setReportStep(true)}><span className="ic">⚑</span>{L('Report')}</button>
+              </div>
+            ) : (
+              <>
+                <p className="reel-report-q">{L('Why are you reporting it?')}</p>
+                <div className="reel-share-list">
+                  {([
+                    ['spam', 'Spam or scam'],
+                    ['unsafe', 'Unsafe, adult or harassment'],
+                    ['stolen', 'Stolen clip or pretending to be someone'],
+                    ['wrong_place', 'Wrong place or the place is closed'],
+                    ['block', 'Block this Local'],
+                  ] as [V5ReportReason, string][]).map(([reason, label]) => (
+                    <button type="button" key={reason} className={`reel-share${reason === 'block' ? ' danger' : ''}`} data-reason={reason}
+                      onClick={() => handleReportReel(activeReel, reason)}>
+                      {L(label)}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
         {live && !sheet && <A2HSBanner L={L} blocked={['preparing', 'uploading', 'saving'].includes(reelStage)} />}

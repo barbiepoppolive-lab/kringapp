@@ -3593,3 +3593,14 @@
 .v8-app-root .fchips.lang-grid { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; }
 .v8-app-root .fchips.lang-grid .fchip { width: 100%; justify-content: center; text-align: center; margin: 0; }
 .v8-app-root .srow.sub-row { padding-left: 26px; opacity: .85; }
+/* polish #1: People for visitors: real Reel stills, blurred, behind one Join button */
+.v8-app-root .kp-blurwall { position: relative; margin: 14px 0 0; border-radius: 20px; overflow: hidden; }
+.v8-app-root .kp-blurgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; filter: blur(9px) saturate(1.1); transform: scale(1.06); }
+.v8-app-root .kp-blurgrid i { display: block; aspect-ratio: 3 / 4; border-radius: 12px; background-size: cover; background-position: center; }
+.v8-app-root .kp-blurjoin { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); height: 50px; min-width: 160px; padding: 0 28px; border: 0; border-radius: 25px;
+  background: linear-gradient(90deg, #5b6cff, #ff4fa3); color: #fff; font: inherit; font-size: 16px; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+/* polish #6: Me for visitors: what you get, then one Join button (no level bar, no GUEST label) */
+.v8-app-root .kp-gets { list-style: none; margin: 18px 4px 4px; padding: 0; display: grid; gap: 12px; }
+.v8-app-root .kp-gets li { display: flex; align-items: center; gap: 12px; font-size: 14.5px; font-weight: 600; color: #FFF7EC; line-height: 1.35; }
+.v8-app-root .kp-gets svg { flex: none; width: 34px; height: 34px; padding: 7px; box-sizing: border-box; border-radius: 12px; background: rgba(115,129,255,.16); fill: none; stroke: #c9cfff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.v8-app-root #guestCard .kp-lvl:empty { display: none; }
