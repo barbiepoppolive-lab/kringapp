@@ -2,6 +2,9 @@
 import { useEffect, useRef, useState } from 'react';
 
 let soundOn = false; // one tap turns sound on for every Reel after it (like the big apps)
+/** 16 Nov perf: the Reel next in line may only start downloading once the one on screen is actually playing. */
+let somethingPlaying = false;
+const PLAYING_EVENT = 'kr8-reel-playing';
 
 /** Tap anywhere on a Reel slide (except its buttons) toggles sound for this and every later Reel. */
 export function toggleReelSound(e: { target: EventTarget | null; currentTarget: EventTarget | null }) {
@@ -24,6 +27,14 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed }: { src: st
   // M (15 Nov): only the Reel on screen and the one next to it load their video; the rest show their poster and download nothing
   const boxRef = useRef<HTMLDivElement>(null);
   const [near, setNear] = useState(false);
+  const [onScreen, setOnScreen] = useState(false);
+  const [mayPrefetch, setMayPrefetch] = useState(somethingPlaying);
+  useEffect(() => {
+    if (mayPrefetch) return;
+    const go = () => setMayPrefetch(true);
+    window.addEventListener(PLAYING_EVENT, go);
+    return () => window.removeEventListener(PLAYING_EVENT, go);
+  }, [mayPrefetch]);
   useEffect(() => {
     const el = boxRef.current;
     if (!el || typeof IntersectionObserver === 'undefined') { setNear(true); return; }
@@ -41,6 +52,7 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed }: { src: st
     if (!v) return;
     const io = new IntersectionObserver(
       ([e]) => {
+        setOnScreen(e.isIntersecting && e.intersectionRatio >= 0.6);
         if (e.isIntersecting && e.intersectionRatio >= 0.6) {
           v.muted = !soundOn;
           setMuted(!soundOn);
@@ -62,9 +74,11 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed }: { src: st
       last = t;
       if (played >= 3) { viewedRef.current = true; onViewedRef.current?.(); }
     };
+    const onPlaying = () => { if (!somethingPlaying) { somethingPlaying = true; window.dispatchEvent(new Event(PLAYING_EVENT)); } };
     v.addEventListener('kr8-sound', onSound);
     v.addEventListener('timeupdate', onTime);
-    return () => { io.disconnect(); v.removeEventListener('kr8-sound', onSound); v.removeEventListener('timeupdate', onTime); };
+    v.addEventListener('playing', onPlaying);
+    return () => { io.disconnect(); v.removeEventListener('kr8-sound', onSound); v.removeEventListener('timeupdate', onTime); v.removeEventListener('playing', onPlaying); };
   }, [src, near]);
   return (
     <div className="bg reel-bg" ref={boxRef}>
@@ -76,7 +90,8 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed }: { src: st
         muted
         loop
         playsInline
-        preload={near ? 'auto' : 'none'}
+        // on screen: load and play; the next one: only its first bytes, and only after the one on screen is playing; others: nothing
+        preload={onScreen ? 'auto' : near && mayPrefetch ? 'metadata' : 'none'}
         aria-label={label}
         data-reel="1"
       />

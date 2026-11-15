@@ -15,6 +15,10 @@ export const REEL_MAX_MS = 60000;      // 15 Nov: 5–60 s (DB check widened in 
 export const REEL_MAX_BYTES = 50 * 1024 * 1024;
 const RAW_MAX_BYTES = 300 * 1024 * 1024;
 const OUT_W = 720;
+/** Reel upload target (16 Nov perf job): 720×1280, H.264 ~1.3 Mbit/s + 96 kbit/s sound. */
+export const TARGET_VIDEO_BPS = 1_300_000;
+const LIGHT_BPS = 1_700_000;
+export const bitrate = (bytes: number, ms: number) => (ms > 0 ? (bytes * 8) / (ms / 1000) : Infinity);
 const OUT_H = 1280;
 const META_TIMEOUT_MS = 12000;
 
@@ -124,7 +128,7 @@ async function posterOf(v: HTMLVideoElement, atSec: number): Promise<Blob> {
   await new Promise<void>((r) => { v.onseeked = () => r(); v.currentTime = Math.min(atSec, Math.max(0, v.duration - 0.1)); setTimeout(r, 2500); });
   const c = document.createElement('canvas'); c.width = 540; c.height = 960;
   drawCover(c.getContext('2d')!, v, c.width, c.height);
-  return new Promise((ok, bad) => c.toBlob((b) => (b ? ok(b) : bad(new ReelError('UNREADABLE'))), 'image/jpeg', 0.78));
+  return new Promise((ok, bad) => c.toBlob((b) => (b ? ok(b) : bad(new ReelError('UNREADABLE'))), 'image/jpeg', 0.72));
 }
 
 /**
@@ -152,6 +156,9 @@ export async function prepareReel(info: ReelInfo, ac: AudioContext | null, onPro
   };
   if (!vv || !vv.videoWidth) return original();
   const v = vv;
+  // 16 Nov: an original that is already light (≤ ~1.6 Mbit/s, ≤ 720 px wide) goes up as it is; everything else is re-recorded
+  // at 720×1280 and ~1.3 Mbit/s (≈5 MB per 30 s), which is what makes the feed start fast on 4G
+  if (bitrate(info.file.size, info.durationMs) <= LIGHT_BPS && Math.min(info.width, info.height) <= 720 && /mp4|quicktime/i.test(uploadType(info.file).mime)) return original();
   const mime = pickMime();
   const canvas = document.createElement('canvas');
   if (!mime || typeof canvas.captureStream !== 'function') return original();
@@ -168,7 +175,7 @@ export async function prepareReel(info: ReelInfo, ac: AudioContext | null, onPro
         dest.stream.getAudioTracks().forEach((t) => stream.addTrack(t));
       } catch { v.muted = true; }
     }
-    const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 2_000_000, audioBitsPerSecond: 96_000 });
+    const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: TARGET_VIDEO_BPS, audioBitsPerSecond: 96_000 });
     const parts: Blob[] = [];
     rec.ondataavailable = (e) => { if (e.data && e.data.size) parts.push(e.data); };
     const done = new Promise<void>((r) => { rec.onstop = () => r(); });
@@ -240,6 +247,7 @@ function putObject(base: string, key: string, token: string, path: string, body:
     x.setRequestHeader('apikey', key);
     x.setRequestHeader('content-type', type);
     x.setRequestHeader('x-upsert', 'false');
+    x.setRequestHeader('cache-control', 'max-age=31536000');   // a file never changes after upload (new upload = new name)
     x.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
     x.onload = () => (x.status >= 200 && x.status < 300 ? ok() : bad(new ReelError('UPLOAD')));
     x.onerror = () => bad(new ReelError('UPLOAD'));
@@ -277,6 +285,18 @@ export async function createReel(u: UploadedReel, r: ReelReady, area: string, bo
 }
 
 const signCache = new Map<string, { url: string; until: number }>();
+/**
+ * 16 Nov: on kringapp.com (and its previews) Reels and posters come through the site's /media/ route, which keeps each file
+ * in Cloudflare's cache by path (with Range support) and sends Cache-Control: immutable. Supabase still decides who may see
+ * a file: the route needs this viewer's signed-link token. Elsewhere (local dev) the plain Supabase link is used.
+ */
+export function viaEdge(path: string, signedUrl: string, host: string = typeof location === 'undefined' ? '' : location.hostname): string {
+  if (!/(^|\.)kringapp\.com$|\.pages\.dev$/.test(host)) return signedUrl;
+  let token = '';
+  try { token = new URL(signedUrl).searchParams.get('token') || ''; } catch { return signedUrl; }
+  if (!token || !/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(mp4|webm|mov|jpg|jpeg|webp)$/.test(path)) return signedUrl;
+  return `/media/kr8-reels/${path}?t=${encodeURIComponent(token)}`;
+}
 /** Signed playback links (1 h). Paths the server will not show this viewer simply come back empty. */
 export async function signReelPaths(paths: string[]): Promise<Record<string, string>> {
   const now = Date.now();
@@ -290,7 +310,7 @@ export async function signReelPaths(paths: string[]): Promise<Record<string, str
     const c = await v5Client();
     const { data } = await c.storage.from('kr8-reels').createSignedUrls(need, 3600);
     for (const row of data || []) {
-      if (row.signedUrl && row.path) { out[row.path] = row.signedUrl; signCache.set(row.path, { url: row.signedUrl, until: now + 3600_000 }); }
+      if (row.signedUrl && row.path) { const u = viaEdge(row.path, row.signedUrl); out[row.path] = u; signCache.set(row.path, { url: u, until: now + 3600_000 }); }
     }
   }
   return out;

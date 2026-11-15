@@ -8,7 +8,7 @@ import type { V8UserAccount } from './KringAppV8';
    At most 2 food items, never in the first 4 (see v8DemoData.test.ts). Example Kring Locals are AI faces, not real people. */
 
 const M = `${import.meta.env.BASE_URL}media/demo/`;
-const clip = (k: string) => ({ video: `${M}${k}.mp4`, poster: `${M}${k}.jpg`, img: `${M}${k}.jpg` });
+const clip = (k: string) => ({ video: `${M}${k}.mp4`, poster: `${M}${k}.webp`, img: `${M}${k}.webp` });   // 16 Nov: WebP posters (~30–100 KB)
 const C = ['mint', 'ploy', 'nat', 'ton', 'aom', 'yui', 'minjun', 'arjun', 'lena', 'marcus', 'valeria', 'liam'] as const;
 type CastId = (typeof C)[number];
 const FACE = Object.fromEntries(C.map((k) => [k, `${M}faces/${k}.jpg`])) as Record<CastId, string>;
