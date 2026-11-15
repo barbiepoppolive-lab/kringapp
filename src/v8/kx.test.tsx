@@ -397,13 +397,18 @@ describe('Claim a prize', () => {
 
 describe('Founding Local checklist on Me', () => {
   const kx = { member_no: 30, ig_handle: null, tiktok_handle: null, lifetime: 0, level: 1, week: 0, founding_no: null, founding_left: 36, founding_thb: 100, has_reel: false };
-  it('3 steps, step 1 already ticked, true spots-left number, ฿100 on step 3', () => {
+  it('one "Next step" card: true spots-left number, only the next step shown, ฿100 on the Reel step, gone when done (15 Nov polish)', () => {
     render(<FoundingChecklist L={L} Lf={Lf} kx={kx} hasSocial={false} onLink={() => undefined} onPost={() => undefined} />);
     expect(screen.getByText('Founding Local · ฿100')).toBeTruthy();
     expect(screen.getByText('36 of 50 spots left')).toBeTruthy();
-    expect(document.querySelectorAll('#kxFounding .st').length).toBe(3);
-    expect(document.querySelectorAll('#kxFounding .st.done').length).toBe(1);
+    expect(document.querySelectorAll('#kxFounding .st').length).toBe(1);
+    expect(document.querySelector('#kxFoundingAdd')).toBeTruthy();
+    cleanup();
+    render(<FoundingChecklist L={L} Lf={Lf} kx={kx} hasSocial onLink={() => undefined} onPost={() => undefined} />);
     expect(document.querySelector('#kxFoundingPost')!.textContent).toContain('฿100');
+    cleanup();
+    const { container } = render(<FoundingChecklist L={L} Lf={Lf} kx={{ ...kx, has_reel: true }} hasSocial onLink={() => undefined} onPost={() => undefined} />);
+    expect(container.innerHTML).toBe('');
   });
   it('gone once the member is a Founding Local; "3 steps to the board" when the spots are taken', () => {
     const { container } = render(<FoundingChecklist L={L} Lf={Lf} kx={{ ...kx, founding_no: 14 }} hasSocial onLink={() => undefined} onPost={() => undefined} />);

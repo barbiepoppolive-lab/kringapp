@@ -145,19 +145,23 @@ export function FoundingChecklist(props: { L: Tx; Lf: Txf; kx: KxCardExtras | nu
   const { L, Lf, kx } = props;
   if (!kx || kx.founding_no || kx.founding_left === undefined) return null;
   const open = (kx.founding_left ?? 0) > 0;
-  if (!open && kx.has_reel) return null;
+  // polish #4: one "Next step" card: only the next thing to do; gone when everything is done
+  if (kx.has_reel || (!open && kx.has_reel)) return null;
   const amt = `฿${fmtN(kx.founding_thb ?? 100)}`;
-  const done = 1 + (props.hasSocial ? 1 : 0) + (kx.has_reel ? 1 : 0);
+  const done = 1 + (props.hasSocial ? 1 : 0);
   return (
-    <div className="kx-fc" id="kxFounding" data-left={kx.founding_left ?? 0}>
+    <div className="kx-fc kx-next" id="kxFounding" data-left={kx.founding_left ?? 0} data-step={props.hasSocial ? 3 : 2}>
       <div className="h"><b>{open ? `${L('Founding Local')} · ${amt}` : L('3 steps to the board')}</b>{open ? <span id="kxFoundingLeft">{Lf('{0} of {1} spots left', String(kx.founding_left), '50')}</span> : null}</div>
       <div className="bar"><i style={{ width: `${(done / 3) * 100}%` }} /></div>
-      <div className="st done"><i>✓</i><span>{L('Make your card')}</span></div>
-      <div className={`st${props.hasSocial ? ' done' : ''}`}><i>{props.hasSocial ? '✓' : '2'}</i><span>{L('Add Instagram or TikTok')}</span>
-        {props.hasSocial ? null : <button type="button" className="kx-go" id="kxFoundingAdd" onClick={props.onLink}>{L('Add')}</button>}</div>
-      <button type="button" className={`st go${kx.has_reel ? ' done' : ''}`} id="kxFoundingPost" onClick={props.onPost} disabled={!!kx.has_reel}>
-        <i>{kx.has_reel ? '✓' : '3'}</i><span>{kx.has_reel ? L('First Reel sent · in review') : L('Post your first Reel at a place')}</span>{open ? <em>{amt}</em> : null}
-      </button>
+      <div className="kx-next-l">{L('Next step')} · {Lf('{0} of {1}', String(done + 1), '3')}</div>
+      {!props.hasSocial ? (
+        <div className="st"><i>2</i><span>{L('Add Instagram or TikTok')}</span>
+          <button type="button" className="kx-go" id="kxFoundingAdd" onClick={props.onLink}>{L('Add')}</button></div>
+      ) : (
+        <button type="button" className="st go" id="kxFoundingPost" onClick={props.onPost}>
+          <i>3</i><span>{L('Post your first Reel at a place')}</span>{open ? <em>{amt}</em> : null}
+        </button>
+      )}
     </div>
   );
 }
@@ -193,16 +197,20 @@ export function MeView(props: {
           </button>
         </span>
       </div>
-      <KxMemberCard L={L} Lf={Lf} p={p} kx={props.kx} gender={props.gender} />
-      <div className="kx-tiles" id="kxTiles">
-        <button type="button" className="kx-mtile rw" id="kxRingsTile" onClick={props.onRings}>
-          {props.ringsDot || (props.kx?.prizes ?? 0) > 0 ? <i className="kx-tdot" aria-label={L('New')} /> : null}
-          <b>{props.kx ? fmtN(props.kx.week ?? 0) : '…'} <RingGlyph /></b>
-          <span>{L('this week')} <i>→</i> {L('Rewards')}</span>
+      <div className="kme-cardwrap">
+        <KxMemberCard L={L} Lf={Lf} p={p} kx={props.kx} gender={props.gender} />
+        <button type="button" className="kme-pencil" id="meEdit" aria-label={L('Edit card')} onClick={props.onEdit}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" /></svg>
         </button>
-        <button type="button" className="kx-mtile rk" id="kxRankTile" onClick={props.onRanking}>
-          <b>{props.weekRank ? `#${props.weekRank}` : L('Ranking')}</b>
-          <span id="kxRankLine">{props.rankLine || <>{L('this week')} <i>→</i> {L('Ranking')}</>}</span>
+      </div>
+      {/* polish #4: one "This week" row: Rings · rank · Rewards › (the Rewards page links to the full ranking) */}
+      <div className="kx-tiles kx-week" id="kxTiles">
+        <button type="button" className="kx-mtile rw kx-weekrow" id="kxRingsTile" onClick={props.onRings}>
+          {props.ringsDot || (props.kx?.prizes ?? 0) > 0 ? <i className="kx-tdot" aria-label={L('New')} /> : null}
+          <span className="kx-wk-l">{L('This week')}</span>
+          <b>{props.kx ? fmtN(props.kx.week ?? 0) : '…'} <RingGlyph /></b>
+          <span className="kx-wk-rk" id="kxRankTile" role="link" tabIndex={0} onClick={(e) => { if (props.onRanking) { e.stopPropagation(); props.onRanking(); } }}>{props.weekRank ? `#${props.weekRank}` : L('Ranking')}</span>
+          <span className="kx-wk-go">{L('Rewards')} <i>›</i></span>
         </button>
       </div>
       <FoundingChecklist L={L} Lf={Lf} kx={props.kx} hasSocial={!!(props.kx?.ig_handle || props.kx?.tiktok_handle || p.ig_handle)} onLink={props.onLink || props.onEdit} onPost={props.onPost} />
@@ -214,12 +222,17 @@ export function MeView(props: {
         <span className="go">›</span>
       </button>
       )}
-      <Stats L={L} p={p} onList={props.onList} />
-      <div className="kme-qa">
-        <button type="button" id="meEdit" onClick={props.onEdit}><span>✎</span>{L('Edit profile')}</button>
-        <button type="button" id="meShare" onClick={props.onShare}><span>⇪</span>{L('Share card')}</button>
-        <button type="button" id="meCode" onClick={props.onCode}><span>▦</span>{L('My code')}</button>
+      {/* polish #4/#5: followers · following · likes on one line; one "Share card" button (the QR is inside it); Edit = pencil on the card */}
+      <div className="kme-stline" id="meStats">
+        <button type="button" id="statFollowers" onClick={() => props.onList('followers')}><b>{fmtCount(p.followers)}</b> {L('Followers')}</button>
+        <i aria-hidden="true">·</i>
+        <button type="button" id="statFollowing" onClick={() => props.onList('following')}><b>{fmtCount(p.following)}</b> {L('Following')}</button>
+        <i aria-hidden="true">·</i>
+        <span><b>{fmtCount(p.likes)}</b> {L('Likes')}</span>
       </div>
+      <button type="button" className="kme-sharecard" id="meShare" onClick={props.onCode}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 14v6h14v-6" /></svg>{L('Share card')}
+      </button>
       {props.reelsSlot ? null : <PerksCard />}
       {props.verifyState !== 'verified' && (
         <button type="button" className="kme-verify" id="meVerify" onClick={props.onVerify} disabled={props.verifyState === 'pending'}>

@@ -6375,7 +6375,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <div className="v8-sheet" id="sh-mycode">
             <div className="grab" />
             <div className="sh-head">
-              <h3>{t.myCode} · Connect in person</h3>
+              <h3>{live ? L('Share card') : `${t.myCode} · Connect in person`}</h3>
               <button
                 type="button"
                 className="xbtn"
@@ -6404,6 +6404,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 </>
               )}
             </div>
+            {live && meProfile ? (
+              /* polish #5: Share card = QR + the phone's own share (LINE, IG, WhatsApp…) in one sheet */
+              <button type="button" className="primary-cta" id="myCodeShare" style={{ marginTop: 14 }} onClick={() => void shareProfile(meProfile)}>{L('Share link')}</button>
+            ) : null}
           </div>
         )}
 

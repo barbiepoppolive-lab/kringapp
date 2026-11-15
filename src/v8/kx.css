@@ -696,3 +696,21 @@
 .v8-app-root .kx-skel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 18px 16px 0; }
 .v8-app-root .kx-skel-grid i { height: 150px; border-radius: 14px; background: linear-gradient(110deg, #1a1726 30%, #262236 50%, #1a1726 70%); background-size: 200% 100%; animation: kxShim 1.2s linear infinite; }
 @keyframes kxShim { to { background-position: -200% 0; } }
+
+/* polish #4/#5: Me = card (pencil = edit) → one "This week" row → next step → one stats line → Share card → Reels/Saved */
+.v8-app-root .kme-cardwrap { position: relative; }
+.v8-app-root .kme-pencil { position: absolute; z-index: 5; right: 34px; top: 54px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,.22); background: rgba(11,10,18,.55); backdrop-filter: blur(8px); display: grid; place-items: center; color: #fff; padding: 0; }
+.v8-app-root .kme-pencil svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.v8-app-root .kx-week .kx-weekrow { flex-direction: row; align-items: center; gap: 10px; padding: 12px 14px; flex-wrap: wrap; row-gap: 4px; }
+.v8-app-root .kx-week .kx-weekrow .kx-wk-l { font: 700 12.5px var(--kx-j); color: #cfc9e6; }
+.v8-app-root .kx-week .kx-weekrow b { font-size: 18px; }
+.v8-app-root .kx-week .kx-weekrow .kx-wk-rk { font: 800 14px var(--kx-u); color: var(--kx-gd); padding: 3px 9px; border-radius: 10px; background: rgba(255,211,107,.12); white-space: nowrap; }
+.v8-app-root .kx-week .kx-weekrow .kx-wk-go { margin-left: auto; font: 800 13px var(--kx-j); color: #fff; white-space: nowrap; }
+.v8-app-root .kx-week .kx-weekrow .kx-wk-go i { color: var(--kx-pk); font-style: normal; }
+.v8-app-root .kx-next-l { font: 700 12px var(--kx-j); color: var(--kx-mu); margin: 2px 0 2px; }
+.v8-app-root .kme-stline { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px; margin: 14px 16px 0; font-size: 13px; color: #cfc9e6; }
+.v8-app-root .kme-stline button, .v8-app-root .kme-stline span { background: none; border: 0; padding: 4px 2px; color: inherit; font: inherit; white-space: nowrap; }
+.v8-app-root .kme-stline b { color: #fff; font-weight: 800; }
+.v8-app-root .kme-stline i { font-style: normal; opacity: .5; }
+.v8-app-root .kme-sharecard { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 12px 22px 0; width: calc(100% - 44px); height: 46px; border-radius: 23px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: #fff; font: 800 14.5px var(--kx-j); }
+.v8-app-root .kme-sharecard svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
