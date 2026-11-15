@@ -198,14 +198,14 @@ export function PlaceSearchPage(props: { L: Tx; Lf: Txf; lang: string; picked: P
         <div className="kx-newp" id="kxNewPlace" role="dialog" aria-label={L('New place')}>
           <div className="kx-newp-in">
             <div className="kx-hdr"><button type="button" className="kx-ib" aria-label={L('Back')} onClick={() => setAdding(null)}>‹</button><h2>{L('New place')}</h2><span /></div>
-            <label className="kx-fl"><span>{L('Place name')}</span>
+            <label className="kx-nf"><span>{L('Place name')}</span>
               <input id="kxNewName" value={adding.name} maxLength={80} autoComplete="off" onChange={(e) => setAdding({ ...adding, name: e.target.value, err: '' })} /></label>
-            <div className="kx-fl"><span>{L('Area')}</span>
+            <div className="kx-nf"><span>{L('Area')}</span>
               <div className="kx-areas" role="radiogroup">{KX_AREAS.map((a) => (
                 <button type="button" key={a.name} role="radio" aria-checked={adding.area === a.name} className={`kx-chip${adding.area === a.name ? ' sel' : ''}`} data-area={a.name}
                   onClick={() => setAdding({ ...adding, area: a.name })}>{kxArea(props.lang, a.name, L)}</button>
               ))}</div></div>
-            <label className="kx-fl"><span>{L('Google Maps link (optional)')}</span>
+            <label className="kx-nf"><span>{L('Google Maps link (optional)')}</span>
               <input id="kxNewLink" value={adding.link} inputMode="url" placeholder="https://maps.app.goo.gl/…" autoComplete="off" onChange={(e) => setAdding({ ...adding, link: e.target.value, err: '' })} /></label>
             <p className="kx-newp-note">{L('Kring checks new places. Your Reel can use it right away.')}</p>
             {adding.err ? <p className="kx-newp-err" role="alert">{adding.err}</p> : null}
