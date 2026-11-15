@@ -71,6 +71,10 @@ html[lang=th] .eb{letter-spacing:.04em;font-size:13px}
 .top.off{transform:translateY(-110%)}
 .logo{font:800 20px/1 var(--fu);letter-spacing:-.03em;text-shadow:0 0 18px rgba(255,79,216,.75),0 2px 10px rgba(0,0,0,.5);padding:12px 2px 12px 0;margin-right:auto}
 .logo b{color:var(--pk);font-weight:800}
+.ctas{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn.ghost{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.4);box-shadow:none;padding:0 26px;backdrop-filter:blur(8px)}
+.nv a.nvi{color:#fff;background:rgba(255,255,255,.12)}
+@media (max-width:419px){.nv a:nth-child(4){display:none}.ctas .btn{flex:1 1 100%}}
 .nv{display:flex;gap:0}
 .nv a:nth-child(3){display:none}
 .nv a{font:700 12.5px/1 var(--fj);white-space:nowrap;padding:15px 7px;border-radius:999px;text-shadow:0 1px 10px rgba(0,0,0,.7)}
@@ -397,7 +401,7 @@ auto=setTimeout(function(){start(false)},RM?Math.max(300,1300-(performance.now()
 })();</script>
 <header class="top" id="top">
 <a aria-label="หน้าแรก Kring" class="logo" data-page="" href="/">Kring<b>!</b></a>
-<nav aria-label="เมนูหลัก" class="nv"><a data-page="" href="/locals/">โลคอลกริ๊ง!</a><a data-page="" href="/partners/">สำหรับร้าน</a><a href="/bangkok/">ย่านในกรุงเทพฯ</a><a href="/about">เกี่ยวกับเรา</a></nav>
+<nav aria-label="เมนูหลัก" class="nv"><a data-page="" href="/locals/">โลคอลกริ๊ง!</a><a data-page="" href="/partners/">สำหรับร้าน</a><a href="/bangkok/">ย่านในกรุงเทพฯ</a><a href="/about">เกี่ยวกับเรา</a><a class="nvi" data-install="" href="/app/?install=1">ติดตั้งแอป</a></nav>
 <div aria-label="ภาษา" class="lsw" role="group"><a aria-current="false" data-setlang="en" href="/en/?lang=en" lang="en">EN</a><a aria-current="true" data-setlang="th" href="/?lang=th" lang="th">ไทย</a></div>
 </header>
 <main id="main">
@@ -408,7 +412,7 @@ auto=setTimeout(function(){start(false)},RM?Math.max(300,1300-(performance.now()
 <p class="eb rv"><i></i>เปิด 1 ธ.ค. 2026 · กรุงเทพฯ</p>
 <h1 class="rv" style="--d:.08s">กรุงเทพฯ สวยกว่า<br/>เมื่อมี<em>เพื่อน</em></h1>
 <p class="ld rv" style="--d:.16s">ทำการ์ด โพสต์ Reel ได้เพื่อนใหม่</p>
-<p class="rv" style="--d:.24s;margin-top:20px"><a class="btn" data-app="" data-join="" href="/app/?join=1">เปิด Kring<svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<p class="rv ctas" style="--d:.24s;margin-top:20px"><a class="btn" data-app="" data-join="" href="/app/?join=1">เปิด Kring<svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="btn ghost" data-install="" href="/app/?install=1">ติดตั้งแอป</a></p>
 <p class="nt rv" style="--d:.3s">เข้าร่วมด้วย LINE หรืออีเมล · ฟรี · 20+</p>
 </div>
 </section>
