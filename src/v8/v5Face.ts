@@ -212,18 +212,30 @@ export function photoVerdict(faces: { w: number; score: number }[], imgW: number
   return 'ok';
 }
 
+export const PHOTO_MAX_FACE = 0.9;    // 17 Nov: a "face" wider than 90 % of the photo is a food bowl / texture, not a person
+export const PHOTO_SURE_SCORE = 0.65; // one scale is enough only when the finder is this sure; otherwise it must agree at 2 scales
+
+/** 17 Nov (a shrimp bowl passed as a face at one scale, score 0.53, box wider than the photo): a photo passes only when a real-sized
+ *  face is found at 2 of the 3 scales, or at 1 scale with a confident score. */
+export function photoVerdictMulti(perScale: { w: number; score: number }[][], imgW: number): PhotoVerdict {
+  const clean = perScale.map((fs) => fs.filter((x) => x.w <= imgW * PHOTO_MAX_FACE));
+  const vs = clean.map((fs) => photoVerdict(fs, imgW));
+  const okIdx = vs.map((v, i) => (v === 'ok' ? i : -1)).filter((i) => i >= 0);
+  const top = Math.max(0, ...okIdx.map((i) => Math.max(...clean[i].map((x) => x.score))));
+  if (okIdx.length >= 2 || (okIdx.length === 1 && top >= PHOTO_SURE_SCORE)) return 'ok';
+  return vs.find((v) => v === 'group') || vs.find((v) => v === 'small') || 'none';
+}
+
 export async function checkProfilePhoto(src: string): Promise<PhotoVerdict> {
   try {
     const [faceapi, img] = await Promise.all([loadDetector(), loadImage(src)]);
-    // the small finder misses some faces at one scale (glasses, soft light), so try a few scales and keep the clearest result
-    let best: { w: number; score: number }[] = [];
+    // the small finder misses some faces at one scale (glasses, soft light), so look at 3 scales and decide on all of them together
+    const per: { w: number; score: number }[][] = [];
     for (const inputSize of [416, 320, 512]) {
       const det = await faceapi.detectAllFaces(img, new faceapi.TinyFaceDetectorOptions({ inputSize, scoreThreshold: 0.3 }));
-      const faces = det.map((d) => ({ w: d.box.width, score: d.score }));
-      if ((faces[0]?.score ?? 0) > (best[0]?.score ?? 0) || (faces.length && !best.length)) best = faces.sort((a, b) => b.score - a.score);
-      if (photoVerdict(best, img.naturalWidth) === 'ok') return 'ok';
+      per.push(det.map((d) => ({ w: d.box.width, score: d.score })));
     }
-    return photoVerdict(best, img.naturalWidth);
+    return photoVerdictMulti(per, img.naturalWidth);
   } catch {
     return 'error';
   }

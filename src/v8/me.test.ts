@@ -109,7 +109,7 @@ describe('blink step · small eyes and a slow, held closure', () => {
   });
 });
 
-import { photoVerdict } from './v5Face';
+import { photoVerdict, photoVerdictMulti } from './v5Face';
 describe('profile photo verdict (16 Nov real-face rule)', () => {
   it('passes one clear face', () => expect(photoVerdict([{ w: 120, score: 0.9 }], 384)).toBe('ok'));
   it('rejects no face (helmet, fireworks, scenery)', () => expect(photoVerdict([], 384)).toBe('none'));
@@ -117,4 +117,12 @@ describe('profile photo verdict (16 Nov real-face rule)', () => {
   it('rejects a tiny face', () => expect(photoVerdict([{ w: 30, score: 0.9 }], 384)).toBe('small'));
   it('rejects two equal faces', () => expect(photoVerdict([{ w: 120, score: 0.9 }, { w: 110, score: 0.8 }], 384)).toBe('group'));
   it('allows a clear main person with someone small behind', () => expect(photoVerdict([{ w: 150, score: 0.9 }, { w: 40, score: 0.7 }], 384)).toBe('ok'));
+});
+
+describe('17 Nov: profile photo needs a real face (shrimp-bowl case)', () => {
+  it('rejects a one-scale weak hit wider than the photo (member #50 shrimp: 0.53, 325 px box on 288 px)', () =>
+    expect(photoVerdictMulti([[{ w: 325, score: 0.53 }, { w: 288, score: 0.31 }], [], []], 288)).toBe('none'));
+  it('passes a face seen at 2 scales', () => expect(photoVerdictMulti([[{ w: 48, score: 0.68 }], [{ w: 49, score: 0.54 }], [{ w: 47, score: 0.76 }]], 287)).toBe('ok'));
+  it('passes one confident scale', () => expect(photoVerdictMulti([[{ w: 101, score: 0.46 }], [{ w: 132, score: 0.77 }], []], 384)).toBe('ok'));
+  it('rejects one unsure scale', () => expect(photoVerdictMulti([[{ w: 100, score: 0.55 }], [], []], 384)).toBe('none'));
 });

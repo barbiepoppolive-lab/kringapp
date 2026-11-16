@@ -2530,7 +2530,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   useEffect(() => {
     if (!live || !v5Card) { setPhotoFix(false); return; }
     const src = v5Card.photo || '';
-    const key = 'kr8_dp_ok:' + src.split('?')[0];
+    const key = 'kr8_dp_ok2:' + src.split('?')[0];   // 17 Nov: v2 = stricter check (old 'ok' marks are ignored)
     let ok = false;
     try { ok = !!src && localStorage.getItem(key) === '1'; } catch { /* ignore */ }
     if (ok) { setPhotoFix(false); return; }
