@@ -1641,7 +1641,7 @@ async function codesView() {
 }
 
 // ───────────────────────────── Send notification (16 Nov dings, 0059) ─────────────────────────────
-type PushStats = { phones: number; members: number; recent: { id: number; kind: string; title: string | null; to_all: boolean; at: string; phones: number;
+type PushStats = { phones: number; members: number; line_members: number; line_month: number; line_cap: number; recent: { id: number; kind: string; title: string | null; to_all: boolean; at: string; phones: number; lines: number;
   member_no: number | null; first_name: string | null; sent: number; failed: number; waiting: number }[] };
 const PUSH_KIND: Record<string, string> = { verified: 'Face check approved', reward: 'Reward ready', reel: 'Reel approved' };
 async function pushView() {
@@ -1656,18 +1656,20 @@ async function pushView() {
     const title = el('input', { id: 'pushTitle', maxlength: '80', placeholder: 'Title · Thai first, then English' }) as HTMLInputElement;
     const msg = el('textarea', { id: 'pushBody', rows: '3', maxlength: '240', placeholder: 'Message · Thai line, then English line' }) as HTMLTextAreaElement;
     const link = el('input', { id: 'pushLink', placeholder: 'Link inside the app (optional), e.g. ?tab=deals' }) as HTMLInputElement;
+    const line = el('input', { type: 'checkbox', id: 'pushLine', checked: st.line_cap > 0 }) as HTMLInputElement;
     const out = el('p', { class: 'faint xs', id: 'pushOut' });
     const sync = () => { no.disabled = all.checked; no.style.opacity = all.checked ? '.4' : '1'; };
     one.onchange = sync; all.onchange = sync;
     const send = btn('pri big full', ['Send'], async () => {
-      const r = pushSendArgs({ all: all.checked, memberNo: no.value, title: title.value, body: msg.value, link: link.value });
+      const r = pushSendArgs({ all: all.checked, memberNo: no.value, title: title.value, body: msg.value, link: link.value, line: line.checked });
       if ('error' in r) { out.textContent = r.error; return; }
       if (r.args.p_all && !confirm(`Send to all ${st.phones} phone${st.phones === 1 ? '' : 's'} (${st.members} member${st.members === 1 ? '' : 's'})?`)) return;
       send.disabled = true;
       try {
-        const res = await rpc<{ phones: number; first_name?: string | null }>('kr8_admin_push_send', r.args);
+        const res = await rpc<{ phones: number; lines?: number; first_name?: string | null }>('kr8_admin_push_send', r.args);
         const who = r.args.p_all ? 'all members' : `${res.first_name || 'member'} #${r.args.p_member_no}`;
-        toast(res.phones ? `Sent to ${who} · ${res.phones} phone${res.phones === 1 ? '' : 's'}` : `${who} has dings off · nothing sent`, { ms: 4000 });
+        const n = res.phones + (res.lines || 0);
+        toast(n ? `Sent to ${who} · ${res.phones} phone${res.phones === 1 ? '' : 's'}${res.lines ? ` + ${res.lines} on LINE` : ''}` : `${who} has dings off · nothing sent`, { ms: 4000 });
         title.value = ''; msg.value = ''; link.value = ''; out.textContent = '';
         await draw();
       } catch (e) { out.textContent = errText(e); } finally { send.disabled = false; }
@@ -1675,18 +1677,20 @@ async function pushView() {
     const recent = st.recent.map((m) => el('div', { class: 'li', 'data-push': String(m.id) },
       el('span', { class: 'grow' },
         el('b', {}, m.kind === 'admin' ? (m.title || '–') : PUSH_KIND[m.kind] || m.kind),
-        el('span', { class: 's' }, `${m.to_all ? 'All members' : `${m.first_name || '?'} #${m.member_no ?? '?'}`} · ${bkkTime(m.at)} · ${m.phones} phone${m.phones === 1 ? '' : 's'}`)),
+        el('span', { class: 's' }, `${m.to_all ? 'All members' : `${m.first_name || '?'} #${m.member_no ?? '?'}`} · ${bkkTime(m.at)} · ${m.phones} phone${m.phones === 1 ? '' : 's'}${m.lines ? ` + ${m.lines} LINE` : ''}`)),
       el('span', {}, m.sent ? pill(`${m.sent} sent`) : null, ' ', m.failed ? pill(`${m.failed} failed`, 'bad') : null, ' ', m.waiting ? pill(`${m.waiting} waiting`, 'warn') : null)));
     body.replaceChildren(
       el('div', { class: 'stats', id: 'pushStats' },
         el('div', { class: 'stat' }, el('b', {}, String(st.members)), el('span', {}, 'Members with dings on')),
-        el('div', { class: 'stat' }, el('b', {}, String(st.phones)), el('span', {}, 'Phones'))),
+        el('div', { class: 'stat' }, el('b', {}, String(st.phones)), el('span', {}, 'Phones')),
+        el('div', { class: 'stat' }, el('b', { id: 'pushLineMonth' }, st.line_cap > 0 ? `${st.line_month}/${st.line_cap}` : 'Off'), el('span', {}, `LINE this month · ${st.line_members} on LINE only`))),
       el('div', { class: 'card stack', id: 'pushForm', style: 'margin-top:12px' },
         el('div', { class: 'row', style: 'gap:16px' }, el('label', { class: 'row', style: 'gap:6px' }, one, 'One member'), el('label', { class: 'row', style: 'gap:6px' }, all, 'All members')),
         el('label', { class: 'f' }, 'Member no', no),
         el('label', { class: 'f' }, 'Title', title),
         el('label', { class: 'f' }, 'Message', msg),
         el('label', { class: 'f' }, 'Link', link),
+        el('label', { class: 'row', style: 'gap:8px' }, line, el('span', {}, st.line_cap > 0 ? 'Also as a LINE message to LINE members without app dings (uses the OA’s monthly messages)' : 'LINE messages are off (push_line_cap = 0)')),
         el('p', { class: 'faint xs' }, 'Automatic dings already go out for: face check approved, reward code ready, Reel approved. Never use: meet, guide, tour, host, creator, reviews, hidden gem, alcohol, gift, wallet, credit, lucky, draw, temples.'),
         out, send),
       el('div', { class: 'sec' }, `Last ${st.recent.length}`),

@@ -134,6 +134,7 @@ describe('app: Continue with LINE', () => {
     expect(u.searchParams.get('state')).toBe(saved.state);
     expect(u.searchParams.get('nonce')).toBe(saved.nonce);
     expect(u.searchParams.get('code_challenge_method')).toBe('S256');
+    expect(u.searchParams.get('bot_prompt')).toBe('aggressive');   // 16 Nov dings: offer to add the Kring OA
     const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(saved.verifier)));
     const b64 = btoa(String.fromCharCode(...digest)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     expect(u.searchParams.get('code_challenge')).toBe(b64);

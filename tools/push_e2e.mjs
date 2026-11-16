@@ -149,7 +149,7 @@ try {
   await page.evaluate(() => window.__push.pushMoment('minted'));
   await page.waitForSelector('#pushAsk', { timeout: 5000 });
   const line = await page.textContent('#pushAskLine');
-  ok(/การแจ้งเตือน/.test(line) && line.includes('Get a ding when someone likes your Reel or your reward is ready'), 'card: Thai line + English line');
+  ok(/การแจ้งเตือน/.test(line) && line.includes('Get a ding when you’re verified, your reward is ready, or your Reel goes live') && !/like/i.test(line), 'card: Thai line + English line (no promise of likes)');
   await page.screenshot({ path: path.join(process.env.KR_OUT || '/tmp', 'push_card.png') });
 
   // 3. grant notifications, tap [Turn on] → subscribe → stored for the member
@@ -216,6 +216,91 @@ try {
   db.subs.push({ id: 99, endpoint: subKeys.endpoint, p256dh: subKeys.p256dh, auth: subKeys.auth });
   await page.evaluate(() => window.__push.pushDisable());
   ok(db.subs.length === 0, 'turn off → kr8_push_unsubscribe removed the row');
+  // ───────── leaving in-app browsers (UA strings of the real apps) ─────────
+  const UA = JSON.parse(await (await import('node:fs/promises')).readFile(path.join(ROOT, 'src/v8/__fixtures__/inAppUAs.json'), 'utf8'));
+  const ESC = `${APP}harness/escape.html?ref=pich&src=ig`;
+  const open = async (ua, url = ESC) => {
+    const c = await browser.newContext({ userAgent: ua, locale: 'th-TH', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const navs = [];
+    await c.route('**/*', (route) => {
+      const u = route.request().url();
+      if (route.request().isNavigationRequest() && /openExternalBrowser=1/.test(u)) { navs.push(u); return route.abort(); }   // "LINE opened it outside"
+      return route.continue();
+    });
+    const pg = await c.newPage();
+    await pg.goto(url);
+    return { c, pg, navs };
+  };
+  for (const k of ['line_android', 'line_ios']) {
+    const { c, pg, navs } = await open(UA[k]);
+    for (let i = 0; i < 40 && !navs.length; i++) await pg.waitForTimeout(100);
+    const u = navs[0] ? new URL(navs[0]) : null;
+    ok(u && u.pathname === '/app/harness/escape.html' && u.searchParams.get('openExternalBrowser') === '1' && u.searchParams.get('ref') === 'pich' && u.searchParams.get('src') === 'ig',
+      `${k}: reloads itself with openExternalBrowser=1, same page, ?ref/?src kept`);
+    await pg.goto(ESC);   // back in LINE later: no second jump, no screen
+    await pg.waitForTimeout(1800);
+    ok(navs.length === 1 && !(await pg.$('#escape')), `${k}: never loops (once per phone, guarded)`);
+    await c.close();
+  }
+  {
+    const { c, pg, navs } = await open(UA.line_liff, `${APP}harness/escape.html?ref=pich&liff.state=%3Fref%3Dpich`);
+    await pg.waitForTimeout(1800);
+    ok(!navs.length, 'LINE LIFF open: no automatic jump (sign-in in LINE, LINE dings)');
+    await c.close();
+  }
+  for (const k of ['fb_android', 'ig_android', 'tiktok_android']) {
+    const { c, pg } = await open(UA[k]);
+    await pg.waitForSelector('#escape', { timeout: 6000 });   // the intent did not leave (desktop Chrome has no Android) → the buttons
+    const go = await pg.getAttribute('#escGo', 'href'), alt = await pg.getAttribute('#escAlt', 'href');
+    const tried = await pg.evaluate(() => sessionStorage.getItem('kr8_esc_auto'));
+    ok(tried === '1' && go.startsWith('intent://127.0.0.1:' + APP_PORT + '/app/harness/escape.html?ref=pich&src=ig#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=')
+      && decodeURIComponent(/S\.browser_fallback_url=([^;]+)/.exec(go)[1]).endsWith('/app/harness/escape.html?ref=pich&src=ig&kr_esc=1'),
+      `${k}: tried the Chrome intent once, then one big "Open in Chrome" button with the same intent`);
+    ok(alt && alt.includes('#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end') && !alt.includes('package='), `${k}: "Other browser" = chooser intent (no Chrome needed)`);
+    ok((await pg.textContent('#escGo')).includes('เปิดใน Chrome') && (await pg.textContent('#escGo')).includes('Open in Chrome'), `${k}: button "เปิดใน Chrome · Open in Chrome"`);
+    // desktop Chrome keeps the failed intent:// launch pending and ignores emulated taps meanwhile (a real Android phone
+    // leaves or refuses at once), so the tap is a DOM click here
+    await pg.evaluate(() => document.getElementById('escStay').click());
+    ok(!(await pg.$('#escape')), `${k}: "Stay here" closes it (never blocks browsing)`);
+    await c.close();
+  }
+  for (const k of ['fb_ios', 'ig_ios', 'tiktok_ios']) {
+    const { c, pg } = await open(UA[k]);
+    await pg.waitForSelector('#escape', { timeout: 6000 });
+    ok(await pg.getAttribute('#escGo', 'href') === `x-safari-https://127.0.0.1:${APP_PORT}/app/harness/escape.html?ref=pich&src=ig`, `${k}: "Open in Safari" = x-safari-https, same page`);
+    ok(!!(await pg.$('#escHint')) && (await pg.textContent('#escHint')).includes('Tap ⋯ then Open in browser'), `${k}: arrow to ⋯ with "แตะ ⋯ แล้วเลือก เปิดในเบราว์เซอร์"`);
+    await pg.click('#escStay');
+    await pg.reload(); await pg.waitForTimeout(800);
+    ok(!(await pg.$('#escape')), `${k}: first open only`);
+    // Turn on dings inside Instagram/FB/TikTok → the escape screen again, carrying ?dings=1
+    await pg.evaluate(() => window.__push.pushMoment('first_reel'));
+    await pg.waitForSelector('#pushAskOn', { timeout: 5000 });
+    await pg.click('#pushAskOn');
+    await pg.waitForSelector('#escape', { timeout: 5000 });
+    ok((await pg.getAttribute('#escGo', 'href')).includes('dings=1'), `${k}: Turn on dings → open in Safari, where dings are asked at once (?dings=1)`);
+    await c.close();
+  }
+  // landing in the real browser with a hand-off code → signed in, code gone from the address bar
+  {
+    const c = await browser.newContext({ userAgent: UA.chrome_android });
+    const code = 'd'.repeat(64);
+    let asked = null;
+    await c.route('**/api/handoff', (r) => { asked = r.request().postDataJSON(); r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ token_hash: 'h1' }) }); });
+    const now = Math.floor(Date.now() / 1000);
+    const jwt = ['{"alg":"HS256","typ":"JWT"}', JSON.stringify({ sub: '11111111-1111-1111-1111-111111111111', exp: now + 3600, role: 'authenticated', aud: 'authenticated' }), 'sig']
+      .map((x, i) => (i < 2 ? Buffer.from(x).toString('base64url') : x)).join('.');
+    await c.route('https://pedxoxpammnyfnizljyj.supabase.co/auth/v1/verify**', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      access_token: jwt, token_type: 'bearer', expires_in: 3600, expires_at: now + 3600, refresh_token: 'r1',
+      user: { id: '11111111-1111-1111-1111-111111111111', aud: 'authenticated', role: 'authenticated', email: 'm@x', app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() } }) }));
+    await c.route('https://pedxoxpammnyfnizljyj.supabase.co/**', (r) => r.fallback());
+    const pg = await c.newPage();
+    await pg.goto(`${APP}harness/escape.html?ref=pich&ho=${code}`);
+    await pg.waitForFunction(() => window.__handoff, null, { timeout: 10000 });
+    ok(asked && asked.code === code, 'landing: the hand-off code goes to /api/handoff');
+    ok(await pg.evaluate(() => window.__handoff) === 'signed-in' && await pg.evaluate(() => window.__uid) === '11111111-1111-1111-1111-111111111111', 'landing: signed in in the real browser');
+    ok(!/[?&]ho=/.test(pg.url()) && pg.url().includes('ref=pich'), 'landing: code removed from the address bar, ?ref kept');
+    await c.close();
+  }
 } finally {
   await browser?.close().catch(() => undefined);
   vite.kill();

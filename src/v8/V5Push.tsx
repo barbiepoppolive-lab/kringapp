@@ -2,10 +2,11 @@
  *  never over a sheet or the install sheet. [Turn on] is the only thing that triggers the browser's permission prompt. */
 import { useEffect, useState } from 'react';
 import { PUSH_ASK_EVENT, pushAskDone, pushAskLater, pushAskRead, pushAskShow, pushAskWrite, pushConfigured, pushEnable, pushEnvNow, pushSupport } from './push';
+import { openEscape } from './escape';
 import './push.css';
 
 type Tx = (en: string) => string;
-export const PUSH_ASK_LINE = 'Get a ding when someone likes your Reel or your reward is ready';
+export const PUSH_ASK_LINE = 'Get a ding when you’re verified, your reward is ready, or your Reel goes live';
 export const PUSH_IOS_LINE = 'On iPhone, add Kring to your home screen first, then turn on dings';
 
 /** Thai screens show the English line under the Thai one. */
@@ -56,6 +57,8 @@ export function PushAskCard(props: { L: Tx; lang: string; blocked?: boolean; toa
         <div className="kpa-btns">
           {support === 'ios-install' ? (
             <button type="button" className="kpa-on" id="pushAskHow" onClick={() => { later(); props.onInstallHelp(); }}>{L('How to add')}</button>
+          ) : support === 'inapp' ? (
+            <button type="button" className="kpa-on" id="pushAskOn" onClick={() => { pushAskWrite(pushAskLater(pushAskRead(), Date.now())); setShow(false); openEscape('dings'); }}>{L('Turn on')}</button>
           ) : (
             <button type="button" className="kpa-on" id="pushAskOn" disabled={busy} onClick={() => void turnOn()}>{L('Turn on')}</button>
           )}

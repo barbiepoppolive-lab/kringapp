@@ -152,7 +152,7 @@ describe('when we ask (the small card)', () => {
     expect(pushAskShow(s, now, 'ok', 'denied', { configured: true })).toBe(false);
     expect(pushAskShow(s, now, 'ok', 'default', { configured: true, blocked: true })).toBe(false);
     expect(pushAskShow(s, now, 'unsupported', 'default', { configured: true })).toBe(false);
-    expect(pushAskShow(s, now, 'inapp', 'default', { configured: true })).toBe(false);
+    expect(pushAskShow(s, now, 'inapp', 'default', { configured: true })).toBe(true);   // Turn on → open in the real browser
     expect(pushAskShow(s, now, 'ok', 'default', { configured: false })).toBe(false);
     expect(pushAskShow(s, now, 'ios-install', 'denied', { configured: true })).toBe(true);
   });
@@ -183,9 +183,9 @@ describe('admin Send notification', () => {
   });
   it('form → RPC arguments (one member or all, never both)', () => {
     expect(pushSendArgs({ all: false, memberNo: '#16', title: 'สวัสดี · Hi', body: 'ทดสอบ\nTest', link: '?tab=me' }))
-      .toEqual({ args: { p_member_no: 16, p_all: false, p_title: 'สวัสดี · Hi', p_body: 'ทดสอบ\nTest', p_url: '/app/?tab=me' } });
-    expect(pushSendArgs({ all: true, memberNo: '16', title: 'x', body: 'y', link: '' }))
-      .toEqual({ args: { p_member_no: null, p_all: true, p_title: 'x', p_body: 'y', p_url: null } });
+      .toEqual({ args: { p_member_no: 16, p_all: false, p_title: 'สวัสดี · Hi', p_body: 'ทดสอบ\nTest', p_url: '/app/?tab=me', p_line: true } });
+    expect(pushSendArgs({ all: true, memberNo: '16', title: 'x', body: 'y', link: '', line: false }))
+      .toEqual({ args: { p_member_no: null, p_all: true, p_title: 'x', p_body: 'y', p_url: null, p_line: false } });
     expect(pushSendArgs({ all: false, memberNo: '', title: 'x', body: 'y', link: '' })).toHaveProperty('error');
     expect(pushSendArgs({ all: true, memberNo: '', title: ' ', body: 'y', link: '' })).toHaveProperty('error');
     expect(pushSendArgs({ all: true, memberNo: '', title: 'x', body: 'y', link: 'https://evil.example' })).toHaveProperty('error');
@@ -198,7 +198,7 @@ describe('words', () => {
     'Dings are blocked. Allow notifications for kringapp.com in your browser settings.', 'Could not turn on dings. Try again in Settings.',
     'On · this phone gets dings', 'Blocked in your browser settings', 'Add Kring to your home screen first', 'This browser can’t show dings'];
   it('every new line has Thai, and no banned word in either language', () => {
-    expect(PUSH_ASK_LINE).toBe('Get a ding when someone likes your Reel or your reward is ready');
+    expect(PUSH_ASK_LINE).toBe('Get a ding when you’re verified, your reward is ready, or your Reel goes live');
     for (const k of KEYS) {
       const th = V5_L.th[k];
       expect(th, k).toBeTruthy();

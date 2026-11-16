@@ -88,9 +88,11 @@ import { ActivitySheet, FollowSheet, InterestsSheet, LANG_NAME, MeView, Top10She
 import { A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip, openInstallSheet } from './A2HS';
 import { parsePushLink, pushConfigured, pushDisable, pushEnable, pushMoment, pushResync, pushState, type PushLink, type PushState } from './push';
 import { PUSH_ASK_LINE, PushAskCard } from './V5Push';
+import { EscapeScreen } from './V5Escape';
+import { isLiffOpen, openEscape } from './escape';
 import { TripPerks } from './V5Trip';
 import { StayDo } from './V5StayDo';
-import { v5LogClient, v5MyVerification } from './v5Live';
+import { v5HandoffBoot, v5LogClient, v5MyVerification } from './v5Live';
 import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
 import type { V5Blocked, V5Card, V5FeedItem, V5Me, V5ReportReason, V5TagPlace, V5Thread } from './v5Live';
 import { V5_L, KX_L, kxArea, v5ErrText, loadV5Lang, v5LangReady } from './v5Strings';
@@ -1585,6 +1587,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     }
     (async () => {
       // LIFF one-tap (only in builds with VITE_LIFF_ID; empty → this block is not even in the bundle)
+      // arrived from an in-app browser with a one-time hand-off code (?ho=): signed in here before anything reads the session
+      await v5HandoffBoot().catch(() => 'failed');
+      if (cancelled) return;
       if (import.meta.env.VITE_LIFF_ID) {
         try {
           const r = await import('./v5Liff').then((m) => m.v5LiffBoot());
@@ -3021,7 +3026,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const togglePush = async () => {
     if (pushBusy) return;
     if (pushSt === 'ios-install') { setSheet(null); openInstallSheet(); return; }
-    if (pushSt === 'inapp' || pushSt === 'unsupported') return;
+    if (pushSt === 'inapp') { setSheet(null); openEscape('dings'); return; }   // in-app browser: into the real browser first
+    if (pushSt === 'unsupported') return;
     setPushBusy(true);
     try {
       if (pushSt === 'on') { await pushDisable(); setPushSt('off'); showToast(L('Dings off')); return; }
@@ -3055,6 +3061,16 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     openPushLink({ rewards: true });
   }, [live, signedIn, v5Uid]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (live && signedIn && v5Uid) void pushResync(v5Uid).catch(() => undefined); }, [live, signedIn, v5Uid]);
+  // came here from an in-app browser after tapping Turn on dings (?dings=1): ask again here, one tap
+  useEffect(() => {
+    try {
+      const u = new URL(location.href);
+      if (u.searchParams.get('dings') !== '1') return;
+      u.searchParams.delete('dings');
+      history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+      pushMoment('escaped');
+    } catch { /* ignore */ }
+  }, []);
 
   // "+" (15 Nov): live, it goes straight to the Reel compose screen ("Ask a Thai" is gone, so there is nothing to choose)
   const openCreate = () => {
@@ -6654,6 +6670,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           </div>
         )}
         {live && !sheet && <A2HSBanner L={L} blocked={['preparing', 'uploading', 'saving'].includes(reelStage)} />}
+        {live && <EscapeScreen L={L} lang={lang} liff={isLiffOpen(typeof location === 'undefined' ? '' : location.search, typeof navigator === 'undefined' ? '' : navigator.userAgent)} signedIn={signedIn} authReady={v5AuthReady} />}
         {live && signedIn && !!v5Card && !sheet && !goPlayer && (
           <PushAskCard L={L} lang={lang} toast={showToast} onInstallHelp={openInstallSheet} blocked={['preparing', 'uploading', 'saving'].includes(reelStage)} />
         )}

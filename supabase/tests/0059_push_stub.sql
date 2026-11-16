@@ -20,3 +20,8 @@ create table if not exists public.kr8_posts (id uuid primary key, author uuid, k
 create or replace function public.kr8_is_admin() returns boolean language sql stable as $$ select current_setting('t.admin', true) = '1' $$;
 insert into auth.users values ('11111111-1111-1111-1111-111111111111', 'a@x'), ('22222222-2222-2222-2222-222222222222', 'b@x') on conflict do nothing;
 insert into public.kr8_members values ('11111111-1111-1111-1111-111111111111', 'Ploy', 16), ('22222222-2222-2222-2222-222222222222', 'Ton', 17) on conflict do nothing;
+create table if not exists public.kr8_line_links (line_sub text primary key, user_id uuid not null unique references auth.users(id), last_login_at timestamptz not null default now());
+create table if not exists public.kr8_rings_config (key text primary key, value int not null);
+create or replace function public.kr8_rcfg(k text, dflt int default 0) returns int language sql stable as $$ select coalesce((select value from public.kr8_rings_config where key = k), dflt) $$;
+insert into auth.users values ('33333333-3333-3333-3333-333333333333', 'c@x') on conflict do nothing;
+insert into public.kr8_members values ('33333333-3333-3333-3333-333333333333', 'Nok', 18) on conflict do nothing;

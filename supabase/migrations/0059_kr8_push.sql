@@ -12,18 +12,27 @@
 --      kr8_push_done(): sent → last_ok_at; 404/410 → the subscription is deleted; other failures → fail_count (deleted at 5).
 --      If more rows are waiting, kr8_push_done() pokes the endpoint again, so big "send to all" jobs go out in batches.
 --   A member with no subscription simply gets nothing (the admin screen shows "0 phones").
+--   LINE dings: a member who signed in with LINE (kr8_line_links) and has NO phone subscription gets the same ding as a LINE
+--   message from the Kring OA (Messaging API push, sent by the same /api/push). Only for the three automatic events and admin
+--   sends that leave "LINE" ticked; capped per month by kr8_rings_config 'push_line_cap' (default 0 = LINE off until go-live).
+--   A 400/403 from LINE (not a friend of the OA / blocked) is remembered in kr8_push_line and that member is skipped until
+--   they sign in with LINE again (the sign-in offers "add Kring as a friend", bot_prompt=aggressive).
+--
+-- Sign-in hand-off (escaping an in-app browser): kr8_handoff_create() gives the signed-in member a one-time code (3 minutes,
+-- single use, stored only as a SHA-256 hash). The app adds it to the link it opens in Chrome / Safari; there /api/handoff
+-- (service role) swaps it with kr8_handoff_take() for a one-time sign-in, so the member lands signed in.
 --
 -- Needs before it works (go-live): Supabase vault secret 'push_hook_secret' (same value as PUSH_HOOK_SECRET on Cloudflare).
--- Without it the queue still fills but nothing is poked (safe).
+-- Without it the queue still fills but nothing is poked (safe). LINE dings also need kr8_rings_config push_line_cap > 0.
 --
 -- UNDO: begin;
 --   drop trigger if exists kr8_push_verified on public.kr8_verifications; drop trigger if exists kr8_push_reward on public.kr8_reward_claims;
 --   drop trigger if exists kr8_push_reel on public.kr8_posts;
 --   drop function if exists public.kr8_push_on_verified(), public.kr8_push_on_reward(), public.kr8_push_on_reel(),
---     public.kr8_push_subscribe(text, text, text, text), public.kr8_push_unsubscribe(text), public.kr8_push_queue(text, uuid, boolean, text, text, text, uuid),
---     public.kr8_push_poke(), public.kr8_push_claim(int), public.kr8_push_done(jsonb), public.kr8_admin_push_send(int, boolean, text, text, text),
---     public.kr8_admin_push_stats(), public.kr8_push_endpoint_ok(text);
---   drop table if exists public.kr8_push_outbox, public.kr8_push_msgs, public.kr8_push_subs;
+--     public.kr8_push_subscribe(text, text, text, text), public.kr8_push_unsubscribe(text), public.kr8_push_queue(text, uuid, boolean, text, text, text, uuid, boolean),
+--     public.kr8_push_poke(), public.kr8_push_claim(int), public.kr8_push_done(jsonb), public.kr8_admin_push_send(int, boolean, text, text, text, boolean),
+--     public.kr8_admin_push_stats(), public.kr8_push_endpoint_ok(text), public.kr8_handoff_create(), public.kr8_handoff_take(text);
+--   drop table if exists public.kr8_push_outbox, public.kr8_push_msgs, public.kr8_push_subs, public.kr8_push_line, public.kr8_handoff;
 -- commit;
 begin;
 
@@ -58,6 +67,8 @@ create table if not exists public.kr8_push_msgs (
   url         text check (url is null or (url ~ '^/app/' and length(url) <= 300)),
   ref_id      uuid,                       -- verification / claim / reel id (one automatic ding per event)
   phones      int not null default 0,
+  lines       int not null default 0,        -- LINE messages queued (members with LINE and no phone subscription)
+  line        boolean not null default true, -- LINE allowed for this send
   created_by  uuid,
   created_at  timestamptz not null default now(),
   check (to_all or to_user is not null)
@@ -69,7 +80,9 @@ create table if not exists public.kr8_push_outbox (
   id          bigserial primary key,
   msg_id      bigint not null references public.kr8_push_msgs(id) on delete cascade,
   sub_id      bigint references public.kr8_push_subs(id) on delete set null,
-  state       text not null default 'queued' check (state in ('queued', 'sent', 'failed', 'gone')),
+  channel     text not null default 'web' check (channel in ('web', 'line')),
+  line_to     text check (line_to is null or line_to ~ '^U[0-9a-f]{32}$'),
+  state       text not null default 'queued' check (state in ('queued', 'sent', 'failed', 'gone', 'notfriend')),
   tries       int not null default 0,
   http        int,
   claimed_at  timestamptz,
@@ -78,9 +91,30 @@ create table if not exists public.kr8_push_outbox (
 );
 create index if not exists kr8_push_outbox_queued on public.kr8_push_outbox(id) where state = 'queued';
 create index if not exists kr8_push_outbox_msg on public.kr8_push_outbox(msg_id);
+create index if not exists kr8_push_outbox_line_month on public.kr8_push_outbox(created_at) where channel = 'line';
+
+-- LINE members the OA could not reach (not a friend / blocked): skipped until they sign in with LINE again
+create table if not exists public.kr8_push_line (
+  line_sub       text primary key,
+  not_friend_at  timestamptz,
+  last_ok_at     timestamptz
+);
+
+-- one-time sign-in hand-off to the phone's real browser (only the hash is kept)
+create table if not exists public.kr8_handoff (
+  code_hash   text primary key,
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  created_at  timestamptz not null default now(),
+  expires_at  timestamptz not null,
+  used_at     timestamptz
+);
+create index if not exists kr8_handoff_user on public.kr8_handoff(user_id, created_at desc);
+
 alter table public.kr8_push_msgs enable row level security;     -- no policies: only the functions below touch them
 alter table public.kr8_push_outbox enable row level security;
-revoke all on public.kr8_push_msgs, public.kr8_push_outbox from public, anon, authenticated;
+alter table public.kr8_push_line enable row level security;
+alter table public.kr8_handoff enable row level security;
+revoke all on public.kr8_push_msgs, public.kr8_push_outbox, public.kr8_push_line, public.kr8_handoff from public, anon, authenticated;
 
 -- Push services we send to. The sender POSTs to whatever endpoint a member stored, so only real browser push services are
 -- accepted (no member can make our server call an address of their choosing). The Pages Function checks the same list.
@@ -135,22 +169,35 @@ exception when others then
   return;   -- never block the caller
 end $$;
 
-create or replace function public.kr8_push_queue(p_kind text, p_user uuid, p_all boolean, p_title text, p_body text, p_url text, p_ref uuid)
+create or replace function public.kr8_push_queue(p_kind text, p_user uuid, p_all boolean, p_title text, p_body text, p_url text, p_ref uuid, p_line boolean default true)
 returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
-declare mid bigint; n int;
+declare mid bigint; n int; nl int := 0; room int;
 begin
   if p_ref is not null and exists (select 1 from public.kr8_push_msgs where kind = p_kind and ref_id = p_ref) then
     return jsonb_build_object('msg', null, 'phones', 0, 'dup', true);
   end if;
-  insert into public.kr8_push_msgs (kind, to_user, to_all, title, body, url, ref_id, created_by)
-  values (p_kind, case when coalesce(p_all, false) then null else p_user end, coalesce(p_all, false), p_title, p_body, p_url, p_ref, auth.uid())
+  insert into public.kr8_push_msgs (kind, to_user, to_all, title, body, url, ref_id, line, created_by)
+  values (p_kind, case when coalesce(p_all, false) then null else p_user end, coalesce(p_all, false), p_title, p_body, p_url, p_ref, coalesce(p_line, true), auth.uid())
   returning id into mid;
   insert into public.kr8_push_outbox (msg_id, sub_id)
   select mid, s.id from public.kr8_push_subs s where coalesce(p_all, false) or s.user_id = p_user;
   get diagnostics n = row_count;
-  update public.kr8_push_msgs set phones = n where id = mid;
-  if n > 0 then perform public.kr8_push_poke(); end if;
-  return jsonb_build_object('msg', mid, 'phones', n);
+  -- LINE: members with a LINE link and no phone subscription, the OA can reach them, inside this month's cap
+  room := public.kr8_rcfg('push_line_cap', 0) - (select count(*)::int from public.kr8_push_outbox
+            where channel = 'line' and created_at >= date_trunc('month', now() at time zone 'Asia/Bangkok') at time zone 'Asia/Bangkok');
+  if coalesce(p_line, true) and room > 0 then
+    insert into public.kr8_push_outbox (msg_id, channel, line_to)
+    select mid, 'line', l.line_sub from public.kr8_line_links l
+     where (coalesce(p_all, false) or l.user_id = p_user)
+       and not exists (select 1 from public.kr8_push_subs s where s.user_id = l.user_id)
+       and not exists (select 1 from public.kr8_push_line x where x.line_sub = l.line_sub and x.not_friend_at is not null and l.last_login_at <= x.not_friend_at)
+     order by l.last_login_at desc
+     limit room;
+    get diagnostics nl = row_count;
+  end if;
+  update public.kr8_push_msgs set phones = n, lines = nl where id = mid;
+  if n + nl > 0 then perform public.kr8_push_poke(); end if;
+  return jsonb_build_object('msg', mid, 'phones', n, 'lines', nl);
 end $$;
 
 -- ───────── sender side (service role only) ─────────
@@ -159,21 +206,22 @@ language plpgsql security definer set search_path = public, pg_temp as $$
 declare r jsonb;
 begin
   -- rows with no phone left (deleted subscription) are closed first
-  update public.kr8_push_outbox set state = 'gone', done_at = now() where state = 'queued' and sub_id is null;
+  update public.kr8_push_outbox set state = 'gone', done_at = now() where state = 'queued' and channel = 'web' and sub_id is null;
   with c as (
     select o.id from public.kr8_push_outbox o
      where o.state = 'queued' and o.tries < 3 and (o.claimed_at is null or o.claimed_at < now() - interval '2 minutes')
      order by o.id limit greatest(1, least(coalesce(p_limit, 10), 50)) for update skip locked),
   u as (
-    update public.kr8_push_outbox o set claimed_at = now(), tries = o.tries + 1 from c where o.id = c.id returning o.id, o.msg_id, o.sub_id)
-  select coalesce(jsonb_agg(jsonb_build_object('id', u.id, 'endpoint', s.endpoint, 'p256dh', s.p256dh, 'auth', s.auth,
+    update public.kr8_push_outbox o set claimed_at = now(), tries = o.tries + 1 from c where o.id = c.id returning o.id, o.msg_id, o.sub_id, o.channel, o.line_to)
+  select coalesce(jsonb_agg(jsonb_build_object('id', u.id, 'channel', u.channel, 'line_to', u.line_to, 'endpoint', s.endpoint, 'p256dh', s.p256dh, 'auth', s.auth,
            'kind', m.kind, 'title', m.title, 'body', m.body, 'url', m.url, 'msg', m.id) order by u.id), '[]'::jsonb)
     into r
-    from u join public.kr8_push_subs s on s.id = u.sub_id join public.kr8_push_msgs m on m.id = u.msg_id;
+    from u left join public.kr8_push_subs s on s.id = u.sub_id join public.kr8_push_msgs m on m.id = u.msg_id
+   where u.channel = 'line' or s.id is not null;
   return r;
 end $$;
 
--- p_results: [{"id": <outbox id>, "result": "sent"|"gone"|"retry"|"failed", "http": 201}]
+-- p_results: [{"id": <outbox id>, "result": "sent"|"gone"|"retry"|"failed"|"notfriend", "http": 201}]
 create or replace function public.kr8_push_done(p_results jsonb) returns jsonb
 language plpgsql security definer set search_path = public, pg_temp as $$
 declare x jsonb; o public.kr8_push_outbox; res text; more boolean;
@@ -182,6 +230,22 @@ begin
     select * into o from public.kr8_push_outbox where id = (x->>'id')::bigint for update;
     if o.id is null or o.state <> 'queued' then continue; end if;
     res := x->>'result';
+    if o.channel = 'line' then
+      if res = 'sent' then
+        update public.kr8_push_outbox set state = 'sent', http = (x->>'http')::int, done_at = now() where id = o.id;
+        insert into public.kr8_push_line (line_sub, last_ok_at) values (o.line_to, now())
+        on conflict (line_sub) do update set last_ok_at = now(), not_friend_at = null;
+      elsif res = 'notfriend' then   -- not a friend of the OA / blocked it: stop until the next LINE sign-in
+        update public.kr8_push_outbox set state = 'notfriend', http = (x->>'http')::int, done_at = now() where id = o.id;
+        insert into public.kr8_push_line (line_sub, not_friend_at) values (o.line_to, now())
+        on conflict (line_sub) do update set not_friend_at = now();
+      elsif res = 'retry' and o.tries < 3 then
+        update public.kr8_push_outbox set http = (x->>'http')::int where id = o.id;
+      else
+        update public.kr8_push_outbox set state = 'failed', http = (x->>'http')::int, done_at = now() where id = o.id;
+      end if;
+      continue;
+    end if;
     if res = 'sent' then
       update public.kr8_push_outbox set state = 'sent', http = (x->>'http')::int, done_at = now() where id = o.id;
       update public.kr8_push_subs set last_ok_at = now(), fail_count = 0 where id = o.sub_id;
@@ -242,7 +306,7 @@ create trigger kr8_push_reel after update of status on public.kr8_posts
 
 -- ───────── admin ─────────
 -- One member (by member no) or everyone with dings on. Title + body as typed; link optional and inside the app (/app/...).
-create or replace function public.kr8_admin_push_send(p_member_no int, p_all boolean, p_title text, p_body text, p_url text default null) returns jsonb
+create or replace function public.kr8_admin_push_send(p_member_no int, p_all boolean, p_title text, p_body text, p_url text default null, p_line boolean default true) returns jsonb
 language plpgsql security definer set search_path = public, pg_temp as $$
 declare uid uuid; t text := btrim(coalesce(p_title, '')); b text := btrim(coalesce(p_body, '')); u text := nullif(btrim(coalesce(p_url, '')), '');
 begin
@@ -255,7 +319,7 @@ begin
     select user_id into uid from public.kr8_members where member_no = p_member_no;
     if uid is null then raise exception 'KR8_NO_MEMBER'; end if;
   end if;
-  return public.kr8_push_queue('admin', uid, coalesce(p_all, false), t, b, coalesce(u, '/app/'), null)
+  return public.kr8_push_queue('admin', uid, coalesce(p_all, false), t, b, coalesce(u, '/app/'), null, coalesce(p_line, true))
     || jsonb_build_object('first_name', (select first_name from public.kr8_members where user_id = uid));
 end $$;
 
@@ -266,22 +330,54 @@ begin
   return jsonb_build_object(
     'phones', (select count(*) from public.kr8_push_subs),
     'members', (select count(distinct user_id) from public.kr8_push_subs),
+    'line_members', (select count(*) from public.kr8_line_links l where not exists (select 1 from public.kr8_push_subs s where s.user_id = l.user_id)
+                       and not exists (select 1 from public.kr8_push_line x where x.line_sub = l.line_sub and x.not_friend_at is not null and l.last_login_at <= x.not_friend_at)),
+    'line_month', (select count(*) from public.kr8_push_outbox where channel = 'line'
+                     and created_at >= date_trunc('month', now() at time zone 'Asia/Bangkok') at time zone 'Asia/Bangkok'),
+    'line_cap', public.kr8_rcfg('push_line_cap', 0),
     'recent', coalesce((select jsonb_agg(r order by r.at desc) from (
-        select m.id, m.kind, m.title, m.to_all, m.created_at at, m.phones, mm.member_no, mm.first_name,
+        select m.id, m.kind, m.title, m.to_all, m.created_at at, m.phones, m.lines, mm.member_no, mm.first_name,
                (select count(*) from public.kr8_push_outbox o where o.msg_id = m.id and o.state = 'sent') sent,
-               (select count(*) from public.kr8_push_outbox o where o.msg_id = m.id and o.state in ('failed', 'gone')) failed,
+               (select count(*) from public.kr8_push_outbox o where o.msg_id = m.id and o.state in ('failed', 'gone', 'notfriend')) failed,
                (select count(*) from public.kr8_push_outbox o where o.msg_id = m.id and o.state = 'queued') waiting
           from public.kr8_push_msgs m left join public.kr8_members mm on mm.user_id = m.to_user
          order by m.created_at desc limit 20) r), '[]'::jsonb));
 end $$;
 
+-- ───────── sign-in hand-off to the real browser ─────────
+create or replace function public.kr8_handoff_create() returns text
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare uid uuid := auth.uid(); code text;
+begin
+  if uid is null then raise exception 'KR8_SIGN_IN'; end if;
+  if (select count(*) from public.kr8_handoff where user_id = uid and created_at > now() - interval '10 minutes') >= 5 then raise exception 'KR8_TOO_MANY'; end if;
+  code := replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '');   -- 244 random bits
+  insert into public.kr8_handoff (code_hash, user_id, expires_at) values (encode(sha256(convert_to(code, 'UTF8')), 'hex'), uid, now() + interval '3 minutes');
+  delete from public.kr8_handoff where expires_at < now() - interval '1 day';
+  return code;
+end $$;
+
+-- service role only (/api/handoff): one use, 3 minutes → the member's email, for a one-time sign-in link made server side
+create or replace function public.kr8_handoff_take(p_code text) returns jsonb
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare h public.kr8_handoff;
+begin
+  if p_code is null or p_code !~ '^[0-9a-f]{64}$' then return null; end if;
+  update public.kr8_handoff set used_at = now()
+   where code_hash = encode(sha256(convert_to(p_code, 'UTF8')), 'hex') and used_at is null and expires_at > now()
+  returning * into h;
+  if h.code_hash is null then return null; end if;
+  return jsonb_build_object('user_id', h.user_id, 'email', (select email from auth.users where id = h.user_id));
+end $$;
+
 -- ───────── grants ─────────
 revoke all on function public.kr8_push_endpoint_ok(text), public.kr8_push_subscribe(text, text, text, text), public.kr8_push_unsubscribe(text),
-  public.kr8_push_poke(), public.kr8_push_queue(text, uuid, boolean, text, text, text, uuid), public.kr8_push_claim(int), public.kr8_push_done(jsonb),
+  public.kr8_push_poke(), public.kr8_push_queue(text, uuid, boolean, text, text, text, uuid, boolean), public.kr8_push_claim(int), public.kr8_push_done(jsonb),
   public.kr8_push_on_verified(), public.kr8_push_on_reward(), public.kr8_push_on_reel(),
-  public.kr8_admin_push_send(int, boolean, text, text, text), public.kr8_admin_push_stats() from public, anon, authenticated;
+  public.kr8_admin_push_send(int, boolean, text, text, text, boolean), public.kr8_admin_push_stats(),
+  public.kr8_handoff_create(), public.kr8_handoff_take(text) from public, anon, authenticated;
 grant execute on function public.kr8_push_subscribe(text, text, text, text), public.kr8_push_unsubscribe(text),
-  public.kr8_admin_push_send(int, boolean, text, text, text), public.kr8_admin_push_stats() to authenticated;
-grant execute on function public.kr8_push_claim(int), public.kr8_push_done(jsonb) to service_role;
+  public.kr8_admin_push_send(int, boolean, text, text, text, boolean), public.kr8_admin_push_stats(), public.kr8_handoff_create() to authenticated;
+grant execute on function public.kr8_push_claim(int), public.kr8_push_done(jsonb), public.kr8_handoff_take(text) to service_role;
 
 commit;

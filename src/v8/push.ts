@@ -5,6 +5,7 @@
  *  - Off unless the build has VITE_VAPID_PUBLIC (the public VAPID key). Without it nothing here shows or runs.
  *  The server side is migration 0059 (kr8_push_subs + outbox) and kringapp.com/api/push (site repo). */
 import { v5PushSubscribe, v5PushUnsubscribe } from './v5Live';
+import { inAppOf } from './escape';
 
 export const VAPID_PUBLIC = String(import.meta.env.VITE_VAPID_PUBLIC || '').trim();
 export const pushConfigured = (key = VAPID_PUBLIC) => /^[A-Za-z0-9_-]{80,100}$/.test(key);
@@ -13,7 +14,7 @@ export const pushConfigured = (key = VAPID_PUBLIC) => /^[A-Za-z0-9_-]{80,100}$/.
 export type PushSupport = 'ok' | 'ios-install' | 'inapp' | 'unsupported';
 export interface PushEnv { ua: string; standalone: boolean; hasSW: boolean; hasPush: boolean; hasNotif: boolean }
 const isIos = (ua: string, touch = 0) => /iphone|ipad|ipod/i.test(ua) || (/Macintosh/.test(ua) && touch > 1);
-const inApp = (ua: string) => /\bLine\/|FBAN|FBAV|FB_IAB|Instagram|TikTok|musical_ly|BytedanceWebview|Twitter|; wv\)/i.test(ua);
+const inApp = (ua: string) => !!inAppOf(ua) || /Twitter/i.test(ua);
 /** Pure. iPhone Safari tab → 'ios-install' (push needs the home-screen app); LINE/IG/FB/TikTok browsers → 'inapp'. */
 export function pushSupport(e: PushEnv, touch = 0): PushSupport {
   if (inApp(e.ua)) return 'inapp';
@@ -152,7 +153,7 @@ export async function pushResync(uid: string, d: PushDeps = defaultPushDeps(), n
 const ASK_KEY = 'kr8_push_ask';
 const ASK_EVENT = 'kr8-push-ask';
 export const PUSH_SNOOZE_MS = 14 * 864e5;
-export type PushMoment = 'minted' | 'first_reel';
+export type PushMoment = 'minted' | 'first_reel' | 'escaped';
 export interface PushAsk { due?: number; by?: PushMoment; snooze?: number; asked?: boolean; seen?: PushMoment[] }
 const readAsk = (): PushAsk => { try { return JSON.parse(localStorage.getItem(ASK_KEY) || '{}') as PushAsk; } catch { return {}; } };
 const writeAsk = (v: PushAsk) => { try { localStorage.setItem(ASK_KEY, JSON.stringify(v)); } catch { /* ignore */ } };
@@ -164,7 +165,7 @@ export function pushAskAfter(s: PushAsk, by: PushMoment, now: number): PushAsk {
 /** Pure: show the card now? Only when a moment is waiting, not snoozed, never asked, and the browser has not been asked yet. */
 export function pushAskShow(s: PushAsk, now: number, support: PushSupport, perm: NotificationPermission, opts: { configured: boolean; blocked?: boolean }): boolean {
   if (!opts.configured || opts.blocked || s.asked || !s.due || (s.snooze && s.snooze > now)) return false;
-  if (support === 'ios-install') return true;
+  if (support === 'ios-install' || support === 'inapp') return true;   // inapp: [Turn on] opens "Open in your browser" first
   return support === 'ok' && perm === 'default';
 }
 export const pushAskLater = (s: PushAsk, now: number): PushAsk => ({ ...s, due: undefined, snooze: now + PUSH_SNOOZE_MS });

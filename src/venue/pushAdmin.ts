@@ -19,9 +19,9 @@ export function normAppLink(raw: string): string | null | 'bad' {
   return /^\/app\/[A-Za-z0-9_./?=&%#~+-]*$/.test(path) && path.length <= 300 ? path : 'bad';
 }
 
-export interface PushForm { all: boolean; memberNo: string; title: string; body: string; link: string }
+export interface PushForm { all: boolean; memberNo: string; title: string; body: string; link: string; line?: boolean }
 /** → the RPC arguments for kr8_admin_push_send, or an error line for the screen. */
-export function pushSendArgs(f: PushForm): { args: { p_member_no: number | null; p_all: boolean; p_title: string; p_body: string; p_url: string | null } } | { error: string } {
+export function pushSendArgs(f: PushForm): { args: { p_member_no: number | null; p_all: boolean; p_title: string; p_body: string; p_url: string | null; p_line: boolean } } | { error: string } {
   const title = f.title.trim(), body = f.body.trim();
   if (!title) return { error: 'Add a title' };
   if (title.length > 80) return { error: 'Title: 80 characters at most' };
@@ -35,5 +35,5 @@ export function pushSendArgs(f: PushForm): { args: { p_member_no: number | null;
     if (!/^\d{1,7}$/.test(m)) return { error: 'Type the member no (e.g. 16)' };
     no = Number(m);
   }
-  return { args: { p_member_no: no, p_all: f.all, p_title: title, p_body: body, p_url: link } };
+  return { args: { p_member_no: no, p_all: f.all, p_title: title, p_body: body, p_url: link, p_line: f.line !== false } };
 }

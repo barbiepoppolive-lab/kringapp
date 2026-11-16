@@ -198,7 +198,10 @@ export async function v5SignInLine(): Promise<'redirect' | 'LINE_OFF' | 'NETWORK
   // localStorage, not sessionStorage: LINE may hand back to a new tab of the same browser
   localStorage.setItem(LINE_KEY, JSON.stringify({ state, nonce, verifier, back: window.location.pathname + window.location.search, t: Date.now() }));
   const q = new URLSearchParams({ response_type: 'code', client_id: lineChannel(), redirect_uri: v5LineCallbackUrl(), state, scope: 'openid profile email',
-    nonce, code_challenge: challenge, code_challenge_method: 'S256' });
+    nonce, code_challenge: challenge, code_challenge_method: 'S256',
+    // 16 Nov dings: LINE offers "add Kring as a friend" on the sign-in screen (needs the OA linked to this Login channel),
+    // so LINE members can get their dings as LINE messages
+    bot_prompt: 'aggressive' });
   window.location.assign(`https://access.line.me/oauth2/v2.1/authorize?${q.toString()}`);
   return 'redirect';
 }
@@ -253,6 +256,36 @@ export async function v5PushSubscribe(endpoint: string, p256dh: string, auth: st
 /** Forgets this phone for the signed-in member (kr8_push_unsubscribe deletes only the member's own row). */
 export async function v5PushUnsubscribe(endpoint: string): Promise<void> {
   await rpc('kr8_push_unsubscribe', { p_endpoint: endpoint });
+}
+
+// ─────────────── sign-in hand-off to the phone's real browser (0059, /api/handoff) ───────────────
+/** A one-time code (3 min, one use) that signs this member in on the page opened in Chrome / Safari. null when signed out. */
+export async function v5HandoffCreate(): Promise<string | null> {
+  if (!(await v5Session().catch(() => null))) return null;
+  const code = await rpc<string>('kr8_handoff_create').catch(() => null);
+  return code && /^[0-9a-f]{64}$/.test(code) ? code : null;
+}
+/** On start: ?ho=<code> (arrived from an in-app browser) → signed in here. The code leaves the address bar at once.
+ *  'signed-in' | 'had-session' | 'none' | 'failed' (expired / used: the member just signs in as usual). */
+export async function v5HandoffBoot(f: typeof fetch = fetch): Promise<'signed-in' | 'had-session' | 'none' | 'failed'> {
+  if (typeof window === 'undefined') return 'none';
+  const u = new URL(window.location.href);
+  const code = u.searchParams.get('ho');
+  if (!code) return 'none';
+  u.searchParams.delete('ho');
+  u.searchParams.delete('kr_esc');
+  try { window.history.replaceState(window.history.state, '', u.pathname + u.search + u.hash); } catch { /* ignore */ }
+  if (!/^[0-9a-f]{64}$/.test(code)) return 'failed';
+  if (await v5Session().catch(() => null)) return 'had-session';
+  try {
+    const r = await f('/api/handoff', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
+    const j = (await r.json().catch(() => null)) as { token_hash?: string } | null;
+    if (!r.ok || !j?.token_hash) return 'failed';
+    const v = await (await v5Client()).auth.verifyOtp({ token_hash: j.token_hash, type: 'email' });
+    return v.error ? 'failed' : 'signed-in';
+  } catch {
+    return 'failed';
+  }
 }
 
 export async function v5SignOut(): Promise<void> {

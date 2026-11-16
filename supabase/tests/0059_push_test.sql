@@ -111,3 +111,60 @@ select pg_temp.ok((select count(*) from kr8_push_outbox where state = 'queued' a
 select set_config('t.uid', :'A', false);
 select kr8_push_unsubscribe('https://fcm.googleapis.com/fcm/send/abc:def') as unsub \gset
 select pg_temp.ok(:'unsub'::boolean and (select count(*) from kr8_push_subs) = 0, 'member turns dings off → row deleted');
+
+-- ───────── LINE dings ─────────
+\set C '33333333-3333-3333-3333-333333333333'
+\set CL 'U0123456789abcdef0123456789abcdef'
+insert into kr8_line_links (line_sub, user_id, last_login_at) values (:'CL', :'C', now() - interval '1 hour');
+delete from net.calls;
+insert into kr8_verifications (id, user_id, status) values ('aaaaaaaa-0000-0000-0000-000000000010', :'C', 'pending');
+update kr8_verifications set status = 'approved' where id = 'aaaaaaaa-0000-0000-0000-000000000010';
+select pg_temp.ok((select lines from kr8_push_msgs where ref_id = 'aaaaaaaa-0000-0000-0000-000000000010') = 0, 'LINE off by default (push_line_cap 0)');
+insert into kr8_rings_config values ('push_line_cap', 2);
+insert into kr8_verifications (id, user_id, status) values ('aaaaaaaa-0000-0000-0000-000000000011', :'C', 'pending');
+delete from kr8_push_msgs where ref_id = 'aaaaaaaa-0000-0000-0000-000000000010';
+update kr8_verifications set status = 'pending' where id = 'aaaaaaaa-0000-0000-0000-000000000010';
+update kr8_verifications set status = 'approved' where id = 'aaaaaaaa-0000-0000-0000-000000000010';
+select pg_temp.ok((select count(*) from kr8_push_outbox where channel = 'line' and line_to = :'CL' and state = 'queued') = 1 and (select count(*) from net.calls) >= 1, 'LINE member without phone dings → one LINE row, poked');
+select set_config('t.admin', '1', false);
+select pg_temp.ok((kr8_admin_push_send(18, false, 'x', 'y', null, false)->>'lines')::int = 0, 'admin can send without LINE');
+select pg_temp.ok((kr8_admin_push_send(18, false, 'x', 'y', null)->>'lines')::int = 1, 'admin send reaches the LINE member');
+select pg_temp.ok((kr8_admin_push_send(18, false, 'x', 'y', null)->>'lines')::int = 0, 'monthly LINE cap respected (2)');
+select pg_temp.ok((kr8_admin_push_stats()->>'line_month')::int = 2 and (kr8_admin_push_stats()->>'line_cap')::int = 2, 'stats show LINE use this month');
+update kr8_rings_config set value = 100 where key = 'push_line_cap';
+-- a member with a phone subscription is not sent LINE too
+select set_config('t.uid', :'C', false);
+select kr8_push_subscribe('https://fcm.googleapis.com/fcm/send/c1', :'K', 'tBHItJI5svbpez7KI4CCXg') \g /dev/null
+select pg_temp.ok((kr8_admin_push_send(18, false, 'x', 'y', null)->>'lines')::int = 0, 'member with app dings on gets no LINE copy');
+select kr8_push_unsubscribe('https://fcm.googleapis.com/fcm/send/c1') \g /dev/null
+-- claim hands out LINE rows; not-a-friend is remembered and skipped
+set role service_role;
+select kr8_push_claim(50) as j \gset
+reset role;
+select pg_temp.ok(:'j'::jsonb @> '[{"channel": "line", "line_to": "U0123456789abcdef0123456789abcdef"}]', 'claim returns LINE rows with the LINE user id');
+select kr8_push_done((select jsonb_agg(jsonb_build_object('id', id, 'result', 'notfriend', 'http', 400)) from kr8_push_outbox where channel = 'line' and state = 'queued')) \g /dev/null
+select pg_temp.ok((select not_friend_at is not null from kr8_push_line where line_sub = :'CL'), 'not a friend → remembered');
+select pg_temp.ok((kr8_admin_push_send(18, false, 'x', 'y', null)->>'lines')::int = 0, 'not-a-friend member skipped');
+update kr8_line_links set last_login_at = now() + interval '1 second' where line_sub = :'CL';
+select pg_temp.ok((kr8_admin_push_send(18, false, 'x', 'y', null)->>'lines')::int = 1, 'after a new LINE sign-in (add-friend offered) LINE is tried again');
+select kr8_push_done((select jsonb_agg(jsonb_build_object('id', id, 'result', 'sent', 'http', 200)) from kr8_push_outbox where channel = 'line' and state = 'queued')) \g /dev/null
+select pg_temp.ok((select not_friend_at is null and last_ok_at is not null from kr8_push_line where line_sub = :'CL'), 'LINE sent → not-friend mark cleared');
+
+-- ───────── sign-in hand-off ─────────
+select set_config('t.uid', :'C', false);
+select kr8_handoff_create() as ho \gset
+select pg_temp.ok(:'ho' ~ '^[0-9a-f]{64}$' and not exists (select 1 from kr8_handoff where code_hash = :'ho'), 'hand-off code: 64 hex, only its hash stored');
+set role authenticated;
+do $$ begin perform kr8_handoff_take('00'); raise notice 'FAIL member can take'; exception when others then raise notice 'PASS take is service-role only'; end $$;
+reset role;
+set role service_role;
+select pg_temp.ok((kr8_handoff_take(:'ho')->>'email') = 'c@x', 'service role swaps the code for the member');
+select pg_temp.ok(kr8_handoff_take(:'ho') is null, 'second use refused');
+reset role;
+select kr8_handoff_create() as ho2 \gset
+update kr8_handoff set expires_at = now() - interval '1 second' where used_at is null;
+set role service_role;
+select pg_temp.ok(kr8_handoff_take(:'ho2') is null, 'expired code refused');
+reset role;
+select set_config('t.uid', '', false);
+do $$ begin perform kr8_handoff_create(); raise notice 'FAIL signed-out hand-off'; exception when others then raise notice 'PASS signed-out hand-off refused'; end $$;
