@@ -175,3 +175,63 @@ export function grabFrame(video: HTMLVideoElement, maxSide = 640): Promise<Blob>
   c.getContext('2d')!.drawImage(video, 0, 0, c.width, c.height);
   return new Promise((ok, bad) => c.toBlob((b) => (b ? ok(b) : bad(new Error('FRAME'))), 'image/jpeg', 0.86));
 }
+
+// ─────────────── profile photo check (16 Nov): the card photo must show one clear face ───────────────
+// Only the small face finder (~190 KB) is loaded for this, not the selfie-matching models. Runs on the phone; nothing is sent.
+let detP: Promise<FaceApi> | null = null;
+function loadDetector(): Promise<FaceApi> {
+  if (apiP) return apiP;
+  if (!detP) {
+    detP = (async () => {
+      const faceapi = await import('@vladmandic/face-api');
+      const tf = faceapi.tf as unknown as { setBackend: (b: string) => Promise<boolean>; ready: () => Promise<void> };
+      try { if (!(await tf.setBackend('webgl'))) await tf.setBackend('cpu'); } catch { await tf.setBackend('cpu'); }
+      await tf.ready();
+      if (!faceapi.nets.tinyFaceDetector.isLoaded) await faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl());
+      return faceapi;
+    })().catch((e) => { detP = null; throw e; });
+  }
+  return detP;
+}
+
+/** 'ok' | 'none' (no face: helmet, scenery, fireworks, pets, cartoons) | 'small' (face too far away) | 'group' (no clear main person) | 'error' (could not check: let it through) */
+export type PhotoVerdict = 'ok' | 'none' | 'small' | 'group' | 'error';
+export const PHOTO_MIN_FACE = 0.14;   // face box at least 14 % of the photo's width
+export const PHOTO_GROUP_RATIO = 0.7;
+export const PHOTO_MIN_SCORE = 0.5; // a second face this big or bigger = group photo
+
+export function photoVerdict(faces: { w: number; score: number }[], imgW: number): PhotoVerdict {
+  const f = faces.filter((x) => x.score >= PHOTO_MIN_SCORE).sort((a, b) => b.w - a.w);
+  if (!f.length) return 'none';
+  if (f[0].w / (imgW || 1) < PHOTO_MIN_FACE) return 'small';
+  if (f.length > 1 && f[1].w >= f[0].w * PHOTO_GROUP_RATIO) return 'group';
+  return 'ok';
+}
+
+export async function checkProfilePhoto(src: string): Promise<PhotoVerdict> {
+  try {
+    const [faceapi, img] = await Promise.all([loadDetector(), loadImage(src)]);
+    // the small finder misses some faces at one scale (glasses, soft light), so try a few scales and keep the clearest result
+    let best: { w: number; score: number }[] = [];
+    for (const inputSize of [416, 320, 512]) {
+      const det = await faceapi.detectAllFaces(img, new faceapi.TinyFaceDetectorOptions({ inputSize, scoreThreshold: 0.3 }));
+      const faces = det.map((d) => ({ w: d.box.width, score: d.score }));
+      if ((faces[0]?.score ?? 0) > (best[0]?.score ?? 0) || (faces.length && !best.length)) best = faces.sort((a, b) => b.score - a.score);
+      if (photoVerdict(best, img.naturalWidth) === 'ok') return 'ok';
+    }
+    return photoVerdict(best, img.naturalWidth);
+  } catch {
+    return 'error';
+  }
+}
+
+/** test helper: raw scores per scale */
+export async function debugPhotoScores(src: string): Promise<Record<number, number[]>> {
+  const [faceapi, img] = await Promise.all([loadDetector(), loadImage(src)]);
+  const out: Record<number, number[]> = {};
+  for (const inputSize of [224, 320, 416, 512, 608]) {
+    const det = await faceapi.detectAllFaces(img, new faceapi.TinyFaceDetectorOptions({ inputSize, scoreThreshold: 0.2 }));
+    out[inputSize] = det.map((d) => Math.round(d.score * 100) / 100);
+  }
+  return out;
+}

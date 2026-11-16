@@ -93,6 +93,7 @@ import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
 import type { V5Blocked, V5Card, V5FeedItem, V5Me, V5ReportReason, V5TagPlace, V5Thread } from './v5Live';
 import { V5_L, KX_L, kxArea, v5ErrText, loadV5Lang, v5LangReady } from './v5Strings';
 import { V5MintSheet } from './V5KxCard';
+import { checkProfilePhoto } from './v5Face';
 import { GoCoach, GoCompose, GoMeReels, GoProfilePage, GoReelPlayer, gridToGo, ReelCaption, savedToGo, type CoachSpot, type GoReel } from './V5Go';
 import { coachDue, coachMark, coachPick, coachReplay, coachSync, newCoachState, type CoachKey, type CoachState } from './goCoach';
 import { shownGender } from './V5Gender';
@@ -2441,6 +2442,34 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // did the member already have a card when the card sheet opened? (new card → "Card minted!")
   const v5CardWasRef = useRef<boolean>(false);
   useEffect(() => { if (sheet === 'v5card') v5CardWasRef.current = !!v5Card; }, [sheet]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // 16 Nov: Kring is for real people. A member whose card photo shows no clear face (helmet, fireworks, scenery, cartoon)
+  // gets the card screen once per app session with "add a photo where your face is clearly visible". Checked on the phone.
+  const [photoFix, setPhotoFix] = useState(false);
+  const photoAskedRef = useRef(false);
+  useEffect(() => {
+    if (!live || !v5Card) { setPhotoFix(false); return; }
+    const src = v5Card.photo || '';
+    const key = 'kr8_dp_ok:' + src.split('?')[0];
+    let ok = false;
+    try { ok = !!src && localStorage.getItem(key) === '1'; } catch { /* ignore */ }
+    if (ok) { setPhotoFix(false); return; }
+    let gone = false;
+    (async () => {
+      const v = src ? await checkProfilePhoto(src) : 'none';
+      if (gone) return;
+      if (v === 'ok' || v === 'error') {
+        if (v === 'ok') { try { localStorage.setItem(key, '1'); } catch { /* ignore */ } }
+        setPhotoFix(false);
+        return;
+      }
+      setPhotoFix(true);
+      if (!photoAskedRef.current) {
+        photoAskedRef.current = true;
+        setSheet((cur) => cur || 'v5card');
+      }
+    })();
+    return () => { gone = true; };
+  }, [live, v5Card?.photo]);   // eslint-disable-line react-hooks/exhaustive-deps
   const kxPostAt = (p?: PickedPlace) => {
     if (p) { setPostPlaces((prev) => (prev.some((x) => x.id === p.id) ? prev : [p, ...prev].slice(0, 2))); setPostArea((a) => a || p.kr_area || 'Bangkok'); }
     setTab('feed');
@@ -4797,6 +4826,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             Lf={Lf}
             card={v5Card as never}
             uiLang={lang}
+            photoFix={photoFix}
             toast={showToast}
             onClose={() => setSheet(null)}
             onSaved={(me) => {

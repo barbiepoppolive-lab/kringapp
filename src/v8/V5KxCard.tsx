@@ -6,6 +6,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './kx.css';
 import './go.css';
+import { checkProfilePhoto } from './v5Face';
 import { GenderChip, GenderRow, genderPayload, isGender, type Gender } from './V5Gender';
 import { kxSetGender } from './v5Kx';
 import { LEVEL_KEY, levelFor, memberNo, parseHandle, socialUrl, type Social } from './kxLogic';
@@ -155,9 +156,17 @@ const Confetti = () => (
  * Make / edit your card. New members: photo + first name + IG/TikTok + 20+ → "Mint my card" → "Card minted!".
  * Editing: same live card, plus the optional fields, "Save my card".
  */
+const PHOTO_MSG: Record<'none' | 'small' | 'group', string> = {
+  none: 'We can’t see a face in this photo. Use a photo where your face is clearly visible.',
+  small: 'Your face is too small in this photo. Use a closer one.',
+  group: 'This looks like a group photo. Use a photo of just you.',
+};
+
 export function V5MintSheet(props: {
   L: Tx; Lf: Txf; card: (V5Card & { tiktok_handle?: string | null; member_no?: number | null; gender?: string | null; show_gender?: boolean | null }) | null; uiLang: string;
   onSaved: (me: V5Me) => void; onClose: () => void; toast: (m: string) => void; onAfter: (what: 'share' | 'reel' | 'close', no: number | null) => void;
+  /** 16 Nov: the saved photo shows no clear face, so a new one is required before saving */
+  photoFix?: boolean;
 }) {
   const { L, Lf, card } = props;
   const isNew = !card;
@@ -173,6 +182,8 @@ export function V5MintSheet(props: {
   const [showGender, setShowGender] = useState<boolean>(isGender(card?.gender) && card?.show_gender === true);
   const [who, setWho] = useState<'local' | 'traveller'>(card?.who || (props.uiLang === 'th' || v5StoredRef() ? 'local' : 'traveller'));
   const [photo, setPhoto] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [photoMsg, setPhotoMsg] = useState(props.photoFix ? 'Kring is for real people. Add a photo where your face is clearly visible.' : '');
   const [ageOk, setAgeOk] = useState(false);
   const [more, setMore] = useState(!isNew);
   const [busy, setBusy] = useState(false);
@@ -185,14 +196,25 @@ export function V5MintSheet(props: {
     const pre = v5TakeLinePrefill();
     if (!pre) return;
     if (pre.name) setName((n) => n || pre.name);
-    if (pre.picture) v5CompressImage(pre.picture, 384, 110000).then((d) => setPhoto((p) => p || d)).catch(() => undefined);
+    if (pre.picture) v5CompressImage(pre.picture, 384, 110000).then(async (d) => {
+      // the LINE picture is used only when it shows a clear face (many are helmets, pets or scenery)
+      const v = await checkProfilePhoto(d);
+      if (v === 'ok' || v === 'error') setPhoto((p) => p || d);
+      else setPhotoMsg('Your LINE photo doesn’t show your face clearly. Add a photo of you.');
+    }).catch(() => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const errText = (e: unknown) => { const [k, a] = v5ErrText(typeof e === 'string' ? e : v5ErrCode(e)); return a !== undefined ? Lf(k, a) : L(k); };
   const shownPhoto = photo || card?.photo || '';
   const pick = async (f?: File | null) => {
     if (!f) return;
-    try { setPhoto(await v5CompressImage(f, 384, 110000)); setNotice(''); } catch (e) { setNotice(errText(e)); }
+    setChecking(true);
+    try {
+      const d = await v5CompressImage(f, 384, 110000);
+      const v = await checkProfilePhoto(d);
+      if (v === 'ok' || v === 'error') { setPhoto(d); setPhotoMsg(''); setNotice(''); }
+      else setPhotoMsg(PHOTO_MSG[v]);
+    } catch (e) { setNotice(errText(e)); } finally { setChecking(false); }
   };
   const toggleLang = (l: string) => setLangs((prev) => (prev.includes(l) ? prev.filter((x) => x !== l) : prev.length >= 6 ? prev : [...prev, l]));
   // For an existing card the handle is saved at once; for a new card it is saved right after the card is minted.
@@ -206,6 +228,8 @@ export function V5MintSheet(props: {
   };
   const save = async () => {
     if (busyRef.current) return;
+    if (checking) return;
+    if ((isNew || props.photoFix) && !photo) { setPhotoMsg(photoMsg || 'Add a photo where your face is clearly visible.'); return setNotice(''); }
     if (!name.trim()) return setNotice(L('Add your first name.'));
     if (!langs.length) return setNotice(L('Pick at least one language.'));
     if (isNew && !ageOk) return setNotice(L('Please confirm you are 20 or older.'));
@@ -282,6 +306,17 @@ export function V5MintSheet(props: {
           <input type="file" accept="image/*" id="v5Photo" onChange={(e) => void pick(e.target.files?.[0])} />
         </label>
       </div>
+      {(checking || photoMsg || ((isNew || props.photoFix) && !photo)) ? (
+        <div className="kx-photo-need" id="kxPhotoNeed" role="status" aria-live="polite">
+          <p>{checking ? L('Checking photo…') : L(photoMsg || 'Add a photo where your face is clearly visible.')}</p>
+          {!checking ? (
+            <div className="kx-photo-btns">
+              <label className="kx-btn" id="kxPhotoGallery">{L('Choose from gallery')}<input type="file" accept="image/*" onChange={(e) => { void pick(e.target.files?.[0]); e.currentTarget.value = ''; }} /></label>
+              <label className="kx-btn ghost" id="kxPhotoCamera">{L('Take a photo')}<input type="file" accept="image/*" capture="user" onChange={(e) => { void pick(e.target.files?.[0]); e.currentTarget.value = ''; }} /></label>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
       <div className="kx-form">
         <label className="kx-in">
           <small>{L('First name')}</small>
