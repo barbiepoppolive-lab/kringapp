@@ -185,7 +185,7 @@ export function MeView(props: {
           <span className="kx-wk-go">{L('Rewards')} <i>›</i></span>
         </button>
       </div>
-      {props.prizeSlot && !foundingDue(props.kx) ? <div className="kpz-cardwrap">{props.prizeSlot}</div> : null}
+      {/* founder 17 Nov: the big ฿ prize card is gone from Me (the prize lives in the Feed ticker + Rewards) */}
       <FoundingChecklist L={L} Lf={Lf} kx={props.kx} hasSocial={!!(props.kx?.ig_handle || props.kx?.tiktok_handle || p.ig_handle)} onLink={props.onLink || props.onEdit} onPost={props.onPost} />
       {props.reelsSlot ? null : (
       <button type="button" className="kx-savedrow" id="kxSavedRow" onClick={props.onSavedReels || props.onSaved}>
@@ -196,16 +196,17 @@ export function MeView(props: {
       </button>
       )}
       {/* polish #4/#5: followers · following · likes on one line; one "Share card" button (the QR is inside it); Edit = pencil on the card */}
-      <div className="kme-stline" id="meStats">
+      <div className="kme-stline kme-stline2" id="meStats">
         <button type="button" id="statFollowers" onClick={() => props.onList('followers')}><b>{fmtCount(p.followers)}</b> {L('Followers')}</button>
         <i aria-hidden="true">·</i>
         <button type="button" id="statFollowing" onClick={() => props.onList('following')}><b>{fmtCount(p.following)}</b> {L('Following')}</button>
         <i aria-hidden="true">·</i>
         <span><b>{fmtCount(p.likes)}</b> {L('Likes')}</span>
+        {/* 17 Nov de-clutter: Share is a small pill on the stats line, not a full-width button */}
+        <button type="button" className="kme-sharepill" id="meShare" aria-label={L('Share card')} onClick={props.onCode}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 14v6h14v-6" /></svg>{L('Share')}
+        </button>
       </div>
-      <button type="button" className="kme-sharecard" id="meShare" onClick={props.onCode}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 14v6h14v-6" /></svg>{L('Share card')}
-      </button>
       {props.reelsSlot ? null : <PerksCard />}
       {/* 16 Nov: a new member's first step is their first Reel; the face check shows once they have one (or already sent it) */}
       {props.reelsSlot && !p.reels.length ? (

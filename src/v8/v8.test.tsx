@@ -38,7 +38,7 @@ describe('Kring 6 Nov 2026 Locked Build (v8)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Deals' }));
     expect(document.body.textContent).not.toContain('Nana Coffee Roasters');
-    expect(screen.getByText(/Partner venue perks coming soon/i)).toBeTruthy();
+    expect(screen.getByText(/More deals coming soon/i)).toBeTruthy();   // 17 Nov: Deals = trip partners + coming soon
   });
 
   it('renders 4-tab dock (Feed, People, Deals, Me) and shows chat bubble on Feed & People only (NOT on Deals)', () => {
@@ -91,7 +91,7 @@ describe('Kring 6 Nov 2026 Locked Build (v8)', () => {
     expect(tr).toBe('Are you free at 2pm? It is on Ari Soi 2, 3 min walk from BTS.');
   });
 
-  it('shows Ready to use card on Me ONLY after a deal is claimed, and opens offline QR + code', async () => {
+  it.skip('shows Ready to use card on Me ONLY after a deal is claimed (café treats hidden 17 Nov, DEALS_TRIP_ONLY)', async () => {
     window.history.replaceState({}, '', '/app/?demo=1');
     localStorage.setItem('kr8_signed_in', '1');
     render(<KringAppV8 initialTab="me" />);

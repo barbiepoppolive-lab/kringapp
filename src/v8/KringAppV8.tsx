@@ -95,6 +95,8 @@ import { PUSH_ASK_LINE, PushAskCard } from './V5Push';
 import { EscapeScreen } from './V5Escape';
 import { isLiffOpen, openEscape } from './escape';
 import { TripPerks } from './V5Trip';
+// founder 17 Nov: hide café treats / stays; Deals = trip partners + "more deals coming soon"
+const DEALS_TRIP_ONLY = true;
 import { StayDo } from './V5StayDo';
 import { v5HandoffBoot, v5LogClient, v5MyVerification, V5_AREAS } from './v5Live';
 import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
@@ -4304,8 +4306,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <div className="go-tabh" id="goDealsHead">
               <h1>{L('Deals')}</h1>
               {/* audit P3-5: café perks are live, so the header only says "on the way" while there are none */}
-              <p>{deals.length > 0 ? L('Member treats at partner places, plus travel essentials from trusted partners.') : L('Travel essentials from trusted partners for now. Café perks for members are on the way.')}</p>
-              {deals.length > 0 ? (
+              <p>{L('Travel essentials from trusted partners for now. Café perks for members are on the way.')}</p>
+              {/* founder 17 Nov: Deals shows only the trip partners for now; café treats stay hidden until real partners join */}
+              {DEALS_TRIP_ONLY ? <div style={{ height: 14 }} /> : deals.length > 0 ? (
                 <div className="go-fch" id="goDealChips">
                   {([['all', L('All')], ['perks', L('For Locals')], ['trip', L('For travellers')]] as const).map(([k, label]) => (
                     <button type="button" key={k} data-df={k} className={goDealF === k ? 'on' : ''} aria-pressed={goDealF === k} onClick={() => setGoDealF(k)}>{label}</button>
@@ -4314,8 +4317,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               ) : <div style={{ height: 14 }} />}
             </div>
           ) : null}
-          {live && deals.length > 0 && goDealF !== 'trip' ? <div className="go-sech"><b>{L('Place perks')}</b><span>{L('Show your Kring card')}</span></div> : null}
-          {live && (deals.length === 0 || goDealF === 'trip') ? null : deals.length === 0 ? (
+          {DEALS_TRIP_ONLY ? null : live && deals.length > 0 && goDealF !== 'trip' ? <div className="go-sech"><b>{L('Place perks')}</b><span>{L('Show your Kring card')}</span></div> : null}
+          {DEALS_TRIP_ONLY || (live && (deals.length === 0 || goDealF === 'trip')) ? null : deals.length === 0 ? (
             <div className="kp-empty">
               <div className="kp-hero2">
                 <div className="kp-hero kp-hero-ghost">
@@ -4474,8 +4477,15 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               </div>
             </>
           )}
-          {live && goDealF !== 'perks' ? <StayDo L={L} Lf={Lf} thai={lang === 'th'} signedIn={signedIn} /> : null}
-          {!live || goDealF !== 'perks' || deals.length === 0 ? <TripPerks L={L} /> : null}
+          {!DEALS_TRIP_ONLY && live && goDealF !== 'perks' ? <StayDo L={L} Lf={Lf} thai={lang === 'th'} signedIn={signedIn} /> : null}
+          {DEALS_TRIP_ONLY || !live || goDealF !== 'perks' || deals.length === 0 ? <TripPerks L={L} /> : null}
+          {DEALS_TRIP_ONLY ? (
+            <div className="kd-soon" id="dealsSoon">
+              <span className="kd-soon-rings" aria-hidden="true"><i /><i /></span>
+              <b>{L('More deals coming soon')}</b>
+              <span>{L('Partner cafés, studios and food spots join Kring soon.')}</span>
+            </div>
+          ) : null}
         </section>
 
         {/* ==================== 4. ME SCREEN (Calm Luxe #0B0A12) ==================== */}

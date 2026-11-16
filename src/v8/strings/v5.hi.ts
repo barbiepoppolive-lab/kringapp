@@ -308,6 +308,8 @@ const T: Record<string, string> = {
     'Sending to the Kring team…': 'Kring टीम को भेज रहे हैं…',
     'Sent · we check within 24 hours': 'भेज दिया · हम 24 घंटे में जाँचेंगे',
     'Settings': 'सेटिंग्स',
+    'More deals coming soon': 'और डील जल्द आ रही हैं',
+    'Partner cafés, studios and food spots join Kring soon.': 'पार्टनर कैफ़े, स्टूडियो और फ़ूड स्पॉट जल्द Kring से जुड़ेंगे।',
     'Share card': 'कार्ड शेयर करें',
     'Share profile': 'प्रोफ़ाइल शेयर करें',
     'Shopping': 'शॉपिंग',

@@ -308,6 +308,8 @@ const T: Record<string, string> = {
     'Sending to the Kring team…': '正在发送给 Kring 团队…',
     'Sent · we check within 24 hours': '已发送 · 我们会在 24 小时内审核',
     'Settings': '设置',
+    'More deals coming soon': '更多优惠即将上线',
+    'Partner cafés, studios and food spots join Kring soon.': '合作咖啡馆、工作室和美食店即将加入 Kring。',
     'Share card': '分享名片',
     'Share profile': '分享资料',
     'Shopping': '购物',

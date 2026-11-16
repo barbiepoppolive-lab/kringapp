@@ -296,6 +296,8 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Sending to the Kring team…': 'กำลังส่งให้ทีม กริ๊ง!…',
     'Sent · we check within 24 hours': 'ส่งแล้ว · เราจะตรวจภายใน 24 ชั่วโมง',
     'Settings': 'การตั้งค่า',
+    'More deals coming soon': 'ดีลอื่น ๆ เร็ว ๆ นี้',
+    'Partner cafés, studios and food spots join Kring soon.': 'คาเฟ่ สตูดิโอ และร้านอาหารพาร์ทเนอร์กำลังจะมาใน กริ๊ง! เร็ว ๆ นี้',
     'Share card': 'แชร์บัตร',
     'Share profile': 'แชร์โปรไฟล์',
     'Shopping': 'ช้อปปิ้ง',

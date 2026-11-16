@@ -278,12 +278,10 @@ describe('Me tab: the race card sits right under "This week"', () => {
         reelsSlot={<div id="slot" />} prizeSlot={<div id="prizeSlotProbe" />} />
     </div>
   );
-  it('order: This week row → race card → the rest', () => {
+  it('17 Nov de-clutter: no big prize card on Me; Share is a small pill on the stats line', () => {
     render(view(kx));
-    const row = document.getElementById('kxTiles')!;
-    const probe = document.getElementById('prizeSlotProbe')!;
-    expect(row.nextElementSibling).toBe(probe.parentElement);
-    expect(probe.parentElement!.className).toBe('kpz-cardwrap');
+    expect(document.getElementById('prizeSlotProbe')).toBeNull();
+    expect(document.getElementById('meShare')!.closest('#meStats')).toBeTruthy();
   });
   it('one next step at a time: hidden while the Founding "Next step" card shows', () => {
     const fresh = { ...kx, founding_no: null, has_reel: false };
