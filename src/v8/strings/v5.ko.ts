@@ -484,5 +484,20 @@ const T: Record<string, string> = {
     "Use a photo or GIF": "사진이나 GIF를 선택해 주세요",
     "Couldn’t post · try again": "게시하지 못했어요 · 다시 시도해 주세요",
     "No questions yet": "아직 질문이 없어요",
-  };
+      // T-301 (T301-007): Weather sheet
+    'Feels like {0}°': '체감 {0}°',
+    'Tropical shower likely this afternoon': '오늘 오후 소나기 가능성',
+    'Partly cloudy in Bangkok': '방콕 구름 조금',
+    'Sunny & warm in Bangkok': '방콕 맑고 따뜻함',
+    'Bangkok weather is loading': '방콕 날씨 불러오는 중',
+    'Rain plan: stay under the skywalk': '비 올 땐 스카이워크 아래로',
+    'Find shade before 3pm': '오후 3시 전엔 그늘로',
+    'Stay cool between neighbourhoods': '동네 사이를 시원하게 이동',
+    'Afternoon rain chance is {0}%. The covered BTS skywalks around Siam and Chit Lom link the malls and the art centre, so you can keep exploring dry.': '오후 강수 확률 {0}%. 시암과 칫롬 주변의 지붕 있는 BTS 스카이워크가 쇼핑몰과 아트센터를 이어 줘서 비 맞지 않고 다닐 수 있어요.',
+    'Warm {0}°C afternoon (feels like {1}°C). Plan shaded or indoor stops for midday and save the walking for after 4pm.': '오후 기온 {0}°C (체감 {1}°C). 한낮엔 그늘이나 실내에 머물고 걷는 건 오후 4시 이후로 미뤄요.',
+    'Bangkok afternoons are hot. Plan indoor or shaded stops for the middle of the day and use the covered BTS skywalks around Siam and Chit Lom.': '방콕의 오후는 더워요. 한낮엔 실내나 그늘에 머물고, 시암과 칫롬 주변의 지붕 있는 BTS 스카이워크를 이용하세요.',
+    '{0}% chance of afternoon rain — the covered BTS skywalks around Siam keep you dry.': '오후 강수 확률 {0}% — 시암 주변의 지붕 있는 BTS 스카이워크로 다니면 젖지 않아요.',
+    'Tropical showers are usually short — the covered BTS skywalks around Siam keep you dry.': '열대 소나기는 보통 금방 그쳐요 — 시암 주변의 지붕 있는 BTS 스카이워크로 다니면 젖지 않아요.',
+    'See deals →': '딜 보기 →',
+};
 export default T;

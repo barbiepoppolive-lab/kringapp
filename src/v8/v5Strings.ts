@@ -483,6 +483,21 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Use a photo or GIF': 'ใช้ได้เฉพาะรูปหรือ GIF',
     'Couldn’t post · try again': 'โพสต์ไม่สำเร็จ · ลองใหม่อีกครั้ง',
     'No questions yet': 'ยังไม่มีคำถาม',
+    // T-301 (T301-007): Weather sheet
+    'Feels like {0}°': 'รู้สึกเหมือน {0}°',
+    'Tropical shower likely this afternoon': 'บ่ายนี้มีแนวโน้มฝนตก',
+    'Partly cloudy in Bangkok': 'กรุงเทพฯ มีเมฆบางส่วน',
+    'Sunny & warm in Bangkok': 'กรุงเทพฯ แดดดี อากาศอุ่น',
+    'Bangkok weather is loading': 'กำลังโหลดสภาพอากาศกรุงเทพฯ',
+    'Rain plan: stay under the skywalk': 'ฝนมา เดินใต้สกายวอล์กไว้',
+    'Find shade before 3pm': 'หาที่ร่มก่อนบ่ายสาม',
+    'Stay cool between neighbourhoods': 'เดินทางข้ามย่านแบบเย็นสบาย',
+    'Afternoon rain chance is {0}%. The covered BTS skywalks around Siam and Chit Lom link the malls and the art centre, so you can keep exploring dry.': 'ช่วงบ่ายมีโอกาสฝนตก {0} เปอร์เซ็นต์ สกายวอล์ก BTS ที่มีหลังคาแถวสยามและชิดลมเชื่อมห้างกับหอศิลป์ไว้ เดินเที่ยวต่อได้ไม่เปียก',
+    'Warm {0}°C afternoon (feels like {1}°C). Plan shaded or indoor stops for midday and save the walking for after 4pm.': 'บ่ายนี้อากาศอุ่น {0}°C (รู้สึกเหมือน {1}°C) ช่วงเที่ยงแวะที่ร่มหรือในอาคาร แล้วค่อยออกเดินหลังสี่โมงเย็น',
+    'Bangkok afternoons are hot. Plan indoor or shaded stops for the middle of the day and use the covered BTS skywalks around Siam and Chit Lom.': 'บ่ายกรุงเทพฯ ร้อน ช่วงเที่ยงแวะที่ร่มหรือในอาคาร และใช้สกายวอล์ก BTS ที่มีหลังคาแถวสยามและชิดลม',
+    '{0}% chance of afternoon rain — the covered BTS skywalks around Siam keep you dry.': 'โอกาสฝนตกช่วงบ่าย {0} เปอร์เซ็นต์ สกายวอล์ก BTS ที่มีหลังคาแถวสยามช่วยให้ไม่เปียก',
+    'Tropical showers are usually short — the covered BTS skywalks around Siam keep you dry.': 'ฝนเมืองร้อนมักตกไม่นาน สกายวอล์ก BTS ที่มีหลังคาแถวสยามช่วยให้ไม่เปียก',
+    'See deals →': 'ดูดีล →',
   },
   // zh, hi, ja, ko: separate files, downloaded only when that language is chosen (loadV5Lang below)
 };

@@ -903,3 +903,9 @@
 .v8-app-root .kd-soon-rings i:last-child { left: 20px; border-color: #FF8CC4; animation-delay: -1.2s; }
 @keyframes kdSoon { 50% { transform: translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) { .v8-app-root .kd-soon-rings i { animation: none; } }
+/* T-301: #kxRingsTile is a box with a stretched button (no nested interactive controls) */
+.v8-app-root .kx-week .kx-wk-box { position: relative; cursor: pointer; }
+.v8-app-root .kx-week .kx-wk-box .kx-wk-hit { position: absolute; inset: 0; z-index: 1; margin: 0; padding: 0; border: 0; border-radius: inherit; background: transparent; cursor: pointer; }
+.v8-app-root .kx-week .kx-wk-box .kx-wk-hit:focus-visible { outline: 2px solid var(--kx-pk, #FF4FA3); outline-offset: 2px; }
+.v8-app-root .kx-week .kx-wk-box .kx-wk-rk { position: relative; z-index: 2; border: 0; cursor: pointer; min-height: 32px; }
+.v8-app-root .kx-week .kx-wk-box .kx-tdot { z-index: 2; }

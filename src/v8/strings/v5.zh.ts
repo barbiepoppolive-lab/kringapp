@@ -484,5 +484,20 @@ const T: Record<string, string> = {
     "Use a photo or GIF": "请使用图片或 GIF",
     "Couldn’t post · try again": "发布失败 · 请重试",
     "No questions yet": "还没有问题",
-  };
+      // T-301 (T301-007): Weather sheet
+    'Feels like {0}°': '体感 {0}°',
+    'Tropical shower likely this afternoon': '今天下午可能有阵雨',
+    'Partly cloudy in Bangkok': '曼谷局部多云',
+    'Sunny & warm in Bangkok': '曼谷晴朗温暖',
+    'Bangkok weather is loading': '正在加载曼谷天气',
+    'Rain plan: stay under the skywalk': '雨天方案：走有顶的空中步道',
+    'Find shade before 3pm': '下午三点前找个阴凉处',
+    'Stay cool between neighbourhoods': '在街区之间清凉出行',
+    'Afternoon rain chance is {0}%. The covered BTS skywalks around Siam and Chit Lom link the malls and the art centre, so you can keep exploring dry.': '下午降雨概率 {0}%。暹罗和奇隆一带有顶的 BTS 空中步道连通商场和艺术中心，不淋雨也能继续逛。',
+    'Warm {0}°C afternoon (feels like {1}°C). Plan shaded or indoor stops for midday and save the walking for after 4pm.': '下午温暖，{0}°C（体感 {1}°C）。中午安排阴凉或室内的去处，下午四点后再步行。',
+    'Bangkok afternoons are hot. Plan indoor or shaded stops for the middle of the day and use the covered BTS skywalks around Siam and Chit Lom.': '曼谷的下午很热。中午安排室内或阴凉的去处，并利用暹罗和奇隆一带有顶的 BTS 空中步道。',
+    '{0}% chance of afternoon rain — the covered BTS skywalks around Siam keep you dry.': '下午降雨概率 {0}%，暹罗一带有顶的 BTS 空中步道能让你不淋雨。',
+    'Tropical showers are usually short — the covered BTS skywalks around Siam keep you dry.': '热带阵雨通常很短，暹罗一带有顶的 BTS 空中步道能让你不淋雨。',
+    'See deals →': '查看优惠 →',
+};
 export default T;

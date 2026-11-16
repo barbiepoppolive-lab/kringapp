@@ -25,6 +25,7 @@ import {
   V8StorySlide,
   V8Weather,
   validateFirstHelloMessage,
+  weatherText,
 } from './v8Data';
 import {
   hasThaiScript,
@@ -1162,32 +1163,16 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   useEffect(() => { rememberTab(tab); }, [tab]);
   const [sheet, setSheet] = useState<SheetId>(null);
   const sheetRef = useRef<SheetId>(null);
+  // T-301 (T301-005): an open sheet used to push TWO history steps (this block and the A-11 block below), so one Back closed the
+  // sheet but left a stale step behind (the next Back did nothing visible). Only the A-11 block keeps history now.
+  useEffect(() => { sheetRef.current = sheet; }, [sheet]);
   useEffect(() => {
-    const was = sheetRef.current;
-    sheetRef.current = sheet;
-    if (sheet && !was) {
-      try { window.history.pushState({ kr8Sheet: true }, ''); } catch { /* ignore */ }
-    } else if (!sheet && was && window.history.state && window.history.state.kr8Sheet) {
-      try { window.history.back(); } catch { /* ignore */ }
-    }
-  }, [sheet]);
-  useEffect(() => {
-    const onPop = () => {
-      if (sheetRef.current) {
-        sheetRef.current = null;
-        setSheet(null);
-      }
-    };
     // keyboard users: Escape closes the open sheet (same path as the Back button)
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && sheetRef.current) setSheet(null);
     };
-    window.addEventListener('popstate', onPop);
     window.addEventListener('keydown', onKey);
-    return () => {
-      window.removeEventListener('popstate', onPop);
-      window.removeEventListener('keydown', onKey);
-    };
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
   useEffect(() => { if (sheet !== 'pdpa') setConfirmDelete(false); }, [sheet]);
 
@@ -1227,6 +1212,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
   // Weather
   const [weather, setWeather] = useState<V8Weather>(DEFAULT_WEATHER);
+  const wxText = weatherText(weather, L, Lf);   // T-301 (T301-007): Weather sheet in the member's language
 
   // People & Filters (production fetches ONLY real Supabase profiles — zero fake people in production)
   const [people, setPeople] = useState<V8Person[]>([]);
@@ -3743,8 +3729,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           </div>
         )}
 
-        {/* Chat Bubble Top-Right on Feed & People ONLY (HIDDEN on Deals & Me, and on a profile so its ⋯ Report/Block stays tappable) */}
-        {(tab === 'feed' || tab === 'people') && !(sheet && ['place', 'rewards', 'claim', 'claimed', 'ranking', 'result', 'savedreels', 'profile'].includes(sheet)) && (
+        {/* Chat Bubble Top-Right on Feed & People ONLY (HIDDEN on Deals & Me). T-301 (T301-004): hidden whenever ANY sheet or the
+            Reel player is open (a member's card 'persondetail', a profile, …), so their ⋯ Report/Block and close buttons are never covered */}
+        {(tab === 'feed' || tab === 'people') && !sheet && !goPlayer && (
           <button
             type="button"
             className={`chat-fab${tab === 'feed' && feedMode === 'ask' ? ' at-solid' : ''}`}
@@ -3843,7 +3830,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               defaultArea={(live && v5Card?.area) || 'Bangkok'} need={requireSignInForAction} toast={showToast} />
           )}
           {PRIZE_TICKER_ON_FEED && feedMode !== 'ask' && live && signedIn && v5Card && v5Uid && kxWeek ? (
-            <PrizeBanner variant="ticker" uid={v5Uid} week={kxWeek} hideTick={prizeHideTick} onHide={() => setPrizeHideTick((n) => n + 1)}
+            <PrizeBanner variant="ticker" lang={lang} uid={v5Uid} week={kxWeek} hideTick={prizeHideTick} onHide={() => setPrizeHideTick((n) => n + 1)}
               onOpen={() => { setTab('me'); setSheet('ranking'); }} />
           ) : null}
 
@@ -4550,7 +4537,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               ringsDot={kxReady}
               onRanking={() => setSheet('ranking')}
               prizeSlot={kxWeek ? (
-                <PrizeBanner variant="card" uid={v5Uid} week={kxWeek} hideTick={prizeHideTick} onHide={() => setPrizeHideTick((n) => n + 1)}
+                <PrizeBanner variant="card" lang={lang} uid={v5Uid} week={kxWeek} hideTick={prizeHideTick} onHide={() => setPrizeHideTick((n) => n + 1)}
                   onOpen={() => setSheet('ranking')} />
               ) : null}
               rankLine={kxRankLine}
@@ -4749,24 +4736,22 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     {Number.isFinite(weather.tempC) ? `${weather.tempC}°` : '—°'}
                   </div>
                   <div style={{ fontSize: 12, color: 'rgba(255,247,236,0.72)' }}>
-                    {Number.isFinite(weather.feelsLikeC)
-                      ? `Feels like ${weather.feelsLikeC}° · `
-                      : ''}
-                    {weather.conditionLabel}
+                    {wxText.feels}
+                    {wxText.label}
                   </div>
                 </div>
                 {signedIn && user.tripTotalDays > 0 && (
                   <span className="wx-day">
                     {user.role === 'traveller'
-                      ? `Day ${user.tripDay} of ${user.tripTotalDays}`
-                      : 'Thai local'}
+                      ? Lf('Day {0} of {1}', String(user.tripDay), String(user.tripTotalDays))
+                      : L('Thai local')}
                   </span>
                 )}
               </div>
               <div className="wx-pick">
                 <div className="k">{L("Local’s pick for this weather")}</div>
                 <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 4 }}>
-                  {weather.localPickTitle}
+                  {wxText.title}
                 </div>
                 <div
                   style={{
@@ -4775,7 +4760,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     lineHeight: 1.45,
                   }}
                 >
-                  {weather.localPickDesc}
+                  {wxText.desc}
                 </div>
                 <button
                   type="button"
@@ -4795,10 +4780,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     cursor: 'pointer',
                   }}
                 >
-                  {isDemo ? 'See today’s coffee treat →' : 'See deals →'}
+                  {isDemo ? 'See today’s coffee treat →' : L('See deals →')}
                 </button>
               </div>
-              <div className="wx-tip">☂ {weather.rainTip}</div>
+              <div className="wx-tip">☂ {wxText.tip}</div>
             </div>
           </div>
         )}

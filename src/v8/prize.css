@@ -132,3 +132,13 @@
 
 /* 17 Nov release: the Feed top row now holds weather · "Reels · Ask a Thai" · chat, so the ticker takes the line right under it, centred */
 .v8-app-root #s-feed.at-has-sw .kpz-tick { top: calc(env(safe-area-inset-top) + 52px); left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100% - 24px); }
+/* T-301 (T301-002): the centred ticker spans the full width at 52–88px (+6px tap edge), right where the "Tap for sound" badge sat
+   (56px). The badge moves to its own row under the ticker (>= 8px gap) at every width 360–430, Thai and English alike, so a tap
+   on it never lands on the ticker. */
+.v8-app-root #s-feed.at-has-sw .reel-sound { top: calc(env(safe-area-inset-top) + 102px); }
+/* T-301 (T301-008): app not in Thai → the ticker and the card show the English line only, as the main line */
+.v8-app-root .kpz[data-one="en"] .kpz-th { display: none; }
+.v8-app-root .kpz-tick[data-one="en"] .kpz-en { font-size: 12.5px; font-weight: 700; line-height: 1.22; color: #FFF7EC; }
+.v8-app-root .kpz-card[data-one="en"] .kpz-h.kpz-en { font-size: 15px; font-weight: 700; color: var(--pz-c1, #FFF7EC); margin-top: 0; }
+.v8-app-root .kpz-card[data-one="en"] .kpz-s.kpz-en { font-size: 12.5px; }
+.v8-app-root .kpz-cdt[data-one="en"] .kpz-en, .v8-app-root .kpz[data-one="en"] .kpz-cdt .kpz-en, .v8-app-root .kpz[data-one="en"] .kpz-stk .kpz-en { font-size: 11.5px; }

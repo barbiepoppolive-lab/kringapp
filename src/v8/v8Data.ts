@@ -230,6 +230,24 @@ export const DEFAULT_WEATHER: V8Weather = {
   source: 'fallback',
 };
 
+/** T-301 (T301-007): the Weather sheet's words in the member's language. The English lines above stay the keys (v5Strings TH +
+ *  zh/ja/ko/hi files); the numbers are put back in here, so a Thai screen never shows an English sentence. */
+export function weatherText(w: V8Weather, L: (en: string) => string, Lf: (en: string, a: string, b?: string) => string) {
+  const live = w.source === 'open-meteo' && Number.isFinite(w.tempC);
+  const rain = Number.isFinite(w.rainProbAfternoon) ? String(w.rainProbAfternoon) : '';
+  const rainy = live && w.localPickTitle === 'Rain plan: stay under the skywalk';
+  return {
+    feels: Number.isFinite(w.feelsLikeC) ? `${Lf('Feels like {0}°', String(w.feelsLikeC))} · ` : '',
+    label: L(w.conditionLabel),
+    title: L(w.localPickTitle),
+    desc: !live ? L(w.localPickDesc)
+      : rainy ? Lf('Afternoon rain chance is {0}%. The covered BTS skywalks around Siam and Chit Lom link the malls and the art centre, so you can keep exploring dry.', rain)
+      : Lf('Warm {0}°C afternoon (feels like {1}°C). Plan shaded or indoor stops for midday and save the walking for after 4pm.', String(w.tempC), String(w.feelsLikeC)),
+    tip: live && rain ? Lf('{0}% chance of afternoon rain — the covered BTS skywalks around Siam keep you dry.', rain)
+      : L('Tropical showers are usually short — the covered BTS skywalks around Siam keep you dry.'),
+  };
+}
+
 export async function fetchBangkokWeather(): Promise<V8Weather> {
   try {
     const url =

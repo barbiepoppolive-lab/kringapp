@@ -484,5 +484,20 @@ const T: Record<string, string> = {
     "Use a photo or GIF": "फ़ोटो या GIF चुनें",
     "Couldn’t post · try again": "पोस्ट नहीं हुआ · फिर से कोशिश करें",
     "No questions yet": "अभी कोई सवाल नहीं",
-  };
+      // T-301 (T301-007): Weather sheet
+    'Feels like {0}°': 'महसूस {0}°',
+    'Tropical shower likely this afternoon': 'आज दोपहर बारिश की संभावना',
+    'Partly cloudy in Bangkok': 'बैंकॉक में हल्के बादल',
+    'Sunny & warm in Bangkok': 'बैंकॉक में धूप और गर्मी',
+    'Bangkok weather is loading': 'बैंकॉक का मौसम लोड हो रहा है',
+    'Rain plan: stay under the skywalk': 'बारिश में स्काईवॉक के नीचे चलें',
+    'Find shade before 3pm': '3 बजे से पहले छाँव ढूँढें',
+    'Stay cool between neighbourhoods': 'इलाकों के बीच ठंडे रहें',
+    'Afternoon rain chance is {0}%. The covered BTS skywalks around Siam and Chit Lom link the malls and the art centre, so you can keep exploring dry.': 'दोपहर में बारिश की संभावना {0}% है। सियाम और चिट लोम के आसपास छत वाले BTS स्काईवॉक मॉल और आर्ट सेंटर को जोड़ते हैं, तो आप भीगे बिना घूमते रह सकते हैं।',
+    'Warm {0}°C afternoon (feels like {1}°C). Plan shaded or indoor stops for midday and save the walking for after 4pm.': 'दोपहर गर्म है, {0}°C (महसूस {1}°C)। दोपहर में छाँव या अंदर की जगहें चुनें और पैदल घूमना 4 बजे के बाद रखें।',
+    'Bangkok afternoons are hot. Plan indoor or shaded stops for the middle of the day and use the covered BTS skywalks around Siam and Chit Lom.': 'बैंकॉक की दोपहर गर्म होती है। दिन के बीच में अंदर या छाँव वाली जगहें चुनें और सियाम व चिट लोम के छत वाले BTS स्काईवॉक इस्तेमाल करें।',
+    '{0}% chance of afternoon rain — the covered BTS skywalks around Siam keep you dry.': 'दोपहर में बारिश की {0}% संभावना — सियाम के आसपास छत वाले BTS स्काईवॉक आपको सूखा रखेंगे।',
+    'Tropical showers are usually short — the covered BTS skywalks around Siam keep you dry.': 'उष्णकटिबंधीय बारिश आमतौर पर थोड़ी देर की होती है — सियाम के आसपास छत वाले BTS स्काईवॉक आपको सूखा रखेंगे।',
+    'See deals →': 'डील देखें →',
+};
 export default T;

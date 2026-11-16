@@ -177,13 +177,16 @@ export function MeView(props: {
       </div>
       {/* polish #4: one "This week" row: Rings · rank · Rewards › (the Rewards page links to the full ranking) */}
       <div className="kx-tiles kx-week" id="kxTiles">
-        <button type="button" className="kx-mtile rw kx-weekrow" id="kxRingsTile" onClick={props.onRings}>
+        {/* T-301 (T301-001 axe nested-interactive): the tile is a plain box; the whole-tile tap is one button stretched over it and
+            the rank is its own button on top (no button inside a button) */}
+        <div className="kx-mtile rw kx-weekrow kx-wk-box" id="kxRingsTile">
+          <button type="button" className="kx-wk-hit" id="kxRingsHit" aria-label={`${L('This week')} · ${L('Rewards')}`} onClick={props.onRings} />
           {props.ringsDot || (props.kx?.prizes ?? 0) > 0 ? <i className="kx-tdot" aria-label={L('New')} /> : null}
           <span className="kx-wk-l">{L('This week')}</span>
           <b>{props.kx ? fmtN(props.kx.week ?? 0) : '…'} <RingGlyph /></b>
-          <span className="kx-wk-rk" id="kxRankTile" role="link" tabIndex={0} onClick={(e) => { if (props.onRanking) { e.stopPropagation(); props.onRanking(); } }}>{props.weekRank ? Lf('Rank #{0}', String(props.weekRank)) : L('Ranking')}</span>
+          <button type="button" className="kx-wk-rk" id="kxRankTile" onClick={() => (props.onRanking ? props.onRanking() : props.onRings?.())}>{props.weekRank ? Lf('Rank #{0}', String(props.weekRank)) : L('Ranking')}</button>
           <span className="kx-wk-go">{L('Rewards')} <i>›</i></span>
-        </button>
+        </div>
       </div>
       {/* founder 17 Nov: the big ฿ prize card is gone from Me (the prize lives in the Feed ticker + Rewards) */}
       <FoundingChecklist L={L} Lf={Lf} kx={props.kx} hasSocial={!!(props.kx?.ig_handle || props.kx?.tiktok_handle || p.ig_handle)} onLink={props.onLink || props.onEdit} onPost={props.onPost} />

@@ -13,7 +13,7 @@
 --      only admins). The server checks the file really exists, belongs to this member, is fresh (15 min) and was not used
 --      by another claim.
 --   2. The face code is compared ONLY with the member's TRUSTED print: a print saved by the Get-verified check whose
---      verification the team APPROVED (kr8_face_prints.source in ('verify','selfie') + kr8_verifications.status = 'approved').
+--      verification the team APPROVED (kr8_face_prints.source in ('verify','selfie','backfill-selfie' from 0076) + kr8_verifications.status = 'approved').
 --      Prints written by claims never count as the reference any more.
 --   3. The claim is paid automatically only when ALL of these hold:
 --        photo frame OK · a trusted print exists · distance between face_replay_min (0.06) and face_claim_ok (0.45).
@@ -110,7 +110,7 @@ begin
   if face_ok then
     select min(public.kr8_face_dist(p_face, f.descriptor)) into trust_d
       from public.kr8_face_prints f join public.kr8_verifications v on v.id = f.verification_id
-     where f.user_id = uid and f.source in ('verify', 'selfie') and v.user_id = uid and v.status = 'approved';
+     where f.user_id = uid and f.source in ('verify', 'selfie', 'backfill-selfie') and v.user_id = uid and v.status = 'approved';
   end if;
   -- compared with the account's own earlier prints (kept for the 0066 flag + same-face links between accounts)
   if face_ok and (select count(*) from public.kr8_face_prints where user_id = uid and created_at > now() - interval '1 day') < 10 then

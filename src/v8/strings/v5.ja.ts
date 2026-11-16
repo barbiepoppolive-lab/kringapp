@@ -484,5 +484,20 @@ const T: Record<string, string> = {
     "Use a photo or GIF": "写真か GIF を選んでください",
     "Couldn’t post · try again": "投稿できませんでした · もう一度お試しください",
     "No questions yet": "まだ質問はありません",
-  };
+      // T-301 (T301-007): Weather sheet
+    'Feels like {0}°': '体感 {0}°',
+    'Tropical shower likely this afternoon': '今日の午後はにわか雨がありそう',
+    'Partly cloudy in Bangkok': 'バンコクは晴れ時々くもり',
+    'Sunny & warm in Bangkok': 'バンコクは晴れて暖かい',
+    'Bangkok weather is loading': 'バンコクの天気を読み込み中',
+    'Rain plan: stay under the skywalk': '雨の日はスカイウォークの下を歩こう',
+    'Find shade before 3pm': '午後3時までは日陰へ',
+    'Stay cool between neighbourhoods': 'エリア間の移動は涼しく',
+    'Afternoon rain chance is {0}%. The covered BTS skywalks around Siam and Chit Lom link the malls and the art centre, so you can keep exploring dry.': '午後の降水確率は {0}%。サイアムとチットロム周辺の屋根付き BTS スカイウォークがモールやアートセンターをつないでいるので、濡れずに歩けます。',
+    'Warm {0}°C afternoon (feels like {1}°C). Plan shaded or indoor stops for midday and save the walking for after 4pm.': '午後は {0}°C（体感 {1}°C）と暖かめ。お昼は日陰や屋内で過ごし、歩くのは午後4時以降に。',
+    'Bangkok afternoons are hot. Plan indoor or shaded stops for the middle of the day and use the covered BTS skywalks around Siam and Chit Lom.': 'バンコクの午後は暑いです。お昼は屋内や日陰で過ごし、サイアムとチットロム周辺の屋根付き BTS スカイウォークを使いましょう。',
+    '{0}% chance of afternoon rain — the covered BTS skywalks around Siam keep you dry.': '午後の降水確率 {0}%。サイアム周辺の屋根付き BTS スカイウォークなら濡れません。',
+    'Tropical showers are usually short — the covered BTS skywalks around Siam keep you dry.': '熱帯のにわか雨はたいてい短時間。サイアム周辺の屋根付き BTS スカイウォークなら濡れません。',
+    'See deals →': 'ディールを見る →',
+};
 export default T;

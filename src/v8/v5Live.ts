@@ -46,11 +46,18 @@ export const V5_PLAN_BG =
 let clientP: Promise<SupabaseClient> | null = null;
 export function v5Client(): Promise<SupabaseClient> {
   if (!clientP) {
-    clientP = import('@supabase/supabase-js').then((m) =>
-      m.createClient(SUPA_URL, SUPA_KEY, {
+    // T-301 (T301-003, iPhone WebKit "undefined is not an object (evaluating 'e.createClient')"): the lazy chunk can come back as
+    // a wrapper whose real exports sit on .default (interop / a stale cached chunk). Take createClient from either place, and
+    // never cache a failed load, so the next call (inbox, feed, …) loads it again instead of failing for the whole visit.
+    const p = import('@supabase/supabase-js').then((m) => {
+      const mod = (typeof m?.createClient === 'function' ? m : (m as unknown as { default?: typeof m })?.default) as typeof m | undefined;
+      if (!mod || typeof mod.createClient !== 'function') throw new V5Error('NETWORK');
+      return mod.createClient(SUPA_URL, SUPA_KEY, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce', storageKey: 'kr8-v5-auth' },
-      })
-    );
+      });
+    });
+    clientP = p;
+    p.catch(() => { if (clientP === p) clientP = null; });
   }
   return clientP;
 }
@@ -699,12 +706,6 @@ export async function v5UploadClaimPhoto(photo: Blob | null | undefined): Promis
 export async function v5SaveFacePrint(desc: Float32Array | null): Promise<boolean> {
   if (!desc || desc.length !== 128) return false;
   return rpc<boolean>('kr8_save_face_print', { p_desc: Array.from(desc, (x) => Math.round(x * 1e6) / 1e6) }).then((v) => v === true).catch(() => false);
-}
-/** 0076: the face code of the member's CURRENT card photo (one per member, team-only; only ever a "looks alike" flag).
- *  Resolves true when stored, false when the server has it switched off; throws on errors (the caller retries later). */
-export async function v5SaveCardPrint(desc: Float32Array): Promise<boolean> {
-  if (desc.length !== 128) throw new V5Error('BAD_FACE');
-  return (await rpc<boolean>('kr8_save_card_print', { p_desc: Array.from(desc, (x) => Math.round(x * 1e6) / 1e6) })) === true;
 }
 /** 0076: the face code of the member's CURRENT card photo (one per member, team-only; only ever a "looks alike" flag).
  *  Resolves true when stored, false when the server has it switched off; throws on errors (the caller retries later). */

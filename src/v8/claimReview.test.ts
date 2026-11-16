@@ -15,7 +15,7 @@ describe('0075 claim face check on the server', () => {
   });
   it('compares only with team-approved verified prints, never with prints written by claims', () => {
     const trust = fn.slice(fn.indexOf('into trust_d'), fn.indexOf("v.status = 'approved'") + 30);
-    expect(trust).toContain("f.source in ('verify', 'selfie')");
+    expect(trust).toContain("f.source in ('verify', 'selfie', 'backfill-selfie')");
     expect(trust).toContain("v.status = 'approved'");
     expect(trust).not.toContain("'claim'");
   });
