@@ -318,3 +318,18 @@ button.tile.wide { font: inherit; cursor: pointer; }
 .ml-ticks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .ml-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin-top: 8px; }
 .ml-big { display: block; width: 100%; max-height: 62dvh; object-fit: contain; border-radius: 18px; background: #000; }
+
+/* where visitors come from (0056) */
+.tr-list { padding: 4px 14px; }
+.tr-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.tr-row:last-child { border-bottom: 0; }
+.tr-badge { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: #0b0a12; font: 800 12px/1 var(--h); }
+.tr-main { flex: 1; min-width: 0; display: grid; gap: 6px; }
+.tr-top { display: flex; align-items: baseline; gap: 10px; font-size: 14px; }
+.tr-top b { font-variant-numeric: tabular-nums; min-width: 28px; text-align: right; }
+.tr-num { min-width: 44px; text-align: right; white-space: nowrap; }
+.tr-bar { display: block; height: 5px; border-radius: 3px; background: var(--s3); overflow: hidden; }
+.tr-bar i { display: block; height: 100%; border-radius: 3px; }
+.tr-col { width: 64px; text-align: right; flex: none; }
+.tr-code { overflow-wrap: anywhere; }
+@media (max-width: 420px) { .tr-num { min-width: 0; } .tr-top { gap: 8px; } }

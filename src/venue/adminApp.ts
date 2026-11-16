@@ -332,6 +332,87 @@ export function joinedLine(d: VisitDay, when: 'today' | 'in 7 days'): string {
   const pct = v ? Math.round((d.signups / v) * 1000) / 10 : 0;
   return `${d.signups} new ${d.signups === 1 ? 'member' : 'members'} from ${v} ${v === 1 ? 'visitor' : 'visitors'} ${when}` + (v ? ` (${pct}%)` : '');
 }
+// ───────────────────────────── where visitors come from (0056_kr8_admin_traffic_sources) ─────────────────────────────
+export type TrafficChannel = { key: string; label: string; visitors: number; signups: number };
+export type TrafficPeriod = { channels: TrafficChannel[]; us: number; codes: { code: string; visitors: number; signups: number }[]; hosts: { host: string; visitors: number }[] };
+export type Traffic = { today: TrafficPeriod; week: TrafficPeriod; month: TrafficPeriod };
+const isTrafficPeriod = (p: unknown): p is TrafficPeriod => {
+  const o = p as TrafficPeriod | null;
+  return !!o && typeof o.us === 'number' && Array.isArray(o.channels) && Array.isArray(o.codes) && Array.isArray(o.hosts)
+    && o.channels.every((c) => typeof c.key === 'string' && typeof c.visitors === 'number' && typeof c.signups === 'number');
+};
+export const isTraffic = (v: unknown): v is Traffic => !!v && isTrafficPeriod((v as Traffic).today) && isTrafficPeriod((v as Traffic).week) && isTrafficPeriod((v as Traffic).month);
+/** Same rules as the SQL: a channel word in ?ref=/?src= first, then the referrer site, then a member/partner code, else direct. */
+const REF_ALIAS: Record<string, string> = { ig: 'instagram', insta: 'instagram', instagram: 'instagram', tt: 'tiktok', tiktok: 'tiktok', x: 'x', twitter: 'x',
+  yt: 'youtube', youtube: 'youtube', fb: 'facebook', facebook: 'facebook', line: 'line', google: 'google', reddit: 'reddit', chatgpt: 'ai', ai: 'ai' };
+export function channelOf(ref: string | null | undefined, referrer: string | null | undefined): string {
+  const rv = (ref || '').trim().toLowerCase();
+  const code = rv && rv !== 'direct' && rv !== '(none)' ? rv : '';
+  if (code && REF_ALIAS[code]) return REF_ALIAS[code];
+  const h = (referrer || '').trim().toLowerCase().replace(/^(www\.|m\.)/, '');
+  if (h && !/(^|\.)kringapp\.com$/.test(h)) {
+    if (/(^|\.)instagram\.com$/.test(h)) return 'instagram';
+    if (/(^|\.)tiktok\.com$/.test(h)) return 'tiktok';
+    if (/^(t\.co|(.+\.)?(x|twitter)\.com)$/.test(h)) return 'x';
+    if (/^(chatgpt\.com|chat\.openai\.com|gemini\.google\.com|claude\.ai|copilot\.microsoft\.com)$/.test(h) || /(^|\.)perplexity\.ai$/.test(h)) return 'ai';
+    if (/(^|\.)google\.[a-z.]+$/.test(h)) return 'google';
+    if (/(^|\.)(youtube\.com|youtu\.be)$/.test(h)) return 'youtube';
+    if (/(^|\.)(facebook\.com|fb\.com|fb\.me)$/.test(h)) return 'facebook';
+    if (/(^|\.)line\.me$/.test(h)) return 'line';
+    if (/(^|\.)(reddit\.com|redd\.it)$/.test(h)) return 'reddit';
+    if (/(^|\.)(bing\.com|duckduckgo\.com)$/.test(h)) return 'other_search';
+    return 'other_sites';
+  }
+  return code ? 'member_links' : 'direct';
+}
+export const conversionPct = (signups: number, visitors: number) => (visitors ? `${Math.round((signups / visitors) * 1000) / 10}%` : '–');
+const CH_BADGE: Record<string, [string, string]> = { instagram: ['IG', '#e1306c'], tiktok: ['TT', '#25f4ee'], x: ['X', '#8a8a95'], google: ['G', '#4285f4'], youtube: ['YT', '#ff3030'],
+  facebook: ['f', '#1877f2'], line: ['L', '#06c755'], reddit: ['R', '#ff5700'], ai: ['AI', '#a78bfa'], other_search: ['S', '#7a8aa0'], other_sites: ['W', '#7a8aa0'],
+  member_links: ['K', '#ff4fa3'], direct: ['D', '#9a96a8'] };
+/** Channels with traffic or sign-ups, busiest first. */
+export const trafficRows = (p: TrafficPeriod) => p.channels.filter((c) => c.visitors || c.signups).sort((a, b) => b.visitors - a.visitors || b.signups - a.signups);
+export function trafficBlock(data: Traffic, start: keyof Traffic = 'week'): HTMLElement {
+  const box = el('div', { id: 'trafficBlock' });
+  const names: [keyof Traffic, string][] = [['today', 'Today'], ['week', '7 days'], ['month', '30 days']];
+  const paint = (k: keyof Traffic) => {
+    const p = data[k];
+    const rows = trafficRows(p);
+    const max = Math.max(1, ...rows.map((c) => c.visitors));
+    const total = rows.reduce((n, c) => n + c.visitors, 0);
+    const list = rows.length
+      ? el('div', { class: 'sv-list tr-list' }, ...rows.map((c) => {
+        const [letter, color] = CH_BADGE[c.key] || ['?', '#9a96a8'];
+        return el('div', { class: 'tr-row', 'data-ch': c.key },
+          el('span', { class: 'tr-badge', style: `background:${color}` }, letter),
+          el('span', { class: 'tr-main' },
+            el('span', { class: 'tr-top' }, el('span', { class: 'grow' }, c.label), el('b', {}, String(c.visitors)),
+              el('span', { class: 'tr-num dim xs' }, `${c.signups} joined`), el('span', { class: 'tr-num dim xs' }, conversionPct(c.signups, c.visitors))),
+            el('span', { class: 'tr-bar' }, el('i', { style: `width:${Math.max(c.visitors ? 3 : 0, Math.round((c.visitors / max) * 100))}%;background:${color}` }))));
+      }))
+      : el('p', { class: 'dim sm' }, 'No visits yet.');
+    const codes = p.codes.length
+      ? el('div', { class: 'sv-list' }, el('div', { class: 'sv-row dim xs' }, el('span', { class: 'grow' }, 'Link code'), el('span', { class: 'tr-col' }, 'Visitors'), el('span', { class: 'tr-col' }, 'Joined')),
+        ...p.codes.map((c) => el('div', { class: 'sv-row', 'data-code': c.code }, el('span', { class: 'grow tr-code' }, c.code), el('b', { class: 'tr-col' }, String(c.visitors)), el('b', { class: 'tr-col' }, String(c.signups)))))
+      : el('p', { class: 'dim sm' }, 'No member or partner links used yet.');
+    const hosts = p.hosts.length
+      ? el('div', { class: 'sv-list' }, ...p.hosts.map((h) => el('div', { class: 'sv-row' }, el('span', { class: 'grow tr-code' }, h.host), el('b', {}, String(h.visitors)))))
+      : null;
+    box.replaceChildren(
+      el('div', { class: 'sec' }, 'Where visitors come from'),
+      el('div', { class: 'seg', id: 'trafficSeg' }, ...names.map(([key, label]) => {
+        const b = el('button', { type: 'button', class: key === k ? 'on' : '', 'data-p': key }, label);
+        b.onclick = () => paint(key);
+        return b;
+      })),
+      list,
+      el('p', { class: 'dim xs', style: 'margin:8px 2px 0' }, `${total} visitors counted${p.us ? ` · +${p.us} from the US, not counted (mostly our own testing)` : ''}. Joined = new members who came through that channel.`),
+      el('div', { class: 'sec' }, 'Member & partner links'), codes,
+      ...(hosts ? [el('div', { class: 'sec' }, 'Other websites'), hosts] : []));
+  };
+  paint(start);
+  return box;
+}
+
 function visitsSheet(v: SiteVisits) {
   const dayName = (d: string) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' });
   const stat = (n: number, label: string) => el('div', { class: 'sv-stat' }, el('b', {}, String(n)), el('span', {}, label));
@@ -341,6 +422,7 @@ function visitsSheet(v: SiteVisits) {
   const dayList = el('div', { class: 'sv-list' }, ...v.days.map((d) => el('div', { class: 'sv-row' },
     el('span', { class: 'sv-day' }, dayName(d.day)), el('b', {}, String(realVisitors(d))),
     el('span', { class: 'grow faint xs', style: 'text-align:right' }, `TH ${d.th} · other ${d.other}${d.us ? ` · US ${d.us}` : ''}`))));
+  const trafficHolder = el('div', { id: 'trafficHolder' });
   const s = sheet(
     el('h3', {}, 'Site visits'),
     el('p', { class: 'dim sm', style: 'margin:4px 0 14px' }, 'People who opened kringapp.com, Bangkok time. Robots and our own tests are left out. The US is not counted: most of it is our own testing.'),
@@ -351,8 +433,11 @@ function visitsSheet(v: SiteVisits) {
     srcList,
     el('div', { class: 'sec' }, 'Day by day'),
     dayList,
+    trafficHolder,
     el('button', { class: 'btn ghost', type: 'button', id: 'visitsClose', style: 'width:100%;margin-top:16px' }, 'Close'));
   (s.box.querySelector('#visitsClose') as HTMLButtonElement).onclick = s.close;
+  // Hidden silently until 0056 is applied (the function is missing before that).
+  void rpc<Traffic>('kr8_admin_traffic_sources', { p_days: 30 }).then((t) => { if (isTraffic(t)) trafficHolder.replaceChildren(trafficBlock(t)); }).catch(() => undefined);
 }
 
 // ───────────────────────────── queue frame ─────────────────────────────
