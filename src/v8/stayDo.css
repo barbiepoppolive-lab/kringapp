@@ -1,24 +1,24 @@
 /* Deals → Stay & do (T-209). Photo first, the member price is the one strong line, the saving stays quiet. No yellow. */
 .kstay { margin: 22px 0 8px; }
 .kstay-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 0 2px 8px; }
-.kstay-head h3 { margin: 0; font: 800 20px 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; color: #fff; }
-.kstay-sub { color: #FF8A3D; font-weight: 700; font-size: 13px; white-space: nowrap; }
+.kstay-head h3 { margin: 0; font: 800 1.25rem 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; color: #fff; }
+.kstay-sub { color: #FF8A3D; font-weight: 700; font-size: 0.8125rem; white-space: nowrap; }
 .kstay-chips { display: flex; gap: 8px; margin: 0 0 10px; }
-.kstay-chips button { border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.05); color: rgba(255,255,255,.85); border-radius: 999px; padding: 7px 14px; font: 700 13px inherit; font-family: inherit; cursor: pointer; }
+.kstay-chips button { border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.05); color: rgba(255,255,255,.85); border-radius: 999px; padding: 7px 14px; font: 700 0.8125rem inherit; font-family: inherit; cursor: pointer; }
 .kstay-chips button.on { background: #fff; color: #15131F; border-color: #fff; }
 .kstay-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
 .kstay-card { border-radius: 22px; overflow: hidden; background: #171520; border: 1px solid rgba(255,255,255,.1); }
 .kstay-photo { position: relative; height: 170px; background: linear-gradient(135deg, #3B45E6, #FF4FA3) center/cover; }
-.kstay-kind, .kstay-area { position: absolute; top: 10px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; color: #fff; background: rgba(11,10,18,.62); backdrop-filter: blur(6px); }
+.kstay-kind, .kstay-area { position: absolute; top: 10px; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 800; color: #fff; background: rgba(11,10,18,.62); backdrop-filter: blur(6px); }
 .kstay-kind { left: 10px; } .kstay-area { right: 10px; }
 .kstay-body { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px 14px; }
-.kstay-name { color: #fff; font-size: 16px; line-height: 1.25; }
-.kstay-blurb { color: rgba(255,255,255,.72); font-size: 13px; line-height: 1.35; }
+.kstay-name { color: #fff; font-size: 1rem; line-height: 1.25; }
+.kstay-blurb { color: rgba(255,255,255,.72); font-size: 0.8125rem; line-height: 1.35; }
 .kstay-price { margin-top: 4px; color: #fff; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
-.kstay-price b { font-size: 22px; } .kstay-price small { color: rgba(255,255,255,.7); font-size: 12.5px; }
-.kstay-ml { font-size: 12px; font-weight: 700; color: #FF8A3D; }
-.kstay-save { color: rgba(61,220,151,.85); font-size: 12px; }
-.kstay-book { margin-top: 10px; display: block; text-align: center; padding: 11px 8px; border-radius: 999px; font-weight: 800; font-size: 14px; text-decoration: none; color: #fff; background: linear-gradient(90deg, #FF8A3D, #FF4FA3); }
-.kstay-copied { color: rgba(255,255,255,.75); font-size: 12px; text-align: center; }
-.kstay-disc { margin: 10px 0 0; padding: 9px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.04); color: rgba(255,255,255,.8); font-size: 12.5px; }
+.kstay-price b { font-size: 1.375rem; } .kstay-price small { color: rgba(255,255,255,.7); font-size: 0.7812rem; }
+.kstay-ml { font-size: 0.75rem; font-weight: 700; color: #FF8A3D; }
+.kstay-save { color: rgba(61,220,151,.85); font-size: 0.75rem; }
+.kstay-book { margin-top: 10px; display: block; text-align: center; padding: 11px 8px; border-radius: 999px; font-weight: 800; font-size: 0.875rem; text-decoration: none; color: #fff; background: linear-gradient(90deg, #FF8A3D, #FF4FA3); }
+.kstay-copied { color: rgba(255,255,255,.75); font-size: 0.75rem; text-align: center; }
+.kstay-disc { margin: 10px 0 0; padding: 9px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.04); color: rgba(255,255,255,.8); font-size: 0.7812rem; }
 @media (min-width: 560px) { .kstay-list { grid-template-columns: 1fr 1fr; } }

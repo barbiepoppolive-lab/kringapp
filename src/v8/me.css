@@ -1,15 +1,15 @@
 /* Me tab — LOCKED 10 Nov (scratch/opus_venue/me_tab_locked_10nov/me_tab_locked.html). Calm luxe, hairlines, light numbers, spaced caps.
    No yellow anywhere (monarchy rule). Colours: anchan #5B6CFF · pink #FF4FA3 · Thai tea #FF8A3D · pandan #6EE7A8 · night #0B0A12. */
 .v8-app-root .kme { --k-line: #2A2638; --k-muted: #B9B3D6; --k-dim: #8E8AC0; --k-surf: #171520; padding: 0 0 110px; color: #FFF7EC; font-family: var(--kr-thai-body), 'Anuphan', 'Bricolage Grotesque', sans-serif; }
-.v8-app-root .kme .cap { letter-spacing: .14em; font-size: 10.5px; color: var(--k-dim); text-transform: uppercase; }
+.v8-app-root .kme .cap { letter-spacing: .14em; font-size: 0.6562rem; color: var(--k-dim); text-transform: uppercase; }
 .v8-app-root .kme button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit; }
 .v8-app-root .kme-top { display: flex; justify-content: space-between; align-items: center; padding: 22px 16px 0; }
-.v8-app-root .kme-top .cap { font-size: 12px; letter-spacing: .22em; color: var(--k-muted); }
+.v8-app-root .kme-top .cap { font-size: 0.75rem; letter-spacing: .22em; color: var(--k-muted); }
 .v8-app-root .kme-icons { display: flex; gap: 6px; }
 .v8-app-root .kme-icons button { width: 36px; height: 36px; display: grid; place-items: center; position: relative; color: var(--k-muted); }
 .v8-app-root .kme-icons svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .v8-app-root .kme-icons .dot { position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; border-radius: 50%; background: #FF4FA3; box-shadow: 0 0 0 2px #0B0A12; }
-.v8-app-root .kme-back { width: 36px; height: 36px; display: grid; place-items: center; font-size: 20px; color: var(--k-muted) !important; }
+.v8-app-root .kme-back { width: 36px; height: 36px; display: grid; place-items: center; font-size: 1.25rem; color: var(--k-muted) !important; }
 
 /* member card */
 .v8-app-root .kme-card { position: relative; margin: 14px 14px 0; height: 206px; border-radius: 24px; padding: 18px; overflow: hidden;
@@ -28,7 +28,7 @@
 @keyframes kmeGlow { 0%, 100% { filter: drop-shadow(0 0 6px rgba(170,181,255,.6)) drop-shadow(0 0 10px rgba(255,79,163,.35)); } 50% { filter: drop-shadow(0 0 14px rgba(170,181,255,.95)) drop-shadow(0 0 20px rgba(255,79,163,.65)); } }
 .v8-app-root .kme-avw { position: absolute; left: 16px; top: 16px; width: 82px; height: 82px; perspective: 400px; }
 .v8-app-root .kme-avw .av { position: absolute; inset: 12px; border-radius: 50%; background: #2A2638 center/cover; box-shadow: 0 0 0 2px rgba(255,247,236,.85);
-  display: grid; place-items: center; font: 300 24px 'Bricolage Grotesque', sans-serif; }
+  display: grid; place-items: center; font: 300 1.5rem 'Bricolage Grotesque', sans-serif; }
 .v8-app-root .kme-avw .cm { position: absolute; inset: 3px; border-radius: 50%;
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); }
 .v8-app-root .kme-avw .cm.b { background: conic-gradient(transparent 0 62%, rgba(170,181,255,.2) 75%, #AAB5FF 99%, #fff); animation: kmeSp 2.6s linear infinite; }
@@ -41,34 +41,34 @@
 @keyframes kmeGy { from { transform: rotateX(0) rotateY(70deg); } to { transform: rotateX(-360deg) rotateY(70deg); } }
 .v8-app-root .kme-tier { position: absolute; left: 108px; top: 36px; right: 84px; }
 .v8-app-root .kme-tier .cap { color: rgba(255,247,236,.85); }
-.v8-app-root .kme-tier small { display: block; font-size: 12px; color: rgba(255,247,236,.65); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.v8-app-root .kme-nm { position: absolute; left: 18px; right: 18px; bottom: 52px; font: 300 30px 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; letter-spacing: .2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .kme-tier small { display: block; font-size: 0.75rem; color: rgba(255,247,236,.65); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .kme-nm { position: absolute; left: 18px; right: 18px; bottom: 52px; font: 300 1.875rem 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; letter-spacing: .2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .v8-app-root .kme-rk { position: absolute !important; left: 18px; bottom: 16px; display: flex !important; align-items: center; gap: 6px; height: 30px; padding: 0 12px 0 8px !important; border-radius: 999px;
-  background: rgba(11,10,18,.35) !important; border: 1px solid rgba(255,247,236,.25) !important; font-size: 12.5px !important; overflow: hidden; }
+  background: rgba(11,10,18,.35) !important; border: 1px solid rgba(255,247,236,.25) !important; font-size: 0.7812rem !important; overflow: hidden; }
 .v8-app-root .kme-rk::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%); background-size: 220% 100%; animation: kmeShine 3s linear infinite; }
 .v8-app-root .kme-rk b { font-weight: 700; }
 .v8-app-root .kme-rk .dim { opacity: .75; }
 .v8-app-root .kme-rk .tr { display: inline-block; animation: kmeBob 1.8s ease-in-out infinite; }
 @keyframes kmeBob { 50% { transform: translateY(-2px) rotate(-10deg); } }
-.v8-app-root .kme-kr { position: absolute; right: 18px; bottom: 22px; font-size: 12px; color: rgba(255,247,236,.6); letter-spacing: .08em; }
+.v8-app-root .kme-kr { position: absolute; right: 18px; bottom: 22px; font-size: 0.75rem; color: rgba(255,247,236,.6); letter-spacing: .08em; }
 
 /* stats + quick actions */
 .v8-app-root .kme-st { display: flex; margin: 22px 22px 0; }
 .v8-app-root .kme-st > * { flex: 1; text-align: center !important; border-left: .5px solid var(--k-line) !important; }
 .v8-app-root .kme-st > *:first-child { border-left: 0 !important; }
-.v8-app-root .kme-st b { display: block; font: 300 26px 'Bricolage Grotesque', sans-serif; }
+.v8-app-root .kme-st b { display: block; font: 300 1.625rem 'Bricolage Grotesque', sans-serif; }
 .v8-app-root .kme-st .cap { display: block; margin-top: 2px; }
 .v8-app-root .kme-qa { display: flex; justify-content: space-around; margin: 22px 8px 0; }
-.v8-app-root .kme-qa button { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11.5px; color: var(--k-muted); }
-.v8-app-root .kme-qa span { width: 48px; height: 48px; border-radius: 50%; border: 1px solid #4A4658; display: grid; place-items: center; font-size: 17px; color: #FFF7EC; }
+.v8-app-root .kme-qa button { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 0.7188rem; color: var(--k-muted); }
+.v8-app-root .kme-qa span { width: 48px; height: 48px; border-radius: 50%; border: 1px solid #4A4658; display: grid; place-items: center; font-size: 1.0625rem; color: #FFF7EC; }
 
 /* verify prompt (section 2) */
 .v8-app-root .kme-verify { display: flex !important; align-items: center; gap: 12px; width: calc(100% - 32px); margin: 20px 16px 0; padding: 12px 14px !important; border-radius: 18px;
   border: .5px solid rgba(91,108,255,.55) !important; background: linear-gradient(90deg, rgba(91,108,255,.16), rgba(255,79,163,.10)) !important; }
 .v8-app-root .kme-verify .ic { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #5B6CFF; font-weight: 800; flex: none; }
 .v8-app-root .kme-verify .t { flex: 1; }
-.v8-app-root .kme-verify b { display: block; font-size: 14px; }
-.v8-app-root .kme-verify small { display: block; font-size: 11.5px; color: var(--k-muted); margin-top: 2px; }
+.v8-app-root .kme-verify b { display: block; font-size: 0.875rem; }
+.v8-app-root .kme-verify small { display: block; font-size: 0.7188rem; color: var(--k-muted); margin-top: 2px; }
 .v8-app-root .kme-verify .go { color: var(--k-muted); }
 
 /* next level: Thai tea cup that fills */
@@ -81,53 +81,53 @@
 @keyframes kmeWave { to { transform: translateX(20px); } }
 .v8-app-root .kme-lvl .t { flex: 1; }
 .v8-app-root .kme-lvl .t .cap { color: var(--k-muted); }
-.v8-app-root .kme-lvl .t b { display: block; font: 500 16px 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; color: #FF8A3D; margin-top: 3px; }
-.v8-app-root .kme-lvl .t small { font-size: 12px; color: var(--k-dim); }
+.v8-app-root .kme-lvl .t b { display: block; font: 500 1rem 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; color: #FF8A3D; margin-top: 3px; }
+.v8-app-root .kme-lvl .t small { font-size: 0.75rem; color: var(--k-dim); }
 
 /* tiles + photos */
 .v8-app-root .kme-rows { margin: 12px 16px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .v8-app-root .kme-tile { border-radius: 20px; border: .5px solid var(--k-line) !important; background: rgba(23,21,32,.45) !important; padding: 12px 14px !important; height: 96px; position: relative; overflow: hidden; display: block; }
 .v8-app-root .kme-tile .cap { color: var(--k-muted); display: block; }
-.v8-app-root .kme-tile b { display: block; max-width: 70%; font: 300 21px 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; line-height: 1.15; margin-top: 4px; }
+.v8-app-root .kme-tile b { display: block; max-width: 70%; font: 300 1.3125rem 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; line-height: 1.15; margin-top: 4px; }
 .v8-app-root .kme-tile .stack { position: absolute; right: 10px; bottom: 10px; display: flex; }
 .v8-app-root .kme-tile .stack i { width: 30px; height: 38px; border-radius: 9px; background-size: cover; background-position: center; border: 1.5px solid #0B0A12; margin-left: -10px; transform: rotate(var(--r)); }
-.v8-app-root .kme-tile b.txt { font-size: 14.5px; font-weight: 500; max-width: 64%; }
-.v8-app-root .kme-tile .gift { position: absolute; right: 12px; bottom: 10px; font-size: 30px; animation: kmeBob 2.2s ease-in-out infinite; }
+.v8-app-root .kme-tile b.txt { font-size: 0.9062rem; font-weight: 500; max-width: 64%; }
+.v8-app-root .kme-tile .gift { position: absolute; right: 12px; bottom: 10px; font-size: 1.875rem; animation: kmeBob 2.2s ease-in-out infinite; }
 .v8-app-root .kme-mom { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 12px 16px 0; }
 .v8-app-root .kme-mom button { aspect-ratio: 3/4; border-radius: 16px; background-color: #171520 !important; background-position: center; background-size: cover; position: relative; overflow: hidden; }
-.v8-app-root .kme-mom .lk { position: absolute; left: 8px; bottom: 6px; font-size: 11px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
-.v8-app-root .kme-mom .pend { position: absolute; left: 6px; right: 6px; top: 6px; font-size: 10px; line-height: 1.2; padding: 3px 6px; border-radius: 8px; background: rgba(11,10,18,.75); color: #FF8CC4; }
+.v8-app-root .kme-mom .lk { position: absolute; left: 8px; bottom: 6px; font-size: 0.6875rem; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+.v8-app-root .kme-mom .pend { position: absolute; left: 6px; right: 6px; top: 6px; font-size: 0.625rem; line-height: 1.2; padding: 3px 6px; border-radius: 8px; background: rgba(11,10,18,.75); color: #FF8CC4; }
 .v8-app-root .kme-first { display: block !important; margin: 12px 16px 0; width: calc(100% - 32px); padding: 16px !important; border-radius: 20px; border: 1px dashed rgba(255,247,236,.25) !important; }
-.v8-app-root .kme-first b { display: block; font-size: 15px; }
-.v8-app-root .kme-first small { display: block; font-size: 12px; color: var(--k-muted); margin-top: 3px; }
+.v8-app-root .kme-first b { display: block; font-size: 0.9375rem; }
+.v8-app-root .kme-first small { display: block; font-size: 0.75rem; color: var(--k-muted); margin-top: 3px; }
 
 /* someone else */
 .v8-app-root .kme-other { position: absolute; inset: 0; overflow-y: auto; background: #0B0A12; z-index: 45; }
 .v8-app-root .kme-ob { display: flex; gap: 10px; margin: 22px 16px 0; }
-.v8-app-root .kme-ob button { flex: 1; height: 50px; border-radius: 999px; display: flex !important; align-items: center; justify-content: center; gap: 8px; font-weight: 700 !important; font-size: 15px !important; text-align: center !important; }
+.v8-app-root .kme-ob button { flex: 1; height: 50px; border-radius: 999px; display: flex !important; align-items: center; justify-content: center; gap: 8px; font-weight: 700 !important; font-size: 0.9375rem !important; text-align: center !important; }
 .v8-app-root .kme-ob .f1 { background: #5B6CFF !important; color: #fff; box-shadow: 0 8px 24px rgba(91,108,255,.45); }
 .v8-app-root .kme-ob .f1.on { background: transparent !important; border: 1px solid #5B6CFF !important; box-shadow: none; }
 .v8-app-root .kme-ob .f2 { background: #FF4FA3 !important; color: #fff; }
 .v8-app-root .kme-ob .f3 { flex: 0 0 50px !important; border: 1px solid #4A4658 !important; }
 .v8-app-root .kme-menu { margin: 10px 16px 0; border-radius: 16px; background: #171520; border: .5px solid var(--k-line); overflow: hidden; }
-.v8-app-root .kme-menu button { display: block; width: 100%; padding: 13px 16px !important; border-top: .5px solid var(--k-line) !important; font-size: 14.5px; }
+.v8-app-root .kme-menu button { display: block; width: 100%; padding: 13px 16px !important; border-top: .5px solid var(--k-line) !important; font-size: 0.9062rem; }
 .v8-app-root .kme-menu button:first-child { border-top: 0 !important; }
 .v8-app-root .kme-menu .bad { color: #FF8CA8; }
 .v8-app-root .kme-meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 16px 0; }
-.v8-app-root .kme-meta span { padding: 6px 12px; border-radius: 999px; background: #171520; font-size: 12.5px; color: #B9B3D6; }
+.v8-app-root .kme-meta span { padding: 6px 12px; border-radius: 999px; background: #171520; font-size: 0.7812rem; color: #B9B3D6; }
 .v8-app-root .kme-meta .g { color: #6EE7A8; }
-.v8-app-root .kme-bio { margin: 12px 16px 0; font-size: 13.5px; color: #B9B3D6; }
-.v8-app-root .kme-empty { margin: 16px; text-align: center; font-size: 13px; color: #8E8AC0; }
+.v8-app-root .kme-bio { margin: 12px 16px 0; font-size: 0.8438rem; color: #B9B3D6; }
+.v8-app-root .kme-empty { margin: 16px; text-align: center; font-size: 0.8125rem; color: #8E8AC0; }
 
 /* sheets: Top 10, follow lists, activity, interests */
 .v8-app-root .kme-sheet { background: linear-gradient(180deg, #171520, #0F0E17) !important; max-height: 86vh; overflow-y: auto; }
 .v8-app-root .kme-sheet button:not(.primary-cta):not(.xbtn) { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; text-align: inherit; }
 .v8-app-root .kme-sheet .primary-cta:disabled { opacity: .45; }
 .v8-app-root .kme-ttl { display: flex; align-items: baseline; gap: 10px; }
-.v8-app-root .kme-ttl b { font-size: 19px; font-family: 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; flex: 1; }
-.v8-app-root .kme-ttl span { font-size: 12px; opacity: .7; }
+.v8-app-root .kme-ttl b { font-size: 1.1875rem; font-family: 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; flex: 1; }
+.v8-app-root .kme-ttl span { font-size: 0.75rem; opacity: .7; }
 .v8-app-root .kme-seg { display: flex; gap: 6px; margin-top: 10px; }
-.v8-app-root .kme-seg button { padding: 7px 14px !important; border-radius: 99px; font-size: 12.5px !important; font-weight: 700; background: rgba(255,247,236,.08) !important; }
+.v8-app-root .kme-seg button { padding: 7px 14px !important; border-radius: 99px; font-size: 0.7812rem !important; font-weight: 700; background: rgba(255,247,236,.08) !important; }
 .v8-app-root .kme-seg button.on { background: #FFF7EC !important; color: #0F0E17 !important; }
 .v8-app-root .kme-pod { display: flex; justify-content: center; align-items: flex-end; gap: 10px; margin-top: 20px; perspective: 500px; }
 .v8-app-root .kme-pod .pd { width: 96px; text-align: center !important; display: flex !important; flex-direction: column; align-items: center; }
@@ -136,51 +136,51 @@
 .v8-app-root .kme-pod .r1 .kme-av { width: 70px; height: 70px; border-color: #FF4FA3; }
 .v8-app-root .kme-pod .r2 .kme-av { border-color: #5B6CFF; }
 .v8-app-root .kme-pod .r3 .kme-av { border-color: #FF8A3D; }
-.v8-app-root .kme-pod .n { font-size: 13px; font-weight: 700; margin-top: 6px; }
-.v8-app-root .kme-pod .s { font-size: 11px; opacity: .7; }
-.v8-app-root .kme-pod .blk { width: 100%; margin-top: 8px; border-radius: 14px 14px 0 0; display: grid; place-items: center; font: 800 26px 'Bricolage Grotesque', sans-serif; transform: rotateX(18deg); transform-origin: bottom; }
+.v8-app-root .kme-pod .n { font-size: 0.8125rem; font-weight: 700; margin-top: 6px; }
+.v8-app-root .kme-pod .s { font-size: 0.6875rem; opacity: .7; }
+.v8-app-root .kme-pod .blk { width: 100%; margin-top: 8px; border-radius: 14px 14px 0 0; display: grid; place-items: center; font: 800 1.625rem 'Bricolage Grotesque', sans-serif; transform: rotateX(18deg); transform-origin: bottom; }
 .v8-app-root .kme-pod .r1 .blk { height: 96px; background: linear-gradient(#FF4FA3, #C9307A); }
 .v8-app-root .kme-pod .r2 .blk { height: 70px; background: linear-gradient(#5B6CFF, #3440E0); }
 .v8-app-root .kme-pod .r3 .blk { height: 54px; background: linear-gradient(#FF8A3D, #C9601F); }
 .v8-app-root .kme-list { margin-top: 6px; }
-.v8-app-root .kme-list .li { display: flex !important; align-items: center; gap: 12px; width: 100%; padding: 9px 6px !important; border-bottom: 1px solid rgba(255,247,236,.08) !important; font-size: 14px; animation: kmeFade .5s both; }
+.v8-app-root .kme-list .li { display: flex !important; align-items: center; gap: 12px; width: 100%; padding: 9px 6px !important; border-bottom: 1px solid rgba(255,247,236,.08) !important; font-size: 0.875rem; animation: kmeFade .5s both; }
 .v8-app-root .kme-list .li.me { background: rgba(255,79,163,.18) !important; border-radius: 14px; border: 1px solid rgba(255,79,163,.5) !important; }
 @keyframes kmeFade { from { opacity: 0; transform: translateX(20px); } }
 .v8-app-root .kme-list .r { width: 22px; font-weight: 800; opacity: .7; }
 .v8-app-root .kme-list .n { flex: 1; font-weight: 700; min-width: 0; }
-.v8-app-root .kme-list .n small { display: block; font-weight: 500; font-size: 11.5px; opacity: .65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .kme-list .n small { display: block; font-weight: 500; font-size: 0.7188rem; opacity: .65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .v8-app-root .kme-list .p { font-weight: 800; color: #FF8A3D; }
 .v8-app-root .kme-list .who { display: flex !important; align-items: center; gap: 12px; flex: 1; min-width: 0; }
-.v8-app-root .kme-list .pb { padding: 8px 12px !important; border-radius: 12px; font-size: 12px !important; font-weight: 800; background: #5B6CFF !important; color: #fff; white-space: nowrap; }
+.v8-app-root .kme-list .pb { padding: 8px 12px !important; border-radius: 12px; font-size: 0.75rem !important; font-weight: 800; background: #5B6CFF !important; color: #fff; white-space: nowrap; }
 .v8-app-root .kme-list .pb.soft { background: rgba(255,247,236,.1) !important; }
 .v8-app-root .kme-list .thumb { width: 34px; height: 46px; border-radius: 8px; background: center/cover; flex: none; }
 .v8-app-root .kme-av { display: inline-block; flex: none; width: 36px; height: 36px; border-radius: 50%; background: #2A2638 center/cover; }
-.v8-app-root .kme-av-i { display: inline-grid; place-items: center; font-weight: 800; font-size: 15px; color: #FFF7EC; }
+.v8-app-root .kme-av-i { display: inline-grid; place-items: center; font-weight: 800; font-size: 0.9375rem; color: #FFF7EC; }
 .v8-app-root .kme-tabs2 { display: flex; gap: 18px; margin-top: 10px; border-bottom: 1px solid rgba(255,247,236,.1); padding-bottom: 8px; }
-.v8-app-root .kme-tabs2 button { font-weight: 800; font-size: 14.5px; opacity: .45; }
+.v8-app-root .kme-tabs2 button { font-weight: 800; font-size: 0.9062rem; opacity: .45; }
 .v8-app-root .kme-tabs2 button.on { opacity: 1; }
-.v8-app-root .kme-rule { margin: 14px 4px 4px; font-size: 11px; opacity: .55; }
+.v8-app-root .kme-rule { margin: 14px 4px 4px; font-size: 0.6875rem; opacity: .55; }
 .v8-app-root .kme-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
-.v8-app-root .kme-chips button { padding: 8px 12px !important; border-radius: 999px; background: rgba(255,247,236,.08) !important; font-size: 13px !important; border: 1px solid transparent !important; }
+.v8-app-root .kme-chips button { padding: 8px 12px !important; border-radius: 999px; background: rgba(255,247,236,.08) !important; font-size: 0.8125rem !important; border: 1px solid transparent !important; }
 .v8-app-root .kme-chips button.on { background: rgba(91,108,255,.3) !important; border-color: #5B6CFF !important; }
 
 /* settings (grouped, as locked) */
 .v8-app-root .kme-grp { border-radius: 20px; background: rgba(23,21,32,.5); border: .5px solid #2A2638; margin-bottom: 12px; overflow: hidden; }
-.v8-app-root .kme-grp .srow { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 13px 16px; border-top: .5px solid #2A2638; font-size: 14.5px;
+.v8-app-root .kme-grp .srow { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 13px 16px; border-top: .5px solid #2A2638; font-size: 0.9062rem;
   background: none; border-radius: 0; margin: 0; color: inherit; text-decoration: none; cursor: pointer; }
 .v8-app-root .kme-grp .srow:first-child { border-top: 0; }
-.v8-app-root .kme-grp em { font-style: normal; color: #8E8AC0; font-size: 13.5px; white-space: nowrap; }
+.v8-app-root .kme-grp em { font-style: normal; color: #8E8AC0; font-size: 0.8438rem; white-space: nowrap; }
 .v8-app-root .kme-grp .bad { color: #FF8CA8; }
 .v8-app-root .kme-grp .sub { padding: 4px 16px 12px; }
 
 /* face verification sheet */
-.v8-app-root .kfv-p { font-size: 13.5px; color: #D8D2F0; line-height: 1.5; margin: 10px 0 12px; }
-.v8-app-root .kfv-steps { display: flex; justify-content: center; gap: 14px; margin: 14px 0 4px; font-size: 26px; }
+.v8-app-root .kfv-p { font-size: 0.8438rem; color: #D8D2F0; line-height: 1.5; margin: 10px 0 12px; }
+.v8-app-root .kfv-steps { display: flex; justify-content: center; gap: 14px; margin: 14px 0 4px; font-size: 1.625rem; }
 .v8-app-root .kfv-steps span { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: rgba(91,108,255,.18); border: 1px solid rgba(170,181,255,.4); }
-.v8-app-root .kfv-consent { border-radius: 16px; background: rgba(11,10,18,.45); border: .5px solid #2A2638; padding: 12px 14px; font-size: 12.5px; color: #D8D2F0; }
-.v8-app-root .kfv-consent b { display: block; font-size: 13px; color: #FFF7EC; margin-bottom: 4px; }
+.v8-app-root .kfv-consent { border-radius: 16px; background: rgba(11,10,18,.45); border: .5px solid #2A2638; padding: 12px 14px; font-size: 0.7812rem; color: #D8D2F0; }
+.v8-app-root .kfv-consent b { display: block; font-size: 0.8125rem; color: #FFF7EC; margin-bottom: 4px; }
 .v8-app-root .kfv-consent ul { margin: 0; padding-left: 18px; line-height: 1.5; }
-.v8-app-root .kfv-agree { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0; font-size: 13.5px; font-weight: 700; }
+.v8-app-root .kfv-agree { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0; font-size: 0.8438rem; font-weight: 700; }
 .v8-app-root .kfv-agree input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: #5B6CFF; flex: none; }
 .v8-app-root .kfv-later { display: block; width: 100%; margin: 8px 0 0; padding: 10px; text-align: center !important; color: #B9B3D6 !important; font-weight: 700; }
 .v8-app-root .kfv-cam { position: relative; margin: 12px auto 0; width: 260px; height: 330px; border-radius: 28px; overflow: hidden; background: #0B0A12; }
@@ -189,8 +189,8 @@
   box-shadow: 0 0 0 999px rgba(11,10,18,.45); transition: border-color .3s; }
 .v8-app-root .kfv-oval.s-left, .v8-app-root .kfv-oval.s-right, .v8-app-root .kfv-oval.s-blink { border-color: #5B6CFF; }
 .v8-app-root .kfv-oval.s-done { border-color: #6EE7A8; }
-.v8-app-root .kfv-busy { position: absolute; left: 12px; right: 12px; bottom: 14px; text-align: center; font-size: 12.5px; font-weight: 700; }
-.v8-app-root .kfv-say { text-align: center; font-size: 17px; font-weight: 800; margin: 14px 0 8px; min-height: 24px; }
+.v8-app-root .kfv-busy { position: absolute; left: 12px; right: 12px; bottom: 14px; text-align: center; font-size: 0.7812rem; font-weight: 700; }
+.v8-app-root .kfv-say { text-align: center; font-size: 1.0625rem; font-weight: 800; margin: 14px 0 8px; min-height: 24px; }
 .v8-app-root .kfv-eye { display: inline-block; width: 26px; height: 16px; margin-right: 8px; vertical-align: -2px; border: 2.5px solid #5B6CFF; border-radius: 50% / 60%; overflow: hidden; position: relative; animation: kfvShut 1.6s ease-in-out infinite; }
 .v8-app-root .kfv-eye i { position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: #5B6CFF; }
 @keyframes kfvShut { 0%, 30%, 100% { transform: scaleY(1); } 45%, 85% { transform: scaleY(0.12); } }
@@ -200,42 +200,42 @@
 .v8-app-root .kfv-dots i.now { background: #FF4FA3; }
 .v8-app-root .kfv-dots i.on { background: #6EE7A8; }
 .v8-app-root .kfv-done { text-align: center; padding: 16px 0 6px; }
-.v8-app-root .kfv-done .ring { width: 74px; height: 74px; margin: 0 auto 12px; border-radius: 50%; display: grid; place-items: center; font-size: 34px;
+.v8-app-root .kfv-done .ring { width: 74px; height: 74px; margin: 0 auto 12px; border-radius: 50%; display: grid; place-items: center; font-size: 2.125rem;
   background: rgba(110,231,168,.15); border: 3px solid #6EE7A8; color: #6EE7A8; }
-.v8-app-root .kfv-done b { display: block; font-size: 17px; }
-.v8-app-root .kfv-err { margin: 12px 0; padding: 10px 12px; border-radius: 14px; background: rgba(255,79,163,.15); font-size: 13px; font-weight: 700; }
-.v8-app-root .kme-pre { margin: -4px 0 10px; text-align: center; font-size: 12.5px; font-weight: 700; color: #FFD27A; }
+.v8-app-root .kfv-done b { display: block; font-size: 1.0625rem; }
+.v8-app-root .kfv-err { margin: 12px 0; padding: 10px 12px; border-radius: 14px; background: rgba(255,79,163,.15); font-size: 0.8125rem; font-weight: 700; }
+.v8-app-root .kme-pre { margin: -4px 0 10px; text-align: center; font-size: 0.7812rem; font-weight: 700; color: #FFD27A; }
 
 /* 13 Nov: one hero number on the Top 5 sheet */
 .v8-app-root .kme-prize { display: flex; align-items: center; gap: 12px; margin: 2px 0 12px; padding: 10px 14px; border-radius: 18px; background: linear-gradient(135deg, rgba(91,108,255,.22), rgba(255,79,163,.22)); border: 1px solid rgba(255,79,163,.35); }
-.v8-app-root .kme-prize .pre { flex: none; font-size: 12px; font-weight: 700; color: rgba(255,247,236,.75); max-width: 64px; line-height: 1.2; }
-.v8-app-root .kme-prize .amt { flex: none; font: 800 26px/1 'Bricolage Grotesque', 'Anuphan', sans-serif; background: linear-gradient(90deg, #8E9BFF, #FF4FA3); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -.5px; }
-.v8-app-root .kme-prize .t { display: flex; flex-direction: column; gap: 2px; font-size: 13px; font-weight: 700; color: #FFF7EC; line-height: 1.3; }
-.v8-app-root .kme-prize small { font-size: 11.5px; font-weight: 600; color: rgba(255,247,236,.7); }
-.v8-app-root .kme-rule { font-size: 11.5px; opacity: .7; }
+.v8-app-root .kme-prize .pre { flex: none; font-size: 0.75rem; font-weight: 700; color: rgba(255,247,236,.75); max-width: 64px; line-height: 1.2; }
+.v8-app-root .kme-prize .amt { flex: none; font: 800 1.625rem/1 'Bricolage Grotesque', 'Anuphan', sans-serif; background: linear-gradient(90deg, #8E9BFF, #FF4FA3); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -.5px; }
+.v8-app-root .kme-prize .t { display: flex; flex-direction: column; gap: 2px; font-size: 0.8125rem; font-weight: 700; color: #FFF7EC; line-height: 1.3; }
+.v8-app-root .kme-prize small { font-size: 0.7188rem; font-weight: 600; color: rgba(255,247,236,.7); }
+.v8-app-root .kme-rule { font-size: 0.7188rem; opacity: .7; }
 .v8-app-root .kme-rule a { color: #FF8FC8; font-weight: 800; text-decoration: none; white-space: nowrap; }
 /* rewards v1: amount per rank (Today = daily, This week = weekly; config in rewardsConfig.ts) */
-.v8-app-root .kme-pod .am { font: 800 15px/1.2 'Bricolage Grotesque', sans-serif; background: linear-gradient(90deg, #8E9BFF, #FF4FA3); -webkit-background-clip: text; background-clip: text; color: transparent; margin-top: 1px; }
-.v8-app-root .kme-pod .r1 .am { font-size: 18px; }
-.v8-app-root .kme-list .am { min-width: 54px; text-align: right; font: 800 14px 'Bricolage Grotesque', sans-serif; color: #FFF7EC; }
-.v8-app-root .kme-list .p { min-width: 28px; text-align: right; font-size: 12.5px; opacity: .8; }
+.v8-app-root .kme-pod .am { font: 800 0.9375rem/1.2 'Bricolage Grotesque', sans-serif; background: linear-gradient(90deg, #8E9BFF, #FF4FA3); -webkit-background-clip: text; background-clip: text; color: transparent; margin-top: 1px; }
+.v8-app-root .kme-pod .r1 .am { font-size: 1.125rem; }
+.v8-app-root .kme-list .am { min-width: 54px; text-align: right; font: 800 0.875rem 'Bricolage Grotesque', sans-serif; color: #FFF7EC; }
+.v8-app-root .kme-list .p { min-width: 28px; text-align: right; font-size: 0.7812rem; opacity: .8; }
 .v8-app-root .kme-ladder { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 12px; }
 .v8-app-root .kme-ladder .lr { display: flex; flex-direction: column; align-items: center; padding: 7px 2px 6px; border-radius: 12px; background: rgba(255,247,236,.07); border: .5px solid rgba(255,247,236,.1); }
 .v8-app-root .kme-ladder .lr.r1 { background: linear-gradient(135deg, rgba(255,79,163,.35), rgba(91,108,255,.3)); border-color: rgba(255,79,163,.5); }
-.v8-app-root .kme-ladder i { font: 700 10.5px 'Bricolage Grotesque', sans-serif; font-style: normal; opacity: .7; }
-.v8-app-root .kme-ladder b { font: 800 14px/1.2 'Bricolage Grotesque', sans-serif; color: #FFF7EC; }
-.v8-app-root .kme-ladder .tot { grid-column: 1 / -1; text-align: center; font-size: 11.5px; font-weight: 600; opacity: .7; margin-top: 2px; }
-.v8-app-root .kme-voucher { display: flex; align-items: center; gap: 8px; margin: 14px 4px 0; padding: 9px 12px; border-radius: 14px; background: rgba(255,247,236,.07); font-size: 12.5px; font-weight: 700; color: #FFF7EC; }
+.v8-app-root .kme-ladder i { font: 700 0.6562rem 'Bricolage Grotesque', sans-serif; font-style: normal; opacity: .7; }
+.v8-app-root .kme-ladder b { font: 800 0.875rem/1.2 'Bricolage Grotesque', sans-serif; color: #FFF7EC; }
+.v8-app-root .kme-ladder .tot { grid-column: 1 / -1; text-align: center; font-size: 0.7188rem; font-weight: 600; opacity: .7; margin-top: 2px; }
+.v8-app-root .kme-voucher { display: flex; align-items: center; gap: 8px; margin: 14px 4px 0; padding: 9px 12px; border-radius: 14px; background: rgba(255,247,236,.07); font-size: 0.7812rem; font-weight: 700; color: #FFF7EC; }
 /* K (15 Nov): blink step hint + Retry after 6 s */
-.v8-app-root .kfv-hint { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 0 0 8px; font-size: 14px; font-weight: 700; color: #FFD36B; }
+.v8-app-root .kfv-hint { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 0 0 8px; font-size: 0.875rem; font-weight: 700; color: #FFD36B; }
 .v8-app-root .kfv-hint button { height: 34px; padding: 0 14px; border-radius: 17px; border: 0; background: rgba(255,255,255,.14); color: #fff; font: inherit; }
 /* H (15 Nov): notifications as a full-height page */
 .v8-app-root .kme-sheet.kme-full { top: 0 !important; bottom: 0 !important; max-height: none !important; height: 100% !important; border-radius: 0 !important; display: flex; flex-direction: column; overflow: hidden; padding-top: env(safe-area-inset-top) !important; }
 .v8-app-root .kme-pghd { align-items: center !important; min-height: 52px; position: sticky; top: 0; }
-.v8-app-root .kme-bk { width: 40px; height: 40px; font-size: 30px !important; line-height: 1; display: grid; place-items: center; margin-left: -8px; }
-.v8-app-root .kme-mark { font-size: 13px !important; font-weight: 800 !important; color: #8fa0ff !important; padding: 8px 4px !important; }
+.v8-app-root .kme-bk { width: 40px; height: 40px; font-size: 1.875rem !important; line-height: 1; display: grid; place-items: center; margin-left: -8px; }
+.v8-app-root .kme-mark { font-size: 0.8125rem !important; font-weight: 800 !important; color: #8fa0ff !important; padding: 8px 4px !important; }
 .v8-app-root .kme-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
-.v8-app-root .kme-grp { font-size: 12.5px; font-weight: 800; opacity: .6; letter-spacing: .04em; margin: 14px 6px 4px; text-transform: uppercase; }
+.v8-app-root .kme-grp { font-size: 0.7812rem; font-weight: 800; opacity: .6; letter-spacing: .04em; margin: 14px 6px 4px; text-transform: uppercase; }
 .v8-app-root .kme-list .li .av { flex: none; padding: 0; }
 .v8-app-root .kme-list .li .who { flex: 1; min-width: 0; text-align: left; }
 .v8-app-root .kme-list .li .who .n { display: flex; flex-direction: column; gap: 2px; }
@@ -249,14 +249,14 @@
 .v8-app-root .kme-top .cap { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .v8-app-root .kp-me-head { gap: 8px; }
 .v8-app-root .kme-top .cap { letter-spacing: .12em; }
-@media (max-width: 359px) { .v8-app-root .a2s-chip { padding: 0 9px 0 8px; font-size: 11.5px; } }
+@media (max-width: 359px) { .v8-app-root .a2s-chip { padding: 0 9px 0 8px; font-size: 0.7188rem; } }
 /* 16 Nov: first-Reel button on top of a new member's Me tab (primary action, before the face check) */
 .v8-app-root .kme-first.kme-first-top { margin-top: 20px; border: 0 !important; background: linear-gradient(135deg, var(--tea), var(--pink)) !important; color: #fff; text-align: left; }
 .v8-app-root .kme-first.kme-first-top small { color: rgba(255,255,255,.85); }
 
 /* 0061 ghost mode line (admin's own card only) */
 .v8-app-root .kme-ghost { margin: 10px 16px 0; padding: 7px 12px; border-radius: 999px; display: inline-flex; gap: 6px; align-items: center;
-  font-size: 12.5px; font-weight: 700; color: #e9e6ff; background: rgba(139, 92, 246, .18); border: 1px solid rgba(167, 139, 250, .45); }
+  font-size: 0.7812rem; font-weight: 700; color: #e9e6ff; background: rgba(139, 92, 246, .18); border: 1px solid rgba(167, 139, 250, .45); }
 
 /* 17 Nov self-audit: small buttons keep their look but get a 44px+ tap area (phones: thumbs, not mouse pointers) */
 .v8-app-root #activityBtn, .v8-app-root #meGear, .v8-app-root #meShare, .v8-app-root #goReplay,

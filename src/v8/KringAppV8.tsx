@@ -3743,7 +3743,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             type="button"
             className={`chat-fab${tab === 'feed' && feedMode === 'ask' ? ' at-solid' : ''}`}
             id="chatFab"
-            aria-label="Messages"
+            aria-label={L('Messages')}
             onClick={() => setSheet('inbox')}
           >
             <svg viewBox="0 0 24 24">
@@ -3757,7 +3757,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         <section
           className={`v8-screen ${tab === 'feed' ? 'active' : ''} at-has-sw${feedMode === 'ask' ? ' at-on' : ''}`}
           id="s-feed"
-          aria-label="Feed"
+          aria-label={L('Feed')}
         >
           {newPillVisible && newRowsCount > 0 && feedItems.length > 0 && (
             <button
@@ -3783,7 +3783,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <button
               type="button"
               className="kp-plus glass"
-              aria-label="Create post"
+              aria-label={L('Create post')}
               onClick={openCreate}
             >
               <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
@@ -4063,7 +4063,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         <section
           className={`v8-screen ${tab === 'people' ? 'active' : ''}`}
           id="s-people"
-          aria-label="People"
+          aria-label={L('People')}
         >
           <div className="ppl-head">
             {live ? (
@@ -4249,7 +4249,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   <button
                     type="button"
                     className="hibtn"
-                    aria-label={`Say hi to ${p.name}`}
+                    aria-label={Lf('Say hi to {0}', p.name)}
                     onClick={(e) => {
                       e.stopPropagation();
                       openSayHi(
@@ -4306,7 +4306,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         <section
           className={`v8-screen ${tab === 'deals' ? 'active' : ''}`}
           id="s-deals"
-          aria-label="Deals"
+          aria-label={L('Deals')}
         >
           {live ? (
             <div className="go-tabh" id="goDealsHead">
@@ -4498,7 +4498,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         <section
           className={`v8-screen ${tab === 'me' ? 'active' : ''}`}
           id="s-me"
-          aria-label="Me"
+          aria-label={L('Me')}
         >
           {live && signedIn && v5Card && meProfile ? (
             <MeView
@@ -5311,7 +5311,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   <input
                     type="file"
                     accept="video/*"
-                    aria-label="Add a Reel"
+                    aria-label={L('Add a Reel')}
                     id="reelFile"
                     style={{ display: 'none' }}
                     disabled={reelStage === 'preparing' || reelStage === 'uploading' || reelStage === 'saving'}
@@ -5378,7 +5378,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 <input
                   type="file"
                   accept="image/*"
-                  aria-label="Add photo"
+                  aria-label={L('Add photo')}
                   style={{ display: 'none' }}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -5442,7 +5442,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   <button
                     type="button"
                     onClick={() => setPostArea(null)}
-                    aria-label="Remove area"
+                    aria-label={L('Remove area')}
                   >
                     ✕
                   </button>
@@ -5579,7 +5579,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 <button
                   type="button"
                   className="xbtn"
-                  aria-label="More options"
+                  aria-label={L('More options')}
                   onClick={() => setPersonMenuOpen((v) => !v)}
                 >
                   ⋯
@@ -5941,7 +5941,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 type="button"
                 className="xbtn"
                 onClick={() => setSheet('inbox')}
-                aria-label="Back to inbox"
+                aria-label={L('Back to inbox')}
               >
                 ‹
               </button>
@@ -5976,7 +5976,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               <button
                 type="button"
                 className="shield"
-                aria-label="Safety & block"
+                aria-label={L('Safety & block')}
                 onClick={() => { setSafetyFromChat(true); setSheet('safety'); }}
               >
                 🛡
@@ -6122,7 +6122,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 <button
                   type="button"
                   className="plus"
-                  aria-label="More chat attachments"
+                  aria-label={L('More chat attachments')}
                   onClick={() => setPlusMenuOpen((v) => !v)}
                 >
                   +
@@ -6139,7 +6139,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               <button
                 type="button"
                 className="send"
-                aria-label="Send message"
+                aria-label={L('Send message')}
                 onClick={() => handleSendChatMessage()}
               >
                 ➤
@@ -6183,7 +6183,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   <V5Qr value={activeRedeemDeal.dealEn ? v5StaffUrl(activeRedeemDeal.code) : activeRedeemDeal.code} size={190} />
                 ) : null
               ) : (
-                <div className="qr" aria-label="Redemption QR code">
+                <div className="qr" aria-label={L('Redemption QR code')}>
                   {renderQrCells(7)}
                 </div>
               )}
@@ -6375,7 +6375,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <div className="grab" />
             <div className="sh-head">
               <h3>{t.settings}</h3>
-              <button type="button" className="xbtn" aria-label="Close" onClick={() => setSheet(null)}>✕</button>
+              <button type="button" className="xbtn" aria-label={L('Close')} onClick={() => setSheet(null)}>✕</button>
             </div>
             <div className="kme-grp">
               <div className="srow" role="button" tabIndex={0} id="setEditCard" onClick={() => setSheet('v5card')}>
@@ -6688,7 +6688,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 <div style={{ fontSize: 15, fontWeight: 800, color: '#0B0A12' }}>
                   {user.name} · {user.langs}
                 </div>
-                <div className="qr" aria-label="Personal Kring QR code">
+                <div className="qr" aria-label={L('Personal Kring QR code')}>
                   {renderQrCells(5)}
                 </div>
                 <div className="timer">
@@ -6704,7 +6704,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <div className="grab" />
             <div className="sh-head">
               <h3>{L('Share this Reel')}</h3>
-              <button type="button" className="xbtn" aria-label="Close" onClick={() => setSheet(null)}>✕</button>
+              <button type="button" className="xbtn" aria-label={L('Close')} onClick={() => setSheet(null)}>✕</button>
             </div>
             <div className="reel-share-list">
               <button type="button" className="reel-share line" id="shareLine" onClick={() => void shareReel(activeReel, 'line')}>
@@ -6726,7 +6726,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <div className="grab" />
             <div className="sh-head">
               <h3>{reportStep ? L('Report this Reel') : L('More')}</h3>
-              <button type="button" className="xbtn" aria-label="Close" onClick={() => setSheet(null)}>✕</button>
+              <button type="button" className="xbtn" aria-label={L('Close')} onClick={() => setSheet(null)}>✕</button>
             </div>
             {!reportStep ? (
               /* polish extra: "…" opens a short menu first; the report reasons are a second step */
@@ -6914,7 +6914,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <div className="grab" />
             <div className="sh-head">
               <h3>Kring Team</h3>
-              <button type="button" className="xbtn" aria-label="Close" onClick={() => setSheet(activeThreadId ? 'thread' : null)}>✕</button>
+              <button type="button" className="xbtn" aria-label={L('Close')} onClick={() => setSheet(activeThreadId ? 'thread' : null)}>✕</button>
             </div>
             <div className="kt-card">
               <img src={kringTeamLogo()} alt="" className="kt-logo big" />
@@ -6931,7 +6931,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <div className="grab" />
             <div className="sh-head">
               <h3>{L('Blocked people')}</h3>
-              <button type="button" className="xbtn" aria-label="Close" onClick={() => setSheet('settings')}>✕</button>
+              <button type="button" className="xbtn" aria-label={L('Close')} onClick={() => setSheet('settings')}>✕</button>
             </div>
             {blockList === null ? (
               <p className="reel-report-q">…</p>

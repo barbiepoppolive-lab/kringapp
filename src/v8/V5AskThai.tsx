@@ -9,6 +9,7 @@ import {
   ASK_MAX_Q, ASK_MAX_TEXT, askAge, checkAskFile, fmtCount, nextVote,
   type AskAnswer, type AskApi, type AskPerson, type AskQuestion, type AskReportReason, type AskThreadData,
 } from './askThai';
+import { initialAvatar } from './v8Data';
 
 type LFn = (en: string) => string;
 /** A server refusal the member can act on (ghost mode, too many posts, banned words, no card) gets its own message;
@@ -74,9 +75,30 @@ export function askTime(L: LFn, iso: string): string {
   return L(`{0}${a.u}`).replace('{0}', String(a.n));
 }
 
-const Av: React.FC<{ p: AskPerson; s: number }> = ({ p, s }) => (
-  <span className="at-av" style={{ width: s, height: s, backgroundImage: `url("${p.photo}")` }} aria-hidden="true" />
-);
+/** T301-015: an image URL that is checked first; null while loading or when it fails (no blank dark boxes or circles). */
+function useImgOk(url: string | null | undefined): string | null {
+  const [ok, setOk] = useState<string | null>(url && url.startsWith('data:') ? url : null);
+  useEffect(() => {
+    if (!url) { setOk(null); return; }
+    if (url.startsWith('data:')) { setOk(url); return; }
+    let gone = false;
+    const im = new Image();
+    im.onload = () => { if (!gone) setOk(url); };
+    im.onerror = () => { if (!gone) setOk(null); };
+    im.src = url;
+    return () => { gone = true; };
+  }, [url]);
+  return ok;
+}
+const Av: React.FC<{ p: AskPerson; s: number }> = ({ p, s }) => {
+  const ok = useImgOk(p.photo);
+  return <span className="at-av" style={{ width: s, height: s, backgroundImage: `url("${ok || initialAvatar(p.name || '?')}")` }} aria-hidden="true" />;
+};
+/** question / answer photo: shown only once it really loaded */
+const Media: React.FC<{ m: { url: string; gif?: boolean }; cls: string }> = ({ m, cls }) => {
+  const ok = useImgOk(m.url);
+  return ok ? <div className={`${cls}${m.gif ? ' gif' : ''}`} style={{ backgroundImage: `url("${ok}")` }} /> : null;
+};
 const Badge: React.FC<{ L: LFn }> = ({ L }) => <span className="at-badge">{L('Thai Local')}</span>;
 /** 0073: the Kring Team account: "Kring Team · Official" instead of the Thai Local badge */
 const Official: React.FC<{ L: LFn }> = ({ L }) => <span className="at-badge at-official" data-official="1">{L('Official')}</span>;
@@ -106,7 +128,7 @@ const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onVote: (v: 1
       <button type="button" className="at-tw-open" onClick={onOpen}>
         <div className="at-tw-h"><b>{q.by.name}</b>{who(q.by, L)}<span>· {areaLabel(q.area)} · {askTime(L, q.at)}</span></div>
         <div className="at-tw-q">{q.body}</div>
-        {q.media && <div className={`at-tw-img${q.media.gif ? ' gif' : ''}`} style={{ backgroundImage: `url("${q.media.url}")` }} />}
+        {q.media && <Media m={q.media} cls="at-tw-img" />}
         {q.top && (
           <div className="at-tw-ans">
             <div className="h"><Av p={q.top.by} s={20} />{q.top.by.name}{who(q.top.by, L)}</div>
@@ -115,8 +137,8 @@ const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onVote: (v: 1
         )}
       </button>
       <div className="at-tw-f">
-        <button type="button" className={q.myVote === 1 ? 'on' : ''} aria-label={L('Upvote')} aria-pressed={q.myVote === 1} onClick={() => onVote(1)}>▲ {fmtCount(q.score)}</button>
-        <button type="button" aria-label={L('Answers')} onClick={onOpen}>💬 {fmtCount(q.answers)}</button>
+        <button type="button" className={q.myVote === 1 ? 'on' : ''} aria-label={`${fmtCount(q.score)} ${L('Upvote')}`} aria-pressed={q.myVote === 1} onClick={() => onVote(1)}>▲ {fmtCount(q.score)}</button>
+        <button type="button" aria-label={`${fmtCount(q.answers)} ${L('Answers')}`} onClick={onOpen}>💬 {fmtCount(q.answers)}</button>
         <button type="button" aria-label={L('Share')} onClick={onShare}>↗</button>
       </div>
     </div>
@@ -212,7 +234,7 @@ const Thread: React.FC<{
             <div className="m">{q.by.name}{(q.by.local || q.by.official) && <> {who(q.by, L)}</>} · {areaLabel(q.area)} · {askTime(L, q.at)}</div>
             <h1>{q.body}</h1>
             {q.details && <p>{q.details}</p>}
-            {q.media && <div className={`img${q.media.gif ? ' gif' : ''}`} style={{ backgroundImage: `url("${q.media.url}")` }} />}
+            {q.media && <Media m={q.media} cls="img" />}
             <div className="qa">
               <VoteRow L={L} score={q.score} my={q.myVote} onVote={voteQ} hot />
               <span>💬 {answers.length === 1 ? L('1 answer') : L('{0} answers').replace('{0}', fmtCount(answers.length))}</span>
@@ -228,7 +250,7 @@ const Thread: React.FC<{
               {!mine(a.by) && <MoreBtn L={L} id={a.id} onClick={() => setRep({ kind: 'a', id: a.id })} />}
             </div>
             {a.body && <div className="t">{a.body}</div>}
-            {a.media && <div className={`img${a.media.gif ? ' gif' : ''}`} style={{ backgroundImage: `url("${a.media.url}")` }} />}
+            {a.media && <Media m={a.media} cls="img" />}
             <div className="f">
               <VoteRow L={L} score={a.score} my={a.myVote} onVote={(v) => voteA(a, v)} />
               <button type="button" className="at-reply" onClick={() => need(() => { setReplyTo(a); inp.current?.focus(); })}>{L('Reply')}</button>

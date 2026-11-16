@@ -9,14 +9,14 @@
 @keyframes go-pop { 0% { transform: scale(.7); } 55% { transform: scale(1.28); } 100% { transform: scale(1); } }
 @keyframes go-gin { from { opacity: 0; transform: scale(.94); } }
 .v8-app-root .go-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; min-height: 40px; }
-.v8-app-root .go-hdr h1 { font: 700 20px var(--kx-u); letter-spacing: -.02em; flex: 1; margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.v8-app-root .go-prof .go-hdr h1 { font-size: 16px; }
-.v8-app-root .go-bk { width: 40px; height: 40px; border-radius: 50%; background: var(--go-sf); box-shadow: inset 0 0 0 1px var(--go-ln); display: grid; place-items: center; flex: none; font-size: 18px; }
+.v8-app-root .go-hdr h1 { font: 700 1.25rem var(--kx-u); letter-spacing: -.02em; flex: 1; margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v8-app-root .go-prof .go-hdr h1 { font-size: 1rem; }
+.v8-app-root .go-bk { width: 40px; height: 40px; border-radius: 50%; background: var(--go-sf); box-shadow: inset 0 0 0 1px var(--go-ln); display: grid; place-items: center; flex: none; font-size: 1.125rem; }
 .v8-app-root .go-bk svg { width: 17px; height: 17px; }
-.v8-app-root .go-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 52px; border-radius: 99px; font-weight: 700; font-size: 15px; color: #fff; background: linear-gradient(90deg, var(--kx-pk), #7b5cff); box-shadow: 0 8px 28px rgba(255,79,216,.35); transition: transform .15s var(--go-ez), opacity .2s; }
+.v8-app-root .go-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 52px; border-radius: 99px; font-weight: 700; font-size: 0.9375rem; color: #fff; background: linear-gradient(90deg, var(--kx-pk), #7b5cff); box-shadow: 0 8px 28px rgba(255,79,216,.35); transition: transform .15s var(--go-ez), opacity .2s; }
 .v8-app-root .go-btn:active, .v8-app-root .go-pill:active, .v8-app-root .go-rb:active { transform: scale(.96); }
 .v8-app-root .go-btn[disabled] { opacity: .45; }
-.v8-app-root .go-pill { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 15px; border-radius: 99px; font-weight: 700; font-size: 12.5px; background: linear-gradient(90deg, var(--kx-pk), #7b5cff); white-space: nowrap; }
+.v8-app-root .go-pill { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 15px; border-radius: 99px; font-weight: 700; font-size: 0.7812rem; background: linear-gradient(90deg, var(--kx-pk), #7b5cff); white-space: nowrap; }
 .v8-app-root .go-pill.gh { background: var(--go-sf2); box-shadow: inset 0 0 0 1px rgba(255,255,255,.16); }
 .v8-app-root .go-av { width: 42px; height: 42px; border-radius: 50%; background: #2a2440 center/cover; box-shadow: 0 0 0 2px var(--kx-pk), 0 0 12px rgba(255,79,216,.6); flex: none; display: grid; place-items: center; font-weight: 800; }
 .v8-app-root .go-av.s { width: 30px; height: 30px; box-shadow: none; }
@@ -28,13 +28,13 @@
 .v8-app-root .go-reel { position: relative; height: 100%; scroll-snap-align: start; scroll-snap-stop: always; overflow: hidden; background: #000; }
 .v8-app-root .go-vid { position: absolute; inset: 0; }
 .v8-app-root .go-vid video, .v8-app-root .go-vposter { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.v8-app-root .go-snd { position: absolute; top: max(66px, calc(env(safe-area-inset-top) + 52px)); right: 16px; font-size: 14px; opacity: .8; }
+.v8-app-root .go-snd { position: absolute; top: max(66px, calc(env(safe-area-inset-top) + 52px)); right: 16px; font-size: 0.875rem; opacity: .8; }
 .v8-app-root .go-vid { background: #000 center / cover no-repeat; }
 .v8-app-root .go-snd.has-hint { display: flex; align-items: center; gap: 6px; padding: 6px 11px 6px 8px; border-radius: 15px; background: rgba(11,10,18,.62); opacity: 1; }
-.v8-app-root .go-snd.has-hint b { color: #fff; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.v8-app-root .go-snd.has-hint b { color: #fff; font-size: 0.7812rem; font-weight: 700; white-space: nowrap; }
 .v8-app-root .go-grad { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.42) 0, transparent 18%, transparent 52%, rgba(4,3,10,.88) 100%); pointer-events: none; }
 .v8-app-root .go-rail { position: absolute; right: 10px; bottom: max(52px, calc(env(safe-area-inset-bottom) + 40px)); display: flex; flex-direction: column; gap: 14px; align-items: center; z-index: 3; }
-.v8-app-root .go-rb { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11.5px; font-weight: 700; text-shadow: 0 1px 4px rgba(0,0,0,.7); transition: transform .15s var(--go-ez); }
+.v8-app-root .go-rb { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.7188rem; font-weight: 700; text-shadow: 0 1px 4px rgba(0,0,0,.7); transition: transform .15s var(--go-ez); }
 .v8-app-root .go-rb[disabled] { opacity: .4; }
 .v8-app-root .go-rbi { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: rgba(14,11,24,.55); box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transition: all .2s var(--go-ez); }
 .v8-app-root .go-rbi svg { width: 22px; height: 22px; }
@@ -45,28 +45,28 @@
 .v8-app-root .go-who { display: flex; align-items: center; gap: 9px; margin-bottom: 9px; }
 .v8-app-root .go-whob { display: flex; align-items: center; gap: 9px; min-width: 0; text-align: left; }
 .v8-app-root .go-nm { min-width: 0; text-shadow: 0 1px 6px rgba(0,0,0,.7); }
-.v8-app-root .go-nm b { font-size: 15.5px; font-weight: 800; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.v8-app-root .go-nm small { font-size: 11.5px; color: #d9d6e8; }
-.v8-app-root .go-score { display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 10px; border-radius: 99px; background: rgba(14,11,24,.6); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); font-weight: 800; font-size: 12.5px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); flex: none; }
-.v8-app-root .go-score.rv { color: var(--go-gd); font-weight: 700; font-size: 11.5px; }
-.v8-app-root .go-score.big { align-self: flex-start; height: 36px; font-size: 14px; background: var(--go-sf); }
-.v8-app-root .go-score.big span { font-weight: 600; color: var(--go-mu); font-size: 11.5px; }
-.v8-app-root .go-place { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px 0 9px; border-radius: 99px; background: rgba(14,11,24,.6); box-shadow: inset 0 0 0 1.5px var(--kx-pk); font-weight: 700; font-size: 12.5px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); max-width: 100%; }
+.v8-app-root .go-nm b { font-size: 0.9688rem; font-weight: 800; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v8-app-root .go-nm small { font-size: 0.7188rem; color: #d9d6e8; }
+.v8-app-root .go-score { display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 10px; border-radius: 99px; background: rgba(14,11,24,.6); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); font-weight: 800; font-size: 0.7812rem; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); flex: none; }
+.v8-app-root .go-score.rv { color: var(--go-gd); font-weight: 700; font-size: 0.7188rem; }
+.v8-app-root .go-score.big { align-self: flex-start; height: 36px; font-size: 0.875rem; background: var(--go-sf); }
+.v8-app-root .go-score.big span { font-weight: 600; color: var(--go-mu); font-size: 0.7188rem; }
+.v8-app-root .go-place { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px 0 9px; border-radius: 99px; background: rgba(14,11,24,.6); box-shadow: inset 0 0 0 1.5px var(--kx-pk); font-weight: 700; font-size: 0.7812rem; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); max-width: 100%; }
 .v8-app-root .go-place span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .v8-app-root .go-place svg { width: 14px; height: 14px; color: var(--kx-pk); flex: none; }
-.v8-app-root .go-cap { margin: 8px 0 0; font-size: 13.5px; line-height: 1.5; text-shadow: 0 1px 6px rgba(0,0,0,.8); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.v8-app-root .go-cap { margin: 8px 0 0; font-size: 0.8438rem; line-height: 1.5; text-shadow: 0 1px 6px rgba(0,0,0,.8); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .v8-app-root .go-h0 { color: var(--kx-pk); font-weight: 700; }
 .v8-app-root .go-h1 { color: var(--kx-cy); font-weight: 700; }
-.v8-app-root .go-with { font-size: 12.5px; margin: 7px 0 0; text-shadow: 0 1px 6px rgba(0,0,0,.8); color: #e6e3f3; }
+.v8-app-root .go-with { font-size: 0.7812rem; margin: 7px 0 0; text-shadow: 0 1px 6px rgba(0,0,0,.8); color: #e6e3f3; }
 .v8-app-root .go-with button { font-weight: 800; color: #fff; margin-left: 5px; min-height: 24px; }
 .v8-app-root .go-vtop { position: absolute; top: max(18px, env(safe-area-inset-top)); left: 14px; right: 14px; display: flex; justify-content: space-between; align-items: center; z-index: 5; }
 .v8-app-root .go-vtop .go-bk { background: rgba(14,11,24,.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-.v8-app-root .go-vp { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 14px 0 6px; border-radius: 99px; font-weight: 800; font-size: 13px; background: rgba(14,11,24,.72); box-shadow: inset 0 0 0 1.5px var(--kx-cy), 0 0 16px rgba(63,240,255,.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.v8-app-root .go-vp { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 14px 0 6px; border-radius: 99px; font-weight: 800; font-size: 0.8125rem; background: rgba(14,11,24,.72); box-shadow: inset 0 0 0 1.5px var(--kx-cy), 0 0 16px rgba(63,240,255,.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .v8-app-root .go-vp svg { width: 14px; height: 14px; color: var(--kx-cy); }
 
 /* grid + tabs */
 .v8-app-root .go-seg { display: flex; border-bottom: 1px solid var(--go-ln); margin: 10px -16px 2px; padding: 0 16px; }
-.v8-app-root .go-seg button { flex: 1; height: 44px; font-weight: 700; font-size: 13.5px; color: var(--go-mu); display: flex; align-items: center; justify-content: center; gap: 7px; transition: color .15s; }
+.v8-app-root .go-seg button { flex: 1; height: 44px; font-weight: 700; font-size: 0.8438rem; color: var(--go-mu); display: flex; align-items: center; justify-content: center; gap: 7px; transition: color .15s; }
 .v8-app-root .go-seg button svg { width: 16px; height: 16px; }
 .v8-app-root .go-seg button.on { color: #fff; box-shadow: inset 0 -2px 0 var(--kx-pk); }
 .v8-app-root .go-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin: 3px -16px 0; }
@@ -74,18 +74,18 @@
 .v8-app-root .go-gt img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s; }
 .v8-app-root .go-gt:active img { transform: scale(1.06); }
 .v8-app-root .go-gt::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,.7)); pointer-events: none; }
-.v8-app-root .go-gs { position: absolute; z-index: 2; left: 7px; bottom: 6px; font-weight: 800; font-size: 11.5px; display: flex; align-items: center; gap: 4px; color: #fff; }
-.v8-app-root .go-gw { position: absolute; z-index: 2; top: 6px; left: 6px; font-size: 9px; font-weight: 800; letter-spacing: .04em; padding: 3px 6px; border-radius: 99px; background: var(--kx-pk); color: #fff; }
+.v8-app-root .go-gs { position: absolute; z-index: 2; left: 7px; bottom: 6px; font-weight: 800; font-size: 0.7188rem; display: flex; align-items: center; gap: 4px; color: #fff; }
+.v8-app-root .go-gw { position: absolute; z-index: 2; top: 6px; left: 6px; font-size: 0.5625rem; font-weight: 800; letter-spacing: .04em; padding: 3px 6px; border-radius: 99px; background: var(--kx-pk); color: #fff; }
 .v8-app-root .go-gw.rv { background: var(--go-gd); color: #1a1206; }
-.v8-app-root .go-gt.add { display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px rgba(255,79,216,.5); color: var(--kx-pk); font-size: 11.5px; font-weight: 700; text-align: center; padding: 6px; }
+.v8-app-root .go-gt.add { display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px rgba(255,79,216,.5); color: var(--kx-pk); font-size: 0.7188rem; font-weight: 700; text-align: center; padding: 6px; }
 .v8-app-root .go-gt.add::after { display: none; }
 .v8-app-root .go-gt.add span { display: block; color: var(--kx-pk); }
 .v8-app-root .go-gt.add svg { width: 26px; height: 26px; margin: 0 auto 6px; display: block; }
-.v8-app-root .go-empty { text-align: center; color: var(--go-mu); padding: 30px 20px; font-size: 13px; margin: 0; }
+.v8-app-root .go-empty { text-align: center; color: var(--go-mu); padding: 30px 20px; font-size: 0.8125rem; margin: 0; }
 .v8-app-root .go-empty svg { width: 30px; height: 30px; margin: 0 auto 10px; color: #5d5876; display: block; }
 .v8-app-root .go-empty p { margin: 0 0 14px; line-height: 1.5; }
 .v8-app-root .go-me { padding: 0 16px; }
-.v8-app-root .go-replay { display: block; margin: 22px auto 6px; color: #c9b8ff; font-weight: 700; font-size: 12.5px; text-decoration: underline; text-underline-offset: 3px; background: none; border: 0; min-height: 32px; font-family: var(--kx-j); cursor: pointer; }
+.v8-app-root .go-replay { display: block; margin: 22px auto 6px; color: #c9b8ff; font-weight: 700; font-size: 0.7812rem; text-decoration: underline; text-underline-offset: 3px; background: none; border: 0; min-height: 32px; font-family: var(--kx-j); cursor: pointer; }
 
 /* profile */
 .v8-app-root .go-ptop { display: flex; gap: 14px; align-items: stretch; margin-top: 8px; }
@@ -93,25 +93,25 @@
 .v8-app-root .go-pcard .kx-mecard { margin: 0; padding: 0; }
 .v8-app-root .go-pcard .kx-n2 { width: 100%; border-width: 2.5px; border-radius: 18px; }
 .v8-app-root .go-pcard .kx-n2-top { top: 8px; left: 8px; right: 8px; }
-.v8-app-root .go-pcard .kx-lv { font-size: 7.5px; padding: 4px 6px; border-width: 1.5px; letter-spacing: .06em; }
-.v8-app-root .go-pcard .kx-id { font-size: 8px; padding: 4px 5px; letter-spacing: .08em; }
+.v8-app-root .go-pcard .kx-lv { font-size: 0.4688rem; padding: 4px 6px; border-width: 1.5px; letter-spacing: .06em; }
+.v8-app-root .go-pcard .kx-id { font-size: 0.5rem; padding: 4px 5px; letter-spacing: .08em; }
 .v8-app-root .go-pcard .kx-n2-b { left: 10px; right: 10px; bottom: 10px; }
-.v8-app-root .go-pcard .kx-nm { font-size: 15px; }
-.v8-app-root .go-pcard .kx-sub { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .go-pcard .kx-nm { font-size: 0.9375rem; }
+.v8-app-root .go-pcard .kx-sub { font-size: 0.625rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .v8-app-root .go-pcard .kx-bar, .v8-app-root .go-pcard .kx-pts, .v8-app-root .go-pcard .kx-links { display: none; }
 .v8-app-root .go-pinfo .kx-links { margin: 0; }
-.v8-app-root .go-pcard .kx-fl { font-size: 7px; padding: 3px 6px; }
+.v8-app-root .go-pcard .kx-fl { font-size: 0.4375rem; padding: 3px 6px; }
 .v8-app-root .go-pinfo { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; padding: 4px 0; }
-.v8-app-root .go-pname { font: 800 22px var(--kx-u); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.v8-app-root .go-pname i { font-style: normal; color: var(--kx-cy); font-size: 14px; margin-left: 6px; }
-.v8-app-root .go-psub { color: var(--go-mu); font-size: 12.5px; margin-top: 2px; }
+.v8-app-root .go-pname { font: 800 1.375rem var(--kx-u); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v8-app-root .go-pname i { font-style: normal; color: var(--kx-cy); font-size: 0.875rem; margin-left: 6px; }
+.v8-app-root .go-psub { color: var(--go-mu); font-size: 0.7812rem; margin-top: 2px; }
 .v8-app-root .go-pbtns { display: flex; flex-direction: column; gap: 8px; }
-.v8-app-root .go-bio { font-size: 13px; color: #dcd8ec; margin: 14px 0 0; line-height: 1.5; }
+.v8-app-root .go-bio { font-size: 0.8125rem; color: #dcd8ec; margin: 14px 0 0; line-height: 1.5; }
 .v8-app-root .go-cnt { display: flex; margin: 18px 0 6px; }
 .v8-app-root .go-cnt > * { flex: 1; text-align: center; border-right: 1px solid var(--go-ln); padding: 0; }
 .v8-app-root .go-cnt > *:last-child { border: 0; }
-.v8-app-root .go-cnt b { display: block; font: 500 20px var(--kx-u); }
-.v8-app-root .go-cnt span { font-size: 10px; letter-spacing: .14em; color: var(--go-mu); text-transform: uppercase; }
+.v8-app-root .go-cnt b { display: block; font: 500 1.25rem var(--kx-u); }
+.v8-app-root .go-cnt span { font-size: 0.625rem; letter-spacing: .14em; color: var(--go-mu); text-transform: uppercase; }
 .v8-app-root .go-menu { position: absolute; right: 16px; top: 62px; z-index: 5; }
 
 /* compose */
@@ -119,42 +119,42 @@
 .v8-app-root .go-steps { display: flex; gap: 5px; flex: none; }
 .v8-app-root .go-steps i { width: 22px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.15); }
 .v8-app-root .go-steps i.on { background: var(--kx-pk); }
-.v8-app-root .go-hint { display: flex; gap: 8px; align-items: center; padding: 10px 12px; border-radius: 14px; background: rgba(63,240,255,.08); box-shadow: inset 0 0 0 1px rgba(63,240,255,.3); font-size: 12.5px; color: #d6fbff; margin-top: 10px; }
+.v8-app-root .go-hint { display: flex; gap: 8px; align-items: center; padding: 10px 12px; border-radius: 14px; background: rgba(63,240,255,.08); box-shadow: inset 0 0 0 1px rgba(63,240,255,.3); font-size: 0.7812rem; color: #d6fbff; margin-top: 10px; }
 .v8-app-root .go-pick { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; margin-top: 16px; height: 300px; border-radius: 22px; border: 1.5px dashed rgba(255,79,216,.55); background: rgba(255,79,216,.06); cursor: pointer; }
-.v8-app-root .go-pick b { font: 700 16px var(--kx-u); }
-.v8-app-root .go-pick small { color: var(--go-mu); font-size: 12px; }
+.v8-app-root .go-pick b { font: 700 1rem var(--kx-u); }
+.v8-app-root .go-pick small { color: var(--go-mu); font-size: 0.75rem; }
 .v8-app-root .go-pickic { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, var(--kx-pk), #7b5cff); box-shadow: 0 0 30px rgba(255,79,216,.5); margin-bottom: 8px; }
 .v8-app-root .go-pickic svg { width: 28px; height: 28px; }
 .v8-app-root .go-cmp { display: flex; gap: 12px; margin: 10px 0 12px; }
 .v8-app-root .go-clip { position: relative; width: 78px; height: 108px; border-radius: 12px; overflow: hidden; box-shadow: 0 0 0 2px var(--kx-pk); flex: none; cursor: pointer; background: #000; }
 .v8-app-root .go-clip video { width: 100%; height: 100%; object-fit: cover; display: block; }
-.v8-app-root .go-clip span { position: absolute; right: 5px; bottom: 4px; font-size: 10px; font-weight: 700; background: rgba(0,0,0,.6); padding: 2px 5px; border-radius: 6px; }
+.v8-app-root .go-clip span { position: absolute; right: 5px; bottom: 4px; font-size: 0.625rem; font-weight: 700; background: rgba(0,0,0,.6); padding: 2px 5px; border-radius: 6px; }
 .v8-app-root .go-capw { position: relative; flex: 1; min-height: 108px; border-radius: 14px; background: var(--go-sf); box-shadow: inset 0 0 0 1px var(--go-ln); }
-.v8-app-root .go-caph, .v8-app-root .go-capw textarea { position: absolute; inset: 0; margin: 0; padding: 11px 12px; font: 500 16px/1.5 var(--kx-j); white-space: pre-wrap; word-break: break-word; overflow: hidden; letter-spacing: 0; text-align: left; box-sizing: border-box; }
+.v8-app-root .go-caph, .v8-app-root .go-capw textarea { position: absolute; inset: 0; margin: 0; padding: 11px 12px; font: 500 1rem/1.5 var(--kx-j); white-space: pre-wrap; word-break: break-word; overflow: hidden; letter-spacing: 0; text-align: left; box-sizing: border-box; }
 .v8-app-root .go-caph .go-h0, .v8-app-root .go-caph .go-h1 { font-weight: 500; }
 .v8-app-root .go-capw textarea { background: none; border: 0; outline: 0; resize: none; color: transparent; caret-color: #fff; width: 100%; height: 100%; -webkit-text-fill-color: transparent; }
 .v8-app-root .go-capw textarea::placeholder { color: var(--go-mu); -webkit-text-fill-color: var(--go-mu); }
 .v8-app-root .go-capw:focus-within { box-shadow: inset 0 0 0 1.5px var(--kx-pk); }
 .v8-app-root .go-hrow { display: flex; gap: 7px; overflow-x: auto; align-items: center; margin: 0 -16px 12px; padding: 0 16px; scrollbar-width: none; }
-.v8-app-root .go-hrow > span { font-size: 11.5px; font-weight: 700; color: var(--go-mu); white-space: nowrap; margin-right: 2px; }
-.v8-app-root .go-hrow button { height: 32px; padding: 0 11px; border-radius: 99px; font-size: 12.5px; font-weight: 700; white-space: nowrap; color: var(--kx-cy); box-shadow: inset 0 0 0 1px rgba(63,240,255,.45); background: rgba(63,240,255,.07); }
+.v8-app-root .go-hrow > span { font-size: 0.7188rem; font-weight: 700; color: var(--go-mu); white-space: nowrap; margin-right: 2px; }
+.v8-app-root .go-hrow button { height: 32px; padding: 0 11px; border-radius: 99px; font-size: 0.7812rem; font-weight: 700; white-space: nowrap; color: var(--kx-cy); box-shadow: inset 0 0 0 1px rgba(63,240,255,.45); background: rgba(63,240,255,.07); }
 .v8-app-root .go-hrow button:nth-of-type(odd) { color: #ff9be9; box-shadow: inset 0 0 0 1px rgba(255,79,216,.5); background: rgba(255,79,216,.08); }
 .v8-app-root .go-crow { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 2px; border-top: 1px solid var(--go-ln); text-align: left; }
 .v8-app-root .go-crow + .go-crow { border-bottom: 1px solid var(--go-ln); }
 .v8-app-root .go-crow > svg { width: 21px; height: 21px; flex: none; color: var(--kx-pk); }
 .v8-app-root .go-crow .ct { flex: 1; min-width: 0; }
-.v8-app-root .go-crow .ct b { display: block; font-weight: 700; font-size: 14.5px; }
-.v8-app-root .go-crow .ct small { display: block; font-size: 11.5px; color: var(--go-mu); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
-.v8-app-root .go-cchip { max-width: 44%; height: 30px; line-height: 30px; padding: 0 11px; border-radius: 99px; font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: inset 0 0 0 1.5px var(--kx-pk); background: rgba(255,79,216,.12); animation: go-pop .35s var(--go-ez); }
-.v8-app-root .go-cgo { color: var(--go-mu); font-size: 20px; }
+.v8-app-root .go-crow .ct b { display: block; font-weight: 700; font-size: 0.9062rem; }
+.v8-app-root .go-crow .ct small { display: block; font-size: 0.7188rem; color: var(--go-mu); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+.v8-app-root .go-cchip { max-width: 44%; height: 30px; line-height: 30px; padding: 0 11px; border-radius: 99px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: inset 0 0 0 1.5px var(--kx-pk); background: rgba(255,79,216,.12); animation: go-pop .35s var(--go-ez); }
+.v8-app-root .go-cgo { color: var(--go-mu); font-size: 1.25rem; }
 .v8-app-root .go-cavs { display: flex; padding-left: 7px; }
 .v8-app-root .go-cavs i { width: 28px; height: 28px; border-radius: 50%; margin-left: -7px; box-shadow: 0 0 0 2px var(--kx-bg, #07060d); background: #2a2440 center/cover; }
 .v8-app-root .go-crow.need { animation: go-shake .4s; }
 .v8-app-root .go-crow.need .ct small { color: var(--go-gd); white-space: normal; }
 @keyframes go-shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
 .v8-app-root .go-foot { position: fixed; left: 0; right: 0; bottom: 0; max-width: 480px; margin: 0 auto; padding: 12px 16px max(22px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--kx-bg, #07060d) 40%); z-index: 4; }
-.v8-app-root .go-problem { white-space: pre-line; margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: rgba(255,90,90,.12); box-shadow: inset 0 0 0 1px rgba(255,90,90,.4); color: #ffc9c9; font-size: 12.5px; font-weight: 600; }
-.v8-app-root .go-progress { margin-top: 14px; position: relative; height: 34px; border-radius: 99px; background: var(--go-sf); overflow: hidden; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+.v8-app-root .go-problem { white-space: pre-line; margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: rgba(255,90,90,.12); box-shadow: inset 0 0 0 1px rgba(255,90,90,.4); color: #ffc9c9; font-size: 0.7812rem; font-weight: 600; }
+.v8-app-root .go-progress { margin-top: 14px; position: relative; height: 34px; border-radius: 99px; background: var(--go-sf); overflow: hidden; display: grid; place-items: center; font-size: 0.75rem; font-weight: 700; }
 .v8-app-root .go-progress i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, rgba(255,79,216,.55), rgba(123,92,255,.55)); transition: width .3s; }
 .v8-app-root .go-progress span { position: relative; z-index: 1; }
 
@@ -163,20 +163,20 @@
 .v8-app-root .go-sheet { position: absolute; left: 0; right: 0; bottom: 0; max-width: 480px; margin: 0 auto; max-height: 86%; display: flex; flex-direction: column; border-radius: 26px 26px 0 0; background: #110e1c; box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 -20px 60px rgba(0,0,0,.6); padding: 10px 18px max(22px, env(safe-area-inset-bottom)); animation: go-sup .3s var(--go-ez); }
 .v8-app-root .go-sheet::before { content: ''; display: block; width: 40px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.25); margin: 0 auto 14px; flex: none; }
 @keyframes go-sup { from { transform: translateY(100%); } }
-.v8-app-root .go-sheet h2 { font: 700 18px var(--kx-u); letter-spacing: -.02em; margin: 0 0 12px; }
-.v8-app-root .go-inp { width: 100%; height: 48px; border-radius: 16px; background: var(--go-sf); border: 0; outline: 0; box-shadow: inset 0 0 0 1.5px rgba(255,79,216,.5); padding: 0 16px; font: 600 16px var(--kx-j); color: #fff; margin-bottom: 8px; box-sizing: border-box; flex: none; }
+.v8-app-root .go-sheet h2 { font: 700 1.125rem var(--kx-u); letter-spacing: -.02em; margin: 0 0 12px; }
+.v8-app-root .go-inp { width: 100%; height: 48px; border-radius: 16px; background: var(--go-sf); border: 0; outline: 0; box-shadow: inset 0 0 0 1.5px rgba(255,79,216,.5); padding: 0 16px; font: 600 1rem var(--kx-j); color: #fff; margin-bottom: 8px; box-sizing: border-box; flex: none; }
 .v8-app-root .go-plist { overflow-y: auto; flex: 1; min-height: 120px; margin-bottom: 12px; }
 .v8-app-root .go-prow { display: flex; align-items: center; gap: 11px; width: 100%; padding: 8px 4px; text-align: left; border-radius: 12px; min-height: 54px; }
 .v8-app-root .go-prow .t { flex: 1; min-width: 0; }
-.v8-app-root .go-prow b { display: block; font-weight: 700; font-size: 14px; }
-.v8-app-root .go-prow small { color: var(--go-mu); font-size: 11.5px; }
+.v8-app-root .go-prow b { display: block; font-weight: 700; font-size: 0.875rem; }
+.v8-app-root .go-prow small { color: var(--go-mu); font-size: 0.7188rem; }
 .v8-app-root .go-rd { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(255,255,255,.35); flex: none; display: grid; place-items: center; transition: all .15s; }
 .v8-app-root .go-prow.on .go-rd { box-shadow: inset 0 0 0 2px var(--kx-pk); }
 .v8-app-root .go-prow.on .go-rd::after { content: ''; width: 11px; height: 11px; border-radius: 50%; background: var(--kx-pk); animation: go-pop .25s var(--go-ez); }
 
 /* claim: choose one */
-.v8-app-root .kx-one { margin: 0 18px 12px; padding: 9px 12px; border-radius: 12px; background: rgba(255,211,107,.1); box-shadow: inset 0 0 0 1px rgba(255,211,107,.35); color: #ffe7ad; font: 700 12.5px var(--kx-j); text-align: center; }
-.v8-app-root .kx-or { display: flex; align-items: center; gap: 12px; margin: 0 4px; font: 700 11px var(--kx-u); letter-spacing: .14em; color: var(--go-gd); }
+.v8-app-root .kx-one { margin: 0 18px 12px; padding: 9px 12px; border-radius: 12px; background: rgba(255,211,107,.1); box-shadow: inset 0 0 0 1px rgba(255,211,107,.35); color: #ffe7ad; font: 700 0.7812rem var(--kx-j); text-align: center; }
+.v8-app-root .kx-or { display: flex; align-items: center; gap: 12px; margin: 0 4px; font: 700 0.6875rem var(--kx-u); letter-spacing: .14em; color: var(--go-gd); }
 .v8-app-root .kx-or::before, .v8-app-root .kx-or::after { content: ''; flex: 1; border-top: 1px solid rgba(255,255,255,.18); }
 .v8-app-root .kx-cl .kx-py { opacity: .62; transition: opacity .15s, box-shadow .15s; }
 .v8-app-root .kx-cl .kx-py.on { opacity: 1; }
@@ -191,28 +191,28 @@
 .v8-app-root .go-hole { position: absolute; box-shadow: 0 0 0 2000px rgba(5,4,12,.74), 0 0 0 2px var(--kx-pk), 0 0 24px 4px rgba(255,79,216,.7); animation: go-hole .35s var(--go-ez), go-hp 1.6s ease-in-out .35s infinite; pointer-events: none; }
 @keyframes go-hole { from { transform: scale(2.2); opacity: 0; } }
 @keyframes go-hp { 50% { box-shadow: 0 0 0 2000px rgba(5,4,12,.74), 0 0 0 4px var(--kx-pk), 0 0 34px 10px rgba(255,79,216,.8); } }
-.v8-app-root .go-bub { position: absolute; width: 232px; background: #fff; color: #14101f; border-radius: 16px; padding: 12px 14px; font: 700 13.5px/1.4 var(--kx-j); animation: go-bubin .3s var(--go-ez) .12s backwards; box-shadow: 0 12px 40px rgba(0,0,0,.5); box-sizing: border-box; }
-.v8-app-root .go-bub button { display: block; margin-top: 7px; color: #7b3cf0; font: 800 13px var(--kx-j); background: none; border: 0; padding: 4px 0; min-height: 28px; cursor: pointer; }
+.v8-app-root .go-bub { position: absolute; width: 232px; background: #fff; color: #14101f; border-radius: 16px; padding: 12px 14px; font: 700 0.8438rem/1.4 var(--kx-j); animation: go-bubin .3s var(--go-ez) .12s backwards; box-shadow: 0 12px 40px rgba(0,0,0,.5); box-sizing: border-box; }
+.v8-app-root .go-bub button { display: block; margin-top: 7px; color: #7b3cf0; font: 800 0.8125rem var(--kx-j); background: none; border: 0; padding: 4px 0; min-height: 28px; cursor: pointer; }
 @keyframes go-bubin { from { opacity: 0; transform: translateY(8px) scale(.95); } }
 
 /* people + deals tab headers */
 .v8-app-root .go-tabh { padding: max(18px, env(safe-area-inset-top)) 16px 0; }
-.v8-app-root .go-tabh h1 { font: 700 21px var(--kx-u); letter-spacing: -.02em; margin: 0 0 4px; color: #fff; }
-.v8-app-root .go-tabh p { color: var(--go-mu); font: 500 12.5px/1.45 var(--kx-j); margin: 0; }
+.v8-app-root .go-tabh h1 { font: 700 1.3125rem var(--kx-u); letter-spacing: -.02em; margin: 0 0 4px; color: #fff; }
+.v8-app-root .go-tabh p { color: var(--go-mu); font: 500 0.7812rem/1.45 var(--kx-j); margin: 0; }
 .v8-app-root .go-fch { display: flex; gap: 8px; margin: 12px 0 14px; overflow-x: auto; scrollbar-width: none; }
-.v8-app-root .go-fch button { height: 36px; padding: 0 15px; border-radius: 99px; font: 700 12.5px var(--kx-j); background: var(--go-sf); box-shadow: inset 0 0 0 1px var(--go-ln); color: #cfcbe2; white-space: nowrap; transition: all .18s; border: 0; cursor: pointer; flex: none; }
+.v8-app-root .go-fch button { height: 36px; padding: 0 15px; border-radius: 99px; font: 700 0.7812rem var(--kx-j); background: var(--go-sf); box-shadow: inset 0 0 0 1px var(--go-ln); color: #cfcbe2; white-space: nowrap; transition: all .18s; border: 0; cursor: pointer; flex: none; }
 .v8-app-root .go-fch button.on { background: #fff; color: #0b0914; }
 .v8-app-root .go-sech { display: flex; justify-content: space-between; align-items: baseline; margin: 6px 16px 10px; }
-.v8-app-root .go-sech b { font: 700 15px var(--kx-u); color: #fff; }
-.v8-app-root .go-sech span { font: 500 11px var(--kx-j); color: var(--go-mu); }
+.v8-app-root .go-sech b { font: 700 0.9375rem var(--kx-u); color: #fff; }
+.v8-app-root .go-sech span { font: 500 0.6875rem var(--kx-j); color: var(--go-mu); }
 
 /* sign-in */
 .v8-app-root .go-si { display: flex; flex-direction: column; gap: 10px; }
-.v8-app-root .go-sib { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; height: 50px; border-radius: 99px; font: 700 15px var(--kx-j); border: 0; cursor: pointer; transition: transform .15s var(--go-ez); }
+.v8-app-root .go-sib { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; height: 50px; border-radius: 99px; font: 700 0.9375rem var(--kx-j); border: 0; cursor: pointer; transition: transform .15s var(--go-ez); }
 .v8-app-root .go-sib:active { transform: scale(.97); }
 .v8-app-root .go-sib[disabled] { opacity: .5; }
 .v8-app-root .go-sib.line { background: #06c755; color: #fff; box-shadow: 0 8px 28px rgba(6,199,85,.35); text-shadow: 0 1px 2px rgba(0,0,0,.35); font-weight: 800; }
-.v8-app-root .go-sib.line .lb { font-size: 9px; font-weight: 800; background: #fff; color: #06c755; border-radius: 5px; padding: 2px 4px; text-shadow: none; }
+.v8-app-root .go-sib.line .lb { font-size: 0.5625rem; font-weight: 800; background: #fff; color: #06c755; border-radius: 5px; padding: 2px 4px; text-shadow: none; }
 .v8-app-root .go-sib.goog { background: #fff; color: #1f1f1f; box-shadow: 0 6px 20px rgba(0,0,0,.35); }
 .v8-app-root .go-sib.mail { background: var(--go-sf2); color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); }
 .v8-app-root .go-sib svg { width: 18px; height: 18px; flex: none; }
@@ -222,8 +222,8 @@
 .v8-app-root #pplGrid .pcard { border: 2.5px solid var(--kx-pk); border-radius: 20px; box-shadow: 0 0 16px rgba(255,79,216,.45), inset 0 0 14px rgba(255,79,216,.25); animation: go-gin .35s var(--go-ez) backwards; }
 .v8-app-root #pplGrid .pcard[data-who="traveller"] { border-color: var(--kx-cy); box-shadow: 0 0 16px rgba(63,240,255,.45), inset 0 0 14px rgba(63,240,255,.22); }
 .v8-app-root #pplGrid .pcard .nm { font-family: var(--kx-u); font-weight: 700; text-shadow: 0 0 10px rgba(255,79,216,.8); }
-.v8-app-root .kx-tix .code.link { font-family: var(--kx-j); font-size: 14px; letter-spacing: 0; line-height: 1.25; }
-.v8-app-root .kx-tix .code.link small { display: block; font-size: 11px; opacity: .7; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v8-app-root .kx-tix .code.link { font-family: var(--kx-j); font-size: 0.875rem; letter-spacing: 0; line-height: 1.25; }
+.v8-app-root .kx-tix .code.link small { display: block; font-size: 0.6875rem; opacity: .7; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* audit 15 Nov: the People search box was 18px tall (WCAG 2.2 needs 24) */
 .v8-app-root #pplSearch { min-height: 32px; }
@@ -232,10 +232,10 @@
 .v8-app-root .kx-gender { margin: 12px 0 2px; }
 .v8-app-root .kx-gender .kx-lab { display: block; margin-bottom: 7px; }
 .v8-app-root .kx-gchips { display: flex; flex-wrap: wrap; gap: 7px; }
-.v8-app-root .kx-gchips button { min-height: 38px; padding: 0 14px; border-radius: 99px; border: 0; font: 700 13px var(--kx-j); color: #e9e5f7; background: var(--go-sf); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); cursor: pointer; }
+.v8-app-root .kx-gchips button { min-height: 38px; padding: 0 14px; border-radius: 99px; border: 0; font: 700 0.8125rem var(--kx-j); color: #e9e5f7; background: var(--go-sf); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); cursor: pointer; }
 .v8-app-root .kx-gchips button.on { background: rgba(255,79,216,.16); box-shadow: inset 0 0 0 1.5px var(--kx-pk), 0 0 12px rgba(255,79,216,.35); color: #fff; }
 .v8-app-root .kx-gchips button[data-gender="none"].on { background: var(--go-sf2); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.5); }
-.v8-app-root .kx-gshow { display: flex; align-items: center; gap: 10px; margin-top: 11px; min-height: 32px; font: 600 13px var(--kx-j); color: #e9e5f7; cursor: pointer; position: relative; }
+.v8-app-root .kx-gshow { display: flex; align-items: center; gap: 10px; margin-top: 11px; min-height: 32px; font: 600 0.8125rem var(--kx-j); color: #e9e5f7; cursor: pointer; position: relative; }
 .v8-app-root .kx-gshow.off { opacity: .45; cursor: default; }
 .v8-app-root .kx-gshow input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .v8-app-root .kx-gshow i { width: 42px; height: 24px; border-radius: 99px; background: rgba(255,255,255,.18); position: relative; flex: none; transition: background .18s; }
@@ -243,8 +243,8 @@
 .v8-app-root .kx-gshow input:checked + i { background: var(--kx-pk); }
 .v8-app-root .kx-gshow input:checked + i::after { transform: translateX(18px); }
 .v8-app-root .kx-gshow input:focus-visible + i { outline: 2px solid var(--kx-cy); outline-offset: 2px; }
-.v8-app-root .kx-gnote { margin: 6px 0 0; font: 500 11.5px/1.4 var(--kx-j); color: var(--go-mu); }
-.v8-app-root .kx-gchip { display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 99px; font: 700 11px var(--kx-j); color: #fff; background: rgba(7,6,13,.55); box-shadow: inset 0 0 0 1px rgba(255,255,255,.45); }
+.v8-app-root .kx-gnote { margin: 6px 0 0; font: 500 0.7188rem/1.4 var(--kx-j); color: var(--go-mu); }
+.v8-app-root .kx-gchip { display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 99px; font: 700 0.6875rem var(--kx-j); color: #fff; background: rgba(7,6,13,.55); box-shadow: inset 0 0 0 1px rgba(255,255,255,.45); }
 .v8-app-root .kx-grow { margin-top: 6px; }
 .v8-app-root .go-pg { margin-top: 6px; }
 .v8-app-root .go-pcard .kx-grow { display: none; }
@@ -255,8 +255,8 @@
 .v8-app-root .bub .go-tri { position: absolute; right: 10px; bottom: 11px; width: 11px; height: 11px; opacity: .45; transition: opacity .15s, color .15s; }
 .v8-app-root .bub .go-tri.on { opacity: 1; color: #3ff0ff; }
 /* O (15 Nov): keep the screen open while the Reel is prepared */
-.v8-app-root .go-keep { margin: 8px 0 0; text-align: center; font-size: 13px; font-weight: 800; color: #ffd36b; display: flex; flex-direction: column; gap: 1px; }
-.v8-app-root .go-keep small { font-size: 11.5px; font-weight: 600; opacity: .8; }
+.v8-app-root .go-keep { margin: 8px 0 0; text-align: center; font-size: 0.8125rem; font-weight: 800; color: #ffd36b; display: flex; flex-direction: column; gap: 1px; }
+.v8-app-root .go-keep small { font-size: 0.7188rem; font-weight: 600; opacity: .8; }
 
 /* 15 Nov overflow guards */
 .v8-app-root .go-cchip { min-width: 0; flex: 0 1 auto; }
@@ -269,7 +269,7 @@
 .v8-app-root .go-trim { z-index: 92; padding-bottom: 100px; }
 .v8-app-root .go-tprev { position: relative; margin: 6px auto 14px; height: calc(100dvh - 272px); min-height: 220px; max-height: 660px; aspect-ratio: 9 / 16; max-width: 100%; border-radius: 22px; overflow: hidden; background: #000; box-shadow: 0 0 0 1px var(--go-ln), 0 18px 50px rgba(255,79,216,.18); }
 .v8-app-root .go-tprev video { width: 100%; height: 100%; object-fit: cover; display: block; }
-.v8-app-root .go-tlen { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); padding: 6px 12px; border-radius: 99px; background: rgba(14,11,24,.66); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: 13px; font-weight: 600; color: rgba(255,255,255,.8); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.v8-app-root .go-tlen { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); padding: 6px 12px; border-radius: 99px; background: rgba(14,11,24,.66); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: 0.8125rem; font-weight: 600; color: rgba(255,255,255,.8); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .v8-app-root .go-tlen b { color: #fff; font-weight: 800; }
 .v8-app-root .go-tstrip { position: relative; height: 64px; margin: 0 6px; touch-action: none; user-select: none; -webkit-user-select: none; }
 .v8-app-root .go-tthumbs { position: absolute; inset: 4px 0; display: flex; border-radius: 10px; overflow: hidden; background: var(--go-sf2); }
@@ -285,8 +285,8 @@
 .v8-app-root .go-th.e { right: -11px; border-radius: 4px 12px 12px 4px; }
 .v8-app-root .go-th i { width: 3px; height: 22px; border-radius: 2px; background: rgba(255,255,255,.92); }
 .v8-app-root .go-th:focus-visible { background: var(--kx-cy); }
-.v8-app-root .go-tmarks { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 10px 2px 0; font-size: 12px; font-weight: 700; color: rgba(255,255,255,.75); font-variant-numeric: tabular-nums; }
-.v8-app-root .go-tmarks small { flex: 1; text-align: center; color: var(--go-mu); font-weight: 600; font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v8-app-root .go-tmarks { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 10px 2px 0; font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,.75); font-variant-numeric: tabular-nums; }
+.v8-app-root .go-tmarks small { flex: 1; text-align: center; color: var(--go-mu); font-weight: 600; font-size: 0.7188rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .v8-app-root .go-trim .go-btn svg { width: 18px; height: 18px; }
 /* audit P2-3: own Reel hidden by the team, with the reason */
 .v8-app-root .go-gw.rv.hid { background: #ff5d6c; color: #fff; max-width: calc(100% - 12px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -295,11 +295,11 @@
 /* 17 Nov: "My Reel stats" (owner only) */
 .v8-app-root .go-stats-wrap { position: absolute; inset: 0; z-index: 30; background: rgba(6,5,12,.45); display: flex; align-items: flex-end; }
 .v8-app-root .go-stats { width: 100%; background: #15131F; color: #fff; border-radius: 20px 20px 0 0; padding: 16px 16px calc(20px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 30px rgba(0,0,0,.4); }
-.v8-app-root .go-stats-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; font-size: 16px; }
-.v8-app-root .go-stats-x { width: 44px; height: 44px; margin: -10px -10px -10px 0; border-radius: 50%; color: #fff; font-size: 16px; }
+.v8-app-root .go-stats-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; font-size: 1rem; }
+.v8-app-root .go-stats-x { width: 44px; height: 44px; margin: -10px -10px -10px 0; border-radius: 50%; color: #fff; font-size: 1rem; }
 .v8-app-root .go-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .v8-app-root .go-stat { background: rgba(255,255,255,.06); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.v8-app-root .go-stat b { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
-.v8-app-root .go-stat span { font-size: 12.5px; opacity: .75; overflow-wrap: anywhere; }
-.v8-app-root .go-stats-note { margin: 12px 2px 0; font-size: 12.5px; opacity: .7; line-height: 1.45; }
+.v8-app-root .go-stat b { font-size: 1.375rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.v8-app-root .go-stat span { font-size: 0.7812rem; opacity: .75; overflow-wrap: anywhere; }
+.v8-app-root .go-stats-note { margin: 12px 2px 0; font-size: 0.7812rem; opacity: .7; line-height: 1.45; }
 .v8-app-root .go-stat:first-child { grid-column: 1 / -1; }
