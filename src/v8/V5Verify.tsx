@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { BLINK_HINT_MS, FACE_CONSENT_VERSION, LIVE_START, blinkRetry, faceDescriptor, faceDistance, grabFrame, liveNext, loadFaceApi, loadImage, sampleFace } from './v5Face';
 import type { FaceSample, LiveState, LiveStep } from './v5Face';
-import { v5RequestVerification } from './v5Live';
+import { v5LogClient, v5RequestVerification } from './v5Live';
 
 type Tx = (en: string) => string;
 type Stage = 'intro' | 'needphoto' | 'loading' | 'camera' | 'sending' | 'done' | 'error';
@@ -55,6 +55,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; onClose: () 
     } catch (e) {
       stop();
       const name = (e as { name?: string })?.name || '';
+      v5LogClient('verify_cam_fail', name || 'UNKNOWN');
       setErr(name === 'NotAllowedError' ? L('Camera access was blocked. Allow the camera for kringapp.com in your browser settings, then try again.')
         : name === 'NotFoundError' || name === 'OverconstrainedError' ? L('No front camera found on this device.')
         : L('The face check could not start on this phone. Try again, or try later on another phone.'));
@@ -115,6 +116,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; onClose: () 
       props.onSent();
     } catch (e) {
       stop();
+      v5LogClient('verify_fail', (e as { code?: string })?.code || (e as Error)?.message || 'UNKNOWN', `s${+state.straight}l${+state.left}r${+state.right}b${+state.blink}`);
       setErr(props.errText(e));
       setStage('error');
     }

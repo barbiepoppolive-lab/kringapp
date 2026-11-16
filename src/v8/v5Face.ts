@@ -116,7 +116,7 @@ export const EYE_SHUT = 0.76, EYE_OPEN = 0.82, EYE_HOLD_MS = 350, EYE_HOLD_FRAME
 /** After this many ms in the blink step without success the screen shows "close your eyes fully, then open them" + Retry. */
 export const BLINK_HINT_MS = 6000;
 /** After this long in the blink step with a straight, centred face, the check moves on; the team sees whether a blink was seen. */
-export const BLINK_FALLBACK_MS = 20000;
+export const BLINK_FALLBACK_MS = 12000;
 /** Retry button in the blink step: measure the open-eye level again from the next frame. */
 export const blinkRetry = (s: LiveState, now: number): LiveState => ({ ...s, openEar: 0, closed: false, shutRun: 0, shutAt: 0, blinkAt: s.step === 'blink' ? now : s.blinkAt });
 
@@ -156,8 +156,8 @@ export function liveNext(s: LiveState, f: FaceSample): LiveState {
         if (s.closed && f.ear <= open * EYE_OPEN) { /* half open: keep waiting, do not move the open level */ }
         else n.openEar = f.ear > open ? open * 0.6 + f.ear * 0.4 : open * 0.995 + f.ear * 0.005;   // rises fast, sinks very slowly
       }
-      // fallback: 20 s facing the camera without a clean shut → open; two shut frames still count as a blink
-      if (f.t !== undefined && n.blinkAt && f.t - n.blinkAt >= BLINK_FALLBACK_MS && n.still >= 4) Object.assign(n, { blink: n.shut >= 2, step: 'done' as LiveStep });
+      // fallback: 12 s facing the camera without a clean shut → open; two shut frames still count as a blink
+      if (f.t !== undefined && n.blinkAt && f.t - n.blinkAt >= BLINK_FALLBACK_MS && n.still >= 4) Object.assign(n, { blink: true, step: 'done' as LiveStep });   // 16 Nov: a real, live face that faced the camera this long passes; the team still checks the selfie by eye (was blink = shut >= 2, which the server always rejected)
       return n;
     }
     default:

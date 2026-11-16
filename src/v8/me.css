@@ -250,3 +250,6 @@
 .v8-app-root .kp-me-head { gap: 8px; }
 .v8-app-root .kme-top .cap { letter-spacing: .12em; }
 @media (max-width: 359px) { .v8-app-root .a2s-chip { padding: 0 9px 0 8px; font-size: 11.5px; } }
+/* 16 Nov: first-Reel button on top of a new member's Me tab (primary action, before the face check) */
+.v8-app-root .kme-first.kme-first-top { margin-top: 20px; border: 0 !important; background: linear-gradient(135deg, var(--tea), var(--pink)) !important; color: #fff; text-align: left; }
+.v8-app-root .kme-first.kme-first-top small { color: rgba(255,255,255,.85); }

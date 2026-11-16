@@ -590,6 +590,13 @@ export async function v5RequestVerification(selfie: Blob, check: { straight: boo
   if (!up || !up.ok) throw new V5Error('UPLOAD');
   return rpc<string>('kr8_request_verification', { p_selfie_path: path, p_consent_version: consent, p_check: check });
 }
+/** 16 Nov: phone-side failures (Reel pick / upload, face check) go to kr8_client_events so the team can see them. Never throws. */
+export function v5LogClient(kind: string, code?: string, detail?: string): void {
+  try {
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+    void rpc<void>('kr8_log_client', { p_kind: kind, p_code: code || null, p_detail: detail || null, p_ua: ua }).catch(() => undefined);
+  } catch { /* never block the member */ }
+}
 /** Terms + Privacy notice version the member agreed to (sign-in sheet line). Bump when terms.html / privacy.html change. */
 export const V5_TERMS_VERSION = 'member-2026-11-10';
 export const v5AcceptTerms = () => rpc<string>('kr8_accept_terms', { p_version: V5_TERMS_VERSION });

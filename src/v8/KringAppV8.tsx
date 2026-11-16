@@ -88,7 +88,7 @@ import { ActivitySheet, FollowSheet, InterestsSheet, LANG_NAME, MeView, Top10She
 import { A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip } from './A2HS';
 import { TripPerks } from './V5Trip';
 import { StayDo } from './V5StayDo';
-import { v5MyVerification } from './v5Live';
+import { v5LogClient, v5MyVerification } from './v5Live';
 import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
 import type { V5Blocked, V5Card, V5FeedItem, V5Me, V5ReportReason, V5TagPlace, V5Thread } from './v5Live';
 import { V5_L, KX_L, kxArea, v5ErrText, loadV5Lang, v5LangReady } from './v5Strings';
@@ -2446,6 +2446,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     setTab('feed');
     setPostPhotoUrl('');
     setSheet('post');
+    v5LogClient('reel_open', 'place');
   };
   // ───────── go-live build (15 Nov): Reel player, profile grid, tagged people, one-time coach marks ─────────
   const [goPlayer, setGoPlayer] = useState<{ reels: GoReel[]; start: number; viewProfile?: { id: string; name: string; photo: string | null } | null; title?: string } | null>(null);
@@ -2839,6 +2840,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       void import('./v5Reel').then((m) => m.previewPoster(info)).then((u) => { if (u) setReelPreviewPoster(u); }).catch(() => undefined);
     } catch (e) {
       setReelProblem(reelProblemText(e instanceof ReelError ? e.code : 'UNREADABLE'));
+      v5LogClient('reel_pick_fail', e instanceof ReelError ? e.code : 'UNREADABLE', `${file.type || '?'} ${Math.round(file.size / 1e5) / 10}MB`);
     }
   };
   const publishReel = async (cap: string) => {
@@ -2880,6 +2882,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     } catch (e) {
       setReelStage('failed');
       setReelProblem(e instanceof ReelError ? reelProblemText(e.code) : v5Msg(e));
+      v5LogClient('reel_publish_fail', e instanceof ReelError ? e.code : ((e as { code?: string })?.code || (e as Error)?.message || 'UNKNOWN'),
+        `${reelInfo.file.type || '?'} ${Math.round(reelInfo.file.size / 1e5) / 10}MB ${Math.round(reelInfo.durationMs / 1000)}s ${reelInfo.width}x${reelInfo.height}`);
     } finally {
       void ac?.close().catch(() => undefined);
     }
@@ -2931,6 +2935,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     setPostPhotoUrl('');
     setPostCaption('');
     setSheet('post');
+    v5LogClient('reel_open', 'feed');
   };
   const handlePublishPost = () => {
     if (live) {

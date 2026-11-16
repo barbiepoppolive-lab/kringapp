@@ -234,7 +234,13 @@ export function MeView(props: {
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 14v6h14v-6" /></svg>{L('Share card')}
       </button>
       {props.reelsSlot ? null : <PerksCard />}
-      {props.verifyState !== 'verified' && (
+      {/* 16 Nov: a new member's first step is their first Reel; the face check shows once they have one (or already sent it) */}
+      {props.reelsSlot && !p.reels.length ? (
+        <button type="button" className="kme-first kme-first-top" id="meFirstReelTop" onClick={props.onPost}>
+          <b>{L('Post your first Reel')}</b><small>{L('Your Reels show here and count towards your next level')}</small>
+        </button>
+      ) : null}
+      {props.verifyState !== 'verified' && (p.reels.length > 0 || props.verifyState === 'pending' || !props.reelsSlot) && (
         <button type="button" className="kme-verify" id="meVerify" onClick={props.onVerify} disabled={props.verifyState === 'pending'}>
           <span className="ic">✓</span>
           <span className="t">
