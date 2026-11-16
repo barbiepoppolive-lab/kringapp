@@ -26,13 +26,17 @@ export interface KxGap { state: GapState; rank: number | null; rings: number; fl
 
 // ───────────── rewards ─────────────
 export interface KxPrize { id: string; kind: 'weekly' | 'founding'; week: string | null; rank: number | null; founding_no: number | null; amount: number; rings: number | null;
-  status: 'won' | 'claimed'; claim_id: string | null; created_at: string }
+  status: 'won' | 'claimed'; claim_id: string | null; created_at: string;
+  /** 0066: a weekly prize waiting for the founder's check opens at this time (null = claimable now) */
+  opens_at?: string | null }
 export interface KxClaim { id: string; brand: Brand; amount: number; status: 'assigned' | 'pending'; value: number | null; code: string | null;
   activation_url: string | null; used_at: string | null; created_at: string; assigned_at: string | null;
   kind: 'weekly' | 'founding' | null; week: string | null; rank: number | null; founding_no: number | null }
 export interface KxRewards { week: number; rank: number | null; lifetime: number; level: number; gap: KxGap | null; ends_at: string; member_no: number | null;
   founding_no: number | null; founding_left: number; floor: number; rules?: Record<string, number>; ladder: number[]; streak: number; checked_in_today: boolean;
-  prizes: KxPrize[]; claims: KxClaim[] }
+  prizes: KxPrize[]; claims: KxClaim[];
+  /** 0066 (absent before the migration) */
+  line_linked?: boolean; claim_needs_line?: boolean; claim_face_check?: boolean }
 export const kxMyRewards = () => rpc<KxRewards>('kr8_my_rewards');
 export const kxRules = () => rpc<Record<string, number>>('kr8_rings_rules');
 export interface KxWeekResult { week: string; rank: number; rings: number; reel: string | null; prize: { id: string; amount: number; status: 'won' | 'claimed' } | null; line_need: number | null; line_prize: number }
@@ -48,7 +52,8 @@ function deviceId(): string {
   } catch { return ''; }
 }
 /** One tap: the prize the member won, on the app they pick. The server decides everything. */
-export const kxClaimPrize = (prize: string, brand: Brand) => rpc<KxClaimResult>('kr8_claim_prize', { p_prize: prize, p_brand: brand, p_device: deviceId() || null });
+export const kxClaimPrize = (prize: string, brand: Brand, face?: Float32Array | number[] | null) =>
+  rpc<KxClaimResult>('kr8_claim_prize', { p_prize: prize, p_brand: brand, p_device: deviceId() || null, p_face: face ? Array.from(face, (x) => Math.round(x * 1e6) / 1e6) : null });
 export const kxMarkUsed = (claim: string, used: boolean) => rpc<boolean>('kr8_mark_reward_used', { p_claim: claim, p_used: used });
 export interface KxRecent { first_name: string; photo: string | null; brand: Brand; amount: number; value: number; at: string }
 export const kxRecentClaims = (n = 8) => rpc<KxRecent[]>('kr8_recent_claims', { p_limit: n });

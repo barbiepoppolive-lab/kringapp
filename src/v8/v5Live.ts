@@ -191,7 +191,8 @@ function b64url(bytes: Uint8Array): string {
 }
 const randomToken = (n: number) => b64url(crypto.getRandomValues(new Uint8Array(n)));
 /** 'redirect' = the browser is leaving for LINE; 'LINE_OFF' = this build has no LINE channel (use the email code). */
-export async function v5SignInLine(): Promise<'redirect' | 'LINE_OFF' | 'NETWORK'> {
+/** link = true (0066): add LINE to the account that is signed in now (no new account; refused if that LINE is another account). */
+export async function v5SignInLine(link = false): Promise<'redirect' | 'LINE_OFF' | 'NETWORK'> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return 'NETWORK';
   if (!v5LineOn()) return 'LINE_OFF';
   // the recruiter code rides in `state` too ("<random>.<ref>"), so it survives a hand-over to another browser (13 Nov funnel fix)
@@ -200,7 +201,7 @@ export async function v5SignInLine(): Promise<'redirect' | 'LINE_OFF' | 'NETWORK
   const state = randomToken(24) + (/^[a-z0-9_-]{3,40}$/.test(ref) ? '.' + ref : ''), nonce = randomToken(24), verifier = randomToken(48);
   const challenge = b64url(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))));
   // localStorage, not sessionStorage: LINE may hand back to a new tab of the same browser
-  localStorage.setItem(LINE_KEY, JSON.stringify({ state, nonce, verifier, back: window.location.pathname + window.location.search, t: Date.now() }));
+  localStorage.setItem(LINE_KEY, JSON.stringify({ state, nonce, verifier, back: window.location.pathname + window.location.search, t: Date.now(), ...(link ? { link: true } : {}) }));
   const q = new URLSearchParams({ response_type: 'code', client_id: lineChannel(), redirect_uri: v5LineCallbackUrl(), state, scope: 'openid profile email',
     nonce, code_challenge: challenge, code_challenge_method: 'S256',
     // 16 Nov dings: LINE offers "add Kring as a friend" on the sign-in screen (needs the OA linked to this Login channel),
@@ -212,7 +213,7 @@ export async function v5SignInLine(): Promise<'redirect' | 'LINE_OFF' | 'NETWORK
 /** On /app/line-callback.html: checks state, asks `line-auth`, signs in. Returns where to go next. Throws V5Error codes. */
 export async function v5FinishLine(search: string): Promise<string> {
   const q = new URLSearchParams(search);
-  let saved: { state?: string; nonce?: string; verifier?: string; back?: string; t?: number } = {};
+  let saved: { state?: string; nonce?: string; verifier?: string; back?: string; t?: number; link?: boolean } = {};
   try { saved = JSON.parse(localStorage.getItem(LINE_KEY) || '{}'); } catch { saved = {}; }
   localStorage.removeItem(LINE_KEY);   // one use
   const back = saved.back && saved.back.startsWith(appBase()) ? saved.back : appBase();
@@ -221,6 +222,18 @@ export async function v5FinishLine(search: string): Promise<string> {
   const code = q.get('code') || '';
   if (!code || !saved.state || q.get('state') !== saved.state || !saved.t || Date.now() - saved.t > 10 * 60_000) throw new V5Error('LINE_STATE');
   const c = await v5Client();
+  if (saved.link) {   // 0066: add LINE to the signed-in account; the function reads who is signed in from the session token
+    const { data: s } = await c.auth.getSession();
+    if (!s.session) throw new V5Error('SIGN_IN');
+    const { data, error } = await c.functions.invoke('line-auth', { body: { link: true, code, redirect_uri: v5LineCallbackUrl(), code_verifier: saved.verifier, nonce: saved.nonce } });
+    const r = data as { linked?: boolean; error?: string } | null;
+    if (error || !r?.linked) {
+      const ctx = (error as { context?: Response } | null)?.context;
+      const body = ctx && typeof ctx.json === 'function' ? await ctx.json().catch(() => null) as { error?: string } | null : null;
+      throw new V5Error(body?.error === 'LINE_TAKEN' ? 'LINE_TAKEN' : body?.error === 'LINE_OTHER' ? 'LINE_OTHER' : 'LINE_FAIL');
+    }
+    return back;
+  }
   const { data, error } = await c.functions.invoke('line-auth', { body: { code, redirect_uri: v5LineCallbackUrl(), code_verifier: saved.verifier, nonce: saved.nonce } });
   const r = data as { token_hash?: string; name?: string; picture?: string | null } | null;
   if (error || !r?.token_hash) throw new V5Error('LINE_FAIL');
@@ -638,6 +651,11 @@ export async function v5RequestVerification(selfie: Blob, check: { straight: boo
   }).catch(() => null);
   if (!up || !up.ok) throw new V5Error('UPLOAD');
   return rpc<string>('kr8_request_verification', { p_selfie_path: path, p_consent_version: consent, p_check: check });
+}
+/** 0066: the face code (128 numbers, not a photo) from the face check; team-only on the server. Never throws. */
+export async function v5SaveFacePrint(desc: Float32Array | null): Promise<boolean> {
+  if (!desc || desc.length !== 128) return false;
+  return rpc<boolean>('kr8_save_face_print', { p_desc: Array.from(desc, (x) => Math.round(x * 1e6) / 1e6) }).then((v) => v === true).catch(() => false);
 }
 /** 16 Nov: phone-side failures (Reel pick / upload, face check) go to kr8_client_events so the team can see them. Never throws. */
 export function v5LogClient(kind: string, code?: string, detail?: string): void {

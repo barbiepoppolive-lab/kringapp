@@ -46,6 +46,14 @@ const admin: LineAdmin = {
     if (error || !data.user.email) throw new Error('AUTH')
     return data.user.email
   },
+  async linkOfUser(userId) {
+    const { data, error } = await db.from('kr8_line_links').select('line_sub').eq('user_id', userId).maybeSingle()
+    if (error) throw new Error('DB')
+    return data?.line_sub ?? null
+  },
+  async noteTaken(userId, otherUserId) {
+    await db.rpc('kr8_note_line_taken', { p_user: userId, p_other: otherUserId })
+  },
   async magicLinkHash(email) {
     const { data, error } = await db.auth.admin.generateLink({ type: 'magiclink', email })   // generates only, sends no email
     if (error || !data.properties?.hashed_token) throw new Error('AUTH')
@@ -58,11 +66,18 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: h })
   if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'METHOD' }), { status: 405, headers: { ...h, 'Content-Type': 'application/json' } })
   const body = await req.json().catch(() => null)
+  // 0066 link mode: who is signed in comes from the request's own session token (checked by Supabase Auth), never from the body
+  let caller: string | null = null
+  if (body && (body as Record<string, unknown>).link === true) {
+    const jwt = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '')
+    const { data } = jwt ? await db.auth.getUser(jwt) : { data: { user: null } }
+    caller = data?.user?.id ?? null
+  }
   const r = await lineAuth(body, {
     channelId: Deno.env.get('LINE_LOGIN_CHANNEL_ID') ?? '',
     channelSecret: Deno.env.get('LINE_LOGIN_CHANNEL_SECRET') ?? '',
     redirects: REDIRECTS,
-  }, admin, fetch)
+  }, admin, fetch, caller)
   if (r.status !== 200) console.warn('line-auth', r.body.error)   // error code only, never tokens
   return new Response(JSON.stringify(r.body), { status: r.status, headers: { ...h, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } })
 })

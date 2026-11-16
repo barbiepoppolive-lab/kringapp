@@ -1,12 +1,12 @@
 /**
  * "Get verified ✓" (0031): consent (PDPA, face data is sensitive) → front camera → live check on the phone
  * (look straight, turn left, turn right, blink) → compared with the profile photo on the phone → one selfie frame sent
- * to the team → "We check within 24 hours". Skippable; the Me tab keeps a reminder.
+ * to the team + one face code (0066, team-only) → "We check within 24 hours". Skippable; the Me tab keeps a reminder.
  */
 import { useEffect, useRef, useState } from 'react';
 import { BLINK_HINT_MS, FACE_CONSENT_VERSION, LIVE_START, blinkRetry, faceDescriptor, faceDistance, grabFrame, liveNext, loadFaceApi, loadImage, sampleFace } from './v5Face';
 import type { FaceSample, LiveState, LiveStep } from './v5Face';
-import { v5LogClient, v5RequestVerification } from './v5Live';
+import { v5LogClient, v5RequestVerification, v5SaveFacePrint } from './v5Live';
 
 type Tx = (en: string) => string;
 type Stage = 'intro' | 'needphoto' | 'loading' | 'camera' | 'sending' | 'done' | 'error';
@@ -99,19 +99,20 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; onClose: () 
       if (!selfie) throw new Error('FRAME');
       // compare with the profile photo on the phone (the score is only a hint for the team)
       let match: number | null = null;
+      let print: Float32Array | null = null;   // 0066: the selfie's face code, saved team-only after the check is sent
       try {
-        if (props.photo) {
-          const url = URL.createObjectURL(selfie);
-          const [a, b] = await Promise.all([loadImage(url).then(faceDescriptor), loadImage(props.photo).then(faceDescriptor)]);
-          URL.revokeObjectURL(url);
-          if (a && b) match = Math.round(faceDistance(a, b) * 1000) / 1000;
-        }
+        const url = URL.createObjectURL(selfie);
+        const [a, b] = await Promise.all([loadImage(url).then(faceDescriptor), props.photo ? loadImage(props.photo).then(faceDescriptor) : Promise.resolve(null)]);
+        URL.revokeObjectURL(url);
+        print = a;
+        if (a && b) match = Math.round(faceDistance(a, b) * 1000) / 1000;
       } catch {
         match = null;
       }
       stop();
       await v5RequestVerification(selfie, { straight: state.straight, left: state.left, right: state.right, blink: state.blink, match,
         device: (navigator.userAgent.match(/iPhone|iPad|Android|Mac|Windows|Linux/) || ['other'])[0] }, FACE_CONSENT_VERSION);
+      await v5SaveFacePrint(print);   // never throws; the admin page also prints every selfie
       setStage('done');
       props.onSent();
     } catch (e) {
@@ -144,7 +145,8 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; onClose: () 
             <b>{L('Your face data')}</b>
             <ul>
               <li>{L('Your face is sensitive personal data under Thailand’s PDPA. We use it only to confirm you are a real person and that your profile photo is you.')}</li>
-              <li>{L('The face check runs on your phone. We never store a face scan or face measurements.')}</li>
+              <li>{L('The check runs on your phone. To keep Kring one person, one account, we keep a face code made from your selfie (numbers, not a photo). Only the Kring team can use it.')}</li>
+              <li>{L('We delete the face code with your account. If you received a prize, we keep it for one year so the same prize can’t be claimed twice.')}</li>
               <li>{L('We keep one selfie photo, which only the Kring team can see, and delete it 30 days after the review.')}</li>
               <li>{L('Questions or deletion: ops@kringapp.com')}</li>
             </ul>

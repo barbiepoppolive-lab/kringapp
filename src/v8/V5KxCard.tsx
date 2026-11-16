@@ -11,7 +11,7 @@ import { GenderChip, GenderRow, genderPayload, isGender, type Gender } from './V
 import { kxSetGender } from './v5Kx';
 import { LEVEL_KEY, levelFor, memberNo, parseHandle, socialUrl, type Social } from './kxLogic';
 import { kxSetTiktok } from './v5Kx';
-import { v5AcceptTerms, v5CompressImage, v5ErrCode, v5SaveCard, v5SetIgHandle, v5StoredRef, v5TakeLinePrefill, V5_AREAS, V5_LANGS, V5_TERMS_VERSION } from './v5Live';
+import { v5AcceptTerms, v5CompressImage, v5ErrCode, v5SaveCard, v5SetIgHandle, v5TakeLinePrefill, V5_AREAS, V5_LANGS, V5_TERMS_VERSION } from './v5Live';
 import type { V5Card, V5Me } from './v5Live';
 import { v5ErrText } from './v5Strings';
 import { TermsLine } from './V5Sheets';
@@ -180,7 +180,7 @@ export function V5MintSheet(props: {
   // optional, never pre-filled: a new card starts with nothing chosen and "show" off
   const [gender, setGender] = useState<Gender | null>(isGender(card?.gender) ? card.gender : null);
   const [showGender, setShowGender] = useState<boolean>(isGender(card?.gender) && card?.show_gender === true);
-  const [who, setWho] = useState<'local' | 'traveller'>(card?.who || (props.uiLang === 'th' || v5StoredRef() ? 'local' : 'traveller'));
+  const [who, setWho] = useState<'local' | 'traveller'>(card?.who || 'local');
   const [photo, setPhoto] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
   const [photoMsg, setPhotoMsg] = useState(props.photoFix ? 'Kring is for real people. Add a photo where your face is clearly visible.' : '');

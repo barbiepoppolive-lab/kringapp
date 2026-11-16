@@ -355,3 +355,17 @@ button.tile.wide { font: inherit; cursor: pointer; }
 .pb-r .faint { overflow-wrap: anywhere; }
 #recruiters .ml-int .pill, .sheet .ml-int .pill { cursor: pointer; }
 .pb-gh { flex-wrap: nowrap; align-items: flex-start; } .pb-gh > .grow { min-width: 0; } .pb-gh > .pill { flex: none; }
+
+/* 0066 Same person? + Approve week */
+.dup { margin-bottom: 14px; }
+.dup .pill + .pill { margin-left: 4px; }
+.dup-faces.three { grid-template-columns: 1fr 1fr 1fr; }
+.dup-list { display: grid; gap: 8px; margin: 4px 0 10px; }
+.dup-who { padding: 8px 10px; border-radius: 12px; background: var(--s2); }
+.dup-why { border-top: 1px solid var(--line); padding: 8px 0 4px; display: grid; gap: 3px; }
+.dup-held { margin-top: 10px; padding: 12px; border-radius: 14px; border: 1px solid var(--warn, #ffc44d); }
+.dup-acts .btn { min-height: 44px; }
+.wk-rk { font-weight: 800; min-width: 28px; }
+.wk-av { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: var(--s2); flex: none; display: inline-block; }
+.wk-flags { margin: 6px 0 0 38px; padding: 0 0 0 16px; font-size: 13px; color: var(--warn, #ffc44d); }
+.wk-flags li.bad { color: var(--bad, #ff6b6b); }

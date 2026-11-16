@@ -197,7 +197,7 @@ export function V5CardSheet(props: { L: Tx; Lf: Txf; card: V5Card | null; uiLang
   const [bio, setBio] = useState(card?.bio || '');
   const [ig, setIg] = useState(card?.ig_handle || '');
   const [area, setArea] = useState(card?.area || 'Bangkok');
-  const [who, setWho] = useState<'local' | 'traveller'>(card?.who || (props.uiLang === 'th' || v5StoredRef() ? 'local' : 'traveller'));
+  const [who, setWho] = useState<'local' | 'traveller'>(card?.who || 'local');
   const [photo, setPhoto] = useState<string | null>(null);
   // new card after "Continue with LINE": LINE name (editable) and LINE picture (optional, skipped if it can't be loaded)
   useEffect(() => {

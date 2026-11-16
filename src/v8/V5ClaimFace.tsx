@@ -1,0 +1,127 @@
+/**
+ * 0066 · 3-second face check before a prize claim. One screen, Thai with English under it.
+ * Runs on the phone (face-api, same models as the Get verified check): hold a straight face in the oval for 3 seconds,
+ * then ONE face code (128 numbers, not a photo) goes with the claim. The server compares it with the account's own
+ * face print. Camera blocked / no face found → the member can still claim; the claim then waits for the team's check.
+ */
+import { useEffect, useRef, useState } from 'react';
+import { faceDescriptor, loadFaceApi, sampleFace } from './v5Face';
+import type { FaceSample } from './v5Face';
+import { v5LogClient } from './v5Live';
+
+/** Thai line, English line under it */
+export const TE = ({ th, en, id }: { th: string; en: string; id?: string }) => (
+  <span className="kx-te" id={id}><b lang="th">{th}</b><small lang="en">{en}</small></span>
+);
+
+/** a frame that counts towards the 3 seconds: one clear face, centred, near enough, looking straight */
+export function goodFrame(f: FaceSample): boolean {
+  return f.found && f.centered && f.size > 0.15 && Math.abs(f.yaw - 0.5) < 0.12;
+}
+export const HOLD_MS = 3000;
+/** add one frame's time to the hold; a bad frame drops the hold back to 0 (so it is 3 seconds in a row) */
+export function holdNext(heldMs: number, f: FaceSample, dtMs: number): number {
+  return goodFrame(f) ? Math.min(HOLD_MS, heldMs + Math.max(0, Math.min(dtMs, 400))) : 0;
+}
+
+type Stage = 'start' | 'loading' | 'look' | 'busy' | 'fail';
+function testFeed(): FaceSample[] | null {
+  if (import.meta.env.VITE_FACE_TEST !== '1') return null;
+  return ((window as unknown as { __kr8FaceFeed?: FaceSample[] }).__kr8FaceFeed) || null;
+}
+
+export function ClaimFace(props: { onDone: (face: Float32Array | null) => void; onCancel: () => void;
+  /** preview harness only: show a stage with a still picture instead of the camera */
+  demo?: { stage: Stage; img?: string; held?: number } }) {
+  const [stage, setStage] = useState<Stage>(props.demo?.stage || 'start');
+  const [held, setHeld] = useState(props.demo?.held ?? 0);
+  const [failWhy, setFailWhy] = useState<'camera' | 'noface'>('camera');
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const runRef = useRef(false);
+  const stop = () => { runRef.current = false; streamRef.current?.getTracks().forEach((t) => t.stop()); streamRef.current = null; };
+  useEffect(() => stop, []);
+
+  const start = async () => {
+    setStage('loading');
+    try {
+      const [, stream] = await Promise.all([loadFaceApi(),
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, audio: false })]);
+      streamRef.current = stream;
+      setStage('look');
+      requestAnimationFrame(() => void run(stream));
+    } catch (e) {
+      stop();
+      v5LogClient('claim_face_fail', (e as { name?: string })?.name || 'UNKNOWN');
+      setFailWhy('camera');
+      setStage('fail');
+    }
+  };
+
+  const run = async (stream: MediaStream) => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.srcObject = stream;
+    await v.play().catch(() => undefined);
+    runRef.current = true;
+    let h = 0, last = Date.now(), tries = 0;
+    const started = Date.now();
+    while (runRef.current) {
+      if (Date.now() - started > 25000) { stop(); v5LogClient('claim_face_fail', 'TIMEOUT'); setFailWhy('noface'); setStage('fail'); return; }
+      const feed = testFeed();
+      const f = feed && feed.length ? (feed.shift() as FaceSample) : v.readyState >= 2 ? await sampleFace(v, 320).catch(() => null) : null;
+      const now = Date.now();
+      if (f) { h = holdNext(h, f, now - last); setHeld(h); }
+      last = now;
+      if (h >= HOLD_MS) {
+        setStage('busy');
+        const d = await faceDescriptor(v).catch(() => null);
+        if (d || ++tries >= 3) { stop(); props.onDone(d); return; }
+        h = 0; setHeld(0); setStage('look');
+      }
+      await new Promise((ok) => setTimeout(ok, 90));
+    }
+  };
+
+  const pct = Math.round((held / HOLD_MS) * 100);
+  const secs = Math.max(0, Math.ceil((HOLD_MS - held) / 1000));
+  return (
+    <div className="kx-cf" id="kxClaimFace" data-stage={stage}>
+      <div className="kx-cf-h">
+        <TE th="สแกนหน้า 3 วินาที" en="3-second face check" />
+        <TE th="เพื่อให้แน่ใจว่าเป็นเจ้าของบัญชีนี้ที่รับรางวัล" en="So we know it’s really you claiming this prize" />
+      </div>
+      <div className="kx-cf-cam" style={{ ['--p' as string]: `${pct}%` }}>
+        {props.demo?.img ? <img src={props.demo.img} alt="" /> : <video ref={videoRef} playsInline muted autoPlay id="kxClaimFaceVideo" />}
+        <span className={`kx-cf-oval${held > 0 ? ' on' : ''}${stage === 'busy' ? ' done' : ''}`} />
+        <i className="kx-cf-ring" aria-hidden="true" />
+        {stage === 'look' ? <em className="kx-cf-n" aria-live="polite">{held > 0 ? secs : ''}</em> : null}
+        {stage === 'loading' || stage === 'busy' ? <span className="kx-cf-busy">{stage === 'loading' ? 'กำลังเปิดกล้อง… · Opening camera…' : 'เสร็จแล้ว · Done'}</span> : null}
+      </div>
+      {stage === 'start' ? (
+        <>
+          <ul className="kx-cf-tips">
+            <li><TE th="มองกล้องตรง ๆ ให้หน้าอยู่ในวงรี" en="Look straight at the camera, face in the oval" /></li>
+            <li><TE th="เราเก็บแค่รหัสใบหน้า ไม่เก็บรูป" en="Only a face code is kept, never the photo" /></li>
+          </ul>
+          <button type="button" className="kx-btn tall" id="kxClaimFaceStart" onClick={() => void start()}><TE th="เปิดกล้อง" en="Open camera" /></button>
+          <button type="button" className="kx-cf-later" onClick={props.onCancel}><TE th="ย้อนกลับ" en="Back" /></button>
+        </>
+      ) : null}
+      {stage === 'look' ? (
+        <p className="kx-cf-say" id="kxClaimFaceSay">{held > 0 ? <TE th="ค้างไว้แบบนี้นะ" en="Hold still" /> : <TE th="มองกล้องตรง ๆ ให้หน้าอยู่ในวงรี" en="Look straight at the camera, face in the oval" />}</p>
+      ) : null}
+      {stage === 'fail' ? (
+        <div className="kx-cf-fail" id="kxClaimFaceFail" role="status">
+          {failWhy === 'camera'
+            ? <TE th="เปิดกล้องไม่ได้ ลองอนุญาตกล้องในเบราว์เซอร์ แล้วลองอีกครั้ง" en="The camera didn’t open. Allow the camera in your browser, then try again." />
+            : <TE th="ยังไม่เห็นหน้าชัด ลองไปที่สว่าง ๆ แล้วลองอีกครั้ง" en="We couldn’t see your face clearly. Try somewhere brighter." />}
+          <button type="button" className="kx-btn" id="kxClaimFaceRetry" onClick={() => void start()}><TE th="ลองอีกครั้ง" en="Try again" /></button>
+          <button type="button" className="kx-cf-later" id="kxClaimFaceSkip" onClick={() => { stop(); props.onDone(null); }}>
+            <TE th="รับรางวัลโดยไม่สแกน (ทีมงานตรวจก่อน)" en="Claim without the check (the team checks first)" />
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}

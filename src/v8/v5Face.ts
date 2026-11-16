@@ -1,12 +1,13 @@
 /**
  * On-device face check for "✓ verified" (0031). Everything here runs on the phone: face-api (MIT, @vladmandic/face-api) with
  * three small models served from /app/models/face/. Nothing about the face is sent anywhere except ONE selfie frame,
- * which the member agrees to on the consent screen. No face template or measurement leaves the phone.
+ * which the member agrees to on the consent screen. Since 0066 also one face code (numbers, not a photo; see kr8_face_prints).
  */
 type FaceApi = typeof import('@vladmandic/face-api');
 let apiP: Promise<FaceApi> | null = null;
 
-export const FACE_CONSENT_VERSION = 'face-2026-11-10';
+/** 0066: the consent now says a face code is kept (one person, one account). The server only takes a face code after this version. */
+export const FACE_CONSENT_VERSION = 'face-2026-11-17';
 
 function modelUrl(): string {
   const base = ((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.BASE_URL || '/').replace(/\/?$/, '/');
@@ -73,7 +74,8 @@ export async function sampleFace(input: HTMLVideoElement | HTMLImageElement | HT
   return { found: true, yaw, ear, size: box.width / w, centered: cx > 0.25 && cx < 0.75 };
 }
 
-/** Face "fingerprint" used only on the phone to compare the selfie with the profile photo. Never uploaded. */
+/** Face code (128 numbers) from face-api's recognition model. Used on the phone to compare the selfie with the profile photo,
+ *  and (0066, consent face-2026-11-17) saved team-only on the server so one person can't hold two accounts. */
 export async function faceDescriptor(input: HTMLVideoElement | HTMLImageElement | HTMLCanvasElement): Promise<Float32Array | null> {
   const faceapi = await loadFaceApi();
   const r = await faceapi.detectSingleFace(input, new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.4 })).withFaceLandmarks().withFaceDescriptor();

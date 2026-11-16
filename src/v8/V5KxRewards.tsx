@@ -8,7 +8,8 @@ import './kx.css';
 import { ago, BRAND_NAME, claimBrands, fmtN, tmPct, valueFor, type Brand } from './kxLogic';
 import { ringsRules } from './rewardsConfig';
 import { kxClaimPrize, kxMarkUsed, kxRecentClaims, type KxClaim, type KxClaimResult, type KxPrize, type KxRecent, type KxRewards, type KxWeekResult } from './v5Kx';
-import { v5ErrCode } from './v5Live';
+import { v5ErrCode, v5SignInLine } from './v5Live';
+import { ClaimFace, TE } from './V5ClaimFace';
 import { NeonCard, RingGlyph } from './V5KxCard';
 import { baht, ownRow } from './V5KxRanking';
 
@@ -72,6 +73,10 @@ export function prizeTitle(L: Tx, Lf: Txf, lang: string, p: { kind: 'weekly' | '
   if (p.kind === 'weekly') return `${Lf('#{0} of the week', String(p.rank ?? ''))}${p.week && !short ? ` · ${weekLabel(lang, p.week)}` : ''}`;
   return L('KRING REWARD');
 }
+/** "Tue 25 Nov, 09:00" (Bangkok time) for when a checked weekly prize opens */
+export function openTime(lang: 'th' | 'en', at: string): string {
+  return new Intl.DateTimeFormat(lang === 'th' ? 'th-TH' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' }).format(Date.parse(at));
+}
 /** "9 Nov" for the Monday a week started on. */
 export function weekLabel(lang: string, week: string): string {
   return new Intl.DateTimeFormat(lang === 'th' ? 'th-TH' : 'en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(Date.parse(`${week}T00:00:00Z`));
@@ -119,7 +124,9 @@ export function RewardsPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewar
               <span className="ic" aria-hidden="true">{p.kind === 'founding' ? '★' : '🏆'}</span>
               <span className="t">{prizeTitle(L, Lf, props.lang, p, true)}<small>{p.status === 'won' ? <b className="amt">{baht(p.amount)}</b> : c?.status === 'pending' ? L('Your code is on the way') : c ? brandAmt(L, c.brand, c.amount) : L('Claimed')}
                 {p.kind === 'weekly' && p.week ? ` · ${weekLabel(props.lang, p.week)}` : ''}</small></span>
-              {p.status === 'won'
+              {p.status === 'won' && p.opens_at && Date.parse(p.opens_at) > Date.now()
+                ? <span className="kx-wait" data-opens-at={p.opens_at}><TE th={`ตรวจผลอยู่ · เปิดรับ ${openTime('th', p.opens_at)}`} en={`Checking results · opens ${openTime('en', p.opens_at)}`} /></span>
+                : p.status === 'won'
                 ? <button type="button" className="kx-claim" data-claim-prize={p.id} onClick={() => props.onClaim(p)}>{L('Claim')}</button>
                 : <button type="button" className="kx-soft" data-view-code={p.claim_id || ''} onClick={() => props.onCode(p.claim_id)}>{c?.status === 'pending' ? L('SOON') : L('Code')}</button>}
             </div>
@@ -141,7 +148,8 @@ export function RewardsPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewar
 }
 
 /** Claim a prize: pick the app → one tap. Grab = full value, TrueMoney = 75% ("TrueMoney keeps 25%"). */
-export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards | null; prize: KxPrize | null; onBack: () => void; onDone: (r: KxClaimResult) => void; toast: (m: string) => void }) {
+export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards | null; prize: KxPrize | null; onBack: () => void; onDone: (r: KxClaimResult) => void; toast: (m: string) => void;
+  /** preview harness only */ startStep?: 'pick' | 'face' | 'line'; faceDemo?: Parameters<typeof ClaimFace>[0]['demo'] }) {
   const { L, Lf, data, prize } = props;
   const R = ringsRules(data?.rules);
   const pct = tmPct(R);
@@ -149,21 +157,50 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
   const [brand, setBrand] = useState<Brand>(brands[0]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  // 0066: 'face' = the 3-second face check before the claim; 'line' = LINE must be linked first (switch claim_needs_line)
+  const [step, setStep] = useState<'pick' | 'face' | 'line'>(props.startStep || 'pick');
+  const [waitUntil, setWaitUntil] = useState<string | null>(null);
   const amount = prize?.amount ?? 0;
-  const go = async () => {
+  const opensAt = prize?.opens_at && Date.parse(prize.opens_at) > Date.now() ? prize.opens_at : waitUntil;
+  const send = async (face: Float32Array | null) => {
     if (busy || !prize) return;
     setBusy(true);
     setErr('');
     try {
-      props.onDone(await kxClaimPrize(prize.id, brand));
+      props.onDone(await (face ? kxClaimPrize(prize.id, brand, face) : kxClaimPrize(prize.id, brand)));
     } catch (e) {
       const c = v5ErrCode(e);
+      setStep('pick');
+      if (c === 'NEED_LINE') { setStep('line'); return; }
+      if (c === 'WEEK_REVIEW') { setWaitUntil('soon'); return; }
       setErr(c === 'ONE_ACCOUNT' ? L('This phone already claimed for another account. One person, one account.')
         : c === 'NO_PRIZE' ? L('That prize isn’t here any more.')
         : c === 'OFFLINE' || c === 'NETWORK' ? L('Couldn’t reach Kring. Check your connection and try again.')
         : L('Something went wrong. Try again.'));
     } finally { setBusy(false); }
   };
+  const go = () => {
+    if (busy || !prize) return;
+    if (data?.claim_needs_line && !data?.line_linked) { setStep('line'); return; }
+    if (data?.claim_face_check !== true) { void send(null); return; }   // before 0066 the server doesn't ask for it
+    setStep('face');
+  };
+  const linkLine = async () => {
+    const r = await v5SignInLine(true);
+    if (r !== 'redirect') props.toast(r === 'NETWORK' ? L('Couldn’t reach Kring. Check your connection and try again.') : 'LINE ยังไม่เปิดใช้ · LINE isn’t switched on yet');
+  };
+  if (step === 'face' && prize) {
+    return (
+      <div className="kx-page kx-cl" id="kxClaim" data-step="face">
+        <div className="kx-hd2">
+          <button type="button" className="kx-bk" aria-label={L('Back')} onClick={() => setStep('pick')}>‹</button>
+          <h1 className="sm">{L('Claim')}</h1>
+          <span style={{ width: 40 }} />
+        </div>
+        <ClaimFace demo={props.faceDemo} onCancel={() => setStep('pick')} onDone={(f) => void send(f)} />
+      </div>
+    );
+  }
   return (
     <div className="kx-page kx-cl" id="kxClaim">
       <div className="kx-hd2">
@@ -175,6 +212,20 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
         <div className="kx-clp" id="kxClaimPrize">
           <small>{prizeTitle(L, Lf, props.lang, prize)}</small>
           <b data-amount={amount}>{baht(amount)}</b>
+        </div>
+      ) : null}
+      {step === 'line' ? (
+        <div className="kx-step" id="kxClaimLine">
+          <span className="ln" aria-hidden="true">LINE</span>
+          <TE th="เชื่อม LINE เพื่อรับรางวัล" en="Link LINE to get your prize" />
+          <TE th="ใช้ LINE ของคุณเอง หนึ่งคน หนึ่งบัญชี" en="Use your own LINE. One person, one account." />
+          <button type="button" className="kx-btn line" id="kxClaimLinkLine" onClick={() => void linkLine()}><TE th="เชื่อม LINE" en="Link LINE" /></button>
+        </div>
+      ) : null}
+      {opensAt ? (
+        <div className="kx-step" id="kxClaimWait">
+          <TE th="กำลังตรวจผลประจำสัปดาห์" en="We’re checking this week’s results" />
+          <TE th={`รางวัลของคุณปลอดภัย กดรับได้${opensAt === 'soon' ? 'ภายใน 24 ชั่วโมง' : ` ${openTime('th', opensAt)}`}`} en={`Your prize is safe. You can claim it ${opensAt === 'soon' ? 'within 24 hours' : openTime('en', opensAt)}`} />
         </div>
       ) : null}
       <p className="kx-one" id="kxClaimOne">{L('Choose one. This prize can be claimed once.')}</p>
@@ -193,7 +244,7 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
       </div>
       <div className="kx-cl-foot">
         {err ? <p className="kx-err center" role="alert" id="kxClaimErr">{err}</p> : <p className="kx-inst">{L('Your code arrives')} <b>{L('instantly')}</b></p>}
-        <button type="button" className="kx-btn tall" id="kxClaimGo" disabled={busy || !prize} onClick={() => void go()}>
+        <button type="button" className="kx-btn tall" id="kxClaimGo" disabled={busy || !prize || !!opensAt || step === 'line'} onClick={go}>
           <b>{busy ? '…' : Lf('Claim with {0} · {1}', BRAND_NAME[brand], baht(valueFor(brand, amount, pct)))}</b>
         </button>
       </div>

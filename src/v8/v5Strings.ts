@@ -37,6 +37,8 @@ export const V5_L: Record<string, Record<string, string>> = {
     'LINE sign-in was cancelled. Try again, or use email.': 'ยกเลิกการเข้าสู่ระบบด้วย LINE แล้ว ลองอีกครั้ง หรือใช้อีเมล',
     'That LINE sign-in link has expired. Tap Continue with LINE again.': 'ลิงก์เข้าสู่ระบบด้วย LINE หมดอายุแล้ว แตะ "เข้าสู่ระบบด้วย LINE" อีกครั้ง',
     'LINE sign-in didn’t work this time. Try again, or use email.': 'เข้าสู่ระบบด้วย LINE ไม่สำเร็จ ลองอีกครั้ง หรือใช้อีเมล',
+    'This LINE is already used by another Kring account. One person, one account.': 'LINE นี้ใช้กับบัญชี กริ๊ง! อื่นอยู่แล้ว หนึ่งคน หนึ่งบัญชีนะ',
+    'This account already has a different LINE linked.': 'บัญชีนี้เชื่อมกับ LINE อื่นอยู่แล้ว',
     'Top 5': 'Top 5',
     'Top 5 today': 'Top 5 · 5 อันดับวันนี้',
     'Top 5 this week': 'Top 5 · 5 อันดับสัปดาห์นี้',
@@ -322,6 +324,8 @@ export const V5_L: Record<string, Record<string, string>> = {
     'That took too long. Try again in good light, face to the camera.': 'ใช้เวลานานเกินไป ลองใหม่ในที่สว่าง หันหน้าเข้ากล้อง',
     'The face check could not start on this phone. Try again, or try later on another phone.': 'เริ่มการตรวจใบหน้าบนโทรศัพท์นี้ไม่ได้ ลองใหม่ หรือลองภายหลังด้วยโทรศัพท์เครื่องอื่น',
     'The face check runs on your phone. We never store a face scan or face measurements.': 'การตรวจใบหน้าทำบนโทรศัพท์ของคุณ เราไม่เก็บภาพสแกนหรือข้อมูลลักษณะใบหน้า',
+    'The check runs on your phone. To keep Kring one person, one account, we keep a face code made from your selfie (numbers, not a photo). Only the Kring team can use it.': 'การตรวจทำบนโทรศัพท์ของคุณ เพื่อให้ กริ๊ง! เป็นหนึ่งคนต่อหนึ่งบัญชี เราเก็บรหัสใบหน้าที่สร้างจากเซลฟี่ของคุณ (เป็นตัวเลข ไม่ใช่รูป) มีแค่ทีม กริ๊ง! ที่ใช้ได้',
+    'We delete the face code with your account. If you received a prize, we keep it for one year so the same prize can’t be claimed twice.': 'เราลบรหัสใบหน้าพร้อมบัญชีของคุณ ถ้าคุณเคยได้รับรางวัล เราเก็บไว้ 1 ปี เพื่อไม่ให้รับรางวัลเดิมซ้ำได้',
     'This week': 'สัปดาห์นี้',
     'Today': 'วันนี้',
     'Top level': 'เลเวลสูงสุด',
@@ -525,6 +529,8 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
     case 'LINE_CANCEL': return ['LINE sign-in was cancelled. Try again, or use email.'];
     case 'LINE_STATE': return ['That LINE sign-in link has expired. Tap Continue with LINE again.'];
     case 'LINE_FAIL': return ['LINE sign-in didn’t work this time. Try again, or use email.'];
+    case 'LINE_TAKEN': return ['This LINE is already used by another Kring account. One person, one account.'];
+    case 'LINE_OTHER': return ['This account already has a different LINE linked.'];
     case 'OTP_SEND': return ['We couldn’t send the email. Check the address and try again.'];
     case 'GOOGLE_OFF': return ['Google sign-in isn’t switched on yet. Use an email code for now.'];
     case 'GHOST': return ['Ghost mode is on: likes, saves, follows, hellos and posts are off.'];
