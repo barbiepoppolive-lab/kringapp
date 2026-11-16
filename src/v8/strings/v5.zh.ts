@@ -125,6 +125,7 @@ const T: Record<string, string> = {
     'Clip is over 60 s · trim it and try again': '视频超过 60 秒 · 剪短后再试',
     'Please use a vertical (9:16) video': '请使用竖屏 (9:16) 视频',
     'Video is too big · max 50 MB': '视频太大 · 最多 50 MB',
+    'Video is too big · try trimming it shorter or filming at 1080p': '视频太大 · 请剪短一些，或用 1080p 拍摄',
     'Pick a video file (MP4, MOV or WebM)': '请选择视频文件 (MP4、MOV 或 WebM)',
     'Upload stopped · tap Retry': '上传中断 · 点“重试”',
     'This video cannot be read · try another': '无法读取此视频 · 换一个试试',

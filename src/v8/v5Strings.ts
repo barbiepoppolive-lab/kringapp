@@ -126,6 +126,7 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Clip is over 60 s · trim it and try again': 'คลิปยาวเกิน 60 วินาที · ตัดให้สั้นลงแล้วลองใหม่',
     'Please use a vertical (9:16) video': 'ใช้วิดีโอแนวตั้ง (9:16) นะ',
     'Video is too big · max 50 MB': 'วิดีโอใหญ่ไป · สูงสุด 50 MB',
+    'Video is too big · try trimming it shorter or filming at 1080p': 'วิดีโอใหญ่ไป ลองตัดให้สั้นลง หรือถ่ายที่ 1080p',
     'Pick a video file (MP4, MOV or WebM)': 'เลือกไฟล์วิดีโอ (MP4, MOV หรือ WebM)',
     'Upload stopped · tap Retry': 'อัปโหลดหยุด · กดลองใหม่',
     'This video cannot be read · try another': 'อ่านวิดีโอนี้ไม่ได้ · ลองไฟล์อื่น',

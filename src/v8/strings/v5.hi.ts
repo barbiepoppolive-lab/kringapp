@@ -125,6 +125,7 @@ const T: Record<string, string> = {
     'Clip is over 60 s · trim it and try again': 'क्लिप 60 सेकंड से लंबी है · छोटी करके फिर कोशिश करें',
     'Please use a vertical (9:16) video': 'कृपया वर्टिकल (9:16) वीडियो लें',
     'Video is too big · max 50 MB': 'वीडियो बहुत बड़ा है · अधिकतम 50 MB',
+    'Video is too big · try trimming it shorter or filming at 1080p': 'वीडियो बहुत बड़ा है · इसे छोटा करें या 1080p में शूट करें',
     'Pick a video file (MP4, MOV or WebM)': 'वीडियो फ़ाइल चुनें (MP4, MOV या WebM)',
     'Upload stopped · tap Retry': 'अपलोड रुक गया · दोबारा कोशिश करें दबाएँ',
     'This video cannot be read · try another': 'यह वीडियो पढ़ा नहीं जा सका · कोई और आज़माएँ',

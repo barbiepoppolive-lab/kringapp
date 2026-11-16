@@ -125,6 +125,7 @@ const T: Record<string, string> = {
     'Clip is over 60 s · trim it and try again': '60秒を超えています · 短くカットしてもう一度',
     'Please use a vertical (9:16) video': '縦向き (9:16) の動画を使ってください',
     'Video is too big · max 50 MB': '動画が大きすぎます · 最大 50 MB',
+    'Video is too big · try trimming it shorter or filming at 1080p': '動画が大きすぎます · 短くカットするか、1080p で撮影してください',
     'Pick a video file (MP4, MOV or WebM)': '動画ファイルを選んでください (MP4・MOV・WebM)',
     'Upload stopped · tap Retry': 'アップロードが止まりました · 再試行をタップ',
     'This video cannot be read · try another': 'この動画は読み込めません · 別の動画で',

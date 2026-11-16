@@ -2806,6 +2806,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     showToast(L("Area-only badge on · auto-turns off after 2 hours"));
   };
 
+  const [reelPreviewPoster, setReelPreviewPoster] = useState('');
   const reelProblemText = (code: string): string => {
     // fix-it messages: Thai first, English under (members often forward these to a friend who helps)
     const both = (en: string) => (lang === 'th' && L(en) !== en ? `${L(en)}\n${en}` : L(en));
@@ -2816,7 +2817,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       case 'EMPTY': return both('This file is empty (0 KB). Save the clip to your phone first, then pick it again.');
       case 'HEVC': return both('This clip is HEVC (High efficiency video), which this browser can’t open. Fix: Camera settings → turn off “High efficiency video” and film again, or send the clip to yourself in LINE and pick that copy.');
       case 'NOT_VERTICAL': return L('Please use a vertical (9:16) video');
-      case 'TOO_BIG': return L('Video is too big · max 50 MB');
+      // วิดีโอใหญ่ไป ลองตัดให้สั้นลง หรือถ่ายที่ 1080p (Video is too big; try trimming it shorter or filming at 1080p)
+      case 'TOO_BIG': return both('Video is too big · try trimming it shorter or filming at 1080p');
       case 'NOT_VIDEO': return L('Pick a video file (MP4, MOV or WebM)');
       case 'UPLOAD': return L('Upload stopped · tap Retry');
       default: return both('This browser can’t open this clip. Fix: save it to your phone first (not only in the cloud), or send it to yourself in LINE and pick that copy.');
@@ -2828,9 +2830,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     reelWorkRef.current = {};
     if (reelInfo) URL.revokeObjectURL(reelInfo.url);
     setReelInfo(null);
+    setReelPreviewPoster((old) => { if (old) URL.revokeObjectURL(old); return ''; });
     if (!file) return;
     try {
-      setReelInfo(await checkReel(file));
+      const info = await checkReel(file);
+      setReelInfo(info);
+      // 16 Nov: a clip the phone's <video> cannot draw (4K / HEVC) showed a black preview; show the WebCodecs-decoded frame
+      void import('./v5Reel').then((m) => m.previewPoster(info)).then((u) => { if (u) setReelPreviewPoster(u); }).catch(() => undefined);
     } catch (e) {
       setReelProblem(reelProblemText(e instanceof ReelError ? e.code : 'UNREADABLE'));
     }
@@ -5065,7 +5071,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             {live && (
               <div className={`post-preview reel-pick ${reelInfo ? '' : 'empty'}`} id="reelPreview"
                 style={reelInfo ? undefined : { background: 'rgba(255,247,236,0.06)', border: '1.5px dashed rgba(255,247,236,0.28)' }}>
-                {reelInfo ? <video className="reel-preview-video" src={reelInfo.url} muted loop playsInline autoPlay /> : null}
+                {reelInfo ? <video className="reel-preview-video" src={reelInfo.url} poster={reelPreviewPoster || undefined} muted loop playsInline autoPlay /> : null}
                 <label id="addReelPicker" className={`reel-add ${reelInfo ? 'small' : ''}`}>
                   {reelInfo ? L('Change Reel') : L('＋ Add a Reel')}
                   <input

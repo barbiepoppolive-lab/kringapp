@@ -125,6 +125,7 @@ const T: Record<string, string> = {
     'Clip is over 60 s · trim it and try again': '60초가 넘어요 · 짧게 자른 뒤 다시 시도해 주세요',
     'Please use a vertical (9:16) video': '세로 (9:16) 동영상을 사용해 주세요',
     'Video is too big · max 50 MB': '동영상이 너무 커요 · 최대 50 MB',
+    'Video is too big · try trimming it shorter or filming at 1080p': '동영상이 너무 커요 · 더 짧게 자르거나 1080p로 촬영해 주세요',
     'Pick a video file (MP4, MOV or WebM)': '동영상 파일을 선택하세요 (MP4, MOV, WebM)',
     'Upload stopped · tap Retry': '업로드가 멈췄어요 · 다시 시도를 누르세요',
     'This video cannot be read · try another': '이 동영상을 읽을 수 없어요 · 다른 걸로',

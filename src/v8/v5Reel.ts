@@ -84,7 +84,8 @@ export async function checkReel(file: File): Promise<ReelInfo> {
   const decodable = !!(v && width && height);
   if (!durationMs && head?.durationMs) durationMs = head.durationMs;
   if (!width || !height) { width = head?.width || 0; height = head?.height || 0; }
-  if (!decodable && head && isHevc(head.codec)) fail('HEVC');
+  // 16 Nov: an HEVC clip that <video> cannot open is fine when WebCodecs can decode it (it is shrunk to H.264 before upload)
+  if (!decodable && head && isHevc(head.codec) && !(await import('./reelTranscode').then((m) => m.canDecodeReel(file)).catch(() => false))) fail('HEVC');
   if (!width || !height || !durationMs) fail('UNREADABLE');
   if (durationMs < REEL_MIN_MS - 300) fail('TOO_SHORT');
   if (durationMs > REEL_MAX_MS + 900) fail('TOO_LONG');
@@ -124,11 +125,46 @@ function fallbackPoster(): Promise<Blob> {
   });
 }
 
-async function posterOf(v: HTMLVideoElement, atSec: number): Promise<Blob> {
+/** True when the canvas is (almost) one flat dark colour: nothing was drawn. */
+function looksBlank(ctx: CanvasRenderingContext2D, w: number, h: number): boolean {
+  try {
+    const d = ctx.getImageData(0, 0, w, h).data;
+    let max = 0;
+    for (let i = 0; i < d.length; i += 4 * 97) max = Math.max(max, d[i], d[i + 1], d[i + 2]);
+    return max < 12;
+  } catch { return false; }
+}
+
+/**
+ * Poster from the <video> element, or null when it cannot draw a frame.
+ * 16 Nov black-poster bug: this used to draw after `seeked` OR a 2.5 s timeout without checking that a frame was decoded.
+ * A 4K / HEVC / 100+ MB phone clip has its size from the header (videoWidth > 0) but no decoded frame yet (or the phone's
+ * <video> decoder cannot decode it at all), so drawImage painted nothing and the empty canvas became a black JPEG.
+ * Now: wait for a decoded frame (readyState ≥ 2), and reject a canvas that is still blank.
+ */
+async function posterOf(v: HTMLVideoElement, atSec: number): Promise<Blob | null> {
   await new Promise<void>((r) => { v.onseeked = () => r(); v.currentTime = Math.min(atSec, Math.max(0, v.duration - 0.1)); setTimeout(r, 2500); });
+  if (v.readyState < 2) await new Promise<void>((r) => { v.onloadeddata = () => r(); v.oncanplay = () => r(); setTimeout(r, 1500); });
+  if (v.readyState < 2) return null;
   const c = document.createElement('canvas'); c.width = 540; c.height = 960;
-  drawCover(c.getContext('2d')!, v, c.width, c.height);
-  return new Promise((ok, bad) => c.toBlob((b) => (b ? ok(b) : bad(new ReelError('UNREADABLE'))), 'image/jpeg', 0.72));
+  const ctx = c.getContext('2d', { willReadFrequently: true })!;
+  drawCover(ctx, v, c.width, c.height);
+  if (looksBlank(ctx, c.width, c.height)) return null;
+  return new Promise((ok) => c.toBlob((b) => ok(b), 'image/jpeg', 0.72));
+}
+
+/** Poster: <video> frame → WebCodecs-decoded frame → branded gradient. Never a black frame from a failed draw. */
+async function makePoster(info: ReelInfo, vv: HTMLVideoElement | null): Promise<Blob> {
+  const at = Math.min(1, info.durationMs / 3000);
+  try { const p = vv && vv.videoWidth ? await posterOf(vv, at) : null; if (p) return p; } catch { /* next */ }
+  try { const p = await (await import('./reelTranscode')).webCodecsPoster(info.file, at); if (p) return p; } catch { /* next */ }
+  return fallbackPoster();
+}
+
+/** Preview image for the post sheet when the <video> there cannot show a frame (object URL, or ''). */
+export async function previewPoster(info: ReelInfo): Promise<string> {
+  const p = await (await import('./reelTranscode')).webCodecsPoster(info.file, Math.min(1, info.durationMs / 3000)).catch(() => null);
+  return p ? URL.createObjectURL(p) : '';
 }
 
 /**
@@ -147,18 +183,27 @@ export function makeAudio(): AudioContext | null {
 export async function prepareReel(info: ReelInfo, ac: AudioContext | null, onProgress: (p: number) => void): Promise<ReelReady> {
   let vv: HTMLVideoElement | null = null;
   if (info.decodable !== false) { try { vv = await loadVideo(info.url); } catch { vv = null; } }
-  let poster: Blob;
-  try { poster = vv && vv.videoWidth ? await posterOf(vv, Math.min(1, info.durationMs / 3000)) : await fallbackPoster(); } catch { poster = await fallbackPoster(); }
+  const poster = await makePoster(info, vv);
   const original = (): ReelReady => {
-    if (info.file.size > REEL_MAX_BYTES) throw new ReelError('TOO_BIG');
+    if (info.file.size > REEL_MAX_BYTES) throw new ReelError('TOO_BIG');   // message: trim it shorter or film at 1080p
     const { ext, mime } = uploadType(info.file);
     return { blob: info.file, mime, ext, poster, durationMs: info.durationMs, width: info.width, height: info.height, shrunk: false };
   };
+  // 16 Nov: an original that is already light (≤ ~1.6 Mbit/s, ≤ 720 px wide) goes up as it is; everything else is shrunk
+  // to 720×1280 and ~1.3 Mbit/s (≈5 MB per 30 s), which is what makes the feed start fast on 4G
+  if (bitrate(info.file.size, info.durationMs) <= LIGHT_BPS && Math.min(info.width, info.height) <= 720 && /mp4|quicktime/i.test(uploadType(info.file).mime)) return original();
+  // 1st choice (16 Nov): WebCodecs transcode (mediabunny, loaded only now). Faster than real time, decodes HEVC/4K that
+  // <video> may not, and cannot be cut short by the screen locking: the result is read back and must be the full length.
+  try {
+    const t = await (await import('./reelTranscode')).transcodeReel(info.file, TARGET_VIDEO_BPS, onProgress);
+    if (t && t.blob.size >= 20_000 && t.blob.size <= REEL_MAX_BYTES && Math.abs(t.durationMs - info.durationMs) <= 500) {
+      onProgress(1);
+      return { blob: t.blob, mime: t.mime, ext: t.ext, poster, durationMs: info.durationMs, width: OUT_W, height: OUT_H, shrunk: true };
+    }
+  } catch { /* 2nd choice below */ }
+  // 2nd choice: re-record in real time through <video> + canvas + MediaRecorder
   if (!vv || !vv.videoWidth) return original();
   const v = vv;
-  // 16 Nov: an original that is already light (≤ ~1.6 Mbit/s, ≤ 720 px wide) goes up as it is; everything else is re-recorded
-  // at 720×1280 and ~1.3 Mbit/s (≈5 MB per 30 s), which is what makes the feed start fast on 4G
-  if (bitrate(info.file.size, info.durationMs) <= LIGHT_BPS && Math.min(info.width, info.height) <= 720 && /mp4|quicktime/i.test(uploadType(info.file).mime)) return original();
   const mime = pickMime();
   const canvas = document.createElement('canvas');
   if (!mime || typeof canvas.captureStream !== 'function') return original();
