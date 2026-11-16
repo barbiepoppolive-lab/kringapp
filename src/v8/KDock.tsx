@@ -44,9 +44,8 @@ export const DockIcon: React.FC<{ id: DockTab; on: boolean }> = ({ id, on }) => 
       {id === 'deals' && (
         <>
           <path d="M2.5 8.25a3.25 3.25 0 0 1 3.25-3.25h12.5a3.25 3.25 0 0 1 3.25 3.25v1.3a2.45 2.45 0 0 0 0 4.9v1.3a3.25 3.25 0 0 1-3.25 3.25H5.75a3.25 3.25 0 0 1-3.25-3.25v-1.3a2.45 2.45 0 0 0 0-4.9Z" fill={body} stroke={line} />
-          <path d="M9.5 14.75l5-5.5" fill="none" stroke={ink} />
-          <circle cx="9.75" cy="9.6" r="1.2" fill={ink} stroke="none" />
-          <circle cx="14.25" cy="14.4" r="1.2" fill={ink} stroke="none" />
+          {/* T301-014: a star in the ticket, not a percent sign (no % anywhere in Kring's look) */}
+          <path d="M12 8.4l1.06 2.15 2.37.34-1.72 1.67.41 2.36L12 13.8l-2.12 1.12.41-2.36-1.72-1.67 2.37-.34Z" fill={ink} stroke={ink} strokeWidth="0.6" strokeLinejoin="round" />
         </>
       )}
       {id === 'me' && (

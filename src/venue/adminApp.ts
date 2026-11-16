@@ -1805,7 +1805,7 @@ async function codesView() {
     const rowName = (b: string, a: number) => (b === 'truemoney' && codeVal(b, a) !== a ? `TrueMoney ฿${codeVal(b, a).toLocaleString('en-US')} code · for the ฿${a.toLocaleString('en-US')} prize` : `${BRANDN[b]} ฿${a.toLocaleString('en-US')}`);
     const held = rows.reduce((n, r) => n + r.held, 0);
     const stock = el('div', { class: 'card', id: 'codesStock' },
-      el('b', {}, 'Stock now'), el('p', { class: 'faint xs', style: 'margin:4px 0 10px' }, `Codes left · held claims waiting · given in the last 7 days. One row per prize. TrueMoney pays ${pct}% of a prize, so each TrueMoney row says the code value to load.`),
+      el('b', {}, 'Stock now'), el('p', { class: 'faint xs', style: 'margin:4px 0 10px' }, `Codes left · held claims waiting · given in the last 7 days. One row per prize. ${pct >= 100 ? 'TrueMoney pays the full prize value' : `TrueMoney pays ${pct} in every 100 baht of a prize`}, so each TrueMoney row says the code value to load.`),
       ...rows.map((r) => el('div', { class: 'row', style: 'justify-content:space-between;padding:6px 0;border-top:1px solid var(--line)', 'data-stock': `${r.brand}_${r.amount_thb}` },
         el('span', {}, rowName(r.brand, r.amount_thb)),
         el('span', {}, pill(`${r.available} left`, r.available ? '' : 'bad'), ' ', r.held ? pill(`${r.held} held`, 'warn') : null, ' ', el('span', { class: 'faint xs' }, `${r.given_7d} / 7d`)))));
