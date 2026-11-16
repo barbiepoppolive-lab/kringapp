@@ -1,36 +1,39 @@
-/* "For your trip" partner cards (Deals tab). Night navy cards, one accent per card; no yellow (monarchy rule). */
-.ktrip { margin: 22px 0 8px; }
-.ktrip-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 0 2px 8px; }
-.ktrip-head h3 { margin: 0; font: 800 20px 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; color: #fff; }
-.ktrip-trust { color: #3DDC97; font-weight: 700; font-size: 13px; white-space: nowrap; }
-.ktrip-disc { margin: 0 0 12px; padding: 9px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.04); color: rgba(255,255,255,.8); font-size: 12.5px; line-height: 1.4; }
+/* "For your trip" partner cards (Deals tab). 17 Nov polish: the same language as the Stay & do cards above it
+   (night card #171520, 22px corners, sharp Bangkok photo on top, orange→pink gradient button), one line icon badge per need.
+   No yellow (monarchy rule). */
+.ktrip { margin: 26px 0 8px; }
+.ktrip-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin: 0 2px 12px; }
+.ktrip-head h3 { margin: 0; min-width: 0; }
+.ktrip-title { display: flex; flex-direction: column; font: 800 20px/1.15 'Bricolage Grotesque', var(--kr-thai-body), 'Anuphan', sans-serif; color: #fff; }
+.ktrip-title small { font: 600 12px/1.3 'Bricolage Grotesque', sans-serif; color: rgba(255,247,236,.55); margin-top: 2px; }
+.ktrip-info { flex: none; display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+  background: rgba(255,255,255,.06); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); color: rgba(255,247,236,.7); transition: background-color .2s, color .2s; }
+.ktrip-info svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.ktrip-info.on { color: #fff; background: rgba(255,138,61,.18); box-shadow: inset 0 0 0 1px rgba(255,138,61,.5); }
+.ktrip-info:focus-visible { outline: 2px solid #FF4FA3; outline-offset: 2px; }
+.ktrip-infop { margin: -4px 2px 12px; font-size: 11.5px; line-height: 1.4; color: rgba(255,247,236,.62); }
+
 .ktrip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.ktrip-card { display: flex; flex-direction: column; gap: 3px; padding: 14px 12px 12px; border-radius: 20px; background: #171520; border: 1px solid rgba(255,255,255,.1); min-width: 0; }
-.ktrip-kick { font-size: 10.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
-.ktrip-name { color: #fff; font-size: 15px; line-height: 1.25; }
-.ktrip-sub { color: rgba(255,255,255,.72); font-size: 12.5px; line-height: 1.3; flex: 1; }
-.ktrip-cta { margin-top: 10px; display: block; text-align: center; padding: 9px 6px; border-radius: 999px; font-weight: 800; font-size: 13px; text-decoration: none; border: 1.5px solid currentColor; }
-.ktrip-card.blue .ktrip-kick { color: #FF8A3D; } .ktrip-card.blue .ktrip-cta { color: #fff; background: rgba(115,129,255,.28); border-color: #7381FF; }
-.ktrip-card.green .ktrip-kick, .ktrip-card.green .ktrip-cta { color: #3DDC97; } .ktrip-card.green .ktrip-cta { background: rgba(61,220,151,.12); }
-.ktrip-card.pink .ktrip-kick { color: #FF4FA3; } .ktrip-card.pink .ktrip-cta { color: #fff; background: rgba(255,79,163,.22); border-color: #FF4FA3; }
-.ktrip-card.tea .ktrip-kick, .ktrip-card.tea .ktrip-cta { color: #FF8A3D; } .ktrip-card.tea .ktrip-cta { background: rgba(255,138,61,.14); }
-@media (max-width: 340px) { .ktrip-grid { grid-template-columns: 1fr; } }
-/* v2 (affiliate ticket): whole card is the link, colour "photo" panel first */
-a.ktrip-card { text-decoration: none; padding: 0 0 12px; overflow: hidden; }
-a.ktrip-card > :not(.ktrip-photo) { margin-left: 12px; margin-right: 12px; }
-.ktrip-photo { display: grid; place-items: center; height: 92px; margin-bottom: 8px; }
-.ktrip-photo i { font-style: normal; font-size: 40px; filter: drop-shadow(0 4px 10px rgba(0,0,0,.3)); }
-.ktrip-card.blue .ktrip-photo { background: linear-gradient(135deg, #3B45E6, #7381FF); }
-.ktrip-card.green .ktrip-photo { background: linear-gradient(135deg, #1FA36B, #3DDC97); }
-.ktrip-card.pink .ktrip-photo { background: linear-gradient(135deg, #C2306E, #FF4FA3); }
-.ktrip-card.tea .ktrip-photo { background: linear-gradient(135deg, #E0601F, #FF8A3D); }
-.ktrip-grid + .ktrip-disc { margin: 10px 0 0; }
-.ktrip-kick { text-transform: none; letter-spacing: 0; font-size: 12px; }
-/* polish #9: one dark card style for every partner: real photo on top, white kicker, one ghost button (no per-card colours) */
-.ktrip-card.blue, .ktrip-card.green, .ktrip-card.pink, .ktrip-card.tea { background: #14121d; border-color: rgba(255,255,255,.09); }
-.ktrip-card .ktrip-photo { position: relative; height: 104px; background-size: cover; background-position: center; background-color: #1d1a29; }
-.ktrip-card .ktrip-photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 62%, rgba(20,18,29,.7) 100%); }
-.ktrip-card .ktrip-photo i { position: absolute; left: 10px; bottom: 8px; z-index: 1; font-size: 20px; width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: rgba(11,10,18,.55); backdrop-filter: blur(6px); filter: none; }
-.ktrip-card.blue .ktrip-kick, .ktrip-card.green .ktrip-kick, .ktrip-card.pink .ktrip-kick, .ktrip-card.tea .ktrip-kick { color: rgba(255,247,236,.62); }
-.ktrip-card.blue .ktrip-cta, .ktrip-card.green .ktrip-cta, .ktrip-card.pink .ktrip-cta, .ktrip-card.tea .ktrip-cta { color: #fff; background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.28); }
-.ktrip-card .ktrip-photo { filter: saturate(1.08) brightness(1.08); }
+.ktrip-card { position: relative; display: flex; flex-direction: column; min-width: 0; overflow: hidden; text-decoration: none; color: #fff;
+  border-radius: 22px; background: #171520; border: 1px solid rgba(255,255,255,.1); padding: 0 12px 12px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.28); transition: transform .15s ease; -webkit-tap-highlight-color: transparent;
+  animation: ktripIn .45s cubic-bezier(.2,.8,.2,1) both; }
+.ktrip-card:nth-child(2) { animation-delay: 60ms; } .ktrip-card:nth-child(3) { animation-delay: 120ms; } .ktrip-card:nth-child(4) { animation-delay: 180ms; }
+.ktrip-card:active { transform: scale(.97); }
+.ktrip-card:focus-visible { outline: 2px solid #FF4FA3; outline-offset: 2px; }
+.ktrip-photo { display: block; margin: 0 -12px; height: 118px; background-color: #1d1a29; background-size: cover; background-position: center; filter: saturate(1.12) contrast(1.04); }
+.ktrip-badge { position: relative; z-index: 1; display: grid; place-items: center; width: 38px; height: 38px; margin: -19px 0 8px; border-radius: 50%;
+  background: linear-gradient(135deg, #FF8A3D, #FF4FA3); box-shadow: 0 0 0 3px #171520, 0 6px 16px rgba(255,79,163,.35); }
+.ktrip-badge svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ktrip-name { font: 800 15.5px/1.2 'Bricolage Grotesque', sans-serif; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ktrip-sub { display: flex; flex-direction: column; flex: 1; margin-top: 3px; min-width: 0; }
+.ktrip-sub > span { font-size: 12.5px; line-height: 1.3; color: rgba(255,247,236,.82); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ktrip-sub small { font: 500 11px/1.3 'Bricolage Grotesque', sans-serif; color: rgba(255,247,236,.5); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 1px; }
+.ktrip-cta { margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; height: 38px; padding: 0 8px; border-radius: 999px;
+  font-weight: 800; font-size: 13px; color: #fff; background: linear-gradient(90deg, #FF8A3D, #FF4FA3); box-shadow: 0 6px 16px rgba(255,79,163,.25);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ktrip-cta i { font-style: normal; }
+.ktrip-disc { margin: 10px 2px 0; font-size: 11px; line-height: 1.4; color: rgba(255,247,236,.45); }
+@keyframes ktripIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ktrip-card { animation: none; transition: none; } }
+@media (max-width: 330px) { .ktrip-grid { grid-template-columns: 1fr; } }
