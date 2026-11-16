@@ -130,6 +130,9 @@ export function FoundingChecklist(props: { L: Tx; Lf: Txf; kx: KxCardExtras | nu
   );
 }
 
+/** Same rule as FoundingChecklist: the Founding "Next step" card is on screen. */
+export const foundingDue = (kx: KxCardExtras | null | undefined) => !!kx && !kx.founding_no && kx.founding_left !== undefined && !kx.has_reel;
+
 /** My Me tab */
 export function MeView(props: {
   L: Tx; Lf: Txf; p: V5Profile; rank: number | null; posters: Record<string, string>; savedCount: number; savedImgs: string[];
@@ -143,6 +146,8 @@ export function MeView(props: {
   reelsSlot?: React.ReactNode; onReplay?: () => void; gender?: string | null;
   /** 0061: the admin's own ghost card (only that phone sees this line) */
   ghost?: boolean;
+  /** 16 Nov: the weekly-prize race card, right under "This week" (hidden while the Founding "Next step" card shows: one next step at a time) */
+  prizeSlot?: React.ReactNode;
 }) {
   const { L, Lf, p } = props;
   const lv = p.level;
@@ -180,6 +185,7 @@ export function MeView(props: {
           <span className="kx-wk-go">{L('Rewards')} <i>›</i></span>
         </button>
       </div>
+      {props.prizeSlot && !foundingDue(props.kx) ? <div className="kpz-cardwrap">{props.prizeSlot}</div> : null}
       <FoundingChecklist L={L} Lf={Lf} kx={props.kx} hasSocial={!!(props.kx?.ig_handle || props.kx?.tiktok_handle || p.ig_handle)} onLink={props.onLink || props.onEdit} onPost={props.onPost} />
       {props.reelsSlot ? null : (
       <button type="button" className="kx-savedrow" id="kxSavedRow" onClick={props.onSavedReels || props.onSaved}>

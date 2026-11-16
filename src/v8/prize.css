@@ -1,0 +1,134 @@
+/* Weekly prize banner (16 Nov). Feed: a slim glass ticker beside the weather pill. Me: the race card under "This week".
+   Tokens follow the app: ink #0B0A12, coco #FFF7EC, pink #FF4FA3 → violet #7A5CFF (tab bar + Reel line), tea #FF8A3D for the prize.
+   Thai in Anuphan, English in Bricolage Grotesque, money and ranks in Unbounded (as on the Ranking page). No yellow. */
+.v8-app-root .kpz {
+  --pz-coco: #FFF7EC; --pz-c2: rgba(255,247,236,.70); --pz-c3: rgba(255,247,236,.50); --pz-line: rgba(255,247,236,.10);
+  --pz-pink: #FF4FA3; --pz-violet: #7A5CFF; --pz-blue: #7B8BFF; --pz-lens: #B05CFF; --pz-tea: #FF8A3D; --pz-up: #6EE7A8; --pz-down: #FF5A6B;
+  --pz-th: 'Anuphan', var(--kr-thai-body), 'Noto Sans Thai', sans-serif;
+  --pz-en: 'Bricolage Grotesque', 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --pz-num: 'Unbounded', 'Noto Sans Thai', 'Anuphan', sans-serif;
+  --pz-spring: cubic-bezier(.2, .9, .3, 1.22);
+  --pz-ease: cubic-bezier(.22, 1, .36, 1);
+  position: relative; color: var(--pz-coco); -webkit-font-smoothing: antialiased; text-align: left;
+  animation: kpzIn .62s var(--pz-spring) both;
+}
+.v8-app-root .kpz.out { animation: kpzOut .24s var(--pz-ease) both; pointer-events: none; }
+.v8-app-root .kpz button { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.v8-app-root .kpz .kpz-th { font-family: var(--pz-th); }
+.v8-app-root .kpz .kpz-en { font-family: var(--pz-en); }
+.v8-app-root .kpz-hit { display: flex; width: 100%; text-align: left; outline: none; }
+.v8-app-root .kpz-hit:focus-visible { box-shadow: 0 0 0 2px rgba(255,79,163,.75); }
+.v8-app-root .kpz-x { position: absolute; display: grid; place-items: center; width: 44px; height: 44px; outline: none; }
+.v8-app-root .kpz-x svg { width: 22px; height: 22px; padding: 6px; border-radius: 50%; box-sizing: border-box; background: rgba(255,247,236,.08);
+  stroke: var(--pz-c2); stroke-width: 1.6; stroke-linecap: round; fill: none; transition: background-color .2s ease, transform .18s var(--pz-spring); }
+.v8-app-root .kpz-x:active svg { transform: scale(.88); background: rgba(255,247,236,.16); }
+.v8-app-root .kpz-x:focus-visible svg { box-shadow: 0 0 0 2px rgba(255,79,163,.75); }
+
+/* ── the Kring rings, as in the logo (blue + pink, violet lens): the pink ring is your Rings towards the next step ── */
+.v8-app-root .kpz-rings { display: block; width: 46px; height: 30px; flex: none; overflow: visible; }
+.v8-app-root .kpz-rings.sm { width: 27px; height: 18px; }
+.v8-app-root .kpz-rings circle, .v8-app-root .kpz-rings path { fill: none; stroke-width: 4; stroke-linecap: round; }
+.v8-app-root .kpz-rings .kpz-rv { stroke: var(--pz-blue); }
+.v8-app-root .kpz-rings .kpz-rt { stroke: rgba(255,79,163,.20); }
+.v8-app-root .kpz-rings .kpz-rp { stroke: var(--pz-pink); filter: drop-shadow(0 0 3px rgba(255,79,163,.55));
+  transition: stroke-dashoffset 1s var(--pz-ease); animation: kpzDraw 1.1s var(--pz-ease) .28s backwards; }
+.v8-app-root .kpz-rings .kpz-over { stroke-linecap: butt; }
+.v8-app-root .kpz-rings .kpz-lens { fill: var(--pz-lens); opacity: .55; stroke: none; }
+
+/* ── rolling digits ── */
+.v8-app-root .kpz-odo { display: inline-flex; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.v8-app-root .kpz-od { position: relative; display: inline-block; line-height: 1.25; clip-path: inset(0 -3px); }
+.v8-app-root .kpz-odw { visibility: hidden; }
+.v8-app-root .kpz-ods { position: absolute; left: 0; right: 0; top: 0; display: flex; flex-direction: column; text-align: center;
+  transition: transform .64s cubic-bezier(.25, 1.25, .35, 1); }
+.v8-app-root .kpz-ods > span { display: block; height: 1.25em; line-height: 1.25em; }
+
+/* ── the prize: warm tea → pink, and a sheen that crosses it now and then ── */
+.v8-app-root .kpz-baht { font-weight: inherit; white-space: nowrap; text-shadow: none;
+  background-image: linear-gradient(105deg, transparent 38%, rgba(255,247,236,.95) 50%, transparent 62%), linear-gradient(90deg, var(--pz-tea), var(--pz-pink));
+  background-size: 260% 100%, 100% 100%; background-position: 140% 0, 0 0; background-repeat: no-repeat;
+  -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+  animation: kpzSheen 7.5s ease-in-out 1.3s infinite; }
+
+/* ── countdown ── */
+.v8-app-root .kpz-dot { display: inline-block; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--pz-violet); box-shadow: 0 0 0 0 rgba(255,79,163,.55); }
+.v8-app-root .kpz.last .kpz-dot { background: var(--pz-pink); animation: kpzBeat 1.8s ease-out infinite; }
+
+/* ── Feed: the slim live ticker (same glass, height and row as the weather pill) ── */
+.v8-app-root .kpz-tick { position: absolute; z-index: 41; top: calc(env(safe-area-inset-top) + 10px); left: 10px; max-width: calc(100% - 150px); height: 36px;
+  border-radius: 18px; background: rgba(14,12,22,.68); border: 1px solid rgba(255,247,236,.14); text-shadow: 0 1px 2px rgba(0,0,0,.35);
+  -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: 0 6px 18px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.06); animation-name: kpzDrop; }
+.v8-app-root .kpz-tick .kpz-hit { position: relative; align-items: center; gap: 7px; height: 100%; padding: 0 30px 0 8px; border-radius: 18px; min-width: 0; }
+/* the capsule is 36 px tall; its tap area is 46 px */
+.v8-app-root .kpz-tick .kpz-hit::before { content: ''; position: absolute; inset: -6px 0; }
+.v8-app-root .kpz-tick .kpz-tx { display: flex; flex-direction: column; min-width: 0; animation: kpzFade .4s var(--pz-ease) both; }
+.v8-app-root .kpz-tick .kpz-th { font-size: 12.5px; font-weight: 700; line-height: 1.22; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.005em; }
+.v8-app-root .kpz-tick .kpz-en { font-size: 10px; font-weight: 500; line-height: 1.2; color: rgba(255,247,236,.80); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .kpz-tick .kpz-x { top: -4px; right: -6px; }
+.v8-app-root .kpz-tick .kpz-x svg { width: 20px; height: 20px; padding: 6px; background: transparent; }
+.v8-app-root .kpz-tick .kpz-tcd { display: inline-flex; align-items: center; gap: 5px; flex: none; margin-left: 2px; padding: 3px 7px; border-radius: 10px;
+  background: rgba(255,79,163,.16); font: 700 10.5px var(--pz-en); font-variant-numeric: tabular-nums; color: var(--pz-coco); }
+.v8-app-root .kpz-tick .kpz-tcd .kpz-dot { width: 5px; height: 5px; }
+.v8-app-root .kpz-wk { position: absolute; left: 16px; right: 16px; bottom: -1px; height: 2px; border-radius: 2px; overflow: hidden; background: rgba(255,247,236,.12); pointer-events: none; }
+.v8-app-root .kpz-wk > i { display: block; height: 100%; transform-origin: 0 50%; background: linear-gradient(90deg, var(--pz-pink), var(--pz-violet)); transition: transform 1s linear; }
+.v8-app-root .kpz-tick.last .kpz-wk > i { animation: kpzGlow 1.8s ease-in-out infinite; }
+
+/* ── Me: the race card, right under the "This week" row ── */
+.v8-app-root .kpz-cardwrap { padding: 10px 22px 2px; }
+.v8-app-root .kpz-card { border-radius: 22px; overflow: hidden;
+  background: radial-gradient(90px 90px at 34px 38px, rgba(122,92,255,.20), transparent 70%), linear-gradient(180deg, #181527 0%, #110F1B 100%);
+  border: 1px solid rgba(255,247,236,.10); box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 16px 34px -20px rgba(122,92,255,.55); }
+.v8-app-root .kpz-card .kpz-hit { gap: 12px; padding: 15px 16px 13px 14px; border-radius: 22px; align-items: flex-start; }
+.v8-app-root .kpz-em { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 54px; flex: none; padding-top: 4px; }
+.v8-app-root .kpz-card .kpz-rings { width: 52px; height: 34px; }
+.v8-app-root .kpz-rk { display: inline-flex; align-items: center; gap: 1px; font: 700 12.5px var(--pz-num); letter-spacing: -.01em; color: var(--pz-coco); }
+.v8-app-root .kpz-rk .h { opacity: .6; margin-right: 1px; }
+.v8-app-root .kpz-dl { display: inline-flex; align-items: center; gap: 1px; margin-left: 5px; padding: 1px 5px 1px 3px; border-radius: 8px;
+  font: 800 10.5px/1.3 var(--pz-en); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.v8-app-root .kpz-dl svg { width: 9px; height: 9px; fill: currentColor; }
+.v8-app-root .kpz-dl.up { color: var(--pz-up); background: rgba(110,231,168,.12); }
+.v8-app-root .kpz-dl.dn { color: var(--pz-down); background: rgba(255,90,107,.12); }
+.v8-app-root .kpz-body { display: flex; flex-direction: column; flex: 1; min-width: 0; animation: kpzFade .45s var(--pz-ease) both; }
+.v8-app-root .kpz-ph { white-space: nowrap; }
+.v8-app-root .kpz-card .kpz-h.kpz-th { font-size: 17px; font-weight: 700; line-height: 1.36; letter-spacing: -.005em; padding-right: 24px; text-wrap: balance; }
+.v8-app-root .kpz-card .kpz-h.kpz-en { font-size: 12px; font-weight: 500; line-height: 1.32; color: var(--pz-c2); margin-top: 1px; padding-right: 18px; text-wrap: balance; }
+.v8-app-root .kpz-card .kpz-s.kpz-th { font-size: 13.5px; font-weight: 500; line-height: 1.45; color: rgba(255,247,236,.88); margin-top: 10px; }
+.v8-app-root .kpz-card .kpz-s.kpz-en { font-size: 11.5px; font-weight: 500; line-height: 1.32; color: var(--pz-c3); text-wrap: pretty; }
+.v8-app-root .kpz-card[data-kind="B"] .kpz-s.kpz-th { font-weight: 700; color: var(--pz-coco); }
+.v8-app-root .kpz-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-top: 13px; padding-top: 11px; border-top: 1px solid var(--pz-line); }
+.v8-app-root .kpz-cd { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.v8-app-root .kpz-cdt { display: flex; flex-direction: column; }
+.v8-app-root .kpz-cdt .kpz-th { font-size: 12.5px; font-weight: 500; line-height: 1.3; color: var(--pz-coco); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.v8-app-root .kpz-cdt .kpz-en { font-size: 10.5px; font-weight: 500; line-height: 1.3; color: var(--pz-c3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.v8-app-root .kpz.last .kpz-cdt .kpz-th { color: #FFD2E8; }
+.v8-app-root .kpz-stake { display: flex; flex-direction: column; align-items: flex-end; flex: none; }
+.v8-app-root .kpz-stake .kpz-baht { font: 700 19px/1.15 var(--pz-num); letter-spacing: -.02em; }
+.v8-app-root .kpz-stk { display: flex; flex-direction: column; align-items: flex-end; margin-top: 2px; }
+.v8-app-root .kpz-stk .kpz-th { font-size: 10.5px; line-height: 1.3; color: var(--pz-c2); white-space: nowrap; }
+.v8-app-root .kpz-stk .kpz-en { font-size: 10px; line-height: 1.2; color: var(--pz-c3); white-space: nowrap; }
+.v8-app-root .kpz-card .kpz-x { top: 4px; right: 4px; }
+.v8-app-root .kpz-card .kpz-hit:active { background: rgba(255,247,236,.03); }
+
+@keyframes kpzIn { 0% { opacity: 0; transform: translateY(12px) scale(.96); } 55% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+@keyframes kpzDrop { 0% { opacity: 0; transform: translateY(-10px) scale(.94); } 55% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+@keyframes kpzOut { to { opacity: 0; transform: translateY(-4px) scale(.96); } }
+@keyframes kpzFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes kpzDraw { from { stroke-dashoffset: 81.68; } }
+@keyframes kpzSheen { 0% { background-position: 140% 0, 0 0; } 20% { background-position: -40% 0, 0 0; } 100% { background-position: -40% 0, 0 0; } }
+@keyframes kpzGlow { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+@keyframes kpzBeat { 0% { box-shadow: 0 0 0 0 rgba(255,79,163,.6); transform: scale(1); } 45% { transform: scale(1.25); } 70% { box-shadow: 0 0 0 7px rgba(255,79,163,0); } 100% { box-shadow: 0 0 0 0 rgba(255,79,163,0); transform: scale(1); } }
+
+@media (max-width: 370px) {
+  .v8-app-root .kpz-card .kpz-hit { gap: 10px; padding: 14px 13px 12px 11px; }
+  .v8-app-root .kpz-card .kpz-h.kpz-th { font-size: 15px; }
+  .v8-app-root .kpz-tick { max-width: calc(100% - 140px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v8-app-root .kpz, .v8-app-root .kpz.out, .v8-app-root .kpz-body, .v8-app-root .kpz-tick .kpz-tx, .v8-app-root .kpz-rings .kpz-rp,
+  .v8-app-root .kpz-baht, .v8-app-root .kpz.last .kpz-dot, .v8-app-root .kpz-tick.last .kpz-wk > i { animation: none; }
+  .v8-app-root .kpz-ods, .v8-app-root .kpz-rings .kpz-rp, .v8-app-root .kpz-wk > i, .v8-app-root .kpz-x svg { transition: none; }
+}
+
+/* 17 Nov release: the Feed top row now holds weather · "Reels · Ask a Thai" · chat, so the ticker takes the line right under it, centred */
+.v8-app-root #s-feed.at-has-sw .kpz-tick { top: calc(env(safe-area-inset-top) + 52px); left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100% - 24px); }
