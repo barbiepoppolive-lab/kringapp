@@ -303,7 +303,7 @@ export function V5MintSheet(props: {
       <div className="kx-mint-card">
         <NeonCard L={L} photo={shownPhoto || null} name={name.trim()} level={lv} no={card?.member_no ?? null} ig={ig} tt={tt} size="mint"
           slot={!ig || !tt ? (
-            <button type="button" className="kx-slot" onClick={() => setLink(!ig ? 'ig' : 'tt')}>+ {!ig ? 'Instagram' : 'TikTok'}</button>
+            <button type="button" className="kx-slot" onClick={() => setLink(!ig ? 'ig' : 'tt')}>{Lf('+ Add {0}', !ig ? 'Instagram' : 'TikTok')}</button>
           ) : null} />
         {/* 16 Nov (founder): an empty card shows a big + with "Add photo" right on the card */}
         {!shownPhoto && !checking ? (

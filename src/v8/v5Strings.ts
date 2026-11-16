@@ -13,6 +13,8 @@ export const V5_L: Record<string, Record<string, string>> = {
     'My Reel stats': 'สถิติรีลของฉัน',
     'View': 'ยอดดู',
     'Outside open': 'เปิดจากลิงก์แชร์',
+    'Weekly Ranking': 'อันดับประจำสัปดาห์',
+    '+ Add {0}': '+ เพิ่ม {0}',
     'Outside opens': 'เปิดจากลิงก์แชร์',
     '{0} of these from travellers (count double)': 'มาจากนักท่องเที่ยว {0} ครั้ง (นับ 2 เท่า)',
     'Outside opens show for your best Reels this week.': 'ยอดเปิดจากลิงก์แชร์จะแสดงเฉพาะรีลที่ดีที่สุดของคุณในสัปดาห์นี้',
@@ -628,6 +630,8 @@ export const KX_L: Record<string, Record<string, string>> = {
     // Me tiles
     'Rings': 'ริง',
     'Ring': 'ริง',
+    'Weekly Ranking': 'อันดับประจำสัปดาห์',
+    '+ Add {0}': '+ เพิ่ม {0}',
     'this week': 'สัปดาห์นี้',
     'Ranking': 'อันดับ',
     // rewards

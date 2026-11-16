@@ -21,13 +21,13 @@ describe('Deals → For your trip (17 Nov polish)', () => {
       expect(a.querySelector('.ktrip-badge svg path, .ktrip-badge svg rect')).toBeTruthy();
     }
   });
-  it('Thai screen: Thai value line with the English under it; one-language screens show one line', () => {
+  it('T-301 round 2: Thai screen shows Thai only (no English stacked under it); English screen shows English only', () => {
     const { container, unmount } = render(<TripPerks L={TH} />);
     expect(screen.getByText('สำหรับทริปของคุณ')).toBeTruthy();
-    expect(screen.getByText('For your trip')).toBeTruthy();
+    expect(screen.queryByText('For your trip')).toBeNull();
     expect(screen.getByText('ออนไลน์ได้ทันทีที่เครื่องลง')).toBeTruthy();
-    expect(screen.getByText('Online the moment you land')).toBeTruthy();
-    expect(container.querySelectorAll('.ktrip-sub small').length).toBe(4);
+    expect(screen.queryByText('Online the moment you land')).toBeNull();
+    expect(container.querySelectorAll('.ktrip-sub small').length).toBe(0);
     unmount();
     const en = render(<TripPerks L={(s) => s} />);
     expect(en.container.querySelectorAll('.ktrip-sub small').length).toBe(0);

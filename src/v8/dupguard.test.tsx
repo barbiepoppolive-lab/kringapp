@@ -222,7 +222,7 @@ describe('week dates (admin Approve week)', () => {
 });
 
 describe('ranking board nudge (unverified still on the board)', () => {
-  it('shows the Thai + English nudge (tiny, under my photo) only when asked', async () => {
+  it('shows the nudge in the app language only (T-301 round 2; tiny, under my photo) only when asked', async () => {
     const { RankingPage } = await import('./V5KxRanking');
     const onVerify = vi.fn();
     const { unmount } = render(<RankingPage L={L} Lf={Lf} lang="th" myArea={null} myPhoto={null} myName="A" myId="me" onBack={() => undefined} onPerson={() => undefined}
@@ -230,8 +230,8 @@ describe('ranking board nudge (unverified still on the board)', () => {
     const n = await waitFor(() => { const e = document.getElementById('kxVerifyNudge'); if (!e) throw new Error('no nudge'); return e; });
     expect(n.closest('.rka-meph')).toBeTruthy();
     expect(n.getAttribute('aria-label')).toContain('ยืนยันใบหน้าสั้น ๆ');
-    expect(n.getAttribute('aria-label')).toContain('Quick face check');
-    expect(n.textContent).toBe('ยืนยันหน้าverify');
+    expect(n.getAttribute('aria-label')).not.toContain('Quick face check');
+    expect(n.textContent).toBe('ยืนยันหน้า');
     fireEvent.click(n);
     expect(onVerify).toHaveBeenCalled();
     unmount();

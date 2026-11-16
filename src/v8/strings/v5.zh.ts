@@ -11,6 +11,8 @@ const T: Record<string, string> = {
     'My Reel stats': '我的 Reel 数据',
     'View': '播放',
     'Outside open': '站外打开',
+    'Weekly Ranking': '每周排名',
+    '+ Add {0}': '+ 添加 {0}',
     'Outside opens': '站外打开',
     '{0} of these from travellers (count double)': '其中 {0} 次来自旅行者（双倍计算）',
     'Outside opens show for your best Reels this week.': '站外打开次数只显示你本周最好的 Reel。',

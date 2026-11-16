@@ -201,8 +201,9 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
     <div className="kx-page kx-rk rka" id="kxRanking">
       <div className="rka-top">
         <button type="button" className="kx-bk rka-bk" aria-label={L('Back')} onClick={props.onBack}>‹</button>
-        <div className="rka-tt"><h1>Weekly Ranking</h1><span lang="th">อันดับประจำสัปดาห์</span></div>
-        <span className={`rka-cd${hot ? ' hot' : ''}`} id="kxCountdown" data-hot={hot ? '1' : '0'}><i aria-hidden="true" />{Lf('Ends {0}', countdown(now, end))}</span>
+        {/* T-301 round 2 (T301-009/020): one language on the page, "5 วัน" not "5d" in Thai */}
+        <div className="rka-tt"><h1>{L('Weekly Ranking')}</h1></div>
+        <span className={`rka-cd${hot ? ' hot' : ''}`} id="kxCountdown" data-hot={hot ? '1' : '0'}><i aria-hidden="true" />{Lf('Ends {0}', props.lang === 'th' ? countdown(now, end).replace(/^(\d+)d /, '$1 วัน ') : countdown(now, end))}</span>
       </div>
       {data === null && !err ? <p className="kx-empty pad">…</p> : err ? <p className="kx-empty pad">{L('Couldn’t reach Kring. Check your connection and try again.')}</p> : (
         <>
@@ -246,15 +247,15 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
                 <Av photo={props.myPhoto} name={props.myName} size={42} />
                 {props.needsVerify && props.onVerify ? (
                   <button type="button" className="rka-vfy" id="kxVerifyNudge" onClick={props.onVerify}
-                    aria-label="ยืนยันใบหน้าสั้น ๆ เพื่อให้รีลของคุณติดบอร์ดอันดับ · Quick face check to keep your Reel on the ranking board"
-                    title="ยืนยันใบหน้าสั้น ๆ เพื่อให้รีลของคุณติดบอร์ดอันดับ · Quick face check to keep your Reel on the ranking board">
-                    <span lang="th">ยืนยันหน้า</span><small lang="en">verify</small>
+                    aria-label={props.lang === 'th' ? 'ยืนยันใบหน้าสั้น ๆ เพื่อให้รีลของคุณติดบอร์ดอันดับ' : 'Quick face check to keep your Reel on the ranking board'}
+                    title={props.lang === 'th' ? 'ยืนยันใบหน้าสั้น ๆ เพื่อให้รีลของคุณติดบอร์ดอันดับ' : 'Quick face check to keep your Reel on the ranking board'}>
+                    {props.lang === 'th' ? <span lang="th">ยืนยันหน้า</span> : <small lang="en">verify</small>}
                   </button>
                 ) : null}
               </span>
               <span className="t"><span className="l1">{own.l1}</span>
-                {ownTh !== ownEn ? <small className="th" lang="th" id="kxMeNextTh">{ownTh}</small> : null}
-                <small id="kxMeNext" lang="en">{ownEn}</small></span>
+                {props.lang === 'th' ? <small className="th" lang="th" id="kxMeNextTh">{ownTh}</small>
+                  : <small id="kxMeNext" lang={props.lang === 'en' ? 'en' : props.lang}>{props.lang === 'en' ? ownEn : own.l2}</small>}</span>
               {own.btn === 'math' ? <button type="button" className="kx-go" id="kxMeBtn" onClick={() => setMath(props.myId)}>{L('See my math')}</button>
                 : own.btn === 'share' ? <button type="button" className="kx-go" id="kxMeBtn" onClick={() => setMath(props.myId)}>{L('Share')}</button>
                 : own.btn === 'post' ? <button type="button" className="kx-go" id="kxMeBtn" onClick={props.onPost}>{L('Post')}</button> : null}

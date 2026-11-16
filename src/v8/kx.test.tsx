@@ -270,13 +270,13 @@ describe('Ranking screen', () => {
     expect([...document.querySelectorAll('.kx-row .kx-tl')].map((e) => e.textContent)).toEqual(['12 to #8', '23 to #8']);
     expect(document.querySelectorAll('[data-rank]').length).toBe(10);
     expect(document.querySelector('#kxMeNext')!.textContent).toBe('12 Rings to #8 · ฿100');
-    expect(document.querySelector('.rka-tt')!.textContent).toBe('Weekly Rankingอันดับประจำสัปดาห์');
+    expect(document.querySelector('.rka-tt')!.textContent).toBe('Weekly Ranking');
     expect(document.querySelector('#kxCountdown')!.textContent).toMatch(/^Ends \d+d \d\d:\d\d$/);
     expect(document.querySelector('#kxRanking')!.textContent).not.toMatch(/\+5,000|\+500|Sun 23:59/);
     // look A (17 Nov): the All Bangkok · My area · Friends tabs are gone; the board is always All Bangkok
     expect(document.querySelector('[role="tablist"], #kxRank-area, #kxRank-friends, #kxHowBtn')).toBeNull();
     expect(kxMock.kxRanking).toHaveBeenCalledWith('all');
-    expect(document.querySelector('#kxMeNextTh')!.textContent).toBe('อีก 12 ริง ถึงอันดับ 8 · ฿100');
+    expect(document.querySelector('#kxMeNextTh')).toBeNull();   // round 2: English page, no Thai line
   });
   it('cold start: empty paid ranks are "Open seat · ฿250"; under the floor shows "needs 25"; the line says 25 Rings', async () => {
     const rows = [88, 64, 51, 33, 18].map((r, i) => row(i + 1, r));

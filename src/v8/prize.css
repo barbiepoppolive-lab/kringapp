@@ -142,3 +142,6 @@
 .v8-app-root .kpz-card[data-one="en"] .kpz-h.kpz-en { font-size: 15px; font-weight: 700; color: var(--pz-c1, #FFF7EC); margin-top: 0; }
 .v8-app-root .kpz-card[data-one="en"] .kpz-s.kpz-en { font-size: 12.5px; }
 .v8-app-root .kpz-cdt[data-one="en"] .kpz-en, .v8-app-root .kpz[data-one="en"] .kpz-cdt .kpz-en, .v8-app-root .kpz[data-one="en"] .kpz-stk .kpz-en { font-size: 11.5px; }
+
+/* T-301 round 2 (T301-009/017): app in Thai → Thai line only (no English stacked under it) */
+.v8-app-root .kpz[data-one="th"] .kpz-en { display: none; }

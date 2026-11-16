@@ -11,6 +11,8 @@ const T: Record<string, string> = {
     'My Reel stats': '내 릴 통계',
     'View': '조회수',
     'Outside open': '외부 열람',
+    'Weekly Ranking': '주간 랭킹',
+    '+ Add {0}': '+ {0} 추가',
     'Outside opens': '외부 열람',
     '{0} of these from travellers (count double)': '그중 {0}회는 여행자 (2배로 계산)',
     'Outside opens show for your best Reels this week.': '외부 열람은 이번 주 베스트 릴에만 표시돼요.',

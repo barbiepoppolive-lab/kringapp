@@ -173,7 +173,8 @@ export function PrizeBanner(props: PrizeBannerProps) {
   if (!pick || !clock || !open || hidden) return null;
   const copy = PRIZE_COPY[pick.kind];
   const v = pick.vals;
-  const label = `${plain(copy.head, v)}. ${clock.th} · ${clock.en}`;
+  // T-301 round 2: one language for screen readers too, when the app language is known
+  const label = props.lang === 'th' ? `${fill(copy.head.th, v)}. ${clock.th}` : props.lang ? `${fill(copy.head.en, v)}. ${clock.en}` : `${plain(copy.head, v)}. ${clock.th} · ${clock.en}`;
   const hide = () => {
     hidePrize(uid, Date.now());
     const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -182,7 +183,7 @@ export function PrizeBanner(props: PrizeBannerProps) {
     leaveT.current = window.setTimeout(() => { setHidden(true); props.onHide?.(); }, 240);
   };
   const x = (
-    <button type="button" className="kpz-x" aria-label="ซ่อนวันนี้ · Hide for today" onClick={hide}>
+    <button type="button" className="kpz-x" aria-label={props.lang === 'th' ? 'ซ่อนวันนี้' : props.lang ? 'Hide for today' : 'ซ่อนวันนี้ · Hide for today'} onClick={hide}>
       <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6" /></svg>
     </button>
   );
@@ -192,14 +193,14 @@ export function PrizeBanner(props: PrizeBannerProps) {
     const chip = clock.last && !!copy.tight;
     const line = chip && copy.tight ? copy.tight : copy.short;
     return (
-      <div className={`kpz kpz-tick${leaving ? ' out' : ''}${clock.last ? ' last' : ''}`} id="kpzTicker" data-one={props.lang && props.lang !== 'th' ? 'en' : undefined} data-kind={pick.kind} role="group" aria-label="Kring weekly ranking">
+      <div className={`kpz kpz-tick${leaving ? ' out' : ''}${clock.last ? ' last' : ''}`} id="kpzTicker" data-one={props.lang ? (props.lang === 'th' ? 'th' : 'en') : undefined} data-kind={pick.kind} role="group" aria-label="Kring weekly ranking">
         <button type="button" className="kpz-hit" onClick={props.onOpen} aria-label={label}>
           <RingsMeter progress={pick.progress} small />
           <span className="kpz-tx" key={pick.kind}>
             <span className="kpz-th"><Line tpl={line.th} v={v} lang="th" /></span>
             <span className="kpz-en"><Line tpl={line.en} v={v} lang="en" /></span>
           </span>
-          {chip ? <span className="kpz-tcd" aria-hidden="true"><i className="kpz-dot" />{clock.en.replace('Ends ', '')}</span> : null}
+          {chip ? <span className="kpz-tcd" aria-hidden="true"><i className="kpz-dot" />{props.lang === 'th' ? clock.th.replace('จบใน ', '') : clock.en.replace('Ends ', '')}</span> : null}
         </button>
         {x}
         <i className="kpz-wk" aria-hidden="true"><i style={{ transform: `scaleX(${clock.frac})` }} /></i>
@@ -208,7 +209,7 @@ export function PrizeBanner(props: PrizeBannerProps) {
   }
 
   return (
-    <div className={`kpz kpz-card${leaving ? ' out' : ''}${clock.last ? ' last' : ''}`} id="kpzCard" data-one={props.lang && props.lang !== 'th' ? 'en' : undefined} data-kind={pick.kind} role="group" aria-label="Kring weekly ranking">
+    <div className={`kpz kpz-card${leaving ? ' out' : ''}${clock.last ? ' last' : ''}`} id="kpzCard" data-one={props.lang ? (props.lang === 'th' ? 'th' : 'en') : undefined} data-kind={pick.kind} role="group" aria-label="Kring weekly ranking">
       <button type="button" className="kpz-hit" onClick={props.onOpen} aria-label={label}>
         <span className="kpz-em">
           <RingsMeter progress={pick.progress} />

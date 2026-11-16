@@ -28,14 +28,13 @@ const ICONS: Record<string, ReactNode> = {
 };
 const THAI = /[\u0E00-\u0E7F]/;
 
-/** Thai first, the English under it (only when the line really is Thai). */
+/** T-301 round 2 (T301-009/023): the line in the app's language only (no English stacked under Thai). */
 function TwoLine(props: { L: Tx; en: string; className: string }) {
   const { L, en, className } = props;
   const main = L(en);
   return (
     <span className={className}>
-      <span>{main}</span>
-      {main !== en && THAI.test(main) ? <small lang="en">{en}</small> : null}
+      <span lang={THAI.test(main) ? 'th' : undefined}>{main}</span>
     </span>
   );
 }
