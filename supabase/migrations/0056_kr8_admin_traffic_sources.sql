@@ -52,6 +52,14 @@ begin
               when 'line' then 'line' when 'google' then 'google' when 'reddit' then 'reddit'
               when 'chatgpt' then 'ai' when 'ai' then 'ai' end as ref_ch,
       case when host is null then null
+           -- Android apps send their package name as the referrer (in-app browsers)
+           when host ~ '(naver\.line|^jp\.naver)' then 'line'
+           when host ~ '^com\.instagram\.' then 'instagram'
+           when host ~ '^(com\.zhiliaoapp\.musically|com\.ss\.android\.ugc)' then 'tiktok'
+           when host ~ '^com\.(facebook|facebook\.katana|facebook\.orca)' then 'facebook'
+           when host ~ '^com\.twitter\.android' then 'x'
+           when host ~ '^com\.google\.android\.(googlequicksearchbox|gm)' then 'google'
+           when host ~ '^com\.reddit\.' then 'reddit'
            when host ~ '(^|\.)instagram\.com$' then 'instagram'
            when host ~ '(^|\.)tiktok\.com$' then 'tiktok'
            when host ~ '^(t\.co|(.+\.)?(x|twitter)\.com)$' then 'x'
