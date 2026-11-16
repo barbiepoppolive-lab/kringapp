@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './fonts-v8.css';
 import './v8.css';
+import { KDock } from './KDock';
 import {
   clearOfflineQueue,
   DEFAULT_WEATHER,
@@ -4600,58 +4601,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         </section>
 
         {/* ==================== BOTTOM DOCK (4 Tabs) ==================== */}
-        <nav className="dock" aria-label="Primary navigation">
-          <button
-            type="button"
-            className={tab === 'feed' ? 'active' : ''}
-            data-tab="feed"
-            onClick={() => handleDockTap('feed')}
-          >
-            <svg viewBox="0 0 24 24">
-              <rect x="6" y="2.5" width="12" height="19" rx="3" />
-              <path d="M10.5 18.5h3" />
-            </svg>
-            <span>{t.feed}</span>
-          </button>
-          <button
-            type="button"
-            className={tab === 'people' ? 'active' : ''}
-            data-tab="people"
-            onClick={() => handleDockTap('people')}
-          >
-            <svg viewBox="0 0 24 24">
-              <circle cx="9" cy="8" r="3.5" />
-              <path d="M3 19c0-3 2.7-5.5 6-5.5s6 2.5 6 5.5" />
-              <circle cx="17" cy="9" r="2.5" />
-              <path d="M15 19c.4-2.1 2-3.8 4.5-4" />
-            </svg>
-            <span>{t.people}</span>
-          </button>
-          <button
-            type="button"
-            className={tab === 'deals' ? 'active' : ''}
-            data-tab="deals"
-            onClick={() => handleDockTap('deals')}
-          >
-            <svg viewBox="0 0 24 24">
-              <path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1.5a2 2 0 0 0 0 3V15a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1.5a2 2 0 0 0 0-3Z" />
-              <path d="M13 7v10" />
-            </svg>
-            <span>{t.deals}</span>
-          </button>
-          <button
-            type="button"
-            className={tab === 'me' ? 'active' : ''}
-            data-tab="me"
-            onClick={() => handleDockTap('me')}
-          >
-            <svg viewBox="0 0 24 24">
-              <circle cx="12" cy="8" r="4" />
-              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-            </svg>
-            <span>{t.me}</span>
-          </button>
-        </nav>
+        <KDock tab={tab} labels={{ feed: t.feed, people: t.people, deals: t.deals, me: t.me }} onTap={handleDockTap} />
 
         {/* ==================== CONDITIONAL SHEETS (mounted ONLY when open) ==================== */}
         {sheet && !['profile', 'rewards', 'claim', 'claimed', 'ranking', 'result', 'savedreels', 'place', 'v5card'].includes(sheet) && (
