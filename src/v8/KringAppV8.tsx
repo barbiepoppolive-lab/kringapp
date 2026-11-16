@@ -86,7 +86,7 @@ import {
   v5SyncAttribution,
   v5StoredRef,
 } from './v5Live';
-import { ActivitySheet, FollowSheet, InterestsSheet, LANG_NAME, MeView, Top10Sheet } from './V5Me';
+import { ActivitySheet, FollowSheet, InterestsSheet, LANG_NAME, MeView } from './V5Me';
 import { A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip, openInstallSheet, takeInstallAsk } from './A2HS';
 import { parsePushLink, pushConfigured, pushDisable, pushEnable, pushMoment, pushResync, pushState, type PushLink, type PushState } from './push';
 import { PUSH_ASK_LINE, PushAskCard } from './V5Push';
@@ -915,7 +915,6 @@ type SheetId =
   | 'reelshare'
   | 'reelmore'
   | 'blocked'
-  | 'top10'
   | 'follow'
   | 'activity'
   | 'interests'
@@ -4924,6 +4923,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             video={`${import.meta.env.BASE_URL}media/demo/bangpu.mp4`}
             onPost={() => { setReelNudgeLater(v5Uid, false); setTab('feed'); openCreate(); }}
             onLater={() => { setReelNudgeLater(v5Uid, true); setSheet(null); }}
+            lang={lang}
+            L={L}
           />
         )}
         {sheet === 'v5card' && live && (
@@ -6683,11 +6684,6 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onClose={() => { setSheet(null); void loadMe(); }}
             onSent={() => setVerifyPending(true)}
             onAddPhoto={() => setSheet('v5card')} />
-        )}
-        {sheet === 'top10' && (
-          <Top10Sheet L={L} Lf={Lf} myArea={v5Card?.area && v5Card.area !== 'Bangkok' ? v5Card.area : 'Ari'}
-            load={(per) => v5Top10(per, per === 'area' ? (v5Card?.area && v5Card.area !== 'Bangkok' ? v5Card.area : 'Ari') : null)}
-            onClose={() => setSheet(null)} onPerson={(id) => void openProfile(id)} />
         )}
         {sheet === 'follow' && followFor && (
           <FollowSheet L={L} Lf={Lf} who={followFor.name} counts={followFor.counts} initial={followFor.initial}
