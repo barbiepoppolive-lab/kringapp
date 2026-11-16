@@ -28,11 +28,18 @@ export interface AskApi {
   ask(d: AskDraft): Promise<string>;
   answer(postId: string, parentId: string | null, body: string, file?: File | null): Promise<string>;
   vote(kind: 'q' | 'a', id: string, value: -1 | 0 | 1): Promise<number>;
+  /** report a question / answer; the reporter stops seeing it at once ('block' also blocks the person) */
+  report(kind: 'q' | 'a', id: string, reason: AskReportReason): Promise<void>;
 }
+export type AskReportReason = 'spam' | 'unsafe' | 'block';
 
 export const ASK_MAX_Q = 200;
 export const ASK_MAX_TEXT = 1000;
 export const ASK_MAX_FILE = 5 * 1024 * 1024;
+/** a phone photo may be bigger before it is re-saved on the phone (the upload is always the small re-saved copy) */
+export const ASK_MAX_PHOTO_IN = 30 * 1024 * 1024;
+/** longest side of an uploaded photo */
+export const ASK_PHOTO_SIDE = 1600;
 export const ASK_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 /** Thread order: best answer first (top-level, highest score above 0), then the rest by score; replies right under their answer. */
@@ -64,8 +71,111 @@ export function askAge(iso: string, now = Date.now()): { n: number; u: 'now' | '
 }
 export function checkAskFile(f: File): 'type' | 'size' | null {
   if (!ASK_TYPES.includes(f.type)) return 'type';
-  if (f.size > ASK_MAX_FILE) return 'size';
+  if (f.size > (f.type === 'image/gif' ? ASK_MAX_FILE : ASK_MAX_PHOTO_IN)) return 'size';
   return null;
+}
+
+// ─────────────── photo clean-up (security audit H3): no GPS / camera data ever leaves the phone ───────────────
+// Every photo is drawn onto a canvas and saved again as a new JPEG (quality 0.85, longest side 1600 px). A canvas copy
+// carries pixels only, so the EXIF block (GPS location, camera, time) of the original is gone. As a second lock, the
+// JPEG bytes are walked and every APP1–APP15 (EXIF / XMP / ICC / maker notes) and comment segment is cut out. A GIF keeps
+// its frames but loses every comment / text / application block except the loop setting. The original File is never uploaded.
+
+const isJpeg = (b: Uint8Array) => b.length > 3 && b[0] === 0xff && b[1] === 0xd8;
+/** Removes APP1–APP15 and COM segments from a JPEG (keeps APP0/JFIF, tables, frame, scan and everything after SOS). */
+export function stripJpegMeta(b: Uint8Array): Uint8Array {
+  if (!isJpeg(b)) throw new Error('KR8_BAD_FILE');
+  const out: number[] = [0xff, 0xd8];
+  let i = 2;
+  while (i + 4 <= b.length) {
+    if (b[i] !== 0xff) throw new Error('KR8_BAD_FILE');
+    const m = b[i + 1];
+    if (m === 0xff) { i++; continue; }   // fill byte
+    if (m === 0xda) { for (let k = i; k < b.length; k++) out.push(b[k]); return Uint8Array.from(out); }   // start of scan: the rest is image data
+    if (m === 0xd9) { out.push(0xff, 0xd9); return Uint8Array.from(out); }
+    const len = (b[i + 2] << 8) | b[i + 3];
+    if (len < 2 || i + 2 + len > b.length) throw new Error('KR8_BAD_FILE');
+    const drop = (m >= 0xe1 && m <= 0xef) || m === 0xfe;
+    if (!drop) for (let k = i; k < i + 2 + len; k++) out.push(b[k]);
+    i += 2 + len;
+  }
+  throw new Error('KR8_BAD_FILE');
+}
+/** Keeps a GIF's frames and loop setting; drops comment, plain-text and other application blocks (XMP etc). */
+export function stripGifMeta(b: Uint8Array): Uint8Array {
+  const sig = String.fromCharCode(...b.slice(0, 6));
+  if (sig !== 'GIF89a' && sig !== 'GIF87a') throw new Error('KR8_BAD_FILE');
+  const out: number[] = [];
+  const copy = (a: number, z: number) => { for (let k = a; k < z; k++) out.push(b[k]); };
+  const subBlocks = (i: number) => { while (i < b.length && b[i] !== 0) i += b[i] + 1; if (i >= b.length) throw new Error('KR8_BAD_FILE'); return i + 1; };
+  let i = 13;
+  if (b.length < 13) throw new Error('KR8_BAD_FILE');
+  if (b[10] & 0x80) i += 3 * (1 << ((b[10] & 7) + 1));
+  copy(0, i);
+  while (i < b.length) {
+    const t = b[i];
+    if (t === 0x3b) { out.push(0x3b); return Uint8Array.from(out); }
+    if (t === 0x2c) {   // image: descriptor, local colour table, LZW size, data
+      let j = i + 10;
+      if (b[i + 9] & 0x80) j += 3 * (1 << ((b[i + 9] & 7) + 1));
+      j = subBlocks(j + 1);
+      copy(i, j); i = j; continue;
+    }
+    if (t === 0x21) {
+      const label = b[i + 1];
+      const j = subBlocks(i + 2);
+      const app = label === 0xff ? String.fromCharCode(...b.slice(i + 3, i + 14)) : '';
+      if (label === 0xf9 || (label === 0xff && app === 'NETSCAPE2.0')) copy(i, j);   // frame timing / loop
+      i = j; continue;
+    }
+    throw new Error('KR8_BAD_FILE');
+  }
+  throw new Error('KR8_BAD_FILE');
+}
+export const bytesOf = async (f: Blob): Promise<Uint8Array> => {
+  if (typeof f.arrayBuffer === 'function') return new Uint8Array(await f.arrayBuffer());
+  return new Promise((ok, bad) => { const r = new FileReader(); r.onload = () => ok(new Uint8Array(r.result as ArrayBuffer)); r.onerror = () => bad(new Error('KR8_BAD_FILE')); r.readAsArrayBuffer(f); });
+};
+
+/** Draws the photo on a canvas (longest side 1600 px, white behind see-through parts) and saves it as JPEG 0.85. */
+export async function askReencodePhoto(f: Blob): Promise<Blob> {
+  let src: CanvasImageSource; let w: number; let h: number; let done = () => {};
+  if (typeof createImageBitmap === 'function') {
+    const bmp = await createImageBitmap(f, { imageOrientation: 'from-image' } as ImageBitmapOptions).catch(() => createImageBitmap(f));
+    src = bmp; w = bmp.width; h = bmp.height; done = () => bmp.close();
+  } else {
+    const url = URL.createObjectURL(f);
+    const img = await new Promise<HTMLImageElement>((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => bad(new Error('KR8_BAD_FILE')); i.src = url; });
+    src = img; w = img.naturalWidth; h = img.naturalHeight; done = () => URL.revokeObjectURL(url);
+  }
+  try {
+    if (!w || !h) throw new Error('KR8_BAD_FILE');
+    const k = Math.min(1, ASK_PHOTO_SIDE / Math.max(w, h));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+    const ctx = c.getContext('2d');
+    if (!ctx) throw new Error('KR8_BAD_FILE');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(src, 0, 0, c.width, c.height);
+    const out = await new Promise<Blob | null>((r) => c.toBlob(r, 'image/jpeg', 0.85));
+    if (!out) throw new Error('KR8_BAD_FILE');
+    return out;
+  } finally {
+    done();
+  }
+}
+
+/** The only way a picked file reaches storage: photos are re-saved as a clean JPEG, GIFs lose their extra blocks. */
+export async function askCleanFile(f: File, reencode: (b: Blob) => Promise<Blob> = askReencodePhoto): Promise<File> {
+  if (f.type === 'image/gif') {
+    const g = stripGifMeta(await bytesOf(f));
+    if (g.length > ASK_MAX_FILE) throw new Error('KR8_BAD_FILE');
+    return new File([g as BlobPart], 'photo.gif', { type: 'image/gif' });
+  }
+  if (!ASK_TYPES.includes(f.type)) throw new Error('KR8_BAD_FILE');
+  const j = stripJpegMeta(await bytesOf(await reencode(f)));
+  if (j.length > ASK_MAX_FILE) throw new Error('KR8_BAD_FILE');
+  return new File([j as BlobPart], 'photo.jpg', { type: 'image/jpeg' });
 }
 
 // ─────────────── local store (this tab only) ───────────────
@@ -159,6 +269,11 @@ function localApi(me: () => AskPerson | null): Omit<AskApi, 'mode'> {
       if (value) store.votes.set(key, value); else store.votes.delete(key);
       return row.score;
     },
+    async report(kind, id) {
+      who();
+      if (kind === 'q') store.qs = store.qs.filter((x) => x.id !== id);
+      else store.as = store.as.filter((x) => x.id !== id && x.parentId !== id);
+    },
   };
 }
 
@@ -203,11 +318,12 @@ function liveApi(): Omit<AskApi, 'mode'> {
     const c = await m.v5Client();
     const s = await m.v5Session();
     if (!s) throw new Error('KR8_SIGN_IN');
-    const ext = ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' } as Record<string, string>)[f.type] || 'jpg';
-    const path = `${s.user.id}/${uid()}.${ext}`;
-    const up = await c.storage.from('kr8-ask').upload(path, f, { contentType: f.type, upsert: false });
+    const clean = await askCleanFile(f);   // never the original file (GPS)
+    const gif = clean.type === 'image/gif';
+    const path = `${s.user.id}/${uid()}.${gif ? 'gif' : 'jpg'}`;
+    const up = await c.storage.from('kr8-ask').upload(path, clean, { contentType: clean.type, upsert: false });
     if (up.error) throw up.error;
-    return { path, kind: f.type === 'image/gif' ? 'gif' : 'photo' };
+    return { path, kind: gif ? 'gif' : 'photo' };
   };
   return {
     async feed(before) {
@@ -231,6 +347,9 @@ function liveApi(): Omit<AskApi, 'mode'> {
     },
     vote(kind, id, value) {
       return call<number>('kr8_ask_vote', { p_kind: kind, p_id: id, p_value: value });
+    },
+    async report(kind, id, reason) {
+      await call<null>('kr8_ask_report', { p_kind: kind, p_id: id, p_reason: reason });
     },
   };
 }
@@ -257,6 +376,6 @@ export function createAskApi(o: { live: boolean; demo: boolean; me: () => AskPer
   };
   return {
     mode: () => mode,
-    feed: wrap('feed'), thread: wrap('thread'), ask: wrap('ask'), answer: wrap('answer'), vote: wrap('vote'),
+    feed: wrap('feed'), thread: wrap('thread'), ask: wrap('ask'), answer: wrap('answer'), vote: wrap('vote'), report: wrap('report'),
   };
 }

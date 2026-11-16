@@ -442,6 +442,8 @@ export const V5_L: Record<string, Record<string, string>> = {
     // Ask a Thai (16 Nov)
     'Feed': 'ฟีด',
     'Ask a Thai': 'ถามคนไทย',
+    'Block this person': 'บล็อกคนนี้',
+    'Thanks · we’ll check it. You won’t see it again.': 'ขอบคุณ · เราจะตรวจสอบ คุณจะไม่เห็นโพสต์นี้อีก',
     'Ask': 'ถาม',
     'Now': 'เมื่อกี้',
     'Thai Local': 'คนท้องถิ่น',

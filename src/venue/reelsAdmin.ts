@@ -142,12 +142,13 @@ export async function reportsView(body: HTMLElement, onCount?: (n: number) => vo
   for (const r of rows) {
     const msg = el('div', {});
     const cat = r.category && CAT[r.category];
+    const askAnswer = !r.post_id && /^Ask a Thai answer/.test(r.reason || '');   // 0057/0064: Keep / Remove via kr8_admin_ask_answer
     const card = el('div', { class: 'card reel-card', 'data-report': r.id, 'data-post': r.post_id || '' },
       r.video_path ? el('video', { class: 'reel-admin-video', src: urls[r.video_path] || '', poster: urls[r.poster_path || ''] || '', controls: true, playsinline: true, preload: 'none', muted: true, loop: true }) : null,
       el('div', { class: 'row' }, el('b', { class: 'grow' }, cat ? tx(cat) : tx(R.person)),
         r.post_hidden ? el('span', { class: 'pill' }, tx(R.hiddenNow)) : null,
         r.resolution ? el('span', { class: 'pill' }, tx(R[r.resolution as 'kept' | 'removed' | 'dismissed'] || [r.resolution, r.resolution])) : null),
-      cat ? null : el('p', { class: 'meta' }, r.reason),
+      cat && !askAnswer ? null : el('p', { class: 'meta' }, r.reason),
       el('div', { class: 'meta' }, tx(R.about), ' ', el('b', {}, r.target_name || '–'), ` · ⚑ ${r.post_id ? r.post_reports : r.target_reports}`),
       el('div', { class: 'meta' }, tx(R.by), ' ', r.reporter_name || '–', ' · ', bkkTime(r.created_at)),
       r.post_body ? el('p', { class: 'meta' }, r.post_body) : null);
@@ -157,12 +158,16 @@ export async function reportsView(body: HTMLElement, onCount?: (n: number) => vo
         const b = el('button', { class: cls, id: `report-${a}-${r.id}` }, tx(label));
         b.onclick = async () => {
           b.disabled = true;
-          try { await rpc('kr8_admin_resolve_report', { p_report: r.id, p_action: a }); void reportsView(body, onCount); }
+          try {
+            if (askAnswer && a !== 'dismiss') await rpc('kr8_admin_ask_answer', { p_report: r.id, p_action: a });
+            else await rpc('kr8_admin_resolve_report', { p_report: r.id, p_action: a });
+            void reportsView(body, onCount);
+          }
           catch (e) { b.disabled = false; msg.replaceChildren(errBox(e)); }
         };
         row.append(b);
       };
-      if (r.post_id) { act('keep', '', R.keep); act('remove', 'bad', R.remove); } else act('dismiss', 'ghost', R.dismiss);
+      if (r.post_id || askAnswer) { act('keep', '', R.keep); act('remove', 'bad', R.remove); } else act('dismiss', 'ghost', R.dismiss);
       card.append(row);
     }
     card.append(msg);

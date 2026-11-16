@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import './askThai.css';
 import {
   ASK_MAX_Q, ASK_MAX_TEXT, askAge, checkAskFile, fmtCount, nextVote,
-  type AskAnswer, type AskApi, type AskPerson, type AskQuestion, type AskThreadData,
+  type AskAnswer, type AskApi, type AskPerson, type AskQuestion, type AskReportReason, type AskThreadData,
 } from './askThai';
 
 type LFn = (en: string) => string;
@@ -35,7 +35,38 @@ const IC = {
   x: 'M6 6l12 12M18 6L6 18',
   pin: 'M12 21s-6-5.6-6-10.5A6 6 0 0118 10.5C18 15.4 12 21 12 21zM12 8.3a2.2 2.2 0 100 4.4 2.2 2.2 0 000-4.4z',
   send: 'M5 12h13M13 6l6 6-6 6',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
 };
+
+/** ⋯ → Report → reason (same reasons and words as the Reel report). 'block' also blocks the person. */
+const REPORT_REASONS: [AskReportReason, string][] = [
+  ['spam', 'Spam or scam'],
+  ['unsafe', 'Unsafe, adult or harassment'],
+  ['block', 'Block this person'],
+];
+export const AskReportSheet: React.FC<{ L: LFn; onPick: (r: AskReportReason) => void; onClose: () => void }> = ({ L, onPick, onClose }) => {
+  const [step, setStep] = useState<'menu' | 'why'>('menu');
+  return (
+    <div className="at-sheet-bg" role="presentation" onClick={onClose}>
+      <div className="at-sheet" role="dialog" aria-label={step === 'menu' ? L('More') : L('Report')} onClick={(e) => e.stopPropagation()}>
+        {step === 'menu' ? (
+          <button type="button" className="at-sheet-row danger" data-ask-report="open" onClick={() => setStep('why')}>⚑ {L('Report')}</button>
+        ) : (
+          <>
+            <p className="at-sheet-q">{L('Why are you reporting it?')}</p>
+            {REPORT_REASONS.map(([r, label]) => (
+              <button type="button" key={r} className={`at-sheet-row${r === 'block' ? ' danger' : ''}`} data-reason={r} onClick={() => onPick(r)}>{L(label)}</button>
+            ))}
+          </>
+        )}
+        <button type="button" className="at-sheet-row at-sheet-x" onClick={onClose}>{L('Close')}</button>
+      </div>
+    </div>
+  );
+};
+const MoreBtn: React.FC<{ L: LFn; onClick: () => void; id: string }> = ({ L, onClick, id }) => (
+  <button type="button" className="at-more" aria-label={L('More')} data-ask-more={id} onClick={onClick}><Ic d={IC.more} s={20} /></button>
+);
 
 export function askTime(L: LFn, iso: string): string {
   const a = askAge(iso);
@@ -101,7 +132,22 @@ const VoteRow: React.FC<{ L: LFn; score: number; my: -1 | 0 | 1; onVote: (v: -1 
 const Thread: React.FC<{
   L: LFn; api: AskApi; id: string; me: AskPerson | null; areaLabel: (a: string) => string;
   onClose: () => void; onShare: (q: AskQuestion) => void; need: (after: () => void) => void; toast: (m: string) => void; onChanged: (q: AskQuestion) => void;
-}> = ({ L, api, id, me, areaLabel, onClose, onShare, need, toast, onChanged }) => {
+  onReportedQ: (id: string) => void;
+}> = ({ L, api, id, me, areaLabel, onClose, onShare, need, toast, onChanged, onReportedQ }) => {
+  const [rep, setRep] = useState<{ kind: 'q' | 'a'; id: string } | null>(null);
+  const report = (r: AskReportReason) => {
+    const target = rep;
+    setRep(null);
+    if (!target) return;
+    need(() => {
+      api.report(target.kind, target.id, r).then(() => {
+        toast(L('Thanks · we’ll check it. You won’t see it again.'));
+        if (target.kind === 'q') { onReportedQ(target.id); return; }
+        setData((d) => (d ? { ...d, answers: d.answers.filter((x) => x.id !== target.id && x.parentId !== target.id) } : d));
+      }).catch((e) => toast(askErrText(L, e, 'Something went wrong')));
+    });
+  };
+  const mine = (p: AskPerson) => !!me && p.id === me.id;
   const [data, setData] = useState<AskThreadData | null>(null);
   const [err, setErr] = useState(false);
   const [text, setText] = useState('');
@@ -154,6 +200,7 @@ const Thread: React.FC<{
       <div className="at-top">
         <button type="button" className="at-iconbtn" aria-label={L('Back')} onClick={onClose}><Ic d={IC.back} /></button>
         {q && <button type="button" className="at-iconbtn at-r" aria-label={L('Share')} onClick={() => onShare(q)}><Ic d={IC.share} /></button>}
+        {q && !mine(q.by) && <button type="button" className="at-iconbtn" aria-label={L('More')} data-ask-more={q.id} onClick={() => setRep({ kind: 'q', id: q.id })}><Ic d={IC.more} /></button>}
       </div>
       <div className="at-scroll">
         {err && <button type="button" className="at-retry" onClick={load}>{L('Try again')}</button>}
@@ -175,6 +222,7 @@ const Thread: React.FC<{
               <Av p={a.by} s={26} />{a.by.name}
               {a.by.local ? <Badge L={L} /> : <small>· {L('traveller')}</small>}
               {a.best && <span className="star">{L('★ Best')}</span>}
+              {!mine(a.by) && <MoreBtn L={L} id={a.id} onClick={() => setRep({ kind: 'a', id: a.id })} />}
             </div>
             {a.body && <div className="t">{a.body}</div>}
             {a.media && <div className={`img${a.media.gif ? ' gif' : ''}`} style={{ backgroundImage: `url("${a.media.url}")` }} />}
@@ -227,6 +275,7 @@ const Thread: React.FC<{
         <input ref={photoIn} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => { media.pick(e.target.files?.[0]); e.target.value = ''; }} />
         <input ref={gifIn} type="file" accept="image/gif" hidden onChange={(e) => { media.pick(e.target.files?.[0]); e.target.value = ''; }} />
       </div>
+      {rep && <AskReportSheet L={L} onPick={report} onClose={() => setRep(null)} />}
     </div>
   );
 };
@@ -389,7 +438,8 @@ export const AskThaiView: React.FC<AskThaiViewProps> = ({ L, api, me, areas, are
       <button type="button" className="at-fab" onClick={() => need(() => setCompose(true))}><Ic d={IC.ask} s={20} />{L('Ask')}</button>
       {thread && (
         <Thread L={L} api={api} id={thread} me={me} areaLabel={areaLabel} need={need} toast={toast} onChanged={patch}
-          onClose={() => { setThread(null); }} onShare={(q) => void share(q)} />
+          onClose={() => { setThread(null); }} onShare={(q) => void share(q)}
+          onReportedQ={(qid) => { setThread(null); setItems((cur) => (cur ? cur.filter((x) => x.id !== qid) : cur)); }} />
       )}
       {compose && (
         <Compose L={L} api={api} areas={areas} areaLabel={areaLabel} defaultArea={defaultArea} toast={toast} initial={composeText}

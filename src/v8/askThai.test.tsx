@@ -105,12 +105,42 @@ describe('Ask a Thai screens', () => {
   });
 });
 
+describe('Ask a Thai report (⋯ → Report → reason)', () => {
+  beforeEach(() => resetAskLocal());
+  it('reporting an answer removes it (and its replies) for the reporter; own posts have no ⋯', async () => {
+    const api = createAskApi({ live: false, demo: true, me: () => me });
+    const toasts: string[] = [];
+    render(<div className="v8-app-root"><AskThaiView L={L} api={api} me={me} areas={['Bangkok']} areaLabel={(a) => a} need={(f) => f()} toast={(m) => toasts.push(m)} openThread="dq1" /></div>);
+    await screen.findByText(/Had the pool room to myself/);
+    expect(screen.getByText(/Mondays some cafés nearby close/)).toBeTruthy();   // reply under da2
+    fireEvent.click(document.querySelector('[data-ask-more="da2"]')!);
+    fireEvent.click(screen.getByText(/Report/));
+    expect(screen.getByText('Why are you reporting it?')).toBeTruthy();
+    expect(screen.getByText('Block this person')).toBeTruthy();
+    await act(async () => { fireEvent.click(document.querySelector('[data-reason="spam"]')!); });
+    await waitFor(() => expect(screen.queryByText(/Had the pool room to myself/)).toBeNull());
+    expect(screen.queryByText(/Mondays some cafés nearby close/)).toBeNull();
+    expect(toasts).toContain('Thanks · we’ll check it. You won’t see it again.');
+    expect(document.querySelector('[data-ask-more="dq1"]')).toBeTruthy();   // the question has its own ⋯
+  });
+  it('no ⋯ on my own answer', async () => {
+    const api = createAskApi({ live: false, demo: false, me: () => me });
+    const q = await api.ask({ body: 'Is Lumphini open late?' });
+    const mine = await api.answer(q, null, 'Until 9pm I think');
+    render(<div className="v8-app-root"><AskThaiView L={L} api={api} me={me} areas={['Bangkok']} areaLabel={(a) => a} need={(f) => f()} toast={() => {}} openThread={q} /></div>);
+    await screen.findAllByText('Until 9pm I think');
+    expect(document.querySelector(`[data-ask-more="${mine}"]`)).toBeNull();
+    expect(document.querySelector(`[data-ask-more="${q}"]`)).toBeNull();
+  });
+});
+
 describe('Ask a Thai copy rules', () => {
   const read = (f: string) => fs.readFileSync(path.join(__dirname, f), 'utf8');
   const keys = ['Ask a Thai', 'Ask', 'Thai Local', 'traveller', 'Upvote', 'Downvote', 'Answers', '1 answer', '{0} answers', '★ Best', 'Reply', 'Replying to {0}',
     'Add an answer', 'Your question', 'Add details (optional)', 'Emoji', 'GIF', 'Remove photo', 'Photo is too big · up to 5 MB', 'Use a photo or GIF',
     'Couldn’t post · try again', 'No questions yet', 'Now', '{0}m', '{0}h', '{0}d', 'Reels', 'Photo', 'Post', 'Share', 'Back', 'Close', 'Try again',
-    'Something went wrong', 'Link copied', 'Area', 'Feed'];
+    'Something went wrong', 'Link copied', 'Area', 'Feed', 'More', 'Report', 'Why are you reporting it?', 'Spam or scam', 'Unsafe, adult or harassment',
+    'Block this person', 'Thanks · we’ll check it. You won’t see it again.'];
   it('every visible string has Thai', () => {
     for (const k of keys) expect(V5_L.th[k] || KX_L.th[k], k).toBeTruthy();
   });

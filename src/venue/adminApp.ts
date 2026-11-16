@@ -632,7 +632,7 @@ function reportBody(r: Report, urls: Record<string, string>): HTMLElement {
       [el('b', {}, r.target_name || '–'), r.post_body ? el('p', {}, r.post_body) : null]) : null,
     el('div', { class: 'card', style: 'margin-top:12px' },
       el('div', { class: 'row' }, el('span', { class: 'icb', style: 'background:rgba(255,90,107,.14);color:var(--bad)' }, ic('flag')),
-        el('div', { class: 'grow' }, el('b', { style: 'font-size:17px;display:block' }, cat || 'Report about a person'), el('span', { class: 'dim sm' }, r.post_id ? 'Reel report' : 'Chat or profile')),
+        el('div', { class: 'grow' }, el('b', { style: 'font-size:17px;display:block' }, cat || 'Report about a person'), el('span', { class: 'dim sm' }, r.post_kind === 'ask' ? 'Ask a Thai question' : r.post_id ? 'Reel report' : isAskAnswer(r) ? 'Ask a Thai answer' : 'Chat or profile')),
         r.resolution ? pill(RES[r.resolution]?.[0] || r.resolution, RES[r.resolution]?.[1] || '') : null),
       !cat || r.reason ? el('p', { style: 'margin:12px 0 0' }, `“${r.reason}”`) : null,
       el('div', { class: 'facts' },
@@ -641,14 +641,18 @@ function reportBody(r: Report, urls: Record<string, string>): HTMLElement {
         el('span', { class: 'fact' }, 'By ', el('b', {}, r.reporter_name || '–'), ' · ', ago(r.created_at)))),
     r.post_id ? el('div', { class: 'tip' }, ic('info'), 'A Reel reported by 3 different people hides itself until you decide.') : null);
 }
+/** Ask a Thai answer reports (0057/0064): no post_id, reason starts "Ask a Thai answer"; Keep / Remove via kr8_admin_ask_answer */
+const isAskAnswer = (r: Report) => !r.post_id && /^Ask a Thai answer/.test(r.reason || '');
 async function reportQueue() {
   app.replaceChildren(el('div', { class: 'scr' }, loading()));
   let rows: Report[];
   try { rows = await rpc<Report[]>('kr8_admin_reports', { p_open: true, p_limit: 200 }); } catch (e) { app.replaceChildren(el('div', { class: 'scr' }, errP(e))); return; }
   const urls = await signReelPaths(rows.flatMap((r) => (r.video_path ? [r.video_path, r.poster_path || ''] : []))).catch(() => ({} as Record<string, string>));
   queue('Reports', rows, (r, api) => {
-    const w = (a: 'keep' | 'remove' | 'dismiss') => () => rpc('kr8_admin_resolve_report', { p_report: r.id, p_action: a });
-    api.actions(el('div', {}, r.post_id
+    const w = (a: 'keep' | 'remove' | 'dismiss') => () => (isAskAnswer(r) && a !== 'dismiss'
+      ? rpc('kr8_admin_ask_answer', { p_report: r.id, p_action: a })
+      : rpc('kr8_admin_resolve_report', { p_report: r.id, p_action: a }));
+    api.actions(el('div', {}, r.post_id || isAskAnswer(r)
       ? el('div', { class: 'two' }, btn('out-bad big', [ic('trash'), 'Remove'], () => api.done('Removed from feed', w('remove')), { id: 'report-remove-' + r.id }),
         btn('go big', [ic('check'), 'Keep'], () => api.done('Kept · shown again', w('keep')), { id: 'report-keep-' + r.id }))
       : btn('pri big full', [ic('check'), 'Close report'], () => api.done('Report closed', w('dismiss')), { id: 'report-dismiss-' + r.id }),

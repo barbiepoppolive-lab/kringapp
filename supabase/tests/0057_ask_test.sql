@@ -41,8 +41,8 @@ select pg_temp.as_(null);
 select pg_temp.ok(pg_temp.err($$select public.kr8_ask_create('Signed out?', null, 'Bangkok', null, null)$$) = 'KR8_SIGN_IN', 'signed out: cannot ask');
 
 -- read (visitor)
-select pg_temp.ok((select count(*) from jsonb_array_elements(public.kr8_ask_feed(null, 20) -> 'items') i where i ->> 'author_id' = :'A') = 2, 'visitor sees both questions');
-select pg_temp.ok((public.kr8_ask_feed(null, 20) -> 'people' -> :'A' ->> 'name') = 'Maya', 'people map carries the asker once');
+select pg_temp.ok(jsonb_array_length(public.kr8_ask_feed(null, 20) -> 'items') = 2, 'visitor sees both questions');
+select pg_temp.ok((select count(*) from jsonb_each(public.kr8_ask_feed(null, 20) -> 'people') e where e.value ->> 'name' = 'Maya') = 1, 'people map carries the asker once (stand-in key for visitors)');
 select pg_temp.ok(not exists (select 1 from public.kr8_feed() f where f.id = (select v from t where k = 'q')), 'question is not in the Reels feed');
 
 -- answer, reply, votes

@@ -441,6 +441,8 @@ const T: Record<string, string> = {
     // Ask a Thai (16 Nov)
     "Feed": "フィード",
     "Ask a Thai": "タイ人に聞く",
+    "Block this person": "この人をブロック",
+    "Thanks · we’ll check it. You won’t see it again.": "ありがとうございます · 確認します。今後は表示されません。",
     "Ask": "質問する",
     "Now": "たった今",
     "Thai Local": "タイの地元民",

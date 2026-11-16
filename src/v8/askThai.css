@@ -127,3 +127,15 @@
 .v8-app-root #s-feed.at-has-sw .feed-top .kp-area { display: none; }
 .v8-app-root #s-feed.at-on .feed-top { display: none; }
 .v8-app-root #s-feed.at-on .feed-top ~ .spill.kp-wx { left: 12px; }
+
+/* ── ⋯ → Report (security audit H3, 16 Nov) ── */
+.v8-app-root .at-top .at-r:not(:last-child) { margin-right: 0; }
+.v8-app-root .at-top .at-r + .at-iconbtn { margin-left: 0; margin-right: -7px; }
+.v8-app-root .at-more { margin-left: auto; width: 30px; height: 26px; display: grid; place-items: center; border: 0; background: none; color: var(--at-mu); cursor: pointer; padding: 0; }
+.v8-app-root .at-sheet-bg { position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,.55); display: flex; align-items: flex-end; }
+.v8-app-root .at-sheet { width: 100%; padding: 10px 16px calc(14px + env(safe-area-inset-bottom, 0px)); background: var(--at-sf); border-radius: 20px 20px 0 0; display: flex; flex-direction: column; gap: 6px; }
+.v8-app-root .at-sheet-q { margin: 6px 4px 4px; color: var(--at-mu); font-size: 13px; font-weight: 700; }
+.v8-app-root .at-sheet-row { width: 100%; min-height: 48px; padding: 0 16px; border: 0; border-radius: 14px; background: var(--at-sf2); color: #fff; font: inherit; font-size: 15px; font-weight: 700; text-align: left; cursor: pointer; }
+.v8-app-root .at-sheet-row.danger { color: #ff6b7d; }
+.v8-app-root .at-sheet-row.at-sheet-x { background: none; color: var(--at-mu); text-align: center; }
+.v8-app-root .at-c .star + .at-more { margin-left: 2px; }
