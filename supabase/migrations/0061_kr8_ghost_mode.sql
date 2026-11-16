@@ -22,6 +22,7 @@
 --   drop trigger if exists kr8_ghost_messages on public.kr8_messages;  drop trigger if exists kr8_ghost_posts on public.kr8_posts;
 --   drop trigger if exists kr8_ghost_answers on public.kr8_answers;    drop trigger if exists kr8_ghost_views on public.kr8_post_views;
 --   drop trigger if exists kr8_ghost_opens on public.kr8_share_opens;  drop trigger if exists kr8_ghost_member on public.kr8_members;
+--   (if 0057 is on) drop trigger if exists kr8_ghost_ask_answers on public.kr8_ask_answers; drop trigger if exists kr8_ghost_ask_votes on public.kr8_ask_votes;
 --   then put back the two live bodies (read from live 16 Nov; same as 0022 / 0026):
 --     create or replace function public.kr8_is_blocked(x uuid, y uuid) returns boolean language sql stable security definer
 --       set search_path = public, pg_temp as $$ select auth.uid() is not null and auth.uid() in (x, y)
@@ -105,6 +106,18 @@ drop trigger if exists kr8_ghost_answers on public.kr8_answers;
 create trigger kr8_ghost_answers before insert on public.kr8_answers for each row execute function public.kr8_ghost_guard_trg('author', 'refuse');
 drop trigger if exists kr8_ghost_views on public.kr8_post_views;
 create trigger kr8_ghost_views before insert on public.kr8_post_views for each row execute function public.kr8_ghost_guard_trg('auth', 'skip');
+
+-- Ask a Thai (0057): if its tables are already there, a ghost cannot answer or vote either (0057 adds the same when it runs second)
+do $$ begin
+  if to_regclass('public.kr8_ask_answers') is not null then
+    drop trigger if exists kr8_ghost_ask_answers on public.kr8_ask_answers;
+    create trigger kr8_ghost_ask_answers before insert on public.kr8_ask_answers for each row execute function public.kr8_ghost_guard_trg('author', 'refuse');
+  end if;
+  if to_regclass('public.kr8_ask_votes') is not null then
+    drop trigger if exists kr8_ghost_ask_votes on public.kr8_ask_votes;
+    create trigger kr8_ghost_ask_votes before insert on public.kr8_ask_votes for each row execute function public.kr8_ghost_guard_trg('user_id', 'refuse');
+  end if;
+end $$;
 
 -- share-link opens: stored by the /r server (no sign-in there); the app then claims the open (opener). A ghost's open stops counting.
 create or replace function public.kr8_ghost_open_trg()
