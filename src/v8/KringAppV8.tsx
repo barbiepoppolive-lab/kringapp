@@ -3672,8 +3672,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           </div>
         )}
 
-        {/* Chat Bubble Top-Right on Feed & People ONLY (HIDDEN on Deals & Me) */}
-        {(tab === 'feed' || tab === 'people') && !(sheet && ['place', 'rewards', 'claim', 'claimed', 'ranking', 'result', 'savedreels'].includes(sheet)) && (
+        {/* Chat Bubble Top-Right on Feed & People ONLY (HIDDEN on Deals & Me, and on a profile so its ⋯ Report/Block stays tappable) */}
+        {(tab === 'feed' || tab === 'people') && !(sheet && ['place', 'rewards', 'claim', 'claimed', 'ranking', 'result', 'savedreels', 'profile'].includes(sheet)) && (
           <button
             type="button"
             className={`chat-fab${tab === 'feed' && feedMode === 'ask' ? ' at-solid' : ''}`}
