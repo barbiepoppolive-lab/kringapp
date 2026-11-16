@@ -32,11 +32,15 @@ describe('Deals → For your trip (17 Nov polish)', () => {
     const en = render(<TripPerks L={(s) => s} />);
     expect(en.container.querySelectorAll('.ktrip-sub small').length).toBe(0);
   });
-  it('commission line stays visible; photo credit sits behind the info button', () => {
-    render(<TripPerks L={(s) => s} />);
+  it('commission line stays visible; info button shows the partner note; photos are our own', () => {
+    const { container } = render(<TripPerks L={(s) => s} />);
     expect(document.getElementById('tripDisclosure')!.textContent).toContain('Kring may earn a small commission');
-    expect(screen.queryByText(/Wikimedia/)).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Trusted travel partners' }));
-    expect(screen.getByText(/Photos: Wikimedia Commons/)).toBeTruthy();
+    expect(document.getElementById('tripInfo')!.textContent).toBe('Trusted travel partners');
+    expect(screen.queryByText(/Wikimedia/)).toBeNull();
+    for (const p of TRIP_PARTNERS) {
+      const ph = container.querySelector(`a[data-partner="${p.id}"] .ktrip-photo`) as HTMLElement;
+      expect(ph.style.backgroundImage).toContain(`media/trip/${p.id}.webp`);
+    }
   });
 });

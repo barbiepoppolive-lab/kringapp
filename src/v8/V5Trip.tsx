@@ -2,7 +2,7 @@
  * Deals → "For your trip" (bottom of Deals; partner café treats always first). Shown to everyone.
  * Cards and links: tickets/AFFILIATE_LINKS_FOR_YOUR_TRIP_10NOV.md (Travelpayouts, sub ID kring_app, founder approved 10 Nov 02:28).
  * One card per need: eSIM · airport pickup · things to do · leave your bags. "Photo-first" without stock photos: each card
- * leads with a real Bangkok photo and one line icon badge (17 Nov polish). Links open in a new tab, rel="sponsored".
+ * leads with Kring's own Bangkok photo of that need (public/media/trip, 17 Nov AI photos) and one line icon badge. Links open in a new tab, rel="sponsored".
  * Copy rules: no tour/guide, no temples, no percent. One language per screen: every visible string goes through L().
  */
 import { useState, type ReactNode } from 'react';
@@ -13,10 +13,10 @@ type Tx = (en: string) => string;
 export interface TripPartner { id: string; need: string; icon: string; name: string; sub: string; cta: string; url: string; tone: 'blue' | 'green' | 'pink' | 'tea'; photo: string }
 
 export const TRIP_PARTNERS: TripPartner[] = [
-  { id: 'airalo', need: 'Thailand eSIM · data from landing', icon: 'esim', name: 'Airalo', sub: 'Online the moment you land', cta: 'See data packs', url: 'https://airalo.tpk.mx/nlhtRbJg', tone: 'green', photo: 'benjakitti-forest-park' },
-  { id: 'welcomepickups', need: 'Airport pickup, fixed price', icon: 'car', name: 'Welcome Pickups', sub: 'A driver waits at arrivals', cta: 'Book a pickup', url: 'https://tpk.mx/BnsZgC2u', tone: 'blue', photo: 'rama-viii-bridge' },
-  { id: 'klook', need: 'Things to do in Bangkok', icon: 'ticket', name: 'Klook', sub: 'Tickets, passes and boats', cta: 'See ideas', url: 'https://klook.tpk.mx/w8u5zsYQ', tone: 'pink', photo: 'asiatique-the-riverfront' },
-  { id: 'radicalstorage', need: 'Leave your bags', icon: 'bag', name: 'Radical Storage', sub: 'Short-term bag storage in Bangkok', cta: 'Find a spot', url: 'https://radicalstorage.tpk.mx/RsPrWtrl', tone: 'tea', photo: 'hua-lamphong' },
+  { id: 'airalo', need: 'Thailand eSIM · data from landing', icon: 'esim', name: 'Airalo', sub: 'Online the moment you land', cta: 'See data packs', url: 'https://airalo.tpk.mx/nlhtRbJg', tone: 'green', photo: 'airalo' },
+  { id: 'welcomepickups', need: 'Airport pickup, fixed price', icon: 'car', name: 'Welcome Pickups', sub: 'A driver waits at arrivals', cta: 'Book a pickup', url: 'https://tpk.mx/BnsZgC2u', tone: 'blue', photo: 'welcomepickups' },
+  { id: 'klook', need: 'Things to do in Bangkok', icon: 'ticket', name: 'Klook', sub: 'Tickets, passes and boats', cta: 'See ideas', url: 'https://klook.tpk.mx/w8u5zsYQ', tone: 'pink', photo: 'klook' },
+  { id: 'radicalstorage', need: 'Leave your bags', icon: 'bag', name: 'Radical Storage', sub: 'Short-term bag storage in Bangkok', cta: 'Find a spot', url: 'https://radicalstorage.tpk.mx/RsPrWtrl', tone: 'tea', photo: 'radicalstorage' },
 ];
 
 /** One clean line icon per need (no brand logos are kept in the repo). */
@@ -54,13 +54,13 @@ export function TripPerks(props: { L: Tx }) {
         </button>
       </div>
       {info ? (
-        <p className="ktrip-infop" id="tripInfo">{L('Trusted travel partners')} · {L('Photos: Wikimedia Commons')}</p>
+        <p className="ktrip-infop" id="tripInfo">{L('Trusted travel partners')}</p>
       ) : null}
       <div className="ktrip-grid">
         {TRIP_PARTNERS.map((p) => (
           <a key={p.id} className={`ktrip-card ${p.tone}`} data-partner={p.id} href={p.url} target="_blank" rel="noopener noreferrer sponsored">
-            {/* Bangkok photo (Wikimedia Commons, credited behind the info button), then one icon badge, the name, one value line, one button */}
-            <span className="ktrip-photo" aria-hidden="true" style={{ backgroundImage: `url('${base}media/places/${p.photo}.jpg')` }} />
+            {/* Kring's own Bangkok scene for the need (17 Nov AI photos), then one icon badge, the name, one value line, one button */}
+            <span className="ktrip-photo" aria-hidden="true" style={{ backgroundImage: `url('${base}media/trip/${p.photo}.webp')` }} />
             <span className="ktrip-badge" role="img" aria-label={L(p.need)}>
               <svg viewBox="0 0 24 24" aria-hidden="true">{ICONS[p.icon]}</svg>
             </span>
