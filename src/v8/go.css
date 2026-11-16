@@ -29,6 +29,9 @@
 .v8-app-root .go-vid { position: absolute; inset: 0; }
 .v8-app-root .go-vid video, .v8-app-root .go-vposter { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .v8-app-root .go-snd { position: absolute; top: max(66px, calc(env(safe-area-inset-top) + 52px)); right: 16px; font-size: 14px; opacity: .8; }
+.v8-app-root .go-vid { background: #000 center / cover no-repeat; }
+.v8-app-root .go-snd.has-hint { display: flex; align-items: center; gap: 6px; padding: 6px 11px 6px 8px; border-radius: 15px; background: rgba(11,10,18,.62); opacity: 1; }
+.v8-app-root .go-snd.has-hint b { color: #fff; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
 .v8-app-root .go-grad { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.42) 0, transparent 18%, transparent 52%, rgba(4,3,10,.88) 100%); pointer-events: none; }
 .v8-app-root .go-rail { position: absolute; right: 10px; bottom: max(52px, calc(env(safe-area-inset-bottom) + 40px)); display: flex; flex-direction: column; gap: 14px; align-items: center; z-index: 3; }
 .v8-app-root .go-rb { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11.5px; font-weight: 700; text-shadow: 0 1px 4px rgba(0,0,0,.7); transition: transform .15s var(--go-ez); }

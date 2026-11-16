@@ -1,5 +1,6 @@
 /* V5_L zh: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    'Tap for sound': '点击开启声音',
     // 16 Nov audit P2-9
     'Hi {0}! 👋 Hi from Kring.': '你好 {0}！👋 来自 Kring 的问候。',
     'Hi {0}! Love this Reel! Where is it?': '你好 {0}！很喜欢这条 Reel！这是哪里？',

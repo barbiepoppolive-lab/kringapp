@@ -116,6 +116,7 @@ import { inviteCode } from './kxLogic';
 import { V5Qr, V5SignInSheet } from './V5Sheets';
 import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, showFirstReelChip } from './V5ReelNudge';
 import { V5ReelVideo, toggleReelSound } from './V5ReelVideo';
+import { restoredTab, rememberTab } from './tabMemory';
 import { AskSwitch } from './V5AskSwitch';
 import { createAskApi, type AskPerson } from './askThai';
 import { lazyPart, prefetchParts } from './lazyPart';
@@ -1154,7 +1155,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const draftDoneRef = useRef(false);   // N: the draft was already used on this page (email-code sign-in) or restored
 
   // Navigation & Sheets (all sheets closed by default)
-  const [tab, setTab] = useState<V8Tab>(initialTab || 'feed');
+  // 17 Nov: a refresh keeps the tab (deep links still win; see tabMemory.ts)
+  const [tab, setTab] = useState<V8Tab>(() => initialTab || (typeof window !== 'undefined' ? restoredTab(window.location.search) : null) || 'feed');
+  useEffect(() => { rememberTab(tab); }, [tab]);
   const [sheet, setSheet] = useState<SheetId>(null);
   const sheetRef = useRef<SheetId>(null);
   useEffect(() => {
@@ -1775,6 +1778,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     if (tabParam && ['feed', 'people', 'deals', 'me'].includes(tabParam)) {
       setTab(tabParam);
     }
+    // 17 Nov: ?tab= is used once, so a later refresh opens the tab the member moved to (not the link's tab again)
+    if (params.has('tab')) {
+      try { const u = new URL(window.location.href); u.searchParams.delete('tab'); history.replaceState(history.state, '', u.pathname + u.search + u.hash); } catch { /* ignore */ }
+    }
     const dealParam = params.get('deal');
     if (dealParam) {
       setTab('deals');
@@ -2337,7 +2344,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   useEffect(() => {
     try {
       if (tab !== 'feed' && !histTabRef.current && !histSheetRef.current) {
-        history.pushState({ kr8: 'tab' }, '');
+        // 17 Nov: after a refresh on a tab, the browser already holds our tab step; reuse it (no extra Back press)
+        if (!(history.state && history.state.kr8 === 'tab')) history.pushState({ kr8: 'tab' }, '');
         histTabRef.current = true;
       } else if (tab === 'feed' && histTabRef.current && !histSheetRef.current) {
         histTabRef.current = false;
@@ -3898,7 +3906,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 return (
                   <div className={`slide${p.video ? ' has-reel' : ''}`} key={p.id || idx} data-post-id={p.id} onClick={p.video ? (e) => handleReelTap(e, p) : undefined}>
                     {p.video ? (
-                      <V5ReelVideo src={p.video} poster={p.poster} first={idx === 0} label={`Reel · ${p.name || ''} · ${p.area || ''}`}
+                      <V5ReelVideo src={p.video} poster={p.poster} first={idx === 0} label={`Reel · ${p.name || ''} · ${p.area || ''}`} soundHint={L('Tap for sound')}
                         pending={p.reelPending ? L('Waiting for a quick check · only you see this') : undefined}
                         onViewed={live && p.id && !p.reelPending && !(p as V5FeedItem).mine ? () => void v5LogView(p.id as string) : undefined} />
                     ) : (

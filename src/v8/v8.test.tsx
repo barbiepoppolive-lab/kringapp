@@ -7,6 +7,7 @@ import { translateThaiLineToEnglish } from './v8I18n';
 describe('Kring 6 Nov 2026 Locked Build (v8)', () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();   // 17 Nov: the tab is remembered across a refresh; each test is a fresh visit
     window.history.replaceState({}, '', '/app/');
     // Demo Reels (v2) play only while on screen; jsdom has no IntersectionObserver.
     vi.stubGlobal('IntersectionObserver', class { observe() {} unobserve() {} disconnect() {} takeRecords() { return []; } });
@@ -39,6 +40,22 @@ describe('Kring 6 Nov 2026 Locked Build (v8)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Deals' }));
     expect(document.body.textContent).not.toContain('Nana Coffee Roasters');
     expect(screen.getByText(/More deals coming soon/i)).toBeTruthy();   // 17 Nov: Deals = trip partners + coming soon
+  });
+
+  it('17 Nov: a browser refresh keeps the tab', () => {
+    const first = render(<KringAppV8 />);
+    fireEvent.click(screen.getByRole('button', { name: 'Deals' }));
+    first.unmount();   // = refresh
+    render(<KringAppV8 />);
+    expect(document.querySelector('[data-tab="deals"]')?.getAttribute('aria-current')).toBe('page');
+  });
+
+  it('17 Nov: ?tab= beats the remembered tab and is removed from the address after use', () => {
+    sessionStorage.setItem('kr8-tab', 'deals');
+    window.history.replaceState({}, '', '/app/?tab=people&src=pwa');
+    render(<KringAppV8 />);
+    expect(document.querySelector('[data-tab="people"]')?.getAttribute('aria-current')).toBe('page');
+    expect(window.location.search).toBe('?src=pwa');
   });
 
   it('renders 4-tab dock (Feed, People, Deals, Me) and shows chat bubble on Feed & People only (NOT on Deals)', () => {

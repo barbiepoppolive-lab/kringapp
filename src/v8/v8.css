@@ -3445,7 +3445,7 @@
 .v8-app-root .kp-tstub-deal b { font-size: 13.5px; line-height: 1.2; }
 .v8-app-root .kp-dmap { position: relative; z-index: 3; align-self: flex-start; font-size: 11.5px; font-weight: 700; color: #FFD067; text-decoration: underline; text-underline-offset: 2px; }
 /* 0024 Reels: full-screen vertical video in the feed + the Reel composer */
-.v8-app-root .reel-bg { position: absolute; inset: 0; background: #000; cursor: pointer; }
+.v8-app-root .reel-bg { position: absolute; inset: 0; background: #000 center / cover no-repeat; cursor: pointer; }
 .v8-app-root .reel-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .v8-app-root .reel-sound { position: absolute; right: 14px; top: 92px; z-index: 4; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: rgba(11,10,18,.55); font-size: 15px; pointer-events: none; }
 .v8-app-root .reel-pending { position: absolute; left: 14px; top: 92px; z-index: 4; border-radius: 999px; padding: 6px 11px; background: rgba(11,10,18,.78); color: #FFD067; font-size: 12px; font-weight: 700; max-width: 70%; }
@@ -3580,6 +3580,9 @@
 .v8-app-root .reel-sound { width: 28px; height: 28px; top: calc(env(safe-area-inset-top) + 56px); right: 15px; background: rgba(11,10,18,.3); }
 .v8-app-root .reel-sound svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 .v8-app-root .reel-sound svg path:first-child { fill: #fff; }
+/* 17 Nov: until the member taps once, the speaker badge says "Tap for sound" (phones start Reels muted) */
+.v8-app-root .reel-sound.has-hint { width: auto; height: 30px; padding: 0 11px 0 8px; gap: 6px; display: flex; align-items: center; border-radius: 15px; background: rgba(11,10,18,.62); }
+.v8-app-root .reel-sound-hint { color: #fff; font-size: 12.5px; font-weight: 700; line-height: 1; white-space: nowrap; }
 /* polish #11: Say hi: suggestions in one swipeable row (2 visible), the rule as one grey line */
 .v8-app-root #sh-hi .openers { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x mandatory; padding-bottom: 2px; flex-direction: row !important; }
 .v8-app-root #sh-hi .openers::-webkit-scrollbar { display: none; }

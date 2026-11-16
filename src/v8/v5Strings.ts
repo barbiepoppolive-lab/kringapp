@@ -1,6 +1,7 @@
 /** V5 strings. English is the key; TH / ZH / HI / JA / KO below. Looked up by L() / Lf() in KringAppV8. */
 export const V5_L: Record<string, Record<string, string>> = {
   th: {
+    'Tap for sound': 'แตะเพื่อเปิดเสียง',
     'Rules': 'กติกา',
     'See the rules': 'ดูกติกา',
     'Join the community now': 'เข้าร่วมคอมมูนิตี้ตอนนี้',

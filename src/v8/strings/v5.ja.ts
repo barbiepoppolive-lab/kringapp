@@ -1,5 +1,6 @@
 /* V5_L ja: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    'Tap for sound': 'タップで音声オン',
     // 16 Nov audit P2-9
     'Hi {0}! 👋 Hi from Kring.': 'こんにちは {0}さん！👋 Kringから挨拶です。',
     'Hi {0}! Love this Reel! Where is it?': 'こんにちは {0}さん！このリール素敵！どこですか？',

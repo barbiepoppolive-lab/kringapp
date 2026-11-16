@@ -7,6 +7,7 @@
  *  · GoCoach        one-time coach marks (kept on the account, see goCoach.ts)
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { rememberSound, soundHintWanted, soundWanted, SOUND_PREF_EVENT } from './reelSound';
 import './go.css';
 import { fmtN, reviewNoteText } from './kxLogic';
 import { kxTagCandidates, type KxCardExtras, type KxGridReel, type KxMemberReels, type KxSavedReel, type KxTagPerson } from './v5Kx';
@@ -105,20 +106,31 @@ export const savedToGo = (r: KxSavedReel): GoReel => ({
   id: r.id, video_path: r.video_path, poster_path: r.poster_path, likes: r.likes, saved: true, author: { id: '', name: r.name, photo: null },
 });
 
-function GoVideo(props: { src?: string; poster?: string; active: boolean; label: string }) {
+function GoVideo(props: { src?: string; poster?: string; active: boolean; label: string; hint?: string }) {
   const ref = useRef<HTMLVideoElement>(null);
-  const [muted, setMuted] = useState(true);
+  // 17 Nov: sound is remembered (reelSound.ts); the first Reel says "Tap for sound" until the member taps once
+  const [muted, setMuted] = useState(() => !soundWanted());
+  const [hint, setHint] = useState(soundHintWanted);
+  useEffect(() => {
+    const off = () => setHint(soundHintWanted());
+    window.addEventListener(SOUND_PREF_EVENT, off);
+    return () => window.removeEventListener(SOUND_PREF_EVENT, off);
+  }, []);
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
     const play = () => { try { return Promise.resolve(v.play()); } catch (e) { return Promise.reject(e); } };
-    if (props.active && props.src) { play().catch(() => { v.muted = true; setMuted(true); play().catch(() => undefined); }); } else { try { v.pause(); } catch { /* not started */ } }
+    if (props.active && props.src) {
+      v.muted = !soundWanted(); setMuted(v.muted);
+      play().catch(() => { v.muted = true; setMuted(true); play().catch(() => undefined); });
+    } else { try { v.pause(); } catch { /* not started */ } }
   }, [props.active, props.src]);
   return (
-    <div className="go-vid" onClick={(e) => { if ((e.target as HTMLElement).closest('button,a')) return; const v = ref.current; if (v) { v.muted = !v.muted; setMuted(v.muted); } }}>
+    <div className="go-vid" style={props.poster ? { backgroundImage: `url('${props.poster}')` } : undefined}
+      onClick={(e) => { if ((e.target as HTMLElement).closest('button,a')) return; const v = ref.current; if (v) { v.muted = !v.muted; setMuted(v.muted); rememberSound(!v.muted); } }}>
       {props.poster ? <img className="go-vposter" src={props.poster} alt="" /> : null}
       {props.src ? <video ref={ref} src={props.active ? props.src : undefined} poster={props.poster} muted loop playsInline preload="metadata" aria-label={props.label} /> : null}
-      {props.active && props.src ? <span className="go-snd" aria-hidden="true">{muted ? '🔇' : '🔊'}</span> : null}
+      {props.active && props.src ? <span className={`go-snd${muted && hint && props.hint ? ' has-hint' : ''}`} aria-hidden="true">{muted ? '🔇' : '🔊'}{muted && hint && props.hint ? <b>{props.hint}</b> : null}</span> : null}
     </div>
   );
 }
@@ -185,7 +197,7 @@ export function GoReelPlayer(props: {
           const pending = r.status === 'pending' || r.status === 'hidden';
           return (
             <section className="go-reel" key={r.id} data-reel-id={r.id} data-active={i === idx ? '1' : undefined}>
-              <GoVideo src={Math.abs(i - idx) <= 1 ? urls[r.video_path] : undefined} poster={urls[r.poster_path]} active={i === idx} label={a?.name || 'Reel'} />
+              <GoVideo src={Math.abs(i - idx) <= 1 ? urls[r.video_path] : undefined} poster={urls[r.poster_path]} active={i === idx} label={a?.name || 'Reel'} hint={L('Tap for sound')} />
               <div className="go-grad" />
               <div className="go-rail">
                 <button type="button" className={`go-rb like${r.liked ? ' act' : ''}${pop === `l${r.id}` ? ' pop' : ''}`} data-go="like" aria-label={L('Like')} aria-pressed={!!r.liked} disabled={pending} onClick={() => void like(r)}>

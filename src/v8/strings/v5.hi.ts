@@ -1,5 +1,6 @@
 /* V5_L hi: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    'Tap for sound': 'आवाज़ के लिए टैप करें',
     // 16 Nov audit P2-9
     'Hi {0}! 👋 Hi from Kring.': 'नमस्ते {0}! 👋 Kring से हाय।',
     'Hi {0}! Love this Reel! Where is it?': 'नमस्ते {0}! यह Reel बहुत पसंद आई! यह कहाँ है?',

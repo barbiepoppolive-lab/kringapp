@@ -1,7 +1,7 @@
 /* Full-screen vertical Reel in the feed: poster first, plays muted + looped only while on screen, tap for sound. */
 import { useEffect, useRef, useState } from 'react';
+import { rememberSound, soundHintWanted, soundWanted, SOUND_PREF_EVENT } from './reelSound';
 
-let soundOn = false; // one tap turns sound on for every Reel after it (like the big apps)
 /** 16 Nov perf: the Reel next in line may only start downloading once the one on screen is actually playing. */
 let somethingPlaying = false;
 const PLAYING_EVENT = 'kr8-reel-playing';
@@ -12,19 +12,27 @@ export function toggleReelSound(e: { target: EventTarget | null; currentTarget: 
   if (!t || t.closest('button, a, input, textarea, select')) return;
   const v = (e.currentTarget as HTMLElement | null)?.querySelector('video[data-reel]') as HTMLVideoElement | null;
   if (!v) return;
-  soundOn = v.muted;
-  v.muted = !soundOn;
+  const on = v.muted;   // one tap turns sound on for every Reel after it (like the big apps); 17 Nov: remembered across refreshes
+  v.muted = !on;
+  rememberSound(on);
   v.dispatchEvent(new Event('kr8-sound'));
   if (v.paused) void v.play().catch(() => undefined);
 }
 
-export function V5ReelVideo({ src, poster, label, pending, onViewed, first }: { src: string; poster?: string; label: string; pending?: string; onViewed?: () => void; first?: boolean }) {
+export function V5ReelVideo({ src, poster, label, pending, onViewed, first, soundHint }: { src: string; poster?: string; label: string; pending?: string; onViewed?: () => void; first?: boolean; soundHint?: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const barRef = useRef<HTMLElement>(null);
   const viewedRef = useRef(false);
   const onViewedRef = useRef(onViewed);
   onViewedRef.current = onViewed;
-  const [muted, setMuted] = useState(!soundOn);
+  const [muted, setMuted] = useState(() => !soundWanted());
+  // 17 Nov: "Tap for sound" stays on the badge until the member taps once (any Reel)
+  const [hint, setHint] = useState(soundHintWanted);
+  useEffect(() => {
+    const off = () => setHint(soundHintWanted());
+    window.addEventListener(SOUND_PREF_EVENT, off);
+    return () => window.removeEventListener(SOUND_PREF_EVENT, off);
+  }, []);
   // M (15 Nov): only the Reel on screen and the one next to it load their video; the rest show their poster and download nothing
   const boxRef = useRef<HTMLDivElement>(null);
   const [near, setNear] = useState(!!first);   // the first Reel shows its poster on the very first paint (no dark frame)
@@ -55,8 +63,8 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed, first }: { 
       ([e]) => {
         setOnScreen(e.isIntersecting && e.intersectionRatio >= 0.6);
         if (e.isIntersecting && e.intersectionRatio >= 0.6) {
-          v.muted = !soundOn;
-          setMuted(!soundOn);
+          v.muted = !soundWanted();
+          setMuted(v.muted);
           void v.play().catch(() => { v.muted = true; setMuted(true); void v.play().catch(() => undefined); });
         } else {
           v.pause();
@@ -85,7 +93,8 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed, first }: { 
     return () => { io.disconnect(); v.removeEventListener('kr8-sound', onSound); v.removeEventListener('timeupdate', onTime); v.removeEventListener('playing', onPlaying); };
   }, [src, near]);
   return (
-    <div className="bg reel-bg" ref={boxRef}>
+    // 17 Nov (K-003): the poster is also the stage's background, so iPhone Safari never shows a blank dark Reel before the first frame
+    <div className="bg reel-bg" ref={boxRef} style={near && poster ? { backgroundImage: `url('${poster}')` } : undefined}>
       <video
         ref={ref}
         className="reel-video"
@@ -100,8 +109,9 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed, first }: { 
         data-reel="1"
       />
       {/* polish #13: a small white speaker (no red emoji); a tap on the video toggles sound, a double tap still likes */}
-      <span className="reel-sound" aria-hidden="true" data-muted={muted ? '1' : '0'}>
+      <span className={`reel-sound${muted && hint && soundHint ? ' has-hint' : ''}`} aria-hidden="true" data-muted={muted ? '1' : '0'}>
         <svg viewBox="0 0 24 24"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" />{muted ? <path d="M16 9.5l5 5M21 9.5l-5 5" /> : <path d="M16 9a4.2 4.2 0 0 1 0 6M18.6 6.5a7.8 7.8 0 0 1 0 11" />}</svg>
+        {muted && hint && soundHint ? <b className="reel-sound-hint">{soundHint}</b> : null}
       </span>
       {pending ? <span className="reel-pending">{pending}</span> : null}
       <span className="reel-prog" aria-hidden="true"><i ref={barRef} /></span>

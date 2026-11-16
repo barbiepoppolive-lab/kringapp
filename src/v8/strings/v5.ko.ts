@@ -1,5 +1,6 @@
 /* V5_L ko: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    'Tap for sound': '탭하면 소리가 나와요',
     // 16 Nov audit P2-9
     'Hi {0}! 👋 Hi from Kring.': '안녕하세요 {0}님! 👋 Kring에서 인사드려요.',
     'Hi {0}! Love this Reel! Where is it?': '안녕하세요 {0}님! 이 릴스 너무 좋아요! 어디예요?',
