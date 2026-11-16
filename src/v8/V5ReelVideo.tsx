@@ -20,6 +20,7 @@ export function toggleReelSound(e: { target: EventTarget | null; currentTarget: 
 
 export function V5ReelVideo({ src, poster, label, pending, onViewed, first }: { src: string; poster?: string; label: string; pending?: string; onViewed?: () => void; first?: boolean }) {
   const ref = useRef<HTMLVideoElement>(null);
+  const barRef = useRef<HTMLElement>(null);
   const viewedRef = useRef(false);
   const onViewedRef = useRef(onViewed);
   onViewedRef.current = onViewed;
@@ -68,6 +69,9 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed, first }: { 
     // a view = 3 seconds actually played on screen (counted once per Reel per day on the server)
     let played = 0; let last = -1;
     const onTime = () => {
+      // 16 Nov (founder): a thin progress line at the bottom of the Reel, always above the tab bar
+      const bar = barRef.current;
+      if (bar && v.duration > 0 && Number.isFinite(v.duration)) bar.style.transform = `scaleX(${Math.min(1, v.currentTime / v.duration)})`;
       if (viewedRef.current) return;
       const t = v.currentTime;
       if (last >= 0 && t > last && t - last < 1) played += t - last;
@@ -100,6 +104,7 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed, first }: { 
         <svg viewBox="0 0 24 24"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" />{muted ? <path d="M16 9.5l5 5M21 9.5l-5 5" /> : <path d="M16 9a4.2 4.2 0 0 1 0 6M18.6 6.5a7.8 7.8 0 0 1 0 11" />}</svg>
       </span>
       {pending ? <span className="reel-pending">{pending}</span> : null}
+      <span className="reel-prog" aria-hidden="true"><i ref={barRef} /></span>
     </div>
   );
 }
