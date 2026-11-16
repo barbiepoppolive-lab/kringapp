@@ -30,7 +30,10 @@ export async function onRequestGet({ request, params, env }) {
   if (key) {
     try {
       const ip = request.headers.get('cf-connecting-ip') || '';
-      const device = hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${key}|${ip}|${ua}`)));
+      // security 16 Nov (C1): one counted open per NETWORK per Reel per day (browser name is no longer part of it, so a script
+      // that changes its browser name can't farm opens). IPv6: one /64 = one home or phone.
+      const net = ip.includes(':') ? ip.split(':').slice(0, 4).join(':') : ip;
+      const device = hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${key}|${net}`)));
       const ctl = new AbortController();
       const timer = setTimeout(() => ctl.abort(), 3000);
       const r = await fetch(`${SUPA}/rest/v1/rpc/kr8_share_open`, {
