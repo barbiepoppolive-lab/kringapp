@@ -797,7 +797,6 @@ export const KX_L: Record<string, Record<string, string>> = {
     'Edit card': 'แก้ไขการ์ด',
     'Place': 'สถานที่',
     'Travel essentials from trusted partners for now. Café perks for members are on the way.': 'ตอนนี้เป็นของจำเป็นสำหรับการเดินทางจากพาร์ทเนอร์ที่ไว้ใจได้ สิทธิพิเศษจากคาเฟ่สำหรับสมาชิกกำลังจะมา',
-    'Photos: Wikimedia Commons': 'ภาพ: Wikimedia Commons',
     'Report': 'รายงาน',
     'Post Reels of your Bangkok spots': 'โพสต์รีลจากที่โปรดในกรุงเทพฯ',
     'Say hi to locals and travellers': 'ทักทายคนท้องถิ่นและนักท่องเที่ยว',
