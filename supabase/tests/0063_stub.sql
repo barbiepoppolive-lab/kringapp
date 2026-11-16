@@ -1,5 +1,5 @@
 -- SCRATCH DATABASE ONLY: the minimum of Supabase + Kring that 0063 needs, so 0063_test.sql can run on a local Postgres.
--- psql -v ON_ERROR_STOP=1 -f 0063_stub.sql -f ../migrations/0058_kr8_client_events.sql -f ../migrations/0063_kr8_admin_problems_recruiters.sql -f 0063_test.sql
+-- psql -v ON_ERROR_STOP=1 -f 0063_stub.sql -f ../migrations/0058_kr8_client_events.sql -f ../migrations/0065_kr8_admin_problems_recruiters.sql -f 0063_test.sql
 do $$ begin create role anon; exception when others then null; end $$;
 do $$ begin create role authenticated; exception when others then null; end $$;
 create schema if not exists auth;

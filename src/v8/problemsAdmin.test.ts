@@ -143,7 +143,7 @@ describe('admin Recruiters page', () => {
 });
 
 describe('0063 migration', () => {
-  const sql = fs.readFileSync(path.resolve(__dirname, '../../supabase/migrations/0063_kr8_admin_problems_recruiters.sql'), 'utf8');
+  const sql = fs.readFileSync(path.resolve(__dirname, '../../supabase/migrations/0065_kr8_admin_problems_recruiters.sql'), 'utf8');
   it('every new function is admin-only and members cannot call it as anon', () => {
     const fns = [...sql.matchAll(/create or replace function public\.(\w+)/g)].map((m) => m[1]);
     expect(fns).toEqual(['kr8_admin_problem_log', 'kr8_admin_recruiters', 'kr8_admin_credit_ref', 'kr8_admin_uncredit_ref']);
