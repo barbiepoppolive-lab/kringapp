@@ -94,7 +94,7 @@ import { EscapeScreen } from './V5Escape';
 import { isLiffOpen, openEscape } from './escape';
 import { TripPerks } from './V5Trip';
 import { StayDo } from './V5StayDo';
-import { v5HandoffBoot, v5LogClient, v5MyVerification } from './v5Live';
+import { v5HandoffBoot, v5LogClient, v5MyVerification, V5_AREAS } from './v5Live';
 import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
 import type { V5Blocked, V5Card, V5FeedItem, V5Me, V5ReportReason, V5TagPlace, V5Thread } from './v5Live';
 import { V5_L, KX_L, kxArea, v5ErrText, loadV5Lang, v5LangReady } from './v5Strings';
@@ -112,11 +112,14 @@ import { inviteCode } from './kxLogic';
 import { V5Qr, V5SignInSheet } from './V5Sheets';
 import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, showFirstReelChip } from './V5ReelNudge';
 import { V5ReelVideo, toggleReelSound } from './V5ReelVideo';
+import { AskSwitch } from './V5AskSwitch';
+import { createAskApi, type AskPerson } from './askThai';
 import { lazyPart, prefetchParts } from './lazyPart';
 import './kx.css';
 import { fmtN as kxFmtN } from './kxLogic';
 // 16 Nov perf 2: not needed for the first screen, so downloaded separately (see lazyPart)
 const V5VerifySheet = lazyPart(() => import('./V5Verify').then((m) => m.V5VerifySheet));
+const AskThaiView = lazyPart(() => import('./V5AskThai').then((m) => m.AskThaiView));
 const StandHowSheet = lazyPart(() => import('./V5Ticket').then((m) => m.StandHowSheet));
 const V5TicketSheet = lazyPart(() => import('./V5Ticket').then((m) => m.V5TicketSheet));
 const ClaimedPage = lazyPart(() => import('./V5KxRewards').then((m) => m.ClaimedPage));
@@ -1333,8 +1336,21 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [editHook, setEditHook] = useState<string>(user.hook);
   // ── V5 live mode (VITE_AUTH_LIVE=1): real Supabase account + member card. Demo builds keep their examples.
   const live = V5_AUTH_LIVE && !isDemo;
+  // Ask a Thai (16 Nov, founder-approved Screen 2): Feed top switch. Reels stays the default.
+  const [feedMode, setFeedMode] = useState<'reels' | 'ask'>(() => (typeof location !== 'undefined' && /[?&]feed=ask\b/.test(location.search) ? 'ask' : 'reels'));
+  const askMeRef = useRef<AskPerson | null>(null);
+  const [askSeen, setAskSeen] = useState<boolean>(() => { try { return localStorage.getItem('kr8_ask_seen') === '1'; } catch { return true; } });
+  const pickFeedMode = (m: 'reels' | 'ask') => {
+    setFeedMode(m);
+    if (m === 'ask' && !askSeen) { setAskSeen(true); try { localStorage.setItem('kr8_ask_seen', '1'); } catch { /* private mode */ } }
+  };
+  const askApi = useMemo(() => createAskApi({ live, demo: isDemo, me: () => askMeRef.current,
+    base: ((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.BASE_URL) || '/' }), [live, isDemo]);
   const [v5Uid, setV5Uid] = useState<string>('');
   const [v5Card, setV5Card] = useState<V5Card | null>(null);
+  askMeRef.current = !signedIn ? null
+    : live ? (v5Uid && v5Card ? { id: v5Uid, name: v5Card.first_name, photo: v5Card.photo || initialAvatar(v5Card.first_name), local: v5Card.who === 'local' } : null)
+    : { id: user.id || 'me', name: user.name, photo: user.avatar || initialAvatar(user.name), local: user.role === 'local' };
   const [v5SignInNotice, setV5SignInNotice] = useState<string>('');
   const [postEventId, setPostEventId] = useState<string>('');
   const v5BusyRef = useRef<Record<string, boolean>>({});
@@ -3660,7 +3676,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {(tab === 'feed' || tab === 'people') && !(sheet && ['place', 'rewards', 'claim', 'claimed', 'ranking', 'result', 'savedreels'].includes(sheet)) && (
           <button
             type="button"
-            className="chat-fab"
+            className={`chat-fab${tab === 'feed' && feedMode === 'ask' ? ' at-solid' : ''}`}
             id="chatFab"
             aria-label="Messages"
             onClick={() => setSheet('inbox')}
@@ -3674,7 +3690,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
         {/* ==================== 1. FEED SCREEN ==================== */}
         <section
-          className={`v8-screen ${tab === 'feed' ? 'active' : ''}`}
+          className={`v8-screen ${tab === 'feed' ? 'active' : ''} at-has-sw${feedMode === 'ask' ? ' at-on' : ''}`}
           id="s-feed"
           aria-label="Feed"
         >
@@ -3749,6 +3765,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <button type="button" className="spill kp-wx glass" onClick={() => setSheet('weather')}>
               {weather.conditionIcon} {weather.tempC}°
             </button>
+          )}
+          <AskSwitch L={L} mode={feedMode} onMode={pickFeedMode} dot={!askSeen} />
+          {feedMode === 'ask' && (
+            <AskThaiView L={L} api={askApi} me={askMeRef.current} areas={V5_AREAS} areaLabel={(a) => kxArea(lang, a, L)}
+              defaultArea={(live && v5Card?.area) || 'Bangkok'} need={requireSignInForAction} toast={showToast} />
           )}
 
           {/* Vertical Snap Feed or Redesigned V9 Feed Hub */}

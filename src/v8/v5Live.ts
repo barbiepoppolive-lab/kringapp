@@ -41,6 +41,10 @@ export function v5Client(): Promise<SupabaseClient> {
   return clientP;
 }
 
+/** Public storage object link (Ask a Thai photos and GIFs live in the public kr8-ask bucket, 0057). */
+export function v5PublicObjectUrl(bucket: string, path: string): string {
+  return viaEdgeUrls(`${SUPA_URL.replace(/\/$/, '')}/storage/v1/object/public/${bucket}/${path.split('/').map(encodeURIComponent).join('/')}`);
+}
 /** Error codes the UI turns into friendly 6-language messages. */
 export class V5Error extends Error {
   code: string;
