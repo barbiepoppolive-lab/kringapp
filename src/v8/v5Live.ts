@@ -537,17 +537,30 @@ export function v5TimeLabel(iso: string): string {
   if (d < 86_400_000) return `${Math.floor(d / 3_600_000)}h`;
   return `${Math.floor(d / 86_400_000)}d`;
 }
+/** 0073: the Kring Team account(s): official, sender only. Fetched once per app run; [] before 0073 is applied. */
+export const KRING_TEAM_NAME = 'Kring Team';
+export const kringTeamLogo = () => `${import.meta.env.BASE_URL}icon-192.png`;
+let teamIdsP: Promise<string[]> | null = null;
+export function v5TeamIds(): Promise<string[]> {
+  if (!teamIdsP) teamIdsP = rpc<string[] | null>('kr8_team_ids').then((r) => (Array.isArray(r) ? r : [])).catch(() => { teamIdsP = null; return []; });
+  return teamIdsP;
+}
+/** for tests */ export const _resetTeamIds = () => { teamIdsP = null; };
 export async function v5Inbox(): Promise<{ threads: V5Thread[]; requests: V8HelloRequest[] }> {
+  const teamP = v5TeamIds();
   const rows = await rpcLite<InboxRow>('kr8_inbox', {}, ['thread_id', 'status', 'opened_by_me', 'other_id', 'other_name', 'other_photo', 'other_langs', 'other_verified',
     'other_area', 'last_body', 'last_sender_me', 'last_at', 'unread'], [{ id: 'other_id', photo: 'other_photo' }]);
+  const team = new Set(await teamP);
   const threads: V5Thread[] = [];
   const requests: V8HelloRequest[] = [];
-  for (const r of rows || []) {
+  for (const r0 of rows || []) {
+    const official = team.has(r0.other_id);
+    const r = official ? { ...r0, other_name: KRING_TEAM_NAME, other_photo: kringTeamLogo(), other_area: 'Official · ทางการ', other_langs: [] as string[] } : r0;
     if (r.status === 'pending' && !r.opened_by_me) {
-      requests.push({ id: r.thread_id, name: r.other_name, meta: `${r.other_area} · ${(r.other_langs || []).join(' · ')}`, img: r.other_photo || initialAvatar(r.other_name), msg: r.last_body || '', verified: r.other_verified === true });
+      requests.push({ id: r.thread_id, name: r.other_name, meta: `${r.other_area} · ${(r.other_langs || []).join(' · ')}`, img: r.other_photo || initialAvatar(r.other_name), msg: r.last_body || '', verified: r.other_verified === true, ...(official ? { meta: 'Official · ทางการ', official: true } : {}) });
     }
     threads.push({ id: r.thread_id, personId: r.other_id, name: r.other_name, avatar: r.other_photo || initialAvatar(r.other_name), langs: (r.other_langs || []).join(' · '), verified: r.other_verified === true,
-      lastPreview: r.last_body || '', timeLabel: v5TimeLabel(r.last_at), unread: r.unread > 0, messages: [], v5Status: r.status, v5OpenedByMe: r.opened_by_me, area: r.other_area });
+      lastPreview: r.last_body || '', timeLabel: v5TimeLabel(r.last_at), unread: r.unread > 0, messages: [], v5Status: r.status, v5OpenedByMe: r.opened_by_me, area: r.other_area, ...(official ? { official: true } : {}) });
   }
   return { threads, requests };
 }

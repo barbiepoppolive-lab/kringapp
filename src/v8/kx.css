@@ -874,3 +874,17 @@
   .v8-app-root .kx-rk.rka *, .v8-app-root .kx-rk.rka *::before, .v8-app-root .kx-rk.rka *::after { animation: none !important; transition: none !important; }
 }
 .v8-app-root .rka-row.seat .t { align-self: center; margin-top: 0; }
+
+/* 0072 (17 Nov): post screen note, Thai line with English under it */
+.v8-app-root .kx-bkk-note { display: flex; flex-direction: column; gap: 1px; margin: 6px 2px 2px; font-size: 12px; line-height: 1.35; color: rgba(255,255,255,.62); }
+.v8-app-root .kx-bkk-note small { font-size: 11px; color: rgba(255,255,255,.48); }
+.v8-app-root .kx-bkk-note.warn span { color: #ffd36b; }
+
+/* 0073: Kring Team (official sender) in chats */
+.v8-app-root .kt-official { display: inline-block; margin-left: 4px; padding: 1px 7px; border-radius: 8px; font-size: 10.5px; font-weight: 800; line-height: 16px;
+  color: #fff; background: linear-gradient(90deg, #6366ff, #ff4fd8); vertical-align: 1px; white-space: nowrap; }
+.v8-app-root img.kt-logo { background: #0b0a12; object-fit: contain; padding: 4px; }
+.v8-app-root .kt-card { display: flex; gap: 14px; align-items: center; padding: 8px 4px 18px; color: #fff7ec; }
+.v8-app-root .kt-card .kt-logo.big { width: 64px; height: 64px; border-radius: 50%; flex: none; }
+.v8-app-root .kt-card p { margin: 6px 0 0; font-size: 13px; line-height: 1.4; }
+.v8-app-root .kt-card p.en { margin-top: 1px; font-size: 12px; opacity: .7; }

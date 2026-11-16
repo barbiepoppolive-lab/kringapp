@@ -48,6 +48,8 @@ import {
   v5FeedPeek,
   v5Hello,
   v5Inbox,
+  v5TeamIds,
+  kringTeamLogo,
   v5Me,
   v5Messages,
   v5OnAuth,
@@ -923,6 +925,7 @@ type SheetId =
   | 'reelshare'
   | 'reelmore'
   | 'blocked'
+  | 'official'
   | 'follow'
   | 'activity'
   | 'interests'
@@ -2747,6 +2750,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   }, [live, v5Uid, !!v5Card]);
   const openProfile = async (id?: string | null) => {
     if (!id) return;
+    // 0073: the Kring Team account is a sender only: a small official card, never a member profile (no Say hi / Follow)
+    if (live && (await v5TeamIds().catch(() => [] as string[])).includes(id)) { setSheet('official'); return; }
     if (live && id === v5Uid) {
       setSheet(null);
       setTab('me');
@@ -5387,6 +5392,14 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               <PlacePickRow L={L} Lf={Lf} lang={lang} picked={postPlaces} onOpen={() => setPlaceSearchOpen(true)}
                 onChange={(list) => { setPostPlaces(list); if (list[0] && !postArea) setPostArea(list[0].kr_area || 'Bangkok'); }} />
             )}
+            {live && (
+              // 0072 (17 Nov): places outside Bangkok are fine to tag, but only Bangkok Reels count on the weekly prize board.
+              // Thai line with English under it on every language (founder rule).
+              <p className={`kx-bkk-note${postPlaces.length > 0 && postPlaces.every((p) => p.area === 'Outside Bangkok') ? ' warn' : ''}`} id="postBkkNote">
+                <span lang="th">เฉพาะ Reel ในกรุงเทพฯ ที่นับรางวัลประจำสัปดาห์</span>
+                <small lang="en">Only Bangkok Reels count toward the weekly prize.</small>
+              </p>
+            )}
             {live && reelInfo && tagPlaces.length > 0 && (
               <select
                 id="reelPlace"
@@ -5805,11 +5818,12 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                       setSheet('thread');
                     }}
                   >
-                    <img src={th.avatar} alt={th.name} />
+                    <img src={th.avatar} alt={th.name} className={th.official ? 'kt-logo' : undefined} />
                     <div className="m">
                       <div className="nm">
                         {th.name}{' '}
-                        {th.verified && (
+                        {th.official && <span className="kt-official" data-official="1">Official · ทางการ</span>}
+                        {th.verified && !th.official && (
                           <span style={{ color: '#6EE7A8', fontSize: 11 }}>✓</span>
                         )}
                       </div>
@@ -5917,11 +5931,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               >
                 ‹
               </button>
-              <img src={activeThread.avatar} alt={activeThread.name} />
+              <img src={activeThread.avatar} alt={activeThread.name} className={activeThread.official ? 'kt-logo' : undefined}
+                onClick={activeThread.official ? () => setSheet('official') : undefined} />
               <div className="who">
                 <div className="nm">
                   {activeThread.name}{' '}
-                  {activeThread.verified === true && (
+                  {activeThread.official && <span className="kt-official" data-official="1">Official · ทางการ</span>}
+                  {activeThread.verified === true && !activeThread.official && (
                   <button
                     type="button"
                     onClick={() => setSheet('verified')}
@@ -5940,7 +5956,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   )}
                 </div>
                 <div className="sub">
-                  {Lf('Speaks {0}', activeThread.langs)}
+                  {activeThread.official ? L('Messages from the Kring team') : Lf('Speaks {0}', activeThread.langs)}
                 </div>
               </div>
               <button
@@ -6874,6 +6890,24 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <PlacePage key={kxPlaceId} L={L} Lf={Lf} lang={lang} id={kxPlaceId} toast={showToast} onBack={() => setSheet(null)} half={kxPlaceHalf.half} preview={kxPlaceHalf.preview}
             shareUrl={(id) => `${location.origin}${import.meta.env.BASE_URL}?place=${encodeURIComponent(id)}`}
             onPost={(p) => requireSignInForAction(() => kxPostAt(p))} />
+        )}
+        {sheet === 'official' && (
+          // 0073: minimal official card for the Kring Team account (no Say hi, no Follow, no Report-a-member flow)
+          <div className="v8-sheet" id="sh-official">
+            <div className="grab" />
+            <div className="sh-head">
+              <h3>Kring Team</h3>
+              <button type="button" className="xbtn" aria-label="Close" onClick={() => setSheet(activeThreadId ? 'thread' : null)}>✕</button>
+            </div>
+            <div className="kt-card">
+              <img src={kringTeamLogo()} alt="" className="kt-logo big" />
+              <div>
+                <b>Kring Team</b> <span className="kt-official" data-official="1">Official · ทางการ</span>
+                <p lang="th">บัญชีทางการของ กริ๊ง! สำหรับส่งข่าวและตอบแชท</p>
+                <p lang="en" className="en">Kring’s official account for news and chat replies.</p>
+              </div>
+            </div>
+          </div>
         )}
         {sheet === 'blocked' && (
           <div className="v8-sheet" id="sh-blocked">

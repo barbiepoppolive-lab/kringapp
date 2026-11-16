@@ -1,6 +1,6 @@
 /**
  * Rewards (LOCKED rules 15 Nov): this week's Rings + rank, the prize ladder, "My prizes" (one-tap Claim → Grab full value or
- * TrueMoney 75%), the gold ticket with the code + Copy + Open, history with NEW / USED, the live claims line, and the week-close result.
+ * TrueMoney full value on live), the gold ticket with the code + Copy + Open, history with NEW / USED, the live claims line, and the week-close result.
  * Rings are a score, never money: prizes are baht. Every prize and every code is decided by the server (kr8_close_week / kr8_claim_prize).
  */
 import { Fragment, useEffect, useMemo, useState } from 'react';

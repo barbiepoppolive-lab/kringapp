@@ -78,6 +78,9 @@ const Av: React.FC<{ p: AskPerson; s: number }> = ({ p, s }) => (
   <span className="at-av" style={{ width: s, height: s, backgroundImage: `url("${p.photo}")` }} aria-hidden="true" />
 );
 const Badge: React.FC<{ L: LFn }> = ({ L }) => <span className="at-badge">{L('Thai Local')}</span>;
+/** 0073: the Kring Team account: "Kring Team · Official" instead of the Thai Local badge */
+const Official: React.FC<{ L: LFn }> = ({ L }) => <span className="at-badge at-official" data-official="1">{L('Official')}</span>;
+const who = (p: AskPerson, L: LFn) => (p.official ? <Official L={L} /> : p.local ? <Badge L={L} /> : null);
 
 /** Photo / GIF / emoji pickers shared by the answer bar and the Ask sheet */
 function useMedia(onErr: (m: string) => void, L: LFn) {
@@ -101,12 +104,12 @@ const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onVote: (v: 1
     <Av p={q.by} s={40} />
     <div className="at-tw-main">
       <button type="button" className="at-tw-open" onClick={onOpen}>
-        <div className="at-tw-h"><b>{q.by.name}</b>{q.by.local && <Badge L={L} />}<span>· {areaLabel(q.area)} · {askTime(L, q.at)}</span></div>
+        <div className="at-tw-h"><b>{q.by.name}</b>{who(q.by, L)}<span>· {areaLabel(q.area)} · {askTime(L, q.at)}</span></div>
         <div className="at-tw-q">{q.body}</div>
         {q.media && <div className={`at-tw-img${q.media.gif ? ' gif' : ''}`} style={{ backgroundImage: `url("${q.media.url}")` }} />}
         {q.top && (
           <div className="at-tw-ans">
-            <div className="h"><Av p={q.top.by} s={20} />{q.top.by.name}{q.top.by.local && <Badge L={L} />}</div>
+            <div className="h"><Av p={q.top.by} s={20} />{q.top.by.name}{who(q.top.by, L)}</div>
             {q.top.body && <div className="t">{q.top.body}</div>}
           </div>
         )}
@@ -206,7 +209,7 @@ const Thread: React.FC<{
         {err && <button type="button" className="at-retry" onClick={load}>{L('Try again')}</button>}
         {q && (
           <div className="at-q">
-            <div className="m">{q.by.name}{q.by.local && <> <Badge L={L} /></>} · {areaLabel(q.area)} · {askTime(L, q.at)}</div>
+            <div className="m">{q.by.name}{(q.by.local || q.by.official) && <> {who(q.by, L)}</>} · {areaLabel(q.area)} · {askTime(L, q.at)}</div>
             <h1>{q.body}</h1>
             {q.details && <p>{q.details}</p>}
             {q.media && <div className={`img${q.media.gif ? ' gif' : ''}`} style={{ backgroundImage: `url("${q.media.url}")` }} />}
@@ -220,7 +223,7 @@ const Thread: React.FC<{
           <div key={a.id} className={`at-c${a.parentId ? ' reply' : ''}`} data-answer-id={a.id}>
             <div className="h">
               <Av p={a.by} s={26} />{a.by.name}
-              {a.by.local ? <Badge L={L} /> : <small>· {L('traveller')}</small>}
+              {a.by.official || a.by.local ? who(a.by, L) : <small>· {L('traveller')}</small>}
               {a.best && <span className="star">{L('★ Best')}</span>}
               {!mine(a.by) && <MoreBtn L={L} id={a.id} onClick={() => setRep({ kind: 'a', id: a.id })} />}
             </div>

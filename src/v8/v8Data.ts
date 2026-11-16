@@ -101,6 +101,8 @@ export interface V8HelloRequest {
   img: string;
   msg: string;
   verified: boolean;
+  /** 0073: sent by the Kring Team account (official, sender only) */
+  official?: boolean;
 }
 
 export interface V8ChatMessage {
@@ -118,6 +120,8 @@ export interface V8ChatThread {
   avatar: string;
   langs: string;
   verified: boolean;
+  /** 0073: the Kring Team account (official, sender only): logo, "Official · ทางการ" badge, no member profile */
+  official?: boolean;
   lastPreview: string;
   timeLabel: string;
   unread: boolean;

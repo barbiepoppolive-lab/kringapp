@@ -139,3 +139,5 @@
 .v8-app-root .at-sheet-row.danger { color: #ff6b7d; }
 .v8-app-root .at-sheet-row.at-sheet-x { background: none; color: var(--at-mu); text-align: center; }
 .v8-app-root .at-c .star + .at-more { margin-left: 2px; }
+/* 0073: Kring Team posts */
+.v8-app-root .at-badge.at-official { background: linear-gradient(90deg, var(--at-bl), var(--at-pk)); color: #fff; }

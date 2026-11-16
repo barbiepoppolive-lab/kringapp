@@ -447,6 +447,8 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Ask': 'ถาม',
     'Now': 'เมื่อกี้',
     'Thai Local': 'คนท้องถิ่น',
+    'Official': 'ทางการ',
+    'Messages from the Kring team': 'ข้อความจากทีม กริ๊ง!',
     'traveller': 'นักท่องเที่ยว',
     'Upvote': 'โหวตขึ้น',
     'Downvote': 'โหวตลง',
@@ -876,6 +878,6 @@ export const KX_AREA_TH: Record<string, string> = {
   'Old Town': 'เมืองเก่า', Samphanthawong: 'สัมพันธวงศ์', 'Khlong San': 'คลองสาน', 'Phaya Thai': 'พญาไท', 'Khlong Toei': 'คลองเตย', 'Pathum Wan': 'ปทุมวัน',
   'Huai Khwang': 'ห้วยขวาง', 'Bang Phlat': 'บางพลัด', Watthana: 'วัฒนา', 'Phra Nakhon': 'พระนคร', 'Phra Pradaeng': 'พระประแดง', 'Bangkok Yai': 'บางกอกใหญ่',
   'Pom Prap Sattru Phai': 'ป้อมปราบศัตรูพ่าย', 'Bang Kho Laem': 'บางคอแหลม', Ratchathewi: 'ราชเทวี', Prawet: 'ประเวศ', 'Bangkok Noi': 'บางกอกน้อย', 'Thon Buri': 'ธนบุรี',
-  'Phasi Charoen': 'ภาษีเจริญ',
+  'Phasi Charoen': 'ภาษีเจริญ', 'Outside Bangkok': 'นอกกรุงเทพฯ',
 };
 export const kxArea = (lang: string, a: string | null | undefined, L: (en: string) => string) => (!a ? '' : lang === 'th' ? KX_AREA_TH[a] || L(a) : L(a));

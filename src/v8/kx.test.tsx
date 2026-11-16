@@ -22,7 +22,7 @@ const L = (en: string) => en;
 const Lf = (en: string, a: string, b = '') => en.replace('{0}', a).replace('{1}', b);
 const LT = (en: string) => KX_L.th[en] || en;
 const rewards = (extra: Partial<KxRewards> = {}): KxRewards => ({ week: 0, rank: null, lifetime: 0, level: 1, gap: null, ends_at: '2026-11-15T17:00:00Z', member_no: 412,
-  founding_no: null, founding_left: 36, floor: 25, rules: { ...RINGS }, ladder: [1500, 900, 600, 500, 400, 250, 150, 100, 0, 0], streak: 0, checked_in_today: true, prizes: [], claims: [], ...extra });
+  founding_no: null, founding_left: 36, floor: 25, rules: { ...RINGS, truemoney_payout_pct: 75 /* a 75% config; live default is 100 */ }, ladder: [1500, 900, 600, 500, 400, 250, 150, 100, 0, 0], streak: 0, checked_in_today: true, prizes: [], claims: [], ...extra });
 const prize = (extra: Partial<KxPrize> = {}): KxPrize => ({ id: 'pz1', kind: 'weekly', week: '2026-11-09', rank: 4, founding_no: null, amount: 500, rings: 198, status: 'won', claim_id: null, created_at: new Date().toISOString(), ...extra });
 const claim = (extra: Partial<KxClaim> = {}): KxClaim => ({ id: 'c1', brand: 'grab', amount: 500, status: 'assigned', value: 500, code: 'TEST-GRAB-0001', activation_url: null, used_at: null,
   created_at: new Date().toISOString(), assigned_at: new Date().toISOString(), kind: 'weekly', week: '2026-11-09', rank: 4, founding_no: null, ...extra });
@@ -181,8 +181,9 @@ describe('prizes (one config, baht, ranks 1–8)', () => {
     expect(closeWeek(board, ringsRules({ min_posters_for_payout: 12 }), 10)).toEqual([]);
     expect(closeWeek(board, ringsRules({ min_rings_for_paid_seat: 0 })).length).toBe(8);
   });
-  it('TrueMoney pays 75% by default; Grab is full value; ShopeePay is hidden by a flag', () => {
-    expect([1500, 900, 600, 500, 400, 250, 150, 100].map((a) => valueFor('truemoney', a))).toEqual([1125, 675, 450, 375, 300, 187, 112, 75]);
+  it('TrueMoney is full value by default (live 100%), a 75% config pays 75%; Grab is full value; ShopeePay is hidden by a flag', () => {
+    expect([1500, 900, 600, 500, 400, 250, 150, 100].map((a) => valueFor('truemoney', a))).toEqual([1500, 900, 600, 500, 400, 250, 150, 100]);
+    expect([1500, 900, 600, 500, 400, 250, 150, 100].map((a) => valueFor('truemoney', a, 75))).toEqual([1125, 675, 450, 375, 300, 187, 112, 75]);
     expect(valueFor('grab', 1500)).toBe(1500);
     expect(claimBrands()).toEqual(['grab', 'truemoney']);
     expect(claimBrands(ringsRules({ shopeepay_on: 1 }))).toContain('shopeepay');
@@ -193,7 +194,7 @@ describe('prizes (one config, baht, ranks 1–8)', () => {
     const ok = claimPrize(p, 'me', 'grab', stock);
     expect(ok).toMatchObject({ status: 'assigned', code: 'G500', value: 500 });
     expect(ok.status === 'assigned' && ok.stock).toEqual([stock[0]]);
-    expect(claimPrize(p, 'me', 'truemoney', stock)).toMatchObject({ status: 'pending', value: 375 });   // no ฿500 TrueMoney code: held, founder emailed
+    expect(claimPrize(p, 'me', 'truemoney', stock)).toMatchObject({ status: 'pending', value: 500 });   // no ฿500 TrueMoney code: held, founder emailed
     expect(claimPrize({ ...p, amount: 1500 }, 'me', 'grab', stock)).toMatchObject({ status: 'pending', value: 1500 });
     expect(claimPrize(p, 'someone', 'grab', stock)).toEqual({ status: 'error', error: 'NO_PRIZE' });
     expect(claimPrize(p, 'me', 'shopeepay', stock)).toEqual({ status: 'error', error: 'BAD_REWARD' });

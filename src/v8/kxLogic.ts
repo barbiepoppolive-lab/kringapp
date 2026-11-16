@@ -150,7 +150,7 @@ export function closeWeek(board: BoardRow[], R: RingsRules = RINGS, posters = bo
 }
 export interface Stock { brand: Brand; amount: number; code: string }
 export type ClaimOut = { status: 'assigned'; value: number; code: string; stock: Stock[] } | { status: 'pending'; value: number; stock: Stock[] } | { status: 'error'; error: 'BAD_REWARD' | 'NO_PRIZE' };
-/** One tap: Grab (full) or TrueMoney (75%). No code of that exact amount in stock → the claim is HELD (pending) and the founder is emailed. */
+/** One tap: Grab or TrueMoney (both full value on live). No code of that exact amount in stock → the claim is HELD (pending) and the founder is emailed. */
 export function claimPrize(p: Prize | undefined, me: string, brand: string, stock: Stock[], R: RingsRules = RINGS): ClaimOut {
   if (!p || p.member !== me) return { status: 'error', error: 'NO_PRIZE' };
   if (!(claimBrands(R) as string[]).includes(brand)) return { status: 'error', error: 'BAD_REWARD' };

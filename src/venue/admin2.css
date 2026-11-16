@@ -369,3 +369,8 @@ button.tile.wide { font: inherit; cursor: pointer; }
 .wk-av { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: var(--s2); flex: none; display: inline-block; }
 .wk-flags { margin: 6px 0 0 38px; padding: 0 0 0 16px; font-size: 13px; color: var(--warn, #ffc44d); }
 .wk-flags li.bad { color: var(--bad, #ff6b6b); }
+
+/* 17 Nov: every reject reason sheet keeps its send button in view on a 390 px phone (sticky at the sheet's bottom) */
+.sheet.rsheet { padding-bottom: 0; }
+.sheet .stack.rs .rs-go { position: sticky; bottom: 0; z-index: 2; margin-top: 4px; box-shadow: 0 -14px 18px var(--s2), 0 calc(18px + var(--bot)) 0 var(--s2); }
+.sheet.rsheet .stack.rs { padding-bottom: calc(18px + var(--bot)); }

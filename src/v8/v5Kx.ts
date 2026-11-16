@@ -90,7 +90,8 @@ export const kxSavedReels = () => rpc<KxSavedReel[]>('kr8_my_saved_reels', { p_l
 
 // ───────────── places ─────────────
 export interface KxPlace { id: string; name_en: string; name_th: string | null; area: string; kr_area?: string; lat?: number; lng?: number; photo_url: string | null;
-  dist_m?: number | null; reels?: number; here_now?: number; source?: 'kring' | 'photon'; osm_ref?: string; status?: 'live' | 'pending' | 'rejected' }
+  dist_m?: number | null; reels?: number; here_now?: number; source?: 'kring' | 'photon'; osm_ref?: string; status?: 'live' | 'pending' | 'rejected';
+  /** 0072: typed place outside Bangkok (area 'Outside Bangkok'); its Reels don't count on the weekly board */ outside_bkk?: boolean }
 /** kr8_places_search2 (0054: also returns the member's own pending places); falls back to kr8_places_search before 0054 is applied. */
 export const kxSearchPlaces = (q: string, lat: number | null, lng: number | null, limit = 20) => {
   const args = { p_q: q || null, p_lat: lat, p_lng: lng, p_limit: limit };

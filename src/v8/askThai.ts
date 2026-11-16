@@ -8,7 +8,7 @@
  */
 import { initialAvatar } from './v8Data';
 
-export interface AskPerson { id: string; name: string; photo: string; local: boolean }
+export interface AskPerson { id: string; name: string; photo: string; local: boolean; /** 0073: the Kring Team account */ official?: boolean }
 export interface AskMedia { url: string; gif: boolean }
 export interface AskAnswer {
   id: string; parentId: string | null; by: AskPerson; body: string; media: AskMedia | null;
@@ -278,7 +278,7 @@ function localApi(me: () => AskPerson | null): Omit<AskApi, 'mode'> {
 }
 
 // ─────────────── live (0057) ───────────────
-interface RawPerson { name: string; photo: string | null; local: boolean }
+interface RawPerson { name: string; photo: string | null; local: boolean; official?: boolean }
 interface RawA { id: string; parent_id: string | null; author_id: string; body: string; media_path: string | null; media_kind: string | null; score: number; my_vote: number; created_at: string }
 interface RawQ { id: string; author_id: string; area: string; body: string; details: string | null; media_path: string | null; media_kind: string | null; score: number; my_vote: number;
   answers: number; top: RawA | null; created_at: string }
@@ -300,6 +300,7 @@ function liveApi(): Omit<AskApi, 'mode'> {
   };
   const people = (raw: Record<string, RawPerson> | null | undefined) => (id: string): AskPerson => {
     const p = (raw || {})[id];
+    if (p?.official) return { id, name: 'Kring Team', photo: `${import.meta.env.BASE_URL}icon-192.png`, local: false, official: true };
     return { id, name: p?.name || '', photo: p?.photo || initialAvatar(p?.name || '?'), local: !!p?.local };
   };
   const media = async (path: string | null, kind: string | null): Promise<AskMedia | null> =>

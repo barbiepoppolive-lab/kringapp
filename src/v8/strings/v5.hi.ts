@@ -448,6 +448,8 @@ const T: Record<string, string> = {
     "Ask": "पूछें",
     "Now": "अभी",
     "Thai Local": "थाई लोकल",
+    "Official": "आधिकारिक",
+    "Messages from the Kring team": "Kring टीम के संदेश",
     "traveller": "यात्री",
     "Upvote": "अपवोट",
     "Downvote": "डाउनवोट",

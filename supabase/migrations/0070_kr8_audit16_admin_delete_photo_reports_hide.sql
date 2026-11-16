@@ -307,7 +307,7 @@ create or replace function public.kr8_admin_member_who(p_ids uuid[]) returns tab
 language plpgsql stable security definer set search_path = public, pg_temp as $$
 begin
   if not public.kr8_is_admin() then raise exception 'KR8_ADMIN_ONLY'; end if;
-  return query select m.user_id, m.who from public.kr8_members m where m.user_id = any(coalesce(p_ids, '{}'::uuid[])[1:500]);
+  return query select m.user_id, m.who from public.kr8_members m where m.user_id = any((coalesce(p_ids, '{}'::uuid[]))[1:500]);
 end $$;
 revoke all on function public.kr8_admin_member_who(uuid[]) from public, anon;
 grant execute on function public.kr8_admin_member_who(uuid[]) to authenticated;

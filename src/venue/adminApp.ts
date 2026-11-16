@@ -554,15 +554,34 @@ export const REEL_CHIPS: Chip[] = [
   ['Not their own clip', 'This clip looks copied. Please post a Reel you filmed yourself.', 'คลิปนี้ดูเหมือนก๊อปมา รบกวนโพสต์รีลที่คุณถ่ายเองนะครับ'],
   ['Fake engagement', 'This Reel was hidden for fake engagement (bought views or many accounts).', 'รีลนี้ถูกซ่อนเพราะยอดไม่จริง (ซื้อวิวหรือใช้หลายบัญชี) ครับ'],
 ];
+/** Removing a reported Reel / Ask a Thai post or answer (only what the published rules say). */
+export const REPORT_CHIPS: Chip[] = [
+  ['Spam or scam', 'Removed: spam or a scam is not allowed on Kring.', 'ลบแล้ว: ห้ามสแปมหรือหลอกลวงบนกริ๊ง! ครับ'],
+  ['Unsafe or adult', 'Removed: unsafe, adult or harassing content is not allowed on Kring.', 'ลบแล้ว: ห้ามเนื้อหาไม่ปลอดภัย ผู้ใหญ่ หรือคุกคามบนกริ๊ง! ครับ'],
+  ['Not their own', 'Removed: please post only what you made yourself.', 'ลบแล้ว: โพสต์ได้เฉพาะสิ่งที่คุณทำเองนะครับ'],
+  ['Wrong place', 'Removed: the place is wrong or closed.', 'ลบแล้ว: สถานที่ไม่ถูกต้องหรือปิดไปแล้วครับ'],
+];
+/** Same person? Refuse (kept for the record; the member is not told). */
+export const DUP_CHIPS: Chip[] = [
+  ['One person, one account', 'One person, one account: kept the oldest account', 'หนึ่งคน หนึ่งบัญชี: เก็บบัญชีที่เก่าที่สุดไว้'],
+  ['Face didn’t match', 'Face check didn’t match. Please try again in good light.', 'ใบหน้าไม่ตรงกัน ลองใหม่ในที่ที่มีแสงสว่างนะครับ'],
+  ['Same phone', 'Same phone as another account.', 'โทรศัพท์เครื่องเดียวกับบัญชีอื่น'],
+  ['Fake engagement', 'Likes or saves from linked accounts.', 'ยอดถูกใจหรือบันทึกจากบัญชีที่เชื่อมกัน'],
+];
 /** Thai first, English under it, when the text is a chip's English (unchanged); a hand-typed reason goes as typed. */
 export function bilingualReason(text: string, chips: Chip[]): string {
   const t = text.trim();
   const c = chips.find((x) => x[1] === t);
   return c ? `${c[2]}\n${c[1]}` : t;
 }
-function rejectSheet(title: string, sub: string, chips: Chip[], idBase: string, send: (why: string) => Promise<unknown>, onDone: () => void,
-  opts: { cta?: string; done?: string } = {}) {
-  const ta = el('textarea', { rows: '3', maxlength: '200', id: idBase + 'Why' }) as HTMLTextAreaElement;
+/**
+ * The one reason sheet for EVERY reject in admin (face checks, Reels, venues, reports, Ask a Thai, Same person? Refuse).
+ * Ready chips fill the text; the send button is sticky at the bottom of the sheet so it is always visible on a 390 px phone,
+ * even with all chips showing (17 Nov: the founder could not find where to send a face-check reject).
+ */
+export function rejectSheet(title: string, sub: string, chips: Chip[], idBase: string, send: (why: string) => Promise<unknown>, onDone: () => void,
+  opts: { cta?: string; done?: string; ready?: string; label?: string } = {}) {
+  const ta = el('textarea', { rows: '3', maxlength: '200', id: idBase + 'Why' }, opts.ready || '') as HTMLTextAreaElement;
   const out = el('div', {});
   const chipRow = el('div', { class: 'chips2' });
   const note = el('p', { class: 'faint xs', style: 'margin:6px 0 0', id: idBase + 'Lang' });
@@ -573,9 +592,10 @@ function rejectSheet(title: string, sub: string, chips: Chip[], idBase: string, 
     b.onclick = () => { ta.value = text; paint(); chipRow.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); };
     chipRow.append(b);
   }
-  const go = btn('bad big full', [ic('send'), opts.cta || 'Send · reject'], undefined, { id: idBase + 'Send' });
+  const go = btn('bad big full rs-go', [ic('send'), opts.cta || 'Send · reject'], undefined, { id: idBase + 'Send' });
   const sh = sheet(el('h3', {}, title), el('p', { class: 'dim', style: 'margin:4px 0 0' }, sub),
-    el('div', { class: 'stack' }, chipRow, el('label', { class: 'f' }, 'Text they see · you can edit', ta, note), go, out));
+    el('div', { class: 'stack rs' }, chipRow, el('label', { class: 'f' }, opts.label || 'Text they see · you can edit', ta, note), out, go));
+  sh.box.classList.add('rsheet'); sh.box.id = idBase + 'Sheet';
   paint();
   go.onclick = async () => {
     if (ta.value.trim().length < 3) { out.replaceChildren(el('p', { class: 'err' }, ERR.KR8_REASON_REQUIRED)); return; }
@@ -672,7 +692,12 @@ async function reportQueue() {
       ? rpc('kr8_admin_ask_answer', { p_report: r.id, p_action: a })
       : rpc('kr8_admin_resolve_report', { p_report: r.id, p_action: a }));
     api.actions(el('div', {}, r.post_id || isAskAnswer(r)
-      ? el('div', { class: 'two' }, btn('out-bad big', [ic('trash'), 'Remove'], () => api.done('Removed from feed', w('remove')), { id: 'report-remove-' + r.id }),
+      ? el('div', { class: 'two' }, btn('out-bad big', [ic('trash'), 'Remove'], () => rejectSheet('Why remove?', r.post_id && r.post_kind !== 'ask' ? 'The member sees this reason on their Reel.' : 'Kept with the report.',
+          REPORT_CHIPS, 'reportRemove-' + r.id, async (why) => {
+            await w('remove')();
+            // a removed Reel carries the reason like a hidden one (kr8_admin_review_reel p_note); Ask a Thai keeps it with the report
+            if (r.post_id && r.post_kind !== 'ask') await rpc('kr8_admin_review_reel', { p_reel: r.post_id, p_status: 'hidden', p_note: why }).catch(() => undefined);
+          }, api.next, { cta: 'Send · remove', done: 'Removed · reason sent' }), { id: 'report-remove-' + r.id }),
         btn('go big', [ic('check'), 'Keep'], () => api.done('Kept · shown again', w('keep')), { id: 'report-keep-' + r.id }))
       : btn('pri big full', [ic('check'), 'Close report'], () => api.done('Report closed', w('dismiss')), { id: 'report-dismiss-' + r.id }),
     skipBtn(api)));
@@ -1670,9 +1695,13 @@ async function historyView(kind: string) {
           el('span', { class: 'grow' }, el('b', {}, r.author_name), el('span', { class: 's' }, `${r.area} · ${ago(r.created_at)}`),
             el('a', { class: 'link xs', href: reelLink(r.id), target: '_blank', rel: 'noopener', style: 'display:block;margin-top:4px' }, 'Open Reel')));
         const acts = el('div', { style: 'display:flex;flex-direction:column;gap:6px' });
-        const set = (s: 'approved' | 'hidden', label: string, cls: string) => btn(cls, [label], async () => {
-          try { await rpc('kr8_admin_review_reel', { p_reel: r.id, p_status: s }); toast(s === 'approved' ? 'Approved' : 'Hidden', { ms: 1500 }); row.remove(); counts = null; } catch (e) { toast(errText(e)); }
-        }, { id: (s === 'approved' ? 'approveReel-' : 'hideReel-') + r.id, style: 'min-height:40px;padding:0 12px;font-size:13px' });
+        const set = (s: 'approved' | 'hidden', label: string, cls: string) => btn(cls, [label], s === 'hidden'
+          // 17 Nov: Hide here asks why too (same sheet as the Reel queue)
+          ? () => rejectSheet('Why hide?', 'The member sees this reason on their Reel.', REEL_CHIPS, 'histHide-' + r.id,
+            (why) => rpc('kr8_admin_review_reel', { p_reel: r.id, p_status: 'hidden', p_note: why }), () => { row.remove(); counts = null; }, { cta: 'Send · hide', done: 'Hidden · reason sent' })
+          : async () => {
+            try { await rpc('kr8_admin_review_reel', { p_reel: r.id, p_status: s }); toast('Approved', { ms: 1500 }); row.remove(); counts = null; } catch (e) { toast(errText(e)); }
+          }, { id: (s === 'approved' ? 'approveReel-' : 'hideReel-') + r.id, style: 'min-height:40px;padding:0 12px;font-size:13px' });
         if (r.status !== 'approved') acts.append(set('approved', 'Approve', 'go'));
         if (r.status !== 'hidden') acts.append(set('hidden', 'Hide', 'out-bad'));
         row.append(acts);
@@ -1724,8 +1753,8 @@ async function codesView() {
   const draw = async () => {
     let rows: StockRow[] = [];
     try { rows = await rpc<StockRow[]>('kr8_admin_reward_stock'); } catch (e) { body.replaceChildren(errP(e)); return; }
-    // audit P2-6: TrueMoney rows are named by the CODE value you load (a ฿500 prize at 75% = a ฿375 code), from the live rules
-    const pct = await rpc<Record<string, number>>('kr8_rings_rules').then((r) => Number(r?.truemoney_payout_pct) || 75).catch(() => 75);
+    // audit P2-6: TrueMoney rows are named by the CODE value you load (live is 100%: a ฿500 prize = a ฿500 code), from the live rules
+    const pct = await rpc<Record<string, number>>('kr8_rings_rules').then((r) => Number(r?.truemoney_payout_pct) || 100).catch(() => 100);
     const codeVal = (b: string, a: number) => (b === 'truemoney' ? Math.floor((a * Math.min(100, Math.max(1, pct))) / 100) : a);
     const rowName = (b: string, a: number) => (b === 'truemoney' && codeVal(b, a) !== a ? `TrueMoney ฿${codeVal(b, a).toLocaleString('en-US')} code · for the ฿${a.toLocaleString('en-US')} prize` : `${BRANDN[b]} ฿${a.toLocaleString('en-US')}`);
     const held = rows.reduce((n, r) => n + r.held, 0);
@@ -2113,19 +2142,11 @@ async function dupsView() {
   const again = () => void dupsView();
   body.replaceChildren(dupFlagBlock(ov.flagged || []) || '', dupBlock(clusters, signed, {
     pay: async (h) => { try { await rpc('kr8_admin_release_claim', { p_claim: h.claim_id }); toast('Paid · the code goes out now (if in stock)', { ms: 3000 }); again(); } catch (e) { toast(errText(e), { ms: 6000 }); } },
-    refuse: (h, giveBack) => {
-      const ta = el('textarea', { rows: '2', maxlength: '200', id: 'dupWhy' }, giveBack ? 'Face check didn’t match. Please try again in good light.' : 'One person, one account: kept the oldest account') as HTMLTextAreaElement;
-      const go = btn('bad big full', [giveBack ? 'Refuse · they can claim again' : 'Refuse · cancel the prize'], undefined, { id: 'dupRefuseGo' });
-      const out = el('div', {});
-      const sh = sheet(el('h3', {}, giveBack ? 'Refuse this claim for now' : 'Refuse and cancel the prize'),
-        el('p', { class: 'dim', style: 'margin:4px 0 0' }, giveBack ? 'The prize goes back to “Claim”. Nothing is paid.' : 'The prize is cancelled. Nothing is paid. The member is not told why.'),
-        el('div', { class: 'stack' }, el('label', { class: 'f' }, 'Reason (for the record)', ta), go, out));
-      go.onclick = async () => {
-        go.disabled = true;
-        try { await rpc('kr8_admin_refuse_claim', { p_claim: h.claim_id, p_reason: ta.value.trim(), p_return: giveBack }); sh.close(); toast('Refused', { ms: 2500 }); again(); }
-        catch (e) { go.disabled = false; out.replaceChildren(errP(e)); }
-      };
-    },
+    refuse: (h, giveBack) => rejectSheet(giveBack ? 'Refuse this claim for now' : 'Refuse and cancel the prize',
+      giveBack ? 'The prize goes back to “Claim”. Nothing is paid.' : 'The prize is cancelled. Nothing is paid. The member is not told why.',
+      DUP_CHIPS, 'dupRefuse', (why) => rpc('kr8_admin_refuse_claim', { p_claim: h.claim_id, p_reason: why, p_return: giveBack }), again,
+      { cta: giveBack ? 'Refuse · they can claim again' : 'Refuse · cancel the prize', done: 'Refused', label: 'Reason (for the record)',
+        ready: giveBack ? DUP_CHIPS[1][1] : DUP_CHIPS[0][1] }),
     resolve: async (c, keep, action) => {
       const others = c.members.filter((m) => m.user_id !== keep.user_id).map((m) => m.user_id);
       const msg = action === 'hide' ? `Hide ${others.length} account${others.length === 1 ? '' : 's'}? Their Reels are hidden, unclaimed prizes cancelled, held claims refused.`

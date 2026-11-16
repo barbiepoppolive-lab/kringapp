@@ -448,6 +448,8 @@ const T: Record<string, string> = {
     "Ask": "질문하기",
     "Now": "방금",
     "Thai Local": "태국 현지인",
+    "Official": "공식",
+    "Messages from the Kring team": "Kring 팀의 메시지",
     "traveller": "여행자",
     "Upvote": "추천",
     "Downvote": "비추천",

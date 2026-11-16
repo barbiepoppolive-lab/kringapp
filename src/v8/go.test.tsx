@@ -28,7 +28,7 @@ const profile = (extra: Partial<V5Profile> = {}): V5Profile => ({ user_id: 'u9',
   interests: [], member_no: '3', online: false, here: false, mine: false, level: { level: 'anchan', posts: 0, visits: 0, points: 0, next: 'tea', need_points: 3, pct: 0 },
   followers: 12, following: 3, likes: 40, gifts: 0, i_follow: false, follows_me: false, reels: [], ...extra });
 const rewards = (extra: Partial<KxRewards> = {}): KxRewards => ({ week: 0, rank: null, lifetime: 0, level: 1, gap: null, ends_at: '2026-11-15T17:00:00Z', member_no: 412,
-  founding_no: null, founding_left: 36, floor: 25, rules: { ...RINGS }, ladder: [1500, 900, 600, 500, 400, 250, 150, 100, 0, 0], streak: 0, checked_in_today: true, prizes: [], claims: [], ...extra });
+  founding_no: null, founding_left: 36, floor: 25, rules: { ...RINGS, truemoney_payout_pct: 75 /* a 75% config; live default is 100 */ }, ladder: [1500, 900, 600, 500, 400, 250, 150, 100, 0, 0], streak: 0, checked_in_today: true, prizes: [], claims: [], ...extra });
 const prize = (extra: Partial<KxPrize> = {}): KxPrize => ({ id: 'pz1', kind: 'founding', week: null, rank: null, founding_no: 15, amount: 100, rings: null, status: 'won', claim_id: null, created_at: new Date().toISOString(), ...extra });
 const claim = (extra: Partial<KxClaim> = {}): KxClaim => ({ id: 'c1', brand: 'truemoney', amount: 100, status: 'assigned', value: 75, code: 'TEST-TM-0001', activation_url: null, used_at: null,
   created_at: new Date().toISOString(), assigned_at: new Date().toISOString(), kind: 'founding', week: null, rank: null, founding_no: 15, ...extra });
@@ -262,16 +262,16 @@ describe('claim: choose ONE', () => {
     expect(document.querySelector('[data-brand="truemoney"]')!.textContent).toContain('TrueMoney ฿90');
     expect(document.querySelector('[data-brand="truemoney"]')!.textContent).toContain('90% of the prize value');
   });
-  it('value math: config share, rounded down, never above the prize; a broken config falls back to 75', () => {
-    expect(valueFor('truemoney', 100)).toBe(75);
+  it('value math: config share, rounded down, never above the prize; a broken config falls back to the default (100, live)', () => {
+    expect(valueFor('truemoney', 100)).toBe(100);
     expect(valueFor('truemoney', 250, 75)).toBe(187);
     expect(valueFor('truemoney', 250, 100)).toBe(250);
     expect(valueFor('grab', 250, 75)).toBe(250);
     expect(tmPct({ truemoney_payout_pct: 100 })).toBe(100);
     expect(tmPct({ truemoney_payout_pct: 250 })).toBe(100);
     expect(tmPct({ truemoney_payout_pct: 0 })).toBe(1);
-    expect(tmPct(null)).toBe(75);
-    expect(tmPct({ truemoney_payout_pct: Number.NaN })).toBe(75);
+    expect(tmPct(null)).toBe(100);
+    expect(tmPct({ truemoney_payout_pct: Number.NaN })).toBe(100);
     expect(claimBrands(RINGS, 'founding')).toEqual(['truemoney', 'grab']);
     expect(claimBrands(RINGS)).toEqual(['grab', 'truemoney']);
   });
