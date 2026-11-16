@@ -12,6 +12,8 @@ import { mentionsKring } from './socialAdmin';
 import { lineMessage, splitTreat, standLink, uploadPhotos } from './adminHelpers';
 import { IG_TOP, type IgDm } from './igData';
 import { pushSendArgs } from './pushAdmin';
+import { agentsByLabel, cleanRef, codeMeaning, funnelLine, funnelRate, isProblemLog, isRecruiters, kindName, uaInfo,
+  type ProblemLog, type RecruitMember, type Recruiters } from './problemsAdmin';
 import './admin2.css';
 
 // ───────────────────────────── types (same rows as v1) ─────────────────────────────
@@ -995,7 +997,9 @@ let ckRef = LS('kr8-admin-ckref') ?? 'pich';
 async function membersView(jump = false) {
   const body = el('div', {}, loading());
   const all = allMembersCard(true);
-  screen('members', head('Kring admin', 'Members'), all, body);
+  const recLink = el('a', { class: 'li', href: '#recruiters', id: 'membersRecruiters', style: 'margin-bottom:12px' }, el('span', { class: 'ic' }, ic('link')),
+    el('span', { class: 'grow' }, el('b', {}, 'Recruiters'), el('span', { class: 's' }, 'Sign-ups per ref code · credit members who joined without one')), ic('chev'));
+  screen('members', head('Kring admin', 'Members'), recLink, all, body);
   if (jump) all.scrollIntoView({ block: 'start' });
   const [attr, creators] = await Promise.all([
     rpc<Attr[]>('kr8_admin_attribution').catch(() => [] as Attr[]),
@@ -1576,7 +1580,10 @@ function moreView() {
   out.onclick = async () => { flushWrite(); (await v5Client()).auth.signOut().catch(() => undefined); location.hash = ''; void boot(); };
   const cleaned = cleanedNote || LS('kr8-admin-cleaned');
   screen('more', head('Kring admin', 'More'),
-    el('div', { class: 'sec', style: 'margin-top:0' }, 'History'),
+    el('div', { class: 'sec', style: 'margin-top:0' }, 'Health'),
+    li('#problems', 'warn', 'Problems', 'Reel and face-check failures on members’ phones · funnel', 'moreProblems'),
+    li('#recruiters', 'link', 'Recruiters', 'Sign-ups per ref code · credit members who joined without one', 'moreRecruiters'),
+    el('div', { class: 'sec' }, 'History'),
     li('#history/reels', 'reel', 'All Reels', 'Waiting, approved and hidden', 'histReels'),
     li('#history/reports', 'flag', 'Closed reports', 'Kept, removed and closed', 'histReports'),
     li('#history/faces', 'face', 'Past face checks', 'Approved and rejected', 'histFaces'),
@@ -1855,6 +1862,148 @@ function installAdminRow(): HTMLElement | null {
 }
 try { window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); adminInstall = e as unknown as PromptEv; }); } catch { /* not in a browser */ }
 
+// ───────────────────────────── Problems (0063 kr8_admin_problem_log) ─────────────────────────────
+const backHead = (title: string, back: string) =>
+  el('div', { class: 'row', style: 'margin:6px 0 16px' }, el('a', { class: 'icb', href: back, 'aria-label': 'Back' }, ic('back')), el('h1', { style: 'font-size:26px' }, title));
+const dayName = (d: string) => new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' });
+const statTile = (n: number | string, label: string, id: string, cls = '') => el('div', { class: 'stat ' + cls, id }, el('b', {}, String(n)), el('span', {}, label));
+
+/** The whole Problems page body for one window (exported for the preview harness and tests). */
+export function problemsBlock(d: ProblemLog): HTMLElement {
+  const t = d.totals;
+  const funnel = el('div', { class: 'card', id: 'pbFunnel' },
+    el('div', { class: 'row' }, el('b', { class: 'grow' }, 'Reel funnel'), funnelRate(t) ? pill(`${funnelRate(t)} posted`, t.posted ? 'g' : '') : null),
+    el('div', { class: 'pb-fun', 'data-total': `${t.opened}/${t.picked}/${t.posted}` },
+      ...([[t.opened, 'opened the Reel screen'], [t.picked, 'picked a clip'], [t.posted, 'posted']] as [number, string][]).map(([n, l], i) =>
+        el('div', { class: 'pb-step' + (i === 2 && n ? ' y' : '') }, el('b', {}, String(n)), el('span', {}, l)))),
+    t.pick_failed ? el('p', { class: 'sm', style: 'margin:10px 0 0;color:var(--warn)' }, `${t.pick_failed} ${t.pick_failed === 1 ? 'person' : 'people'} had a clip refused when picking`) : null,
+    d.days.length > 1 || d.hours > 24 ? el('div', { class: 'pb-days' }, ...d.days.map((x) => el('div', { class: 'pb-day', 'data-day': x.day },
+      el('span', { class: 'dim' }, dayName(x.day)), el('span', { class: 'grow' }, funnelLine(x)), el('span', { class: 'faint xs' }, x.reels !== x.posted ? `${x.reels} Reels` : '')))) : null,
+    el('p', { class: 'faint xs', style: 'margin:10px 0 0' }, 'People, not taps. Picked = the clip got past the checks (trim step, an upload try, or posted). A short clip picked and then dropped before Post leaves no trace, so “picked” can be a little low.'));
+  const groups = el('div', { class: 'card', id: 'pbGroups' }, el('b', {}, 'What went wrong'),
+    ...(d.groups.length ? d.groups.map((g) => el('div', { class: 'nrow pb-g', 'data-code': `${g.kind}:${g.code ?? ''}` },
+      el('div', { class: 'row pb-gh' }, el('div', { class: 'grow' },
+        el('div', { class: 'xs dim' }, kindName(g.kind)),
+        el('div', { class: 'pb-code' }, el('b', {}, g.code || '–'), ' = ', codeMeaning(g.kind, g.code))),
+        el('span', { class: 'pill r', title: `${g.n} times` }, `${g.n}×`)),
+      el('div', { class: 'faint xs', style: 'margin-top:4px' }, `${g.people} ${g.people === 1 ? 'member' : 'members'} · last ${ago(g.last_at)}${g.details?.length ? ' · ' + g.details.join(' | ') : ''}`)))
+      : [el('p', { class: 'dim', style: 'margin:8px 0 0' }, 'No failures in this window.')]));
+  const ags = agentsByLabel(d.agents);
+  const agents = el('div', { class: 'card', id: 'pbAgents' }, el('b', {}, 'Phones and browsers'),
+    ...(ags.length ? ags.map((a) => el('div', { class: 'nrow row pb-gh', 'data-ua': a.label, style: 'align-items:center' },
+      el('span', { class: 'grow sm', style: 'min-width:0' }, a.label), a.inApp ? pill('in-app', 'a') : null,
+      el('span', { class: 'xs ' + (a.fails ? '' : 'faint'), style: 'min-width:86px;text-align:right' + (a.fails ? ';color:var(--bad)' : '') }, a.fails ? `${a.fails} failed` : `${a.n} ok`)))
+      : [el('p', { class: 'dim', style: 'margin:8px 0 0' }, 'Nothing logged yet.')]),
+    el('p', { class: 'faint xs', style: 'margin:10px 0 0' }, '“In-app” = Kring opened inside LINE, Facebook, Instagram or TikTok. Chrome on Android hides the phone model, so some show “model hidden”.'));
+  const rows = el('div', { class: 'card', id: 'pbRows' }, el('b', {}, `Latest ${d.rows.length}`),
+    ...(d.rows.length ? d.rows.map((r) => {
+      const u = uaInfo(r.ua);
+      return el('div', { class: 'nrow pb-r' + (r.fail ? ' f' : ''), 'data-kind': r.kind },
+        el('div', { class: 'row' }, el('b', { class: 'grow' }, `${r.first_name?.trim() || 'Signed out'}${r.member_no != null ? ` #${r.member_no}` : ''}`), el('span', { class: 'faint xs' }, bkkTime(r.at))),
+        el('div', { class: 'sm' }, r.fail ? pill('failed', 'r') : pill('step'), ' ', kindName(r.kind), ': ', el('b', {}, r.code || '–'), ' = ', codeMeaning(r.kind, r.code)),
+        el('div', { class: 'faint xs', style: 'margin-top:3px' }, [u.label, u.os, r.detail].filter(Boolean).join(' · ')));
+    }) : [el('p', { class: 'dim', style: 'margin:8px 0 0' }, 'Nothing yet.')]));
+  return el('div', { id: 'problems' },
+    el('div', { class: 'stats', style: 'margin-bottom:12px' }, statTile(t.failures, 'Failures', 'pbFails', t.failures ? 'bad' : ''),
+      statTile(t.failed_people, t.failed_people === 1 ? 'Member hit' : 'Members hit', 'pbPeople'), statTile(t.reels, t.reels === 1 ? 'Reel posted' : 'Reels posted', 'pbReels')),
+    funnel, groups, agents, rows);
+}
+let pbHours = Number(LS('kr8-admin-pbh')) === 168 ? 168 : 24;
+async function problemsView() {
+  const body = el('div', {}, loading());
+  const seg = el('div', { class: 'seg' }, ...([[24, 'Last 24 h'], [168, '7 days']] as [number, string][]).map(([h, l]) => {
+    const b = el('button', { type: 'button', class: pbHours === h ? 'on' : '', id: `pb-${h}` }, l);
+    b.onclick = () => { pbHours = h; LS('kr8-admin-pbh', String(h)); void problemsView(); };
+    return b;
+  }));
+  screen('more', backHead('Problems', '#more'), el('p', { class: 'dim sm', style: 'margin:-6px 0 14px' }, 'What failed on members’ phones: Reel pick, trim, upload and face check. Test members left out.'), seg, body);
+  let r: unknown;
+  try { r = await rpc<unknown>('kr8_admin_problem_log', { p_hours: pbHours, p_include_test: false }); } catch (e) { body.replaceChildren(errP(e)); return; }
+  if (!isProblemLog(r)) { body.replaceChildren(el('p', { class: 'err' }, 'Problems needs database update 0063.')); return; }
+  body.replaceChildren(problemsBlock(r));
+}
+
+// ───────────────────────────── Recruiters (0063 kr8_admin_recruiters / kr8_admin_credit_ref) ─────────────────────────────
+export type RecruitActions = { credit: (m: RecruitMember) => void; uncredit: (m: RecruitMember) => void };
+function recruitMemberRow(m: RecruitMember, act: RecruitActions | null): HTMLElement {
+  const how = m.how === 'link' ? pill('ref link', 'g')
+    : m.how === 'credited' ? el('span', { class: 'pill p', title: 'Credited by hand' }, 'credited') : null;
+  const tick = (on: boolean, yes: string, no: string) => el('span', { class: 'pill ' + (on ? 'g' : '') }, on ? '✓ ' + yes : no);
+  const actBtn = !act ? null
+    : m.how === 'none' ? btn('pri', [ic('plus'), 'Credit to recruiter'], () => act.credit(m), { id: 'credit-' + m.user_id, style: 'min-height:40px;padding:0 14px;margin-top:10px' })
+    : m.how === 'credited' ? btn('ghost', ['Remove credit'], () => act.uncredit(m), { id: 'uncredit-' + m.user_id, style: 'min-height:36px;padding:0 12px;margin-top:8px' }) : null;
+  return el('div', { class: 'nrow', 'data-rmember': m.user_id, 'data-how': m.how },
+    el('div', { class: 'row' }, el('b', { class: 'grow' }, `${m.first_name?.trim() || 'No name yet'}${m.member_no != null ? ` #${m.member_no}` : ''}`), how),
+    el('div', { class: 'faint xs' }, memberJoined(m.joined_at), m.src_code ? ` · src ${m.src_code}` : ''),
+    m.how === 'credited' ? el('div', { class: 'xs', style: 'color:var(--pink);margin-top:2px', 'data-credit': m.credited_by || '' }, `Credited by ${m.credited_by || 'an admin'} · ${bkkTime(m.credited_at)}`) : null,
+    el('div', { class: 'ml-ticks', style: 'margin-top:6px' }, tick(m.verified, 'Verified', 'Not verified'),
+      tick(m.approved_reels > 0, `${m.approved_reels} approved Reel${m.approved_reels === 1 ? '' : 's'}`, 'No approved Reel')),
+    actBtn);
+}
+/** The whole Recruiters page body (exported for the preview harness and tests). act = null: read-only. */
+export function recruitersBlock(d: Recruiters, act: RecruitActions | null): HTMLElement {
+  const credited = d.codes.reduce((n, c) => n + c.credited, 0);
+  const codes = d.codes.map((c, i) => el('details', { class: 'card', id: 'rc-' + c.code, 'data-code': c.code, open: i === 0 },
+    el('summary', {}, el('span', { class: 'icb' }, ic('link')), el('div', { class: 'grow' }, el('b', {}, c.code),
+      el('span', { class: 'dim sm' }, `${c.via_link} by link${c.credited ? ` · ${c.credited} credited` : ''}`)), ic('chev')),
+    el('div', { class: 'in' },
+      el('div', { class: 'nrow', style: 'border-top:0;padding-top:0' }, el('div', { class: 'cells', 'data-sum': `${c.signups}/${c.posted}/${c.verified}` },
+        ...([[c.signups, 'Signed up'], [c.posted, 'Posted ≥1 approved'], [c.verified, 'Verified'], [c.credited, 'Credited by hand']] as [number, string][])
+          .map(([n, l], k) => el('div', { class: k && n ? 'y' : '' }, el('b', {}, String(n)), el('span', {}, l))))),
+      ...c.members.map((m) => recruitMemberRow(m, act)))));
+  const none = el('details', { class: 'card', id: 'rcNone', open: true },
+    el('summary', {}, el('span', { class: 'icb' }, ic('users')), el('div', { class: 'grow' }, el('b', {}, `Joined without a code (${d.no_code.length})`),
+      el('span', { class: 'dim sm' }, 'Credit one to the recruiter who brought them')), ic('chev')),
+    el('div', { class: 'in' }, ...(d.no_code.length ? d.no_code.map((m) => recruitMemberRow(m, act)) : [el('p', { class: 'dim', style: 'margin:0' }, 'Everyone has a recruiter code.')])));
+  const log = el('details', { class: 'card', id: 'rcLog' },
+    el('summary', {}, el('span', { class: 'icb' }, ic('hist')), el('div', { class: 'grow' }, el('b', {}, 'Credit history'), el('span', { class: 'dim sm' }, 'Who credited whom, and when')), ic('chev')),
+    el('div', { class: 'in' }, ...(d.log.length ? d.log.map((l) => el('div', { class: 'nrow sm', 'data-log': l.action },
+      el('div', {}, el('b', {}, l.by || 'an admin'), l.action === 'credit' ? ' credited ' : ' removed the credit of ',
+        el('b', {}, `${l.first_name?.trim() || 'a member'}${l.member_no != null ? ` #${l.member_no}` : ''}`),
+        ...(l.action === 'credit' ? [' to ', el('b', {}, l.ref_code || '–'), l.prev_code ? ` (was ${l.prev_code})` : ''] : [` (${l.prev_code || '–'})`])),
+      el('div', { class: 'faint xs' }, bkkTime(l.at))))
+      : [el('p', { class: 'dim', style: 'margin:0' }, 'No hand credits yet.')])));
+  return el('div', { id: 'recruiters' },
+    el('div', { class: 'stats', style: 'margin-bottom:12px' }, statTile(d.codes.length, d.codes.length === 1 ? 'Recruiter code' : 'Recruiter codes', 'rcCodes'),
+      statTile(d.codes.reduce((n, c) => n + c.signups, 0), 'Signed up', 'rcSigned'), statTile(d.no_code.length, 'Without a code', 'rcNoCode', d.no_code.length ? 'warn' : '')),
+    ...(d.codes.length ? codes : [empty('No recruiter codes yet', 'Members who join with ?ref= show up here.')]),
+    none, log,
+    el('p', { class: 'faint xs', style: 'margin:12px 4px 0' }, `Totals count the ref link OR a hand credit (${credited} by hand). A ref link is never changed. Posted = at least one approved, not hidden Reel.`));
+}
+export function creditSheet(m: RecruitMember, codes: string[], done: () => void) {
+  const inp = el('input', { id: 'creditCode', autocapitalize: 'none', autocomplete: 'off', placeholder: 'recruiter code, e.g. pich', value: '' }) as HTMLInputElement;
+  const out = el('div', {});
+  const save = btn('pri big full', ['Credit'], undefined, { id: 'creditSave' });
+  const chips = codes.length ? el('div', { class: 'ml-int', style: 'margin-top:8px' }, ...codes.map((c) => { const b = el('button', { type: 'button', class: 'pill', 'data-pick': c }, c); b.onclick = () => { inp.value = c; }; return b; })) : null;
+  const s = sheet(el('h3', {}, `Credit ${m.first_name?.trim() || 'this member'}${m.member_no != null ? ` #${m.member_no}` : ''}`),
+    el('p', { class: 'dim sm', style: 'margin:4px 0 12px' }, 'Joined without a ref link. Pick the recruiter who brought them. Your name and the time are saved.'),
+    el('label', { class: 'f' }, 'Recruiter code', inp), chips, out, el('div', { style: 'margin-top:14px' }, save));
+  save.onclick = async () => {
+    const code = cleanRef(inp.value);
+    if (!code) { out.replaceChildren(el('p', { class: 'err' }, 'Use 2–30 letters, numbers, - or _')); return; }
+    save.disabled = true;
+    try { await rpc('kr8_admin_credit_ref', { p_user: m.user_id, p_ref: code }); s.close(); toast(`${m.first_name || 'Member'} credited to ${code}`, { ms: 2500 }); done(); }
+    catch (e) { save.disabled = false; out.replaceChildren(errP(e)); }
+  };
+}
+async function recruitersView() {
+  const body = el('div', {}, loading());
+  screen('members', backHead('Recruiters', '#members'), el('p', { class: 'dim sm', style: 'margin:-6px 0 14px' }, 'One row per recruiter code. Test members left out.'), body);
+  let r: unknown;
+  try { r = await rpc<unknown>('kr8_admin_recruiters', { p_include_test: false }); } catch (e) { body.replaceChildren(errP(e)); return; }
+  if (!isRecruiters(r)) { body.replaceChildren(el('p', { class: 'err' }, 'Recruiters needs database update 0063.')); return; }
+  const d = r;
+  const reload = () => void recruitersView();
+  body.replaceChildren(recruitersBlock(d, {
+    credit: (m) => creditSheet(m, d.codes.map((c) => c.code), reload),
+    uncredit: async (m) => {
+      if (!confirm(`Remove the hand credit of ${m.first_name || 'this member'}? It stays in the credit history.`)) return;
+      try { await rpc('kr8_admin_uncredit_ref', { p_user: m.user_id }); toast('Credit removed', { ms: 2000 }); } catch (e) { toast(errText(e)); }
+      reload();
+    },
+  }));
+}
+
 // ───────────────────────────── router ─────────────────────────────
 function route() {
   flushWrite();
@@ -1877,6 +2026,8 @@ function route() {
   if (a === 'codes') return void codesView();
   if (a === 'push') return void pushView();
   if (a === 'ghost') return void ghostView();
+  if (a === 'problems') return void problemsView();
+  if (a === 'recruiters') return void recruitersView();
   if (a === 'reddit') return redditView();
   if (a === 'history') return void historyView(b || 'reels');
   if (a === 'venue' && b) return void venueDetail(b);

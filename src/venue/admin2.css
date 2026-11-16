@@ -333,3 +333,25 @@ button.tile.wide { font: inherit; cursor: pointer; }
 .tr-col { width: 64px; text-align: right; flex: none; }
 .tr-code { overflow-wrap: anywhere; }
 @media (max-width: 420px) { .tr-num { min-width: 0; } .tr-top { gap: 8px; } }
+
+/* problems + recruiters (0063) */
+#problems .card + .card, #recruiters .card + .card { margin-top: 12px; }
+.stat.bad b { color: var(--bad); }
+.stat.warn b { color: var(--warn); }
+.pb-fun { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+.pb-step { position: relative; background: var(--s2); border-radius: 14px; padding: 10px 8px; text-align: center; }
+.pb-step b { font: 700 24px/1.1 var(--h); display: block; }
+.pb-step span { font-size: 11.5px; color: var(--dim); line-height: 1.2; display: block; }
+.pb-step + .pb-step::before { content: '→'; position: absolute; left: -9px; top: 50%; transform: translateY(-50%); color: var(--faint); font-size: 12px; }
+.pb-step.y { background: rgba(33, 196, 122, 0.14); }
+.pb-step.y b, .pb-step.y span { color: var(--go2); }
+.pb-days { margin-top: 10px; }
+.pb-day { display: flex; gap: 10px; align-items: baseline; padding: 7px 0; border-top: 1px solid var(--line); font-size: 13.5px; }
+.pb-day > span:first-child { width: 92px; flex: none; }
+.pb-code { margin-top: 2px; overflow-wrap: anywhere; }
+.pb-code b { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13.5px; }
+.pb-r .sm { overflow-wrap: anywhere; margin-top: 2px; }
+.pb-r .sm > b { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+.pb-r .faint { overflow-wrap: anywhere; }
+#recruiters .ml-int .pill, .sheet .ml-int .pill { cursor: pointer; }
+.pb-gh { flex-wrap: nowrap; align-items: flex-start; } .pb-gh > .grow { min-width: 0; } .pb-gh > .pill { flex: none; }
