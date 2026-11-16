@@ -3630,3 +3630,9 @@
 .v8-app-root .dock button:focus-visible .dk-pill { box-shadow: 0 0 0 2px rgba(255,79,163,.7); }
 @keyframes dkPop { 0% { transform: scale(.82); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .v8-app-root .dock button.active .dk-ic { animation: none; } .v8-app-root .dock .dk-pill { transition: none; } }
+
+/* 17 Nov: the hero's blurred glow image (.kp-glowimg, 110% wide) made the Deals page 4 px wider than the phone (394 px on 390),
+   so it could be dragged sideways. Clip only the sideways overflow of the Deals scroller; nothing on screen moves or changes. */
+.v8-app-root #s-deals { overflow-x: hidden; }
+/* and the glow stops at the screen edge (the Deals padding is 14 px): the 4 px it reached past the edge were off-screen anyway */
+.v8-app-root #s-deals .kp-glowimg { left: max(-5%, -14px); width: min(110%, calc(100% + 28px)); }
