@@ -706,6 +706,12 @@ export async function v5SaveCardPrint(desc: Float32Array): Promise<boolean> {
   if (desc.length !== 128) throw new V5Error('BAD_FACE');
   return (await rpc<boolean>('kr8_save_card_print', { p_desc: Array.from(desc, (x) => Math.round(x * 1e6) / 1e6) })) === true;
 }
+/** 0076: the face code of the member's CURRENT card photo (one per member, team-only; only ever a "looks alike" flag).
+ *  Resolves true when stored, false when the server has it switched off; throws on errors (the caller retries later). */
+export async function v5SaveCardPrint(desc: Float32Array): Promise<boolean> {
+  if (desc.length !== 128) throw new V5Error('BAD_FACE');
+  return (await rpc<boolean>('kr8_save_card_print', { p_desc: Array.from(desc, (x) => Math.round(x * 1e6) / 1e6) })) === true;
+}
 /** 16 Nov: phone-side failures (Reel pick / upload, face check) go to kr8_client_events so the team can see them. Never throws. */
 export function v5LogClient(kind: string, code?: string, detail?: string): void {
   try {

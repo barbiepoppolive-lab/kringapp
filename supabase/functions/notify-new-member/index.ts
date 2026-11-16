@@ -106,6 +106,15 @@ Deno.serve(async (req) => {
       ["Contact", rec.owner_name], ["LINE", rec.line_id], ["Phone", rec.phone],
       ["Treat (their words)", rec.treat_text], ["Maps", rec.maps_url], ["Ref", rec.referral_host_code || "direct"], ["Applied", ist(rec.created_at)],
     ], "Approve or reject (Pending tab):\nhttps://kringapp.com/app/admin.html");
+  } else if (p.table === "kr8_face_lookalike") {
+    // 0076 kr8_face_alert: a new face check / card photo looks like another member (one person, one account)
+    const same = rec.strength === "same";
+    out = await send(`${same ? "🚨 Same person?" : "👀 Looks alike?"} ${rec.first_name} #${rec.member_no} looks like ${rec.other_name} #${rec.other_no} · ${Number(rec.dist).toFixed(2)}`, [
+      ["New", `${rec.first_name} #${rec.member_no}`], ["Looks like", `${rec.other_name} #${rec.other_no}${rec.other_verified ? " (verified)" : ""}`],
+      ["Face distance", `${Number(rec.dist).toFixed(2)} (lower = more alike; same person is usually under 0.50)`],
+      ["From", `${rec.what} · ${rec.sources}`],
+      ["What happens", same ? "Linked: no Rings between them, prize claims wait for you" : "Flag only: nothing is held"],
+    ], "Check the face check before approving (Face checks), or More → Same person?:\nhttps://kringapp.com/app/admin.html#q/faces", same);
   } else return new Response("ignored", { status: 200 });
   console.log(JSON.stringify({ table: p.table, brevo: out }));
   return json(out, out.status < 300 ? 200 : 502);

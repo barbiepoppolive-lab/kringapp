@@ -98,12 +98,13 @@ import { TripPerks } from './V5Trip';
 // founder 17 Nov: hide café treats / stays; Deals = trip partners + "more deals coming soon"
 const DEALS_TRIP_ONLY = true;
 import { StayDo } from './V5StayDo';
-import { v5HandoffBoot, v5LogClient, v5MyVerification, V5_AREAS } from './v5Live';
+import { v5HandoffBoot, v5LogClient, v5MyVerification, v5SaveCardPrint, V5_AREAS } from './v5Live';
 import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
 import type { V5Blocked, V5Card, V5FeedItem, V5Me, V5ReportReason, V5TagPlace, V5Thread } from './v5Live';
 import { V5_L, KX_L, kxArea, v5ErrText, loadV5Lang, v5LangReady } from './v5Strings';
 import { V5MintSheet } from './V5KxCard';
-import { checkProfilePhoto } from './v5Face';
+import { checkProfilePhoto, faceDescriptor, loadImage } from './v5Face';
+import { ensureCardPrint } from './cardPrint';
 import { GoCoach, GoCompose, GoMeReels, GoProfilePage, GoReelPlayer, gridToGo, ReelCaption, savedToGo, type CoachSpot, type GoReel } from './V5Go';
 import { coachDue, coachMark, coachPick, coachReplay, coachSync, newCoachState, type CoachKey, type CoachState } from './goCoach';
 import { shownGender } from './V5Gender';
@@ -2542,13 +2543,15 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     const key = 'kr8_dp_ok2:' + src.split('?')[0];   // 17 Nov: v2 = stricter check (old 'ok' marks are ignored)
     let ok = false;
     try { ok = !!src && localStorage.getItem(key) === '1'; } catch { /* ignore */ }
-    if (ok) { setPhotoFix(false); return; }
+    // 0076: the card photo's face code (one person, one account), once per photo, in the background
+    const cardPrint = () => { void ensureCardPrint(src, { describe: (u) => loadImage(u).then(faceDescriptor), save: v5SaveCardPrint }); };
+    if (ok) { setPhotoFix(false); cardPrint(); return; }
     let gone = false;
     (async () => {
       const v = src ? await checkProfilePhoto(src) : 'none';
       if (gone) return;
       if (v === 'ok' || v === 'error') {
-        if (v === 'ok') { try { localStorage.setItem(key, '1'); } catch { /* ignore */ } }
+        if (v === 'ok') { try { localStorage.setItem(key, '1'); } catch { /* ignore */ } cardPrint(); }
         setPhotoFix(false);
         return;
       }
