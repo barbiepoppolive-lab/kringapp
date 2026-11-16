@@ -9,7 +9,7 @@ import { buildClusters, istWhen, weekFlags, weekRange, type DupOverview, type We
 import { goodFrame, holdNext, HOLD_MS } from './V5ClaimFace';
 import type { KxPrize, KxRewards } from './v5Kx';
 
-const kxMock = vi.hoisted(() => ({ kxClaimPrize: vi.fn(), kxRecentClaims: vi.fn(async () => []), kxMarkUsed: vi.fn() }));
+const kxMock = vi.hoisted(() => ({ kxRanking: vi.fn(async () => ({ week_start: '', ends_at: '', scope: 'all', area: null, total: 0, paid_ranks: 8, floor: 25, posters: 0, min_posters: 0, payout_on: true, open_seats: 8, prizes: [1500, 900, 600, 500, 400, 250, 150, 100], rows: [], me: null, gap: null, mine: null })), kxClaimPrize: vi.fn(), kxRecentClaims: vi.fn(async () => []), kxMarkUsed: vi.fn() }));
 vi.mock('./v5Kx', async (orig) => ({ ...(await orig<typeof import('./v5Kx')>()), ...kxMock }));
 const liveMock = vi.hoisted(() => ({ v5SignInLine: vi.fn(async () => 'redirect') }));
 vi.mock('./v5Live', async (orig) => ({ ...(await orig<typeof import('./v5Live')>()), ...liveMock }));
@@ -222,18 +222,21 @@ describe('week dates (admin Approve week)', () => {
 });
 
 describe('ranking board nudge (unverified still on the board)', () => {
-  it('shows the Thai + English nudge only when asked', async () => {
+  it('shows the Thai + English nudge (tiny, under my photo) only when asked', async () => {
     const { RankingPage } = await import('./V5KxRanking');
     const onVerify = vi.fn();
     const { unmount } = render(<RankingPage L={L} Lf={Lf} lang="th" myArea={null} myPhoto={null} myName="A" myId="me" onBack={() => undefined} onPerson={() => undefined}
       onPost={() => undefined} onShare={() => undefined} needsVerify onVerify={onVerify} />);
-    const n = document.getElementById('kxVerifyNudge')!;
-    expect(n.textContent).toContain('ยืนยันใบหน้าสั้น ๆ');
-    expect(n.textContent).toContain('Quick face check');
+    const n = await waitFor(() => { const e = document.getElementById('kxVerifyNudge'); if (!e) throw new Error('no nudge'); return e; });
+    expect(n.closest('.rka-meph')).toBeTruthy();
+    expect(n.getAttribute('aria-label')).toContain('ยืนยันใบหน้าสั้น ๆ');
+    expect(n.getAttribute('aria-label')).toContain('Quick face check');
+    expect(n.textContent).toBe('ยืนยันหน้าverify');
     fireEvent.click(n);
     expect(onVerify).toHaveBeenCalled();
     unmount();
     render(<RankingPage L={L} Lf={Lf} lang="th" myArea={null} myPhoto={null} myName="A" myId="me" onBack={() => undefined} onPerson={() => undefined} onPost={() => undefined} onShare={() => undefined} />);
+    await waitFor(() => expect(document.getElementById('kxMeRow')).toBeTruthy());
     expect(document.getElementById('kxVerifyNudge')).toBeNull();
   });
 });
