@@ -8,6 +8,8 @@
 // - Reel posters (/media/kr8-reels/*.jpg|webp): kept by file path (a new upload always gets a new name). The signed-link
 //   token in the address changes every hour; the picture does not, so the kept copy is used whatever the token.
 // - Reel videos, the feed (/feed0) and every Supabase call: never touched here (always live).
+// - Dings (16 Nov push): 'push' shows the notification the server sent (title, body, in-app link); tapping it focuses an open
+//   Kring window and moves it to the link, or opens /app/ at the link. Links are only ever inside /app/.
 const SHELL = 'kring-shell-v10'
 const ASSETS = 'kring-assets-v1'
 const POSTERS = 'kring-posters-v1'
@@ -94,4 +96,52 @@ self.addEventListener('fetch', (event) => {
     return
   }
   // everything else (videos, /feed0, version.json, images): straight to the network, as if there were no worker
+})
+
+// ───────── dings (Web Push, migration 0059 + /api/push) ─────────
+const ICON = '/app/icon-192.png'
+const BADGE = '/app/badge-96.png'
+/** Only links inside the app; anything else opens the app home. */
+function appUrl(u) {
+  const s = String(u || '')
+  return /^\/app\/[A-Za-z0-9_./?=&%#~+-]*$/.test(s) && s.length <= 300 ? s : '/app/'
+}
+function readPush(event) {
+  try {
+    const d = event.data ? event.data.json() : null
+    if (d && typeof d === 'object') return d
+  } catch {
+    try { return { b: event.data.text() } } catch { /* empty */ }
+  }
+  return {}
+}
+self.addEventListener('push', (event) => {
+  const d = readPush(event)
+  const title = String(d.t || 'กริ๊ง! · Kring').slice(0, 80)
+  const opts = {
+    body: String(d.b || '').slice(0, 240),
+    icon: ICON,
+    badge: BADGE,
+    tag: d.tag ? String(d.tag).slice(0, 64) : undefined,
+    renotify: !!d.tag,
+    data: { url: appUrl(d.u), kind: d.k || 'admin', id: d.id || null },
+    lang: 'th',
+  }
+  event.waitUntil(self.registration.showNotification(title, opts))
+})
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const path = appUrl(event.notification.data && event.notification.data.url)
+  const target = new URL(path, self.location.origin).href
+  event.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    const app = wins.find((c) => { try { return new URL(c.url).pathname.startsWith('/app') } catch { return false } })
+    if (app) {
+      // the open app moves itself to the link (no reload); focus first, the browser only allows that inside this click
+      try { await app.focus() } catch { /* ignore */ }
+      app.postMessage({ type: 'kr8-push-open', url: path })
+      return
+    }
+    await self.clients.openWindow(target)
+  })())
 })

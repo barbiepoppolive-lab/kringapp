@@ -245,6 +245,16 @@ export function v5TakeLinePrefill(): { name: string; picture: string | null } | 
     return null;
   }
 }
+// ─────────────── phone dings (push, 0059) ───────────────
+/** Stores this phone's push subscription for the signed-in member (kr8_push_subscribe: own rows only, push services only). */
+export async function v5PushSubscribe(endpoint: string, p256dh: string, auth: string, ua: string): Promise<void> {
+  await rpc('kr8_push_subscribe', { p_endpoint: endpoint, p_p256dh: p256dh, p_auth: auth, p_ua: ua.slice(0, 160) });
+}
+/** Forgets this phone for the signed-in member (kr8_push_unsubscribe deletes only the member's own row). */
+export async function v5PushUnsubscribe(endpoint: string): Promise<void> {
+  await rpc('kr8_push_unsubscribe', { p_endpoint: endpoint });
+}
+
 export async function v5SignOut(): Promise<void> {
   const c = await v5Client();
   await c.auth.signOut().catch(() => undefined);

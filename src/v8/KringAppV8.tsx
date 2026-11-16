@@ -85,7 +85,9 @@ import {
   v5StoredRef,
 } from './v5Live';
 import { ActivitySheet, FollowSheet, InterestsSheet, LANG_NAME, MeView, Top10Sheet } from './V5Me';
-import { A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip } from './A2HS';
+import { A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip, openInstallSheet } from './A2HS';
+import { parsePushLink, pushConfigured, pushDisable, pushEnable, pushMoment, pushResync, pushState, type PushLink, type PushState } from './push';
+import { PUSH_ASK_LINE, PushAskCard } from './V5Push';
 import { TripPerks } from './V5Trip';
 import { StayDo } from './V5StayDo';
 import { v5LogClient, v5MyVerification } from './v5Live';
@@ -2944,6 +2946,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       triggerRingBurst();
       showToast(r.status === 'approved' ? L('Reel posted · กริ๊ง!') : L('Reel sent · it shows in the feed after a quick check'));
       a2hsFirstValue('reel');
+      pushMoment('first_reel');   // 16 Nov dings: ask after the first Reel (small card, never the browser prompt by itself)
       v5Feed().then(setFeedItems).catch(() => undefined);
     } catch (e) {
       if (e instanceof ReelError && e.code === 'TRIM_FAIL') {
@@ -3004,6 +3007,54 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     setTab('feed');
     requestAnimationFrame(() => document.querySelector(`[data-post-id="${CSS.escape(id)}"]`)?.scrollIntoView({ block: 'start' }));
   }, [feedItems]);
+
+  // ── 16 Nov dings (push): Settings toggle, links from a tapped ding, daily re-sync of this phone ──
+  const [pushSt, setPushSt] = useState<PushState>('off');
+  const [pushBusy, setPushBusy] = useState(false);
+  useEffect(() => { if (sheet === 'settings' && pushConfigured()) void pushState().then(setPushSt).catch(() => undefined); }, [sheet]);
+  const pushSubLine = (st: PushState): string =>
+    st === 'on' ? 'On · this phone gets dings'
+      : st === 'denied' ? 'Blocked in your browser settings'
+        : st === 'ios-install' ? 'Add Kring to your home screen first'
+          : st === 'inapp' ? 'Open Kring in your phone’s browser'
+            : st === 'unsupported' ? 'This browser can’t show dings' : PUSH_ASK_LINE;
+  const togglePush = async () => {
+    if (pushBusy) return;
+    if (pushSt === 'ios-install') { setSheet(null); openInstallSheet(); return; }
+    if (pushSt === 'inapp' || pushSt === 'unsupported') return;
+    setPushBusy(true);
+    try {
+      if (pushSt === 'on') { await pushDisable(); setPushSt('off'); showToast(L('Dings off')); return; }
+      const r = await pushEnable();   // a tap: the only other place the browser prompt can appear
+      if (r === 'on') { setPushSt('on'); showToast(L('Dings on · กริ๊ง!')); }
+      else if (r === 'denied') { setPushSt('denied'); showToast(L('Dings are blocked. Allow notifications for kringapp.com in your browser settings.')); }
+      else showToast(L('Could not turn on dings. Try again in Settings.'));
+    } finally { setPushBusy(false); }
+  };
+  const openPushLink = (link: PushLink | null) => {
+    if (!link) return;
+    if (link.reel) { reelLinkRef.current = link.reel; setSheet(null); setTab('feed'); v5Feed().then(setFeedItems).catch(() => undefined); return; }
+    if (link.tab) setTab(link.tab);
+    if (link.rewards && live) { setKxReady(false); setSheet('rewards'); void kxLoadRewards(); }
+  };
+  // a ding tapped while Kring is open: the service worker focuses this window and sends the link (no reload)
+  const openPushLinkRef = useRef(openPushLink);
+  openPushLinkRef.current = openPushLink;
+  useEffect(() => {
+    const sw = typeof navigator !== 'undefined' ? navigator.serviceWorker : undefined;
+    if (!sw) return;
+    const on = (e: MessageEvent) => { const d = e.data as { type?: string; url?: string } | null; if (d?.type === 'kr8-push-open' && d.url) openPushLinkRef.current(parsePushLink(d.url)); };
+    sw.addEventListener('message', on);
+    return () => sw.removeEventListener('message', on);
+  }, []);
+  // a ding tapped while Kring was closed opens /app/?tab=me&open=rewards: the rewards page once the member is signed in
+  const pushOpenRef = useRef<boolean>((() => { try { return new URLSearchParams(location.search).get('open') === 'rewards'; } catch { return false; } })());
+  useEffect(() => {
+    if (!pushOpenRef.current || !live || !signedIn || !v5Uid) return;
+    pushOpenRef.current = false;
+    openPushLink({ rewards: true });
+  }, [live, signedIn, v5Uid]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (live && signedIn && v5Uid) void pushResync(v5Uid).catch(() => undefined); }, [live, signedIn, v5Uid]);
 
   // "+" (15 Nov): live, it goes straight to the Reel compose screen ("Ask a Thai" is gone, so there is nothing to choose)
   const openCreate = () => {
@@ -4885,6 +4936,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onAfter={(what, no) => {
               if (what === 'share') { void kxShareInvite(no); return; }
               const wasNew = !!no && !v5CardWasRef.current;
+              if (wasNew) pushMoment('minted');   // 16 Nov dings: ask right after the card is minted
               setSheet(null);
               if (what === 'reel') { markReelNudgeSeen(v5LastUid.current || v5Uid); pendingActionRef.current = null; kxPostAt(); return; }
               const next = pendingActionRef.current;
@@ -6231,14 +6283,21 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               </div>
             </div>
             <div className="kme-grp">
-              <div className="srow" role="button" tabIndex={0} id="setNotif" onClick={() => {
-                const next = !morningNotif;
-                setMorningNotif(next);
-                try { localStorage.setItem('kr8_morning_notif', next ? '1' : '0'); } catch { /* ignore */ }
-              }}>
-                <span>{L('Notifications')}<small style={{ display: 'block', fontSize: 11.5, color: '#8E8AC0' }}>{t.morningNotif}</small></span>
-                <span className={`sw-ctrl ${morningNotif ? 'on' : ''}`} />
-              </div>
+              {pushConfigured() ? (
+                <div className="srow" role="button" tabIndex={0} id="setNotif" data-push={pushSt} aria-busy={pushBusy} onClick={() => void togglePush()}>
+                  <span>{L('Notifications')}<small className="kpa-sub" id="setNotifSub">{L(pushSubLine(pushSt))}</small></span>
+                  <span className={`sw-ctrl ${pushSt === 'on' ? 'on' : ''}`} />
+                </div>
+              ) : (
+                <div className="srow" role="button" tabIndex={0} id="setNotif" onClick={() => {
+                  const next = !morningNotif;
+                  setMorningNotif(next);
+                  try { localStorage.setItem('kr8_morning_notif', next ? '1' : '0'); } catch { /* ignore */ }
+                }}>
+                  <span>{L('Notifications')}<small style={{ display: 'block', fontSize: 11.5, color: '#8E8AC0' }}>{t.morningNotif}</small></span>
+                  <span className={`sw-ctrl ${morningNotif ? 'on' : ''}`} />
+                </div>
+              )}
               <div className="srow" role="button" tabIndex={0} id="setAppLang" onClick={() => setLangOpen((v) => !v)}>
                 <span>{L('App language')}</span><em>{({ en: 'English', th: 'ไทย', zh: '中文', hi: 'हिन्दी', ja: '日本語', ko: '한국어' } as Record<string, string>)[lang]} ›</em>
               </div>
@@ -6279,7 +6338,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 </>
               )}
               <div className="srow bad" role="button" tabIndex={0} id="setSignOut" onClick={() => {
-                void v5SignOut();
+                void pushDisable().catch(() => undefined).finally(() => v5SignOut());   // this phone stops dinging for the member signing out
                 setSignedIn(false);
                 try { localStorage.removeItem('kr8_signed_in'); } catch { /* ignore */ }
                 setSheet(null);
@@ -6595,6 +6654,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           </div>
         )}
         {live && !sheet && <A2HSBanner L={L} blocked={['preparing', 'uploading', 'saving'].includes(reelStage)} />}
+        {live && signedIn && !!v5Card && !sheet && !goPlayer && (
+          <PushAskCard L={L} lang={lang} toast={showToast} onInstallHelp={openInstallSheet} blocked={['preparing', 'uploading', 'saving'].includes(reelStage)} />
+        )}
         {updateReady ? <button type="button" className="kr-upd" id="appUpdate" onClick={() => location.reload()}>{L('New update · tap to refresh')}</button> : null}
         {sheet === 'standhow' && standHowDeal && (
           <StandHowSheet L={L} venue={dealVenue(standHowDeal)} area={standHowDeal.area} treat={dealMain(standHowDeal)} mapsUrl={standHowDeal.mapsUrl}

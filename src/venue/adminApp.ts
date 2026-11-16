@@ -11,6 +11,7 @@ import { checklistCsv, type Check } from './reelsAdmin';
 import { mentionsKring } from './socialAdmin';
 import { lineMessage, splitTreat, standLink, uploadPhotos } from './adminHelpers';
 import { IG_TOP, type IgDm } from './igData';
+import { pushSendArgs } from './pushAdmin';
 import './admin2.css';
 
 // ───────────────────────────── types (same rows as v1) ─────────────────────────────
@@ -90,6 +91,8 @@ const ERR: Record<string, string> = {
   KR8_DEAL_TEXT_REQUIRED: 'Add the treat words (in baht) in at least one language', KR8_ALREADY_REVIEWED: 'Already reviewed',
   KR8_BAD_PHOTOS: 'Photo upload failed', KR8_BAD_AREA: 'Pick an area', KR8_REASON_REQUIRED: 'Give a reason (3+ characters)', KR8_NEED_PHOTO: 'At least one photo is needed',
   KR8_NO_REEL: 'This Reel is not approved or is hidden', KR8_SOCIAL_DAY_LIMIT: '5 sent today already · send tomorrow', KR8_SOCIAL_TOO_SOON: 'Less than 20 minutes since the last one',
+  KR8_PUSH_TITLE: 'Title: 1–80 characters', KR8_PUSH_BODY: 'Message: 1–240 characters', KR8_PUSH_URL: 'The link must be a page inside the app (/app/…)',
+  KR8_PUSH_TARGET: 'Pick one member or all members', KR8_NO_MEMBER: 'No member with that number',
   KR8_SOCIAL_RATIO: 'Not yet: Kring needs 9 replies without it first', KR8_SOCIAL_NOT_PENDING: 'Already sent or skipped', REDDIT_OFF: 'Reddit API not connected yet · use Copy + open thread',
 };
 const errText = (e: unknown) => { const m = String((e as Error)?.message || e); const k = (m.match(/KR8_[A-Z_]+|REDDIT_OFF/) || [''])[0]; return ERR[k] || 'Failed: ' + m; };
@@ -1494,6 +1497,8 @@ function moreView() {
     li('#history/replies', 'send', 'Sent and skipped replies', 'Reddit queue history', 'histReplies'),
     el('div', { class: 'sec' }, 'Rewards'),
     li('#codes', 'party', 'Reward codes', 'Paste Grab / TrueMoney codes · stock per prize amount · held claims', 'moreCodes'),
+    el('div', { class: 'sec' }, 'Notifications'),
+    li('#push', 'send', 'Send notification', 'A ding to one member (by member no) or to all members', 'morePush'),
     el('div', { class: 'sec' }, 'Outreach'),
     li('#reddit', 'msg', 'Reddit plan', 'Pacing, start date, checklist and history', 'moreReddit'),
     igPauseRow(),
@@ -1635,6 +1640,61 @@ async function codesView() {
   await draw();
 }
 
+// ───────────────────────────── Send notification (16 Nov dings, 0059) ─────────────────────────────
+type PushStats = { phones: number; members: number; recent: { id: number; kind: string; title: string | null; to_all: boolean; at: string; phones: number;
+  member_no: number | null; first_name: string | null; sent: number; failed: number; waiting: number }[] };
+const PUSH_KIND: Record<string, string> = { verified: 'Face check approved', reward: 'Reward ready', reel: 'Reel approved' };
+async function pushView() {
+  const body = el('div', {}, loading());
+  screen('more', el('div', { class: 'row', style: 'margin:6px 0 16px' }, el('a', { class: 'icb', href: '#more', 'aria-label': 'Back' }, ic('back')), el('h1', { style: 'font-size:26px' }, 'Send notification')), body);
+  const draw = async () => {
+    let st: PushStats;
+    try { st = await rpc<PushStats>('kr8_admin_push_stats'); } catch (e) { body.replaceChildren(errP(e)); return; }
+    const one = el('input', { type: 'radio', name: 'pushTo', id: 'pushToOne', checked: true }) as HTMLInputElement;
+    const all = el('input', { type: 'radio', name: 'pushTo', id: 'pushToAll' }) as HTMLInputElement;
+    const no = el('input', { id: 'pushMemberNo', inputmode: 'numeric', placeholder: 'Member no, e.g. 16' }) as HTMLInputElement;
+    const title = el('input', { id: 'pushTitle', maxlength: '80', placeholder: 'Title · Thai first, then English' }) as HTMLInputElement;
+    const msg = el('textarea', { id: 'pushBody', rows: '3', maxlength: '240', placeholder: 'Message · Thai line, then English line' }) as HTMLTextAreaElement;
+    const link = el('input', { id: 'pushLink', placeholder: 'Link inside the app (optional), e.g. ?tab=deals' }) as HTMLInputElement;
+    const out = el('p', { class: 'faint xs', id: 'pushOut' });
+    const sync = () => { no.disabled = all.checked; no.style.opacity = all.checked ? '.4' : '1'; };
+    one.onchange = sync; all.onchange = sync;
+    const send = btn('pri big full', ['Send'], async () => {
+      const r = pushSendArgs({ all: all.checked, memberNo: no.value, title: title.value, body: msg.value, link: link.value });
+      if ('error' in r) { out.textContent = r.error; return; }
+      if (r.args.p_all && !confirm(`Send to all ${st.phones} phone${st.phones === 1 ? '' : 's'} (${st.members} member${st.members === 1 ? '' : 's'})?`)) return;
+      send.disabled = true;
+      try {
+        const res = await rpc<{ phones: number; first_name?: string | null }>('kr8_admin_push_send', r.args);
+        const who = r.args.p_all ? 'all members' : `${res.first_name || 'member'} #${r.args.p_member_no}`;
+        toast(res.phones ? `Sent to ${who} · ${res.phones} phone${res.phones === 1 ? '' : 's'}` : `${who} has dings off · nothing sent`, { ms: 4000 });
+        title.value = ''; msg.value = ''; link.value = ''; out.textContent = '';
+        await draw();
+      } catch (e) { out.textContent = errText(e); } finally { send.disabled = false; }
+    }, { id: 'pushSend' });
+    const recent = st.recent.map((m) => el('div', { class: 'li', 'data-push': String(m.id) },
+      el('span', { class: 'grow' },
+        el('b', {}, m.kind === 'admin' ? (m.title || '–') : PUSH_KIND[m.kind] || m.kind),
+        el('span', { class: 's' }, `${m.to_all ? 'All members' : `${m.first_name || '?'} #${m.member_no ?? '?'}`} · ${bkkTime(m.at)} · ${m.phones} phone${m.phones === 1 ? '' : 's'}`)),
+      el('span', {}, m.sent ? pill(`${m.sent} sent`) : null, ' ', m.failed ? pill(`${m.failed} failed`, 'bad') : null, ' ', m.waiting ? pill(`${m.waiting} waiting`, 'warn') : null)));
+    body.replaceChildren(
+      el('div', { class: 'stats', id: 'pushStats' },
+        el('div', { class: 'stat' }, el('b', {}, String(st.members)), el('span', {}, 'Members with dings on')),
+        el('div', { class: 'stat' }, el('b', {}, String(st.phones)), el('span', {}, 'Phones'))),
+      el('div', { class: 'card stack', id: 'pushForm', style: 'margin-top:12px' },
+        el('div', { class: 'row', style: 'gap:16px' }, el('label', { class: 'row', style: 'gap:6px' }, one, 'One member'), el('label', { class: 'row', style: 'gap:6px' }, all, 'All members')),
+        el('label', { class: 'f' }, 'Member no', no),
+        el('label', { class: 'f' }, 'Title', title),
+        el('label', { class: 'f' }, 'Message', msg),
+        el('label', { class: 'f' }, 'Link', link),
+        el('p', { class: 'faint xs' }, 'Automatic dings already go out for: face check approved, reward code ready, Reel approved. Never use: meet, guide, tour, host, creator, reviews, hidden gem, alcohol, gift, wallet, credit, lucky, draw, temples.'),
+        out, send),
+      el('div', { class: 'sec' }, `Last ${st.recent.length}`),
+      st.recent.length ? el('div', { id: 'pushRecent' }, ...recent) : el('p', { class: 'faint sm', id: 'pushRecent' }, 'Nothing sent yet.'));
+  };
+  await draw();
+}
+
 // ───────────────────────────── router ─────────────────────────────
 function route() {
   flushWrite();
@@ -1655,6 +1715,7 @@ function route() {
   if (a === 'more') return moreView();
   if (a === 'rules') return rulesView();
   if (a === 'codes') return void codesView();
+  if (a === 'push') return void pushView();
   if (a === 'reddit') return redditView();
   if (a === 'history') return void historyView(b || 'reels');
   if (a === 'venue' && b) return void venueDetail(b);
