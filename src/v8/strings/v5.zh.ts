@@ -435,5 +435,8 @@ const T: Record<string, string> = {
     'End of the part': '结束位置',
     'Clip is over 10 minutes · pick a shorter one': '片段超过 10 分钟 · 请选更短的',
     'This phone couldn’t cut this clip, so nothing was uploaded. Pick a clip of 60 s or less, or open Kring in Chrome or Safari.': '这部手机无法剪辑此片段，所以没有上传任何内容。请选择 60 秒以内的片段，或在 Chrome 或 Safari 中打开 Kring。',
+    // ghost mode (admin-only account, 16 Nov)
+    'Ghost mode · nobody can see you': '隐身模式 · 没有人能看到你',
+    'Ghost mode is on: likes, saves, follows, hellos and posts are off.': '隐身模式已开启：点赞、收藏、关注、打招呼和发帖已关闭。',
   };
 export default T;

@@ -611,6 +611,8 @@ export const V5_INTERESTS = ['coffee', 'street_food', 'desserts', 'markets', 'ru
   'language_exchange', 'board_games', 'cooking', 'sunsets', 'parks', 'shopping', 'gaming', 'fitness', 'cycling', 'volunteering'] as const;
 export const v5SetInterests = (list: string[]) => rpc<string[]>('kr8_set_interests', { p_interests: list });
 export const v5Touch = () => rpc<void>('kr8_touch').catch(() => undefined);
+/** 0061 ghost mode: true only for the admin's own ghost card (nobody can ask about anyone else). Before 0061 is live: false. */
+export const v5MyGhost = () => rpc<boolean>('kr8_my_ghost').then((v) => v === true).catch(() => false);
 /** Link that opens someone's profile: kringapp.com/app/?u=<id> */
 export function v5ProfileLink(id: string): string {
   const base = ((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.BASE_URL || '/').replace(/\/?$/, '/');

@@ -435,5 +435,8 @@ const T: Record<string, string> = {
     'End of the part': '終了位置',
     'Clip is over 10 minutes · pick a shorter one': '10分を超えています · もっと短いクリップを選んでください',
     'This phone couldn’t cut this clip, so nothing was uploaded. Pick a clip of 60 s or less, or open Kring in Chrome or Safari.': 'このスマホではこのクリップをカットできなかったため、何もアップロードされていません。60秒以内のクリップを選ぶか、Chrome または Safari で Kring を開いてください。',
+    // ghost mode (admin-only account, 16 Nov)
+    'Ghost mode · nobody can see you': 'ゴーストモード · 誰からも見えません',
+    'Ghost mode is on: likes, saves, follows, hellos and posts are off.': 'ゴーストモード中：いいね・保存・フォロー・あいさつ・投稿はオフです。',
   };
 export default T;

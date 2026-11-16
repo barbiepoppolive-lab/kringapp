@@ -435,5 +435,8 @@ const T: Record<string, string> = {
     'End of the part': '끝 지점',
     'Clip is over 10 minutes · pick a shorter one': '클립이 10분을 넘어요 · 더 짧은 클립을 골라 주세요',
     'This phone couldn’t cut this clip, so nothing was uploaded. Pick a clip of 60 s or less, or open Kring in Chrome or Safari.': '이 폰에서는 이 클립을 자를 수 없어 아무것도 업로드되지 않았어요. 60초 이하 클립을 고르거나 Chrome 또는 Safari에서 Kring을 열어 주세요.',
+    // ghost mode (admin-only account, 16 Nov)
+    'Ghost mode · nobody can see you': '고스트 모드 · 아무도 나를 볼 수 없어요',
+    'Ghost mode is on: likes, saves, follows, hellos and posts are off.': '고스트 모드 켜짐: 좋아요, 저장, 팔로우, 인사, 게시가 꺼져 있어요.',
   };
 export default T;

@@ -177,6 +177,8 @@ export function MeView(props: {
   rankLine?: string; saved?: { count: number; thumbs: string[] } | null; onSavedReels?: () => void; onLink?: () => void;
   /** go-live build: the "Reels" / "Saved" tabs + grid; replaces the old saved row, the Reel strip and the long text blocks */
   reelsSlot?: React.ReactNode; onReplay?: () => void; gender?: string | null;
+  /** 0061: the admin's own ghost card (only that phone sees this line) */
+  ghost?: boolean;
 }) {
   const { L, Lf, p } = props;
   const lv = p.level;
@@ -197,6 +199,7 @@ export function MeView(props: {
           </button>
         </span>
       </div>
+      {props.ghost ? <p className="kme-ghost" id="meGhost" role="status"><span aria-hidden="true">👻</span>{L('Ghost mode · nobody can see you')}</p> : null}
       <div className="kme-cardwrap">
         <KxMemberCard L={L} Lf={Lf} p={p} kx={props.kx} gender={props.gender} />
         <button type="button" className="kme-pencil" id="meEdit" aria-label={L('Edit card')} onClick={props.onEdit}>

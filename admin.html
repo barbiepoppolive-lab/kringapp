@@ -7,7 +7,12 @@
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: https://*.supabase.co; font-src 'self' data:; connect-src 'self' https://cloudflareinsights.com https://*.supabase.co wss://*.supabase.co https://*.ingest.us.sentry.io; base-uri 'self'; form-action 'self';" />
     <meta name="theme-color" content="#0b0a12" />
-    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/app/admin-icon-192.png" />
+    <!-- its own home-screen app "Kring Admin" (16 Nov): separate manifest (id/scope /app/admin), same icon with a small badge -->
+    <link rel="manifest" href="/app/admin.webmanifest" />
+    <link rel="apple-touch-icon" href="/app/admin-apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Kring Admin" />
+    <meta name="application-name" content="Kring Admin" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

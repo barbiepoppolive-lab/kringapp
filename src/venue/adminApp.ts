@@ -93,6 +93,7 @@ const ERR: Record<string, string> = {
   KR8_NO_REEL: 'This Reel is not approved or is hidden', KR8_SOCIAL_DAY_LIMIT: '5 sent today already · send tomorrow', KR8_SOCIAL_TOO_SOON: 'Less than 20 minutes since the last one',
   KR8_PUSH_TITLE: 'Title: 1–80 characters', KR8_PUSH_BODY: 'Message: 1–240 characters', KR8_PUSH_URL: 'The link must be a page inside the app (/app/…)',
   KR8_PUSH_TARGET: 'Pick one member or all members', KR8_NO_MEMBER: 'No member with that number',
+  KR8_NO_PERSON: 'No member card on this account yet', KR8_GHOST: 'Ghost mode is on for this account',
   KR8_SOCIAL_RATIO: 'Not yet: Kring needs 9 replies without it first', KR8_SOCIAL_NOT_PENDING: 'Already sent or skipped', REDDIT_OFF: 'Reddit API not connected yet · use Copy + open thread',
 };
 const errText = (e: unknown) => { const m = String((e as Error)?.message || e); const k = (m.match(/KR8_[A-Z_]+|REDDIT_OFF/) || [''])[0]; return ERR[k] || 'Failed: ' + m; };
@@ -1582,6 +1583,11 @@ function moreView() {
     li('#history/replies', 'send', 'Sent and skipped replies', 'Reddit queue history', 'histReplies'),
     el('div', { class: 'sec' }, 'Rewards'),
     li('#codes', 'party', 'Reward codes', 'Paste Grab / TrueMoney codes · stock per prize amount · held claims', 'moreCodes'),
+    el('div', { class: 'sec' }, 'Ghost mode'),
+    li('#ghost', 'eye', 'Ghost mode', 'Use the app as a member without anyone seeing you', 'moreGhost'),
+    el('a', { class: 'li', href: ghostAppUrl(), id: 'moreGhostOpen', target: '_blank', rel: 'noopener' }, el('span', { class: 'ic' }, ic('open')),
+      el('span', { class: 'grow' }, el('b', {}, 'Open app as ghost'), el('span', { class: 's' }, 'Same sign-in · switch Ghost mode on first')), ic('chev')),
+    installAdminRow(),
     el('div', { class: 'sec' }, 'Notifications'),
     li('#push', 'send', 'Send notification', 'A ding to one member (by member no) or to all members', 'morePush'),
     el('div', { class: 'sec' }, 'Outreach'),
@@ -1784,6 +1790,71 @@ async function pushView() {
   await draw();
 }
 
+// ───────────────────────────── Ghost mode (0061) + Kring Admin home-screen app ─────────────────────────────
+export type GhostMe = { card: false } | { card: true; user_id: string; first_name: string; member_no: number | null; ghost: boolean };
+export function isGhostMe(v: unknown): v is GhostMe {
+  if (!v || typeof v !== 'object') return false;
+  const o = v as Record<string, unknown>;
+  return o.card === false || (o.card === true && typeof o.user_id === 'string' && typeof o.ghost === 'boolean');
+}
+/** The member app, same origin and same sign-in as this admin page (the admin page lives at <base>admin). */
+export const ghostAppUrl = () => basePath();
+export const GHOST_HIDES = [
+  'Not in People, nearby, online now, search or tagging',
+  'Not in anyone’s followers, Activity or ranking',
+  'Never shows online or “I’m here”',
+  'Reel views, shares and link opens are not counted',
+  'Likes, saves, follows, hellos and posts are switched off',
+];
+async function ghostView() {
+  const body = el('div', {}, loading());
+  screen('more', el('div', { class: 'row', style: 'margin:6px 0 16px' }, el('a', { class: 'icb', href: '#more', 'aria-label': 'Back' }, ic('back')), el('h1', { style: 'font-size:26px' }, 'Ghost mode')), body);
+  const draw = async () => {
+    let g: unknown;
+    try { g = await rpc<unknown>('kr8_admin_ghost_me'); } catch (e) { body.replaceChildren(errP(e)); return; }
+    if (!isGhostMe(g)) { body.replaceChildren(el('p', { class: 'err' }, 'Ghost mode needs database update 0061.')); return; }
+    const open = el('a', { class: 'btn pri big full', id: 'ghostOpenApp', href: ghostAppUrl(), target: '_blank', rel: 'noopener' }, ic('open'), g.card ? 'Open app as ghost' : 'Open the app');
+    if (!g.card) {
+      body.replaceChildren(el('div', { class: 'card stack', id: 'ghostNoCard' },
+        el('b', {}, 'This admin account has no member card yet'),
+        el('p', { class: 'faint sm' }, `Open the app signed in as ${me || 'this account'}, make your card, then come back here and switch Ghost mode on.`), open));
+      return;
+    }
+    const toggle = sw('ghostSwitch', el('span', {}, el('b', {}, 'Ghost mode'), el('span', { class: 's', style: 'display:block' }, `${g.first_name}${g.member_no != null ? ` #${g.member_no}` : ''} · your own member card`)), g.ghost, async (on) => {
+      try {
+        await rpc('kr8_admin_set_ghost', { p_on: on });
+        toast(on ? 'Ghost mode on · nobody can see you' : 'Ghost mode off · you are visible again', { ms: 3000 });
+      } catch (e) { toast(errText(e), { ms: 4000 }); }
+      await draw();
+    });
+    body.replaceChildren(
+      el('div', { class: 'card stack', id: 'ghostCard' }, toggle,
+        el('p', { class: 'faint sm', id: 'ghostState' }, g.ghost ? 'On. You can browse Reels, People, Deals, profiles and the Feed.' : 'Off. You show up like any member.')),
+      el('div', { class: 'sec' }, 'While it is on'),
+      el('ul', { class: 'faint sm', id: 'ghostHides', style: 'margin:0 0 14px 18px' }, ...GHOST_HIDES.map((t) => el('li', {}, t))),
+      open,
+      el('p', { class: 'faint xs', style: 'margin-top:10px' }, 'Likes, saves and follows made before Ghost mode was switched on stay in the totals (your name is hidden). A share link opened while signed out of Kring counts like anyone else’s.'));
+  };
+  await draw();
+}
+type PromptEv = { prompt: () => Promise<void> };
+let adminInstall: PromptEv | null = null;
+/** "Install Kring Admin": the browser's one-tap offer when it has one, otherwise where the menu item is. Hidden inside the installed app. */
+function installAdminRow(): HTMLElement | null {
+  let standalone = false;
+  try { standalone = matchMedia('(display-mode: standalone)').matches || (navigator as unknown as { standalone?: boolean }).standalone === true; } catch { /* ignore */ }
+  if (standalone) return null;
+  const row = el('button', { type: 'button', class: 'li', id: 'moreInstallAdmin' }, el('span', { class: 'ic' }, ic('dl')),
+    el('span', { class: 'grow' }, el('b', {}, 'Install Kring Admin'), el('span', { class: 's' }, 'Its own home-screen app, next to Kring')), ic('chev'));
+  row.onclick = async () => {
+    if (adminInstall) { const ev = adminInstall; adminInstall = null; try { await ev.prompt(); } catch { /* ignore */ } return; }
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    toast(ios ? 'Safari: tap Share, then “Add to Home Screen”' : 'Chrome: tap ⋮ at the top right, then “Install app”', { ms: 6000 });
+  };
+  return row;
+}
+try { window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); adminInstall = e as unknown as PromptEv; }); } catch { /* not in a browser */ }
+
 // ───────────────────────────── router ─────────────────────────────
 function route() {
   flushWrite();
@@ -1805,6 +1876,7 @@ function route() {
   if (a === 'rules') return rulesView();
   if (a === 'codes') return void codesView();
   if (a === 'push') return void pushView();
+  if (a === 'ghost') return void ghostView();
   if (a === 'reddit') return redditView();
   if (a === 'history') return void historyView(b || 'reels');
   if (a === 'venue' && b) return void venueDetail(b);

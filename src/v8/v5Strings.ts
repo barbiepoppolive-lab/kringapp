@@ -436,6 +436,9 @@ export const V5_L: Record<string, Record<string, string>> = {
     'End of the part': 'จุดสิ้นสุด',
     'Clip is over 10 minutes · pick a shorter one': 'คลิปยาวเกิน 10 นาที · เลือกคลิปที่สั้นกว่านี้',
     'This phone couldn’t cut this clip, so nothing was uploaded. Pick a clip of 60 s or less, or open Kring in Chrome or Safari.': 'เครื่องนี้ตัดคลิปนี้ไม่ได้ เลยยังไม่ได้อัปโหลดอะไร · เลือกคลิปที่ยาวไม่เกิน 60 วินาที หรือเปิดกริ๊ง!ใน Chrome หรือ Safari',
+    // ghost mode (admin-only account, 16 Nov)
+    'Ghost mode · nobody can see you': 'โหมดล่องหน · ไม่มีใครเห็นคุณ',
+    'Ghost mode is on: likes, saves, follows, hellos and posts are off.': 'โหมดล่องหนเปิดอยู่: กดถูกใจ บันทึก ติดตาม ทักทาย และโพสต์ถูกปิดไว้',
   },
   // zh, hi, ja, ko: separate files, downloaded only when that language is chosen (loadV5Lang below)
 };
@@ -497,6 +500,7 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
     case 'LINE_FAIL': return ['LINE sign-in didn’t work this time. Try again, or use email.'];
     case 'OTP_SEND': return ['We couldn’t send the email. Check the address and try again.'];
     case 'GOOGLE_OFF': return ['Google sign-in isn’t switched on yet. Use an email code for now.'];
+    case 'GHOST': return ['Ghost mode is on: likes, saves, follows, hellos and posts are off.'];
     default: return ['Something went wrong. Try again.'];
   }
 }

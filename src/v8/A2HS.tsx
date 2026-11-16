@@ -7,6 +7,7 @@
  *  iPhone Safari: two pictured steps (Share → Add to Home Screen) + "you sign in once more there" (separate storage).
  *  Inside LINE / Instagram / Facebook / TikTok browsers: "Open in browser" first. */
 import { useEffect, useRef, useState } from 'react';
+import './a2hs.css';
 
 type Tx = (en: string) => string;
 const KEY = 'kr8_a2hs';
@@ -91,6 +92,28 @@ export function externalBrowserUrl(href: string): string {
 }
 
 const OPEN_EVENT = 'kr8-a2hs-open';
+/** ?install=1 (the website's Install button, 16 Nov): the install step comes FIRST. Read once per page load, then removed from
+ *  the address bar (so a home-screen app saved from this page never reopens the sheet). While it is on, the app holds back
+ *  sign-in and "Make your card" until the install sheet is closed. Inside the installed app it is ignored. */
+let installAsk: boolean | null = null;
+export function installAskIn(href: string): boolean {
+  try { return new URL(href).searchParams.get('install') === '1'; } catch { return false; }
+}
+export function takeInstallAsk(): boolean {
+  if (installAsk !== null) return installAsk;
+  installAsk = false;
+  try {
+    if (installAskIn(window.location.href)) {
+      installAsk = !isStandalone();
+      const u = new URL(window.location.href);
+      u.searchParams.delete('install');
+      history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+    }
+  } catch { /* ignore */ }
+  return installAsk;
+}
+/** tests only */
+export function resetInstallAsk() { installAsk = null; }
 /** Opens the install sheet now (the "Install app" button on Me, or /app/?install=1 from the website). */
 export function openInstallSheet() { try { window.dispatchEvent(new Event(OPEN_EVENT)); } catch { /* ignore */ } }
 /** "ติดตั้งแอป · Install app" button for the top of Me: only when Kring is not already installed. */
@@ -141,7 +164,7 @@ export function installState(hasPrompt: boolean, waitedMs: number, installed: bo
   return waitedMs < BIP_WAIT_MS ? 'preparing' : 'manual';
 }
 
-export function A2HSBanner(props: { L: Tx; blocked?: boolean; force?: A2hsVariant }) {
+export function A2HSBanner(props: { L: Tx; blocked?: boolean; force?: A2hsVariant; onClose?: () => void }) {
   const { L } = props;
   const [show, setShow] = useState(false);
   const [hasPrompt, setHasPrompt] = useState(!!promptEv());
@@ -159,7 +182,7 @@ export function A2HSBanner(props: { L: Tx; blocked?: boolean; force?: A2hsVarian
     // asked for on purpose (button, or ?install=1 from the website): open now, whatever the snooze says
     const open = () => { if (!isStandalone()) { markShown(); setShow(true); } };
     window.addEventListener(OPEN_EVENT, open);
-    try { if (new URLSearchParams(location.search).get('install') === '1') open(); } catch { /* ignore */ }
+    if (takeInstallAsk()) open();
     // the browser's install offer can arrive seconds after the page: switch to one-tap the moment it does
     const bip = () => setHasPrompt(true);
     const done = () => { setInstalled(true); setHasPrompt(false); };
@@ -193,7 +216,7 @@ export function A2HSBanner(props: { L: Tx; blocked?: boolean; force?: A2hsVarian
     const t = setInterval(() => { setNow(Date.now()); if (Date.now() - t0 > BIP_WAIT_MS + 500) clearInterval(t); }, 250);
     return () => clearInterval(t);
   }, [show]);
-  const later = () => { write(a2hsDismissed(read(), Date.now())); setShow(false); };
+  const later = () => { write(a2hsDismissed(read(), Date.now())); setShow(false); props.onClose?.(); };
   const install = async () => {
     const ev = promptEv();
     if (!ev) { wantRef.current = true; return; }   // tapped while preparing: prompt as soon as the offer arrives

@@ -79,13 +79,14 @@ import {
   v5Activity,
   v5SetInterests,
   v5Touch,
+  v5MyGhost,
   v5ProfileLink,
   V5_INTERESTS,
   v5SyncAttribution,
   v5StoredRef,
 } from './v5Live';
 import { ActivitySheet, FollowSheet, InterestsSheet, LANG_NAME, MeView, Top10Sheet } from './V5Me';
-import { A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip, openInstallSheet } from './A2HS';
+import { A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip, openInstallSheet, takeInstallAsk } from './A2HS';
 import { parsePushLink, pushConfigured, pushDisable, pushEnable, pushMoment, pushResync, pushState, type PushLink, type PushState } from './push';
 import { PUSH_ASK_LINE, PushAskCard } from './V5Push';
 import { EscapeScreen } from './V5Escape';
@@ -1387,6 +1388,16 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     } catch { return false; }
   })());
   const v5JoinAsked = useRef<boolean>(v5JoinRef.current);
+  // ?install=1 (website Install button): the install sheet comes first; sign-in / "Make your card" wait until it is closed (16 Nov)
+  const installAskRef = useRef<boolean>(takeInstallAsk());
+  const [installAsking, setInstallAsking] = useState<boolean>(installAskRef.current);
+  const cardAfterInstallRef = useRef(false);
+  const installAskDone = () => {
+    if (!installAskRef.current) return;
+    installAskRef.current = false;
+    setInstallAsking(false);
+    if (cardAfterInstallRef.current) { cardAfterInstallRef.current = false; if (!sheetRef.current) setSheet('v5card'); }
+  };
   const v5ApplySession = async (uid: string | null) => {
     if (!uid) {
       setV5Uid('');
@@ -1403,14 +1414,15 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       v5ApplyMe(me);
       if (me.card) void v5SyncAttribution();   // signed in on a phone that opened a ?ref= / ?src= link
       if (!me.card) {
-        setSheet('v5card');
+        if (installAskRef.current) cardAfterInstallRef.current = true;   // after the install step, never before it
+        else setSheet('v5card');
       } else if (v5JoinRef.current) {
         // 13 Nov: a website "Join the community" tap from someone already in: their card on Me, plus the first-Reel nudge if they have no Reel yet
         v5JoinRef.current = false;
         try { sessionStorage.removeItem('kr8_join'); } catch { /* ignore */ }
         setTab('me');
         if (sheetRef.current === 'signin') setSheet(null);
-        if (!(me.posts > 0)) setTimeout(() => setSheet('reelNudge'), 400);
+        if (!(me.posts > 0) && !installAskRef.current) setTimeout(() => setSheet('reelNudge'), 400);
       } else if (sheetRef.current === 'signin') {
         setSheet(null);
         showToast(L('Signed in · กริ๊ง!'));
@@ -1608,7 +1620,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       // Recruiter / invite link (?ref=… or ?join=1) and not signed in: open the join sheet straight away, LINE first (13 Nov funnel fix)
       try {
         const q0 = new URLSearchParams(window.location.search);
-        if (!s0?.user?.id && (q0.get('ref') || v5JoinAsked.current) && !sheetRef.current) setSheet('signin');
+        if (!s0?.user?.id && (q0.get('ref') || v5JoinAsked.current) && !sheetRef.current && !installAskRef.current) setSheet('signin');
       } catch { /* ignore */ }
       off = await v5OnAuth((s1) => {
         const id = s1?.user?.id || '';
@@ -2653,6 +2665,14 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [live, v5Uid, !!v5Card, tab, v5Card?.first_name, v5Card?.photo]);
   // "Online" = opened the app in the last 5 minutes
+  // 0061: the admin's own ghost card shows one line on Me (the database already hides it from everyone else)
+  const [v5Ghost, setV5Ghost] = useState(false);
+  useEffect(() => {
+    if (!live || !v5Uid || !v5Card) { setV5Ghost(false); return; }
+    let on = true;
+    void v5MyGhost().then((g) => { if (on) setV5Ghost(g); });
+    return () => { on = false; };
+  }, [live, v5Uid, !!v5Card]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!live || !v5Uid || !v5Card) return;
     void v5Touch();
@@ -4377,6 +4397,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <MeView
               L={L}
               Lf={Lf}
+              ghost={v5Ghost}
               p={meProfile}
               rank={meRank}
               posters={mePosters}
@@ -6669,9 +6690,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             )}
           </div>
         )}
-        {live && !sheet && <A2HSBanner L={L} blocked={['preparing', 'uploading', 'saving'].includes(reelStage)} />}
+        {live && (!sheet || installAsking) && <A2HSBanner L={L} blocked={['preparing', 'uploading', 'saving'].includes(reelStage)} onClose={installAskDone} />}
         {live && <EscapeScreen L={L} lang={lang} liff={isLiffOpen(typeof location === 'undefined' ? '' : location.search, typeof navigator === 'undefined' ? '' : navigator.userAgent)} signedIn={signedIn} authReady={v5AuthReady} />}
-        {live && signedIn && !!v5Card && !sheet && !goPlayer && (
+        {live && signedIn && !!v5Card && !sheet && !goPlayer && !installAsking && (
           <PushAskCard L={L} lang={lang} toast={showToast} onInstallHelp={openInstallSheet} blocked={['preparing', 'uploading', 'saving'].includes(reelStage)} />
         )}
         {updateReady ? <button type="button" className="kr-upd" id="appUpdate" onClick={() => location.reload()}>{L('New update · tap to refresh')}</button> : null}

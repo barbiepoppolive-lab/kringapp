@@ -1,0 +1,19 @@
+{
+  "name": "Kring Admin",
+  "short_name": "Kring Admin",
+  "description": "Kring team admin. Not for members.",
+  "id": "/app/admin",
+  "start_url": "/app/admin",
+  "scope": "/app/admin",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0a12",
+  "theme_color": "#0b0a12",
+  "lang": "en",
+  "icons": [
+    { "src": "/app/admin-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/app/admin-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/app/admin-icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/app/admin-apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}
