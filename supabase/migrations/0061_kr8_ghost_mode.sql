@@ -22,7 +22,17 @@
 --   drop trigger if exists kr8_ghost_messages on public.kr8_messages;  drop trigger if exists kr8_ghost_posts on public.kr8_posts;
 --   drop trigger if exists kr8_ghost_answers on public.kr8_answers;    drop trigger if exists kr8_ghost_views on public.kr8_post_views;
 --   drop trigger if exists kr8_ghost_opens on public.kr8_share_opens;  drop trigger if exists kr8_ghost_member on public.kr8_members;
---   then re-run the kr8_is_blocked body from 0022 and the kr8_log_reel_share body from 0026 (unchanged since),
+--   then put back the two live bodies (read from live 16 Nov; same as 0022 / 0026):
+--     create or replace function public.kr8_is_blocked(x uuid, y uuid) returns boolean language sql stable security definer
+--       set search_path = public, pg_temp as $$ select auth.uid() is not null and auth.uid() in (x, y)
+--       and exists (select 1 from public.kr8_blocks where (blocker = x and blocked = y) or (blocker = y and blocked = x)) $$;
+--     kr8_log_reel_share: the body below without the "if public.kr8_is_ghost(auth.uid()) then return false; end if;" line,
+--
+-- CHECKED AGAINST LIVE (16 Nov, read-only): kr8_is_blocked and kr8_log_reel_share on live are byte-identical to the bodies
+-- this file builds on; every table / column the triggers read exists on live with the same names; no ghost column,
+-- ghost function or ghost trigger exists yet; the only other kr8_members trigger on live is kr8_notify_founder_member
+-- (AFTER INSERT, its payload simply gains "ghost": false). Live-only functions (kr8_is_test_member, kr8_member_alert_stats,
+-- kr8_admin_new_members_today, kr8_notify_founder) are not touched. 48/48 checks pass on a copy of the live schema.
 --   drop function public.kr8_admin_set_ghost(boolean, uuid), public.kr8_admin_ghost_me(), public.kr8_my_ghost(),
 --     public.kr8_ghost_guard_trg(), public.kr8_ghost_member_trg(), public.kr8_ghost_open_trg(), public.kr8_is_ghost(uuid);
 --   alter table public.kr8_members drop column ghost;
