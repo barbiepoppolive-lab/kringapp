@@ -133,6 +133,7 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Delete my account now': 'ลบบัญชีของฉันเลย',
     'This permanently deletes your Kring account, card, posts, chats and claimed treats from our servers. It can’t be undone.': 'การลบนี้จะลบบัญชี กริ๊ง! บัตร โพสต์ แชต และทรีตที่รับไว้ออกจากเซิร์ฟเวอร์ของเราถาวร และย้อนกลับไม่ได้',
     'Your Kring account and data were deleted.': 'ลบบัญชีและข้อมูล กริ๊ง! ของคุณแล้ว',
+    'Your card was deleted. Your admin sign-in is kept.': 'ลบการ์ดของคุณแล้ว บัญชีแอดมินยังใช้เข้าสู่ระบบได้ตามเดิม',
     'Couldn’t delete right now. Try again.': 'ลบไม่สำเร็จตอนนี้ ลองใหม่อีกครั้ง',
     'Reported · thank you. Our team reviews every report.': 'รายงานแล้ว · ขอบคุณ ทีมเราตรวจทุกรายงาน',
     'Sign in to see Bangkok insiders': 'ลงชื่อเข้าใช้เพื่อดู Bangkok insiders',
@@ -316,6 +317,15 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Your Kring': 'กริ๊ง! ของคุณ',
     'Your Reel is #{0} · {1}': 'รีลของคุณได้อันดับ {0} · {1}',
     'Your Reel is approved and live': 'รีลของคุณผ่านการตรวจและขึ้นแล้ว',
+    'Your Reel was hidden': 'รีลของคุณถูกซ่อน',
+    // 16 Nov audit P1-3 / P3-15: first-Reel nudge strings (Thai phones see the Thai copy in the nudge itself)
+    'Your card is saved': 'บันทึกบัตรแล้ว',
+    'Post your first Reel now': 'โพสต์รีลแรกไว้ก่อนเลย',
+    'Later': 'ไว้ทีหลัง',
+    'Every week the Top {0} share {1}': 'ทุกสัปดาห์ ท็อป {0} แบ่งกัน {1}',
+    'a prize seat needs {0} Rings': 'ต้องมี {0} ริงขึ้นไปถึงจะได้รางวัล',
+    'Weekly prizes': 'รางวัลประจำสัปดาห์',
+    'Hidden': 'ซ่อนแล้ว',
     'Your Reels show here and count towards your next level': 'รีลของคุณจะแสดงที่นี่และนับเพื่อขึ้นเลเวลถัดไป',
     'Your face data': 'ข้อมูลใบหน้าของคุณ',
     'Your face is sensitive personal data under Thailand’s PDPA. We use it only to confirm you are a real person and that your profile photo is you.': 'ใบหน้าของคุณเป็นข้อมูลส่วนบุคคลที่อ่อนไหวตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล (PDPA) เราใช้เพื่อยืนยันว่าคุณเป็นคนจริงและรูปโปรไฟล์เป็นคุณเท่านั้น',
@@ -507,6 +517,7 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
     case 'OTP_SEND': return ['We couldn’t send the email. Check the address and try again.'];
     case 'GOOGLE_OFF': return ['Google sign-in isn’t switched on yet. Use an email code for now.'];
     case 'GHOST': return ['Ghost mode is on: likes, saves, follows, hellos and posts are off.'];
+    case 'PHOTO_NEEDED': return ['Add a photo where your face is clearly visible.'];   // 0070: a new card needs an uploaded photo
     default: return ['Something went wrong. Try again.'];
   }
 }

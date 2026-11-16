@@ -1,5 +1,9 @@
 /* V5_L ko: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    // 16 Nov audit P0-3 / P2-3
+    'Your Reel was hidden': '내 릴스가 숨겨졌어요',
+    'Hidden': '숨김',
+    'Your card was deleted. Your admin sign-in is kept.': '카드가 삭제됐어요. 관리자 로그인은 그대로예요.',
     // 16 Nov audit P1-3 / P3-15: first-Reel nudge in one language, prize line from the live rules
     'Your card is saved': '카드가 저장됐어요',
     'Post your first Reel now': '지금 첫 릴스를 올려 보세요',

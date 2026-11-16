@@ -1,5 +1,9 @@
 /* V5_L ja: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    // 16 Nov audit P0-3 / P2-3
+    'Your Reel was hidden': 'あなたのリールは非表示になりました',
+    'Hidden': '非表示',
+    'Your card was deleted. Your admin sign-in is kept.': 'カードを削除しました。管理者のログインはそのまま使えます。',
     // 16 Nov audit P1-3 / P3-15: first-Reel nudge in one language, prize line from the live rules
     'Your card is saved': 'カードを保存しました',
     'Post your first Reel now': '最初のリールを今すぐ投稿',

@@ -1,5 +1,9 @@
 /* V5_L zh: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    // 16 Nov audit P0-3 / P2-3
+    'Your Reel was hidden': '你的视频已被隐藏',
+    'Hidden': '已隐藏',
+    'Your card was deleted. Your admin sign-in is kept.': '你的卡片已删除。你的管理员登录仍然保留。',
     // 16 Nov audit P1-3 / P3-15: first-Reel nudge in one language, prize line from the live rules
     'Your card is saved': '你的卡片已保存',
     'Post your first Reel now': '现在就发你的第一条 Reel',

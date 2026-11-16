@@ -2,7 +2,7 @@
  * Shared bits for the two venue pages (admin.html, staff.html): Supabase client, Thai + English labels, tiny DOM helpers.
  * Everything goes through the kr8_* RPCs from supabase/migrations/0023 — no direct table access.
  */
-import { v5Client } from '../v8/v5Live';
+import { v5Client, v5RpcKeepalive } from '../v8/v5Live';
 import './venue.css';
 
 export { v5Client };
@@ -50,6 +50,15 @@ export async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Pr
     throw new Error(m ? m[0] : error.message || 'ERROR');
   }
   return data as T;
+}
+
+/** A write the admin can still Undo for 5 s. `spec` lets the page send it with keepalive when the tab closes (audit P3-11). */
+export type RpcWrite = (() => Promise<unknown>) & { spec?: { fn: string; args: Record<string, unknown> } };
+export function rpcWrite(fn: string, args: Record<string, unknown>): RpcWrite {
+  return Object.assign(() => rpc(fn, args), { spec: { fn, args } });
+}
+export function sendKeepalive(w: RpcWrite): Promise<unknown> {
+  return w.spec ? v5RpcKeepalive(w.spec.fn, w.spec.args) : w();
 }
 
 export function basePath(): string {

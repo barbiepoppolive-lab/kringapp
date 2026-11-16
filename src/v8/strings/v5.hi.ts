@@ -1,5 +1,9 @@
 /* V5_L hi: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    // 16 Nov audit P0-3 / P2-3
+    'Your Reel was hidden': 'आपकी रील छिपा दी गई',
+    'Hidden': 'छिपी हुई',
+    'Your card was deleted. Your admin sign-in is kept.': 'आपका कार्ड हटा दिया गया। आपका एडमिन साइन-इन बना रहेगा।',
     // 16 Nov audit P1-3 / P3-15: first-Reel nudge in one language, prize line from the live rules
     'Your card is saved': 'आपका कार्ड सेव हो गया',
     'Post your first Reel now': 'अभी अपनी पहली Reel पोस्ट करें',

@@ -158,7 +158,8 @@ export async function kxCreateReel(u: UploadedReel, r: ReelReady, area: string, 
 }
 
 // ───────────── go-live build (0048): profile grid, tagged people, coach marks ─────────────
-export interface KxGridReel { id: string; poster_path: string; video_path: string; body: string | null; created_at: string; status: 'approved' | 'pending';
+export interface KxGridReel { id: string; poster_path: string; video_path: string; body: string | null; created_at: string; status: 'approved' | 'pending' | 'hidden';
+  /** own hidden Reel only (0070): the team's reason */ note?: string | null;
   likes: number; saves: number; this_week: boolean; rings: number; place: { id: string; name_en: string; name_th: string | null } | null; liked: boolean; saved: boolean }
 export interface KxMemberReels { user_id: string; mine: boolean; best: string | null; reels: KxGridReel[] }
 export const kxMemberReels = (user: string) => rpc<KxMemberReels>('kr8_member_reels', { p_user: user, p_limit: 60 });
@@ -172,6 +173,8 @@ export const kxCoachSeen = (key: string) => rpc<boolean>('kr8_coach_seen', { p_k
 export const kxCoachReset = () => rpc<number>('kr8_coach_reset').catch(() => 0);
 
 // ───────────── optional gender on the card (0050) ─────────────
+/** 0070: did the phone's face check run on the card photo just saved? false = it could not (old phone / model not loaded); admin looks by eye. */
+export const kxNotePhotoCheck = (ok: boolean) => rpc<void>('kr8_note_photo_check', { p_ok: ok });
 export const kxSetGender = (gender: string | null, show: boolean) => rpc<{ gender: 'male' | 'female' | 'kathoey' | null; show_gender: boolean }>('kr8_set_gender', { p_gender: gender, p_show: show });
 /** Someone's gender, only if they chose to show it on their card (otherwise null). */
 export const kxGenderShown = (user: string) => rpc<string | null>('kr8_gender_shown', { p_user: user }).catch(() => null);

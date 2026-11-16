@@ -11,7 +11,7 @@ import { PerksCard } from './V5Perks';
 import type { V5Activity, V5FollowRow, V5Level, V5Profile } from './v5Live';
 import { NeonCard, progLine, RingGlyph } from './V5KxCard';
 import { InstallChip } from './A2HS';
-import { fmtN, levelFor } from './kxLogic';
+import { fmtN, levelFor, reviewNoteText } from './kxLogic';
 import type { KxCardExtras } from './v5Kx';
 
 // ── pre-season (D-11NOV-G): the board ranks from day one; rewards start on kr8_settings.reward_start_at ──
@@ -352,19 +352,21 @@ export function ActivitySheet(props: { L: Tx; Lf: Txf; rows: V5Activity[] | null
   const today = bkkDayOf(new Date().toISOString());
   const rows = props.rows || [];
   const unread = rows.some((a) => !seen || a.at > seen);
-  const open = (a: V5Activity) => (a.post_id && a.kind !== 'follow' ? props.onReel(a.post_id) : a.actor_id ? props.onPerson(a.actor_id) : undefined);
+  const open = (a: V5Activity) => (a.kind === 'hidden' ? undefined : a.post_id && a.kind !== 'follow' ? props.onReel(a.post_id) : a.actor_id ? props.onPerson(a.actor_id) : undefined);
   const row = (a: V5Activity, i: number) => {
     const thumb = a.poster_path && props.posters[a.poster_path];
     const text = a.kind === 'follow' ? Lf('{0} started following you', a.actor_name || '')
       : a.kind === 'like' ? (a.n > 1 ? Lf('{0} and {1} others liked your Reel', a.actor_name || '', String(a.n - 1)) : Lf('{0} liked your Reel', a.actor_name || ''))
       : a.kind === 'gift' ? Lf('Your Reel is #{0} · {1}', String(a.rank || ''), a.prize || '')
+      // audit P2-3: hidden by the team, with the reason (the prize column carries it)
+      : a.kind === 'hidden' ? [L('Your Reel was hidden'), reviewNoteText(a.prize)].filter(Boolean).join(' · ')
       : L('Your Reel is approved and live');
     const isNew = !seen || a.at > seen;
     return (
       <div className={`li${isNew ? ' new' : ''}`} key={`${a.kind}-${a.at}-${i}`} data-activity={a.kind}>
         {a.kind === 'follow' || a.kind === 'like' ? (
           <button type="button" className="av" aria-label={a.actor_name || ''} onClick={() => a.actor_id && props.onPerson(a.actor_id)}><Avatar photo={a.actor_photo} name={a.actor_name || '?'} size={44} /></button>
-        ) : <span className="kme-av kme-av-i" style={{ width: 44, height: 44 }}>{a.kind === 'gift' ? '🏆' : '✓'}</span>}
+        ) : <span className="kme-av kme-av-i" style={{ width: 44, height: 44 }}>{a.kind === 'gift' ? '🏆' : a.kind === 'hidden' ? '!' : '✓'}</span>}
         <button type="button" className="who" onClick={() => open(a)}>
           <span className="n">{text}<small>{ago(L, Lf, a.at)}</small></span>
         </button>

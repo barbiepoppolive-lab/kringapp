@@ -268,3 +268,14 @@ export function parseMapsCoords(url: string): { lat: number; lng: number } | nul
 export const isMapsLink = (url: string) => /^https:\/\/([a-z0-9-]+\.)*(google\.[a-z.]+|goo\.gl|g\.co)\//i.test((url || '').trim());
 /** Name the member typed: trimmed, single spaces, 2–80 characters. */
 export const cleanPlaceName = (q: string) => q.replace(/\s+/g, ' ').trim().slice(0, 80);
+
+/** A team note on a hidden Reel is "Thai\nEnglish" (admin chips) or one typed line. Thai phones get the Thai line, others the English. */
+export function reviewNoteText(note: string | null | undefined, lang?: string): string {
+  const t = (note || '').trim();
+  if (!t) return '';
+  const parts = t.split('\n').map((x) => x.trim()).filter(Boolean);
+  if (parts.length < 2) return t;
+  let l = lang;
+  if (!l) { try { l = localStorage.getItem('kr8_lang') || 'en'; } catch { l = 'en'; } }
+  return l === 'th' ? parts[0] : parts[parts.length - 1];
+}

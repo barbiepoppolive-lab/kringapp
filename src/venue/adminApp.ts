@@ -1,12 +1,12 @@
 /**
  * Kring admin v2 (13 Nov): phone-first, English only, less clutter.
  * To do (count tiles) → one-at-a-time queues (Reels, Face checks, Reports, Replies, New venues) with Skip and a 5 s Undo;
- * Members (sources, recruiter checklist + CSV, Kring Locals by recruiter); Top 5 gifts; Listings (Stay/Do stepper, Venues → detail); More (history, rules, sign out).
+ * Members (sources, recruiter checklist + CSV, Kring Locals by recruiter); Listings (Stay/Do stepper, Venues → detail); More (history, rules, sign out).
  * Every RPC and its parameters are the same as v1 (reelsAdmin / verifyAdmin / socialAdmin / stayAdmin / admin.ts).
  */
 import { V5_AREAS, v5VerifyCode } from '../v8/v5Live';
 import { signReelPaths } from '../v8/v5Reel';
-import { basePath, bkkTime, el, rpc, staffLink, v5Client } from './shared';
+import { basePath, bkkTime, el, rpc, rpcWrite, sendKeepalive, staffLink, v5Client, type RpcWrite } from './shared';
 import { checklistCsv, type Check } from './reelsAdmin';
 import { mentionsKring } from './socialAdmin';
 import { lineMessage, splitTreat, standLink, uploadPhotos } from './adminHelpers';
@@ -18,7 +18,8 @@ import './admin2.css';
 
 // ───────────────────────────── types (same rows as v1) ─────────────────────────────
 type Reel = { id: string; author_id: string; author_name: string; ref_code: string | null; area: string; body: string; created_at: string;
-  video_path: string; poster_path: string; duration_ms: number; status: 'pending' | 'approved' | 'hidden'; author_approved: number };
+  video_path: string; poster_path: string; duration_ms: number; status: 'pending' | 'approved' | 'hidden'; author_approved: number;
+  /** 0070 kr8_admin_member_who: the member's own "I live here / Visiting" (audit P3-2: the card always said "Kring Local") */ author_who?: 'local' | 'traveller' | null };
 type Counts = { id: string; views: number; likes: number; saves: number; shares: number; open_reports: number };
 type Face = { id: string; user_id: string; first_name: string; profile_photo: string | null; selfie_path: string | null;
   live_check: { straight?: boolean; left?: boolean; right?: boolean; blink?: boolean; match?: number | null; device?: string };
@@ -149,27 +150,30 @@ function toast(text: string, opts: { undo?: () => void; ms?: number } = {}) {
 }
 
 /** One delayed write at a time: the RPC is sent when the 5 s Undo runs out, when another action starts, or when the screen is left. */
-let pendingWrite: { run: () => Promise<unknown>; timer: number } | null = null;
-function flushWrite() {
+let pendingWrite: { run: RpcWrite; timer: number } | null = null;
+function flushWrite(leaving = false) {
   if (!pendingWrite) return;
   const p = pendingWrite; pendingWrite = null; clearTimeout(p.timer);
-  void p.run().then(() => { counts = null; }).catch((e) => toast(errText(e), { ms: 6000 }));
+  // the tab is closing: send with keepalive so the last Hide / Approve is not lost (audit P3-11)
+  void (leaving ? sendKeepalive(p.run) : p.run()).then(() => { counts = null; }).catch((e) => toast(errText(e), { ms: 6000 }));
 }
-function laterWrite(run: () => Promise<unknown>) {
+function laterWrite(run: RpcWrite) {
   flushWrite();
   pendingWrite = { run, timer: window.setTimeout(flushWrite, 5000) };
 }
 function cancelWrite() { if (pendingWrite) { clearTimeout(pendingWrite.timer); pendingWrite = null; } }
-window.addEventListener('pagehide', flushWrite);
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushWrite(); });
+window.addEventListener('pagehide', () => flushWrite(true));
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushWrite(true); });
 
 // ───────────────────────────── shell ─────────────────────────────
-type Tab = 'todo' | 'members' | 'top5' | 'listings' | 'more';
+type Tab = 'todo' | 'members' | 'listings' | 'more';
 let counts: { reels: number; faces: number; reports: number; hiddenNow: number; replies: number; venues: number; newToday: number | null; visits: SiteVisits | null; status: SStatus | null } | null = null;
 let me = '';
 
 function tabbar(active: Tab): HTMLElement {
-  const items: [Tab, string, string][] = [['todo', 'home', 'To do'], ['members', 'users', 'Members'], ['top5', 'trophy', 'Top 5'], ['listings', 'store', 'Listings'], ['more', 'more', 'More']];
+  // audit P2-12: the old manual "Top 5 gifts" tab is gone from the bar (weekly prizes are automatic: Top 8 from kr8_close_week);
+  // its history stays under More → Old manual awards.
+  const items: [Tab, string, string][] = [['todo', 'home', 'To do'], ['members', 'users', 'Members'], ['listings', 'store', 'Listings'], ['more', 'more', 'More']];
   const total = counts ? counts.reels + counts.faces + counts.reports + counts.replies + counts.venues : 0;
   return el('div', { class: 'tabbar' }, el('nav', {}, ...items.map(([k, i, label]) =>
     el('a', { href: '#' + k, class: k === active ? 'on' : '', id: 'tab-' + k, 'aria-current': k === active ? 'page' : undefined },
@@ -508,15 +512,20 @@ async function reelQueue() {
     rows.length ? rpc<Counts[]>('kr8_admin_reel_counts', { p_ids: rows.map((r) => r.id) }).catch(() => [] as Counts[]) : Promise.resolve([] as Counts[]),
   ]);
   const cm = new Map(cnt.map((c) => [c.id, c]));
+  // audit P3-2: label each Reel with the member's own "I live here / Visiting" (older databases: plain "Member")
+  const who = await rpc<{ user_id: string; who: 'local' | 'traveller' }[]>('kr8_admin_member_who', { p_ids: [...new Set(rows.map((r) => r.author_id))] }).catch(() => []);
+  const wm = new Map(who.map((w) => [w.user_id, w.who]));
+  for (const r of rows) r.author_who = wm.get(r.author_id) ?? null;
   queue('Reels waiting', rows, (r, api) => {
     const c = cm.get(r.id);
-    const write = (s: 'approved' | 'hidden') => () => rpc('kr8_admin_review_reel', { p_reel: r.id, p_status: s });
+    // audit P2-3: Hide asks why (same sheet as face checks); the member sees the reason on their Reel, in Activity and as a ding
     api.actions(el('div', {}, el('div', { class: 'two' },
-      btn('out-bad big', [ic('eyeoff'), 'Hide'], () => api.done('Reel hidden', write('hidden')), { id: 'hideReel-' + r.id }),
-      btn('go big', [ic('check'), 'Approve'], () => api.done('Reel approved', write('approved')), { id: 'approveReel-' + r.id })), skipBtn(api)));
+      btn('out-bad big', [ic('eyeoff'), 'Hide'], () => rejectSheet('Why hide?', 'The member sees this reason on their Reel.', REEL_CHIPS, 'hideReel-' + r.id,
+        (why) => rpc('kr8_admin_review_reel', { p_reel: r.id, p_status: 'hidden', p_note: why }), api.next, { cta: 'Send · hide', done: 'Hidden · reason sent' }), { id: 'hideReel-' + r.id }),
+      btn('go big', [ic('check'), 'Approve'], () => api.done('Reel approved', rpcWrite('kr8_admin_review_reel', { p_reel: r.id, p_status: 'approved' })), { id: 'approveReel-' + r.id })), skipBtn(api)));
     return el('div', { 'data-reel': r.id },
       reelVideo(urls[r.video_path] || '', urls[r.poster_path] || '', [el('span', { class: 'chip' }, ic('play'), `${Math.round(r.duration_ms / 1000)} s`)],
-        [el('b', {}, `${r.author_name} · Kring Local`), el('p', { class: 'dim' }, `${r.area} · ${ago(r.created_at)}`), r.body ? el('p', {}, r.body) : null]),
+        [el('b', {}, `${r.author_name} · ${r.author_who === 'traveller' ? 'Visiting Bangkok' : r.author_who === 'local' ? 'Kring Local' : 'Member'}`), el('p', { class: 'dim' }, `${r.area} · ${ago(r.created_at)}`), r.body ? el('p', {}, r.body) : null]),
       el('div', { class: 'facts' },
         el('span', { class: 'fact' }, ic('link'), 'Ref ', el('b', {}, r.ref_code || '–')),
         el('span', { class: 'fact' }, ic('check'), 'Approved before ', el('b', {}, String(r.author_approved))),
@@ -536,13 +545,21 @@ const FACE_CHIPS: Chip[] = [
   ['Profile photo hides face', 'Your profile photo does not show your face clearly. Please change it, then try again.', 'รูปโปรไฟล์ยังเห็นหน้าไม่ชัด เปลี่ยนรูปแล้วลองยืนยันอีกครั้งนะครับ'],
   ['No blink', 'We could not see a blink. Please try the live check again.', 'ระบบไม่เห็นการกะพริบตา ลองตรวจสดอีกครั้งนะครับ'],
 ];
+/** Reasons to hide a Reel: only what the published rules (/rules/ §2 and §7) already say. Each "Thai\nEnglish" stays under 200 characters. */
+export const REEL_CHIPS: Chip[] = [
+  ['Not a real Bangkok spot', 'Kring Reels show a real spot in Bangkok.', 'รีลบนกริ๊ง! ต้องเป็นสถานที่จริงในกรุงเทพฯ ครับ'],
+  ['Wrong place pinned', 'The pinned place doesn’t match the Reel. Pin the right place and post again.', 'หมุดสถานที่ไม่ตรงกับรีล ปักหมุดให้ถูกแล้วโพสต์ใหม่ได้เลยครับ'],
+  ['Not their own clip', 'This clip looks copied. Please post a Reel you filmed yourself.', 'คลิปนี้ดูเหมือนก๊อปมา รบกวนโพสต์รีลที่คุณถ่ายเองนะครับ'],
+  ['Fake engagement', 'This Reel was hidden for fake engagement (bought views or many accounts).', 'รีลนี้ถูกซ่อนเพราะยอดไม่จริง (ซื้อวิวหรือใช้หลายบัญชี) ครับ'],
+];
 /** Thai first, English under it, when the text is a chip's English (unchanged); a hand-typed reason goes as typed. */
 export function bilingualReason(text: string, chips: Chip[]): string {
   const t = text.trim();
   const c = chips.find((x) => x[1] === t);
   return c ? `${c[2]}\n${c[1]}` : t;
 }
-function rejectSheet(title: string, sub: string, chips: Chip[], idBase: string, send: (why: string) => Promise<unknown>, onDone: () => void) {
+function rejectSheet(title: string, sub: string, chips: Chip[], idBase: string, send: (why: string) => Promise<unknown>, onDone: () => void,
+  opts: { cta?: string; done?: string } = {}) {
   const ta = el('textarea', { rows: '3', maxlength: '200', id: idBase + 'Why' }) as HTMLTextAreaElement;
   const out = el('div', {});
   const chipRow = el('div', { class: 'chips2' });
@@ -554,14 +571,14 @@ function rejectSheet(title: string, sub: string, chips: Chip[], idBase: string, 
     b.onclick = () => { ta.value = text; paint(); chipRow.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); };
     chipRow.append(b);
   }
-  const go = btn('bad big full', [ic('send'), 'Send · reject'], undefined, { id: idBase + 'Send' });
+  const go = btn('bad big full', [ic('send'), opts.cta || 'Send · reject'], undefined, { id: idBase + 'Send' });
   const sh = sheet(el('h3', {}, title), el('p', { class: 'dim', style: 'margin:4px 0 0' }, sub),
     el('div', { class: 'stack' }, chipRow, el('label', { class: 'f' }, 'Text they see · you can edit', ta, note), go, out));
   paint();
   go.onclick = async () => {
     if (ta.value.trim().length < 3) { out.replaceChildren(el('p', { class: 'err' }, ERR.KR8_REASON_REQUIRED)); return; }
     flushWrite(); go.disabled = true;
-    try { await send(bilingualReason(ta.value, chips)); sh.close(); toast('Rejected · reason sent', { ms: 2500 }); onDone(); }
+    try { await send(bilingualReason(ta.value, chips)); sh.close(); toast(opts.done || 'Rejected · reason sent', { ms: 2500 }); onDone(); }
     catch (e) { go.disabled = false; out.replaceChildren(errP(e)); }
   };
 }
@@ -917,7 +934,8 @@ async function venueQueue() {
 export type MemberRow = { user_id: string; member_no: number | null; first_name: string | null; photo: string | null; joined_at: string;
   ref_code: string | null; src_code: string | null; who: string | null; area: string | null; langs: string[] | null; gender: string | null; show_gender: boolean;
   ig_handle: string | null; tiktok_handle: string | null; bio: string | null; interests: string[] | null; verified: boolean; age_ok: boolean; terms_ok: boolean;
-  last_active_at: string | null; reels_approved: number; reels_waiting: number; reels_hidden: number; card_complete: boolean; is_test: boolean };
+  last_active_at: string | null; reels_approved: number; reels_waiting: number; reels_hidden: number; card_complete: boolean; is_test: boolean;
+  /** 0070: 'unchecked' = the phone could not run the face check on this card photo (audit P1-1) → look by eye */ photo_check?: 'ok' | 'unchecked' | null };
 export type MemberList = { total: number; test_hidden: number; members: MemberRow[] };
 export function isMemberList(v: unknown): v is MemberList {
   const o = v as MemberList | null;
@@ -969,7 +987,8 @@ export function memberRow(m: MemberRow, onPhoto: (m: MemberRow) => void = photoS
     m.bio ? el('p', { class: 'sm ml-bio' }, m.bio) : null,
     m.interests?.length ? el('div', { class: 'ml-int' }, ...m.interests.map((t) => pill(t))) : null,
     el('div', { class: 'ml-ticks' }, tick(m.verified, 'Verified', 'Not verified'),
-      el('span', { class: 'pill ' + (miss.length ? 'a' : 'g'), 'data-complete': miss.length ? '0' : '1' }, miss.length ? `Card missing ${miss.join(', ')}` : '✓ Card complete')),
+      el('span', { class: 'pill ' + (miss.length ? 'a' : 'g'), 'data-complete': miss.length ? '0' : '1' }, miss.length ? `Card missing ${miss.join(', ')}` : '✓ Card complete'),
+      m.photo_check === 'unchecked' ? el('span', { class: 'pill a', 'data-photo-check': 'unchecked', title: 'The phone could not run the face check. Look at the photo.' }, 'Photo not face-checked · look') : null),
     el('div', { class: 'ml-foot xs dim' },
       el('span', { 'data-reels': `${m.reels_approved}/${m.reels_waiting}/${m.reels_hidden}` }, `Reels: ${m.reels_approved} live · ${m.reels_waiting} waiting · ${m.reels_hidden} hidden`),
       el('span', {}, `Last seen ${ago(m.last_active_at)}`)));
@@ -1089,7 +1108,8 @@ async function top5View() {
   const prize = el('input', { id: 'giftPrize', value: giftPrize[giftPeriod] });
   prize.onchange = () => { giftPrize[giftPeriod] = prize.value; };
   const label = giftPeriod === 'week' ? `Week of ${new Date(start + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' })}` : new Date(start + 'T00:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
-  screen('top5', head('Kring admin', 'Top 5 gifts', label), seg,
+  screen('more', head('Kring admin', 'Old manual awards', label),
+    el('p', { class: 'dim sm', style: 'margin:0 0 10px' }, 'Before 17 Nov only. Weekly prizes now pay automatically: Top 8 share ฿4,400, 25-Ring floor (Reward codes shows the stock).'), seg,
     el('div', { class: 'stepr' }, btn('ghost', [ic('back')], () => step(-1), { 'aria-label': 'Earlier' }), date, btn('ghost', [ic('chev')], () => step(1), { 'aria-label': 'Later' })),
     el('label', { class: 'f', style: 'margin-top:12px' }, 'Gift (in baht, no percent)', prize), body);
   const end = new Date(start + 'T00:00:00+07:00').getTime() + (giftPeriod === 'week' ? 7 : 1) * 864e5;
@@ -1593,6 +1613,7 @@ function moreView() {
     li('#history/faces', 'face', 'Past face checks', 'Approved and rejected', 'histFaces'),
     li('#history/replies', 'send', 'Sent and skipped replies', 'Reddit queue history', 'histReplies'),
     el('div', { class: 'sec' }, 'Rewards'),
+    li('#top5', 'trophy', 'Old manual awards', 'The Top 5 gifts given by hand before 17 Nov (history)', 'moreOldAwards'),
     li('#codes', 'party', 'Reward codes', 'Paste Grab / TrueMoney codes · stock per prize amount · held claims', 'moreCodes'),
     el('div', { class: 'sec' }, 'Ghost mode'),
     li('#ghost', 'eye', 'Ghost mode', 'Use the app as a member without anyone seeing you', 'moreGhost'),
@@ -1624,7 +1645,7 @@ function rulesView() {
       r('Recruiter milestones', 'M1 = verified + photo, area, IG + 1 approved Reel. M2 = M1 + opened the app on a later day and sent a hello / saved 3 / 2nd Reel.'),
       r('Venue deals', 'In baht, never percent. No quiet-hours words, links or phone numbers.'),
       r('Stay / Do', 'The partner sets the member price. No other-site prices. Hidden until switched live.'),
-      r('Top 5 gifts', 'In baht, no percent. Weeks start Monday.'))), tabbar('more'));
+      r('Weekly prizes', 'Automatic: Top 8 share ฿1,500 / 900 / 600 / 500 / 400 / 250 / 150 / 100 = ฿4,400. A prize rank needs 25 Rings. Weeks start Monday.'))), tabbar('more'));
   window.scrollTo(0, 0);
 }
 let histSeg: Record<string, string> = { reels: 'approved', faces: 'approved', replies: 'sent' };

@@ -3427,8 +3427,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const handleDeleteAccount = () => {
     if (live) {
       void v5Once('delete', async () => {
+        let kept = false;
         try {
-          await v5DeleteMe();
+          kept = (await v5DeleteMe()).keptSignIn;
         } catch {
           showToast(L('Couldn’t delete right now. Try again.'));
           return;
@@ -3441,7 +3442,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         setBlockedIds([]);
         setConfirmDelete(false);
         setSheet(null);
-        showToast(L('Your Kring account and data were deleted.'));
+        showToast(kept ? L('Your card was deleted. Your admin sign-in is kept.') : L('Your Kring account and data were deleted.'));
       });
       return;
     }
