@@ -1,5 +1,17 @@
 /* V5_L hi: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    'Rank #{0}': 'रैंक #{0}',
+    'Views': 'व्यूज़',
+    'Bangkok local': 'बैंकॉक लोकल',
+    'Save image': 'इमेज सेव करें',
+    'Card saved': 'कार्ड सेव हो गया',
+    'Could not save the image. Take a screenshot instead.': 'इमेज सेव नहीं हुई। स्क्रीनशॉट ले लें।',
+    'Saves': 'सेव',
+    'Stats': 'आंकड़े',
+    'My Reel stats': 'मेरी Reel के आंकड़े',
+    'Outside opens': 'बाहर से खोले गए',
+    '{0} of these from travellers (count double)': 'इनमें से {0} यात्रियों से (दोगुना गिना जाता है)',
+    'Outside opens show for your best Reels this week.': 'बाहर से खोले जाने की गिनती इस हफ़्ते की आपकी सबसे अच्छी Reels के लिए दिखती है।',
     'Tap for sound': 'आवाज़ के लिए टैप करें',
     // 16 Nov audit P2-9
     'Hi {0}! 👋 Hi from Kring.': 'नमस्ते {0}! 👋 Kring से हाय।',

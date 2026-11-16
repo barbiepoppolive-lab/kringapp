@@ -91,6 +91,9 @@ export function usePosters(paths: string[]): Record<string, string> {
 }
 
 // ───────────── full-screen Reel player ─────────────
+/** 17 Nov "My Reel stats": opens/rings are null when this Reel is not among this week's counted Reels. */
+export interface GoReelStats { views: number | null; likes: number; saves: number; opens: number | null; rings: number | null; travellers: number }
+const IcBars = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M5 20V11M12 20V5M19 20v-6" /></svg>;
 export interface GoReel {
   id: string; video_path: string; poster_path: string; body?: string | null; status?: string; note?: string | null;
   place?: { id: string; name_en: string; name_th: string | null } | null;
@@ -142,8 +145,16 @@ export function GoReelPlayer(props: {
   onClose: () => void; onProfile: (user: string) => void; onPlace?: (place: string) => void; onMath?: (user: string) => void;
   onLike: (id: string) => Promise<{ liked: boolean; likes: number } | null>; onSave: (id: string) => Promise<boolean | null>; onShare: (id: string) => void;
   onActive?: (reel: GoReel, el: HTMLElement) => void;
+  /** 17 Nov: owner only, "My Reel stats" for one Reel (this week's numbers from the ranking math) */
+  onStats?: (id: string) => Promise<GoReelStats | null>;
 }) {
   const { L } = props;
+  const [stats, setStats] = useState<{ id: string; s: GoReelStats | null; busy: boolean } | null>(null);
+  const openStats = (r: GoReel) => {
+    if (!props.onStats) return;
+    setStats({ id: r.id, s: null, busy: true });
+    props.onStats(r.id).then((s) => setStats((x) => (x && x.id === r.id ? { id: r.id, s, busy: false } : x))).catch(() => setStats((x) => (x && x.id === r.id ? { id: r.id, s: null, busy: false } : x)));
+  };
   const box = useRef<HTMLDivElement>(null);
   const [idx, setIdx] = useState(Math.min(props.start || 0, Math.max(0, props.reels.length - 1)));
   const [urls, setUrls] = useState<Record<string, string>>({});
@@ -206,6 +217,10 @@ export function GoReelPlayer(props: {
                   <span className="go-rbi"><IcBook on={r.saved} /></span><b>{r.saves !== undefined ? fmtN(r.saves) : L('Save')}</b></button>
                 <button type="button" className="go-rb shr" data-go="share" aria-label={L('Share')} disabled={pending} onClick={() => props.onShare(r.id)}>
                   <span className="go-rbi"><IcShare /></span><b>{L('Share')}</b></button>
+                {r.mine && r.status === 'approved' && props.onStats ? (
+                  <button type="button" className="go-rb sts" data-go="stats" aria-label={L('My Reel stats')} onClick={() => openStats(r)}>
+                    <span className="go-rbi"><IcBars /></span><b>{L('Stats')}</b></button>
+                ) : null}
               </div>
               <div className="go-meta">
                 <div className="go-who">
@@ -233,6 +248,30 @@ export function GoReelPlayer(props: {
           );
         })}
       </div>
+      {stats ? (() => {
+        const r = reels.find((x) => x.id === stats.id);
+        const cur = r ? { ...r, ...over[r.id] } : null;
+        const st = stats.s;
+        const rows: [string, string][] = [
+          [L('Views'), st && st.views !== null ? fmtN(st.views) : '–'],
+          [L('Likes'), fmtN(st ? st.likes : cur?.likes || 0)],
+          [L('Saves'), fmtN(st ? st.saves : cur?.saves || 0)],
+          [L('Outside opens'), st && st.opens !== null ? fmtN(st.opens) : '–'],
+          [L('Rings'), st && st.rings !== null ? fmtN(st.rings) : fmtN(cur?.rings || 0)],
+        ];
+        return (
+          <div className="go-stats-wrap" role="dialog" aria-label={L('My Reel stats')} onClick={(e) => { if (e.target === e.currentTarget) setStats(null); }}>
+            <div className="go-stats" id="goReelStats">
+              <div className="go-stats-hd"><b>{L('My Reel stats')}</b><button type="button" className="go-stats-x" aria-label={L('Close')} onClick={() => setStats(null)}>✕</button></div>
+              <div className="go-stats-grid" aria-busy={stats.busy}>
+                {rows.map(([k, v]) => <div className="go-stat" key={k}><b>{stats.busy ? '…' : v}</b><span>{k}</span></div>)}
+              </div>
+              {st && st.travellers > 0 ? <p className="go-stats-note">{props.Lf('{0} of these from travellers (count double)', String(st.travellers))}</p> : null}
+              {st && st.opens === null ? <p className="go-stats-note">{L('Outside opens show for your best Reels this week.')}</p> : null}
+            </div>
+          </div>
+        );
+      })() : null}
       <div className="go-vtop">
         <button type="button" className="go-bk" id="goPlayerBack" aria-label={L('Back')} onClick={props.onClose}><IcBack /></button>
         {vp ? (

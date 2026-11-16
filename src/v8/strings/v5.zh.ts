@@ -1,5 +1,17 @@
 /* V5_L zh: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    'Rank #{0}': '第 {0} 名',
+    'Views': '播放',
+    'Bangkok local': '曼谷本地人',
+    'Save image': '保存图片',
+    'Card saved': '卡片已保存',
+    'Could not save the image. Take a screenshot instead.': '无法保存图片，请截屏。',
+    'Saves': '收藏',
+    'Stats': '数据',
+    'My Reel stats': '我的 Reel 数据',
+    'Outside opens': '站外打开',
+    '{0} of these from travellers (count double)': '其中 {0} 次来自旅行者（双倍计算）',
+    'Outside opens show for your best Reels this week.': '站外打开次数只显示你本周最好的 Reel。',
     'Tap for sound': '点击开启声音',
     // 16 Nov audit P2-9
     'Hi {0}! 👋 Hi from Kring.': '你好 {0}！👋 来自 Kring 的问候。',

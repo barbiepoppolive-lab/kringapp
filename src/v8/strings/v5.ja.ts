@@ -1,5 +1,17 @@
 /* V5_L ja: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    'Rank #{0}': '{0}位',
+    'Views': '再生数',
+    'Bangkok local': 'バンコク在住',
+    'Save image': '画像を保存',
+    'Card saved': 'カードを保存しました',
+    'Could not save the image. Take a screenshot instead.': '画像を保存できませんでした。スクリーンショットを撮ってください。',
+    'Saves': '保存',
+    'Stats': '統計',
+    'My Reel stats': 'リールの統計',
+    'Outside opens': '外部からの再生',
+    '{0} of these from travellers (count double)': 'うち {0} 件は旅行者から（2倍でカウント）',
+    'Outside opens show for your best Reels this week.': '外部からの再生は今週のベストリールにのみ表示されます。',
     'Tap for sound': 'タップで音声オン',
     // 16 Nov audit P2-9
     'Hi {0}! 👋 Hi from Kring.': 'こんにちは {0}さん！👋 Kringから挨拶です。',

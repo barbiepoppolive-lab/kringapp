@@ -181,7 +181,7 @@ export function MeView(props: {
           {props.ringsDot || (props.kx?.prizes ?? 0) > 0 ? <i className="kx-tdot" aria-label={L('New')} /> : null}
           <span className="kx-wk-l">{L('This week')}</span>
           <b>{props.kx ? fmtN(props.kx.week ?? 0) : '…'} <RingGlyph /></b>
-          <span className="kx-wk-rk" id="kxRankTile" role="link" tabIndex={0} onClick={(e) => { if (props.onRanking) { e.stopPropagation(); props.onRanking(); } }}>{props.weekRank ? `#${props.weekRank}` : L('Ranking')}</span>
+          <span className="kx-wk-rk" id="kxRankTile" role="link" tabIndex={0} onClick={(e) => { if (props.onRanking) { e.stopPropagation(); props.onRanking(); } }}>{props.weekRank ? Lf('Rank #{0}', String(props.weekRank)) : L('Ranking')}</span>
           <span className="kx-wk-go">{L('Rewards')} <i>›</i></span>
         </button>
       </div>

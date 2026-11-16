@@ -2,6 +2,18 @@
 export const V5_L: Record<string, Record<string, string>> = {
   th: {
     'Tap for sound': 'แตะเพื่อเปิดเสียง',
+    'Rank #{0}': 'อันดับ {0}',
+    'Views': 'ยอดดู',
+    'Bangkok local': 'คนกรุงเทพฯ',
+    'Save image': 'บันทึกรูป',
+    'Card saved': 'บันทึกการ์ดแล้ว',
+    'Could not save the image. Take a screenshot instead.': 'บันทึกรูปไม่ได้ ลองแคปหน้าจอแทนนะ',
+    'Saves': 'บันทึก',
+    'Stats': 'สถิติ',
+    'My Reel stats': 'สถิติรีลของฉัน',
+    'Outside opens': 'เปิดจากลิงก์แชร์',
+    '{0} of these from travellers (count double)': 'มาจากนักท่องเที่ยว {0} ครั้ง (นับ 2 เท่า)',
+    'Outside opens show for your best Reels this week.': 'ยอดเปิดจากลิงก์แชร์จะแสดงเฉพาะรีลที่ดีที่สุดของคุณในสัปดาห์นี้',
     'Rules': 'กติกา',
     'See the rules': 'ดูกติกา',
     'Join the community now': 'เข้าร่วมคอมมูนิตี้ตอนนี้',

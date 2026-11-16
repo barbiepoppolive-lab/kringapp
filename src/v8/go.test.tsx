@@ -124,6 +124,21 @@ describe('Reel player', () => {
   const author = { id: 'u9', name: 'TEST-Ploy', photo: null, handle: 'ploy.bkk' };
   const reels = (): GoReel[] => [gridToGo(grid('r1'), author, false), gridToGo(grid('r2', { rings: 7, body: null, place: null }), author, false)];
   const base = { L, Lf, lang: 'en', onClose: vi.fn(), onProfile: vi.fn(), onPlace: vi.fn(), onMath: vi.fn(), onShare: vi.fn() };
+  it('17 Nov: My Reel stats opens for the owner only, with views, likes, saves, outside opens and Rings', async () => {
+    const mine = [gridToGo(grid('r1', { likes: 12, saves: 4, rings: 40 }), author, true)];
+    const onStats = vi.fn().mockResolvedValue({ views: 230, likes: 12, saves: 4, opens: 3, rings: 40, travellers: 2 });
+    const { unmount } = render(<GoReelPlayer {...base} reels={mine} onLike={vi.fn()} onSave={vi.fn()} onStats={onStats} />);
+    fireEvent.click(document.querySelector('[data-go="stats"]')!);
+    expect(onStats).toHaveBeenCalledWith('r1');
+    await screen.findByText('230');
+    const box = document.getElementById('goReelStats')!;
+    for (const t of ['Views', 'Likes', 'Saves', 'Outside opens', 'Rings', '12', '4', '3', '40']) expect(box.textContent).toContain(t);
+    fireEvent.click(box.querySelector('.go-stats-x')!);
+    expect(document.getElementById('goReelStats')).toBeNull();
+    unmount();
+    render(<GoReelPlayer {...base} reels={reels()} onLike={vi.fn()} onSave={vi.fn()} onStats={onStats} />);
+    expect(document.querySelector('[data-go="stats"]')).toBeNull();   // someone else's Reel: no stats button
+  });
   it('shows the place, the caption with hashtags, the Rings score and "with @name"', () => {
     const list = reels(); list[0].people = [person(1), person(2)];
     render(<GoReelPlayer {...base} reels={list} onLike={vi.fn()} onSave={vi.fn()} />);

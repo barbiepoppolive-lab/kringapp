@@ -291,3 +291,15 @@
 /* audit P2-3: own Reel hidden by the team, with the reason */
 .v8-app-root .go-gw.rv.hid { background: #ff5d6c; color: #fff; max-width: calc(100% - 12px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .v8-app-root .go-score.rv.hid { color: #ff8a95; white-space: normal; }
+
+/* 17 Nov: "My Reel stats" (owner only) */
+.v8-app-root .go-stats-wrap { position: absolute; inset: 0; z-index: 30; background: rgba(6,5,12,.45); display: flex; align-items: flex-end; }
+.v8-app-root .go-stats { width: 100%; background: #15131F; color: #fff; border-radius: 20px 20px 0 0; padding: 16px 16px calc(20px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 30px rgba(0,0,0,.4); }
+.v8-app-root .go-stats-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; font-size: 16px; }
+.v8-app-root .go-stats-x { width: 44px; height: 44px; margin: -10px -10px -10px 0; border-radius: 50%; color: #fff; font-size: 16px; }
+.v8-app-root .go-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.v8-app-root .go-stat { background: rgba(255,255,255,.06); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.v8-app-root .go-stat b { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.v8-app-root .go-stat span { font-size: 12.5px; opacity: .75; overflow-wrap: anywhere; }
+.v8-app-root .go-stats-note { margin: 12px 2px 0; font-size: 12.5px; opacity: .7; line-height: 1.45; }
+.v8-app-root .go-stat:first-child { grid-column: 1 / -1; }

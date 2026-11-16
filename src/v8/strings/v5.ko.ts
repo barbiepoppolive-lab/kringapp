@@ -1,5 +1,17 @@
 /* V5_L ko: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    'Rank #{0}': '{0}위',
+    'Views': '조회수',
+    'Bangkok local': '방콕 현지인',
+    'Save image': '이미지 저장',
+    'Card saved': '카드를 저장했어요',
+    'Could not save the image. Take a screenshot instead.': '이미지를 저장하지 못했어요. 스크린샷을 찍어 주세요.',
+    'Saves': '저장',
+    'Stats': '통계',
+    'My Reel stats': '내 릴 통계',
+    'Outside opens': '외부 열람',
+    '{0} of these from travellers (count double)': '그중 {0}회는 여행자 (2배로 계산)',
+    'Outside opens show for your best Reels this week.': '외부 열람은 이번 주 베스트 릴에만 표시돼요.',
     'Tap for sound': '탭하면 소리가 나와요',
     // 16 Nov audit P2-9
     'Hi {0}! 👋 Hi from Kring.': '안녕하세요 {0}님! 👋 Kring에서 인사드려요.',

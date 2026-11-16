@@ -108,12 +108,13 @@ import { GoCoach, GoCompose, GoMeReels, GoProfilePage, GoReelPlayer, gridToGo, R
 import { coachDue, coachMark, coachPick, coachReplay, coachSync, newCoachState, type CoachKey, type CoachState } from './goCoach';
 import { shownGender } from './V5Gender';
 import { useChatTranslate } from './v5Translate';
-import { kxGenderShown, kxMemberReels, kxReelPeople, kxTagPeople, type KxGridReel, type KxMemberReels, type KxTagPerson } from './v5Kx';
+import { kxBreakdown, kxGenderShown, kxMemberReels, kxReelPeople, kxTagPeople, type KxGridReel, type KxMemberReels, type KxTagPerson } from './v5Kx';
 import { PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, SavedReelsPage, type PickedPlace } from './V5KxPlaces';
 import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRanking, kxRefName, kxSavedReels, kxShareLink, kxShareLinkCached, kxShareOpenSeen,
   type KxCardExtras, type KxClaimResult, type KxFeedExtra, type KxPrize, type KxRanking, type KxRewards, type KxSavedReel, type KxWeekResult } from './v5Kx';
 import { inviteCode } from './kxLogic';
 import { V5Qr, V5SignInSheet } from './V5Sheets';
+import { V5ShareCard } from './V5ShareCard';
 import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, showFirstReelChip } from './V5ReelNudge';
 import { V5ReelVideo, toggleReelSound } from './V5ReelVideo';
 import { restoredTab, rememberTab } from './tabMemory';
@@ -6681,30 +6682,25 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 ✕
               </button>
             </div>
-            <div className="ticket-box">
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#0B0A12' }}>
-                {user.name} · {user.langs}
+            {live && v5Uid ? (
+              /* 17 Nov: a clean member pass: name + member no. + white QR, then Save image / Share */
+              <V5ShareCard L={L}
+                p={{ name: meProfile?.first_name || user.name, no: meProfile?.member_no ?? null, photo: meProfile?.photo || null, who: meProfile?.who === 'local' ? 'local' : 'traveller', link: v5ProfileLink(v5Uid) }}
+                onShare={() => { if (meProfile) void shareProfile(meProfile); }}
+                onSaved={(ok) => showToast(ok ? L('Card saved') : L('Could not save the image. Take a screenshot instead.'))} />
+            ) : (
+              <div className="ticket-box">
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#0B0A12' }}>
+                  {user.name} · {user.langs}
+                </div>
+                <div className="qr" aria-label="Personal Kring QR code">
+                  {renderQrCells(5)}
+                </div>
+                <div className="timer">
+                  {L("Scan at a café to connect &amp; log your Bangkok passport stamp")}
+                </div>
               </div>
-              {live && v5Uid ? (
-                <>
-                  <V5Qr value={v5ProfileLink(v5Uid)} size={200} />
-                  <div className="timer" id="myCodeText">{L('Scan to see my Kring card and follow me')}</div>
-                </>
-              ) : (
-                <>
-                  <div className="qr" aria-label="Personal Kring QR code">
-                    {renderQrCells(5)}
-                  </div>
-                  <div className="timer">
-                    {L("Scan at a café to connect &amp; log your Bangkok passport stamp")}
-                  </div>
-                </>
-              )}
-            </div>
-            {live && meProfile ? (
-              /* polish #5: Share card = QR + the phone's own share (LINE, IG, WhatsApp…) in one sheet */
-              <button type="button" className="primary-cta" id="myCodeShare" style={{ marginTop: 14 }} onClick={() => void shareProfile(meProfile)}>{L('Share link')}</button>
-            ) : null}
+            )}
           </div>
         )}
 
@@ -6872,6 +6868,14 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onPlace={(id) => kxOpenPlace(id, null, true)}
             onMath={(id) => setKxMathFor(id)}
             onLike={goLike} onSave={goSave} onShare={(id) => void kxShareReelId(id)}
+            onStats={live && v5Uid ? async (id) => {
+              // 17 Nov "My Reel stats": likes/saves from the Reel; opens + Rings from this week's ranking math (same numbers as "See the math")
+              const r = goPlayer.reels.find((x) => x.id === id);
+              const b = await kxBreakdown(v5Uid).catch(() => null);
+              const m = b?.reels.find((x) => x.post_id === id) || null;
+              const f = feedItems.find((x) => x.id === id) as { views?: number } | undefined;
+              return { views: typeof f?.views === 'number' ? f.views : null, likes: r?.likes || 0, saves: r?.saves || 0, opens: m ? m.opens : null, rings: r?.rings ?? (m ? m.score : null), travellers: m ? m.l_trav + m.s_trav : 0 };
+            } : undefined}
             onActive={(r, el) => {
               if (!r.mine || r.status !== 'approved') return;
               setTimeout(() => coachTry((r.rings || 0) > 0 ? ['score', 'share'] : ['share'], (k) => (k === 'score'

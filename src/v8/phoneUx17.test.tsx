@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { restoredTab, rememberTab } from './tabMemory';
 import { _resetSound, rememberSound, soundHintWanted, soundWanted } from './reelSound';
 import { V5ReelVideo, toggleReelSound } from './V5ReelVideo';
+import { V5ShareCard, cardNo } from './V5ShareCard';
 
 class IO { cb: IntersectionObserverCallback; constructor(cb: IntersectionObserverCallback) { this.cb = cb; } observe() { /* noop */ } disconnect() { /* noop */ } unobserve() { /* noop */ } takeRecords() { return []; } }
 beforeEach(() => { vi.stubGlobal('IntersectionObserver', IO); });
@@ -71,5 +72,25 @@ describe('iPhone never shows a blank Reel stage (K-003)', () => {
     const { container } = render(<V5ReelVideo src="/v.mp4" poster="/p.jpg" first label="Reel" />);
     expect(container.querySelector('video')?.getAttribute('poster')).toBe('/p.jpg');
     expect((container.querySelector('.reel-bg') as HTMLElement).style.backgroundImage).toContain('/p.jpg');
+  });
+});
+
+describe('Share card is a clean member pass', () => {
+  it('shows name, member no., a white QR of the profile link, and Save image + Share', () => {
+    const onShare = vi.fn();
+    render(<V5ShareCard L={(x) => x} p={{ name: 'Arm', no: '184', photo: null, who: 'local', link: 'https://test.kringapp.pages.dev/app/?person=u1' }} onShare={onShare} onSaved={vi.fn()} />);
+    const card = document.getElementById('shareCardPass')!;
+    expect(card.querySelector('[data-sc="name"]')!.textContent).toBe('Arm');
+    expect(card.querySelector('[data-sc="no"]')!.textContent).toBe('#00184');
+    expect(card.querySelector('[data-qr]')!.getAttribute('data-qr')).toBe('https://test.kringapp.pages.dev/app/?person=u1');
+    expect(card.textContent).toContain('Bangkok local');
+    expect(document.getElementById('shareCardSave')!.textContent).toBe('Save image');
+    fireEvent.click(document.getElementById('myCodeShare')!);
+    expect(onShare).toHaveBeenCalledTimes(1);
+  });
+  it('member number is always 5 digits or a dash', () => {
+    expect(cardNo(7)).toBe('#00007');
+    expect(cardNo('#00184')).toBe('#00184');
+    expect(cardNo(null)).toBe('#—');
   });
 });

@@ -1,0 +1,18 @@
+/* 17 Nov: Share card = a clean member pass (V5ShareCard.tsx) */
+.v8-app-root .sc-wrap { display: flex; flex-direction: column; gap: 14px; }
+.v8-app-root .sc-card { background: linear-gradient(160deg, #1B1730 0%, #0E0C18 100%); color: #fff; border-radius: 22px; padding: 18px 18px 20px; box-shadow: 0 10px 30px rgba(11,10,18,.25), inset 0 0 0 1px rgba(255,255,255,.06); }
+.v8-app-root .sc-top { display: flex; align-items: center; gap: 8px; }
+.v8-app-root .sc-brand { font-size: 13.5px; font-weight: 700; letter-spacing: .01em; }
+.v8-app-root .sc-no { margin-left: auto; font: 700 13px/1 ui-monospace, SFMono-Regular, Menlo, monospace; opacity: .7; }
+.v8-app-root .sc-who { display: flex; align-items: center; gap: 12px; margin: 16px 0 16px; min-width: 0; }
+.v8-app-root .sc-av { flex: none; width: 48px; height: 48px; border-radius: 50%; background: #3A3355 center / cover no-repeat; display: grid; place-items: center; font-weight: 800; font-size: 20px; box-shadow: 0 0 0 2px rgba(255,255,255,.15); }
+.v8-app-root .sc-nm { display: flex; flex-direction: column; min-width: 0; }
+.v8-app-root .sc-nm b { font-size: 19px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v8-app-root .sc-nm small { font-size: 13px; opacity: .7; }
+.v8-app-root .sc-qr { background: #fff; border-radius: 18px; padding: 16px; width: min(232px, 72vw); margin: 0 auto; }
+.v8-app-root .sc-qr svg { display: block; width: 100%; height: auto; }
+.v8-app-root .sc-cap { margin: 14px 4px 0; text-align: center; font-size: 13.5px; line-height: 1.45; opacity: .85; }
+.v8-app-root .sc-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.v8-app-root .sc-btn { min-height: 48px; border-radius: 14px; font-weight: 800; font-size: 15px; background: #0B0A12; color: #fff; }
+.v8-app-root .sc-btn.ghost { background: #fff; color: #0B0A12; box-shadow: inset 0 0 0 1.5px rgba(11,10,18,.18); }
+.v8-app-root .sc-btn:active { transform: scale(.97); }
