@@ -22,3 +22,4 @@
 .pk-strip .pk-ic svg { width: 14px; height: 14px; fill: none; stroke: #fff; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 .pk-strip b { font: 700 11.5px/1.2 var(--kr-thai-body), 'Anuphan', sans-serif; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pk-strip small { font: 500 9.5px/1.2 'Bricolage Grotesque', sans-serif; color: rgba(255,255,255,.62); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pk-strip b.en1 { grid-row: 1 / 3; align-self: center; white-space: normal; font-size: 11px; line-height: 1.15; } /* one-language chips wrap instead of cutting (P3-15) */

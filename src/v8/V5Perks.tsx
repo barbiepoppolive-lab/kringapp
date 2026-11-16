@@ -20,7 +20,7 @@ export const PERKS: readonly (readonly [keyof typeof I, string, string, string, 
   ['featured', 'ได้ขึ้นโชว์', 'Featured', 'รีลเด่นได้ลง IG กริ๊ง! และเว็บไซต์', 'The best Reels get reposted on Kring’s Instagram and the website', 'ได้ลง IG', 'Featured'],
   ['price', 'ราคาสมาชิก', 'Member prices', 'ที่คาเฟ่ ที่พัก และกิจกรรมพาร์ทเนอร์', 'At partner cafés, stays and activities', 'ราคาสมาชิก', 'Member price'],
   // 16 Nov audit P1-5: the "฿30 for every friend (+฿50)" line is gone. No referral payout exists, and the founder ruled against visibly paying for sign-ups.
-  ['prize', 'รางวัลทุกสัปดาห์', 'Weekly prizes', `ท็อป ${weeklySeats()} แบ่งกัน ${fmtBaht(weeklyTotal())} ทุกสัปดาห์`, `Every week the Top ${weeklySeats()} share ${fmtBaht(weeklyTotal())}`, 'รางวัลรายสัปดาห์', 'Weekly prizes'],
+  ['prize', 'รางวัลทุกสัปดาห์', 'Weekly prizes', `ท็อป ${weeklySeats()} แบ่งกัน ${fmtBaht(weeklyTotal())} ทุกสัปดาห์`, `Every week the Top ${weeklySeats()} share ${fmtBaht(weeklyTotal())}`, `ท็อป ${weeklySeats()}`, `${fmtBaht(weeklyTotal())} a week`],
 ];
 
 const Ic = ({ k }: { k: keyof typeof I }) => <i className="pk-ic" aria-hidden="true"><svg viewBox="0 0 24 24">{I[k]}</svg></i>;
@@ -44,7 +44,7 @@ export function PerksStrip(props: { thai?: boolean } = {}) {
   return (
     <div className="pk-strip" id="rnPerks" aria-label={thai ? 'ทำไมต้องโพสต์บนกริ๊ง! · Why post on Kring' : 'Why post on Kring'}>
       {PERKS.map(([k, , , , , ths, ens]) => (
-        <span key={k} data-perk={k}><Ic k={k} />{thai ? <><b>{ths}</b><small>{ens}</small></> : <b>{ens}</b>}</span>
+        <span key={k} data-perk={k}><Ic k={k} />{thai ? <><b>{ths}</b><small>{ens}</small></> : <b className="en1">{ens}</b>}</span>
       ))}
     </div>
   );
