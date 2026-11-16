@@ -6685,7 +6685,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             {live && v5Uid ? (
               /* 17 Nov: a clean member pass: name + member no. + white QR, then Save image / Share */
               <V5ShareCard L={L}
-                p={{ name: meProfile?.first_name || user.name, no: meProfile?.member_no ?? null, photo: meProfile?.photo || null, who: meProfile?.who === 'local' ? 'local' : 'traveller', link: v5ProfileLink(v5Uid) }}
+                p={{ name: meProfile?.first_name || user.name, no: kxMe?.member_no ?? (v5Card as { member_no?: number | null } | null)?.member_no ?? null,   /* same number as the card on Me */ photo: meProfile?.photo || null, who: meProfile?.who === 'local' ? 'local' : 'traveller', link: v5ProfileLink(v5Uid) }}
                 onShare={() => { if (meProfile) void shareProfile(meProfile); }}
                 onSaved={(ok) => showToast(ok ? L('Card saved') : L('Could not save the image. Take a screenshot instead.'))} />
             ) : (

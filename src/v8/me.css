@@ -257,3 +257,10 @@
 /* 0061 ghost mode line (admin's own card only) */
 .v8-app-root .kme-ghost { margin: 10px 16px 0; padding: 7px 12px; border-radius: 999px; display: inline-flex; gap: 6px; align-items: center;
   font-size: 12.5px; font-weight: 700; color: #e9e6ff; background: rgba(139, 92, 246, .18); border: 1px solid rgba(167, 139, 250, .45); }
+
+/* 17 Nov self-audit: small buttons keep their look but get a 44px+ tap area (phones: thumbs, not mouse pointers) */
+.v8-app-root #activityBtn, .v8-app-root #meGear, .v8-app-root #meShare, .v8-app-root #goReplay,
+.v8-app-root .go-bk, .v8-app-root .go-score, .v8-app-root #meStats button { position: relative; }
+.v8-app-root .kme-pencil::after, .v8-app-root #activityBtn::after, .v8-app-root #meGear::after, .v8-app-root #meShare::after, .v8-app-root #goReplay::after,
+.v8-app-root .go-bk::after, .v8-app-root .go-score::after, .v8-app-root #meStats button::after { content: ''; position: absolute; inset: -7px; }
+.v8-app-root #meStats button::after { inset: -8px 0; }   /* side by side: grow up/down only, never into the neighbour */

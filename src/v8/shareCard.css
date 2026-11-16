@@ -13,6 +13,6 @@
 .v8-app-root .sc-qr svg { display: block; width: 100%; height: auto; }
 .v8-app-root .sc-cap { margin: 14px 4px 0; text-align: center; font-size: 13.5px; line-height: 1.45; opacity: .85; }
 .v8-app-root .sc-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.v8-app-root .sc-btn { min-height: 48px; border-radius: 14px; font-weight: 800; font-size: 15px; background: #0B0A12; color: #fff; }
-.v8-app-root .sc-btn.ghost { background: #fff; color: #0B0A12; box-shadow: inset 0 0 0 1.5px rgba(11,10,18,.18); }
+.v8-app-root .sc-btn { min-height: 48px; border-radius: 14px; border: 0; font-weight: 800; font-size: 15px; background: linear-gradient(90deg, #FF4FD8, #8B5CFF); color: #fff; }
+.v8-app-root .sc-btn.ghost { background: transparent; color: inherit; box-shadow: inset 0 0 0 1.5px currentColor; opacity: .9; }
 .v8-app-root .sc-btn:active { transform: scale(.97); }
