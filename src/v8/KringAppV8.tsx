@@ -2851,6 +2851,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       case 'TOO_BIG': return both('Video is too big · try trimming it shorter or filming at 1080p');
       case 'NOT_VIDEO': return L('Pick a video file (MP4, MOV or WebM)');
       case 'UPLOAD': return L('Upload stopped · tap Retry');
+      case 'REPICK': return both('Your phone lost the video file. Choose the video again, then tap Post.');
       default: return both('This browser can’t open this clip. Fix: save it to your phone first (not only in the cloud), or send it to yourself in LINE and pick that copy.');
     }
   };
@@ -2911,8 +2912,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     } catch (e) {
       setReelStage('failed');
       setReelProblem(e instanceof ReelError ? reelProblemText(e.code) : v5Msg(e));
-      v5LogClient('reel_publish_fail', e instanceof ReelError ? e.code : ((e as { code?: string })?.code || (e as Error)?.message || 'UNKNOWN'),
-        `${reelInfo.file.type || '?'} ${Math.round(reelInfo.file.size / 1e5) / 10}MB ${Math.round(reelInfo.durationMs / 1000)}s ${reelInfo.width}x${reelInfo.height}`);
+      v5LogClient('reel_publish_fail', e instanceof ReelError ? `${e.code}${e.status !== undefined ? ':' + e.status : ''}` : ((e as { code?: string })?.code || (e as Error)?.message || 'UNKNOWN'),
+        `${reelInfo.file.type || '?'} ${Math.round(reelInfo.file.size / 1e5) / 10}MB ${Math.round(reelInfo.durationMs / 1000)}s ${reelInfo.width}x${reelInfo.height} ${/; wv\)/.test(navigator.userAgent) ? 'inapp' : ''}`);
     } finally {
       void ac?.close().catch(() => undefined);
     }

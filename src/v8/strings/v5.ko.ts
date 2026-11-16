@@ -128,6 +128,7 @@ const T: Record<string, string> = {
     'Video is too big · try trimming it shorter or filming at 1080p': '동영상이 너무 커요 · 더 짧게 자르거나 1080p로 촬영해 주세요',
     'Pick a video file (MP4, MOV or WebM)': '동영상 파일을 선택하세요 (MP4, MOV, WebM)',
     'Upload stopped · tap Retry': '업로드가 멈췄어요 · 다시 시도를 누르세요',
+    'Your phone lost the video file. Choose the video again, then tap Post.': '휴대폰에서 동영상 파일을 열 수 없어요. 동영상을 다시 고른 뒤 게시를 누르세요.',
     'This video cannot be read · try another': '이 동영상을 읽을 수 없어요 · 다른 걸로',
     'Add the area pin first': '먼저 동네를 선택하세요',
     'Reel posted · กริ๊ง!': '릴을 올렸어요 · กริ๊ง!',

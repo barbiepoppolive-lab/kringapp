@@ -24,7 +24,8 @@ const META_TIMEOUT_MS = 12000;
 
 export type ReelProblem = 'NOT_VIDEO' | 'TOO_SHORT' | 'TOO_LONG' | 'NOT_VERTICAL' | 'TOO_BIG' | 'UNREADABLE' | 'EMPTY' | 'HEVC' | 'INTERRUPTED';
 export class ReelError extends Error {
-  constructor(public code: ReelProblem | 'UPLOAD' | 'SIGN_IN') { super(code); }
+  /** status: the storage server's HTTP status for UPLOAD (0 = the request never left the phone), for the problem log */
+  constructor(public code: ReelProblem | 'UPLOAD' | 'SIGN_IN' | 'REPICK', public status?: number) { super(code); }
 }
 /** decodable = this browser could show a frame (false: we only know the header, e.g. a slow cloud file); codec from the header. */
 export interface ReelInfo { file: File; url: string; durationMs: number; width: number; height: number; decodable?: boolean; codec?: string }
@@ -284,7 +285,7 @@ function uuid(): string {
 }
 
 /** Raw upload with progress (supabase-js has no progress callback). */
-function putObject(base: string, key: string, token: string, path: string, body: Blob, type: string, onProgress: (p: number) => void): Promise<void> {
+function putOnce(base: string, key: string, token: string, path: string, body: Blob, type: string, onProgress: (p: number) => void): Promise<void> {
   return new Promise((ok, bad) => {
     const x = new XMLHttpRequest();
     x.open('POST', `${base.replace(/\/$/, '')}/storage/v1/object/kr8-reels/${path}`);
@@ -294,11 +295,35 @@ function putObject(base: string, key: string, token: string, path: string, body:
     x.setRequestHeader('x-upsert', 'false');
     x.setRequestHeader('cache-control', 'max-age=31536000');   // a file never changes after upload (new upload = new name)
     x.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
-    x.onload = () => (x.status >= 200 && x.status < 300 ? ok() : bad(new ReelError('UPLOAD')));
-    x.onerror = () => bad(new ReelError('UPLOAD'));
+    // 409 = this exact file already landed on an earlier try: that is a success
+    x.onload = () => (x.status >= 200 && x.status < 300) || x.status === 409 ? ok() : bad(new ReelError('UPLOAD', x.status));
+    x.onerror = () => bad(new ReelError('UPLOAD', 0));
     x.send(body);
   });
 }
+/** 16 Nov (member #26, Android in-app browser): failed uploads now retry by themselves (3 tries, short waits) before the member sees an error. */
+async function putObject(base: string, key: string, token: string, path: string, body: Blob, type: string, onProgress: (p: number) => void): Promise<void> {
+  let last: unknown;
+  for (let i = 0; i < 3; i++) {
+    try { await putOnce(base, key, token, path, body, type, onProgress); return; } catch (e) {
+      last = e;
+      const st = (e as ReelError).status ?? 0;
+      if (st && st < 500 && st !== 408 && st !== 429) break;   // a real "no" (bad token, too big…): retrying won't help
+      await new Promise((r) => setTimeout(r, 800 * (i + 1)));
+    }
+  }
+  throw last;
+}
+/**
+ * 16 Nov: inside LINE / Facebook / Instagram's own browser on Android, the picked file can stop being readable a moment later
+ * (every upload then fails at once). Reading it into memory first makes it safe to send, and a file that can't be read at all
+ * gives a clear "choose the video again" instead of endless failures.
+ */
+async function readable(b: Blob): Promise<Blob> {
+  if (!(typeof File !== 'undefined' && b instanceof File)) return b;
+  try { return new Blob([await b.arrayBuffer()], { type: b.type }); } catch { throw new ReelError('REPICK'); }
+}
+const reelIds = new WeakMap<ReelReady, string>();   // the same Reel keeps the same file names on every retry (no orphan covers)
 
 export interface UploadedReel { videoPath: string; posterPath: string }
 
@@ -309,12 +334,13 @@ export async function uploadReel(r: ReelReady, onProgress: (p: number) => void, 
   const s = data.session;
   if (!s) throw new ReelError('SIGN_IN');
   const cfg = c as unknown as { supabaseUrl: string; supabaseKey: string };
-  const id = uuid();
+  const id = reelIds.get(r) || uuid();
+  reelIds.set(r, id);
   const videoPath = prev?.videoPath || `${s.user.id}/${id}.${r.ext}`;
   const posterPath = prev?.posterPath || `${s.user.id}/${id}.jpg`;
   const done = [...(prev?.done || [])];
   if (!done.includes(posterPath)) { await putObject(cfg.supabaseUrl, cfg.supabaseKey, s.access_token, posterPath, r.poster, 'image/jpeg', () => undefined); done.push(posterPath); }
-  if (!done.includes(videoPath)) { await putObject(cfg.supabaseUrl, cfg.supabaseKey, s.access_token, videoPath, r.blob, r.mime.split(';')[0], onProgress); done.push(videoPath); }
+  if (!done.includes(videoPath)) { const body = await readable(r.blob); await putObject(cfg.supabaseUrl, cfg.supabaseKey, s.access_token, videoPath, body, r.mime.split(';')[0], onProgress); done.push(videoPath); }
   onProgress(1);
   return { videoPath, posterPath, done };
 }

@@ -128,6 +128,7 @@ const T: Record<string, string> = {
     'Video is too big · try trimming it shorter or filming at 1080p': '视频太大 · 请剪短一些，或用 1080p 拍摄',
     'Pick a video file (MP4, MOV or WebM)': '请选择视频文件 (MP4、MOV 或 WebM)',
     'Upload stopped · tap Retry': '上传中断 · 点“重试”',
+    'Your phone lost the video file. Choose the video again, then tap Post.': '手机无法再读取这个视频文件。请重新选择视频，然后点“发布”。',
     'This video cannot be read · try another': '无法读取此视频 · 换一个试试',
     'Add the area pin first': '请先标记街区',
     'Reel posted · กริ๊ง!': '短视频已发布 · กริ๊ง!',

@@ -128,6 +128,7 @@ const T: Record<string, string> = {
     'Video is too big · try trimming it shorter or filming at 1080p': 'वीडियो बहुत बड़ा है · इसे छोटा करें या 1080p में शूट करें',
     'Pick a video file (MP4, MOV or WebM)': 'वीडियो फ़ाइल चुनें (MP4, MOV या WebM)',
     'Upload stopped · tap Retry': 'अपलोड रुक गया · दोबारा कोशिश करें दबाएँ',
+    'Your phone lost the video file. Choose the video again, then tap Post.': 'आपके फ़ोन से वीडियो फ़ाइल खो गई। वीडियो दोबारा चुनें, फिर पोस्ट दबाएँ।',
     'This video cannot be read · try another': 'यह वीडियो पढ़ा नहीं जा सका · कोई और आज़माएँ',
     'Add the area pin first': 'पहले इलाका चुनें',
     'Reel posted · กริ๊ง!': 'रील पोस्ट हो गई · กริ๊ง!',

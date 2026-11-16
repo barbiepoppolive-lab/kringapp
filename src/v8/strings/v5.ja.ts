@@ -128,6 +128,7 @@ const T: Record<string, string> = {
     'Video is too big · try trimming it shorter or filming at 1080p': '動画が大きすぎます · 短くカットするか、1080p で撮影してください',
     'Pick a video file (MP4, MOV or WebM)': '動画ファイルを選んでください (MP4・MOV・WebM)',
     'Upload stopped · tap Retry': 'アップロードが止まりました · 再試行をタップ',
+    'Your phone lost the video file. Choose the video again, then tap Post.': '動画ファイルが読めなくなりました。もう一度動画を選んで、投稿をタップしてください。',
     'This video cannot be read · try another': 'この動画は読み込めません · 別の動画で',
     'Add the area pin first': '先にエリアを選んでください',
     'Reel posted · กริ๊ง!': 'リールを投稿しました · กริ๊ง!',

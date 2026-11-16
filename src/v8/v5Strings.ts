@@ -129,6 +129,7 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Video is too big · try trimming it shorter or filming at 1080p': 'วิดีโอใหญ่ไป ลองตัดให้สั้นลง หรือถ่ายที่ 1080p',
     'Pick a video file (MP4, MOV or WebM)': 'เลือกไฟล์วิดีโอ (MP4, MOV หรือ WebM)',
     'Upload stopped · tap Retry': 'อัปโหลดหยุด · กดลองใหม่',
+    'Your phone lost the video file. Choose the video again, then tap Post.': 'เครื่องเปิดไฟล์วิดีโอนี้ไม่ได้แล้ว เลือกวิดีโออีกครั้ง แล้วกดโพสต์ครับ',
     'This video cannot be read · try another': 'อ่านวิดีโอนี้ไม่ได้ · ลองไฟล์อื่น',
     'Add the area pin first': 'ปักหมุดย่านก่อนนะ',
     'Reel posted · กริ๊ง!': 'โพสต์รีลแล้ว · กริ๊ง!',
