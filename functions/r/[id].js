@@ -46,10 +46,14 @@ export async function onRequestGet({ request, params, env }) {
       if (r.ok) out = await r.json();
     } catch { /* never block the link */ }
   }
-  if (!out || !out.post_id) return go(home, cookie);
-  const to = `${home}?reel=${encodeURIComponent(out.post_id)}${out.open_id ? `&so=${encodeURIComponent(out.open_id)}` : ''}`;
+  // T301-007: link-preview robots (LINE, WhatsApp, X, Facebook) ALWAYS get a card with og:title / og:image, never a bare 302.
+  // When the Reel could not be looked up (no SHARE_OPEN_KEY, database slow), it is a generic Kring card that still opens the app.
+  const found = !!(out && out.post_id);
+  if (!found) out = {};
+  const to = found ? `${home}?reel=${encodeURIComponent(out.post_id)}${out.open_id ? `&so=${encodeURIComponent(out.open_id)}` : ''}` : home;
+  if (!found && !ROBOT.test(ua)) return go(home, cookie);
   if (ROBOT.test(ua)) {   // link-preview robots get a small card instead of the app
-    const title = `${out.name || 'Kring'} · ${out.area || 'Bangkok'} · Kring · กริ๊ง!`;
+    const title = found ? `${out.name || 'Kring'} · ${out.area || 'Bangkok'} · Kring · กริ๊ง!` : 'A Bangkok Reel on Kring · กริ๊ง!';
     const desc = out.body || 'Share your Bangkok. Make new friends.';
     const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(title)}</title>
 <meta property="og:type" content="video.other"><meta property="og:site_name" content="Kring"><meta property="og:title" content="${esc(title)}">
