@@ -5,6 +5,7 @@
  * Every RPC and its parameters are the same as v1 (reelsAdmin / verifyAdmin / socialAdmin / stayAdmin / admin.ts).
  */
 import { V5_AREAS, v5VerifyCode } from '../v8/v5Live';
+import { faceDescriptor, loadImage } from '../v8/v5Face';
 import { signReelPaths } from '../v8/v5Reel';
 import { basePath, bkkTime, el, rpc, rpcWrite, sendKeepalive, staffLink, v5Client, type RpcWrite } from './shared';
 import { checklistCsv, type Check } from './reelsAdmin';
@@ -14,8 +15,8 @@ import { IG_TOP, type IgDm } from './igData';
 import { pushSendArgs } from './pushAdmin';
 import { agentsByLabel, cleanRef, codeMeaning, funnelLine, funnelRate, isProblemLog, isRecruiters, kindName, uaInfo,
   type ProblemLog, type RecruitMember, type Recruiters } from './problemsAdmin';
-import { buildClusters, faceWords, flagText, istWhen, weekRange, type WeekRow, HOLD_LABEL, isDupOverview, isLinkReason, isWeekReview, linkText, prizeName, REASON_LABEL, weekFlags,
-  type DupCluster, type DupFlagged, type DupHeld, type DupMember, type WeekReview } from './dupAdmin';
+import { buildClusters, faceWords, flagText, isLookalikeMap, lookalikeBanner, type FaceLookalikes, istWhen, weekRange, type WeekRow, HOLD_LABEL, isDupOverview, isLinkReason, isWeekReview, linkText, prizeName, REASON_LABEL, weekFlags,
+  type DupCluster, type DupFlagged, type DupHeld, type DupMember, type WeekReview, reviewText } from './dupAdmin';
 import './admin2.css';
 
 // ───────────────────────────── types (same rows as v1) ─────────────────────────────
@@ -169,14 +170,14 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 
 // ───────────────────────────── shell ─────────────────────────────
 type Tab = 'todo' | 'members' | 'listings' | 'more';
-let counts: { reels: number; faces: number; reports: number; hiddenNow: number; replies: number; venues: number; newToday: number | null; visits: SiteVisits | null; status: SStatus | null } | null = null;
+let counts: { reels: number; faces: number; reports: number; hiddenNow: number; held: number; heldReview: number; replies: number; venues: number; newToday: number | null; visits: SiteVisits | null; status: SStatus | null } | null = null;
 let me = '';
 
 function tabbar(active: Tab): HTMLElement {
   // audit P2-12: the old manual "Top 5 gifts" tab is gone from the bar (weekly prizes are automatic: Top 8 from kr8_close_week);
   // its history stays under More → Old manual awards.
   const items: [Tab, string, string][] = [['todo', 'home', 'To do'], ['members', 'users', 'Members'], ['listings', 'store', 'Listings'], ['more', 'more', 'More']];
-  const total = counts ? counts.reels + counts.faces + counts.reports + counts.replies + counts.venues : 0;
+  const total = counts ? counts.reels + counts.faces + counts.reports + counts.replies + counts.venues + counts.held : 0;
   return el('div', { class: 'tabbar' }, el('nav', {}, ...items.map(([k, i, label]) =>
     el('a', { href: '#' + k, class: k === active ? 'on' : '', id: 'tab-' + k, 'aria-current': k === active ? 'page' : undefined },
       ic(i), label, k === 'todo' && total ? el('span', { class: 'bdg', id: 'todoBadge' }, String(total)) : null))));
@@ -234,7 +235,10 @@ async function loadCounts() {
     rpc<{ real: number; test: number }>('kr8_admin_new_members_today').catch(() => null),
     rpc<SiteVisits>('kr8_admin_site_visits').catch(() => null),
   ]);
+  // T-301: prize claims waiting for the founder (held: same person? / 0075 face check). Before 0075 is live: 0.
+  const hc = await rpc<{ held: number; review: number } | null>('kr8_admin_held_count').catch(() => null);
   counts = { reels: reels.length, faces: faces.length, reports: reports.length, hiddenNow: reports.filter((r) => r.post_hidden).length,
+    held: Number(hc?.held) || 0, heldReview: Number(hc?.review) || 0,
     replies: social.filter((s) => s.status === 'pending').length + redditToday().length + igToday().length, venues: apps.length, newToday: nt ? nt.real : null, visits: isSiteVisits(sv) ? sv : null, status: st };
   return counts;
 }
@@ -252,7 +256,12 @@ async function todoView() {
       el('span', {}, el('span', { class: 't', style: 'display:block' }, title), hint ? el('span', { class: 'h', style: 'display:block' }, hint) : null));
   const st = c.status;
   void st;
-  const total = c.reels + c.faces + c.reports + c.replies + c.venues;
+  const total = c.reels + c.faces + c.reports + c.replies + c.venues + c.held;
+  const heldLine = c.held ? el('a', { class: 'tile wide', href: '#dups', id: 'todo-held', style: 'margin-bottom:12px;border:1.5px solid var(--bad, #e5484d)' },
+    el('span', { class: 'n' }, String(c.held)),
+    el('span', { class: 'grow' }, el('span', { class: 't', style: 'display:block' }, c.held === 1 ? 'Prize claim held' : 'Prize claims held'),
+      el('span', { class: 'h', style: 'display:block' }, `${c.heldReview ? `${c.heldReview} face check · ` : ''}Pay or Refuse · no code goes out until you decide`)),
+    el('span', { class: 'go', style: 'position:static' }, ic('chev'))) : '';
   const venueTile = el('a', { class: `tile wide ${c.venues ? '' : 'zero'}`, href: '#q/venues', id: 'todo-venues' }, el('span', { class: 'n' }, String(c.venues)),
     el('span', { class: 'grow' }, el('span', { class: 't', style: 'display:block' }, c.venues === 1 ? 'New venue' : 'New venues'), el('span', { class: 'h', style: 'display:block' }, 'Waiting for approval')),
     el('span', { class: 'go', style: 'position:static' }, ic('chev')));
@@ -268,6 +277,7 @@ async function todoView() {
     return b;
   })() : '';
   body.replaceChildren(
+    heldLine,
     newLine,
     visitsLine,
     total ? '' : el('div', { class: 'clear', id: 'allClear' }, ic('check'), el('div', {}, el('b', {}, 'All clear'), el('span', { class: 'dim sm' }, 'Nothing waiting. Nice work.'))),
@@ -625,7 +635,8 @@ async function signSelfies(rows: Face[]) {
   for (const d of data || []) if (d.path && d.signedUrl) out[d.path] = d.signedUrl;
   return out;
 }
-function faceBody(r: Face, signed: Record<string, string>): HTMLElement {
+function faceBody(r: Face, signed: Record<string, string>, look?: FaceLookalikes | null): HTMLElement {
+  const lb = lookalikeBanner(look);
   const lc = r.live_check || {};
   const m = lc.match;
   const [cls, label] = m === null || m === undefined ? ['a', 'No score · no face found in one of the photos']
@@ -636,6 +647,9 @@ function faceBody(r: Face, signed: Record<string, string>): HTMLElement {
   return el('div', { 'data-verify': r.id },
     el('h2', { style: 'font-size:26px' }, r.first_name),
     el('div', { class: 'dim sm', style: 'margin-top:2px' }, `Joined ${ago(r.account_created)} · ${r.approved_reels} approved Reels · sent ${ago(r.created_at)}`),
+    // 0076: another member with the same / a look-alike face (all face codes: card photos + selfies)
+    lb ? el('div', { class: 'warnbox lookalike' + (lb.tone === 'a' ? ' amber' : ''), id: 'verifyLookalike-' + r.id, 'data-tone': lb.tone },
+      ic('warn'), el('div', {}, el('b', {}, lb.text), el('div', { class: 'xs', style: 'margin-top:3px' }, lb.more))) : null,
     el('div', { class: 'pair' }, pic(r.profile_photo, 'Profile photo', 'No photo'), pic(r.selfie_path ? signed[r.selfie_path] : null, 'Live selfie', 'Selfie deleted (30 days)')),
     el('div', { class: 'score ' + cls, 'data-match': String(m ?? '') }, el('span', { class: 'v' }, m === null || m === undefined ? '–' : m.toFixed(2)), el('b', {}, label)),
     el('div', { class: 'steps' }, step(lc.straight, 'face', 'Straight'), step(lc.left, 'left', 'Left'), step(lc.right, 'right', 'Right'), step(lc.blink && !lc.blink_fallback, 'blink', noBlink ? 'No blink seen' : 'Blink', noBlink)),
@@ -644,19 +658,51 @@ function faceBody(r: Face, signed: Record<string, string>): HTMLElement {
     r.reject_reason ? el('p', { class: 'dim sm' }, 'Reason: ' + r.reject_reason) : null,
     el('div', { class: 'tip' }, ic('info'), 'Same person, clear face, not a photo of a screen.'));
 }
+/** 0076: the admin page makes a face code itself (same face-api models as the phone). Never throws. */
+async function adminFacePrint(src: string): Promise<Float32Array | null> {
+  try { return await faceDescriptor(await loadImage(src)); } catch { return null; }
+}
+async function adminSelfiePrint(user: string, verification: string, url: string): Promise<void> {
+  const d = await adminFacePrint(url);
+  if (d) await rpc('kr8_admin_save_face_print', { p_user: user, p_desc: Array.from(d, (x) => Math.round(x * 1e6) / 1e6), p_source: 'selfie', p_verification: verification }).catch(() => undefined);
+}
+/** 0076 "Backfill face codes": card photos and stored selfies with no face code yet → codes → look-alikes linked / flagged */
+export async function faceBackfill(progress: (t: string) => void): Promise<{ done: number; noFace: number; failed: number }> {
+  const todo = await rpc<{ cards: { user_id: string; member_no: number | null; photo: string }[]; selfies: { user_id: string; verification_id: string; selfie_path: string }[] }>('kr8_admin_face_backfill_todo');
+  let done = 0, noFace = 0, failed = 0;
+  const signed = todo.selfies.length ? await signSelfies(todo.selfies.map((x) => ({ selfie_path: x.selfie_path } as Face))).catch(() => ({} as Record<string, string>)) : {};
+  const jobs: { user: string; src: string; source: 'selfie' | 'backfill-card'; ver?: string }[] = [
+    ...todo.selfies.filter((x) => signed[x.selfie_path]).map((x) => ({ user: x.user_id, src: signed[x.selfie_path], source: 'selfie' as const, ver: x.verification_id })),
+    ...todo.cards.map((x) => ({ user: x.user_id, src: x.photo, source: 'backfill-card' as const })),
+  ];
+  for (const [i, j] of jobs.entries()) {
+    progress(`Face codes ${i + 1} / ${jobs.length}`);
+    const d = await adminFacePrint(j.src);
+    if (!d) { noFace++; continue; }
+    try { await rpc('kr8_admin_save_face_print', { p_user: j.user, p_desc: Array.from(d, (x) => Math.round(x * 1e6) / 1e6), p_source: j.source, p_verification: j.ver ?? null }); done++; }
+    catch { failed++; }
+  }
+  return { done, noFace, failed };
+}
 async function faceQueue() {
   app.replaceChildren(el('div', { class: 'scr' }, loading()));
   void selfieCleanup();
   let rows: Face[];
   try { rows = await rpc<Face[]>('kr8_admin_verifications', { p_status: 'pending' }); } catch (e) { app.replaceChildren(el('div', { class: 'scr' }, errP(e))); return; }
   const signed = await signSelfies(rows).catch(() => ({} as Record<string, string>));
+  // 0076: look-alikes for the banner (empty before database update 0076)
+  const looks = await rpc<unknown>('kr8_admin_verify_lookalikes', { p_ids: rows.map((r) => r.id) }).then((x) => (isLookalikeMap(x) ? x : {})).catch(() => ({} as Record<string, FaceLookalikes>));
   queue('Face checks', rows, (r, api) => {
     api.actions(el('div', {}, el('div', { class: 'two' },
       btn('out-bad big', [ic('x'), 'Reject'], () => rejectSheet('Why not?', 'The member sees this reason.', FACE_CHIPS, 'verifyReject-' + r.id,
         (why) => rpc('kr8_admin_review_verification', { p_id: r.id, p_approve: false, p_reason: why }), api.next), { id: 'verifyReject-' + r.id }),
-      btn('go big', [ic('check'), 'Approve'], () => api.done('Verified ✓', () => rpc('kr8_admin_review_verification', { p_id: r.id, p_approve: true })), { id: 'verifyApprove-' + r.id })),
+      btn('go big', [ic('check'), 'Approve'], () => api.done('Verified ✓', async () => {
+        await rpc('kr8_admin_review_verification', { p_id: r.id, p_approve: true });
+        // 0076: every approved face check keeps a face code (older app builds never sent one)
+        if (looks[r.id] && !looks[r.id].has_print && r.selfie_path && signed[r.selfie_path]) void adminSelfiePrint(r.user_id, r.id, signed[r.selfie_path]);
+      }), { id: 'verifyApprove-' + r.id })),
     skipBtn(api)));
-    return faceBody(r, signed);
+    return faceBody(r, signed, looks[r.id]);
   });
 }
 
@@ -2101,7 +2147,7 @@ export function dupBlock(clusters: DupCluster[], signed: Record<string, string>,
     const keep = c.members[0];
     const byId = new Map(c.members.map((m) => [m.user_id, m]));
     const nm = (id: string) => { const m = byId.get(id); return m ? `${m.first_name}${m.member_no != null ? ` #${m.member_no}` : ''}` : 'member'; };
-    const faceLink = c.links.find((l) => l.reason === 'face');
+    const faceLink = c.links.find((l) => l.reason === 'face') || c.links.find((l) => l.reason === 'face_maybe');
     return el('div', { class: 'card dup', 'data-cluster': c.key },
       el('div', { class: 'row' }, el('b', { class: 'grow' }, c.members.length > 1 ? (c.reasons.some(isLinkReason) ? `Same person? · ${c.members.length} accounts` : `Flag only · ${c.members.length} accounts`) : 'Held claim'),
         ...c.reasons.map((r) => pill(isLinkReason(r) ? REASON_LABEL[r] : `Flag: ${REASON_LABEL[r]}`, isLinkReason(r) ? 'r' : 'a'))),
@@ -2115,7 +2161,11 @@ export function dupBlock(clusters: DupCluster[], signed: Record<string, string>,
       ...c.held.map((h) => el('div', { class: 'dup-held', 'data-held': h.claim_id },
         el('div', { class: 'row' }, el('b', { class: 'grow' }, `${nm(h.user_id)} claimed ${prizeName({ ...h, kind: h.prize_kind })} · ${h.brand === 'truemoney' ? 'TrueMoney' : h.brand === 'grab' ? 'Grab' : h.brand} ฿${h.amount}`), pill('held', 'warn')),
         el('div', { class: 'sm', style: 'margin:4px 0 10px' }, (HOLD_LABEL[h.reason] || HOLD_LABEL.linked)
-          + (h.detail?.others?.length ? `: ${h.detail.others.map((o) => `${o.first_name}${o.member_no != null ? ` #${o.member_no}` : ''}`).join(', ')}` : '') + ` · ${ago(h.created_at)}`),
+          + (h.detail?.others?.length ? `: ${h.detail.others.map((o) => `${o.first_name}${o.member_no != null ? ` #${o.member_no}` : ''}`).join(', ')}` : '')
+          + (h.detail?.review?.length ? `: ${reviewText(h)}` : '') + ` · ${ago(h.created_at)}`),
+        h.detail?.claim_photo && signed[h.detail.claim_photo] ? el('figure', { class: 'dup-claimphoto', 'data-claim-photo': h.claim_id },
+          el('img', { src: signed[h.detail.claim_photo], alt: 'Photo taken at the claim', style: 'max-width:160px;border-radius:12px' }),
+          el('figcaption', { class: 'chip' }, 'Claim photo · compare with the selfie above')) : null,
         act ? el('div', { class: 'two' },
           btn('bad', [ic('x'), 'Refuse'], () => act.refuse(h, false), { id: 'dupRefuse-' + h.claim_id }),
           btn('go', [ic('check'), 'Pay'], () => act.pay(h), { id: 'dupPay-' + h.claim_id })) : null,
@@ -2136,11 +2186,16 @@ async function dupsView() {
   try { ov = await rpc<unknown>('kr8_admin_dup_overview'); } catch (e) { body.replaceChildren(errP(e)); return; }
   if (!isDupOverview(ov)) { body.replaceChildren(el('p', { class: 'err' }, 'Same person? needs database update 0066.')); return; }
   const clusters = buildClusters(ov);
-  const paths = clusters.flatMap((c) => c.members.map((m) => m.selfie_path)).filter((x): x is string => !!x);
+  const paths = [...clusters.flatMap((c) => c.members.map((m) => m.selfie_path)), ...ov.held.map((h) => h.detail?.claim_photo)].filter((x): x is string => !!x);
   let signed: Record<string, string> = {};
   if (paths.length) { const { data } = await (await v5Client()).storage.from('kr8-verify').createSignedUrls([...new Set(paths)], 600); for (const d of data || []) if (d.path && d.signedUrl) signed[d.path] = d.signedUrl; }
   const again = () => void dupsView();
-  body.replaceChildren(dupFlagBlock(ov.flagged || []) || '', dupBlock(clusters, signed, {
+  const bf = btn('ghost', [ic('users'), 'Backfill face codes (card photos + selfies)'], async () => {
+    bf.setAttribute('disabled', '');
+    try { const r = await faceBackfill((t) => { bf.textContent = t; }); toast(`Face codes: ${r.done} made · ${r.noFace} no face · ${r.failed} failed`, { ms: 5000 }); again(); }
+    catch (e) { bf.removeAttribute('disabled'); toast(errText(e), { ms: 6000 }); }
+  }, { id: 'dupBackfill', style: 'margin-bottom:12px;width:100%' });
+  body.replaceChildren(bf, dupFlagBlock(ov.flagged || []) || '', dupBlock(clusters, signed, {
     pay: async (h) => { try { await rpc('kr8_admin_release_claim', { p_claim: h.claim_id }); toast('Paid · the code goes out now (if in stock)', { ms: 3000 }); again(); } catch (e) { toast(errText(e), { ms: 6000 }); } },
     refuse: (h, giveBack) => rejectSheet(giveBack ? 'Refuse this claim for now' : 'Refuse and cancel the prize',
       giveBack ? 'The prize goes back to “Claim”. Nothing is paid.' : 'The prize is cancelled. Nothing is paid. The member is not told why.',

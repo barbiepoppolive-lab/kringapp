@@ -3,13 +3,16 @@
  * kr8_admin_dup_overview gives links (pairs + reason), the members in them, held claims and likes/saves between linked
  * accounts; the page groups linked accounts into clusters here (oldest account first = the one to keep by default).
  */
-export type DupReason = 'face' | 'device' | 'network' | 'line';
-export interface DupLink { a: string; b: string; reason: DupReason; detail: { dist?: number; where?: string }; first_at: string; dismissed: boolean }
+/** 0076: 'face_maybe' = faces look alike (a card photo, or a face check just over the line): a FLAG only, never a link */
+export type DupReason = 'face' | 'face_maybe' | 'device' | 'network' | 'line';
+export interface DupLink { a: string; b: string; reason: DupReason; detail: { dist?: number; where?: string; sources?: string }; first_at: string; dismissed: boolean }
 export interface DupPrize { id: string; kind: 'weekly' | 'founding'; amount: number; status: 'won' | 'claimed' | 'cancelled'; week: string | null; rank: number | null; founding_no: number | null }
 export interface DupMember { user_id: string; member_no: number | null; first_name: string; photo: string | null; joined_at: string; verified: boolean; ghost: boolean;
   is_test: boolean; line: boolean; prints: number; selfie_path: string | null; reels: number; prizes: DupPrize[] }
-export interface DupHeld { claim_id: string; user_id: string; brand: string; amount: number; created_at: string; reason: 'linked';
-  detail: { others?: { user_id: string; first_name: string; member_no: number | null; reasons: DupReason[] }[]; self_dist?: number | null }; face_dist: number | null;
+export interface DupHeld { claim_id: string; user_id: string; brand: string; amount: number; created_at: string; reason: 'linked' | 'review';
+  detail: { others?: { user_id: string; first_name: string; member_no: number | null; reasons: DupReason[] }[]; self_dist?: number | null;
+    /** 0075 face review: why the claim waits, the distance to the team-approved verified print, the claim photo (kr8-verify path) */
+    review?: string[]; verified_dist?: number | null; claim_photo?: string | null }; face_dist: number | null;
   prize_kind: 'weekly' | 'founding' | null; founding_no: number | null; week: string | null; rank: number | null }
 export interface DupMutual { from: string; to: string; likes: number; saves: number }
 /** a claim paid normally that carries a flag (same network / same LINE as another member, or face check not matching) */
@@ -23,17 +26,27 @@ export function isDupOverview(x: unknown): x is DupOverview {
   return !!o && Array.isArray(o.links) && Array.isArray(o.members) && Array.isArray(o.held) && Array.isArray(o.mutual);
 }
 
-export const REASON_LABEL: Record<DupReason, string> = { face: 'Same face', device: 'Same phone', network: 'Same Wi-Fi / network', line: 'Same LINE' };
+export const REASON_LABEL: Record<DupReason, string> = { face: 'Same face', face_maybe: 'Faces look alike', device: 'Same phone', network: 'Same Wi-Fi / network', line: 'Same LINE' };
 /** founder 16 Nov: only same face / same phone LINK accounts (no Rings between them, claims held); network and LINE are flags */
 export const isLinkReason = (r: DupReason): boolean => r === 'face' || r === 'device';
-export const HOLD_LABEL: Record<DupHeld['reason'], string> = { linked: 'Same face or phone as another account with a prize' };
+export const HOLD_LABEL: Record<DupHeld['reason'], string> = { linked: 'Same face or phone as another account with a prize',
+  review: 'Face check needs your eye' };
+/** 0075: the reasons a claim waits for a face review, in plain words */
+export const REVIEW_LABEL: Record<string, string> = { no_photo: 'no claim photo', no_verified_print: 'not verified yet (no approved face check to compare with)',
+  face_far: 'face doesn’t match the verified face', face_copy: 'face code is a copy of the stored one, not a new camera frame' };
+export function reviewText(h: Pick<DupHeld, 'detail'>): string {
+  const r = (h.detail?.review || []).map((x) => REVIEW_LABEL[x] || x);
+  const d = h.detail?.verified_dist;
+  return r.join(' · ') + (typeof d === 'number' ? ` · distance to verified face ${d.toFixed(2)} (${faceWords(d)})` : '');
+}
 export function flagText(f: DupFlagged): string {
   const parts = (f.flags || []).map((o) => `${o.reasons.map((r) => REASON_LABEL[r]).join(' + ')} as ${o.first_name}${o.member_no != null ? ` #${o.member_no}` : ''}`);
   if (f.face_mismatch) parts.push(`face check didn’t match this account’s earlier face${f.face_dist != null ? ` (${f.face_dist.toFixed(2)})` : ''}`);
   return parts.join(' · ');
 }
 export function linkText(l: DupLink): string {
-  if (l.reason === 'face' && typeof l.detail?.dist === 'number') return `${REASON_LABEL.face} · ${l.detail.dist.toFixed(2)}`;
+  if ((l.reason === 'face' || l.reason === 'face_maybe') && typeof l.detail?.dist === 'number')
+    return `${REASON_LABEL[l.reason]} · ${l.detail.dist.toFixed(2)}${l.detail.sources ? ` (${l.detail.sources})` : ''}`;
   return REASON_LABEL[l.reason] + (l.detail?.where ? ` · ${l.detail.where}` : '');
 }
 /** how alike two faces are, in words (face-api distance: lower = more alike) */
@@ -69,6 +82,25 @@ export function buildClusters(ov: DupOverview): DupCluster[] {
   return out.sort((a, b) => (b.held.length ? 1 : 0) - (a.held.length ? 1 : 0) || b.reasons.length - a.reasons.length
     || Date.parse(b.members[b.members.length - 1]?.joined_at || '0') - Date.parse(a.members[a.members.length - 1]?.joined_at || '0'));
 }
+// ───────── 0076 Face check banner (kr8_admin_verify_lookalikes) ─────────
+export interface FaceLookalike { user_id: string; member_no: number | null; first_name: string; verified: boolean; dist: number; strength: 'same' | 'maybe'; sources?: string }
+export interface FaceLookalikes { has_print: boolean; matches: FaceLookalike[] }
+export function isLookalikeMap(x: unknown): x is Record<string, FaceLookalikes> {
+  return !!x && typeof x === 'object' && !Array.isArray(x)
+    && Object.values(x as Record<string, unknown>).every((v) => !!v && Array.isArray((v as FaceLookalikes).matches));
+}
+/** "Looks like #30 Pom Thanatp — 0.49" for the admin Face check card. tone r = a face check matches another member's face
+ *  check (same person, very likely); a = looks alike (card photo, or just over the line): look by eye. null = nobody close. */
+export function lookalikeBanner(l: FaceLookalikes | null | undefined): { text: string; tone: 'r' | 'a'; more: string } | null {
+  const m = l?.matches?.[0];
+  if (!m) return null;
+  const who = `${m.member_no != null ? `#${m.member_no} ` : ''}${m.first_name}${m.verified ? ' ✓' : ''}`;
+  const more = l!.matches.slice(1).map((x) => `${x.member_no != null ? `#${x.member_no} ` : ''}${x.first_name} ${x.dist.toFixed(2)}`).join(' · ');
+  return { text: `Looks like ${who} — ${m.dist.toFixed(2)}`, tone: m.strength === 'same' ? 'r' : 'a',
+    more: (m.strength === 'same' ? 'Same face as another account (face check vs face check). One person, one account: reject if it is the same person.'
+      : 'Faces look alike (a card photo, or just over the line). Compare by eye before approving.') + (more ? ` Also close: ${more}.` : '') };
+}
+
 export function prizeName(p: { kind: string | null; founding_no?: number | null; rank?: number | null; week?: string | null }): string {
   return p.kind === 'founding' ? `Founding Local #${p.founding_no ?? ''}` : p.kind === 'weekly' ? `Weekly #${p.rank ?? ''}${p.week ? ` (${p.week})` : ''}` : 'Prize';
 }
