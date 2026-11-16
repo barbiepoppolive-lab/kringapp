@@ -7,7 +7,7 @@ window.__krOK=1;
  var ref=QS.get('ref')||'';if(/^[A-Za-z0-9_-]{1,40}$/.test(ref))keep.ref=ref.toLowerCase();
  var src=QS.get('src')||'';if(/^[A-Za-z0-9_-]{2,40}$/.test(src))keep.src=src.toLowerCase();
  function carry(a){try{var u=new URL(a.getAttribute('href'),location.href);for(var k in keep)u.searchParams.set(k,keep[k]);a.href=u.href}catch(e){}}
- D.querySelectorAll('a[data-app],a[data-page],a[data-setlang]').forEach(carry);
+ D.querySelectorAll('a[data-app],a[data-install],a[data-page],a[data-setlang]').forEach(carry);
  // language switch remembers the choice (same key as the app)
  D.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-setlang]');if(b){try{localStorage.setItem('kr8_lang',b.getAttribute('data-setlang'))}catch(x){}}},true);
  // LINE in-app browser: join through LIFF (kept)
@@ -23,7 +23,7 @@ window.__krOK=1;
    if(cr){var u=new URL(target);cr.href='intent://'+u.host+u.pathname+u.search+u.hash+'#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent(target)+';end'}
    if(sf){sf.href='x-safari-'+target}
    sh.classList.add('on')};
-  D.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[data-app]');if(!a||!iab)return;
+  D.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[data-app],a[data-install]');if(!a||!iab)return;
    var seen=false;try{seen=sessionStorage.getItem('kr_iab')==='1'}catch(_){}if(seen)return;
    e.preventDefault();try{sessionStorage.setItem('kr_iab','1')}catch(_){}showIab(a.href)});
   sh.addEventListener('click',function(e){if(e.target===sh)sh.classList.remove('on')});
