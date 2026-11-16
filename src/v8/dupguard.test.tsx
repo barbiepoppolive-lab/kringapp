@@ -5,7 +5,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { lineAuth, type LineAdmin, type LineEnv } from '../../supabase/functions/line-auth/core';
 import { buildMail, holdLine, subjectFor } from '../../supabase/functions/notify-reward/mail.ts';
-import { buildClusters, weekFlags, type DupOverview, type WeekRow } from '../venue/dupAdmin';
+import { buildClusters, istWhen, weekFlags, weekRange, type DupOverview, type WeekRow } from '../venue/dupAdmin';
 import { goodFrame, holdNext, HOLD_MS } from './V5ClaimFace';
 import type { KxPrize, KxRewards } from './v5Kx';
 
@@ -51,14 +51,23 @@ describe('claim page (0066)', () => {
     expect(box.querySelector('[lang="th"] + [lang="en"]')).not.toBeNull();
     expect(kxMock.kxClaimPrize).not.toHaveBeenCalled();
   });
-  it('camera fails → "claim without the check" still claims (the server holds it)', async () => {
-    kxMock.kxClaimPrize.mockResolvedValue({ status: 'pending', claim_id: 'c1', brand: 'grab', amount: 100 });
-    const onDone = vi.fn();
-    render(<ClaimPage L={L} Lf={Lf} lang="th" data={rewards()} prize={prize()} onBack={() => undefined} onDone={onDone} toast={() => undefined}
+  it('the face screen carries the founder nudge; camera fails → retry or "later", never a claim without the check', () => {
+    render(<ClaimPage L={L} Lf={Lf} lang="th" data={rewards()} prize={prize()} onBack={() => undefined} onDone={() => undefined} toast={() => undefined}
       startStep="face" faceDemo={{ stage: 'fail' }} />);
-    fireEvent.click(document.getElementById('kxClaimFaceSkip')!);
-    await waitFor(() => expect(onDone).toHaveBeenCalled());
-    expect(kxMock.kxClaimPrize).toHaveBeenCalledWith('pz1', expect.stringMatching(/^(grab|truemoney)$/));
+    const box = document.getElementById('kxClaimFace')!;
+    expect(box.textContent).toContain('ยืนยันใบหน้าสั้น ๆ เพื่อรับรางวัล และให้รีลของคุณติดบอร์ดอันดับ');
+    expect(box.textContent).toContain('Quick face check to claim your reward and keep your Reel on the ranking board');
+    expect(document.getElementById('kxClaimFaceSkip')).toBeNull();
+    expect(document.getElementById('kxClaimFaceRetry')).not.toBeNull();
+    fireEvent.click(document.getElementById('kxClaimFaceBack')!);
+    expect(document.getElementById('kxClaimFace')).toBeNull();
+    expect(kxMock.kxClaimPrize).not.toHaveBeenCalled();
+  });
+  it('server says FACE_NEEDED → the face check opens', async () => {
+    kxMock.kxClaimPrize.mockRejectedValue(Object.assign(new Error('KR8_FACE_NEEDED'), { code: 'FACE_NEEDED' }));
+    render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards({ claim_face_check: undefined })} prize={prize()} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
+    fireEvent.click(document.getElementById('kxClaimGo')!);
+    await waitFor(() => expect(document.getElementById('kxClaimFace')).not.toBeNull());
   });
   it('before 0066 (no claim_face_check from the server) the claim goes straight through', async () => {
     kxMock.kxClaimPrize.mockResolvedValue({ status: 'pending', claim_id: 'c1', brand: 'grab', amount: 100 });
@@ -167,6 +176,12 @@ describe('founder alert wording (0066)', () => {
     expect(m.html).toContain('https://x/s2');
     expect(m.selfies.map((s) => s.cap)).toEqual(['Joobie #31 (this claim)', 'Joob #1']);
   });
+  it('same network only: paid normally, the email shows a flag (no hold wording)', () => {
+    const m = buildMail({ ...base, status: 'assigned', held: false, flags: [{ first_name: 'Joob', member_no: 1, reasons: ['network'] }] }, { truemoney_100: 10 }, {});
+    expect(m.text).toContain('Flag: Flag only, paid normally: same network as Joob #1');
+    expect(m.text).not.toContain('Held');
+    expect(m.subject).toMatch(/^Kring prize claimed/);
+  });
   it('a real stock-out still says restock', () => {
     expect(subjectFor({ ...base, held: false })).toMatch(/^Restock TrueMoney ฿100/);
   });
@@ -194,7 +209,32 @@ describe('admin Same person? clusters + week flags', () => {
   it('week flags name the linked account', () => {
     const r: WeekRow = { rank: 1, user_id: 'b', first_name: 'B', member_no: 2, photo: null, rings: 90, joined_at: new Date().toISOString(), verified: false, line: false, prints: 0, prize: null,
       links: [{ other: 'a', reason: 'face', other_name: 'Joob', other_no: 1 }, { other: 'a', reason: 'network', other_name: 'Joob', other_no: 1 }] };
-    expect(weekFlags(r)).toEqual(['Same face + Same Wi-Fi / network as Joob #1', 'Not face-verified', 'No face print', 'Account under 7 days old']);
+    expect(weekFlags(r)).toEqual(['Same face + Same Wi-Fi / network as Joob #1', 'Account under 7 days old']);   // unverified is not a flag (founder 16 Nov)
+  });
+});
+
+describe('week dates (admin Approve week)', () => {
+  it('week of Mon 16 Nov closes Mon 23 Nov 00:00 Bangkok; opens by itself 24 h later = Mon 23 Nov 22:30 IST', () => {
+    expect(weekRange('2026-11-16')).toBe('16–22 Nov');
+    expect(weekRange('2026-11-30')).toBe('30 Nov – 6 Dec');
+    expect(istWhen('2026-11-23T17:00:00Z')).toBe('Mon 23 Nov · 22:30 IST');
+  });
+});
+
+describe('ranking board nudge (unverified still on the board)', () => {
+  it('shows the Thai + English nudge only when asked', async () => {
+    const { RankingPage } = await import('./V5KxRanking');
+    const onVerify = vi.fn();
+    const { unmount } = render(<RankingPage L={L} Lf={Lf} lang="th" myArea={null} myPhoto={null} myName="A" myId="me" onBack={() => undefined} onPerson={() => undefined}
+      onPost={() => undefined} onShare={() => undefined} needsVerify onVerify={onVerify} />);
+    const n = document.getElementById('kxVerifyNudge')!;
+    expect(n.textContent).toContain('ยืนยันใบหน้าสั้น ๆ');
+    expect(n.textContent).toContain('Quick face check');
+    fireEvent.click(n);
+    expect(onVerify).toHaveBeenCalled();
+    unmount();
+    render(<RankingPage L={L} Lf={Lf} lang="th" myArea={null} myPhoto={null} myName="A" myId="me" onBack={() => undefined} onPerson={() => undefined} onPost={() => undefined} onShare={() => undefined} />);
+    expect(document.getElementById('kxVerifyNudge')).toBeNull();
   });
 });
 

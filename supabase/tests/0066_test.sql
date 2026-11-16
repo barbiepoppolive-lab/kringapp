@@ -81,12 +81,6 @@ select pg_temp.ok(pg_temp.as_err(:'C', 'select public.kr8_save_face_print(pg_tem
 select pg_temp.ok(exists (select 1 from public.kr8_account_links where a = least(:'A'::uuid, :'B'::uuid) and b = greatest(:'A'::uuid, :'B'::uuid) and reason = 'face'), 'A + B linked as same face');
 select pg_temp.ok(not exists (select 1 from public.kr8_account_links where :'C'::uuid in (a, b)), 'C not linked to anyone');
 select pg_temp.ok((select (detail ->> 'dist')::float8 between 0.1 and 0.5 from public.kr8_account_links where reason = 'face' limit 1), 'face link keeps the distance');
-select pg_temp.ok(pg_temp.as_err(:'A', 'select public.kr8_admin_face_todo()') ~ 'KR8_ADMIN_ONLY', 'member cannot list selfies to print');
-select pg_temp.ok(pg_temp.as_err(:'X', 'select count(*) from public.kr8_admin_face_todo()') = 'no error', 'admin lists selfies to print');
-select pg_temp.ok(pg_temp.as_json(:'X', 'select to_jsonb(count(*)) from public.kr8_admin_face_todo()')::int = 4, 'all 4 selfies need a selfie print');
-select pg_temp.ok((pg_temp.as_json(:'X', format('select public.kr8_admin_save_face_print(%L, pg_temp.face(4))', (select id from public.kr8_verifications where user_id = :'D'))) ->> 'saved') = 'true', 'admin backfill saves D''s print');
-select pg_temp.ok((pg_temp.as_json(:'X', format('select public.kr8_admin_save_face_print(%L, null)', (select id from public.kr8_verifications where user_id = :'C'))) ->> 'saved') = 'false', 'no face in a selfie is noted');
-select pg_temp.ok(pg_temp.as_json(:'X', 'select to_jsonb(count(*)) from public.kr8_admin_face_todo()')::int = 2, 'done ones leave the to-do list');
 
 -- ── Founding prizes for A, B, C (B is A's 2nd account) ──
 insert into public.kr8_prizes (member_id, kind, founding_no, amount_thb, is_test) values (:'A', 'founding', 1, 100, false), (:'C', 'founding', 3, 100, false), (:'D', 'founding', 4, 100, false);
@@ -105,12 +99,12 @@ select pg_temp.ok((select body -> 'record' ->> 'held' = 'true' and body -> 'reco
                      and body -> 'record' ->> 'payout_pct' = '100' and body -> 'record' -> 'others' -> 0 ->> 'selfie_path' like :'A' || '/%'
                    from net.calls where url ~ 'notify-reward' order by id desc limit 1), 'alert payload: held, linked, Joob, her selfie, payout 100%');
 select pg_temp.ok(exists (select 1 from public.kr8_push_msgs where kind = 'admin' and to_user = :'X' and title ~ 'held' and body ~ 'Joob #901'), 'founder push queued: linked to Joob #901');
--- C: face does not match her own print
-select pg_temp.ok((pg_temp.as_json(:'C', format('select public.kr8_claim_prize(%L, ''truemoney'', ''devC-0000000000000003'', pg_temp.face(8))', (select id from public.kr8_prizes where member_id = :'C'))) ->> 'status') = 'pending', 'C with a different face → pending');
-select pg_temp.ok((select h.reason = 'face_mismatch' and h.face_dist > 0.6 from public.kr8_claim_holds h join public.kr8_reward_claims c on c.id = h.claim_id where c.member_id = :'C'), 'C held: face mismatch');
--- D: no face sent
-select pg_temp.ok((pg_temp.as_json(:'D', format('select public.kr8_claim_prize(%L, ''truemoney'', ''devD-0000000000000004'', null)', (select id from public.kr8_prizes where member_id = :'D'))) ->> 'status') = 'pending', 'D with no face → pending');
-select pg_temp.ok((select h.reason = 'no_face' from public.kr8_claim_holds h join public.kr8_reward_claims c on c.id = h.claim_id where c.member_id = :'D'), 'D held: no face');
+-- C: face does not match her own earlier print → paid normally, a flag for the admin
+select pg_temp.ok((pg_temp.as_json(:'C', format('select public.kr8_claim_prize(%L, ''truemoney'', ''devC-0000000000000003'', pg_temp.face(8))', (select id from public.kr8_prizes where member_id = :'C'))) ->> 'status') = 'assigned', 'C with a different face → still paid (flag only)');
+select pg_temp.ok((select not c.held and h.reason = 'flag' and (h.detail ->> 'face_mismatch')::boolean and h.face_dist > 0.6 from public.kr8_claim_holds h join public.kr8_reward_claims c on c.id = h.claim_id where c.member_id = :'C'), 'C: face-mismatch flag recorded, not held');
+-- D: no face sent → the app must run the check (nothing stored)
+select pg_temp.ok(pg_temp.as_err(:'D', format('select public.kr8_claim_prize(%L, ''truemoney'', ''devD-0000000000000004'', null)', (select id from public.kr8_prizes where member_id = :'D'))) ~ 'KR8_FACE_NEEDED', 'D with no face → FACE_NEEDED (app opens the check)');
+select pg_temp.ok(not exists (select 1 from public.kr8_reward_claims where member_id = :'D') and (select status = 'won' from public.kr8_prizes where member_id = :'D'), 'nothing claimed, prize still waiting');
 -- same phone for another account still refused outright (0063 rule kept)
 insert into public.kr8_prizes (member_id, kind, week, rank, amount_thb, is_test) values (:'C', 'weekly', '2026-11-02', 3, 600, false);
 insert into public.kr8_week_closed (week, is_test, posters, closed_at) values ('2026-11-02', false, 5, now() - interval '30 hours');
@@ -122,11 +116,7 @@ select pg_temp.ok(pg_temp.as_err(:'X', format('select public.kr8_admin_refuse_cl
 select pg_temp.ok((pg_temp.as_json(:'X', format('select public.kr8_admin_refuse_claim(%L, ''One person, one account'')', (select id from public.kr8_reward_claims where member_id = :'B'))) ->> 'prize') = 'cancelled', 'admin refuses B');
 select pg_temp.ok((select p.status = 'cancelled' and p.cancel_reason ~ 'one account' from public.kr8_prizes p where p.member_id = :'B'), 'B''s prize cancelled with the reason');
 select pg_temp.ok(jsonb_array_length(pg_temp.as_json(:'B', 'select public.kr8_my_rewards()') -> 'prizes') = 0 and jsonb_array_length(pg_temp.as_json(:'B', 'select public.kr8_my_rewards()') -> 'claims') = 0, 'B no longer sees the prize or claim');
-select pg_temp.ok((select status = 'available' from public.kr8_reward_codes where code = 'TM-CODE-2'), 'no code was used for B');
-select pg_temp.ok((pg_temp.as_json(:'X', format('select public.kr8_admin_refuse_claim(%L, ''Try again with a clear face'', true)', (select id from public.kr8_reward_claims where member_id = :'D'))) ->> 'prize') = 'won', 'refuse + return: D''s prize back to won');
-select pg_temp.ok((pg_temp.as_json(:'D', 'select public.kr8_my_rewards()') -> 'prizes' -> 0 ->> 'status') = 'won', 'D can claim again');
-select pg_temp.ok((pg_temp.as_json(:'X', format('select public.kr8_admin_release_claim(%L)', (select id from public.kr8_reward_claims where member_id = :'C' and status = 'pending'))) ->> 'status') = 'assigned', 'Pay: C''s held claim gets a code');
-select pg_temp.ok((select decided = 'paid' from public.kr8_claim_holds h join public.kr8_reward_claims c on c.id = h.claim_id where c.member_id = :'C'), 'hold marked paid');
+select pg_temp.ok((select code_id is null and status = 'cancelled' from public.kr8_reward_claims where member_id = :'B'), 'no code was used for B');
 
 -- ── C. LINE switch ──
 update public.kr8_rings_config set value = 1 where key = 'claim_needs_line';
@@ -175,6 +165,40 @@ select pg_temp.ok(pg_temp.as_err(:'A', format('select public.kr8_admin_dup_resol
 select pg_temp.ok(pg_temp.as_err(:'A', 'select public.kr8_admin_dup_overview()') ~ 'KR8_ADMIN_ONLY', 'member cannot open Same person?');
 select pg_temp.ok(pg_temp.as_err(:'A', 'select public.kr8_refresh_links(null)') ~ 'permission denied', 'member cannot call internal link functions');
 select pg_temp.ok(pg_temp.as_err(:'A', format('select public.kr8_note_line_taken(%L, %L)', :'A', :'C')) ~ 'permission denied', 'member cannot write a LINE link note');
+
+-- ── decisions 16 Nov: only a real duplicate holds; no print → first claim face is the print; network = flag only ──
+\set E 'e1000000-0000-4000-8000-0000000000e1'
+\set F 'f1000000-0000-4000-8000-0000000000f1'
+\set G 'f2000000-0000-4000-8000-0000000000f2'
+insert into auth.users (instance_id, id, aud, role, email, email_confirmed_at) values
+  ('00000000-0000-0000-0000-000000000000', :'E', 'authenticated', 'authenticated', 'e@example.test', now()),
+  ('00000000-0000-0000-0000-000000000000', :'F', 'authenticated', 'authenticated', 'f@example.test', now()),
+  ('00000000-0000-0000-0000-000000000000', :'G', 'authenticated', 'authenticated', 'g@example.test', now());
+insert into public.kr8_members (user_id, first_name, photo, age_ok_at, member_no, langs, created_at) values
+  (:'E', 'Eve', 'https://x/e.jpg', now(), 906, '{TH}', now() - interval '2 days'), (:'F', 'Fern', 'https://x/f.jpg', now(), 907, '{TH}', now() - interval '2 days'), (:'G', 'Gam', 'https://x/g.jpg', now(), 908, '{TH}', now() - interval '2 days');
+insert into public.kr8_prizes (member_id, kind, founding_no, amount_thb, is_test) values (:'E', 'founding', 5, 100, false), (:'F', 'founding', 6, 100, false), (:'G', 'founding', 7, 100, false);
+-- E is Nok's (D) second account: same face, no print of her own yet
+select pg_temp.ok((pg_temp.as_json(:'E', format('select public.kr8_claim_prize(%L, ''truemoney'', ''devE-0000000000000005'', pg_temp.face(4, 0.02, 9))', (select id from public.kr8_prizes where member_id = :'E'))) ->> 'status') = 'pending', 'E (same face as Nok, who has a prize) → held');
+select pg_temp.ok((select h.reason = 'linked' and h.detail -> 'others' -> 0 ->> 'first_name' = 'Nok' from public.kr8_claim_holds h join public.kr8_reward_claims c on c.id = h.claim_id where c.member_id = :'E'), 'E''s hold names Nok');
+select pg_temp.ok((pg_temp.as_json(:'X', format('select public.kr8_admin_refuse_claim(%L, ''Try again later'', true)', (select id from public.kr8_reward_claims where member_id = :'E' and status = 'pending'))) ->> 'prize') = 'won', 'refuse + return: E''s prize back to won');
+select pg_temp.ok((pg_temp.as_json(:'E', 'select public.kr8_my_rewards()') -> 'prizes' -> 0 ->> 'status') = 'won', 'E can claim again');
+select pg_temp.ok((pg_temp.as_json(:'E', format('select public.kr8_claim_prize(%L, ''truemoney'', ''devE-0000000000000005'', pg_temp.face(4, 0.02, 10))', (select id from public.kr8_prizes where member_id = :'E'))) ->> 'status') = 'pending', 'claims again → held again');
+select pg_temp.ok((pg_temp.as_json(:'X', format('select public.kr8_admin_release_claim(%L)', (select id from public.kr8_reward_claims where member_id = :'E' and status = 'pending'))) ->> 'status') = 'assigned', 'Pay: E''s held claim gets a code');
+select pg_temp.ok((select decided = 'paid' from public.kr8_claim_holds h join public.kr8_reward_claims c on c.id = h.claim_id where c.member_id = :'E' and c.status = 'assigned'), 'hold marked paid');
+-- F and G: two different people on the same Wi-Fi
+select set_config('request.headers', '{"x-forwarded-for": "203.0.113.9"}', true) is not null as x \gset
+select pg_temp.ok((pg_temp.as_json(:'F', format('select public.kr8_claim_prize(%L, ''truemoney'', ''devF-0000000000000006'', pg_temp.face(31))', (select id from public.kr8_prizes where member_id = :'F'))) ->> 'status') = 'assigned', 'F (no print yet, new unique face) → paid at once');
+select pg_temp.ok((pg_temp.as_json(:'G', format('select public.kr8_claim_prize(%L, ''truemoney'', ''devG-0000000000000007'', pg_temp.face(32))', (select id from public.kr8_prizes where member_id = :'G'))) ->> 'status') = 'assigned', 'G on the same Wi-Fi as F → still paid at once (0063 network hold is gone)');
+select set_config('request.headers', '', true) is not null as x \gset
+select pg_temp.ok((select not c.held and h.reason = 'flag' and h.detail -> 'flags' -> 0 ->> 'first_name' = 'Fern' from public.kr8_claim_holds h join public.kr8_reward_claims c on c.id = h.claim_id where c.member_id = :'G'), 'G''s claim carries a same-network flag (Fern)');
+select pg_temp.ok(exists (select 1 from public.kr8_account_links where a = least(:'F'::uuid, :'G'::uuid) and b = greatest(:'F'::uuid, :'G'::uuid) and reason = 'network') and not public.kr8_linked(:'F', :'G'), 'network row exists but does not link F and G');
+select pg_temp.ok((select body -> 'record' -> 'flags' -> 0 ->> 'first_name' = 'Fern' and body -> 'record' ->> 'held' = 'false' from net.calls where url ~ 'notify-reward' order by id desc limit 1), 'alert payload carries the flag, not a hold');
+select pg_temp.reel(:'F', '11110000-0000-4000-8000-0000000000f1', now() - interval '1 hour') is not null as x \gset
+insert into public.kr8_post_places (post_id, place_id, position) values ('11110000-0000-4000-8000-0000000000f1', :'PL', 1);
+insert into public.kr8_post_likes (post_id, user_id) values ('11110000-0000-4000-8000-0000000000f1', :'G');
+select pg_temp.ok((select score = 1 from public.kr8_reel_scores(now() - interval '1 day', now() + interval '1 day', now() + interval '1 day', false) where post_id = '11110000-0000-4000-8000-0000000000f1'), 'same Wi-Fi never removes Rings: G''s like on F''s Reel counts');
+select pg_temp.ok((select count(*) >= 1 from jsonb_array_elements(pg_temp.as_json(:'X', 'select public.kr8_admin_dup_overview()') -> 'flagged') f where f ->> 'first_name' = 'Gam'), 'admin sees G''s flag');
+select pg_temp.ok(not exists (select 1 from pg_proc where proname in ('kr8_admin_face_todo', 'kr8_admin_save_face_print')), 'no backfill from old selfies');
 
 -- ── 0067. records survive deletion; Founding once per person ──
 select pg_temp.reel(:'T') is not null as x \gset

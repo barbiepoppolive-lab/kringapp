@@ -27,7 +27,7 @@ if (v === 'claim') {
 } else if (v === 'email') {
   const m = buildMail({ id: 'c9', brand: 'truemoney', amount_thb: 100, status: 'pending', held: true, hold_reason: 'linked', is_test: false, created_at: iso(0.1),
     prize_kind: 'founding', founding_no: 31, first_name: 'Fah', member_no: 31, payout_pct: 100, selfie_path: 's2',
-    others: [{ first_name: 'Fah', member_no: 12, reasons: ['network'], selfie_path: 's1' }] }, { truemoney_100: 11 }, { s1: img('mint'), s2: img('mint') });
+    others: [{ first_name: 'Fah', member_no: 12, reasons: ['face', 'device'], selfie_path: 's1' }] }, { truemoney_100: 11 }, { s1: img('mint'), s2: img('mint') });
   document.title = m.subject;
   document.getElementById('root')!.innerHTML = `<div style="background:#f3f3f5;min-height:100vh;padding:14px 12px;font-family:system-ui,sans-serif">
     <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
@@ -50,22 +50,27 @@ if (v === 'claim') {
           mem('b', 31, 'Fah', 1, { prizes: [{ id: 'y', kind: 'founding', amount: 100, status: 'claimed', week: null, rank: null, founding_no: 31 }] }),
           mem('c', 27, 'Ploy', 4), mem('d', 29, 'Aom', 3)],
         links: [{ a: 'a', b: 'b', reason: 'face', detail: { dist: 0.33 }, first_at: iso(1), dismissed: false },
+          { a: 'c', b: 'd', reason: 'network', detail: { where: 'claims' }, first_at: iso(2), dismissed: false },
           { a: 'a', b: 'b', reason: 'network', detail: { where: 'claims' }, first_at: iso(1), dismissed: false }],
         held: [{ claim_id: 'h1', user_id: 'b', brand: 'truemoney', amount: 100, created_at: iso(0.3), reason: 'linked',
           detail: { others: [{ user_id: 'a', first_name: 'Fah', member_no: 12, reasons: ['face', 'network'] }] }, face_dist: null, prize_kind: 'founding', founding_no: 31, week: null, rank: null },
-          { claim_id: 'h2', user_id: 'd', brand: 'grab', amount: 100, created_at: iso(5), reason: 'no_face', detail: {}, face_dist: null, prize_kind: 'founding', founding_no: 29, week: null, rank: null }],
+        ],
+        flagged: [{ claim_id: 'f1', user_id: 'd', first_name: 'Aom', member_no: 29, brand: 'grab', amount: 100, status: 'assigned', created_at: iso(5),
+          flags: [{ user_id: 'c', first_name: 'Ploy', member_no: 27, reasons: ['network'] }], face_mismatch: false, face_dist: null }],
         mutual: [{ from: 'b', to: 'a', likes: 1, saves: 1 }],
       };
       const noop = { pay: () => undefined, refuse: () => undefined, resolve: () => undefined };
+      const { dupFlagBlock } = await import('../src/venue/adminApp');
       app.append(note, back('Same person?'), el('p', { class: 'dim sm', style: 'margin:-6px 0 14px' }, 'Accounts linked by face, phone, network or LINE, and prize claims held for a check. Likes and saves between linked accounts already don’t count for Rings.'),
-        dupBlock(buildClusters(ov), { a: img('mint'), b: img('mint'), d: img('aom') }, noop));
+        dupFlagBlock(ov.flagged || []) || '', dupBlock(buildClusters(ov), { a: img('mint'), b: img('mint'), c: img('ploy'), d: img('aom') }, noop));
     } else {
-      const r: WeekReview = { week: '2026-11-17', closed_at: iso(3), approved_at: null, opens_at: iso(-21), rows: [
-        { rank: 1, user_id: 'c', first_name: 'Ploy', member_no: 27, photo: img('ploy'), rings: 212, joined_at: iso(200), verified: true, line: true, prints: 2, prize: { id: 'p', amount: 1500, status: 'won' }, links: [] },
-        { rank: 2, user_id: 'b', first_name: 'Fah', member_no: 31, photo: img('mint'), rings: 160, joined_at: iso(30), verified: true, line: false, prints: 2, prize: { id: 'q', amount: 900, status: 'won' },
-          links: [{ other: 'a', reason: 'face', other_name: 'Fah', other_no: 12 }] },
-        { rank: 3, user_id: 'd', first_name: 'Aom', member_no: 29, photo: img('aom'), rings: 95, joined_at: iso(300), verified: false, line: false, prints: 0, prize: { id: 'r', amount: 600, status: 'won' }, links: [] }] };
-      app.append(note, back('Approve week'), weekBlock(r, () => undefined));
+      const P = [1500, 900, 600, 500, 400, 250, 150, 100];
+      const ppl: [string, number, string, number, number][] = [['Ploy', 27, 'ploy', 212, 200], ['Fah', 31, 'mint', 160, 30], ['Aom', 29, 'aom', 141, 300], ['Nat', 18, 'nat', 118, 260],
+        ['Ton', 22, 'ton', 97, 240], ['Yui', 35, 'yui', 74, 90], ['Lena', 40, 'lena', 52, 150], ['Min-jun', 44, 'minjun', 31, 120]];
+      const r: WeekReview = { week: '2026-11-16', closed_at: '2026-11-22T17:00:00Z', approved_at: null, opens_at: '2026-11-23T17:00:00Z',
+        rows: ppl.map(([n, no, im, rings, hAgo], i) => ({ rank: i + 1, user_id: 'u' + no, first_name: n, member_no: no, photo: img(im), rings, joined_at: iso(hAgo), verified: false, line: false, prints: 1,
+          prize: { id: 'p' + i, amount: P[i], status: 'won' }, links: n === 'Fah' ? [{ other: 'u12', reason: 'face' as const, other_name: 'Fah', other_no: 12 }, { other: 'u12', reason: 'network' as const, other_name: 'Fah', other_no: 12 }] : [] })) };
+      app.append(note, back('Approve week'), weekBlock(r, () => undefined, Date.parse('2026-11-23T03:00:00Z')));
     }
   })();
 }

@@ -8,11 +8,14 @@ export interface DupLink { a: string; b: string; reason: DupReason; detail: { di
 export interface DupPrize { id: string; kind: 'weekly' | 'founding'; amount: number; status: 'won' | 'claimed' | 'cancelled'; week: string | null; rank: number | null; founding_no: number | null }
 export interface DupMember { user_id: string; member_no: number | null; first_name: string; photo: string | null; joined_at: string; verified: boolean; ghost: boolean;
   is_test: boolean; line: boolean; prints: number; selfie_path: string | null; reels: number; prizes: DupPrize[] }
-export interface DupHeld { claim_id: string; user_id: string; brand: string; amount: number; created_at: string; reason: 'linked' | 'face_mismatch' | 'no_print' | 'no_face';
+export interface DupHeld { claim_id: string; user_id: string; brand: string; amount: number; created_at: string; reason: 'linked';
   detail: { others?: { user_id: string; first_name: string; member_no: number | null; reasons: DupReason[] }[]; self_dist?: number | null }; face_dist: number | null;
   prize_kind: 'weekly' | 'founding' | null; founding_no: number | null; week: string | null; rank: number | null }
 export interface DupMutual { from: string; to: string; likes: number; saves: number }
-export interface DupOverview { links: DupLink[]; members: DupMember[]; held: DupHeld[]; mutual: DupMutual[] }
+/** a claim paid normally that carries a flag (same network / same LINE as another member, or face check not matching) */
+export interface DupFlagged { claim_id: string; user_id: string | null; first_name: string | null; member_no: number | null; brand: string; amount: number; status: string; created_at: string;
+  flags: { user_id: string; first_name: string; member_no: number | null; reasons: DupReason[] }[] | null; face_mismatch: boolean; face_dist: number | null }
+export interface DupOverview { links: DupLink[]; members: DupMember[]; held: DupHeld[]; mutual: DupMutual[]; flagged?: DupFlagged[] }
 export interface DupCluster { key: string; members: DupMember[]; links: DupLink[]; held: DupHeld[]; mutual: DupMutual[]; reasons: DupReason[]; open: boolean }
 
 export function isDupOverview(x: unknown): x is DupOverview {
@@ -21,9 +24,14 @@ export function isDupOverview(x: unknown): x is DupOverview {
 }
 
 export const REASON_LABEL: Record<DupReason, string> = { face: 'Same face', device: 'Same phone', network: 'Same Wi-Fi / network', line: 'Same LINE' };
-export const HOLD_LABEL: Record<DupHeld['reason'], string> = {
-  linked: 'Linked to another account with a prize', face_mismatch: 'Face check didn’t match this account', no_print: 'No face print on file yet', no_face: 'Claimed without the face check',
-};
+/** founder 16 Nov: only same face / same phone LINK accounts (no Rings between them, claims held); network and LINE are flags */
+export const isLinkReason = (r: DupReason): boolean => r === 'face' || r === 'device';
+export const HOLD_LABEL: Record<DupHeld['reason'], string> = { linked: 'Same face or phone as another account with a prize' };
+export function flagText(f: DupFlagged): string {
+  const parts = (f.flags || []).map((o) => `${o.reasons.map((r) => REASON_LABEL[r]).join(' + ')} as ${o.first_name}${o.member_no != null ? ` #${o.member_no}` : ''}`);
+  if (f.face_mismatch) parts.push(`face check didn’t match this account’s earlier face${f.face_dist != null ? ` (${f.face_dist.toFixed(2)})` : ''}`);
+  return parts.join(' · ');
+}
 export function linkText(l: DupLink): string {
   if (l.reason === 'face' && typeof l.detail?.dist === 'number') return `${REASON_LABEL.face} · ${l.detail.dist.toFixed(2)}`;
   return REASON_LABEL[l.reason] + (l.detail?.where ? ` · ${l.detail.where}` : '');
@@ -71,7 +79,8 @@ export interface WeekRow { rank: number; user_id: string; first_name: string; me
   links: { other: string; reason: DupReason; other_name: string | null; other_no: number | null }[] }
 export interface WeekReview { week: string | null; closed_at?: string; approved_at?: string | null; opens_at?: string; weeks?: { week: string; approved: boolean }[]; rows: WeekRow[] }
 export function isWeekReview(x: unknown): x is WeekReview { const o = x as WeekReview; return !!o && 'week' in o && Array.isArray(o.rows); }
-/** flags the founder should look at before approving a winner */
+/** flags the founder should look at before approving a winner. Linked (same face / phone) and flag-only (Wi-Fi / LINE)
+ *  accounts, and very new accounts. Not "unverified": almost nobody is verified yet (founder, 16 Nov). */
 export function weekFlags(r: WeekRow, now = Date.now()): string[] {
   const f: string[] = [];
   const others = new Map<string, { name: string; reasons: Set<string> }>();
@@ -80,8 +89,19 @@ export function weekFlags(r: WeekRow, now = Date.now()): string[] {
     o.reasons.add(REASON_LABEL[l.reason]); others.set(l.other, o);
   }
   for (const o of others.values()) f.push(`${[...o.reasons].join(' + ')} as ${o.name}`);
-  if (!r.verified) f.push('Not face-verified');
-  if (!r.prints) f.push('No face print');
   if (now - Date.parse(r.joined_at) < 7 * 86400_000) f.push('Account under 7 days old');
   return f;
+}
+const D = (iso: string, o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-GB', { ...o, timeZone: o.timeZone || 'UTC' }).format(Date.parse(iso));
+/** "16–22 Nov" (or "30 Nov – 6 Dec") for the Monday a week started on */
+export function weekRange(week: string): string {
+  const a = `${week}T00:00:00Z`, b = new Date(Date.parse(a) + 6 * 86400_000).toISOString();
+  const sameMonth = a.slice(0, 7) === b.slice(0, 7);
+  return sameMonth ? `${D(a, { day: 'numeric' })}–${D(b, { day: 'numeric', month: 'short' })}` : `${D(a, { day: 'numeric', month: 'short' })} – ${D(b, { day: 'numeric', month: 'short' })}`;
+}
+/** "Mon 23 Nov · 22:30 IST" (the founder reads admin in India time) */
+export function istWhen(iso: string): string {
+  const day = D(iso, { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' }).replace(',', '');
+  const t = D(iso, { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Kolkata' });
+  return `${day} · ${t} IST`;
 }

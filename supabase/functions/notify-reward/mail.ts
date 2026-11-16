@@ -4,7 +4,7 @@
 
 export const BRAND: Record<string, string> = { grab: "Grab", shopeepay: "ShopeePay", truemoney: "TrueMoney" };
 export type Other = { user_id?: string; first_name?: string; member_no?: number | null; reasons?: string[]; selfie_path?: string | null; face_dist?: number | null };
-export type Rec = Record<string, unknown> & { others?: Other[] | null };
+export type Rec = Record<string, unknown> & { others?: Other[] | null; flags?: Other[] | null };
 
 const ist = (s?: unknown) =>
   new Date(typeof s === "string" ? s : Date.now()).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" }) + " IST";
@@ -37,10 +37,14 @@ export function holdLine(rec: Rec): string {
     const more = (rec.others || []).length > 1 ? ` and ${(rec.others || []).length - 1} more` : "";
     return `Held: ${what} (${o.first_name ?? "member"}${no(o.member_no)}${more}). Check before paying.`;
   }
-  if (why === "face_mismatch") return `Held: the 3-second face check did not match this account's face${rec.face_dist != null ? ` (distance ${rec.face_dist})` : ""}. Check before paying.`;
-  if (why === "no_print") return "Held: this account has no face print yet (no face check on file). Check before paying.";
-  if (why === "no_face") return "Held: claimed without the 3-second face check (camera blocked or skipped). Check before paying.";
   return "Held: same person as another account? Check before paying.";
+}
+/** founder 16 Nov: same network / same LINE and a face check that doesn't match the account's earlier face are FLAGS only
+ *  (the claim is paid normally). "" when there is nothing to flag. */
+export function flagLine(rec: Rec): string {
+  const parts = (rec.flags || []).map((o) => `${(o.reasons || []).map((r) => REASON[r] || r).join(" + ")} as ${o.first_name ?? "member"}${no(o.member_no)}`);
+  if (rec.face_mismatch) parts.push(`face check didn't match this account's earlier face${rec.face_dist != null ? ` (${rec.face_dist})` : ""}`);
+  return parts.length ? `Flag only, paid normally: ${parts.join(" · ")}. Look in admin → Same person? if it seems off.` : "";
 }
 export function subjectFor(rec: Rec): string {
   const brand = BRAND[String(rec.brand)] ?? String(rec.brand);
@@ -63,6 +67,7 @@ export function buildMail(rec: Rec, stock: Record<string, number>, signed: Recor
     ["Prize", prizeFor(rec)],
     ["Wants", wantsLine(rec, pct)],
     ["Status", status],
+    ...(!rec.held && flagLine(rec) ? [["Flag", flagLine(rec)] as [string, unknown]] : []),
     ...(rec.held ? [] : [["Same codes left", same] as [string, unknown]]),
     ["When", ist(rec.created_at)],
     ["Codes left (real)", stockLine],

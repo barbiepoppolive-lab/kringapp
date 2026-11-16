@@ -14,8 +14,8 @@ import { IG_TOP, type IgDm } from './igData';
 import { pushSendArgs } from './pushAdmin';
 import { agentsByLabel, cleanRef, codeMeaning, funnelLine, funnelRate, isProblemLog, isRecruiters, kindName, uaInfo,
   type ProblemLog, type RecruitMember, type Recruiters } from './problemsAdmin';
-import { buildClusters, faceWords, HOLD_LABEL, isDupOverview, isWeekReview, linkText, prizeName, REASON_LABEL, weekFlags,
-  type DupCluster, type DupHeld, type DupMember, type WeekReview } from './dupAdmin';
+import { buildClusters, faceWords, flagText, istWhen, weekRange, type WeekRow, HOLD_LABEL, isDupOverview, isLinkReason, isWeekReview, linkText, prizeName, REASON_LABEL, weekFlags,
+  type DupCluster, type DupFlagged, type DupHeld, type DupMember, type WeekReview } from './dupAdmin';
 import './admin2.css';
 
 // ───────────────────────────── types (same rows as v1) ─────────────────────────────
@@ -1598,7 +1598,6 @@ function moreView() {
     li('#codes', 'party', 'Reward codes', 'Paste Grab / TrueMoney codes · stock per prize amount · held claims', 'moreCodes'),
     li('#dups', 'users', 'Same person?', 'Linked accounts · held claims: Pay or Refuse', 'moreDups'),
     li('#week', 'trophy', 'Approve week', 'Top 8 with flags · open the weekly prizes', 'moreWeek'),
-    li('#faceprints', 'face', 'Face prints', 'Compute face prints for existing selfies (run soon)', 'moreFacePrints'),
     el('div', { class: 'sec' }, 'Ghost mode'),
     li('#ghost', 'eye', 'Ghost mode', 'Use the app as a member without anyone seeing you', 'moreGhost'),
     el('a', { class: 'li', href: ghostAppUrl(), id: 'moreGhostOpen', target: '_blank', rel: 'noopener' }, el('span', { class: 'ic' }, ic('open')),
@@ -2031,6 +2030,14 @@ function dupWho(m: DupMember): HTMLElement {
     el('div', { class: 'faint xs' }, `Joined ${ago(m.joined_at)} · ${m.reels} Reel${m.reels === 1 ? '' : 's'}${m.verified ? ' · verified' : ''}${m.line ? ' · LINE' : ''}`),
     prizes.length ? el('div', { class: 'xs', style: 'margin-top:3px' }, prizes.map((p) => `${prizeName(p)} ฿${p.amount} ${p.status === 'claimed' ? '(claimed)' : '(not claimed)'}`).join(' · ')) : null);
 }
+export function dupFlagBlock(rows: DupFlagged[]): HTMLElement | null {
+  if (!rows.length) return null;
+  return el('div', { class: 'card', id: 'dupFlags' }, el('b', {}, 'Flags on paid claims (30 days)'),
+    el('p', { class: 'faint xs', style: 'margin:4px 0 8px' }, 'These were paid normally. A flag alone never holds a claim or removes Rings.'),
+    ...rows.map((f) => el('div', { class: 'nrow', 'data-flag': f.claim_id },
+      el('div', { class: 'row' }, el('b', { class: 'grow' }, `${f.first_name ?? 'Deleted account'}${f.member_no != null ? ` #${f.member_no}` : ''} · ${f.brand === 'truemoney' ? 'TrueMoney' : f.brand === 'grab' ? 'Grab' : f.brand} ฿${f.amount}`), el('span', { class: 'faint xs' }, ago(f.created_at))),
+      el('div', { class: 'sm', style: 'margin-top:3px' }, flagText(f)))));
+}
 export function dupBlock(clusters: DupCluster[], signed: Record<string, string>, act: DupActions | null): HTMLElement {
   if (!clusters.length) return el('div', { class: 'card empty', id: 'dupEmpty' }, el('b', {}, 'Nobody to check'), 'No linked accounts and no held claims.');
   return el('div', { id: 'dups' }, ...clusters.map((c) => {
@@ -2039,18 +2046,18 @@ export function dupBlock(clusters: DupCluster[], signed: Record<string, string>,
     const nm = (id: string) => { const m = byId.get(id); return m ? `${m.first_name}${m.member_no != null ? ` #${m.member_no}` : ''}` : 'member'; };
     const faceLink = c.links.find((l) => l.reason === 'face');
     return el('div', { class: 'card dup', 'data-cluster': c.key },
-      el('div', { class: 'row' }, el('b', { class: 'grow' }, c.members.length > 1 ? `Same person? · ${c.members.length} accounts` : 'Held claim'),
-        ...c.reasons.map((r) => pill(REASON_LABEL[r], r === 'face' || r === 'line' ? 'r' : 'a'))),
+      el('div', { class: 'row' }, el('b', { class: 'grow' }, c.members.length > 1 ? (c.reasons.some(isLinkReason) ? `Same person? · ${c.members.length} accounts` : `Flag only · ${c.members.length} accounts`) : 'Held claim'),
+        ...c.reasons.map((r) => pill(isLinkReason(r) ? REASON_LABEL[r] : `Flag: ${REASON_LABEL[r]}`, isLinkReason(r) ? 'r' : 'a'))),
       el('div', { class: 'pair dup-faces' + (c.members.length > 2 ? ' three' : '') }, ...c.members.slice(0, 3).map((m, i) => dupFace(m, signed, i === 0 && c.members.length > 1))),
       faceLink?.detail?.dist != null ? el('p', { class: 'sm', style: 'margin:0 0 8px' }, `Face match ${faceLink.detail.dist.toFixed(2)}: ${faceWords(faceLink.detail.dist)}`) : null,
       el('div', { class: 'dup-list' }, ...c.members.map(dupWho)),
       c.links.length ? el('div', { class: 'dup-why' }, el('div', { class: 'xs dim' }, 'Why they are linked'),
-        ...c.links.map((l) => el('div', { class: 'sm' }, `${nm(l.a)} ↔ ${nm(l.b)}: ${linkText(l)}`))) : null,
+        ...c.links.map((l) => el('div', { class: 'sm' }, `${nm(l.a)} ↔ ${nm(l.b)}: ${linkText(l)}${isLinkReason(l.reason) ? '' : ' (flag only)'}`))) : null,
       c.mutual.length ? el('div', { class: 'dup-why' }, el('div', { class: 'xs dim' }, 'Likes and saves between them (not counted for Rings)'),
         ...c.mutual.map((x) => el('div', { class: 'sm' }, `${nm(x.from)} → ${nm(x.to)}’s Reels: ${x.likes} like${x.likes === 1 ? '' : 's'}, ${x.saves} save${x.saves === 1 ? '' : 's'}`))) : null,
       ...c.held.map((h) => el('div', { class: 'dup-held', 'data-held': h.claim_id },
         el('div', { class: 'row' }, el('b', { class: 'grow' }, `${nm(h.user_id)} claimed ${prizeName({ ...h, kind: h.prize_kind })} · ${h.brand === 'truemoney' ? 'TrueMoney' : h.brand === 'grab' ? 'Grab' : h.brand} ฿${h.amount}`), pill('held', 'warn')),
-        el('div', { class: 'sm', style: 'margin:4px 0 10px' }, HOLD_LABEL[h.reason] + (h.reason === 'face_mismatch' && h.face_dist != null ? ` (${h.face_dist.toFixed(2)})` : '')
+        el('div', { class: 'sm', style: 'margin:4px 0 10px' }, (HOLD_LABEL[h.reason] || HOLD_LABEL.linked)
           + (h.detail?.others?.length ? `: ${h.detail.others.map((o) => `${o.first_name}${o.member_no != null ? ` #${o.member_no}` : ''}`).join(', ')}` : '') + ` · ${ago(h.created_at)}`),
         act ? el('div', { class: 'two' },
           btn('bad', [ic('x'), 'Refuse'], () => act.refuse(h, false), { id: 'dupRefuse-' + h.claim_id }),
@@ -2067,7 +2074,7 @@ export function dupBlock(clusters: DupCluster[], signed: Record<string, string>,
 async function dupsView() {
   const body = el('div', {}, loading());
   screen('more', backHead('Same person?', '#more'),
-    el('p', { class: 'dim sm', style: 'margin:-6px 0 14px' }, 'Accounts linked by face, phone, network or LINE, and prize claims held for a check. Likes and saves between linked accounts already don’t count for Rings.'), body);
+    el('p', { class: 'dim sm', style: 'margin:-6px 0 14px' }, 'Accounts with the same face or phone (linked: their likes and saves don’t count for Rings, and their claims wait for you), plus flags only: same Wi-Fi / network, same LINE, face check not matching.'), body);
   let ov: unknown;
   try { ov = await rpc<unknown>('kr8_admin_dup_overview'); } catch (e) { body.replaceChildren(errP(e)); return; }
   if (!isDupOverview(ov)) { body.replaceChildren(el('p', { class: 'err' }, 'Same person? needs database update 0066.')); return; }
@@ -2076,7 +2083,7 @@ async function dupsView() {
   let signed: Record<string, string> = {};
   if (paths.length) { const { data } = await (await v5Client()).storage.from('kr8-verify').createSignedUrls([...new Set(paths)], 600); for (const d of data || []) if (d.path && d.signedUrl) signed[d.path] = d.signedUrl; }
   const again = () => void dupsView();
-  body.replaceChildren(dupBlock(clusters, signed, {
+  body.replaceChildren(dupFlagBlock(ov.flagged || []) || '', dupBlock(clusters, signed, {
     pay: async (h) => { try { await rpc('kr8_admin_release_claim', { p_claim: h.claim_id }); toast('Paid · the code goes out now (if in stock)', { ms: 3000 }); again(); } catch (e) { toast(errText(e), { ms: 6000 }); } },
     refuse: (h, giveBack) => {
       const ta = el('textarea', { rows: '2', maxlength: '200', id: 'dupWhy' }, giveBack ? 'Face check didn’t match. Please try again in good light.' : 'One person, one account: kept the oldest account') as HTMLTextAreaElement;
@@ -2106,22 +2113,23 @@ async function dupsView() {
 export function weekBlock(r: WeekReview, onApprove: (() => void) | null, now = Date.now()): HTMLElement {
   if (!r.week) return el('div', { class: 'card empty', id: 'weekEmpty' }, el('b', {}, 'No week closed yet'), 'The first week closes Monday 24 Nov, 00:00 Bangkok.');
   const opens = r.opens_at ? Date.parse(r.opens_at) : 0;
-  const state = r.approved_at ? `Approved ${bkkTime(r.approved_at)} · prizes are open` : opens > now ? `Prizes open by themselves ${bkkTime(r.opens_at!)} (24 h after the close) unless you approve first` : 'Opened by itself after 24 h';
+  const state = r.approved_at ? `Approved ${istWhen(r.approved_at)} · prizes are open` : opens > now ? `Prizes open by themselves ${istWhen(r.opens_at!)} (24 h after the close) unless you approve first` : `Opened by itself ${istWhen(r.opens_at!)}`;
   return el('div', { id: 'weekReview' },
-    el('div', { class: 'card', id: 'weekState' }, el('div', { class: 'row' }, el('b', { class: 'grow' }, `Week of ${r.week}`), r.approved_at || opens <= now ? pill('open', 'g') : pill('checking', 'warn')),
+    el('div', { class: 'card', id: 'weekState' }, el('div', { class: 'row' }, el('b', { class: 'grow' }, `Week ${weekRange(r.week)}`), r.approved_at || opens <= now ? pill('open', 'g') : pill('checking', 'warn')),
       el('p', { class: 'sm', style: 'margin:6px 0 0' }, state),
       onApprove && !r.approved_at && opens > now ? btn('go big full', [ic('check'), 'Approve week · open the prizes'], onApprove, { id: 'weekApprove', style: 'margin-top:12px' }) : null),
     el('div', { class: 'card', id: 'weekRows' }, el('b', {}, 'Top 8'),
-      ...r.rows.map((x) => {
+      ...r.rows.map((x: WeekRow) => {
         const flags = weekFlags(x, now);
         return el('div', { class: 'nrow wk-r', 'data-rank': String(x.rank) },
           el('div', { class: 'row', style: 'gap:10px' }, el('span', { class: 'wk-rk' }, `#${x.rank}`),
             x.photo ? el('img', { class: 'wk-av', src: x.photo, alt: '' }) : el('span', { class: 'wk-av' }),
-            el('span', { class: 'grow' }, el('b', {}, `${x.first_name}${x.member_no != null ? ` #${x.member_no}` : ''}`), el('div', { class: 'faint xs' }, `${x.rings} Rings${x.prize ? ` · ฿${x.prize.amount} ${x.prize.status === 'claimed' ? 'claimed' : 'not claimed'}` : ''}`)),
-            flags.length ? pill(`${flags.length} flag${flags.length === 1 ? '' : 's'}`, flags.some((f) => / as /.test(f)) ? 'r' : 'warn') : pill('ok', 'g')),
-          flags.length ? el('ul', { class: 'wk-flags' }, ...flags.map((f) => el('li', { class: / as /.test(f) ? 'bad' : '' }, f))) : null);
+            el('span', { class: 'grow' }, el('b', {}, `${x.first_name}${x.member_no != null ? ` #${x.member_no}` : ''}`),
+              el('div', { class: 'faint xs' }, `${x.rings} Rings${x.prize ? ` · ฿${x.prize.amount.toLocaleString('en-US')} ${x.prize.status === 'claimed' ? 'claimed' : 'not claimed'}` : ' · no prize'}`)),
+            flags.length ? pill(`${flags.length} flag${flags.length === 1 ? '' : 's'}`, flags.some((f) => /^Same (face|phone)/.test(f)) ? 'r' : 'warn') : pill('ok', 'g')),
+          flags.length ? el('ul', { class: 'wk-flags' }, ...flags.map((f) => el('li', { class: /^Same (face|phone)/.test(f) ? 'bad' : '' }, f))) : null);
       }),
-      el('p', { class: 'faint xs', style: 'margin:10px 0 0' }, 'Linked accounts: open More → Same person? to hide a duplicate before approving. A hidden account’s unclaimed prize is cancelled.')));
+      el('p', { class: 'faint xs', style: 'margin:10px 0 0' }, 'Linked accounts: More → Same person?')));
 }
 async function weekView() {
   const body = el('div', {}, loading());
@@ -2133,43 +2141,6 @@ async function weekView() {
   body.replaceChildren(weekBlock(wr, async () => {
     try { await rpc('kr8_admin_approve_week', { p_week: wr.week }); toast('Week approved · prizes open', { ms: 3000 }); void weekView(); } catch (e) { toast(errText(e), { ms: 6000 }); }
   }));
-}
-
-// ───────────────────────────── Compute face prints (0066 backfill, runs in this browser) ─────────────────────────────
-type FaceTodo = { id: string; user_id: string; first_name: string; member_no: number | null; status: string; selfie_path: string; created_at: string };
-async function facePrintsView() {
-  const body = el('div', {}, loading());
-  screen('more', backHead('Face prints', '#more'), el('p', { class: 'dim sm', style: 'margin:-6px 0 14px' },
-    'Makes a face code from each selfie still on file, in this browser, and saves it team-only. Selfies are deleted 30 days after review, so run this soon. Keep this page open until it finishes.'), body);
-  let rows: FaceTodo[] = [];
-  try { rows = await rpc<FaceTodo[]>('kr8_admin_face_todo'); } catch (e) { body.replaceChildren(errP(e)); return; }
-  const out = el('div', { class: 'card', id: 'fpLog' }, el('b', {}, `${rows.length} selfie${rows.length === 1 ? '' : 's'} to do`));
-  const go = btn('pri big full', [ic('face'), 'Compute face prints for existing selfies'], async () => {
-    go.disabled = true;
-    const faceMod = await import('../v8/v5Face');
-    let ok = 0, none = 0, links = 0, fail = 0;
-    const line = el('p', { class: 'sm', id: 'fpProgress' }, 'Loading the face model…'); out.append(line);
-    try { await faceMod.loadFaceApi(); } catch { line.textContent = 'The face model did not load. Try again on a computer or another browser.'; go.disabled = false; return; }
-    for (let i = 0; i < rows.length; i += 20) {
-      const part = rows.slice(i, i + 20);
-      const { data } = await (await v5Client()).storage.from('kr8-verify').createSignedUrls(part.map((r) => r.selfie_path), 600);
-      const url = new Map((data || []).map((d) => [d.path, d.signedUrl]));
-      for (const r of part) {
-        line.textContent = `${i + part.indexOf(r) + 1} / ${rows.length} · ${r.first_name}`;
-        try {
-          const u = url.get(r.selfie_path);
-          if (!u) { fail++; continue; }
-          const d = await faceMod.faceDescriptor(await faceMod.loadImage(u));
-          const res = await rpc<{ saved: boolean; links: number }>('kr8_admin_save_face_print', { p_verification: r.id, p_desc: d ? Array.from(d, (x) => Math.round(x * 1e6) / 1e6) : null });
-          if (res.saved) { ok++; links += res.links; } else none++;
-        } catch { fail++; }
-      }
-    }
-    line.textContent = `Done: ${ok} saved · ${none} with no clear face · ${fail} failed · ${links} same-face match${links === 1 ? '' : 'es'}`;
-    if (links) out.append(el('a', { class: 'btn ghost', href: '#dups', style: 'margin-top:10px' }, 'Open Same person?'));
-    go.disabled = false;
-  }, { id: 'fpGo', disabled: !rows.length });
-  body.replaceChildren(out, go);
 }
 
 // ───────────────────────────── router ─────────────────────────────
@@ -2198,7 +2169,6 @@ function route() {
   if (a === 'recruiters') return void recruitersView();
   if (a === 'dups') return void dupsView();
   if (a === 'week') return void weekView();
-  if (a === 'faceprints') return void facePrintsView();
   if (a === 'reddit') return redditView();
   if (a === 'history') return void historyView(b || 'reels');
   if (a === 'venue' && b) return void venueDetail(b);

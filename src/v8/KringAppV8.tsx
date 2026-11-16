@@ -6783,7 +6783,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {sheet === 'ranking' && live && (
           <RankingPage L={L} Lf={Lf} lang={lang} myArea={v5Card?.area || null} myPhoto={v5Card?.photo || null} myName={v5Card?.first_name || ''} myId={v5Card ? v5Uid || null : null}
             onBack={() => setSheet(null)} onPerson={(id) => void goOpenBest(id)} onPost={() => requireSignInForAction(() => kxPostAt())}
-            onShare={(reel) => void kxShareReelId(reel)} />
+            onShare={(reel) => void kxShareReelId(reel)}
+            needsVerify={!!meProfile && !meProfile.verified && !verifyPending} onVerify={() => setSheet('verify')} />
         )}
         {sheet === 'result' && live && kxResult && (
           <ResultPage L={L} Lf={Lf} lang={lang} r={kxResult} photo={v5Card?.photo || null} name={v5Card?.first_name || ''} level={kxMe?.level ?? 1} no={kxMe?.member_no ?? (v5Card as { member_no?: number } | null)?.member_no ?? null}

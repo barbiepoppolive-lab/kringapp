@@ -2,7 +2,8 @@
  * 0066 · 3-second face check before a prize claim. One screen, Thai with English under it.
  * Runs on the phone (face-api, same models as the Get verified check): hold a straight face in the oval for 3 seconds,
  * then ONE face code (128 numbers, not a photo) goes with the claim. The server compares it with the account's own
- * face print. Camera blocked / no face found → the member can still claim; the claim then waits for the team's check.
+ * face prints. No print yet (most members) → this check becomes the account's print and the claim goes through; only a
+ * match with ANOTHER account's face is held for the founder. Camera blocked → friendly retry tips (the claim needs the check).
  */
 import { useEffect, useRef, useState } from 'react';
 import { faceDescriptor, loadFaceApi, sampleFace } from './v5Face';
@@ -89,7 +90,7 @@ export function ClaimFace(props: { onDone: (face: Float32Array | null) => void; 
     <div className="kx-cf" id="kxClaimFace" data-stage={stage}>
       <div className="kx-cf-h">
         <TE th="สแกนหน้า 3 วินาที" en="3-second face check" />
-        <TE th="เพื่อให้แน่ใจว่าเป็นเจ้าของบัญชีนี้ที่รับรางวัล" en="So we know it’s really you claiming this prize" />
+        <TE th="ยืนยันใบหน้าสั้น ๆ เพื่อรับรางวัล และให้รีลของคุณติดบอร์ดอันดับ" en="Quick face check to claim your reward and keep your Reel on the ranking board" />
       </div>
       <div className="kx-cf-cam" style={{ ['--p' as string]: `${pct}%` }}>
         {props.demo?.img ? <img src={props.demo.img} alt="" /> : <video ref={videoRef} playsInline muted autoPlay id="kxClaimFaceVideo" />}
@@ -114,11 +115,11 @@ export function ClaimFace(props: { onDone: (face: Float32Array | null) => void; 
       {stage === 'fail' ? (
         <div className="kx-cf-fail" id="kxClaimFaceFail" role="status">
           {failWhy === 'camera'
-            ? <TE th="เปิดกล้องไม่ได้ ลองอนุญาตกล้องในเบราว์เซอร์ แล้วลองอีกครั้ง" en="The camera didn’t open. Allow the camera in your browser, then try again." />
+            ? <TE th="เปิดกล้องไม่ได้ ลองอนุญาตกล้องในเบราว์เซอร์ หรือเปิด กริ๊ง! ใน Chrome / Safari แล้วลองอีกครั้ง" en="The camera didn’t open. Allow the camera in your browser, or open Kring in Chrome / Safari, then try again." />
             : <TE th="ยังไม่เห็นหน้าชัด ลองไปที่สว่าง ๆ แล้วลองอีกครั้ง" en="We couldn’t see your face clearly. Try somewhere brighter." />}
           <button type="button" className="kx-btn" id="kxClaimFaceRetry" onClick={() => void start()}><TE th="ลองอีกครั้ง" en="Try again" /></button>
-          <button type="button" className="kx-cf-later" id="kxClaimFaceSkip" onClick={() => { stop(); props.onDone(null); }}>
-            <TE th="รับรางวัลโดยไม่สแกน (ทีมงานตรวจก่อน)" en="Claim without the check (the team checks first)" />
+          <button type="button" className="kx-cf-later" id="kxClaimFaceBack" onClick={() => { stop(); props.onCancel(); }}>
+            <TE th="ไว้ทีหลัง รางวัลของคุณยังอยู่" en="Later · your prize stays here" />
           </button>
         </div>
       ) : null}

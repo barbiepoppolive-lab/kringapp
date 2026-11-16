@@ -172,6 +172,7 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
       const c = v5ErrCode(e);
       setStep('pick');
       if (c === 'NEED_LINE') { setStep('line'); return; }
+      if (c === 'FACE_NEEDED') { setStep('face'); return; }
       if (c === 'WEEK_REVIEW') { setWaitUntil('soon'); return; }
       setErr(c === 'ONE_ACCOUNT' ? L('This phone already claimed for another account. One person, one account.')
         : c === 'NO_PRIZE' ? L('That prize isn’t here any more.')

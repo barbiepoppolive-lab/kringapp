@@ -769,3 +769,8 @@
 .v8-app-root .kx-step .ln { width: 56px; height: 56px; border-radius: 18px; background: #06c755; display: grid; place-items: center; font: 800 13px var(--kx-j); color: #fff; }
 .v8-app-root .kx-step .kx-btn.line { background: #06c755; }
 .v8-app-root .kx-pzc .kx-wait { font: 700 11.5px/1.25 var(--kx-j); color: var(--kx-gd); text-align: right; max-width: 120px; }
+.v8-app-root .kx-vnudge { display: flex; align-items: center; gap: 10px; width: calc(100% - 36px); margin: 4px 18px 10px; padding: 10px 12px; border: 0; border-radius: 16px; text-align: left;
+  background: rgba(63,240,255,.08); box-shadow: inset 0 0 0 1.5px rgba(63,240,255,.28); color: #e8e4f7; font: 700 13px var(--kx-j); }
+.v8-app-root .kx-vnudge .ic { width: 26px; height: 26px; border-radius: 50%; background: var(--kx-cy); color: #07060d; display: grid; place-items: center; font-weight: 800; flex: none; }
+.v8-app-root .kx-vnudge .kx-te { flex: 1; }
+.v8-app-root .kx-vnudge .go { color: var(--kx-cy); font-size: 18px; }

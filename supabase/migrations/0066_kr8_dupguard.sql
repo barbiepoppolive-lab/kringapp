@@ -7,22 +7,27 @@
 -- What it adds
 --   A. Face print: kr8_face_prints (admin-only, members can never read it). A 128-number face code from face-api's
 --      face_recognition_model (the same model the phone already uses to compare the selfie with the profile photo).
---      Saved at the face check (kr8_save_face_print), at claim time, and from old selfies by the admin page
---      ("Compute face prints", kr8_admin_save_face_print). Every new print is compared with every other member's prints.
+--      Saved at the face check (kr8_save_face_print, consent face-2026-11-17 says a face code is kept) and at claim
+--      time. NOT computed from old selfies (founder, 16 Nov): old members get their print from the fresh face check at
+--      their next claim. Every new print is compared with every other member's prints.
 --      THRESHOLDS (euclidean distance between two 128-d face-api descriptors; 0 = identical photo):
 --        face_same_max  = 500 (0.50): two accounts at or under this are linked as "same face" (admin checks by eye).
 --                         face-api's own "same person" cut-off is 0.60; 0.50 is stricter so look-alike friends are rarely
 --                         linked (this model puts different East/South-East Asian faces closer together than the
 --                         0.6 default assumes), while the same face photographed twice is usually 0.25-0.45.
---        face_self_max  = 600 (0.60): the fresh claim-time face must be this close to the account's own print, else the
---                         claim is held. More lenient on purpose (different light / phone), so the real owner passes.
+--        face_self_max  = 600 (0.60): a claim-time face further than this from the account's own earlier print raises a
+--                         FLAG for the admin (not a hold). More lenient on purpose (different light / phone).
 --      Both live in kr8_rings_config (thousandths) and can be tuned without a deploy.
---   B. Claim-time face check: kr8_claim_prize(p_prize, p_brand, p_device, p_face). No face, no print, or a face that
---      doesn't match the account's print → the claim is HELD (the member just sees "Your code is on the way").
---   E. Linked accounts: kr8_account_links (admin-only): same face / same device / same network (claims) / same LINE.
---      kr8_reel_scores ignores likes, saves and share-opens between linked accounts (silent; members are not told).
+--   B. Claim-time face check: kr8_claim_prize(p_prize, p_brand, p_device, p_face). With claim_face_check = 1 a claim
+--      needs the 3-second face (else KR8_FACE_NEEDED and the app opens the check). No print yet → this face becomes
+--      the print and the claim goes through. ONLY a real duplicate (same face / same phone as another account that has
+--      a prize or claim) is HELD. Face not matching the account's own print, or same network → a flag only.
+--   E. kr8_account_links (admin-only) stores face / device links AND network / LINE flags. Only face + device LINK
+--      accounts (kr8_linked): kr8_reel_scores ignores likes, saves and share-opens between linked accounts (silent).
+--      Network and LINE rows are flags for the admin only: they never remove Rings and never hold a claim.
+--      (This also replaces 0063's "same network → held" rule with a flag.)
 --      The admin can mark a pair "not the same person" (dismissed links count again).
---   Duplicate hold: a claim from an account linked to another account that already has a prize or claim is HELD.
+--   Duplicate hold: a claim from an account LINKED (face / device) to another account that already has a prize or claim is HELD.
 --      Founder alert email (+ push) says why, with both selfies; admin Pay (kr8_admin_release_claim) / Refuse
 --      (kr8_admin_refuse_claim). Hold reasons live in kr8_claim_holds (admin-only), never on the member's own claim row.
 --   Admin "Same person?": kr8_admin_dup_overview (clusters are built in the admin page), kr8_admin_dup_resolve
@@ -60,7 +65,6 @@ create table if not exists public.kr8_face_prints (
   constraint kr8_face_prints_source check (source in ('verify', 'selfie', 'claim'))
 );
 create index if not exists kr8_face_prints_user on public.kr8_face_prints (user_id, created_at desc);
-create unique index if not exists kr8_face_prints_selfie_once on public.kr8_face_prints (verification_id) where source = 'selfie';
 alter table public.kr8_face_prints enable row level security;
 revoke all on public.kr8_face_prints from public, anon, authenticated;
 revoke all on sequence public.kr8_face_prints_id_seq from public, anon, authenticated;
@@ -83,7 +87,7 @@ alter table public.kr8_account_links enable row level security;
 revoke all on public.kr8_account_links from public, anon, authenticated;
 
 create table if not exists public.kr8_claim_holds (
-  claim_id uuid primary key references public.kr8_reward_claims(id) on delete cascade,
+  claim_id uuid primary key references public.kr8_reward_claims(id) on delete cascade deferrable initially deferred,
   reason text not null,
   detail jsonb not null default '{}'::jsonb,
   face_dist real,
@@ -92,13 +96,13 @@ create table if not exists public.kr8_claim_holds (
   decided_at timestamptz,
   decided_by uuid,
   decide_note text,
-  constraint kr8_claim_holds_reason check (reason in ('linked', 'face_mismatch', 'no_print', 'no_face')),
+  -- reason 'linked' = HELD (duplicate); 'flag' = paid normally, flags in detail (same network, face check not matching)
+  constraint kr8_claim_holds_reason check (reason in ('linked', 'flag')),
   constraint kr8_claim_holds_decided check (decided is null or decided in ('paid', 'refused', 'returned'))
 );
 alter table public.kr8_claim_holds enable row level security;
 revoke all on public.kr8_claim_holds from public, anon, authenticated;
 
-alter table public.kr8_verifications add column if not exists print_note text;
 alter table public.kr8_week_closed add column if not exists approved_at timestamptz;
 alter table public.kr8_week_closed add column if not exists approved_by uuid;
 alter table public.kr8_prizes add column if not exists cancel_reason text;
@@ -127,7 +131,8 @@ $$;
 create or replace function public.kr8_linked(x uuid, y uuid) returns boolean
 language sql stable security definer set search_path = public, pg_temp as $$
   select x is not null and y is not null and x <> y and exists (
-    select 1 from public.kr8_account_links l where l.a = least(x, y) and l.b = greatest(x, y) and l.dismissed_at is null)
+    select 1 from public.kr8_account_links l where l.a = least(x, y) and l.b = greatest(x, y) and l.dismissed_at is null
+                and l.reason in ('face', 'device'))   -- network / LINE rows are flags only
 $$;
 
 create or replace function public.kr8_link_add(x uuid, y uuid, p_reason text, p_detail jsonb default '{}'::jsonb) returns void
@@ -214,42 +219,6 @@ end $$;
 revoke all on function public.kr8_save_face_print(real[]) from public, anon;
 grant execute on function public.kr8_save_face_print(real[]) to authenticated;
 
-/** admin page backfill: selfies still on file (approved or waiting) without a print from the selfie itself */
-create or replace function public.kr8_admin_face_todo() returns table (id uuid, user_id uuid, first_name text, member_no int, status text, selfie_path text, created_at timestamptz)
-language plpgsql stable security definer set search_path = public, pg_temp as $$
-begin
-  if not public.kr8_is_admin() then raise exception 'KR8_ADMIN_ONLY'; end if;
-  return query
-    select v.id, v.user_id, m.first_name, m.member_no, v.status, v.selfie_path, v.created_at
-    from public.kr8_verifications v join public.kr8_members m on m.user_id = v.user_id
-    where v.selfie_path is not null and v.selfie_deleted_at is null and v.status in ('approved', 'pending') and v.print_note is null
-      and not exists (select 1 from public.kr8_face_prints f where f.verification_id = v.id and f.source = 'selfie')
-    order by v.created_at asc limit 500;
-end $$;
-revoke all on function public.kr8_admin_face_todo() from public, anon;
-grant execute on function public.kr8_admin_face_todo() to authenticated;
-
-/** p_desc null = no clear face found in that selfie (noted, so it is not tried again) */
-create or replace function public.kr8_admin_save_face_print(p_verification uuid, p_desc real[]) returns jsonb
-language plpgsql security definer set search_path = public, pg_temp as $$
-declare v public.kr8_verifications; n int;
-begin
-  if not public.kr8_is_admin() then raise exception 'KR8_ADMIN_ONLY'; end if;
-  select * into v from public.kr8_verifications where id = p_verification;
-  if v.id is null then raise exception 'KR8_NO_VERIFICATION'; end if;
-  if p_desc is null then
-    update public.kr8_verifications set print_note = 'noface' where id = v.id;
-    return jsonb_build_object('saved', false, 'links', 0);
-  end if;
-  if not public.kr8_face_ok(p_desc) then raise exception 'KR8_BAD_FACE'; end if;
-  insert into public.kr8_face_prints (user_id, descriptor, source, verification_id) values (v.user_id, p_desc, 'selfie', v.id)
-  on conflict (verification_id) where source = 'selfie' do update set descriptor = excluded.descriptor, created_at = now();
-  n := public.kr8_face_match_links(v.user_id);
-  return jsonb_build_object('saved', true, 'links', n);
-end $$;
-revoke all on function public.kr8_admin_save_face_print(uuid, real[]) from public, anon;
-grant execute on function public.kr8_admin_save_face_print(uuid, real[]) to authenticated;
-
 /** line-auth (service role only): the LINE account a member tried to link is already another Kring account */
 create or replace function public.kr8_note_line_taken(p_user uuid, p_other uuid) returns void
 language plpgsql security definer set search_path = public, pg_temp as $$
@@ -266,7 +235,7 @@ returns jsonb language plpgsql security definer set search_path = public, pg_tem
 declare uid uuid := auth.uid(); pz public.kr8_prizes; c public.kr8_reward_codes; cl public.kr8_reward_claims; cid uuid := gen_random_uuid();
         dev text := nullif(left(btrim(coalesce(p_device, '')), 64), ''); held boolean := false;
         ip text := public.kr8_caller_ip_hash(); unk text := encode(extensions.digest('kr8-ip-salt|unknown', 'sha256'), 'hex');
-        face_ok boolean := public.kr8_face_ok(p_face); self_d float8; why text; others jsonb;
+        face_ok boolean := public.kr8_face_ok(p_face); self_d float8; why text; others jsonb; flags jsonb; mismatch boolean := false;
 begin
   if uid is null then raise exception 'KR8_SIGN_IN'; end if;
   if not exists (select 1 from public.kr8_members where user_id = uid) then raise exception 'KR8_NO_CARD'; end if;
@@ -290,9 +259,11 @@ begin
     raise exception 'KR8_ONE_ACCOUNT';
   end if;
 
-  -- B: the fresh face from the claim screen, compared with the account's own print (face check or selfie)
+  -- B: the 3-second face is needed (the app opens the check on this error; nothing is stored)
+  if not face_ok and public.kr8_rcfg('claim_face_check', 1) = 1 then raise exception 'KR8_FACE_NEEDED'; end if;
+  -- compared with the account's own earlier prints (face check or an earlier claim); no print yet → this one becomes it
   if face_ok and (select count(*) from public.kr8_face_prints where user_id = uid and created_at > now() - interval '1 day') < 10 then
-    select min(public.kr8_face_dist(p_face, f.descriptor)) into self_d from public.kr8_face_prints f where f.user_id = uid and f.source in ('verify', 'selfie');
+    select min(public.kr8_face_dist(p_face, f.descriptor)) into self_d from public.kr8_face_prints f where f.user_id = uid;
     insert into public.kr8_face_prints (user_id, descriptor, source) values (uid, p_face, 'claim');
     perform public.kr8_face_match_links(uid);
   end if;
@@ -309,36 +280,41 @@ begin
   end if;
   perform public.kr8_refresh_links(uid);
 
-  -- duplicate hold: linked to an account that already has a prize or a claim
+  -- duplicate hold: LINKED (same face / same phone) to an account that already has a prize or a claim
   select jsonb_agg(jsonb_build_object('user_id', o.u, 'first_name', m.first_name, 'member_no', m.member_no, 'reasons', o.reasons,
                    'face_dist', o.face_dist) order by m.member_no)
     into others
     from (select case when l.a = uid then l.b else l.a end u, jsonb_agg(l.reason order by l.reason) reasons,
                  min((l.detail ->> 'dist')::float8) face_dist
-          from public.kr8_account_links l where (l.a = uid or l.b = uid) and l.dismissed_at is null group by 1) o
+          from public.kr8_account_links l where (l.a = uid or l.b = uid) and l.dismissed_at is null and l.reason in ('face', 'device') group by 1) o
     join public.kr8_members m on m.user_id = o.u
    where exists (select 1 from public.kr8_reward_claims x where x.member_id = o.u and x.status <> 'cancelled')
       or exists (select 1 from public.kr8_prizes x where x.member_id = o.u and x.status <> 'cancelled');
-  why := case when others is not null then 'linked'
-              when not face_ok and public.kr8_rcfg('claim_face_check', 1) = 1 then 'no_face'
-              when face_ok and self_d is null then 'no_print'
-              when face_ok and self_d > public.kr8_rcfg('face_self_max', 600) / 1000.0 then 'face_mismatch' end;
-  held := why is not null;
+  held := others is not null;
+  -- flags only (paid normally): same network as another member's claim, or a face that doesn't match this account's own print
+  select jsonb_agg(jsonb_build_object('user_id', o.u, 'first_name', m.first_name, 'member_no', m.member_no, 'reasons', o.reasons) order by m.member_no)
+    into flags
+    from (select case when l.a = uid then l.b else l.a end u, jsonb_agg(l.reason order by l.reason) reasons
+          from public.kr8_account_links l where (l.a = uid or l.b = uid) and l.dismissed_at is null and l.reason in ('network', 'line') group by 1) o
+    join public.kr8_members m on m.user_id = o.u;
+  mismatch := face_ok and self_d is not null and self_d > public.kr8_rcfg('face_self_max', 600) / 1000.0;
+  why := case when held then 'linked' when flags is not null or mismatch then 'flag' end;
 
   if not held then
     select * into c from public.kr8_reward_codes
       where brand = p_brand and amount_thb = pz.amount_thb and status = 'available' and is_test = pz.is_test
       order by added_at, id limit 1 for update skip locked;
   end if;
+  if why is not null then   -- written before the claim row so the founder alert (AFTER INSERT on the claim) can read it
+    insert into public.kr8_claim_holds (claim_id, reason, detail, face_dist)
+    values (cid, why, jsonb_build_object('others', coalesce(others, '[]'::jsonb), 'flags', coalesce(flags, '[]'::jsonb), 'face_mismatch', mismatch,
+                                         'self_dist', round(self_d::numeric, 3), 'first_print', face_ok and self_d is null), self_d);
+  end if;
   insert into public.kr8_reward_claims (id, member_id, brand, amount_thb, rings, status, code_id, device, ip_hash, is_test, assigned_at, prize_id, held)
   values (cid, uid, p_brand, pz.amount_thb, 0, case when c.id is null then 'pending' else 'assigned' end, c.id, dev, ip, pz.is_test,
           case when c.id is null then null else now() end, pz.id, held);
-  if held then
-    insert into public.kr8_claim_holds (claim_id, reason, detail, face_dist)
-    values (cid, why, jsonb_build_object('others', coalesce(others, '[]'::jsonb), 'self_dist', round(self_d::numeric, 3), 'face_sent', face_ok), self_d);
-  end if;
   update public.kr8_prizes set status = 'claimed', claim_id = cid, claimed_at = now() where id = pz.id;
-  if c.id is null then      -- held, or no code of that exact amount in stock: "your code is on the way"
+  if c.id is null then      -- held (duplicate), or no code of that exact amount in stock: "your code is on the way"
     return jsonb_build_object('status', 'pending', 'claim_id', cid, 'brand', p_brand, 'amount', pz.amount_thb,
       'value', public.kr8_reward_value(p_brand, pz.amount_thb));
   end if;
@@ -419,6 +395,12 @@ begin
                      'prize_kind', p.kind, 'founding_no', p.founding_no, 'week', p.week, 'rank', p.rank) order by c.created_at)
                from public.kr8_reward_claims c left join public.kr8_claim_holds h on h.claim_id = c.id left join public.kr8_prizes p on p.id = c.prize_id
                where c.held and c.status = 'pending'), '[]'::jsonb),
+    -- flags on claims that were paid normally (same network, face check not matching), last 30 days
+    'flagged', coalesce((select jsonb_agg(jsonb_build_object('claim_id', c.id, 'user_id', c.member_id, 'first_name', m.first_name, 'member_no', m.member_no,
+                     'brand', c.brand, 'amount', c.amount_thb, 'status', c.status, 'created_at', c.created_at, 'flags', h.detail -> 'flags',
+                     'face_mismatch', coalesce((h.detail ->> 'face_mismatch')::boolean, false), 'face_dist', h.face_dist) order by c.created_at desc)
+               from public.kr8_claim_holds h join public.kr8_reward_claims c on c.id = h.claim_id left join public.kr8_members m on m.user_id = c.member_id
+               where h.reason = 'flag' and c.created_at > now() - interval '30 days'), '[]'::jsonb),
     -- likes / saves between linked accounts (the Rings they would have given; already not counted)
     'mutual', coalesce((select jsonb_agg(jsonb_build_object('from', x.u, 'to', x.author, 'likes', x.likes, 'saves', x.saves)) from (
         select l.u, p.author, count(*) filter (where l.k = 'like') likes, count(*) filter (where l.k = 'save') saves
@@ -514,6 +496,10 @@ language sql stable security definer set search_path = public, pg_temp as $$
   select p is not null and exists (select 1 from public.kr8_team_accounts t where t.user_id = p)
 $$;
 revoke all on function public.kr8_is_team(uuid) from public, anon, authenticated;
+-- the live "Kring Team" card (founder, 16 Nov); skipped where that account doesn't exist (private test copies)
+insert into public.kr8_team_accounts (user_id, note)
+select u.id, 'Kring Team' from auth.users u where u.id = 'fd5cca36-9be2-4dde-9d7d-2dd9c898deaa'
+on conflict (user_id) do nothing;
 
 -- ───────────── E. Rings ignore linked accounts (body of 0063 + "not linked" and "not team" lines) ─────────────
 create or replace function public.kr8_reel_scores(p_from timestamptz, p_to timestamptz, p_until timestamptz, p_test boolean, p_author uuid default null)
@@ -672,6 +658,7 @@ begin
                                    'is_test', new.is_test, 'created_at', new.created_at, 'held', new.held,
                                    'hold_reason', case when new.held then coalesce(h.reason, 'linked') end,
                                    'face_dist', h.face_dist, 'others', others,
+                                   'flags', h.detail -> 'flags', 'face_mismatch', coalesce((h.detail ->> 'face_mismatch')::boolean, false),
                                    'selfie_path', (select v.selfie_path from public.kr8_verifications v where v.user_id = new.member_id and v.selfie_path is not null
                                                    and v.selfie_deleted_at is null order by v.created_at desc limit 1),
                                    'payout_pct', public.kr8_rcfg('truemoney_payout_pct', 100),
@@ -688,7 +675,7 @@ begin
         left(format('%s #%s claimed ฿%s. %s Check before paying.', (select first_name from public.kr8_members where user_id = new.member_id),
           (select member_no from public.kr8_members where user_id = new.member_id), new.amount_thb,
           case when others is not null and jsonb_array_length(others) > 0 then format('Linked to %s #%s.', others -> 0 ->> 'first_name', others -> 0 ->> 'member_no')
-               else 'Face check did not match.' end), 240),
+               else 'Same person as another account?' end), 240),
         '/app/admin.html#dups', new.id, false);
     end loop;
   end if;
@@ -696,3 +683,12 @@ begin
 exception when others then
   return new;   -- never block a claim
 end $$;
+-- the alert must see the kr8_claim_holds row, so kr8_claim_prize writes that row FIRST (its FK to the claim is checked at
+-- commit) and the AFTER INSERT alert on the claim then reads it. Same trigger as before (re-created in case of a re-run).
+do $$ begin
+  if exists (select 1 from pg_constraint where conname = 'kr8_claim_holds_claim_id_fkey' and not condeferrable) then
+    alter table public.kr8_claim_holds alter constraint kr8_claim_holds_claim_id_fkey deferrable initially deferred;
+  end if;
+end $$;
+drop trigger if exists kr8_claim_notify on public.kr8_reward_claims;
+create trigger kr8_claim_notify after insert on public.kr8_reward_claims for each row execute function public.kr8_claim_notify();

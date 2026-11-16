@@ -132,7 +132,9 @@ export function ownRow(L: Tx, Lf: Txf, gap: KxGap | null | undefined, mine: KxRa
 }
 
 export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: string | null; myPhoto: string | null; myName: string; myId: string | null;
-  onBack: () => void; onPerson: (id: string) => void; onPost: () => void; onShare: (reel: string) => void }) {
+  onBack: () => void; onPerson: (id: string) => void; onPost: () => void; onShare: (reel: string) => void;
+  /** 0066: not face-verified yet → a small nudge (everyone still shows on the board) */
+  needsVerify?: boolean; onVerify?: () => void }) {
   const { L, Lf } = props;
   const [scope, setScope] = useState<KxScope>('all');
   const [data, setData] = useState<KxRanking | null>(null);
@@ -189,6 +191,13 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
         <span id="kxResets">{L('This week · resets Monday 00:00')}</span>
         <button type="button" className="kx-linkbtn" id="kxHowBtn" onClick={() => setHow(true)}>{L('How Rings work')}</button>
       </div>
+      {props.needsVerify && props.onVerify ? (
+        <button type="button" className="kx-vnudge" id="kxVerifyNudge" onClick={props.onVerify}>
+          <span className="ic" aria-hidden="true">✓</span>
+          <span className="kx-te"><b lang="th">ยืนยันใบหน้าสั้น ๆ เพื่อให้รีลของคุณติดบอร์ดอันดับ</b><small lang="en">Quick face check to keep your Reel on the ranking board</small></span>
+          <span className="go" aria-hidden="true">›</span>
+        </button>
+      ) : null}
       <div className="kx-tabs" role="tablist">
         {(['all', 'area', 'friends'] as KxScope[]).map((k) => (
           <button type="button" role="tab" key={k} id={`kxRank-${k}`} aria-selected={scope === k} className={scope === k ? 'on' : ''} onClick={() => setScope(k)}>
