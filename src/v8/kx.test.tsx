@@ -262,14 +262,18 @@ describe('Ranking screen', () => {
       gap: { state: 'board', rank: 9, rings: 107, floor: 25, prize_now: 0, target: { rank: 8, need: 12, prize: 100, open: false }, above: null, behind: null, top10_need: null } }));
     render(<RankingPage L={L} Lf={Lf} lang="en" myArea="Ari" myPhoto={null} myName="Mint" myId="u9" onBack={() => undefined} onPerson={() => undefined} onPost={() => undefined} onShare={() => undefined} />);
     await screen.findByText('PRIZE LINE');
-    expect([...document.querySelectorAll('.kx-ped [data-prize]')].map((e) => e.textContent)).toEqual(['฿900', '฿1,500', '฿600']);
+    expect([...document.querySelectorAll('.rka-base [data-prize]')].map((e) => e.textContent)).toEqual(['฿900', '฿1,500', '฿600']);
     expect([...document.querySelectorAll('.kx-row .kx-pz')].map((e) => e.textContent)).toEqual(['฿500', '฿400', '฿250', '฿150', '฿100']);
     expect([...document.querySelectorAll('.kx-row .kx-tl')].map((e) => e.textContent)).toEqual(['12 to #8', '23 to #8']);
     expect(document.querySelectorAll('[data-rank]').length).toBe(10);
     expect(document.querySelector('#kxMeNext')!.textContent).toBe('12 Rings to #8 · ฿100');
-    expect(screen.getByText('This week · resets Monday 00:00')).toBeTruthy();
+    expect(document.querySelector('.rka-tt')!.textContent).toBe('Weekly Rankingอันดับประจำสัปดาห์');
+    expect(document.querySelector('#kxCountdown')!.textContent).toMatch(/^Ends \d+d \d\d:\d\d$/);
     expect(document.querySelector('#kxRanking')!.textContent).not.toMatch(/\+5,000|\+500|Sun 23:59/);
-    expect(['kxRank-all', 'kxRank-area', 'kxRank-friends'].every((id) => document.getElementById(id))).toBe(true);
+    // look A (17 Nov): the All Bangkok · My area · Friends tabs are gone; the board is always All Bangkok
+    expect(document.querySelector('[role="tablist"], #kxRank-area, #kxRank-friends, #kxHowBtn')).toBeNull();
+    expect(kxMock.kxRanking).toHaveBeenCalledWith('all');
+    expect(document.querySelector('#kxMeNextTh')!.textContent).toBe('อีก 12 ริง ถึงอันดับ 8 · ฿100');
   });
   it('cold start: empty paid ranks are "Open seat · ฿250"; under the floor shows "needs 25"; the line says 25 Rings', async () => {
     const rows = [88, 64, 51, 33, 18].map((r, i) => row(i + 1, r));
@@ -280,6 +284,23 @@ describe('Ranking screen', () => {
     expect(document.querySelector('[data-rank="5"]')!.textContent).toContain('needs 25');
     expect(document.querySelector('[data-rank="5"] .kx-pz')!.className).toContain('off');
     expect(document.querySelector('#kxMeRow')!.textContent).toContain('Seat #6 is open · ฿250');
+  });
+  it('look A: only 2 on the board → #3 is an open ring with its ฿ base, 4–8 open seats, no prize line without a floor note', async () => {
+    kxMock.kxRanking.mockResolvedValue(ranking([row(1, 72), row(2, 49)], { floor: 0, open_seats: 6 }));
+    render(<RankingPage L={L} Lf={Lf} lang="en" myArea="Ari" myPhoto={null} myName="Mint" myId={null} onBack={() => undefined} onPerson={() => undefined} onPost={() => undefined} onShare={() => undefined} />);
+    await waitFor(() => expect(document.querySelector('#kxPodium')).toBeTruthy());
+    expect(document.querySelector('.rka-pc.p3.open [data-seat="open"]')).toBeTruthy();
+    expect([...document.querySelectorAll('.rka-base [data-prize]')].map((e) => e.textContent)).toEqual(['฿900', '฿1,500', '฿600']);
+    expect(document.querySelectorAll('.rka-row.seat').length).toBe(5);
+    expect(document.querySelector('#kxPrizeLine')).toBeNull();
+  });
+  it('look A: countdown chip pulses only in the last 6 h (Sun 18:00–24:00 Bangkok)', async () => {
+    const { isLastHours } = await import('./V5KxRanking');
+    const end = Date.parse('2026-11-22T17:00:00Z');
+    expect(isLastHours(end - 6 * 3600_000 - 60_000, end)).toBe(false);
+    expect(isLastHours(end - 6 * 3600_000, end)).toBe(true);
+    expect(isLastHours(end - 60_000, end)).toBe(true);
+    expect(isLastHours(end + 1, end)).toBe(false);
   });
   it('tap any score → the math: the Reel that counts, line by line', async () => {
     kxMock.kxRanking.mockResolvedValue(ranking([row(1, 107)]));

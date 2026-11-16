@@ -1,5 +1,5 @@
 /**
- * Weekly ranking (LOCKED rules 15 Nov; mocks overnight_15nov/01_mocks m1–m4).
+ * Weekly ranking (LOCKED rules 15 Nov; look A "Gold-ring podium" approved 17 Nov — no scope tabs).
  * Rings = likes ×1, saves ×3, share-link opens ×5, visitors' likes/saves ×2, your best Reel of the week (best_reels = 1 since 15 Nov) (Mon 00:00 – Sun 23:59 Bangkok).
  * Top 10 always: podium (mini N2 cards, ฿ on the pedestals), rows 4–8 with a ฿ tag, dashed PRIZE LINE, #9–10 with "12 to #8".
  * Empty paid ranks show "Open seat · ฿250". Pinned own row = the next step in Rings and what it pays. Tap any score → the math.
@@ -8,9 +8,9 @@
 import React, { useEffect, useState } from 'react';
 import './kx.css';
 import { countdown, fmtN, mathLines, weekEnd } from './kxLogic';
-import { kxBreakdown, kxRanking, type KxBreakdown, type KxGap, type KxRanking, type KxRankRow, type KxScope } from './v5Kx';
+import { kxBreakdown, kxRanking, type KxBreakdown, type KxGap, type KxRanking, type KxRankRow } from './v5Kx';
 import { RingGlyph } from './V5KxCard';
-import { kxArea } from './v5Strings';
+import { KX_L, V5_L } from './v5Strings';
 import { signReelPaths } from './v5Reel';
 
 type Tx = (en: string) => string;
@@ -131,127 +131,130 @@ export function ownRow(L: Tx, Lf: Txf, gap: KxGap | null | undefined, mine: KxRa
   return { n: '–', l1: L('Not on the board yet'), l2: L('One Reel at a place puts you on it'), btn: 'post', key: 'none' };
 }
 
+/** Thai copy of a key (same tables the app's L() reads), so the pinned row can show Thai first and English under in any UI language. */
+const thL: Tx = (en) => (V5_L.th && V5_L.th[en]) || (KX_L.th && KX_L.th[en]) || en;
+const thLf: Txf = (en, a, b = '') => thL(en).replace('{0}', a).replace('{1}', b);
+const enL: Tx = (en) => en;
+const enLf: Txf = (en, a, b = '') => en.replace('{0}', a).replace('{1}', b);
+/** Last 6 h of the week (Sun 18:00 → 24:00 Bangkok): the countdown chip pulses pink. */
+export const isLastHours = (now = Date.now(), end = weekEnd(now)) => end - now > 0 && end - now <= 6 * 3600_000;
+
+/**
+ * Look A · Gold-ring podium (founder-approved 17 Nov, Weekly_Ranking_3_looks.png left phone).
+ * Top: title + Thai + one live countdown chip (no scope tabs: the board is always All Bangkok).
+ * Podium: round photos (#1 gold ring + crown + glow, #2 blue, #3 orange), numbered badge, name, Rings, glowing glass base with the prize.
+ * Ranks 4–8 glass cards with the prize in gold, "needs 25" under the floor; 9–10 the same cards without a prize.
+ * Prizes, floor and paid ranks all come from kr8_weekly_ranking. No ▲/▼: the server keeps no daily snapshot to compare with.
+ */
 export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: string | null; myPhoto: string | null; myName: string; myId: string | null;
   onBack: () => void; onPerson: (id: string) => void; onPost: () => void; onShare: (reel: string) => void;
-  /** 0066: not face-verified yet → a small nudge (everyone still shows on the board) */
+  /** 0066: not face-verified yet → a small nudge under my photo (everyone still shows on the board) */
   needsVerify?: boolean; onVerify?: () => void }) {
   const { L, Lf } = props;
-  const [scope, setScope] = useState<KxScope>('all');
   const [data, setData] = useState<KxRanking | null>(null);
   const [err, setErr] = useState(false);
-  const [clock, setClock] = useState(countdown());
+  const [now, setNow] = useState(() => Date.now());
   const [math, setMath] = useState<string | null>(null);
   const [how, setHow] = useState(false);
   useEffect(() => {
     let dead = false;
-    setData(null); setErr(false);
-    kxRanking(scope).then((d) => { if (!dead) setData(d); }).catch(() => { if (!dead) setErr(true); });
+    kxRanking('all').then((d) => { if (!dead) setData(d); }).catch(() => { if (!dead) setErr(true); });
     return () => { dead = true; };
-  }, [scope]);
-  useEffect(() => { const id = window.setInterval(() => setClock(countdown(Date.now(), weekEnd())), 30000); return () => window.clearInterval(id); }, []);
+  }, []);
+  const end = data?.ends_at ? Date.parse(data.ends_at) || weekEnd(now) : weekEnd(now);
+  const hot = isLastHours(now, end);
+  useEffect(() => { const id = window.setInterval(() => setNow(Date.now()), hot ? 1000 : 15000); return () => window.clearInterval(id); }, [hot]);
   const rows = data?.rows || [];
-  const all = scope === 'all';
   const paid = data?.paid_ranks ?? 8;
   const prizes = data?.prizes || [];
   const at = (rank: number) => rows.find((r) => r.rank === rank);
-  const area = data?.area || props.myArea;
   const own = ownRow(L, Lf, data?.gap, data?.mine);
-  const floorNote = !!data && data.floor > 0 && all && (data.open_seats > 0 || rows.some((r) => r.needs));
-  const Score = ({ r }: { r: KxRankRow }) => (
-    <button type="button" className="kx-sc" data-score={r.rings} aria-label={L('See the math')} onClick={(e) => { e.stopPropagation(); setMath(r.user_id); }}>{fmtN(r.rings)} <RingGlyph /></button>
+  const ownTh = ownRow(thL, thLf, data?.gap, data?.mine).l2;
+  const ownEn = ownRow(enL, enLf, data?.gap, data?.mine).l2;
+  const floorNote = !!data && data.floor > 0 && (data.open_seats > 0 || rows.some((r) => r.needs));
+  // plain render functions (not components): the 1 s countdown re-render must not remount rows and replay their entrance
+  const Score = ({ r, cls }: { r: KxRankRow; cls: string }) => (
+    <button type="button" className={cls} data-score={r.rings} aria-label={L('See the math')} onClick={(e) => { e.stopPropagation(); setMath(r.user_id); }}>
+      {fmtN(r.rings)} <RingGlyph />{r.needs ? <em className="rka-need">{Lf('needs {0}', fmtN(r.needs))}</em> : null}
+    </button>
   );
   const Row = ({ r }: { r: KxRankRow }) => (
-    <div className={`kx-row${r.is_me ? ' mer' : ''}`} data-rank={r.rank}>
+    <div className={`kx-row rka-row${r.is_me ? ' mer' : ''}`} data-rank={r.rank}>
       <button type="button" className="who" onClick={() => props.onPerson(r.user_id)}>
         <span className="n">{r.rank}</span><Av photo={r.photo} name={r.first_name} size={38} />
-        <span className="t">{r.is_me ? L('You') : r.first_name}{r.is_new && !r.is_me ? <i className="nw">{L('NEW')}</i> : null}
-          <small>{r.needs ? Lf('needs {0}', fmtN(r.needs)) : kxArea(props.lang, r.area, L)}</small></span>
+        <span className="t">{r.is_me ? L('You') : r.first_name}{r.is_new && !r.is_me ? <i className="nw">{L('NEW')}</i> : null}</span>
       </button>
-      <Score r={r} />
+      {Score({ r, cls: 'kx-sc rka-sc' })}
       {r.prize > 0 && r.all_rank <= paid
         ? <span className={`kx-pz${r.paid ? '' : ' off'}`} data-prize={r.prize}>{baht(r.prize)}</span>
         : <span className="kx-tl">{r.to_line ? Lf('{0} to #{1}', fmtN(r.to_line), String(paid)) : ''}</span>}
     </div>
   );
   const Seat = ({ rank }: { rank: number }) => (
-    <button type="button" className="kx-row seat" data-rank={rank} data-seat="open" onClick={props.onPost}>
+    <button type="button" className="kx-row rka-row seat" data-rank={rank} data-seat="open" onClick={props.onPost}>
       <span className="n">{rank}</span><i className="kx-plus" aria-hidden="true">+</i>
       <span className="t">{L('Open seat')}</span>
       <span className="kx-pz">{baht(prizes[rank - 1] || 0)}</span>
     </button>
   );
   return (
-    <div className="kx-page kx-rk" id="kxRanking">
-      <div className="kx-hd2">
-        <button type="button" className="kx-bk" aria-label={L('Back')} onClick={props.onBack}>‹</button>
-        <h1>{L('Ranking')}</h1>
-        <span className="kx-cd" id="kxCountdown">{Lf('Ends {0}', clock)}</span>
-      </div>
-      <div className="kx-rk-sub">
-        <span id="kxResets">{L('This week · resets Monday 00:00')}</span>
-        <button type="button" className="kx-linkbtn" id="kxHowBtn" onClick={() => setHow(true)}>{L('How Rings work')}</button>
-      </div>
-      {props.needsVerify && props.onVerify ? (
-        <button type="button" className="kx-vnudge" id="kxVerifyNudge" onClick={props.onVerify}>
-          <span className="ic" aria-hidden="true">✓</span>
-          <span className="kx-te"><b lang="th">ยืนยันใบหน้าสั้น ๆ เพื่อให้รีลของคุณติดบอร์ดอันดับ</b><small lang="en">Quick face check to keep your Reel on the ranking board</small></span>
-          <span className="go" aria-hidden="true">›</span>
-        </button>
-      ) : null}
-      <div className="kx-tabs" role="tablist">
-        {(['all', 'area', 'friends'] as KxScope[]).map((k) => (
-          <button type="button" role="tab" key={k} id={`kxRank-${k}`} aria-selected={scope === k} className={scope === k ? 'on' : ''} onClick={() => setScope(k)}>
-            {k === 'all' ? L('All Bangkok') : k === 'area' ? (area && area !== 'Bangkok' ? Lf('My area · {0}', kxArea(props.lang, area, L)) : L('My area')) : L('Friends')}
-          </button>
-        ))}
+    <div className="kx-page kx-rk rka" id="kxRanking">
+      <div className="rka-top">
+        <button type="button" className="kx-bk rka-bk" aria-label={L('Back')} onClick={props.onBack}>‹</button>
+        <div className="rka-tt"><h1>Weekly Ranking</h1><span lang="th">อันดับประจำสัปดาห์</span></div>
+        <span className={`rka-cd${hot ? ' hot' : ''}`} id="kxCountdown" data-hot={hot ? '1' : '0'}><i aria-hidden="true" />{Lf('Ends {0}', countdown(now, end))}</span>
       </div>
       {data === null && !err ? <p className="kx-empty pad">…</p> : err ? <p className="kx-empty pad">{L('Couldn’t reach Kring. Check your connection and try again.')}</p> : (
         <>
-          {data && !data.payout_on ? <p className="kx-rk-note" id="kxPayoutNote">{Lf('Prizes start when {0} Locals are on the board this week', String(data.min_posters))}</p> : null}
-          <div className="kx-pod">
+          <div className="rka-pod" id="kxPodium">
             {[2, 1, 3].map((rank) => {
               const r = at(rank);
-              const pz = all ? prizes[rank - 1] || 0 : r && r.all_rank <= paid ? r.prize : 0;
+              const pz = prizes[rank - 1] || 0;
               return (
-                <div key={rank} className={`kx-podcol r${rank}`}>
-                  {rank === 1 ? <span className="kx-crown" aria-hidden="true">👑</span> : null}
-                  {r ? (
-                    <div className={`kx-mc${rank === 1 ? ' one' : ''}${r.is_me ? ' me' : ''}`} data-rank={rank} style={r.photo ? { backgroundImage: `url('${r.photo}')` } : undefined}>
-                      <button type="button" className="hit" aria-label={r.first_name} onClick={() => props.onPerson(r.user_id)} />
-                      {!r.photo ? <span className="kx-mc-i">{r.first_name.charAt(0).toUpperCase()}</span> : null}
-                      <span className="rk">{rank}</span><span className="nm">{r.is_me ? L('You') : r.first_name}</span>
-                      <button type="button" className="r" data-score={r.rings} aria-label={L('See the math')} onClick={() => setMath(r.user_id)}>{fmtN(r.rings)} <RingGlyph /></button>
-                    </div>
-                  ) : all ? (
-                    <button type="button" className={`kx-mc empty${rank === 1 ? ' one' : ''}`} data-seat="open" onClick={props.onPost}><span className="rk">{rank}</span><span className="q">+</span></button>
-                  ) : <span className={`kx-mc empty quiet${rank === 1 ? ' one' : ''}`}><span className="rk">{rank}</span></span>}
-                  <div className={`kx-ped${rank === 1 ? ' one' : ''}`}>
+                <div key={rank} className={`rka-pc p${rank}${r ? '' : ' open'}${r?.is_me ? ' me' : ''}`}>
+                  <div className="rka-ph">
+                    {rank === 1 ? <span className="rka-crown" aria-hidden="true">👑</span> : null}
+                    {r ? (
+                      <button type="button" className="rka-img" data-rank={rank} aria-label={r.first_name} onClick={() => props.onPerson(r.user_id)}
+                        style={r.photo ? { backgroundImage: `url('${r.photo}')` } : undefined}>{r.photo ? '' : (r.first_name || '?').charAt(0).toUpperCase()}</button>
+                    ) : (
+                      <button type="button" className="rka-img empty" data-seat="open" aria-label={L('Open seat')} onClick={props.onPost}>+</button>
+                    )}
+                    <span className="rka-bd">{rank}</span>
+                  </div>
+                  <span className="rka-nm">{r ? (r.is_me ? L('You') : r.first_name) : L('Open seat')}</span>
+                  {r ? Score({ r, cls: 'rka-r' }) : <span className="rka-r none">&nbsp;</span>}
+                  <div className="rka-base">
                     {pz > 0 ? <b className={r && !r.paid ? 'off' : ''} data-prize={pz}>{baht(pz)}</b> : null}
-                    {r && r.needs ? <small>{Lf('needs {0}', fmtN(r.needs))}</small> : null}
                   </div>
                 </div>
               );
             })}
           </div>
-          <div className="kx-list" id="kxRankList">
-            {all ? (
-              <>
-                {Array.from({ length: Math.max(0, paid - 3) }, (_, i) => i + 4).map((rank) => { const r = at(rank); return r ? <Row key={rank} r={r} /> : <Seat key={rank} rank={rank} />; })}
-                <div className="kx-div" id="kxPrizeLine"><span>{floorNote ? Lf('PRIZE LINE · {0} RINGS TO TAKE A SEAT', String(data?.floor ?? 0)) : L('PRIZE LINE')}</span></div>
-                {rows.filter((r) => r.rank > paid).map((r) => <Row key={r.user_id} r={r} />)}
-              </>
-            ) : (
-              <>
-                {rows.filter((r) => r.rank > 3).map((r) => <Row key={r.user_id} r={r} />)}
-                {rows.length === 0 ? <p className="kx-empty">{scope === 'friends' ? L('Nobody you follow has Rings this week yet.') : L('No Rings in your area yet this week.')}</p> : null}
-              </>
-            )}
+          {data && !data.payout_on ? <p className="kx-rk-note" id="kxPayoutNote">{Lf('Prizes start when {0} Locals are on the board this week', String(data.min_posters))}</p> : null}
+          <div className="kx-list rka-list" id="kxRankList">
+            {Array.from({ length: Math.max(0, paid - 3) }, (_, i) => i + 4).map((rank) => { const r = at(rank); return <React.Fragment key={rank}>{r ? Row({ r }) : Seat({ rank })}</React.Fragment>; })}
+            {rows.some((r) => r.rank > paid) || floorNote
+              ? <div className="kx-div" id="kxPrizeLine"><span>{floorNote ? Lf('PRIZE LINE · {0} RINGS TO TAKE A SEAT', String(data?.floor ?? 0)) : L('PRIZE LINE')}</span></div> : null}
+            {rows.filter((r) => r.rank > paid).map((r) => <React.Fragment key={r.user_id}>{Row({ r })}</React.Fragment>)}
           </div>
-          <div className="kx-fade" />
+          <div className="kx-fade rka-fade" />
           {props.myId ? (
-            <div className="kx-me" id="kxMeRow" data-state={own.key}>
-              <span className="n">{own.n}</span><Av photo={props.myPhoto} name={props.myName} size={42} />
-              <span className="t"><span className="l1">{own.l1}</span><small id="kxMeNext">{own.l2}</small></span>
+            <div className="kx-me rka-me" id="kxMeRow" data-state={own.key}>
+              <span className="n">{own.n}</span>
+              <span className="rka-meph">
+                <Av photo={props.myPhoto} name={props.myName} size={42} />
+                {props.needsVerify && props.onVerify ? (
+                  <button type="button" className="rka-vfy" id="kxVerifyNudge" onClick={props.onVerify}
+                    aria-label="ยืนยันใบหน้าสั้น ๆ เพื่อให้รีลของคุณติดบอร์ดอันดับ · Quick face check to keep your Reel on the ranking board"
+                    title="ยืนยันใบหน้าสั้น ๆ เพื่อให้รีลของคุณติดบอร์ดอันดับ · Quick face check to keep your Reel on the ranking board">
+                    <span lang="th">ยืนยันหน้า</span><small lang="en">verify</small>
+                  </button>
+                ) : null}
+              </span>
+              <span className="t"><span className="l1">{own.l1}</span>
+                {ownTh !== ownEn ? <small className="th" lang="th" id="kxMeNextTh">{ownTh}</small> : null}
+                <small id="kxMeNext" lang="en">{ownEn}</small></span>
               {own.btn === 'math' ? <button type="button" className="kx-go" id="kxMeBtn" onClick={() => setMath(props.myId)}>{L('See my math')}</button>
                 : own.btn === 'share' ? <button type="button" className="kx-go" id="kxMeBtn" onClick={() => setMath(props.myId)}>{L('Share')}</button>
                 : own.btn === 'post' ? <button type="button" className="kx-go" id="kxMeBtn" onClick={props.onPost}>{L('Post')}</button> : null}

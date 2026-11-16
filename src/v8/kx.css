@@ -774,3 +774,103 @@
 .v8-app-root .kx-vnudge .ic { width: 26px; height: 26px; border-radius: 50%; background: var(--kx-cy); color: #07060d; display: grid; place-items: center; font-weight: 800; flex: none; }
 .v8-app-root .kx-vnudge .kx-te { flex: 1; }
 .v8-app-root .kx-vnudge .go { color: var(--kx-cy); font-size: 18px; }
+
+/* ═════════ Weekly Ranking · look A "Gold-ring podium" (founder-approved 17 Nov) ═════════ */
+.v8-app-root .kx-rk.rka { --rka-bg: #0B0A12; --rka-g1: #F5C451; --rka-g2: #8FB2FF; --rka-g3: #FF9A6B; --rka-pz: #FFC86B;
+  background: radial-gradient(120% 46% at 50% 18%, rgba(140,70,255,.34), transparent 62%), radial-gradient(80% 40% at 0% 78%, rgba(255,79,163,.16), transparent 70%),
+    radial-gradient(80% 40% at 100% 58%, rgba(91,140,255,.15), transparent 70%), radial-gradient(60% 30% at 70% 0%, rgba(60,40,140,.35), transparent 70%), var(--rka-bg);
+  padding-bottom: 230px; }
+.v8-app-root .rka-top { display: flex; align-items: center; gap: 8px; padding: calc(10px + env(safe-area-inset-top)) 14px 0 8px; }
+.v8-app-root .rka-bk { width: 32px; height: 32px; flex: none; background: rgba(255,255,255,.06); font-size: 22px; }
+.v8-app-root .rka-tt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.v8-app-root .rka-tt h1 { margin: 0; font: 800 clamp(19px, 5.6vw, 25px)/1.15 var(--kx-j); letter-spacing: -.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .rka-tt span { font: 500 12.5px/1.4 var(--kx-t); color: #b9b2d6; }
+.v8-app-root .rka-cd { flex: none; display: flex; align-items: center; gap: 7px; font: 700 12.5px var(--kx-j); padding: 7px 11px; border-radius: 999px; white-space: nowrap;
+  background: rgba(255,79,163,.12); border: 1px solid rgba(255,79,163,.55); color: #fff; font-variant-numeric: tabular-nums; }
+.v8-app-root .rka-cd i { width: 7px; height: 7px; border-radius: 50%; background: #FF4FA3; box-shadow: 0 0 8px #FF4FA3; }
+.v8-app-root .rka-cd.hot { background: linear-gradient(135deg, rgba(255,79,163,.55), rgba(139,92,255,.4)); border-color: #FF7CC0; animation: rkaPulse 1.6s ease-in-out infinite; }
+.v8-app-root .rka-cd.hot i { animation: rkaDot 1.6s ease-in-out infinite; }
+@keyframes rkaPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,79,163,.0); } 50% { box-shadow: 0 0 0 5px rgba(255,79,163,.18), 0 0 18px rgba(255,79,163,.55); } }
+@keyframes rkaDot { 50% { transform: scale(1.5); } }
+
+/* podium */
+.v8-app-root .rka-pod { position: relative; display: flex; align-items: flex-end; justify-content: center; gap: 6px; padding: 40px 12px 0; }
+.v8-app-root .rka-pc { flex: 1 1 0; max-width: 128px; min-width: 0; display: flex; flex-direction: column; align-items: center; text-align: center;
+  animation: rkaRise .75s cubic-bezier(.2,.85,.25,1) both; }
+.v8-app-root .rka-pc.p1 { max-width: 136px; animation-delay: .22s; }
+.v8-app-root .rka-pc.p2 { animation-delay: .06s; }
+.v8-app-root .rka-pc.p3 { animation-delay: .14s; }
+@keyframes rkaRise { from { opacity: 0; transform: translateY(46px); } to { opacity: 1; transform: none; } }
+.v8-app-root .rka-ph { position: relative; margin-bottom: 15px; }
+.v8-app-root .rka-img { display: grid; place-items: center; width: 80px; height: 80px; border-radius: 50%; padding: 0; background: #2a2340 center 25%/cover; color: #cfc9e6;
+  font: 800 28px var(--kx-u); border: 3px solid var(--rka-c); box-shadow: 0 0 22px var(--rka-glow); cursor: pointer; }
+.v8-app-root .rka-pc.p1 .rka-img { width: 104px; height: 104px; border-width: 4px; box-shadow: 0 0 0 4px rgba(245,196,81,.25), 0 0 34px rgba(245,196,81,.7); }
+.v8-app-root .rka-pc.p1 { --rka-c: var(--rka-g1); --rka-glow: rgba(245,196,81,.7); color: var(--rka-g1); }
+.v8-app-root .rka-pc.p2 { --rka-c: var(--rka-g2); --rka-glow: rgba(91,140,255,.6); color: var(--rka-g2); }
+.v8-app-root .rka-pc.p3 { --rka-c: var(--rka-g3); --rka-glow: rgba(255,138,61,.55); color: var(--rka-g3); }
+.v8-app-root .rka-pc.p1 .rka-img { animation: rkaGlow 1.5s .85s ease-out 1 both; }
+@keyframes rkaGlow { 0% { box-shadow: 0 0 0 4px rgba(245,196,81,.25), 0 0 34px rgba(245,196,81,.7); }
+  45% { box-shadow: 0 0 0 10px rgba(245,196,81,.32), 0 0 70px rgba(255,214,110,1); } 100% { box-shadow: 0 0 0 4px rgba(245,196,81,.25), 0 0 34px rgba(245,196,81,.7); } }
+.v8-app-root .rka-img.empty { background: rgba(255,255,255,.04); border-style: dashed; box-shadow: none; color: currentColor; font: 700 30px var(--kx-j); opacity: .75; }
+.v8-app-root .rka-pc.p1 .rka-img.empty { box-shadow: 0 0 26px rgba(245,196,81,.25); }
+.v8-app-root .rka-crown { position: absolute; left: 50%; top: -25px; transform: translateX(-50%); font-size: 24px; line-height: 1; filter: drop-shadow(0 0 8px gold); z-index: 2; pointer-events: none; }
+.v8-app-root .rka-bd { position: absolute; left: 50%; bottom: -11px; transform: translateX(-50%); width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+  font: 800 12.5px var(--kx-j); background: #1b1830; border: 2px solid currentColor; color: #fff; pointer-events: none; }
+.v8-app-root .rka-nm { max-width: 100%; color: #fff; font: 800 15px var(--kx-j); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .rka-pc.open .rka-nm { color: #a9a3c0; font-size: 12.5px; font-weight: 700; }
+.v8-app-root .rka-pc.me .rka-nm { color: #FF8FD0; }
+.v8-app-root .rka-r { display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; padding: 2px 4px; color: #cfc9e6; font: 600 12px var(--kx-j); white-space: nowrap; }
+.v8-app-root .rka-r.none { visibility: hidden; }
+.v8-app-root .rka-r .rka-need, .v8-app-root .rka-sc .rka-need { font-style: normal; font-weight: 700; color: #FF8A3D; margin-left: 2px; }
+.v8-app-root .rka-pc .rka-r { flex-wrap: wrap; justify-content: center; }
+.v8-app-root .rka-base { align-self: stretch; margin-top: 8px; height: 34px; border-radius: 14px 14px 4px 4px; display: flex; justify-content: center; align-items: flex-start; padding-top: 9px;
+  background: linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.02)); border-top: 2px solid currentColor; box-shadow: 0 -6px 22px -6px currentColor;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.v8-app-root .rka-pc.p1 .rka-base { height: 60px; padding-top: 14px; }
+.v8-app-root .rka-pc.p2 .rka-base { height: 44px; padding-top: 11px; }
+.v8-app-root .rka-base b { color: #fff; font: 800 16px var(--kx-j); letter-spacing: -.01em; }
+.v8-app-root .rka-pc.p1 .rka-base b { font-size: 18px; text-shadow: 0 0 14px rgba(245,196,81,.55); }
+.v8-app-root .rka-base b.off { color: #b4a98d; }
+.v8-app-root .rka-pc.open .rka-base b { color: #d9d3ee; opacity: .8; }
+
+/* ranks 4–10: glass cards */
+.v8-app-root .rka-list { gap: 7px; margin: 12px 12px 0; }
+.v8-app-root .kx-rk.rka .rka-row { position: relative; min-height: 56px; padding: 0 14px 0 10px; gap: 8px; border-radius: 16px; background: rgba(255,255,255,.055);
+  border: 1px solid rgba(255,255,255,.08); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); animation: rkaIn .5s .45s ease-out both; }
+@keyframes rkaIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.v8-app-root .rka-row .who { align-self: stretch; align-items: center; }
+.v8-app-root .rka-row .n { width: 18px; font: 800 15px var(--kx-j); color: #8d87a6; }
+.v8-app-root .rka-row .t { font: 700 14.5px var(--kx-j); align-self: flex-start; margin-top: 9px; }
+.v8-app-root .rka-row .kx-av { width: 38px; height: 38px; }
+.v8-app-root .rka-sc { position: absolute; left: 86px; bottom: 7px; padding: 2px 0; font: 600 12px var(--kx-j); color: #b9b2d6; gap: 4px; }
+.v8-app-root .rka-row .kx-pz { margin-left: auto; font: 800 15px var(--kx-j); color: var(--rka-pz); min-width: 0; }
+.v8-app-root .rka-row .kx-pz.off { color: #9a8a62; }
+.v8-app-root .rka-row .kx-tl { margin-left: auto; font: 600 11.5px var(--kx-j); color: #8d87a6; white-space: nowrap; }
+.v8-app-root .kx-rk.rka .rka-row.mer { background: linear-gradient(90deg, rgba(255,79,163,.22), rgba(139,92,255,.14)); border-color: rgba(255,79,163,.7); box-shadow: 0 0 18px rgba(255,79,163,.3); margin: 0; }
+.v8-app-root .rka-row.seat { border-style: dashed; background: rgba(255,255,255,.025); cursor: pointer; }
+.v8-app-root .rka-row.seat .kx-plus { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; border: 1.5px dashed rgba(255,200,107,.5); color: var(--rka-pz); font: 700 18px var(--kx-j); font-style: normal; flex: none; }
+.v8-app-root .rka-row.seat .t { color: #a9a3c0; font-weight: 600; flex: 1; }
+.v8-app-root .rka-row.seat .kx-pz { opacity: .75; }
+.v8-app-root .kx-rk.rka .kx-div span { background: #100d1b; border-radius: 10px; color: var(--rka-pz); }
+
+/* pinned own row */
+.v8-app-root .rka-fade { background: linear-gradient(180deg, rgba(11,10,18,0), #0B0A12 62%); height: 130px; }
+.v8-app-root .kx-me.rka-me { height: auto; min-height: 70px; padding: 9px 12px 9px 8px; gap: 10px; border-radius: 18px; background: linear-gradient(135deg, #3a1d2a, #3d1638);
+  box-shadow: inset 0 0 0 1.5px rgba(255,79,163,.8), 0 0 26px rgba(255,79,163,.35); }
+.v8-app-root .rka-me .n { width: 20px; font: 800 18px var(--kx-j); }
+.v8-app-root .rka-meph { position: relative; flex: none; display: flex; flex-direction: column; align-items: center; }
+.v8-app-root .rka-me .kx-av { box-shadow: 0 0 0 2px #FF4FA3; }
+.v8-app-root .rka-me .t { font: 800 14.5px/1.25 var(--kx-j); }
+.v8-app-root .rka-me .t small { color: #f2e6ff; font: 600 11.5px/1.35 var(--kx-j); white-space: normal; overflow: visible; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.v8-app-root .rka-me .t small.th { color: #FFD1E6; font-family: var(--kx-t); font-weight: 500; }
+.v8-app-root .rka-me .kx-go { background: linear-gradient(135deg, #FF4FA3, #8B5CFF); height: 34px; padding: 0 11px; font-size: 12px; }
+@media (max-width: 370px) { .v8-app-root .rka-cd { font-size: 11.5px; padding: 6px 9px; gap: 5px; } .v8-app-root .rka-top { gap: 6px; } }
+.v8-app-root .rka-vfy { position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%); border: 0; padding: 1px 6px; border-radius: 8px; background: #FF8A3D; color: #1a0c00;
+  font: 700 9px/1.3 var(--kx-t); white-space: nowrap; box-shadow: 0 0 8px rgba(255,138,61,.6); }
+.v8-app-root .rka-vfy small { display: block; font: 700 7.5px/1.1 var(--kx-j); letter-spacing: .02em; opacity: .85; }
+.v8-app-root .rka-vfy { bottom: -12px; padding: 1px 6px 2px; line-height: 1.15; }
+
+@media (prefers-reduced-motion: reduce) {
+  .v8-app-root .kx-rk.rka *, .v8-app-root .kx-rk.rka *::before, .v8-app-root .kx-rk.rka *::after { animation: none !important; transition: none !important; }
+}
+.v8-app-root .rka-row.seat .t { align-self: center; margin-top: 0; }
