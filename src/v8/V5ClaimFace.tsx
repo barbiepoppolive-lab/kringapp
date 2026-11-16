@@ -1,9 +1,10 @@
 /**
  * 0066 · 3-second face check before a prize claim. One screen, Thai with English under it.
  * Runs on the phone (face-api, same models as the Get verified check): hold a straight face in the oval for 3 seconds,
- * then ONE face code (128 numbers, not a photo) goes with the claim. The server compares it with the account's own
- * face prints. No print yet (most members) → this check becomes the account's print and the claim goes through; only a
- * match with ANOTHER account's face is held for the founder. Camera blocked → friendly retry tips (the claim needs the check).
+ * then ONE face code (128 numbers) AND one photo frame go with the claim (0075, audit T301-001: the server no longer trusts
+ * the face code alone). The frame is uploaded to the private kr8-verify bucket (team-only) so the founder can look at it.
+ * The server pays at once only when the code is close to the member's team-approved verified print; otherwise the claim
+ * waits for the founder. Camera blocked → friendly retry tips (the claim needs the check).
  */
 import { useEffect, useRef, useState } from 'react';
 import { faceDescriptor, loadFaceApi, sampleFace } from './v5Face';
@@ -31,7 +32,22 @@ function testFeed(): FaceSample[] | null {
   return ((window as unknown as { __kr8FaceFeed?: FaceSample[] }).__kr8FaceFeed) || null;
 }
 
-export function ClaimFace(props: { onDone: (face: Float32Array | null) => void; onCancel: () => void;
+/** one JPEG frame from the camera (the claim photo the founder can check); null if the browser can't make one */
+export function grabFrame(v: HTMLVideoElement, max = 480): Promise<Blob | null> {
+  try {
+    const w = v.videoWidth || 0, h = v.videoHeight || 0;
+    if (!w || !h) return Promise.resolve(null);
+    const k = Math.min(1, max / Math.max(w, h));
+    const c = document.createElement('canvas');
+    c.width = Math.round(w * k); c.height = Math.round(h * k);
+    const g = c.getContext('2d');
+    if (!g) return Promise.resolve(null);
+    g.drawImage(v, 0, 0, c.width, c.height);
+    return new Promise((ok) => { try { c.toBlob((b) => ok(b), 'image/jpeg', 0.82); } catch { ok(null); } });
+  } catch { return Promise.resolve(null); }
+}
+
+export function ClaimFace(props: { onDone: (face: Float32Array | null, photo?: Blob | null) => void; onCancel: () => void;
   /** preview harness only: show a stage with a still picture instead of the camera */
   demo?: { stage: Stage; img?: string; held?: number } }) {
   const [stage, setStage] = useState<Stage>(props.demo?.stage || 'start');
@@ -76,8 +92,9 @@ export function ClaimFace(props: { onDone: (face: Float32Array | null) => void; 
       last = now;
       if (h >= HOLD_MS) {
         setStage('busy');
+        const photo = await grabFrame(v);
         const d = await faceDescriptor(v).catch(() => null);
-        if (d || ++tries >= 3) { stop(); props.onDone(d); return; }
+        if (d || ++tries >= 3) { stop(); props.onDone(d, photo); return; }
         h = 0; setHeld(0); setStage('look');
       }
       await new Promise((ok) => setTimeout(ok, 90));
@@ -103,7 +120,7 @@ export function ClaimFace(props: { onDone: (face: Float32Array | null) => void; 
         <>
           <ul className="kx-cf-tips">
             <li><TE th="มองกล้องตรง ๆ ให้หน้าอยู่ในวงรี" en="Look straight at the camera, face in the oval" /></li>
-            <li><TE th="เราเก็บแค่รหัสใบหน้า ไม่เก็บรูป" en="Only a face code is kept, never the photo" /></li>
+            <li><TE th="เราเก็บรูปนี้ไว้ให้ทีม กริ๊ง! ตรวจเท่านั้น ไม่แสดงให้ใครเห็น" en="We keep this photo for the Kring team’s check only. Nobody else sees it" /></li>
           </ul>
           <button type="button" className="kx-btn tall" id="kxClaimFaceStart" onClick={() => void start()}><TE th="เปิดกล้อง" en="Open camera" /></button>
           <button type="button" className="kx-cf-later" onClick={props.onCancel}><TE th="ย้อนกลับ" en="Back" /></button>

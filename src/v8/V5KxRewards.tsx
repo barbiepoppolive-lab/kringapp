@@ -8,7 +8,7 @@ import './kx.css';
 import { ago, BRAND_NAME, claimBrands, fmtN, tmPct, valueFor, type Brand } from './kxLogic';
 import { ringsRules } from './rewardsConfig';
 import { kxClaimPrize, kxMarkUsed, kxRecentClaims, type KxClaim, type KxClaimResult, type KxPrize, type KxRecent, type KxRewards, type KxWeekResult } from './v5Kx';
-import { v5ErrCode, v5SignInLine } from './v5Live';
+import { v5ErrCode, v5SignInLine, v5UploadClaimPhoto } from './v5Live';
 import { ClaimFace, TE } from './V5ClaimFace';
 import { NeonCard, RingGlyph } from './V5KxCard';
 import { baht, ownRow } from './V5KxRanking';
@@ -163,12 +163,13 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
   const [waitUntil, setWaitUntil] = useState<string | null>(null);
   const amount = prize?.amount ?? 0;
   const opensAt = prize?.opens_at && Date.parse(prize.opens_at) > Date.now() ? prize.opens_at : waitUntil;
-  const send = async (face: Float32Array | null) => {
+  const send = async (face: Float32Array | null, photo?: Blob | null) => {
     if (busy || !prize) return;
     setBusy(true);
     setErr('');
     try {
-      props.onDone(await (face ? kxClaimPrize(prize.id, brand, face) : kxClaimPrize(prize.id, brand)));
+      const selfie = face && photo ? await v5UploadClaimPhoto(photo) : null;
+      props.onDone(await (face ? (selfie ? kxClaimPrize(prize.id, brand, face, selfie) : kxClaimPrize(prize.id, brand, face)) : kxClaimPrize(prize.id, brand)));
     } catch (e) {
       const c = v5ErrCode(e);
       setStep('pick');
@@ -199,7 +200,7 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
           <h1 className="sm">{L('Claim')}</h1>
           <span style={{ width: 40 }} />
         </div>
-        <ClaimFace demo={props.faceDemo} onCancel={() => setStep('pick')} onDone={(f) => void send(f)} />
+        <ClaimFace demo={props.faceDemo} onCancel={() => setStep('pick')} onDone={(f, ph) => void send(f, ph)} />
       </div>
     );
   }

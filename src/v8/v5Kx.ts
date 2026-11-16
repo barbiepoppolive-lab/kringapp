@@ -52,8 +52,10 @@ function deviceId(): string {
   } catch { return ''; }
 }
 /** One tap: the prize the member won, on the app they pick. The server decides everything. */
-export const kxClaimPrize = (prize: string, brand: Brand, face?: Float32Array | number[] | null) =>
-  rpc<KxClaimResult>('kr8_claim_prize', { p_prize: prize, p_brand: brand, p_device: deviceId() || null, p_face: face ? Array.from(face, (x) => Math.round(x * 1e6) / 1e6) : null });
+export const kxClaimPrize = (prize: string, brand: Brand, face?: Float32Array | number[] | null, selfie?: string | null) =>
+  rpc<KxClaimResult>('kr8_claim_prize', { p_prize: prize, p_brand: brand, p_device: deviceId() || null, p_face: face ? Array.from(face, (x) => Math.round(x * 1e6) / 1e6) : null,
+    // 0075: the claim photo (path in the private kr8-verify bucket); the server holds the claim for the founder without it
+    ...(selfie ? { p_selfie: selfie } : {}) });
 export const kxMarkUsed = (claim: string, used: boolean) => rpc<boolean>('kr8_mark_reward_used', { p_claim: claim, p_used: used });
 export interface KxRecent { first_name: string; photo: string | null; brand: Brand; amount: number; value: number; at: string }
 export const kxRecentClaims = (n = 8) => rpc<KxRecent[]>('kr8_recent_claims', { p_limit: n });

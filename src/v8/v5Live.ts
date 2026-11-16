@@ -679,10 +679,32 @@ export async function v5RequestVerification(selfie: Blob, check: { straight: boo
   if (!up || !up.ok) throw new V5Error('UPLOAD');
   return rpc<string>('kr8_request_verification', { p_selfie_path: path, p_consent_version: consent, p_check: check });
 }
+/** 0075: uploads the claim photo frame (private kr8-verify bucket, team-only) and returns its path; null on any failure
+ *  (the claim still goes ahead and simply waits for the founder). Never throws. */
+export async function v5UploadClaimPhoto(photo: Blob | null | undefined): Promise<string | null> {
+  try {
+    if (!photo || !photo.size || photo.size > 5_000_000) return null;
+    const c = await v5Client();
+    const { data } = await c.auth.getSession();
+    const uid = data.session?.user?.id;
+    if (!uid) return null;
+    const path = `${uid}/${crypto.randomUUID()}.jpg`;
+    const up = await fetch(`${SUPA_URL.replace(/\/$/, '')}/storage/v1/object/kr8-verify/${path}`, {
+      method: 'POST', headers: { authorization: `Bearer ${data.session!.access_token}`, apikey: SUPA_KEY, 'content-type': 'image/jpeg', 'x-upsert': 'false' }, body: photo,
+    }).catch(() => null);
+    return up && up.ok ? path : null;
+  } catch { return null; }
+}
 /** 0066: the face code (128 numbers, not a photo) from the face check; team-only on the server. Never throws. */
 export async function v5SaveFacePrint(desc: Float32Array | null): Promise<boolean> {
   if (!desc || desc.length !== 128) return false;
   return rpc<boolean>('kr8_save_face_print', { p_desc: Array.from(desc, (x) => Math.round(x * 1e6) / 1e6) }).then((v) => v === true).catch(() => false);
+}
+/** 0076: the face code of the member's CURRENT card photo (one per member, team-only; only ever a "looks alike" flag).
+ *  Resolves true when stored, false when the server has it switched off; throws on errors (the caller retries later). */
+export async function v5SaveCardPrint(desc: Float32Array): Promise<boolean> {
+  if (desc.length !== 128) throw new V5Error('BAD_FACE');
+  return (await rpc<boolean>('kr8_save_card_print', { p_desc: Array.from(desc, (x) => Math.round(x * 1e6) / 1e6) })) === true;
 }
 /** 16 Nov: phone-side failures (Reel pick / upload, face check) go to kr8_client_events so the team can see them. Never throws. */
 export function v5LogClient(kind: string, code?: string, detail?: string): void {
