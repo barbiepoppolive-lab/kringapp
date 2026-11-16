@@ -13,6 +13,8 @@ type Tx = (en: string) => string;
 const KEY = 'kr8_a2hs';
 const SESSION_KEY = 'kr8_a2hs_shown';
 const EVENT = 'kr8-a2hs';
+/** audit P3-6: the sheet waits this long after its trigger, and until the member has not scrolled for A2HS_STILL_MS */
+export const A2HS_SETTLE_MS = 3000, A2HS_STILL_MS = 2500;
 export const A2HS_SNOOZE_MS = 3 * 864e5;
 export type A2hsTrigger = 'save' | 'hello' | 'reel' | 'claim' | 'reel_approved' | 'second_day';
 /** due/by: a trigger is waiting · snooze: "Later" until · firstDay: first Bangkok day seen · done: one-time triggers already used */
@@ -198,15 +200,26 @@ export function A2HSBanner(props: { L: Tx; blocked?: boolean; force?: A2hsVarian
   }, []);
   useEffect(() => {
     if (props.force) { setShow(true); return; }
+    // audit P3-6: never pop up mid-scroll or the instant a Save / Reel lands: wait until the member has been still for a moment
+    let lastMove = 0;
+    const moved = () => { lastMove = Date.now(); };
+    document.addEventListener('scroll', moved, { capture: true, passive: true });
+    document.addEventListener('touchmove', moved, { capture: true, passive: true });
     const check = () => {
-      const ok = a2hsShouldShow(read(), Date.now(), isStandalone(), { blocked: props.blocked, shownThisSession: shownThisSession() });
+      const st = read(), t = Date.now();
+      if (st.due && (t - st.due < A2HS_SETTLE_MS || t - lastMove < A2HS_STILL_MS)) return;   // checked again in 4 s
+      const ok = a2hsShouldShow(st, t, isStandalone(), { blocked: props.blocked, shownThisSession: shownThisSession() });
       if (ok) markShown();
       setShow((was) => was || ok);
     };
     check();
     window.addEventListener(EVENT, check);
     const t = setInterval(check, 4000);
-    return () => { window.removeEventListener(EVENT, check); clearInterval(t); };
+    return () => {
+      window.removeEventListener(EVENT, check); clearInterval(t);
+      document.removeEventListener('scroll', moved, { capture: true });
+      document.removeEventListener('touchmove', moved, { capture: true });
+    };
   }, [props.blocked, props.force]);
   // a clock while the sheet waits for the install offer (stops once it is here or the wait is over)
   useEffect(() => {

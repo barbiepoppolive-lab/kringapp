@@ -22,7 +22,7 @@ type Reel = { id: string; author_id: string; author_name: string; ref_code: stri
   /** 0070 kr8_admin_member_who: the member's own "I live here / Visiting" (audit P3-2: the card always said "Kring Local") */ author_who?: 'local' | 'traveller' | null };
 type Counts = { id: string; views: number; likes: number; saves: number; shares: number; open_reports: number };
 type Face = { id: string; user_id: string; first_name: string; profile_photo: string | null; selfie_path: string | null;
-  live_check: { straight?: boolean; left?: boolean; right?: boolean; blink?: boolean; match?: number | null; device?: string };
+  live_check: { straight?: boolean; left?: boolean; right?: boolean; blink?: boolean; blink_fallback?: boolean; match?: number | null; device?: string };
   status: 'pending' | 'approved' | 'rejected'; created_at: string; reviewed_at: string | null; reject_reason: string | null; approved_reels: number; account_created: string };
 type Report = { id: string; created_at: string; category: string | null; reason: string; reporter_name: string | null; target_id: string | null; target_name: string | null;
   post_id: string | null; post_kind: string | null; post_body: string | null; video_path: string | null; poster_path: string | null; post_hidden: boolean | null;
@@ -610,14 +610,14 @@ function faceBody(r: Face, signed: Record<string, string>): HTMLElement {
     : m < 0.5 ? ['g', 'Very likely the same person'] : m < 0.6 ? ['g', 'Likely the same person'] : ['a', 'Look carefully: may be a different person'];
   const pic = (src: string | null | undefined, cap: string, none: string) => el('figure', {}, src ? el('img', { src, alt: cap }) : el('div', { class: 'none' }, none), el('figcaption', { class: 'chip' }, cap));
   const step = (on: boolean | undefined, icon: string, t: string, bad = false) => el('div', { class: on ? 'y' : bad ? 'n' : '' }, ic(icon), t);
-  const noBlink = !!lc.right && !lc.blink;
+  const noBlink = (!!lc.right && !lc.blink) || lc.blink_fallback === true;   // audit P2-5: the 12-s fallback is never shown as a blink
   return el('div', { 'data-verify': r.id },
     el('h2', { style: 'font-size:26px' }, r.first_name),
     el('div', { class: 'dim sm', style: 'margin-top:2px' }, `Joined ${ago(r.account_created)} · ${r.approved_reels} approved Reels · sent ${ago(r.created_at)}`),
     el('div', { class: 'pair' }, pic(r.profile_photo, 'Profile photo', 'No photo'), pic(r.selfie_path ? signed[r.selfie_path] : null, 'Live selfie', 'Selfie deleted (30 days)')),
     el('div', { class: 'score ' + cls, 'data-match': String(m ?? '') }, el('span', { class: 'v' }, m === null || m === undefined ? '–' : m.toFixed(2)), el('b', {}, label)),
-    el('div', { class: 'steps' }, step(lc.straight, 'face', 'Straight'), step(lc.left, 'left', 'Left'), step(lc.right, 'right', 'Right'), step(lc.blink, 'blink', 'Blink', noBlink)),
-    noBlink ? el('div', { class: 'warnbox', 'data-noblink': '1' }, ic('warn'), 'Blink not detected (passed after 20 s facing the camera). Look at the selfie carefully.') : null,
+    el('div', { class: 'steps' }, step(lc.straight, 'face', 'Straight'), step(lc.left, 'left', 'Left'), step(lc.right, 'right', 'Right'), step(lc.blink && !lc.blink_fallback, 'blink', noBlink ? 'No blink seen' : 'Blink', noBlink)),
+    noBlink ? el('div', { class: 'warnbox', 'data-noblink': '1' }, ic('warn'), 'No blink seen (moved on after 12 s facing the camera). Could be a still photo held up: look at the selfie carefully.') : null,
     lc.device ? el('div', { class: 'faint xs', style: 'margin-top:8px' }, lc.device) : null,
     r.reject_reason ? el('p', { class: 'dim sm' }, 'Reason: ' + r.reject_reason) : null,
     el('div', { class: 'tip' }, ic('info'), 'Same person, clear face, not a photo of a screen.'));
@@ -1613,7 +1613,7 @@ function moreView() {
     li('#history/faces', 'face', 'Past face checks', 'Approved and rejected', 'histFaces'),
     li('#history/replies', 'send', 'Sent and skipped replies', 'Reddit queue history', 'histReplies'),
     el('div', { class: 'sec' }, 'Rewards'),
-    li('#top5', 'trophy', 'Old manual awards', 'The Top 5 gifts given by hand before 17 Nov (history)', 'moreOldAwards'),
+    li('#top5', 'trophy', 'Old manual awards', 'The Top 5 awards given by hand before 17 Nov (history)', 'moreOldAwards'),
     li('#codes', 'party', 'Reward codes', 'Paste Grab / TrueMoney codes · stock per prize amount · held claims', 'moreCodes'),
     el('div', { class: 'sec' }, 'Ghost mode'),
     li('#ghost', 'eye', 'Ghost mode', 'Use the app as a member without anyone seeing you', 'moreGhost'),
@@ -1720,16 +1720,23 @@ async function codesView() {
   const draw = async () => {
     let rows: StockRow[] = [];
     try { rows = await rpc<StockRow[]>('kr8_admin_reward_stock'); } catch (e) { body.replaceChildren(errP(e)); return; }
+    // audit P2-6: TrueMoney rows are named by the CODE value you load (a ฿500 prize at 75% = a ฿375 code), from the live rules
+    const pct = await rpc<Record<string, number>>('kr8_rings_rules').then((r) => Number(r?.truemoney_payout_pct) || 75).catch(() => 75);
+    const codeVal = (b: string, a: number) => (b === 'truemoney' ? Math.floor((a * Math.min(100, Math.max(1, pct))) / 100) : a);
+    const rowName = (b: string, a: number) => (b === 'truemoney' && codeVal(b, a) !== a ? `TrueMoney ฿${codeVal(b, a).toLocaleString('en-US')} code · for the ฿${a.toLocaleString('en-US')} prize` : `${BRANDN[b]} ฿${a.toLocaleString('en-US')}`);
     const held = rows.reduce((n, r) => n + r.held, 0);
     const stock = el('div', { class: 'card', id: 'codesStock' },
-      el('b', {}, 'Stock now'), el('p', { class: 'faint xs', style: 'margin:4px 0 10px' }, 'Codes left · held claims waiting · given in the last 7 days. One row per prize amount. TrueMoney rows are named by the prize: a ฿500 prize on TrueMoney = a ฿375 code (TrueMoney keeps 25%).'),
+      el('b', {}, 'Stock now'), el('p', { class: 'faint xs', style: 'margin:4px 0 10px' }, `Codes left · held claims waiting · given in the last 7 days. One row per prize. TrueMoney pays ${pct}% of a prize, so each TrueMoney row says the code value to load.`),
       ...rows.map((r) => el('div', { class: 'row', style: 'justify-content:space-between;padding:6px 0;border-top:1px solid var(--line)', 'data-stock': `${r.brand}_${r.amount_thb}` },
-        el('span', {}, `${BRANDN[r.brand]} ฿${r.amount_thb}`),
+        el('span', {}, rowName(r.brand, r.amount_thb)),
         el('span', {}, pill(`${r.available} left`, r.available ? '' : 'bad'), ' ', r.held ? pill(`${r.held} held`, 'warn') : null, ' ', el('span', { class: 'faint xs' }, `${r.given_7d} / 7d`)))));
     const brands = [...new Set(rows.map((r) => r.brand))];
     const amounts = [...new Set(rows.map((r) => r.amount_thb))].sort((a, b) => b - a);
     const brand = el('select', { id: 'codeBrand' }, ...(brands.length ? brands : ['grab', 'truemoney']).map((b) => el('option', { value: b }, BRANDN[b])));
-    const amount = el('select', { id: 'codeAmount' }, ...(amounts.length ? amounts : [1500, 900, 600, 500, 400, 250, 150, 100]).map((a) => el('option', { value: String(a) }, `Prize ฿${a.toLocaleString('en-US')}`)));
+    const amountOpts = (b: string) => (amounts.length ? amounts : [1500, 900, 600, 500, 400, 250, 150, 100]).map((a) =>
+      el('option', { value: String(a) }, b === 'truemoney' && codeVal(b, a) !== a ? `฿${codeVal(b, a).toLocaleString('en-US')} code (prize ฿${a.toLocaleString('en-US')})` : `Prize ฿${a.toLocaleString('en-US')}`));
+    const amount = el('select', { id: 'codeAmount' }, ...amountOpts(brands[0] || 'grab'));
+    brand.onchange = () => { const v = (amount as HTMLSelectElement).value; amount.replaceChildren(...amountOpts((brand as HTMLSelectElement).value)); (amount as HTMLSelectElement).value = v; };
     const url = el('input', { id: 'codeUrl', placeholder: 'Activation link (optional, https://…)' });
     const area = el('textarea', { id: 'codeList', rows: '6', placeholder: 'Paste codes OR redeem links (https://…), one per line' }) as HTMLTextAreaElement;
     const test = el('input', { type: 'checkbox', id: 'codeTest' }) as HTMLInputElement;

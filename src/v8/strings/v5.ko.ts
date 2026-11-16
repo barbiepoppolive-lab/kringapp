@@ -1,5 +1,14 @@
 /* V5_L ko: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    // 16 Nov audit P2-9
+    'Hi {0}! 👋 Hi from Kring.': '안녕하세요 {0}님! 👋 Kring에서 인사드려요.',
+    'Hi {0}! Love this Reel! Where is it?': '안녕하세요 {0}님! 이 릴스 너무 좋아요! 어디예요?',
+    'Hi {0}! Any favourite spot around here?': '안녕하세요 {0}님! 이 근처에 좋아하는 곳 있어요?',
+    'Hi! Nice to hear from you 👋': '안녕하세요! 연락 줘서 반가워요 👋',
+    'Where are you from?': '어디에서 왔어요?',
+    // 16 Nov audit P2-8
+    'You’re one of the first. Post a Reel so people can find you.': '첫 멤버 중 한 명이에요. 릴스를 올려서 사람들이 찾을 수 있게 해 보세요.',
+    'People load again when you’re back online.': '다시 온라인이 되면 자동으로 다시 불러와요.',
     // 16 Nov audit P0-3 / P2-3
     'Your Reel was hidden': '내 릴스가 숨겨졌어요',
     'Hidden': '숨김',
@@ -62,8 +71,6 @@ const T: Record<string, string> = {
     'Tickets last 10 minutes. One treat per person per place each day': '티켓은 10분간 유효. 1인 1매장 하루 1번',
     'We’ll email you a 6-digit sign-in code': '6자리 로그인 코드를 이메일로 보내드려요',
     '{0} already said hi to you. Reply in Messages.': '{0}님이 먼저 인사했어요. 메시지에서 답장하세요.',
-    'Sounds great! Let’s go': '좋아요! 가요',
-    'I am free around 4pm today': '오늘 4시쯤 시간 돼요',
     'Thanks for the tip!': '팁 고마워요!',
     'Sign in to Kring': 'Kring 로그인',
     'Continue with Google': 'Google로 계속하기',
@@ -336,6 +343,7 @@ const T: Record<string, string> = {
     'visiting': '여행 중',
     '{0} and {1} others liked your Reel': '{0}님 외 {1}명이 내 릴스를 좋아해요',
     '{0} followers': '팔로워 {0}',
+    '1 follower': '팔로워 1',
     '{0} following': '팔로잉 {0}',
     '{0} liked your Reel': '{0}님이 내 릴스를 좋아해요',
     '{0} more posts or 1 partner-café visit to go': '게시물 {0}개 또는 파트너 카페 방문 1번 남았어요',

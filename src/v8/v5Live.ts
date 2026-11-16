@@ -640,7 +640,7 @@ export function v5ProfileLink(id: string): string {
 export interface V5Verification { status: 'pending' | 'approved' | 'rejected'; created_at: string; reviewed_at: string | null; reject_reason: string | null }
 export const v5MyVerification = async () => ((await rpc<V5Verification[]>('kr8_my_verification')) || [])[0] || null;
 /** Uploads the one selfie frame (private bucket, team-only) and sends the check results. */
-export async function v5RequestVerification(selfie: Blob, check: { straight: boolean; left: boolean; right: boolean; blink: boolean; match: number | null; device: string }, consent: string): Promise<string> {
+export async function v5RequestVerification(selfie: Blob, check: { straight: boolean; left: boolean; right: boolean; blink: boolean; blink_fallback?: boolean; match: number | null; device: string }, consent: string): Promise<string> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new V5Error('OFFLINE');
   const c = await v5Client();
   const { data } = await c.auth.getSession();

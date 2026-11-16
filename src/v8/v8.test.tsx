@@ -29,7 +29,7 @@ describe('Kring 6 Nov 2026 Locked Build (v8)', () => {
     expect(document.body.textContent).not.toContain('Nana Coffee Roasters');
     expect(document.body.textContent).not.toContain('Thong Smith');
     expect(screen.getByText(/Jodd Fairs Ratchada/i)).toBeTruthy();
-    expect(screen.getByText(/Be the first in Ari today/i)).toBeTruthy();
+    expect(screen.getByText(/Be the first in Bangkok today/i)).toBeTruthy();   // audit P2-2: not "Ari" for All Bangkok
 
     fireEvent.click(screen.getByRole('button', { name: 'People' }));
     expect(document.body.textContent).not.toContain('Fah, 26');

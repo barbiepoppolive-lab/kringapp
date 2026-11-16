@@ -15,6 +15,7 @@ import { ClaimedPage, ClaimPage, ResultPage, RewardsPage } from './V5KxRewards';
 import { HOW_RINGS, HowSheet, MathSheet, ownRow, RankingPage } from './V5KxRanking';
 import { FoundingChecklist } from './V5Me';
 import { RINGS, ringsRules } from './rewardsConfig';
+import { LEVEL_KEY } from './kxLogic';
 import type { KxClaim, KxGap, KxPrize, KxRanking, KxRankRow, KxRewards } from './v5Kx';
 
 const L = (en: string) => en;
@@ -180,7 +181,7 @@ describe('prizes (one config, baht, ranks 1–8)', () => {
     expect(closeWeek(board, ringsRules({ min_posters_for_payout: 12 }), 10)).toEqual([]);
     expect(closeWeek(board, ringsRules({ min_rings_for_paid_seat: 0 })).length).toBe(8);
   });
-  it('TrueMoney keeps 25%; Grab is full value; ShopeePay is hidden by a flag', () => {
+  it('TrueMoney pays 75% by default; Grab is full value; ShopeePay is hidden by a flag', () => {
     expect([1500, 900, 600, 500, 400, 250, 150, 100].map((a) => valueFor('truemoney', a))).toEqual([1125, 675, 450, 375, 300, 187, 112, 75]);
     expect(valueFor('grab', 1500)).toBe(1500);
     expect(claimBrands()).toEqual(['grab', 'truemoney']);
@@ -199,7 +200,8 @@ describe('prizes (one config, baht, ranks 1–8)', () => {
     expect(claimPrize(undefined, 'me', 'grab', stock)).toEqual({ status: 'error', error: 'NO_PRIZE' });
   });
   it('levels from lifetime Rings: 0 / 1,000 / 3,000 / 8,000 / 20,000', () => {
-    expect(levelFor(0)).toMatchObject({ n: 1, key: 'Local', toNext: 1000, nextKey: 'Explorer' });
+    expect(levelFor(0)).toMatchObject({ n: 1, key: 'Newcomer', toNext: 1000, nextKey: 'Explorer' });
+    expect(new Set(LEVEL_KEY).size).toBe(5);   // audit P3-1: no level name twice
     expect(levelFor(1000)).toMatchObject({ n: 2, key: 'Explorer', toNext: 2000 });
     expect(levelFor(20000)).toMatchObject({ n: 5, key: 'Legend', next: null, toNext: 0, pct: 100 });
   });
@@ -328,11 +330,12 @@ describe('Rewards screen (simplified)', () => {
 });
 
 describe('Claim a prize', () => {
-  it('Grab = full value, TrueMoney = 75% with "TrueMoney keeps 25%"; ShopeePay hidden', () => {
+  it('Grab = full value, TrueMoney = 75% shown as "75% of the prize value"; ShopeePay hidden', () => {
     render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards()} prize={prize({ amount: 1500, rank: 1 })} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
     const tm = document.querySelector('[data-brand="truemoney"]')!;
     expect(tm.textContent).toContain('฿1,125');
-    expect(tm.textContent).toContain('TrueMoney keeps 25%');
+    expect(tm.textContent).toContain('75% of the prize value');   // audit P2-6: no blame on TrueMoney
+    expect(tm.textContent).not.toContain('keeps');
     expect(document.querySelector('[data-brand="grab"] [data-value]')!.getAttribute('data-value')).toBe('1500');
     expect(document.querySelector('[data-brand="shopeepay"]')).toBeNull();
     fireEvent.click(tm);
@@ -406,6 +409,9 @@ describe('Founding Local checklist on Me', () => {
     expect(screen.getByText('36 of 50 spots left')).toBeTruthy();
     expect(document.querySelectorAll('#kxFounding .st').length).toBe(1);
     expect(document.querySelector('#kxFoundingAdd')).toBeTruthy();
+    // audit P3-13: Instagram is optional; the next step is always the Reel (the server pays for the first approved Reel)
+    expect(document.querySelector('#kxFoundingPost')!.textContent).toContain('฿100');
+    expect(document.querySelector('#kxFoundingAdd')!.textContent).toContain('Optional');
     cleanup();
     render(<FoundingChecklist L={L} Lf={Lf} kx={kx} hasSocial onLink={() => undefined} onPost={() => undefined} />);
     expect(document.querySelector('#kxFoundingPost')!.textContent).toContain('฿100');

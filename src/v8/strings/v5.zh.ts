@@ -1,5 +1,14 @@
 /* V5_L zh: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    // 16 Nov audit P2-9
+    'Hi {0}! 👋 Hi from Kring.': '你好 {0}！👋 来自 Kring 的问候。',
+    'Hi {0}! Love this Reel! Where is it?': '你好 {0}！很喜欢这条 Reel！这是哪里？',
+    'Hi {0}! Any favourite spot around here?': '你好 {0}！这附近有你最喜欢的地方吗？',
+    'Hi! Nice to hear from you 👋': '嗨！很高兴收到你的消息 👋',
+    'Where are you from?': '你是哪里人？',
+    // 16 Nov audit P2-8
+    'You’re one of the first. Post a Reel so people can find you.': '你是最早的一批人之一。发一条 Reel，让大家找到你。',
+    'People load again when you’re back online.': '恢复联网后，这里会自动重新加载。',
     // 16 Nov audit P0-3 / P2-3
     'Your Reel was hidden': '你的视频已被隐藏',
     'Hidden': '已隐藏',
@@ -62,8 +71,6 @@ const T: Record<string, string> = {
     'Tickets last 10 minutes. One treat per person per place each day': '票券有效 10 分钟。每人每店每天一次',
     'We’ll email you a 6-digit sign-in code': '我们会通过邮件发送 6 位登录码',
     '{0} already said hi to you. Reply in Messages.': '{0} 已经先跟你打招呼了，去消息里回复吧。',
-    'Sounds great! Let’s go': '好啊！一起去吧',
-    'I am free around 4pm today': '我今天下午 4 点左右有空',
     'Thanks for the tip!': '谢谢你的建议！',
     'Sign in to Kring': '登录 Kring',
     'Continue with Google': '通过 Google 继续',
@@ -336,6 +343,7 @@ const T: Record<string, string> = {
     'visiting': '来旅行',
     '{0} and {1} others liked your Reel': '{0} 和另外 {1} 人赞了你的视频',
     '{0} followers': '{0} 粉丝',
+    '1 follower': '1 粉丝',
     '{0} following': '关注 {0}',
     '{0} liked your Reel': '{0} 赞了你的视频',
     '{0} more posts or 1 partner-café visit to go': '再发 {0} 个帖子或去 1 次合作咖啡店',

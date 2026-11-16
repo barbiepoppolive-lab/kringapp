@@ -260,7 +260,7 @@ describe('claim: choose ONE', () => {
     cleanup();
     render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards({ rules: { ...RINGS, truemoney_payout_pct: 90 } })} prize={prize({ kind: 'founding' })} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
     expect(document.querySelector('[data-brand="truemoney"]')!.textContent).toContain('TrueMoney ฿90');
-    expect(document.querySelector('[data-brand="truemoney"]')!.textContent).toContain('90% · TrueMoney keeps 10%');
+    expect(document.querySelector('[data-brand="truemoney"]')!.textContent).toContain('90% of the prize value');
   });
   it('value math: config share, rounded down, never above the prize; a broken config falls back to 75', () => {
     expect(valueFor('truemoney', 100)).toBe(75);
@@ -391,7 +391,7 @@ const goKeys = () => {
   for (const f of ['V5Go.tsx', 'goCoach.ts', 'V5Trim.tsx']) for (const m of fs.readFileSync(path.join(__dirname, f), 'utf8').matchAll(/\bLf?\(\s*(['"])((?:\\.|(?!\1).)*)\1/g)) keys.add(m[2].replace(/\\'/g, "'"));
   for (const k of ['People', 'Make new friends in Bangkok. Tap a card to see their Reels.', 'Everyone', 'Travellers', 'Deals', 'Perks at Bangkok places for Kring members, plus trusted partners for travellers.',
     'For Locals', 'For travellers', 'Place perks', 'Show your Kring card', 'Replay intro', 'Intro is on again', 'Choose one. This prize can be claimed once.', 'OR', 'Claim with {0} · {1}',
-    'Claimed with {0} · {1}', '{0}% · TrueMoney keeps {1}%', 'Redeem into TrueMoney', 'Your redeem link', 'Copy link', 'Link copied', 'A save gives {0} 3 Rings. A like gives 1.', 'the poster', 'Post your first Reel here', 'Tap to see where your Rings came from',
+    'Claimed with {0} · {1}', '{0}% of the prize value', 'Redeem into TrueMoney', 'Your redeem link', 'Copy link', 'Link copied', 'A save gives {0} 3 Rings. A like gives 1.', 'the poster', 'Post your first Reel here', 'Tap to see where your Rings came from',
     'Share to IG or TikTok. Each person who opens the link = +5 Rings.', 'with', 'All']) keys.add(k);
   return [...keys];
 };

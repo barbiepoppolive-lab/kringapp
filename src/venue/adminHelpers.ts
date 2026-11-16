@@ -56,7 +56,10 @@ export function standLink(venueId: string): string {
 
 /** Ready-to-send LINE message for the owner (Thai first with ครับ, English under it). OPTION A (D-10NOV-E): nothing to print, guests tap "I'm here". */
 export function lineMessage(o: { name: string; contact?: string | null; link: string; dealTh?: string | null; dealEn?: string | null; practice?: boolean; test?: string }): string {
-  const hi = o.contact ? `สวัสดีครับ คุณ${o.contact}` : 'สวัสดีครับ';
+  // audit P3-3: the owner may have typed "คุณสมชาย" / "Khun Somchai" already (was "คุณคุณสมชาย"); the English half never shows Thai script
+  const base = (o.contact || '').trim().replace(/^(คุณ|khun\.?\s|k\.\s?)\s*/i, '').trim();
+  const enName = /[\u0E00-\u0E7F]/.test(base) ? (base.match(/[A-Za-z][A-Za-z .'-]*/)?.[0] || '').trim() : base;
+  const hi = base ? `สวัสดีครับ คุณ${base}` : 'สวัสดีครับ';
   const th = o.dealTh || o.dealEn || '';
   const en = o.dealEn || o.dealTh || '';
   return [
@@ -72,7 +75,7 @@ export function lineMessage(o: { name: string; contact?: string | null; link: st
     o.link ? `ดูว่าวันนี้มีลูกค้ากริ๊ง!มากี่คน (ลิงก์ส่วนตัวของร้าน): ${o.link}` : '',
     'เปลี่ยนหรือหยุดสิทธิพิเศษได้ โดยแจ้งล่วงหน้า 2 วันทาง LINE นี้ครับ',
     '',
-    `Hello${o.contact ? ' ' + o.contact : ''}! Welcome to Kring, ${o.name} 🎉`,
+    `Hello${enName ? ' ' + enName : ''}! Welcome to Kring, ${o.name} 🎉`,
     o.practice ? 'You are a practice listing for now (not shown in the app yet), so try it as much as you like.' : 'Your place is now live in the Kring app.',
     o.practice && o.test ? `Try your live pass on a second phone: ${o.test}` : '',
     en ? `Your treat: ${en}` : '',

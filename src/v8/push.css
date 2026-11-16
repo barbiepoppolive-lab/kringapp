@@ -29,7 +29,9 @@
 .kesc h2 { margin: 0 0 8px; font-size: 19px; line-height: 1.35; font-weight: 800; }
 .kesc small { display: block; margin-top: 2px; font-size: 12.5px; font-weight: 600; color: #a7a2c4; }
 .kesc-why { margin: 0 0 16px; color: #cfcbe6; font-size: 14px; font-weight: 600; }
-.kesc-why small { display: inline; }
+.kesc-why > span { display: block; }
+.kesc-why > span + span { margin-top: 6px; }
+.kesc-why small { display: block; font-weight: 500; }
 .kesc-go { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; min-height: 58px; border-radius: 29px;
   background: linear-gradient(90deg, #5b6cff, #ff4fa3); color: #fff; font-size: 17px; font-weight: 800; text-decoration: none; padding: 6px 0; box-sizing: border-box; }
 .kesc-go small { color: rgba(255,255,255,.82); }

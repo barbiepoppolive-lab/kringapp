@@ -1,5 +1,14 @@
 /* V5_L hi: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    // 16 Nov audit P2-9
+    'Hi {0}! 👋 Hi from Kring.': 'नमस्ते {0}! 👋 Kring से हाय।',
+    'Hi {0}! Love this Reel! Where is it?': 'नमस्ते {0}! यह Reel बहुत पसंद आई! यह कहाँ है?',
+    'Hi {0}! Any favourite spot around here?': 'नमस्ते {0}! यहाँ आस-पास आपकी कोई पसंदीदा जगह है?',
+    'Hi! Nice to hear from you 👋': 'हाय! आपसे सुनकर अच्छा लगा 👋',
+    'Where are you from?': 'आप कहाँ से हैं?',
+    // 16 Nov audit P2-8
+    'You’re one of the first. Post a Reel so people can find you.': 'आप सबसे पहले लोगों में से हैं। एक Reel पोस्ट करें ताकि लोग आपको ढूँढ सकें।',
+    'People load again when you’re back online.': 'ऑनलाइन लौटते ही लोग फिर से लोड हो जाएँगे।',
     // 16 Nov audit P0-3 / P2-3
     'Your Reel was hidden': 'आपकी रील छिपा दी गई',
     'Hidden': 'छिपी हुई',
@@ -62,8 +71,6 @@ const T: Record<string, string> = {
     'Tickets last 10 minutes. One treat per person per place each day': 'टिकट 10 मिनट चलते हैं। हर व्यक्ति हर जगह दिन में एक बार',
     'We’ll email you a 6-digit sign-in code': 'हम आपको 6 अंकों का साइन-इन कोड ईमेल करेंगे',
     '{0} already said hi to you. Reply in Messages.': '{0} ने आपको पहले ही हाय कहा है। मैसेज में जवाब दें।',
-    'Sounds great! Let’s go': 'बढ़िया! चलते हैं',
-    'I am free around 4pm today': 'मैं आज लगभग 4 बजे फ़्री हूँ',
     'Thanks for the tip!': 'टिप के लिए धन्यवाद!',
     'Sign in to Kring': 'Kring में साइन इन करें',
     'Continue with Google': 'Google से जारी रखें',
@@ -336,6 +343,7 @@ const T: Record<string, string> = {
     'visiting': 'घूमने आए',
     '{0} and {1} others liked your Reel': '{0} और {1} अन्य ने आपकी रील पसंद की',
     '{0} followers': '{0} फ़ॉलोअर्स',
+    '1 follower': '1 फ़ॉलोअर',
     '{0} following': '{0} फ़ॉलो कर रहे',
     '{0} liked your Reel': '{0} ने आपकी रील पसंद की',
     '{0} more posts or 1 partner-café visit to go': '{0} और पोस्ट या 1 पार्टनर-कैफ़े विज़िट बाकी',

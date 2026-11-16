@@ -112,20 +112,20 @@ export function FoundingChecklist(props: { L: Tx; Lf: Txf; kx: KxCardExtras | nu
   // polish #4: one "Next step" card: only the next thing to do; gone when everything is done
   if (kx.has_reel || (!open && kx.has_reel)) return null;
   const amt = `฿${fmtN(kx.founding_thb ?? 100)}`;
-  const done = 1 + (props.hasSocial ? 1 : 0);
+  // audit P3-13: the server pays Founding Local for the first APPROVED Reel (rules page §4). Instagram / TikTok is not a step,
+  // so it shows as an optional link, never as "step 2". Steps: 1 card ✓ · 2 post a Reel at a place · 3 Kring approves it.
   return (
-    <div className="kx-fc kx-next" id="kxFounding" data-left={kx.founding_left ?? 0} data-step={props.hasSocial ? 3 : 2}>
+    <div className="kx-fc kx-next" id="kxFounding" data-left={kx.founding_left ?? 0} data-step={2}>
       <div className="h"><b>{open ? `${L('Founding Local')} · ${amt}` : L('3 steps to the board')}</b>{open ? <span id="kxFoundingLeft">{Lf('{0} of {1} spots left', String(kx.founding_left), '50')}</span> : null}</div>
-      <div className="bar"><i style={{ width: `${(done / 3) * 100}%` }} /></div>
-      <div className="kx-next-l">{L('Next step')} · {Lf('{0} of {1}', String(done + 1), '3')}</div>
+      <div className="bar"><i style={{ width: `${(1 / 3) * 100}%` }} /></div>
+      <div className="kx-next-l">{L('Next step')} · {Lf('{0} of {1}', '2', '3')}</div>
+      <button type="button" className="st go" id="kxFoundingPost" onClick={props.onPost}>
+        <i>2</i><span>{L('Post your first Reel at a place')}</span>{open ? <em>{amt}</em> : null}
+      </button>
+      {open ? <p className="kx-next-l" id="kxFoundingPaid">{L('Yours when Kring approves your Reel')}</p> : null}
       {!props.hasSocial ? (
-        <div className="st"><i>2</i><span>{L('Add Instagram or TikTok')}</span>
-          <button type="button" className="kx-go" id="kxFoundingAdd" onClick={props.onLink}>{L('Add')}</button></div>
-      ) : (
-        <button type="button" className="st go" id="kxFoundingPost" onClick={props.onPost}>
-          <i>3</i><span>{L('Post your first Reel at a place')}</span>{open ? <em>{amt}</em> : null}
-        </button>
-      )}
+        <button type="button" className="kx-go" id="kxFoundingAdd" onClick={props.onLink} style={{ marginTop: 6 }}>{L('Optional: add Instagram or TikTok')}</button>
+      ) : null}
     </div>
   );
 }
@@ -309,7 +309,7 @@ export function FollowSheet(props: { L: Tx; Lf: Txf; who: string; counts: [numbe
       <div className="grab" />
       <div className="kme-ttl"><b>{props.who}</b><button type="button" className="xbtn" aria-label="Close" onClick={props.onClose}>✕</button></div>
       <div className="kme-tabs2">
-        <button type="button" id="followTabFollowers" className={kind === 'followers' ? 'on' : ''} onClick={() => setKind('followers')}>{Lf('{0} followers', fmtCount(props.counts[0]))}</button>
+        <button type="button" id="followTabFollowers" className={kind === 'followers' ? 'on' : ''} onClick={() => setKind('followers')}>{props.counts[0] === 1 ? L('1 follower') : Lf('{0} followers', fmtCount(props.counts[0]))}</button>
         <button type="button" id="followTabFollowing" className={kind === 'following' ? 'on' : ''} onClick={() => setKind('following')}>{Lf('{0} following', fmtCount(props.counts[1]))}</button>
       </div>
       {rows === null ? <p className="kme-empty">…</p> : rows.length === 0 ? <p className="kme-empty" id="followEmpty">{kind === 'followers' ? L('No followers yet') : L('Not following anyone yet')}</p> : (

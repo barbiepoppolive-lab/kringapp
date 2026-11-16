@@ -1,5 +1,14 @@
 /* V5_L ja: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    // 16 Nov audit P2-9
+    'Hi {0}! 👋 Hi from Kring.': 'こんにちは {0}さん！👋 Kringから挨拶です。',
+    'Hi {0}! Love this Reel! Where is it?': 'こんにちは {0}さん！このリール素敵！どこですか？',
+    'Hi {0}! Any favourite spot around here?': 'こんにちは {0}さん！この辺でお気に入りの場所はありますか？',
+    'Hi! Nice to hear from you 👋': 'こんにちは！メッセージありがとう 👋',
+    'Where are you from?': 'どちらから来ましたか？',
+    // 16 Nov audit P2-8
+    'You’re one of the first. Post a Reel so people can find you.': 'あなたは最初のメンバーの一人です。リールを投稿して見つけてもらいましょう。',
+    'People load again when you’re back online.': 'オンラインに戻ると自動でもう一度読み込みます。',
     // 16 Nov audit P0-3 / P2-3
     'Your Reel was hidden': 'あなたのリールは非表示になりました',
     'Hidden': '非表示',
@@ -62,8 +71,6 @@ const T: Record<string, string> = {
     'Tickets last 10 minutes. One treat per person per place each day': 'チケットは10分間有効。1人1店舗1日1回',
     'We’ll email you a 6-digit sign-in code': '6桁のログインコードをメールでお送りします',
     '{0} already said hi to you. Reply in Messages.': '{0}さんからもうあいさつが届いています。メッセージで返信しましょう。',
-    'Sounds great! Let’s go': 'いいね！行こう',
-    'I am free around 4pm today': '今日は16時ごろ空いてるよ',
     'Thanks for the tip!': '教えてくれてありがとう！',
     'Sign in to Kring': 'Kring にログイン',
     'Continue with Google': 'Google で続ける',
@@ -336,6 +343,7 @@ const T: Record<string, string> = {
     'visiting': '旅行中',
     '{0} and {1} others liked your Reel': '{0} さんほか {1} 人があなたのリールにいいね',
     '{0} followers': 'フォロワー {0}',
+    '1 follower': 'フォロワー 1',
     '{0} following': 'フォロー中 {0}',
     '{0} liked your Reel': '{0} さんがあなたのリールにいいね',
     '{0} more posts or 1 partner-café visit to go': 'あと {0} 投稿、またはパートナーカフェ1回',
