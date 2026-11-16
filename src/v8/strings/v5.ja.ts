@@ -9,6 +9,8 @@ const T: Record<string, string> = {
     'Saves': '保存',
     'Stats': '統計',
     'My Reel stats': 'リールの統計',
+    'View': '再生数',
+    'Outside open': '外部からの再生',
     'Outside opens': '外部からの再生',
     '{0} of these from travellers (count double)': 'うち {0} 件は旅行者から（2倍でカウント）',
     'Outside opens show for your best Reels this week.': '外部からの再生は今週のベストリールにのみ表示されます。',

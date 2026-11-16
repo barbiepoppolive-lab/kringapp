@@ -16,17 +16,22 @@ const dry: V8Weather = { ...rainy, rainProbAfternoon: 10, conditionIcon: '☀', 
 describe('Weather sheet text', () => {
   for (const [name, w] of [['rainy', rainy], ['dry', dry], ['loading', DEFAULT_WEATHER]] as const) {
     it(`Thai, ${name}: no English sentence, no % sign`, () => {
-      const t = weatherText(w, th, thf);
+      const t = weatherText(w, th, thf, 'th');
       for (const s of [t.feels, t.label, t.title, t.desc, t.tip]) {
         expect(s).not.toMatch(/\b(the|and|rain|afternoon|Bangkok|shade|skywalk)\b/i);
         expect(s).not.toContain('%');
+        expect(s).not.toMatch(/เปอร์เซ็นต์|\{[01]\}/);
       }
     });
   }
   it('numbers are filled in', () => {
-    const t = weatherText(rainy, th, thf);
-    expect(t.desc).toContain('84');
+    const t = weatherText(rainy, th, thf, 'th');
+    expect(t.desc).toContain('ราว 8 ใน 10');
+    expect(t.tip).toContain('ราว 8 ใน 10');
     expect(t.feels).toContain('36');
+  });
+  it('English keeps the percent', () => {
+    expect(weatherText(rainy, (s) => s, (s, a, b = '') => s.replace('{0}', a).replace('{1}', b)).desc).toContain('84%');
   });
   it('every weather key exists in TH, zh, ja, ko and hi', () => {
     const keys = Object.keys(V5_L.th).filter((k) => /skywalk|Feels like|Bangkok weather|Partly cloudy|Sunny & warm|Find shade|Stay cool|Tropical sh|See deals|^Warm \{0\}°C/.test(k));

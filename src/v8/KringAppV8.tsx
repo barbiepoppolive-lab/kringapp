@@ -1212,7 +1212,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
   // Weather
   const [weather, setWeather] = useState<V8Weather>(DEFAULT_WEATHER);
-  const wxText = weatherText(weather, L, Lf);   // T-301 (T301-007): Weather sheet in the member's language
+  const wxText = weatherText(weather, L, Lf, lang);   // T-301 (T301-007): Weather sheet in the member's language
 
   // People & Filters (production fetches ONLY real Supabase profiles — zero fake people in production)
   const [people, setPeople] = useState<V8Person[]>([]);
@@ -1946,6 +1946,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
   // audit P2-9: friendly first lines, never a meet-up ask (founder: "make new friends", no meet wording)
   const openSayHi = (name: string, img: string, context: string, id?: string, fromReel = false) => {
+    // T301-022: one hello per person. If we already have a chat with them, open it instead of a second hello (the server says no with a 400).
+    const had = live && id ? threads.find((t) => t.personId === id) : undefined;
+    if (had) {
+      setActiveThreadId(had.id);
+      setSheet('thread');
+      return;
+    }
     setHiTarget({ name, img, context, id, fromReel });
     setHiMessage(fromReel ? Lf('Hi {0}! Love this Reel! Where is it?', name) : Lf('Hi {0}! 👋 Hi from Kring.', name));
     setHiError('');
@@ -6857,12 +6864,12 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onMath={(id) => setKxMathFor(id)}
             onLike={goLike} onSave={goSave} onShare={(id) => void kxShareReelId(id)}
             onStats={live && v5Uid ? async (id) => {
-              // 17 Nov "My Reel stats": likes/saves from the Reel; opens + Rings from this week's ranking math (same numbers as "See the math")
+              // 17 Nov "My Reel stats": likes/saves = the same counters as the feed heart; opens + Rings from this week's ranking math (same numbers as "See the math", T301-003)
               const r = goPlayer.reels.find((x) => x.id === id);
               const b = await kxBreakdown(v5Uid).catch(() => null);
               const m = b?.reels.find((x) => x.post_id === id) || null;
               const f = feedItems.find((x) => x.id === id) as { views?: number } | undefined;
-              return { views: typeof f?.views === 'number' ? f.views : null, likes: r?.likes || 0, saves: r?.saves || 0, opens: m ? m.opens : null, rings: r?.rings ?? (m ? m.score : null), travellers: m ? m.l_trav + m.s_trav : 0 };
+              return { views: typeof f?.views === 'number' ? f.views : null, likes: r?.likes || 0, saves: r?.saves || 0, opens: m ? m.opens : null, rings: m ? m.score : r?.rings ?? null, travellers: m ? m.l_trav + m.s_trav : 0 };
             } : undefined}
             onActive={(r, el) => {
               if (!r.mine || r.status !== 'approved') return;

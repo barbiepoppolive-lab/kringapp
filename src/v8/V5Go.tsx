@@ -252,12 +252,16 @@ export function GoReelPlayer(props: {
         const r = reels.find((x) => x.id === stats.id);
         const cur = r ? { ...r, ...over[r.id] } : null;
         const st = stats.s;
+        // T301-003: "1 Like", not "1 Likes"
+        const one = (n: number | null, a: string, b: string) => L(n === 1 ? a : b);
+        const views = st ? st.views : null, likes = st ? st.likes : cur?.likes || 0, saves = st ? st.saves : cur?.saves || 0;
+        const opens = st ? st.opens : null, rings = st && st.rings !== null ? st.rings : cur?.rings || 0;
         const rows: [string, string][] = [
-          [L('Views'), st && st.views !== null ? fmtN(st.views) : '–'],
-          [L('Likes'), fmtN(st ? st.likes : cur?.likes || 0)],
-          [L('Saves'), fmtN(st ? st.saves : cur?.saves || 0)],
-          [L('Outside opens'), st && st.opens !== null ? fmtN(st.opens) : '–'],
-          [L('Rings'), st && st.rings !== null ? fmtN(st.rings) : fmtN(cur?.rings || 0)],
+          [one(views, 'View', 'Views'), views !== null ? fmtN(views) : '–'],
+          [one(likes, 'Like', 'Likes'), fmtN(likes)],
+          [one(saves, 'Save', 'Saves'), fmtN(saves)],
+          [one(opens, 'Outside open', 'Outside opens'), opens !== null ? fmtN(opens) : '–'],
+          [one(rings, 'Ring', 'Rings'), fmtN(rings)],
         ];
         return (
           <div className="go-stats-wrap" role="dialog" aria-label={L('My Reel stats')} onClick={(e) => { if (e.target === e.currentTarget) setStats(null); }}>

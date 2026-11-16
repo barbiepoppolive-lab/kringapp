@@ -14,17 +14,56 @@ function modelUrl(): string {
   return `${base}models/face`;
 }
 
+/** T301-001 / T301-032: some phones and PCs have WebGL but cannot compile the face models' shaders ("Failed to compile fragment
+ *  shader"), and a few crash the page. Probe WebGL once with a tiny sum; if anything fails (or failed before on this device),
+ *  use the slower CPU path. Remembered per device, so the error is never repeated. */
+const NO_GL_KEY = 'kr8_face_nogl';
+type TfLite = { setBackend: (b: string) => Promise<boolean>; ready: () => Promise<void>;
+  tidy: <T>(f: () => T) => T; scalar: (n: number) => { add: (o: unknown) => { dataSync: () => ArrayLike<number> } } };
+export function hasWebGL(): boolean {
+  try {
+    if (typeof document === 'undefined') return false;
+    const c = document.createElement('canvas');
+    return !!(c.getContext('webgl2') || c.getContext('webgl'));
+  } catch { return false; }
+}
+function glBroken(): boolean { try { return localStorage.getItem(NO_GL_KEY) === '1'; } catch { return false; } }
+function markGlBroken() { try { localStorage.setItem(NO_GL_KEY, '1'); } catch { /* private mode */ } }
+export async function pickFaceBackend(tf: TfLite): Promise<'webgl' | 'cpu'> {
+  if (!glBroken() && hasWebGL()) {
+    try {
+      if (await tf.setBackend('webgl')) {
+        await tf.ready();
+        const v = tf.tidy(() => tf.scalar(1).add(tf.scalar(1)).dataSync()[0]);
+        if (v === 2) return 'webgl';
+      }
+    } catch { /* falls through to CPU */ }
+    markGlBroken();
+  }
+  await tf.setBackend('cpu');
+  await tf.ready();
+  return 'cpu';
+}
+
+/** A WebGL error in the middle of a check (a shader that compiles only on first use): switch this device to CPU and try once more. */
+async function glSafe<T>(faceapi: FaceApi, run: () => Promise<T>): Promise<T> {
+  try {
+    return await run();
+  } catch (e) {
+    const tf = faceapi.tf as unknown as TfLite & { getBackend: () => string };
+    if (tf.getBackend() !== 'webgl' || !/shader|webgl|gl_|context|INVALID/i.test(String((e as Error)?.message || e))) throw e;
+    markGlBroken();
+    await tf.setBackend('cpu');
+    await tf.ready();
+    return await run();
+  }
+}
+
 export function loadFaceApi(): Promise<FaceApi> {
   if (!apiP) {
     apiP = (async () => {
       const faceapi = await import('@vladmandic/face-api');
-      const tf = faceapi.tf as unknown as { setBackend: (b: string) => Promise<boolean>; ready: () => Promise<void> };
-      try {
-        if (!(await tf.setBackend('webgl'))) await tf.setBackend('cpu');
-      } catch {
-        await tf.setBackend('cpu');
-      }
-      await tf.ready();
+      await pickFaceBackend(faceapi.tf as unknown as TfLite);
       const url = modelUrl();
       await Promise.all([
         faceapi.nets.tinyFaceDetector.loadFromUri(url),
@@ -62,7 +101,7 @@ function eyeAR(p: Pt[]): number {
 /** One reading from the camera frame (or a photo). */
 export async function sampleFace(input: HTMLVideoElement | HTMLImageElement | HTMLCanvasElement, inputSize = 320): Promise<FaceSample> {
   const faceapi = await loadFaceApi();
-  const r = await faceapi.detectSingleFace(input, new faceapi.TinyFaceDetectorOptions({ inputSize, scoreThreshold: 0.45 })).withFaceLandmarks();
+  const r = await glSafe(faceapi, async () => await faceapi.detectSingleFace(input, new faceapi.TinyFaceDetectorOptions({ inputSize, scoreThreshold: 0.45 })).withFaceLandmarks());
   const w = (input as HTMLVideoElement).videoWidth || (input as HTMLImageElement).naturalWidth || (input as HTMLCanvasElement).width || 1;
   if (!r) return { found: false, yaw: 0.5, ear: 0, size: 0, centered: false };
   const pts = r.landmarks.positions as Pt[];
@@ -78,7 +117,7 @@ export async function sampleFace(input: HTMLVideoElement | HTMLImageElement | HT
  *  and (0066, consent face-2026-11-17) saved team-only on the server so one person can't hold two accounts. */
 export async function faceDescriptor(input: HTMLVideoElement | HTMLImageElement | HTMLCanvasElement): Promise<Float32Array | null> {
   const faceapi = await loadFaceApi();
-  const r = await faceapi.detectSingleFace(input, new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.4 })).withFaceLandmarks().withFaceDescriptor();
+  const r = await glSafe(faceapi, async () => await faceapi.detectSingleFace(input, new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.4 })).withFaceLandmarks().withFaceDescriptor());
   return r ? r.descriptor : null;
 }
 export function faceDistance(a: Float32Array, b: Float32Array): number {
@@ -188,9 +227,7 @@ function loadDetector(): Promise<FaceApi> {
   if (!detP) {
     detP = (async () => {
       const faceapi = await import('@vladmandic/face-api');
-      const tf = faceapi.tf as unknown as { setBackend: (b: string) => Promise<boolean>; ready: () => Promise<void> };
-      try { if (!(await tf.setBackend('webgl'))) await tf.setBackend('cpu'); } catch { await tf.setBackend('cpu'); }
-      await tf.ready();
+      await pickFaceBackend(faceapi.tf as unknown as TfLite);
       if (!faceapi.nets.tinyFaceDetector.isLoaded) await faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl());
       return faceapi;
     })().catch((e) => { detP = null; throw e; });
@@ -232,7 +269,7 @@ export async function checkProfilePhoto(src: string): Promise<PhotoVerdict> {
     // the small finder misses some faces at one scale (glasses, soft light), so look at 3 scales and decide on all of them together
     const per: { w: number; score: number }[][] = [];
     for (const inputSize of [416, 320, 512]) {
-      const det = await faceapi.detectAllFaces(img, new faceapi.TinyFaceDetectorOptions({ inputSize, scoreThreshold: 0.3 }));
+      const det = await glSafe(faceapi, async () => await faceapi.detectAllFaces(img, new faceapi.TinyFaceDetectorOptions({ inputSize, scoreThreshold: 0.3 })));
       per.push(det.map((d) => ({ w: d.box.width, score: d.score })));
     }
     return photoVerdictMulti(per, img.naturalWidth);

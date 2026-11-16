@@ -9,6 +9,8 @@ const T: Record<string, string> = {
     'Saves': 'सेव',
     'Stats': 'आंकड़े',
     'My Reel stats': 'मेरी Reel के आंकड़े',
+    'View': 'व्यू',
+    'Outside open': 'बाहर से खोला गया',
     'Outside opens': 'बाहर से खोले गए',
     '{0} of these from travellers (count double)': 'इनमें से {0} यात्रियों से (दोगुना गिना जाता है)',
     'Outside opens show for your best Reels this week.': 'बाहर से खोले जाने की गिनती इस हफ़्ते की आपकी सबसे अच्छी Reels के लिए दिखती है।',
