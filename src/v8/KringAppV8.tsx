@@ -86,7 +86,7 @@ import {
   v5SyncAttribution,
   v5StoredRef,
 } from './v5Live';
-import { ActivitySheet, FollowSheet, InterestsSheet, LANG_NAME, MeView, Top10Sheet } from './V5Me';
+import { ActivitySheet, FollowSheet, InterestsSheet, LANG_NAME, MeView } from './V5Me';
 import { A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip, openInstallSheet, takeInstallAsk } from './A2HS';
 import { parsePushLink, pushConfigured, pushDisable, pushEnable, pushMoment, pushResync, pushState, type PushLink, type PushState } from './push';
 import { PUSH_ASK_LINE, PushAskCard } from './V5Push';
@@ -877,6 +877,11 @@ const QA_TX = {
 
 export type V8Tab = 'feed' | 'people' | 'deals' | 'me';
 
+/** Language codes: cards store ISO-like ZH / JA / KO; older demo cards say CN / JP / KR. One code for both (audit P2-1). */
+const LANG_ALIAS: Record<string, string> = { CN: 'ZH', JP: 'JA', KR: 'KO' };
+const langCode = (c: string) => LANG_ALIAS[(c || '').toUpperCase()] || (c || '').toUpperCase();
+const LANG_CHIP: Record<string, string> = { ZH: '中文', JA: '日本語', KO: '한국어' };
+
 type SheetId =
   | null
   | 'ticket'
@@ -915,7 +920,6 @@ type SheetId =
   | 'reelshare'
   | 'reelmore'
   | 'blocked'
-  | 'top10'
   | 'follow'
   | 'activity'
   | 'interests'
@@ -1092,7 +1096,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const langWords = (codes: string) => codes.split(/\s*·\s*/).filter(Boolean).map((c) => L(LANG_NAME[c.toUpperCase()] || c)).join(' · ');
   /** Real partner deals (0023) carry their own words in baht; Thai screens show Thai with English under it. */
   const dealMain = (d: V8Deal): string => (lang === 'th' ? d.dealTh || d.dealEn : d.dealEn) || '';
-  const dealSub = (d: V8Deal): string => (lang === 'th' && d.dealTh && d.dealEn ? d.dealEn : '');
+  // audit P3-5: never the same treat twice (the owner typed Thai in the English box, or the same text in both)
+  const dealSub = (d: V8Deal): string => (lang === 'th' && d.dealTh && d.dealEn && d.dealEn.trim() !== d.dealTh.trim() && !/[\u0E01-\u0E3A\u0E40-\u0E5B]/.test(d.dealEn) ? d.dealEn : '');
   const dealHours = (d: V8Deal): string => (lang === 'th' ? d.hoursTh || d.hoursEn : d.hoursEn) || '';
   const dealVenue = (d: V8Deal): string => (lang === 'th' && d.venueTh ? d.venueTh : d.venue);
 
@@ -1233,6 +1238,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     img: string;
     context: string;
     id?: string;
+    /** opened from a Reel: the first line asks about the spot (audit P2-9) */
+    fromReel?: boolean;
   }>({
     name: '',
     img: NEUTRAL_IMG,
@@ -1638,6 +1645,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       try {
         const q0 = new URLSearchParams(window.location.search);
         if (!s0?.user?.id && (q0.get('ref') || v5JoinAsked.current) && !sheetRef.current && !installAskRef.current) setSheet('signin');
+        // audit P3-14: ?open=rewards while signed out → sign-in first; the rewards page opens right after (pushOpenRef effect)
+        else if (!s0?.user?.id && q0.get('open') === 'rewards' && !sheetRef.current) { setV5SignInNotice(L('Sign in to see your rewards')); setSheet('signin'); }
       } catch { /* ignore */ }
       off = await v5OnAuth((s1) => {
         const id = s1?.user?.id || '';
@@ -1715,6 +1724,18 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     if (tab === 'feed') v5Feed().then(setFeedItems).catch(() => undefined);
     if (tab === 'deals') v5Treats().then(setDeals).catch(() => undefined);
   }, [live, tab, Boolean(v5Card)]);
+
+  // audit P2-8: back online → People (and the feed) load again by themselves (they stayed empty until a manual refresh)
+  const wasOffline = useRef(false);
+  useEffect(() => {
+    if (!isOnline) { wasOffline.current = true; return; }
+    if (!wasOffline.current || !live) return;
+    wasOffline.current = false;
+    v5TabFetchedAt.current = {};
+    if (v5Card) v5People().then(setPeople).catch(() => undefined);
+    v5Feed().then(setFeedItems).catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOnline, live]);
 
   // Online / Offline listeners + auto-flush offline queue
   useEffect(() => {
@@ -1843,7 +1864,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         p.hook.toLowerCase().includes(q) ||
         p.tags.toLowerCase().includes(q) ||
         p.langs.toLowerCase().includes(q);
-      const matchLang = !filterLang || p.langCodes.includes(filterLang);
+      const matchLang = !filterLang || p.langCodes.some((c) => langCode(c) === filterLang);
       const matchWho = !filterWho || p.who === filterWho;
       const matchOnline = !filterOnline || p.online;
       return matchQuery && matchLang && matchWho && matchOnline;
@@ -1920,11 +1941,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     setTab(target);
   };
 
-  const openSayHi = (name: string, img: string, context: string, id?: string) => {
-    setHiTarget({ name, img, context, id });
-    setHiMessage(
-      Lf('Hi {0}! Would love to say hi — are you around for coffee or a walk today?', name)
-    );
+  // audit P2-9: friendly first lines, never a meet-up ask (founder: "make new friends", no meet wording)
+  const openSayHi = (name: string, img: string, context: string, id?: string, fromReel = false) => {
+    setHiTarget({ name, img, context, id, fromReel });
+    setHiMessage(fromReel ? Lf('Hi {0}! Love this Reel! Where is it?', name) : Lf('Hi {0}! 👋 Hi from Kring.', name));
     setHiError('');
     setSheet('hi');
   };
@@ -2901,7 +2921,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       case 'NOT_VIDEO': return L('Pick a video file (MP4, MOV or WebM)');
       case 'UPLOAD': return L('Upload stopped · tap Retry');
       case 'REPICK': return both('Your phone lost the video file. Choose the video again, then tap Post.');
-      default: return both('This browser can’t open this clip. Fix: save it to your phone first (not only in the cloud), or send it to yourself in LINE and pick that copy.');
+      // audit P3-12: a damaged file is not fixed by "save it to your phone first"
+      default: return both('This browser can’t open this clip. The file may be damaged, or still only in the cloud. Try another clip, or send it to yourself in LINE and pick that copy.');
     }
   };
   const showReelPoster = (info: ReelInfo) => {
@@ -3428,8 +3449,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const handleDeleteAccount = () => {
     if (live) {
       void v5Once('delete', async () => {
+        let kept = false;
         try {
-          await v5DeleteMe();
+          kept = (await v5DeleteMe()).keptSignIn;
         } catch {
           showToast(L('Couldn’t delete right now. Try again.'));
           return;
@@ -3442,7 +3464,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         setBlockedIds([]);
         setConfirmDelete(false);
         setSheet(null);
-        showToast(L('Your Kring account and data were deleted.'));
+        showToast(kept ? L('Your card was deleted. Your admin sign-in is kept.') : L('Your Kring account and data were deleted.'));
       });
       return;
     }
@@ -3536,7 +3558,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         <div className="kp-ask-in">
           <div className="kp-ask-k" style={{ color: '#6EE7A8' }}>{L('YOUR PHOTO HERE')}</div>
           <div className="kp-ask-q" style={{ color: '#FFF7EC' }}>
-            {Lf('Be the first in {0} today', selectedArea === 'All Bangkok' ? L('Ari') : L(selectedArea))}
+            {Lf('Be the first in {0} today', selectedArea === 'All Bangkok' ? L('Bangkok') : L(selectedArea))}
           </div>
           <button
             type="button"
@@ -3545,7 +3567,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onClick={() => {
               setPostPhotoUrl('');
               setPostCaption('');
-              setPostArea(selectedArea === 'All Bangkok' ? 'Ari' : selectedArea);
+              // audit P2-2: a Reel takes its area from the pinned place (was always saved as "Ari" from All Bangkok)
+              setPostArea(live ? null : selectedArea === 'All Bangkok' ? 'Ari' : selectedArea);
               setSheet('post');
             }}
           >
@@ -3672,8 +3695,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           </div>
         )}
 
-        {/* Chat Bubble Top-Right on Feed & People ONLY (HIDDEN on Deals & Me) */}
-        {(tab === 'feed' || tab === 'people') && !(sheet && ['place', 'rewards', 'claim', 'claimed', 'ranking', 'result', 'savedreels'].includes(sheet)) && (
+        {/* Chat Bubble Top-Right on Feed & People ONLY (HIDDEN on Deals & Me, and on a profile so its ⋯ Report/Block stays tappable) */}
+        {(tab === 'feed' || tab === 'people') && !(sheet && ['place', 'rewards', 'claim', 'claimed', 'ranking', 'result', 'savedreels', 'profile'].includes(sheet)) && (
           <button
             type="button"
             className={`chat-fab${tab === 'feed' && feedMode === 'ask' ? ' at-solid' : ''}`}
@@ -3874,7 +3897,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                             p.name || 'Member',
                             p.av || initialAvatar(p.name),
                             `${Lf('Replying to {0} post', kxArea(lang, p.area || 'Bangkok', L))} · ${Lf('Speaks {0}', langWords(p.langs || 'TH · EN'))}`,
-                (p as { authorId?: string }).authorId
+                (p as { authorId?: string }).authorId,
+                Boolean(p.video)
               )
                         }
                       >
@@ -4061,7 +4085,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     className="achip"
                     onClick={() => setFilterLang('')}
                   >
-                    {Lf('Speaks {0}', filterLang)} <span>✕</span>
+                    {Lf('Speaks {0}', LANG_CHIP[filterLang] || filterLang)} <span>✕</span>
                   </button>
                 )}
                 {filterWho && (
@@ -4098,13 +4122,19 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             >
               {L("Loading people in Bangkok…")}
             </div>
+          ) : filteredPeople.length === 0 && !isOnline && live ? (
+            // audit P2-8: offline is not "you're the first one here"
+            <div className="kp-empty" id="peopleOffline">
+              <div className="kp-empty-t">{L('You’re offline')}</div>
+              <div className="kp-empty-s">{L('People load again when you’re back online.')}</div>
+            </div>
           ) : filteredPeople.length === 0 ? (
             <div className="kp-empty">
               <div className="kp-empty-t">
                 {(filterLang || filterWho || filterOnline || searchQuery) ? t.emptyPeopleTitle : L('People appear here as they join')}
               </div>
               <div className="kp-empty-s">
-                {(filterLang || filterWho || filterOnline || searchQuery) ? t.emptyPeopleSub : (signedIn ? L('You’re one of the first. Post a photo so people can find you.') : L('Sign in and make your card to see people and say hi.'))}
+                {(filterLang || filterWho || filterOnline || searchQuery) ? t.emptyPeopleSub : (signedIn ? (live ? L('You’re one of the first. Post a Reel so people can find you.') : L('You’re one of the first. Post a photo so people can find you.')) : L('Sign in and make your card to see people and say hi.'))}
               </div>
               {(filterLang || filterWho || filterOnline || searchQuery) ? (
                 <button
@@ -4235,7 +4265,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           {live ? (
             <div className="go-tabh" id="goDealsHead">
               <h1>{L('Deals')}</h1>
-              <p>{L('Travel essentials from trusted partners for now. Café perks for members are on the way.')}</p>
+              {/* audit P3-5: café perks are live, so the header only says "on the way" while there are none */}
+              <p>{deals.length > 0 ? L('Member treats at partner places, plus travel essentials from trusted partners.') : L('Travel essentials from trusted partners for now. Café perks for members are on the way.')}</p>
               {deals.length > 0 ? (
                 <div className="go-fch" id="goDealChips">
                   {([['all', L('All')], ['perks', L('For Locals')], ['trip', L('For travellers')]] as const).map(([k, label]) => (
@@ -4849,9 +4880,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             </div>
             <div className="openers">
               {[
-                Lf('Hi {0}! Around for an iced coffee or short walk today?', hiTarget.name),
-                Lf('Hey {0}! Which spot in this area is your favourite right now?', hiTarget.name),
-                Lf('Hi {0}! Would you like to split a 2-for-1 coffee deal?', hiTarget.name),
+                hiTarget.fromReel ? Lf('Hi {0}! Love this Reel! Where is it?', hiTarget.name) : Lf('Hi {0}! 👋 Hi from Kring.', hiTarget.name),
+                Lf('Hi {0}! Any favourite spot around here?', hiTarget.name),
+                hiTarget.fromReel ? Lf('Hi {0}! 👋 Hi from Kring.', hiTarget.name) : Lf('Hey {0}! Which spot in this area is your favourite right now?', hiTarget.name),
               ].map((opener, i) => (
                 <button
                   type="button"
@@ -4924,6 +4955,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             video={`${import.meta.env.BASE_URL}media/demo/bangpu.mp4`}
             onPost={() => { setReelNudgeLater(v5Uid, false); setTab('feed'); openCreate(); }}
             onLater={() => { setReelNudgeLater(v5Uid, true); setSheet(null); }}
+            lang={lang}
+            L={L}
           />
         )}
         {sheet === 'v5card' && live && (
@@ -5398,14 +5431,15 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <div className="fgroup">
               <div className="lbl">{L("Speaks")}</div>
               <div className="fchips">
-                {(['', 'TH', 'EN', 'CN', 'HI', 'JP', 'KR'] as const).map((code) => (
+                {/* audit P2-1: cards store ZH / JA / KO (the filter looked for CN / JP / KR and found nobody) */}
+                {(['', 'TH', 'EN', 'ZH', 'HI', 'JA', 'KO'] as const).map((code) => (
                   <button
                     type="button"
                     key={code || 'any'}
                     className={`fchip ${filterLang === code ? 'on' : ''}`}
                     onClick={() => setFilterLang(code)}
                   >
-                    {code === '' ? L('Any language') : code}
+                    {code === '' ? L('Any language') : LANG_CHIP[code] || code}
                   </button>
                 ))}
               </div>
@@ -5795,8 +5829,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 <div className="msg">“{requests[reviewIdx].msg}”</div>
                 <div className="qchips">
                   {[
-                    'Sounds great! Let’s go',
-                    'I am free around 4pm today',
+                    'Hi! Nice to hear from you 👋',
+                    'Where are you from?',
                     'Thanks for the tip!',
                   ].map((chip, idx) => (
                     <button
@@ -6683,11 +6717,6 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onClose={() => { setSheet(null); void loadMe(); }}
             onSent={() => setVerifyPending(true)}
             onAddPhoto={() => setSheet('v5card')} />
-        )}
-        {sheet === 'top10' && (
-          <Top10Sheet L={L} Lf={Lf} myArea={v5Card?.area && v5Card.area !== 'Bangkok' ? v5Card.area : 'Ari'}
-            load={(per) => v5Top10(per, per === 'area' ? (v5Card?.area && v5Card.area !== 'Bangkok' ? v5Card.area : 'Ari') : null)}
-            onClose={() => setSheet(null)} onPerson={(id) => void openProfile(id)} />
         )}
         {sheet === 'follow' && followFor && (
           <FollowSheet L={L} Lf={Lf} who={followFor.name} counts={followFor.counts} initial={followFor.initial}

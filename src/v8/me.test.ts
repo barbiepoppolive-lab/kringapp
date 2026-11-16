@@ -11,6 +11,7 @@ describe('live face check', () => {
     const st = run([s(0.5), s(0.5), s(0.5), s(0.5), s(0.72), s(0.72), s(0.28), s(0.28), s(0.5), s(0.5, 0.1), s(0.5, 0.31)]);
     expect(st.step).toBe('done');
     expect([st.straight, st.left, st.right, st.blink]).toEqual([true, true, true, true]);
+    expect(st.blinkFallback).toBeFalsy();
   });
   it('a still photo never passes (no head turn, no blink)', () => {
     const st = run(Array.from({ length: 60 }, () => s(0.5)));
@@ -38,19 +39,21 @@ describe('live face check', () => {
     const st = run([...toBlink(), s(0.68, 0.3, { t: 4000 }), s(0.68, 0.15, { t: 4200 }), s(0.68, 0.3, { t: 4400 })]);
     expect(st.blink).toBe(true);
   });
-  it('12 s of straight live frames with no eye drop → done; passes the server (team checks the selfie by eye, 16 Nov)', () => {
+  it('12 s of straight live frames with no eye drop → done, but marked "no blink seen" for the team (audit P2-5)', () => {
     const frames = Array.from({ length: 100 }, (_, i) => s(0.5, 0.3, { t: 4000 + i * 205 }));
     const before = run([...toBlink(), ...frames.slice(0, 50)]);
     expect(before.step).toBe('blink');
     const st = run([...toBlink(), ...frames]);
     expect(st.step).toBe('done');
-    expect([st.straight, st.left, st.right, st.blink]).toEqual([true, true, true, true]);
+    expect([st.straight, st.left, st.right, st.blink]).toEqual([true, true, true, false]);
+    expect(st.blinkFallback).toBe(true);
   });
-  it('20 s fallback with two eye-closure frames (no clean reopen) → done with blink true', () => {
+  it('fallback with two eye-closure frames (no clean reopen) → done, flagged as fallback (no clean blink)', () => {
     const frames = Array.from({ length: 100 }, (_, i) => s(0.5, i < 10 ? 0.3 : i === 10 || i === 40 ? 0.2 : 0.23, { t: 4000 + i * 205 }));   // eyes only half reopen
     const st = run([...toBlink(), ...frames]);
     expect(st.step).toBe('done');
-    expect(st.blink).toBe(true);
+    expect(st.blink).toBe(false);
+    expect(st.blinkFallback).toBe(true);
   });
   it('the fallback needs a face looking at the camera: 20 s looking away does not pass', () => {
     const st = run([...toBlink(), ...Array.from({ length: 120 }, (_, i) => s(0.75, 0.3, { t: 4000 + i * 205 }))]);

@@ -163,7 +163,8 @@ export function V5TicketSheet(props: { L: Tx; lang: string; slug: string; src: s
           <div className="ktk-clock" id="tkClock" aria-live="off">{bkkClock(now)}</div>
           <small className="ktk-sub">{L('Live pass · Bangkok time')}</small>
           <p className="ktk-treat" id="tkTreat">{treat}</p>
-          <div className="ktk-left" id="tkLeft">{L('Valid for')} <b>{mmss(left)}</b></div>
+          {/* audit P3-9: once staff tapped Given, the countdown stops (it kept saying "Valid for 9:50") */}
+          {tk.given_at ? null : <div className="ktk-left" id="tkLeft">{L('Valid for')} <b>{mmss(left)}</b></div>}
           <p className="ktk-staff">{L('Show this to the staff, any time: ordering, eating or paying.')}</p>
           {tk.given_at
             ? <div className="ktk-given" id="tkGiven">✅ {L('Given')} · {bkkClock(new Date(tk.given_at))}</div>

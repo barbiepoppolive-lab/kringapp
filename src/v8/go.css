@@ -285,3 +285,6 @@
 .v8-app-root .go-tmarks { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 10px 2px 0; font-size: 12px; font-weight: 700; color: rgba(255,255,255,.75); font-variant-numeric: tabular-nums; }
 .v8-app-root .go-tmarks small { flex: 1; text-align: center; color: var(--go-mu); font-weight: 600; font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .v8-app-root .go-trim .go-btn svg { width: 18px; height: 18px; }
+/* audit P2-3: own Reel hidden by the team, with the reason */
+.v8-app-root .go-gw.rv.hid { background: #ff5d6c; color: #fff; max-width: calc(100% - 12px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .go-score.rv.hid { color: #ff8a95; white-space: normal; }

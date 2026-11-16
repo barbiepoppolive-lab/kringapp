@@ -1,31 +1,6 @@
-/**
- * Top 5 rewards (founder decision, 13 Nov). One source for every amount the app shows.
- * Weekly ฿3,000 + daily ฿130 × 7 = ฿3,910 a week, so "up to ฿4,000 in rewards every week" stays true.
- * Paid as TrueMoney / Starbucks / Grab vouchers (Tremendous). Ranked on merit only.
- */
-export const REWARDS = {
-  week: [1000, 800, 600, 400, 200],
-  today: [40, 30, 25, 20, 15],
-  /** The public headline cap. */
-  weeklyCap: 4000,
-} as const;
-
-/** Score weights, same formula as the board: likes + 2 × saves + 3 × shares + views ÷ 10 (own likes never count). */
-export const SCORE = { like: 1, save: 2, share: 3, viewsPerPoint: 10 } as const;
-
-export const sumBaht = (a: readonly number[]) => a.reduce((s, n) => s + n, 0);
-export const WEEKLY_TOTAL = sumBaht(REWARDS.week);              // 3000
-export const DAILY_TOTAL = sumBaht(REWARDS.today);              // 130
-export const WEEK_ALL_IN = WEEKLY_TOTAL + 7 * DAILY_TOTAL;      // 3910
-
+/** Baht in the app's style: ฿4,400. */
 export const fmtBaht = (n: number) => `฿${n.toLocaleString('en-US')}`;
-
-/** Reward for a rank on a board ('area' boards carry no reward). null outside the Top 5. */
-export function rewardFor(period: 'today' | 'week' | 'area', rank: number): number | null {
-  if (period === 'area') return null;
-  const t = period === 'week' ? REWARDS.week : REWARDS.today;
-  return rank >= 1 && rank <= t.length ? t[rank - 1] : null;
-}
+export const sumBaht = (a: readonly number[]) => a.reduce((s, n) => s + n, 0);
 
 /**
  * Rings (LOCKED rules, founder 15 Nov 2026). Rings = a public weekly score, never money.
@@ -69,3 +44,19 @@ export function ringsRules(server?: Record<string, number> | null): RingsRules {
   for (const k of Object.keys(RINGS) as (keyof RingsRules)[]) if (server && typeof server[k] === 'number') out[k] = server[k];
   return out;
 }
+
+/**
+ * The weekly prize ladder, read from the rules (server kr8_rings_config over the defaults above): prize_1, prize_2 … while > 0.
+ * The ONE place the app gets "Top 8 · ฿4,400" from (audit P1-3, 16 Nov: the old Top 5 / ฿4,000 copy and the daily prizes are gone).
+ */
+export function weeklyLadder(r: Partial<RingsRules> = RINGS): number[] {
+  const out: number[] = [];
+  for (let k = 1; k <= 20; k++) {
+    const v = (r as Record<string, number | undefined>)[`prize_${k}`] ?? (RINGS as Record<string, number>)[`prize_${k}`];
+    if (!(typeof v === 'number' && v > 0)) break;
+    out.push(v);
+  }
+  return out;
+}
+export const weeklySeats = (r?: Partial<RingsRules>) => weeklyLadder(r).length;          // 8
+export const weeklyTotal = (r?: Partial<RingsRules>) => sumBaht(weeklyLadder(r));        // 4400

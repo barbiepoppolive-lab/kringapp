@@ -16,6 +16,20 @@ const SUPA_URL = ENV.VITE_SUPABASE_URL || 'https://pedxoxpammnyfnizljyj.supabase
 // Public publishable key (already shipped in v8Data); never a service key.
 const SUPA_KEY = ENV.VITE_SUPABASE_ANON_KEY || 'sb_publishable_SaAf7mILfPPpCeAEvj79bA_Vz8JnCBN';
 
+/**
+ * Admin Undo (audit P3-11): the last delayed tap is sent when the page closes. supabase-js cannot mark a request keepalive, so this
+ * posts the same RPC straight to PostgREST with keepalive: true (the browser finishes it even after the tab is gone).
+ */
+export async function v5RpcKeepalive(fn: string, args: Record<string, unknown>): Promise<void> {
+  const c = await v5Client();
+  const tok = (await c.auth.getSession()).data.session?.access_token;
+  await fetch(`${SUPA_URL.replace(/\/$/, '')}/rest/v1/rpc/${fn}`, {
+    method: 'POST', keepalive: true,
+    headers: { apikey: SUPA_KEY, Authorization: `Bearer ${tok || SUPA_KEY}`, 'content-type': 'application/json' },
+    body: JSON.stringify(args),
+  });
+}
+
 /** Areas the database accepts (kr8_area_ok). People and posts are shown by area only, never exact location. */
 export const V5_AREAS = ['Bangkok', 'Ari', 'Siam', 'Thonglor', 'Ekkamai', 'Phrom Phong', 'Sukhumvit', 'Silom', 'Sathorn', 'Bang Rak',
   'Riverside', 'Talad Noi', 'Yaowarat', 'Chinatown', 'Old Town', 'Ratchada', 'Chatuchak'] as const;
@@ -621,7 +635,7 @@ export const v5FollowList = (user: string, kind: 'followers' | 'following') => r
 export type V5TopPeriod = 'today' | 'week' | 'area';
 export interface V5TopRow { rank: number; reel_id: string; user_id: string; first_name: string; photo: string | null; area: string; body: string; venue_name: string | null; poster_path: string; points: number; prize: string | null; is_me: boolean | null }
 export const v5Top10 = (period: V5TopPeriod, area?: string | null) => rpc<V5TopRow[]>('kr8_top10', { p_period: period, p_area: area || null });
-export interface V5Activity { kind: 'follow' | 'like' | 'gift' | 'approved'; at: string; actor_id: string | null; actor_name: string | null; actor_photo: string | null;
+export interface V5Activity { kind: 'follow' | 'like' | 'gift' | 'approved' | 'hidden'; at: string; actor_id: string | null; actor_name: string | null; actor_photo: string | null;
   post_id: string | null; poster_path: string | null; n: number; rank: number | null; prize: string | null; i_follow: boolean | null }
 export const v5Activity = () => rpc<V5Activity[]>('kr8_my_activity', { p_limit: 50 });
 export const V5_INTERESTS = ['coffee', 'street_food', 'desserts', 'markets', 'running', 'yoga', 'film_photos', 'art', 'music', 'books',
@@ -639,7 +653,7 @@ export function v5ProfileLink(id: string): string {
 export interface V5Verification { status: 'pending' | 'approved' | 'rejected'; created_at: string; reviewed_at: string | null; reject_reason: string | null }
 export const v5MyVerification = async () => ((await rpc<V5Verification[]>('kr8_my_verification')) || [])[0] || null;
 /** Uploads the one selfie frame (private bucket, team-only) and sends the check results. */
-export async function v5RequestVerification(selfie: Blob, check: { straight: boolean; left: boolean; right: boolean; blink: boolean; match: number | null; device: string }, consent: string): Promise<string> {
+export async function v5RequestVerification(selfie: Blob, check: { straight: boolean; left: boolean; right: boolean; blink: boolean; blink_fallback?: boolean; match: number | null; device: string }, consent: string): Promise<string> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new V5Error('OFFLINE');
   const c = await v5Client();
   const { data } = await c.auth.getSession();
@@ -670,7 +684,8 @@ export const v5AcceptTerms = () => rpc<string>('kr8_accept_terms', { p_version: 
 export interface V5Blocked { user_id: string; first_name: string; photo: string | null; blocked_at: string }
 export const v5MyBlocks = () => rpc<V5Blocked[]>('kr8_my_blocks');
 export const v5Unblock = (user: string) => rpc<void>('kr8_unblock', { p_user: user });
-export async function v5DeleteMe(): Promise<void> {
+/** Deletes my card and content. An admin / staff / Kring Team sign-in is kept (audit P0-3): then keptSignIn is true. */
+export async function v5DeleteMe(): Promise<{ keptSignIn: boolean }> {
   // Reel videos + posters first (Storage API), then the account and everything linked to it
   try {
     const files = await rpc<string[]>('kr8_my_reel_files');
@@ -683,13 +698,22 @@ export async function v5DeleteMe(): Promise<void> {
   } catch {
     // never block deletion on file clean-up
   }
-  await rpc<void>('kr8_delete_me');
+  let keptSignIn = false;
+  try {
+    const r = await rpc<{ kept_sign_in?: boolean }>('kr8_delete_me2');
+    keptSignIn = r?.kept_sign_in === true;
+  } catch (e) {
+    // a database without 0070 yet: the old call (which deletes the whole sign-in)
+    if (v5ErrCode(e) !== 'UNKNOWN') throw e;
+    await rpc<void>('kr8_delete_me');
+  }
   await v5SignOut();
   try {
     for (const k of Object.keys(localStorage)) if (k.startsWith('kr8')) localStorage.removeItem(k);
   } catch {
     // ignore
   }
+  return { keptSignIn };
 }
 
 // ─────────────── photos ───────────────

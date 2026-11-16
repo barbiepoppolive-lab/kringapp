@@ -100,6 +100,8 @@ export function loadImage(src: string): Promise<HTMLImageElement> {
 export type LiveStep = 'straight' | 'left' | 'right' | 'blink' | 'done';
 export interface LiveState {
   step: LiveStep; straight: boolean; left: boolean; right: boolean; blink: boolean; openEar: number; frames: number; closed: boolean;
+  /** audit P2-5: the blink step passed on the 12-s fallback (no blink was seen). blink stays false so the team can tell. */
+  blinkFallback?: boolean;
   /** blink step: time of its first frame, straight-face frames seen, frames with the eyes shut */
   blinkAt: number; still: number; shut: number;
   /** blink step: shut frames in a row and when that run started (for the short "hold") */
@@ -158,8 +160,8 @@ export function liveNext(s: LiveState, f: FaceSample): LiveState {
         if (s.closed && f.ear <= open * EYE_OPEN) { /* half open: keep waiting, do not move the open level */ }
         else n.openEar = f.ear > open ? open * 0.6 + f.ear * 0.4 : open * 0.995 + f.ear * 0.005;   // rises fast, sinks very slowly
       }
-      // fallback: 12 s facing the camera without a clean shut → open; two shut frames still count as a blink
-      if (f.t !== undefined && n.blinkAt && f.t - n.blinkAt >= BLINK_FALLBACK_MS && n.still >= 4) Object.assign(n, { blink: true, step: 'done' as LiveStep });   // 16 Nov: a real, live face that faced the camera this long passes; the team still checks the selfie by eye (was blink = shut >= 2, which the server always rejected)
+      // fallback: 12 s facing the camera without a clean shut → moves on, but marked "no blink seen" (blink false, blinkFallback true)
+      if (f.t !== undefined && n.blinkAt && f.t - n.blinkAt >= BLINK_FALLBACK_MS && n.still >= 4) Object.assign(n, { blink: false, blinkFallback: true, step: 'done' as LiveStep });   // 16 Nov: a real, live face that faced the camera this long passes; the team still checks the selfie by eye (was blink = shut >= 2, which the server always rejected)
       return n;
     }
     default:

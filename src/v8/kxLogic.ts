@@ -49,7 +49,7 @@ export const tmPct = (R?: Partial<Pick<RingsRules, 'truemoney_payout_pct'>> | nu
   const n = Number(R?.truemoney_payout_pct ?? RINGS.truemoney_payout_pct);
   return Number.isFinite(n) ? Math.min(100, Math.max(1, Math.round(n))) : RINGS.truemoney_payout_pct;
 };
-/** What the member actually gets: TrueMoney keeps 25%, so ฿100 → ฿75. Grab and ShopeePay are full value. */
+/** What the member actually gets: TrueMoney is truemoney_payout_pct of the prize (75 → ฿100 gives ฿75). Grab and ShopeePay are full value. */
 export const valueFor = (brand: Brand, amount: number, pct: number = RINGS.truemoney_payout_pct) => (brand === 'truemoney' ? Math.floor((amount * pct) / 100) : amount);
 
 export interface Actor { id: string; who: 'local' | 'traveller'; cardDone: boolean }
@@ -181,7 +181,8 @@ export function rankGap(board: Pick<BoardRow, 'member' | 'rings' | 'rank'>[], me
 
 // ───────────── levels (lifetime Rings: 0 / 1,000 / 3,000 / 8,000 / 20,000) ─────────────
 export const LEVEL_AT = [0, 1000, 3000, 8000, 20000] as const;
-export const LEVEL_KEY = ['Local', 'Explorer', 'Local', 'Insider', 'Legend'] as const;
+/** audit P3-1: level 1 was "Local" for everyone (travellers too) and level 3 was "Local" again, so Explorer → Local read as a step down. */
+export const LEVEL_KEY = ['Newcomer', 'Explorer', 'Regular', 'Insider', 'Legend'] as const;
 export interface LevelInfo { n: number; key: string; next: number | null; nextKey: string | null; toNext: number; pct: number }
 export function levelFor(lifetime: number): LevelInfo {
   const r = Math.max(0, lifetime | 0);
@@ -268,3 +269,14 @@ export function parseMapsCoords(url: string): { lat: number; lng: number } | nul
 export const isMapsLink = (url: string) => /^https:\/\/([a-z0-9-]+\.)*(google\.[a-z.]+|goo\.gl|g\.co)\//i.test((url || '').trim());
 /** Name the member typed: trimmed, single spaces, 2–80 characters. */
 export const cleanPlaceName = (q: string) => q.replace(/\s+/g, ' ').trim().slice(0, 80);
+
+/** A team note on a hidden Reel is "Thai\nEnglish" (admin chips) or one typed line. Thai phones get the Thai line, others the English. */
+export function reviewNoteText(note: string | null | undefined, lang?: string): string {
+  const t = (note || '').trim();
+  if (!t) return '';
+  const parts = t.split('\n').map((x) => x.trim()).filter(Boolean);
+  if (parts.length < 2) return t;
+  let l = lang;
+  if (!l) { try { l = localStorage.getItem('kr8_lang') || 'en'; } catch { l = 'en'; } }
+  return l === 'th' ? parts[0] : parts[parts.length - 1];
+}

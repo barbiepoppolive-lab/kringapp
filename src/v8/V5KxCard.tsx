@@ -8,7 +8,7 @@ import './kx.css';
 import './go.css';
 import { checkProfilePhoto } from './v5Face';
 import { GenderChip, GenderRow, genderPayload, isGender, type Gender } from './V5Gender';
-import { kxSetGender } from './v5Kx';
+import { kxNotePhotoCheck, kxSetGender } from './v5Kx';
 import { LEVEL_KEY, levelFor, memberNo, parseHandle, socialUrl, type Social } from './kxLogic';
 import { kxSetTiktok } from './v5Kx';
 import { v5AcceptTerms, v5CompressImage, v5ErrCode, v5SaveCard, v5SetIgHandle, v5TakeLinePrefill, V5_AREAS, V5_LANGS, V5_TERMS_VERSION } from './v5Live';
@@ -182,6 +182,8 @@ export function V5MintSheet(props: {
   const [showGender, setShowGender] = useState<boolean>(isGender(card?.gender) && card?.show_gender === true);
   const [who, setWho] = useState<'local' | 'traveller'>(card?.who || 'local');
   const [photo, setPhoto] = useState<string | null>(null);
+  /** did the face check run on `photo`? 'error' = it could not (old phone, model failed to load): saved as unchecked for the admin */
+  const [photoVerdict, setPhotoVerdict] = useState<'ok' | 'error' | null>(null);
   const [checking, setChecking] = useState(false);
   const [photoMsg, setPhotoMsg] = useState(props.photoFix ? 'Kring is for real people. Add a photo where your face is clearly visible.' : '');
   const [ageOk, setAgeOk] = useState(false);
@@ -199,7 +201,7 @@ export function V5MintSheet(props: {
     if (pre.picture) v5CompressImage(pre.picture, 384, 110000).then(async (d) => {
       // the LINE picture is used only when it shows a clear face (many are helmets, pets or scenery)
       const v = await checkProfilePhoto(d);
-      if (v === 'ok' || v === 'error') setPhoto((p) => p || d);
+      if (v === 'ok' || v === 'error') { setPhoto((p) => p || d); setPhotoVerdict((x) => x || v); }
       else setPhotoMsg('Your LINE photo doesn’t show your face clearly. Add a photo of you.');
     }).catch(() => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -212,7 +214,7 @@ export function V5MintSheet(props: {
     try {
       const d = await v5CompressImage(f, 384, 110000);
       const v = await checkProfilePhoto(d);
-      if (v === 'ok' || v === 'error') { setPhoto(d); setPhotoMsg(''); setNotice(''); }
+      if (v === 'ok' || v === 'error') { setPhoto(d); setPhotoVerdict(v); setPhotoMsg(''); setNotice(''); }
       else setPhotoMsg(PHOTO_MSG[v]);
     } catch (e) { setNotice(errText(e)); } finally { setChecking(false); }
   };
@@ -237,6 +239,8 @@ export function V5MintSheet(props: {
     setBusy(true);
     try {
       const me = await v5SaveCard({ first_name: name.trim(), langs, bio: bio.trim(), area, who, photo, age_ok: ageOk });
+      // audit P1-1: tell the server whether the face check really ran on this photo (never blocks the save)
+      if (photo && photoVerdict) void kxNotePhotoCheck(photoVerdict === 'ok').catch(() => undefined);
       if (card?.terms_version !== V5_TERMS_VERSION) {
         const at = await v5AcceptTerms().catch(() => null);
         if (at && me.card) me.card = { ...me.card, terms_accepted_at: at, terms_version: V5_TERMS_VERSION };
@@ -374,8 +378,9 @@ export function V5MintSheet(props: {
         {notice && <p id="v5CardNotice" className="kx-err" role="status" aria-live="polite">{notice}</p>}
       </div>
       <div className="kx-cta">
-        <button type="button" className="kx-btn" id="v5SaveCard" disabled={busy} onClick={() => void save()}>
-          {busy ? L('Saving…') : isNew ? L('Mint my card') : L('Save my card')}
+        {/* audit P2-4: while the photo is being checked the button is greyed and says so (a tap used to be silently ignored) */}
+        <button type="button" className="kx-btn" id="v5SaveCard" disabled={busy || checking} aria-busy={checking || busy} onClick={() => void save()}>
+          {busy ? L('Saving…') : checking ? L('Checking photo…') : isNew ? L('Mint my card') : L('Save my card')}
         </button>
       </div>
       {link && <LinkSheet L={L} kind={link} value={link === 'ig' ? ig : tt} onSave={(h) => saveHandle(link, h)} onClose={() => setLink(null)} />}

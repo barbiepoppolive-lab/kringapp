@@ -71,7 +71,8 @@ export function EscapeScreen(props: { L: Tx; lang: string; liff: boolean; signed
       <div className="kesc-box">
         <span className="kpa-ic kesc-ic" aria-hidden="true"><i /><i /><b /></span>
         <h2><Two L={L} lang={lang} en="Open Kring in your phone’s browser" /></h2>
-        <p className="kesc-why"><Two L={L} lang={lang} en="For dings and one-tap sign-in" />{props.signedIn ? <> · <Two L={L} lang={lang} en="You stay signed in" /></> : null}</p>
+        {/* audit P3-7: Thai and English ran together ("…ในแตะเดียวFor dings"): each line is its own block now */}
+        <p className="kesc-why"><Two L={L} lang={lang} en="For dings and one-tap sign-in" />{props.signedIn ? <Two L={L} lang={lang} en="You stay signed in" /> : null}</p>
         <a className="kesc-go" id="escGo" href={plan.button.url} data-kind={plan.button.kind} onClick={go}><Two L={L} lang={lang} en={label} /></a>
         {plan.alt ? <a className="kesc-alt" id="escAlt" href={plan.alt}><Two L={L} lang={lang} en="Other browser" /></a> : null}
         <button type="button" className="kesc-stay" id="escStay" onClick={() => setShow(false)}><Two L={L} lang={lang} en="Stay here" /></button>

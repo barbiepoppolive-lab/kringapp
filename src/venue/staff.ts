@@ -36,6 +36,10 @@ const T = {
   needPin: ['ใส่ PIN 6 หลัก', 'Enter the 6-digit PIN'],
   needCode: ['ใส่โค้ดของลูกค้า', 'Enter the guest code'],
   network: ['เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง', 'Could not reach Kring. Try again.'],
+  // audit P3-10: this page is the OLD code check. Partner treats now use the live pass on the guest's phone.
+  livePass: ['ตอนนี้กริ๊ง!ใช้บัตรสดแล้ว ลูกค้ากด "ฉันอยู่ที่ร้าน" บนมือถือจะเห็นนาฬิกาเดินอยู่ พนักงานกด "ให้แล้ว" บนมือถือลูกค้าได้เลย ไม่ต้องใช้หน้านี้ครับ',
+    'Kring now uses a live pass: the guest taps "I’m here" and their phone shows a running clock. Staff tap "Given" on the guest’s phone. You don’t need this page.'],
+  oldCodes: ['หน้านี้ใช้กับโค้ดแบบเก่า (KR-…) เท่านั้น', 'This page is only for old KR-… codes.'],
 } as const satisfies Record<string, TxPair>;
 
 function errText(r: RedeemResult): TxPair {
@@ -88,8 +92,11 @@ function rememberPin(p: string) {
   pinTimer = window.setTimeout(() => { pinMemo = ''; }, 10 * 60 * 1000);
 }
 
-function header(): HTMLElement {
-  return el('h1', {}, el('span', { class: 'dot' }), tx(T.title));
+function header(): Node {
+  const f = document.createDocumentFragment();
+  f.append(el('h1', {}, el('span', { class: 'dot' }), tx(T.title)),
+    el('div', { class: 'card', id: 'livePassNote', style: 'border-color:#ffc44d' }, el('p', { class: 'note' }, tx(T.livePass)), el('p', { class: 'meta' }, tx(T.oldCodes))));
+  return f;
 }
 
 function askVenue(msg?: TxPair) {

@@ -147,7 +147,8 @@ export function RewardsPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewar
   );
 }
 
-/** Claim a prize: pick the app → one tap. Grab = full value, TrueMoney = 75% ("TrueMoney keeps 25%"). */
+/** Claim a prize: pick the app → one tap. Grab = full value, TrueMoney = truemoney_payout_pct of it (100% on live; a lower value would show as "N% of the prize value",
+ *  audit P2-6: the 25% is the loss on Kring's own top-up stock, not a TrueMoney fee, so the app no longer says "TrueMoney keeps 25%"). */
 export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards | null; prize: KxPrize | null; onBack: () => void; onDone: (r: KxClaimResult) => void; toast: (m: string) => void;
   /** preview harness only */ startStep?: 'pick' | 'face' | 'line'; faceDemo?: Parameters<typeof ClaimFace>[0]['demo'] }) {
   const { L, Lf, data, prize } = props;
@@ -238,7 +239,7 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
               <span className="rd" aria-hidden="true" />
               <BrandLogo b={b} />
               <span className="n"><span data-value={valueFor(b, amount, pct)}>{BRAND_NAME[b]} {baht(valueFor(b, amount, pct))}</span>
-                <small>{b === 'truemoney' && pct < 100 ? Lf('{0}% · TrueMoney keeps {1}%', String(pct), String(100 - pct)) : L('Full value')}</small></span>
+                <small>{b === 'truemoney' && pct < 100 ? Lf('{0}% of the prize value', String(pct)) : L('Full value')}</small></span>
             </button>
           </Fragment>
         ))}

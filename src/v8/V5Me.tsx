@@ -1,18 +1,17 @@
 /**
- * Me tab (LOCKED by the founder 10 Nov 01:28 IST): member card, Top 5 board, follow, activity, someone else's profile.
+ * Me tab (LOCKED by the founder 10 Nov 01:28 IST): member card, follow, activity, someone else's profile.
+ * (The old Top 5 board + its card pill were removed 16 Nov: the weekly board is the Ranking sheet, Top 8 from kr8_rings_config.)
  * Visual source: scratch/opus_venue/me_tab_locked_10nov/ (me_tab_locked.html, top10_sheet.html, follow_screens.html).
  * Calm luxe #0B0A12, hairlines, Bricolage light numbers, spaced caps. No yellow anywhere (monarchy rule).
  * One language per screen: every visible string goes through L().
  */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './me.css';
-import { v5RewardStart, V5_REWARD_START_FALLBACK } from './v5Live';
 import { PerksCard } from './V5Perks';
-import { DAILY_TOTAL, fmtBaht, rewardFor, WEEKLY_TOTAL } from './rewardsConfig';
-import type { V5Activity, V5FollowRow, V5Level, V5Profile, V5TopPeriod, V5TopRow } from './v5Live';
+import type { V5Activity, V5FollowRow, V5Level, V5Profile } from './v5Live';
 import { NeonCard, progLine, RingGlyph } from './V5KxCard';
 import { InstallChip } from './A2HS';
-import { fmtN, levelFor } from './kxLogic';
+import { fmtN, levelFor, reviewNoteText } from './kxLogic';
 import type { KxCardExtras } from './v5Kx';
 
 // ── pre-season (D-11NOV-G): the board ranks from day one; rewards start on kr8_settings.reward_start_at ──
@@ -22,13 +21,6 @@ export function fmtRewardDay(start: number, lang: string): string {
   return new Intl.DateTimeFormat(LOCALE[lang] || 'en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Bangkok' }).format(start);
 }
 export const rewardsOpen = (start: number, now = Date.now()) => now >= start;
-function uiLang(): string { try { return localStorage.getItem('kr8_lang') || 'en'; } catch { return 'en'; } }
-function useRewardStart(): number {
-  const [t, setT] = useState(V5_REWARD_START_FALLBACK);
-  useEffect(() => { let dead = false; void v5RewardStart().then((v) => { if (!dead) setT(v); }); return () => { dead = true; }; }, []);
-  return t;
-}
-
 type Tx = (en: string) => string;
 type Txf = (en: string, a: string, b?: string) => string;
 
@@ -64,34 +56,6 @@ function Avatar({ photo, name, size }: { photo: string | null; name: string; siz
     <span className="kme-av" style={{ backgroundImage: `url('${photo}')`, width: size, height: size }} />
   ) : (
     <span className="kme-av kme-av-i" style={{ width: size, height: size }}>{initial(name)}</span>
-  );
-}
-
-/** The member card: level colour, photo with comet lights + gyroscope rings, spinning Kring rings, shine, Top 5 pill. */
-export function MemberCard(props: { L: Tx; Lf: Txf; p: V5Profile; rank: number | null; onTop10: () => void }) {
-  const { L, Lf, p } = props;
-  const langs = (p.langs || []).slice(0, 3).map((c) => L(LANG_NAME[c] || c)).join(' · ');
-  const where = p.who === 'local' ? Lf('Lives in {0}', L(p.area === 'Bangkok' ? 'Bangkok' : p.area)) : L(p.area === 'Bangkok' ? 'Bangkok' : p.area);
-  return (
-    <div className={`kme-card lvl-${p.level.level}`} data-level={p.level.level} id={p.mine ? 'meCard' : 'profileCard'}>
-      <span className="kme-shine" />
-      <span className="kme-kmark" aria-hidden="true"><i /><i /></span>
-      <span className="kme-avw" aria-hidden="true">
-        <span className="cm b" /><span className="cm p" /><span className="gy b" /><span className="gy p" />
-        <span className="av" style={p.photo ? { backgroundImage: `url('${p.photo}')` } : undefined}>{p.photo ? '' : initial(p.first_name)}</span>
-      </span>
-      <div className="kme-tier">
-        <span className="cap">{L(LEVEL_NAME[p.level.level])}{p.verified ? ` · ✓ ${L('verified')}` : ''}</span>
-        <small>{langs}{langs ? ' · ' : ''}{where}</small>
-      </div>
-      <div className="kme-nm">{p.first_name}</div>
-      <button type="button" className="kme-rk" id="top10Pill" onClick={props.onTop10}>
-        <span className="tr" aria-hidden="true">🏆</span>
-        {props.rank ? <b>{Lf('#{0} today', String(props.rank))}</b> : null}
-        <span className="dim">{props.rank ? ' · ' : ''}{L('Top 5')} ›</span>
-      </button>
-      <span className="kme-kr">{p.member_no}</span>
-    </div>
   );
 }
 
@@ -148,20 +112,20 @@ export function FoundingChecklist(props: { L: Tx; Lf: Txf; kx: KxCardExtras | nu
   // polish #4: one "Next step" card: only the next thing to do; gone when everything is done
   if (kx.has_reel || (!open && kx.has_reel)) return null;
   const amt = `฿${fmtN(kx.founding_thb ?? 100)}`;
-  const done = 1 + (props.hasSocial ? 1 : 0);
+  // audit P3-13: the server pays Founding Local for the first APPROVED Reel (rules page §4). Instagram / TikTok is not a step,
+  // so it shows as an optional link, never as "step 2". Steps: 1 card ✓ · 2 post a Reel at a place · 3 Kring approves it.
   return (
-    <div className="kx-fc kx-next" id="kxFounding" data-left={kx.founding_left ?? 0} data-step={props.hasSocial ? 3 : 2}>
+    <div className="kx-fc kx-next" id="kxFounding" data-left={kx.founding_left ?? 0} data-step={2}>
       <div className="h"><b>{open ? `${L('Founding Local')} · ${amt}` : L('3 steps to the board')}</b>{open ? <span id="kxFoundingLeft">{Lf('{0} of {1} spots left', String(kx.founding_left), '50')}</span> : null}</div>
-      <div className="bar"><i style={{ width: `${(done / 3) * 100}%` }} /></div>
-      <div className="kx-next-l">{L('Next step')} · {Lf('{0} of {1}', String(done + 1), '3')}</div>
+      <div className="bar"><i style={{ width: `${(1 / 3) * 100}%` }} /></div>
+      <div className="kx-next-l">{L('Next step')} · {Lf('{0} of {1}', '2', '3')}</div>
+      <button type="button" className="st go" id="kxFoundingPost" onClick={props.onPost}>
+        <i>2</i><span>{L('Post your first Reel at a place')}</span>{open ? <em>{amt}</em> : null}
+      </button>
+      {open ? <p className="kx-next-l" id="kxFoundingPaid">{L('Yours when Kring approves your Reel')}</p> : null}
       {!props.hasSocial ? (
-        <div className="st"><i>2</i><span>{L('Add Instagram or TikTok')}</span>
-          <button type="button" className="kx-go" id="kxFoundingAdd" onClick={props.onLink}>{L('Add')}</button></div>
-      ) : (
-        <button type="button" className="st go" id="kxFoundingPost" onClick={props.onPost}>
-          <i>3</i><span>{L('Post your first Reel at a place')}</span>{open ? <em>{amt}</em> : null}
-        </button>
-      )}
+        <button type="button" className="kx-go" id="kxFoundingAdd" onClick={props.onLink} style={{ marginTop: 6 }}>{L('Optional: add Instagram or TikTok')}</button>
+      ) : null}
     </div>
   );
 }
@@ -323,85 +287,6 @@ export function ProfileView(props: {
   );
 }
 
-/** 🏆 Locals board (Top 5): Today / This week / My area, 3D podium, rows 4–5 (+ my own row) slide in, countdown to midnight Bangkok (D-10NOV-G). */
-export function Top10Sheet(props: { L: Tx; Lf: Txf; load: (p: V5TopPeriod) => Promise<V5TopRow[]>; myArea: string; onClose: () => void; onPerson: (id: string) => void }) {
-  const rewardStart = useRewardStart();
-  const { L, Lf } = props;
-  const [period, setPeriod] = useState<V5TopPeriod>('today');
-  const [rows, setRows] = useState<V5TopRow[] | null>(null);
-  const [clock, setClock] = useState(untilWinners());
-  useEffect(() => {
-    let dead = false;
-    setRows(null);
-    props.load(period).then((r) => { if (!dead) setRows(r || []); }).catch(() => { if (!dead) setRows([]); });
-    return () => { dead = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [period]);
-  useEffect(() => { const id = window.setInterval(() => setClock(untilWinners()), 30000); return () => window.clearInterval(id); }, []);
-  const pod = useMemo(() => [rows?.[1], rows?.[0], rows?.[2]], [rows]);
-  const title = period === 'week' ? L('Top 5 this week') : period === 'area' ? Lf('Top 5 in {0} today', L(props.myArea)) : L('Top 5 today');
-  return (
-    <div className="v8-sheet kme-sheet" id="sh-top10">
-      <div className="grab" />
-      <div className="kme-ttl">
-        <b>🏆 {title}</b>
-        <span>{period === 'week' ? L('Closes Sunday 23:59') : Lf('Closes at midnight · {0}', clock)}</span>
-        <button type="button" className="xbtn" aria-label="Close" onClick={props.onClose}>✕</button>
-      </div>
-      <div className="kme-prize" id="top10Prize">
-        <span className="pre">{L('Up to')}</span>
-        <span className="amt">฿4,000</span>
-        <span className="t">{L('in rewards every week')}<small>{rewardsOpen(rewardStart) ? L('Shared across the Top 5') : Lf('Rewards start {0}', fmtRewardDay(rewardStart, uiLang()))}</small></span>
-      </div>
-      <div className="kme-seg" role="tablist">
-        {(['today', 'week', 'area'] as V5TopPeriod[]).map((k) => (
-          <button type="button" role="tab" key={k} id={`top10-${k}`} aria-selected={period === k} className={period === k ? 'on' : ''} onClick={() => setPeriod(k)}>
-            {k === 'today' ? L('Today') : k === 'week' ? L('This week') : L('My area')}
-          </button>
-        ))}
-      </div>
-      {period !== 'area' && (
-        <div className="kme-ladder" id="top10Ladder" data-period={period}>
-          {[1, 2, 3, 4, 5].map((k) => (
-            <span key={k} className={`lr r${k}`} data-rank={k}><i>#{k}</i><b>{fmtBaht(rewardFor(period, k) as number)}</b></span>
-          ))}
-          <span className="tot">{period === 'week' ? Lf('{0} a week · closes Sunday 23:59', fmtBaht(WEEKLY_TOTAL)) : Lf('{0} a day · closes at midnight', fmtBaht(DAILY_TOTAL))}</span>
-        </div>
-      )}
-      {rows === null ? <p className="kme-empty">…</p> : rows.length === 0 ? (
-        <p className="kme-empty" id="top10Empty">{L('No Reels yet. Post one and be #1.')}</p>
-      ) : (
-        <>
-          <div className="kme-pod">
-            {pod.map((r, i) => r ? (
-              <button type="button" key={r.reel_id} className={`pd r${r.rank}`} data-rank={r.rank} onClick={() => props.onPerson(r.user_id)}>
-                <Avatar photo={r.photo} name={r.first_name} />
-                <span className="n">{r.is_me ? L('You') : r.first_name}</span>
-                <span className="s">{Lf('{0} pts', String(r.points))}</span>
-                {rewardFor(period, r.rank) !== null ? <span className="am" data-reward={rewardFor(period, r.rank)}>{fmtBaht(rewardFor(period, r.rank) as number)}</span> : null}
-                <span className="blk">{r.rank}</span>
-              </button>
-            ) : <span key={`e${i}`} className="pd empty" />)}
-          </div>
-          <div className="kme-list">
-            {rows.filter((r) => r.rank > 3 && (r.rank <= 5 || r.is_me)).map((r, i) => (
-              <button type="button" key={r.reel_id} className={`li${r.is_me ? ' me' : ''}`} data-rank={r.rank} style={{ animationDelay: `${0.08 * (i + 1)}s` }} onClick={() => props.onPerson(r.user_id)}>
-                <span className="r">{r.rank}</span>
-                <Avatar photo={r.photo} name={r.first_name} size={36} />
-                <span className="n">{r.is_me ? `${L('You')} · ${r.first_name}` : r.first_name}<small>{[r.venue_name || r.body, L(r.area)].filter(Boolean).join(' · ')}</small></span>
-                <span className="p">{r.points}</span>
-                {rewardFor(period, r.rank) !== null && r.rank <= 5 ? <span className="am" data-reward={rewardFor(period, r.rank)}>{fmtBaht(rewardFor(period, r.rank) as number)}</span> : null}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-      <p className="kme-voucher" id="top10Voucher"><span aria-hidden="true">🎟</span>{L('Paid as TrueMoney / Starbucks / Grab vouchers')}</p>
-      <p className="kme-rule">{L('Ranked on merit.')} {L('Points = likes + 2 × saves + 3 × shares + views ÷ 10. Your own likes never count.')} <a id="top10Rules" href="/rules/" target="_blank" rel="noopener">{L('Rules')} ›</a></p>
-    </div>
-  );
-}
-
 /** Followers / Following lists */
 export function FollowSheet(props: { L: Tx; Lf: Txf; who: string; counts: [number, number]; initial: 'followers' | 'following';
   load: (k: 'followers' | 'following') => Promise<V5FollowRow[]>; onToggle: (r: V5FollowRow) => Promise<boolean>; onPerson: (id: string) => void; onClose: () => void }) {
@@ -424,7 +309,7 @@ export function FollowSheet(props: { L: Tx; Lf: Txf; who: string; counts: [numbe
       <div className="grab" />
       <div className="kme-ttl"><b>{props.who}</b><button type="button" className="xbtn" aria-label="Close" onClick={props.onClose}>✕</button></div>
       <div className="kme-tabs2">
-        <button type="button" id="followTabFollowers" className={kind === 'followers' ? 'on' : ''} onClick={() => setKind('followers')}>{Lf('{0} followers', fmtCount(props.counts[0]))}</button>
+        <button type="button" id="followTabFollowers" className={kind === 'followers' ? 'on' : ''} onClick={() => setKind('followers')}>{props.counts[0] === 1 ? L('1 follower') : Lf('{0} followers', fmtCount(props.counts[0]))}</button>
         <button type="button" id="followTabFollowing" className={kind === 'following' ? 'on' : ''} onClick={() => setKind('following')}>{Lf('{0} following', fmtCount(props.counts[1]))}</button>
       </div>
       {rows === null ? <p className="kme-empty">…</p> : rows.length === 0 ? <p className="kme-empty" id="followEmpty">{kind === 'followers' ? L('No followers yet') : L('Not following anyone yet')}</p> : (
@@ -467,19 +352,21 @@ export function ActivitySheet(props: { L: Tx; Lf: Txf; rows: V5Activity[] | null
   const today = bkkDayOf(new Date().toISOString());
   const rows = props.rows || [];
   const unread = rows.some((a) => !seen || a.at > seen);
-  const open = (a: V5Activity) => (a.post_id && a.kind !== 'follow' ? props.onReel(a.post_id) : a.actor_id ? props.onPerson(a.actor_id) : undefined);
+  const open = (a: V5Activity) => (a.kind === 'hidden' ? undefined : a.post_id && a.kind !== 'follow' ? props.onReel(a.post_id) : a.actor_id ? props.onPerson(a.actor_id) : undefined);
   const row = (a: V5Activity, i: number) => {
     const thumb = a.poster_path && props.posters[a.poster_path];
     const text = a.kind === 'follow' ? Lf('{0} started following you', a.actor_name || '')
       : a.kind === 'like' ? (a.n > 1 ? Lf('{0} and {1} others liked your Reel', a.actor_name || '', String(a.n - 1)) : Lf('{0} liked your Reel', a.actor_name || ''))
       : a.kind === 'gift' ? Lf('Your Reel is #{0} · {1}', String(a.rank || ''), a.prize || '')
+      // audit P2-3: hidden by the team, with the reason (the prize column carries it)
+      : a.kind === 'hidden' ? [L('Your Reel was hidden'), reviewNoteText(a.prize)].filter(Boolean).join(' · ')
       : L('Your Reel is approved and live');
     const isNew = !seen || a.at > seen;
     return (
       <div className={`li${isNew ? ' new' : ''}`} key={`${a.kind}-${a.at}-${i}`} data-activity={a.kind}>
         {a.kind === 'follow' || a.kind === 'like' ? (
           <button type="button" className="av" aria-label={a.actor_name || ''} onClick={() => a.actor_id && props.onPerson(a.actor_id)}><Avatar photo={a.actor_photo} name={a.actor_name || '?'} size={44} /></button>
-        ) : <span className="kme-av kme-av-i" style={{ width: 44, height: 44 }}>{a.kind === 'gift' ? '🏆' : '✓'}</span>}
+        ) : <span className="kme-av kme-av-i" style={{ width: 44, height: 44 }}>{a.kind === 'gift' ? '🏆' : a.kind === 'hidden' ? '!' : '✓'}</span>}
         <button type="button" className="who" onClick={() => open(a)}>
           <span className="n">{text}<small>{ago(L, Lf, a.at)}</small></span>
         </button>

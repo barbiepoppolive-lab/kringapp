@@ -110,7 +110,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; onClose: () 
         match = null;
       }
       stop();
-      await v5RequestVerification(selfie, { straight: state.straight, left: state.left, right: state.right, blink: state.blink, match,
+      await v5RequestVerification(selfie, { straight: state.straight, left: state.left, right: state.right, blink: state.blink, blink_fallback: !!state.blinkFallback, match,
         device: (navigator.userAgent.match(/iPhone|iPad|Android|Mac|Windows|Linux/) || ['other'])[0] }, FACE_CONSENT_VERSION);
       await v5SaveFacePrint(print);   // never throws; the admin page also prints every selfie
       setStage('done');
