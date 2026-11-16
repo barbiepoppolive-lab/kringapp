@@ -4,6 +4,8 @@
  * <video> element cannot draw a frame, and runs much faster than real time (no playback).
  * Output: MP4 H.264 720×1280 (cover crop) ~1.3 Mbit/s + AAC 96 kbit/s; if this browser has no H.264/AAC encoder,
  * WebM VP9/VP8 + Opus (the bucket takes mp4, mov and webm). Returns null when it cannot do the job, so the caller falls back.
+ * Trim (16 Nov): transcodeReel can cut one part of a long clip (Conversion `trim`); thumbsOf draws the trim strip's pictures
+ * for clips the <video> element cannot draw.
  */
 import {
   ALL_FORMATS, BlobSource, BufferSource, BufferTarget, CanvasSink, Conversion, Input, Mp4OutputFormat, Output, WebMOutputFormat,
@@ -53,7 +55,8 @@ async function pickCodecs(withAudio: boolean, bps: number): Promise<{ fmt: 'mp4'
   return null;
 }
 
-export async function transcodeReel(file: Blob, bps: number, onProgress: (p: number) => void): Promise<Transcoded | null> {
+/** trim (16 Nov): only that part of the file (seconds in the file) is decoded and written; the output starts at 0. */
+export async function transcodeReel(file: Blob, bps: number, onProgress: (p: number) => void, trim?: { startSec: number; endSec: number }): Promise<Transcoded | null> {
   if (typeof VideoEncoder === 'undefined' || typeof VideoDecoder === 'undefined') return null;
   const input = open(file);
   const video = await decodableTrack(input);
@@ -68,6 +71,7 @@ export async function transcodeReel(file: Blob, bps: number, onProgress: (p: num
   });
   const conv = await Conversion.init({
     input, output, showWarnings: false,
+    ...(trim ? { trim: { start: trim.startSec, end: trim.endSec } } : {}),
     video: { width: W, height: H, fit: 'cover', codec: c.v, bitrate: bps, keyFrameInterval: 2, forceTranscode: true, allowRotationMetadata: false },
     audio: withAudio ? { codec: c.a, bitrate: 96_000, numberOfChannels: 2, forceTranscode: true } : { discard: true },
   });
@@ -77,9 +81,31 @@ export async function transcodeReel(file: Blob, bps: number, onProgress: (p: num
   await conv.execute();
   const buf = (output.target as BufferTarget).buffer;
   if (!buf) return null;
-  // the result must be as long as the original: read the written file back
+  // the result must be as long as the original (trimmed: as the chosen part): read the written file back
   const check = new Input({ source: new BufferSource(buf), formats: ALL_FORMATS });
   const durationMs = Math.round((await check.computeDuration()) * 1000);
   const mime = c.fmt === 'mp4' ? 'video/mp4' : 'video/webm';
   return { blob: new Blob([buf], { type: mime }), mime, ext: c.fmt, durationMs, hasAudio: withAudio };
+}
+
+/** Small pictures for the trim strip at the given times (ms), via WebCodecs. Missing ones are null. */
+export async function thumbsOf(file: Blob, timesMs: number[], w: number, h: number): Promise<(Blob | null)[]> {
+  const out: (Blob | null)[] = timesMs.map(() => null);
+  try {
+    const v = await decodableTrack(open(file));
+    if (!v) return out;
+    const sink = new CanvasSink(v, { width: w, height: h, fit: 'cover', poolSize: 1 });
+    const start = await v.getFirstTimestamp();
+    let i = 0;
+    for await (const got of sink.canvasesAtTimestamps(timesMs.map((t) => start + t / 1000))) {
+      if (got) out[i] = await jpeg(got.canvas);
+      i++;
+    }
+  } catch { /* keep what we have */ }
+  return out;
+}
+
+/** Length of a finished file (ms), read through all its packets: right for fragmented MP4 from MediaRecorder too. 0 = unknown. */
+export async function blobDurationMs(b: Blob): Promise<number> {
+  try { return Math.round((await open(b).computeDuration()) * 1000); } catch { return 0; }
 }

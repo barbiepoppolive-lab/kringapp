@@ -406,5 +406,13 @@ const T: Record<string, string> = {
     'See ideas': '아이디어 보기',
     'Find a spot': '장소 찾기',
     'Kring may earn a small commission. It never changes your price.': 'Kring이 소액의 수수료를 받을 수 있지만 가격은 절대 바뀌지 않아요.',
+    // Reel trim step (16 Nov)
+    'Trim your clip': '클립 자르기',
+    'Use this part': '이 구간 사용',
+    'Drag to pick up to 60 s': '드래그해서 최대 60초 선택',
+    'Start of the part': '시작 지점',
+    'End of the part': '끝 지점',
+    'Clip is over 10 minutes · pick a shorter one': '클립이 10분을 넘어요 · 더 짧은 클립을 골라 주세요',
+    'This phone couldn’t cut this clip, so nothing was uploaded. Pick a clip of 60 s or less, or open Kring in Chrome or Safari.': '이 폰에서는 이 클립을 자를 수 없어 아무것도 업로드되지 않았어요. 60초 이하 클립을 고르거나 Chrome 또는 Safari에서 Kring을 열어 주세요.',
   };
 export default T;

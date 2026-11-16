@@ -407,6 +407,14 @@ export const V5_L: Record<string, Record<string, string>> = {
     'See ideas': 'ดูไอเดีย',
     'Find a spot': 'หาที่ฝาก',
     'Kring may earn a small commission. It never changes your price.': 'กริ๊ง! อาจได้รับค่าคอมมิชชันเล็กน้อย ราคาของคุณไม่เปลี่ยน',
+    // Reel trim step (16 Nov)
+    'Trim your clip': 'ตัดคลิป',
+    'Use this part': 'ใช้ช่วงนี้',
+    'Drag to pick up to 60 s': 'ลากเลือกช่วงที่ชอบ ไม่เกิน 60 วินาที',
+    'Start of the part': 'จุดเริ่มต้น',
+    'End of the part': 'จุดสิ้นสุด',
+    'Clip is over 10 minutes · pick a shorter one': 'คลิปยาวเกิน 10 นาที · เลือกคลิปที่สั้นกว่านี้',
+    'This phone couldn’t cut this clip, so nothing was uploaded. Pick a clip of 60 s or less, or open Kring in Chrome or Safari.': 'เครื่องนี้ตัดคลิปนี้ไม่ได้ เลยยังไม่ได้อัปโหลดอะไร · เลือกคลิปที่ยาวไม่เกิน 60 วินาที หรือเปิดกริ๊ง!ใน Chrome หรือ Safari',
   },
   // zh, hi, ja, ko: separate files, downloaded only when that language is chosen (loadV5Lang below)
 };

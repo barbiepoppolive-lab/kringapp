@@ -125,7 +125,9 @@ import { installZoomGuard } from './zoomGuard';
 import { installKeyboardFocus } from './keyboardFocus';
 import { clearSignInDraft, loadSignInDraft, saveSignInDraft } from './signInDraft';
 import { installVersionWatch } from './appVersion';
-import { checkReel, createReel, makeAudio, prepareReel, ReelError, uploadReel, type ReelInfo, type ReelReady, type UploadedReel } from './v5Reel';
+import { applyTrim, checkReel, createReel, makeAudio, prepareReel, ReelError, uploadReel, type ReelInfo, type ReelReady, type UploadedReel } from './v5Reel';
+import { GoTrim, WindowVideo } from './V5Trim';
+import { clock } from './reelTrim';
 
 const V9_L: Record<string, Record<string, string>> = {
   th: {
@@ -1298,6 +1300,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [postPhotoUrl, setPostPhotoUrl] = useState<string>('');
   // Reels (0024): picked file, problems, upload stage + progress, and what already landed (for Retry)
   const [reelInfo, setReelInfo] = useState<ReelInfo | null>(null);
+  const [reelTrim, setReelTrim] = useState<ReelInfo | null>(null);   // 16 Nov: a clip over 60 s waiting on the trim step
   const [reelProblem, setReelProblem] = useState<string>('');
   const [reelStage, setReelStage] = useState<'idle' | 'preparing' | 'uploading' | 'saving' | 'failed'>('idle');
   busyRef.current = ['preparing', 'uploading', 'saving'].includes(reelStage) || sheet !== null;   // J1: never reload mid-upload / claim / chat
@@ -1632,7 +1635,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         setHiError('');
         setSheet('hi');
       } else if (d.kind === 'reel') {
-        if (got.video) { try { setReelInfo(await checkReel(got.video)); } catch { /* the member picks the clip again */ } }
+        if (got.video) { try { acceptReelRef.current(await checkReel(got.video)); } catch { /* the member picks the clip again */ } }
         setPostCaption(d.caption || '');
         if (d.places?.length) setPostPlaces(d.places);
         if (d.area) setPostArea(d.area);
@@ -2842,7 +2845,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     const both = (en: string) => (lang === 'th' && L(en) !== en ? `${L(en)}\n${en}` : L(en));
     switch (code) {
       case 'TOO_SHORT': return L('Reel is too short · 5–60 seconds');
-      case 'TOO_LONG': return both('Clip is over 60 s · trim it and try again');
+      case 'TOO_LONG': return both('Clip is over 10 minutes · pick a shorter one');
+      // trim (16 Nov): neither WebCodecs nor the re-record could cut the part on this phone; the long file is never uploaded
+      case 'TRIM_FAIL': return both('This phone couldn’t cut this clip, so nothing was uploaded. Pick a clip of 60 s or less, or open Kring in Chrome or Safari.');
       case 'INTERRUPTED': return both('The screen closed while your Reel was being prepared, so nothing was uploaded. Tap Post again and keep this screen open.');
       case 'EMPTY': return both('This file is empty (0 KB). Save the clip to your phone first, then pick it again.');
       case 'HEVC': return both('This clip is HEVC (High efficiency video), which this browser can’t open. Fix: Camera settings → turn off “High efficiency video” and film again, or send the clip to yourself in LINE and pick that copy.');
@@ -2855,19 +2860,50 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       default: return both('This browser can’t open this clip. Fix: save it to your phone first (not only in the cloud), or send it to yourself in LINE and pick that copy.');
     }
   };
+  const showReelPoster = (info: ReelInfo) => {
+    // 16 Nov: a clip the phone's <video> cannot draw (4K / HEVC) showed a black preview; show the WebCodecs-decoded frame
+    void import('./v5Reel').then((m) => m.previewPoster(info)).then((u) => { if (u) setReelPreviewPoster((old) => { if (old) URL.revokeObjectURL(old); return u; }); }).catch(() => undefined);
+  };
+  /** A checked clip: over 60 s goes to the trim step first (16 Nov), otherwise straight to compose (unchanged). */
+  const acceptReel = (info: ReelInfo) => {
+    if (info.needsTrim) {
+      setReelTrim(info);
+      v5LogClient('reel_trim', 'open', `${Math.round(info.durationMs / 1000)}s ${Math.round(info.file.size / 1e5) / 10}MB ${info.decodable === false ? 'nodecode' : ''} ${/; wv\)/.test(navigator.userAgent) ? 'inapp' : ''}`.trim());
+      if (info.decodable === false) showReelPoster(info);
+      return;
+    }
+    setReelInfo(info);
+    showReelPoster(info);
+  };
+  const acceptReelRef = useRef(acceptReel);
+  acceptReelRef.current = acceptReel;
+  const chooseTrim = (w: { startMs: number; endMs: number }) => {
+    if (!reelTrim) return;
+    const info = applyTrim(reelTrim, w);
+    v5LogClient('reel_trim', 'done', `${clock(w.startMs)}-${clock(w.endMs)} of ${clock(reelTrim.durationMs)}`);
+    setReelTrim(null);
+    setReelPreviewPoster((old) => { if (old) URL.revokeObjectURL(old); return ''; });
+    setReelInfo(info);
+    showReelPoster(info);
+  };
+  const leaveTrim = () => {
+    v5LogClient('reel_trim', 'back');
+    if (reelTrim) URL.revokeObjectURL(reelTrim.url);
+    setReelTrim(null);
+    setReelPreviewPoster((old) => { if (old) URL.revokeObjectURL(old); return ''; });
+  };
   const pickReel = async (file: File | undefined) => {
     setReelProblem('');
     setReelStage('idle');
     reelWorkRef.current = {};
     if (reelInfo) URL.revokeObjectURL(reelInfo.url);
     setReelInfo(null);
+    if (reelTrim) URL.revokeObjectURL(reelTrim.url);
+    setReelTrim(null);
     setReelPreviewPoster((old) => { if (old) URL.revokeObjectURL(old); return ''; });
     if (!file) return;
     try {
-      const info = await checkReel(file);
-      setReelInfo(info);
-      // 16 Nov: a clip the phone's <video> cannot draw (4K / HEVC) showed a black preview; show the WebCodecs-decoded frame
-      void import('./v5Reel').then((m) => m.previewPoster(info)).then((u) => { if (u) setReelPreviewPoster(u); }).catch(() => undefined);
+      acceptReel(await checkReel(file));
     } catch (e) {
       setReelProblem(reelProblemText(e instanceof ReelError ? e.code : 'UNREADABLE'));
       v5LogClient('reel_pick_fail', e instanceof ReelError ? e.code : 'UNREADABLE', `${file.type || '?'} ${Math.round(file.size / 1e5) / 10}MB`);
@@ -2910,6 +2946,16 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       a2hsFirstValue('reel');
       v5Feed().then(setFeedItems).catch(() => undefined);
     } catch (e) {
+      if (e instanceof ReelError && e.code === 'TRIM_FAIL') {
+        // nothing was uploaded; back to "Pick a clip" with the Thai + English message (caption, place and tags are kept)
+        v5LogClient('reel_trim', `fail:${e.why || 'none'}`, `${reelInfo.file.type || '?'} ${Math.round(reelInfo.file.size / 1e5) / 10}MB ${Math.round((reelInfo.fullMs || 0) / 1000)}s ${/; wv\)/.test(navigator.userAgent) ? 'inapp' : ''}`);
+        URL.revokeObjectURL(reelInfo.url);
+        setReelInfo(null);
+        reelWorkRef.current = {};
+        setReelStage('idle');
+        setReelProblem(reelProblemText('TRIM_FAIL'));
+        return;
+      }
       setReelStage('failed');
       setReelProblem(e instanceof ReelError ? reelProblemText(e.code) : v5Msg(e));
       v5LogClient('reel_publish_fail', e instanceof ReelError ? `${e.code}${e.status !== undefined ? ':' + e.status : ''}` : ((e as { code?: string })?.code || (e as Error)?.message || 'UNKNOWN'),
@@ -5091,6 +5137,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onRemovePlace={(id) => setPostPlaces((prev) => prev.filter((x) => x.id !== id))}
             people={postPeople} onPeople={setPostPeople} onPick={(f) => void pickReel(f)} onPost={handlePublishPost} onClose={() => setSheet(null)} />
         )}
+        {sheet === 'post' && live && reelTrim && (
+          <GoTrim L={L} lang={lang} reel={reelTrim} poster={reelPreviewPoster} onUse={chooseTrim} onBack={leaveTrim} />
+        )}
         {sheet === 'post' && !(live && !postEventId) && (
           <div className="v8-sheet" id="sh-post">
             <div className="grab" />
@@ -5107,7 +5156,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             {live && (
               <div className={`post-preview reel-pick ${reelInfo ? '' : 'empty'}`} id="reelPreview"
                 style={reelInfo ? undefined : { background: 'rgba(255,247,236,0.06)', border: '1.5px dashed rgba(255,247,236,0.28)' }}>
-                {reelInfo ? <video className="reel-preview-video" src={reelInfo.url} poster={reelPreviewPoster || undefined} muted loop playsInline autoPlay /> : null}
+                {reelInfo ? <WindowVideo className="reel-preview-video" src={reelInfo.url} win={reelInfo.trim} poster={reelPreviewPoster || undefined} /> : null}
                 <label id="addReelPicker" className={`reel-add ${reelInfo ? 'small' : ''}`}>
                   {reelInfo ? L('Change Reel') : L('＋ Add a Reel')}
                   <input

@@ -77,9 +77,15 @@ describe('checkReel never blocks a valid clip', () => {
     expect(await code(fx('h264_25s.mov', 'video/quicktime'))).toBe('OK');
     expect(await code(fx('h264_25s.mp4', 'video/3gpp', 'clip.3gp'))).toBe('OK');
   });
-  it('45 s is fine now; 65 s gets the trim message; 3 s is too short', async () => {
+  it('45 s is fine; 65 s and 10 min open the trim step (no TOO_LONG); over 10 min is too long; 3 s is too short', async () => {
     expect(await code(fx('h264_45s.mp4'))).toBe('OK');
-    expect(await code(fx('h264_65s.mp4'))).toBe('TOO_LONG');
+    expect((await checkReel(fx('h264_45s.mp4'))).needsTrim).toBeFalsy();
+    for (const f of ['h264_65s.mp4', 'h264_600s.mp4']) {
+      const r = await checkReel(fx(f));
+      expect(r.needsTrim, f).toBe(true);
+      expect(r.fullMs, f).toBe(r.durationMs);
+    }
+    expect(await code(fx('h264_660s.mp4'))).toBe('TOO_LONG');
     expect(await code(fx('h264_3s.mp4'))).toBe('TOO_SHORT');
   });
   it('a portrait phone clip stored landscape + rotation flag counts as vertical', async () => {

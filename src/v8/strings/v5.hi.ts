@@ -406,5 +406,13 @@ const T: Record<string, string> = {
     'See ideas': 'आइडिया देखें',
     'Find a spot': 'जगह ढूँढें',
     'Kring may earn a small commission. It never changes your price.': 'Kring को थोड़ा कमीशन मिल सकता है। आपकी कीमत कभी नहीं बदलती।',
+    // Reel trim step (16 Nov)
+    'Trim your clip': 'क्लिप छोटी करें',
+    'Use this part': 'यह हिस्सा इस्तेमाल करें',
+    'Drag to pick up to 60 s': 'खींचकर 60 सेकंड तक चुनें',
+    'Start of the part': 'शुरुआत',
+    'End of the part': 'अंत',
+    'Clip is over 10 minutes · pick a shorter one': 'क्लिप 10 मिनट से लंबी है · छोटी क्लिप चुनें',
+    'This phone couldn’t cut this clip, so nothing was uploaded. Pick a clip of 60 s or less, or open Kring in Chrome or Safari.': 'यह फ़ोन इस क्लिप को काट नहीं सका, इसलिए कुछ भी अपलोड नहीं हुआ। 60 सेकंड या उससे छोटी क्लिप चुनें, या Kring को Chrome या Safari में खोलें।',
   };
 export default T;

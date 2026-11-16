@@ -11,6 +11,7 @@ import './go.css';
 import { fmtN } from './kxLogic';
 import { kxTagCandidates, type KxCardExtras, type KxGridReel, type KxMemberReels, type KxSavedReel, type KxTagPerson } from './v5Kx';
 import { signReelPaths, type ReelInfo } from './v5Reel';
+import { WindowVideo } from './V5Trim';
 import { KxMemberCard } from './V5Me';
 import { RingGlyph, SocialPills } from './V5KxCard';
 import { GenderChip } from './V5Gender';
@@ -419,7 +420,7 @@ export function GoCompose(props: {
       <div className="go-hdr"><button type="button" className="go-bk" id="goComposeClose" aria-label={L('Close')} onClick={props.onClose} disabled={busy}><IcClose /></button><h1>{L('New Reel')}</h1><span className="go-steps"><i className="on" /><i className="on" /></span></div>
       <div className="go-cmp">
         <label className="go-clip" id="addReelPicker" aria-label={L('Change clip')}>
-          <video src={reel.url} muted loop playsInline autoPlay />
+          <WindowVideo src={reel.url} win={reel.trim} />
           <span>{(reel.durationMs / 1000).toFixed(0)} s</span>{file}
         </label>
         <div className="go-capw">

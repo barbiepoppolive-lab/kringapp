@@ -388,7 +388,7 @@ const BANNED_TH = ['ไกด์', 'โฮสต์', 'ทัวร์', 'คร
 const wordHit = (text: string, w: string) => new RegExp(`(^|[^a-z])${w.replace(/ /g, '\\s+')}`, 'i').test(text);
 const goKeys = () => {
   const keys = new Set<string>();
-  for (const f of ['V5Go.tsx', 'goCoach.ts']) for (const m of fs.readFileSync(path.join(__dirname, f), 'utf8').matchAll(/\bLf?\(\s*(['"])((?:\\.|(?!\1).)*)\1/g)) keys.add(m[2].replace(/\\'/g, "'"));
+  for (const f of ['V5Go.tsx', 'goCoach.ts', 'V5Trim.tsx']) for (const m of fs.readFileSync(path.join(__dirname, f), 'utf8').matchAll(/\bLf?\(\s*(['"])((?:\\.|(?!\1).)*)\1/g)) keys.add(m[2].replace(/\\'/g, "'"));
   for (const k of ['People', 'Make new friends in Bangkok. Tap a card to see their Reels.', 'Everyone', 'Travellers', 'Deals', 'Perks at Bangkok places for Kring members, plus trusted partners for travellers.',
     'For Locals', 'For travellers', 'Place perks', 'Show your Kring card', 'Replay intro', 'Intro is on again', 'Choose one. This prize can be claimed once.', 'OR', 'Claim with {0} · {1}',
     'Claimed with {0} · {1}', '{0}% · TrueMoney keeps {1}%', 'Redeem into TrueMoney', 'Your redeem link', 'Copy link', 'Link copied', 'A save gives {0} 3 Rings. A like gives 1.', 'the poster', 'Post your first Reel here', 'Tap to see where your Rings came from',

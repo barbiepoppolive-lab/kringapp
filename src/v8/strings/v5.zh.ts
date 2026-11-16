@@ -406,5 +406,13 @@ const T: Record<string, string> = {
     'See ideas': '看看灵感',
     'Find a spot': '找寄存点',
     'Kring may earn a small commission. It never changes your price.': 'Kring 可能获得少量佣金，你的价格不会改变。',
+    // Reel trim step (16 Nov)
+    'Trim your clip': '剪辑片段',
+    'Use this part': '使用这一段',
+    'Drag to pick up to 60 s': '拖动选择，最多 60 秒',
+    'Start of the part': '开始位置',
+    'End of the part': '结束位置',
+    'Clip is over 10 minutes · pick a shorter one': '片段超过 10 分钟 · 请选更短的',
+    'This phone couldn’t cut this clip, so nothing was uploaded. Pick a clip of 60 s or less, or open Kring in Chrome or Safari.': '这部手机无法剪辑此片段，所以没有上传任何内容。请选择 60 秒以内的片段，或在 Chrome 或 Safari 中打开 Kring。',
   };
 export default T;

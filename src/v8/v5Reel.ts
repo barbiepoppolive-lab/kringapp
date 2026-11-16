@@ -9,6 +9,7 @@
  */
 import { v5Client } from './v5Live';
 import { isHevc, probeMp4 } from './mp4Probe';
+import { TRIM_SOURCE_MAX_MS, type TrimWindow } from './reelTrim';
 
 export const REEL_MIN_MS = 5000;
 export const REEL_MAX_MS = 60000;      // 15 Nov: 5–60 s (DB check widened in 0055; 61000 ms there)
@@ -22,13 +23,21 @@ export const bitrate = (bytes: number, ms: number) => (ms > 0 ? (bytes * 8) / (m
 const OUT_H = 1280;
 const META_TIMEOUT_MS = 12000;
 
-export type ReelProblem = 'NOT_VIDEO' | 'TOO_SHORT' | 'TOO_LONG' | 'NOT_VERTICAL' | 'TOO_BIG' | 'UNREADABLE' | 'EMPTY' | 'HEVC' | 'INTERRUPTED';
+export type ReelProblem = 'NOT_VIDEO' | 'TOO_SHORT' | 'TOO_LONG' | 'NOT_VERTICAL' | 'TOO_BIG' | 'UNREADABLE' | 'EMPTY' | 'HEVC' | 'INTERRUPTED' | 'TRIM_FAIL';
 export class ReelError extends Error {
-  /** status: the storage server's HTTP status for UPLOAD (0 = the request never left the phone), for the problem log */
-  constructor(public code: ReelProblem | 'UPLOAD' | 'SIGN_IN' | 'REPICK', public status?: number) { super(code); }
+  /** status: the storage server's HTTP status for UPLOAD (0 = the request never left the phone), for the problem log;
+   *  why: short reason for the problem log (TRIM_FAIL: what each pipeline said) */
+  constructor(public code: ReelProblem | 'UPLOAD' | 'SIGN_IN' | 'REPICK', public status?: number, public why?: string) { super(code); }
 }
-/** decodable = this browser could show a frame (false: we only know the header, e.g. a slow cloud file); codec from the header. */
-export interface ReelInfo { file: File; url: string; durationMs: number; width: number; height: number; decodable?: boolean; codec?: string }
+/**
+ * decodable = this browser could show a frame (false: we only know the header, e.g. a slow cloud file); codec from the header.
+ * Trim (16 Nov): needsTrim = longer than 60 s, the trim step must run first. After it, `trim` is the chosen part of the file,
+ * durationMs is that part's length and fullMs the whole file's.
+ */
+export interface ReelInfo {
+  file: File; url: string; durationMs: number; width: number; height: number; decodable?: boolean; codec?: string;
+  needsTrim?: boolean; trim?: TrimWindow; fullMs?: number;
+}
 export interface ReelReady { blob: Blob; mime: string; ext: 'mp4' | 'webm' | 'mov'; poster: Blob; durationMs: number; width: number; height: number; shrunk: boolean }
 
 /** Phone pickers send odd types: '' (content:// files), application/octet-stream, video/3gpp, video/x-matroska, video/hevc … */
@@ -89,10 +98,18 @@ export async function checkReel(file: File): Promise<ReelInfo> {
   if (!decodable && head && isHevc(head.codec) && !(await import('./reelTranscode').then((m) => m.canDecodeReel(file)).catch(() => false))) fail('HEVC');
   if (!width || !height || !durationMs) fail('UNREADABLE');
   if (durationMs < REEL_MIN_MS - 300) fail('TOO_SHORT');
-  if (durationMs > REEL_MAX_MS + 900) fail('TOO_LONG');
+  // 16 Nov: over 60 s (up to ~10 min) is no longer refused: the member trims it to one 5–60 s part first
+  if (durationMs > TRIM_SOURCE_MAX_MS + 900) fail('TOO_LONG');
   if (height < width * 1.2) fail('NOT_VERTICAL');
   if (v) { v.removeAttribute('src'); try { v.load(); } catch { /* jsdom */ } }
-  return { file, url, durationMs, width, height, decodable, codec: head?.codec || '' };
+  const needsTrim = durationMs > REEL_MAX_MS + 900;
+  return { file, url, durationMs, width, height, decodable, codec: head?.codec || '', ...(needsTrim ? { needsTrim, fullMs: durationMs } : {}) };
+}
+
+/** The trim step's choice: the Reel becomes that part (durationMs = the part's length). */
+export function applyTrim(info: ReelInfo, w: TrimWindow): ReelInfo {
+  const fullMs = info.fullMs ?? info.durationMs;
+  return { ...info, needsTrim: false, trim: { startMs: w.startMs, endMs: w.endMs }, fullMs, durationMs: w.endMs - w.startMs };
 }
 
 function pickMime(): string | null {
@@ -156,7 +173,8 @@ async function posterOf(v: HTMLVideoElement, atSec: number): Promise<Blob | null
 
 /** Poster: <video> frame → WebCodecs-decoded frame → branded gradient. Never a black frame from a failed draw. */
 async function makePoster(info: ReelInfo, vv: HTMLVideoElement | null): Promise<Blob> {
-  const at = Math.min(1, info.durationMs / 3000);
+  // trimmed: the poster comes from inside the chosen part
+  const at = (info.trim ? info.trim.startMs / 1000 : 0) + Math.min(1, info.durationMs / 3000);
   try { const p = vv && vv.videoWidth ? await posterOf(vv, at) : null; if (p) return p; } catch { /* next */ }
   try { const p = await (await import('./reelTranscode')).webCodecsPoster(info.file, at); if (p) return p; } catch { /* next */ }
   return fallbackPoster();
@@ -164,7 +182,7 @@ async function makePoster(info: ReelInfo, vv: HTMLVideoElement | null): Promise<
 
 /** Preview image for the post sheet when the <video> there cannot show a frame (object URL, or ''). */
 export async function previewPoster(info: ReelInfo): Promise<string> {
-  const p = await (await import('./reelTranscode')).webCodecsPoster(info.file, Math.min(1, info.durationMs / 3000)).catch(() => null);
+  const p = await (await import('./reelTranscode')).webCodecsPoster(info.file, (info.trim ? info.trim.startMs / 1000 : 0) + Math.min(1, info.durationMs / 3000)).catch(() => null);
   return p ? URL.createObjectURL(p) : '';
 }
 
@@ -182,32 +200,44 @@ export function makeAudio(): AudioContext | null {
 }
 
 export async function prepareReel(info: ReelInfo, ac: AudioContext | null, onProgress: (p: number) => void): Promise<ReelReady> {
+  // Trim (16 Nov): `trim` set = cut only that part. The whole long file is NEVER uploaded: where an untrimmed clip would fall
+  // back to "send the original", a trimmed one stops with TRIM_FAIL (the member picks another clip).
+  const cut = info.trim;
+  const fromSec = cut ? cut.startMs / 1000 : 0;
+  const toSec = cut ? cut.endMs / 1000 : 0;
+  const why: string[] = [];
   let vv: HTMLVideoElement | null = null;
   if (info.decodable !== false) { try { vv = await loadVideo(info.url); } catch { vv = null; } }
   const poster = await makePoster(info, vv);
   const original = (): ReelReady => {
+    if (cut) throw new ReelError('TRIM_FAIL', undefined, why.join('|').slice(0, 52) || 'none');
     if (info.file.size > REEL_MAX_BYTES) throw new ReelError('TOO_BIG');   // message: trim it shorter or film at 1080p
     const { ext, mime } = uploadType(info.file);
     return { blob: info.file, mime, ext, poster, durationMs: info.durationMs, width: info.width, height: info.height, shrunk: false };
   };
   // 16 Nov: an original that is already light (≤ ~1.6 Mbit/s, ≤ 720 px wide) goes up as it is; everything else is shrunk
   // to 720×1280 and ~1.3 Mbit/s (≈5 MB per 30 s), which is what makes the feed start fast on 4G
-  if (bitrate(info.file.size, info.durationMs) <= LIGHT_BPS && Math.min(info.width, info.height) <= 720 && /mp4|quicktime/i.test(uploadType(info.file).mime)) return original();
+  if (!cut && bitrate(info.file.size, info.durationMs) <= LIGHT_BPS && Math.min(info.width, info.height) <= 720 && /mp4|quicktime/i.test(uploadType(info.file).mime)) return original();
   // 1st choice (16 Nov): WebCodecs transcode (mediabunny, loaded only now). Faster than real time, decodes HEVC/4K that
-  // <video> may not, and cannot be cut short by the screen locking: the result is read back and must be the full length.
+  // <video> may not, and cannot be cut short by the screen locking: the result is read back and must be the full length
+  // (trimmed: the length of the chosen part).
   try {
-    const t = await (await import('./reelTranscode')).transcodeReel(info.file, TARGET_VIDEO_BPS, onProgress);
-    if (t && t.blob.size >= 20_000 && t.blob.size <= REEL_MAX_BYTES && Math.abs(t.durationMs - info.durationMs) <= 500) {
+    const t = await (await import('./reelTranscode')).transcodeReel(info.file, TARGET_VIDEO_BPS, onProgress, cut ? { startSec: fromSec, endSec: toSec } : undefined);
+    if (!t) why.push('wc:none');
+    else if (t.blob.size < 20_000 || t.blob.size > REEL_MAX_BYTES) why.push(`wc:size${Math.round(t.blob.size / 1e5) / 10}`);
+    else if (Math.abs(t.durationMs - info.durationMs) > 500) why.push(`wc:len${t.durationMs}`);
+    else {
       onProgress(1);
       return { blob: t.blob, mime: t.mime, ext: t.ext, poster, durationMs: info.durationMs, width: OUT_W, height: OUT_H, shrunk: true };
     }
-  } catch { /* 2nd choice below */ }
-  // 2nd choice: re-record in real time through <video> + canvas + MediaRecorder
-  if (!vv || !vv.videoWidth) return original();
+  } catch (e) { why.push(`wc:${String((e as Error)?.name || 'err').slice(0, 16)}`); }
+  // 2nd choice: re-record in real time through <video> + canvas + MediaRecorder (trimmed: from the start of the part to its end)
+  if (!vv || !vv.videoWidth) { why.push('rec:novideo'); return original(); }
   const v = vv;
   const mime = pickMime();
   const canvas = document.createElement('canvas');
-  if (!mime || typeof canvas.captureStream !== 'function') return original();
+  if (!mime || typeof canvas.captureStream !== 'function') { why.push('rec:nomime'); return original(); }
+  const endSec = cut ? toSec : Infinity;
   try {
     canvas.width = OUT_W; canvas.height = OUT_H;
     const ctx = canvas.getContext('2d')!;
@@ -225,12 +255,15 @@ export async function prepareReel(info: ReelInfo, ac: AudioContext | null, onPro
     const parts: Blob[] = [];
     rec.ondataavailable = (e) => { if (e.data && e.data.size) parts.push(e.data); };
     const done = new Promise<void>((r) => { rec.onstop = () => r(); });
-    v.currentTime = 0;
-    await new Promise((r) => { v.onseeked = r; setTimeout(r, 800); });
+    v.currentTime = fromSec;
+    await new Promise((r) => { v.onseeked = r; setTimeout(r, cut ? 2500 : 800); });
     let raf = 0;
+    let reachedEnd = false;
+    let stopAtEnd: () => void = () => undefined;
     const paint = () => {
       drawCover(ctx, v, OUT_W, OUT_H);
-      onProgress(Math.min(1, v.currentTime / (info.durationMs / 1000)));
+      onProgress(Math.min(1, (v.currentTime - fromSec) / (info.durationMs / 1000)));
+      if (v.currentTime >= endSec) { stopAtEnd(); return; }
       raf = requestAnimationFrame(paint);
     };
     drawCover(ctx, v, OUT_W, OUT_H);
@@ -238,36 +271,49 @@ export async function prepareReel(info: ReelInfo, ac: AudioContext | null, onPro
     let hidden = false;
     const onHide = () => { if (document.hidden) { hidden = true; v.pause(); v.dispatchEvent(new Event('ended')); } };
     document.addEventListener('visibilitychange', onHide);
+    // trimmed: rAF stops when the tab is in the background, so `timeupdate` also watches for the end of the part
+    const onTime = () => { if (v.currentTime >= endSec) stopAtEnd(); };
+    if (cut) v.addEventListener('timeupdate', onTime);
     rec.start(1000);
     try {
       await v.play();
       paint();
-      await new Promise<void>((r) => { v.onended = () => r(); v.addEventListener('ended', () => r(), { once: true }); setTimeout(r, info.durationMs + 4000); });
+      await new Promise<void>((r) => {
+        stopAtEnd = () => { if (!reachedEnd) { reachedEnd = true; v.pause(); r(); } };
+        v.onended = () => r(); v.addEventListener('ended', () => r(), { once: true });
+        setTimeout(r, info.durationMs + 4000);
+      });
     } finally {
       document.removeEventListener('visibilitychange', onHide);
+      v.removeEventListener('timeupdate', onTime);
       cancelAnimationFrame(raf);
       rec.stop();
       await done;
       stream.getTracks().forEach((t) => t.stop());
     }
-    const recordedMs = Math.round(v.currentTime * 1000);
-    const whole = !hidden && (v.ended || recordedMs >= info.durationMs - 500);
+    const recordedMs = Math.round((v.currentTime - fromSec) * 1000);
+    const whole = !hidden && (cut ? reachedEnd || recordedMs >= info.durationMs - 500 : v.ended || recordedMs >= info.durationMs - 500);
     if (!whole) {
-      // never upload a shortened clip: use the original if it is small enough, otherwise ask to try again
-      if (info.file.size <= REEL_MAX_BYTES) return original();
+      // never upload a shortened clip: use the original if it is small enough (never when trimmed), otherwise ask to try again
+      if (!cut && info.file.size <= REEL_MAX_BYTES) return original();
       throw new ReelError('INTERRUPTED');
     }
     const blob = new Blob(parts, { type: mime.split(';')[0] });
     onProgress(1);
-    if (blob.size < 20_000 || blob.size > REEL_MAX_BYTES) return original();
-    // the recorded file must be as long as the original (±0.5 s) when its header says how long it is
+    if (blob.size < 20_000 || blob.size > REEL_MAX_BYTES) { why.push(`rec:size${Math.round(blob.size / 1e5) / 10}`); return original(); }
+    // the recorded file must be as long as the original (trimmed: the chosen part) ±0.5 s when its header says how long it is
+    // 16 Nov: Chrome's MediaRecorder writes FRAGMENTED MP4, whose header only covers the first fragment (e.g. 111 ms), so that
+    // number used to throw away every good recording. A header under 1 s is "unknown": the file is then measured packet by packet.
     const head = blob.type.includes('mp4') ? await probeMp4(blob) : null;
-    if (head?.durationMs && Math.abs(head.durationMs - info.durationMs) > 500) return original();
-    // keep whichever is smaller (a small original upload is already fast)
-    if (info.file.size <= blob.size && info.file.size <= REEL_MAX_BYTES && /mp4|quicktime/i.test(info.file.type)) return original();
+    let gotMs = head?.durationMs && head.durationMs >= 1000 ? head.durationMs : 0;
+    if (!gotMs && (cut || head)) gotMs = await import('./reelTranscode').then((m) => m.blobDurationMs(blob)).catch(() => 0);
+    if (gotMs && Math.abs(gotMs - info.durationMs) > 500) { why.push(`rec:len${gotMs}`); return original(); }
+    // keep whichever is smaller (a small original upload is already fast); a trimmed Reel is always the recorded part
+    if (!cut && info.file.size <= blob.size && info.file.size <= REEL_MAX_BYTES && /mp4|quicktime/i.test(info.file.type)) return original();
     return { blob, mime: blob.type, ext: blob.type.includes('webm') ? 'webm' : 'mp4', poster, durationMs: info.durationMs, width: OUT_W, height: OUT_H, shrunk: true };
   } catch (e) {
-    if (e instanceof ReelError && e.code === 'INTERRUPTED') throw e;
+    if (e instanceof ReelError && (e.code === 'INTERRUPTED' || e.code === 'TRIM_FAIL')) throw e;
+    why.push(`rec:${String((e as Error)?.name || 'err').slice(0, 16)}`);
     return original();
   }
 }
