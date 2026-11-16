@@ -729,3 +729,10 @@
 .v8-app-root .kx-photo-btns{display:flex;gap:8px}
 .v8-app-root .kx-photo-btns .kx-btn{flex:1 1 0;position:relative;overflow:hidden;min-height:44px;display:flex;align-items:center;justify-content:center;font-size:14px}
 .v8-app-root .kx-photo-btns input{position:absolute;inset:0;opacity:0;cursor:pointer}
+/* 16 Nov: big "+ Add photo" on an empty card while minting */
+.v8-app-root .kx-mint-card .kx-addph { position: absolute; left: 50%; top: 34%; transform: translate(-50%, -50%); z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; }
+.v8-app-root .kx-mint-card .kx-addph .pl { width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; font: 300 52px/1 var(--kx-u, sans-serif); color: #fff;
+  background: linear-gradient(135deg, #FF4FD8, #7A5CFF); box-shadow: 0 0 0 6px rgba(255,79,216,.18), 0 8px 28px rgba(255,79,216,.45); }
+.v8-app-root .kx-mint-card .kx-addph b { font-size: 15px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+.v8-app-root .kx-mint-card .kx-addph input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.v8-app-root .kx-mint-card .kx-addph ~ .kx-cam, .v8-app-root .kx-mint-card:has(.kx-addph) .kx-n2-ph { display: none; }

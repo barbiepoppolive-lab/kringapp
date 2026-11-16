@@ -6,7 +6,8 @@ import { KX_L } from './v5Strings';
 import { GENDER_LABEL, GENDERS, GenderChip, GenderRow, genderPayload, isGender, shownGender, type Gender } from './V5Gender';
 
 const kxMock = vi.hoisted(() => ({ kxSetGender: vi.fn(), kxSetTiktok: vi.fn() }));
-const liveMock = vi.hoisted(() => ({ v5SaveCard: vi.fn(), v5AcceptTerms: vi.fn(), v5SetIgHandle: vi.fn() }));
+const liveMock = vi.hoisted(() => ({ v5SaveCard: vi.fn(), v5AcceptTerms: vi.fn(), v5SetIgHandle: vi.fn(), v5CompressImage: vi.fn(async () => 'data:image/jpeg;base64,xx') }));
+vi.mock('./v5Face', async (orig) => ({ ...(await orig<typeof import('./v5Face')>()), checkProfilePhoto: vi.fn(async () => 'ok') }));
 vi.mock('./v5Kx', async (orig) => ({ ...(await orig<typeof import('./v5Kx')>()), ...kxMock }));
 vi.mock('./v5Live', async (orig) => ({ ...(await orig<typeof import('./v5Live')>()), ...liveMock }));
 import { NeonCard, V5MintSheet } from './V5KxCard';
@@ -21,7 +22,7 @@ beforeEach(() => {
   for (const k of [...Object.values(kxMock), ...Object.values(liveMock)]) k.mockReset();
   liveMock.v5SaveCard.mockImplementation(async (c: { first_name: string }) => ({ card: card({ first_name: c.first_name }), hellos_today: 0, posts: 0, answers_today: 0, blocked: [] }));
   kxMock.kxSetGender.mockImplementation(async (g: string | null, s: boolean) => ({ gender: g, show_gender: !!g && s }));
-  liveMock.v5AcceptTerms.mockResolvedValue('2026-11-15T00:00:00Z'); liveMock.v5SetIgHandle.mockResolvedValue(null); kxMock.kxSetTiktok.mockResolvedValue(null);
+  liveMock.v5AcceptTerms.mockResolvedValue('2026-11-15T00:00:00Z'); liveMock.v5CompressImage.mockResolvedValue('data:image/jpeg;base64,xx'); liveMock.v5SetIgHandle.mockResolvedValue(null); kxMock.kxSetTiktok.mockResolvedValue(null);
 });
 afterEach(() => cleanup());
 
@@ -93,9 +94,12 @@ describe('optional gender: what is sent and what is shown', () => {
 
 describe('optional gender: making and editing the card', () => {
   const sheet = (c: V5Card | null, onSaved = vi.fn()) => render(<V5MintSheet L={L} Lf={Lf} card={c as never} uiLang="en" onSaved={onSaved} onClose={() => undefined} toast={() => undefined} onAfter={() => undefined} />);
-  const fillNew = () => { fireEvent.change(document.getElementById('v5Name')!, { target: { value: 'TEST-Mali' } }); fireEvent.click(document.getElementById('v5Age')!); };
+  const fillNew = async () => {   // 16 Nov: a new card needs a face photo first (picked through the big + on the card)
+    fireEvent.change(document.querySelector('#kxAddPhoto input')!, { target: { files: [new File(['x'], 'me.jpg', { type: 'image/jpeg' })] } });
+    await vi.waitFor(() => { expect(document.getElementById('kxAddPhoto')).toBeNull(); expect(document.getElementById('kxPhotoNeed')).toBeNull(); }, { timeout: 4000 });
+    fireEvent.change(document.getElementById('v5Name')!, { target: { value: 'TEST-Mali' } }); fireEvent.click(document.getElementById('v5Age')!); };
   it('a new card can be made without touching the row: nothing is sent for gender', async () => {
-    sheet(null); fillNew();
+    sheet(null); await fillNew();
     expect(document.getElementById('kxGender')).toBeTruthy();
     fireEvent.click(document.getElementById('v5SaveCard')!);
     await vi.waitFor(() => expect(liveMock.v5SaveCard).toHaveBeenCalled());
@@ -104,13 +108,13 @@ describe('optional gender: making and editing the card', () => {
     expect(document.getElementById('v5CardNotice')).toBeNull();
   });
   it.each(GENDERS)('new card choosing %s: saved with "show" off unless switched on', async (g: Gender) => {
-    sheet(null); fillNew();
+    sheet(null); await fillNew();
     fireEvent.click(document.querySelector(`[data-gender="${g}"]`)!);
     fireEvent.click(document.getElementById('v5SaveCard')!);
     await vi.waitFor(() => expect(kxMock.kxSetGender).toHaveBeenCalledWith(g, false));
   });
   it('new card with Kathoey and "Show on my card" on', async () => {
-    sheet(null); fillNew();
+    sheet(null); await fillNew();
     fireEvent.click(document.querySelector('[data-gender="kathoey"]')!);
     fireEvent.click(document.getElementById('kxGenderShow')!);
     fireEvent.click(document.getElementById('v5SaveCard')!);

@@ -301,6 +301,14 @@ export function V5MintSheet(props: {
           slot={!ig || !tt ? (
             <button type="button" className="kx-slot" onClick={() => setLink(!ig ? 'ig' : 'tt')}>+ {!ig ? 'Instagram' : 'TikTok'}</button>
           ) : null} />
+        {/* 16 Nov (founder): an empty card shows a big + with "Add photo" right on the card */}
+        {!shownPhoto && !checking ? (
+          <label className="kx-addph" id="kxAddPhoto">
+            <span className="pl" aria-hidden="true">+</span>
+            <b>{L('Add photo')}</b>
+            <input type="file" accept="image/*" onChange={(e) => { void pick(e.target.files?.[0]); e.currentTarget.value = ''; }} />
+          </label>
+        ) : null}
         <label className="kx-cam" aria-label={shownPhoto ? L('Change photo') : L('Add photo')}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#07060d" strokeWidth="2.4" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></svg>
           <input type="file" accept="image/*" id="v5Photo" onChange={(e) => void pick(e.target.files?.[0])} />
