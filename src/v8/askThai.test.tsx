@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import fs from 'node:fs';
 import path from 'node:path';
 import { createAskApi, fmtCount, isMissing, nextVote, orderThread, resetAskLocal, type AskAnswer, type AskPerson } from './askThai';
-import { AskThaiView } from './V5AskThai';
+import { AskThaiView, askErrText } from './V5AskThai';
 import { AskSwitch } from './V5AskSwitch';
 import { V5_L, KX_L } from './v5Strings';
 
@@ -119,5 +119,15 @@ describe('Ask a Thai copy rules', () => {
     const text = ['V5AskThai.tsx', 'V5AskSwitch.tsx', 'askThai.ts'].map(read).join('\n').replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
     const literals = text.match(/'[^'\n]*'|`[^`\n]*`|>[^<>{}\n]+</g) || [];
     for (const s of literals) expect(banned.test(s), s).toBe(false);
+  });
+});
+
+describe('Ask a Thai server refusals', () => {
+  it('shows the ghost / slow-down / text messages, and the fallback for anything else', () => {
+    expect(askErrText(L, { message: 'KR8_GHOST' }, 'x')).toMatch(/^Ghost mode is on/);
+    expect(askErrText(L, new Error('KR8_SLOW_DOWN'), 'x')).toBe('Slow down a little and try again soon.');
+    expect(askErrText(L, { message: 'KR8_BAD_TEXT' }, 'x')).toMatch(/^Keep it short/);
+    expect(askErrText(L, { message: 'KR8_BAD_FILE' }, 'Couldn’t post · try again')).toBe('Couldn’t post · try again');
+    expect(askErrText(L, null, 'Something went wrong')).toBe('Something went wrong');
   });
 });

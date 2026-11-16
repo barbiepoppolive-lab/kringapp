@@ -11,6 +11,18 @@ import {
 } from './askThai';
 
 type LFn = (en: string) => string;
+/** A server refusal the member can act on (ghost mode, too many posts, banned words, no card) gets its own message;
+ *  anything else keeps the plain fallback. */
+const ASK_ERR: Record<string, string> = {
+  GHOST: 'Ghost mode is on: likes, saves, follows, hellos and posts are off.',
+  SLOW_DOWN: 'Slow down a little and try again soon.',
+  BAD_TEXT: 'Keep it short, with no phone numbers, links or LINE IDs.',
+  NO_CARD: 'Make your Kring card first.',
+};
+export function askErrText(L: LFn, e: unknown, fallback: string): string {
+  const m = /KR8_([A-Z_]+)/.exec(String((e as { message?: string } | null)?.message ?? e ?? ''));
+  return L((m && ASK_ERR[m[1]]) || fallback);
+}
 const EMOJI = ['😊', '😂', '😍', '🙏', '👍', '🔥', '🤯', '😋', '🥹', '❤️', '🌅', '📸', '🏮', '🛺', '☕', '🌧️'];
 
 const Ic: React.FC<{ d: string; s?: number; className?: string }> = ({ d, s = 22, className }) => (
@@ -112,13 +124,13 @@ const Thread: React.FC<{
     const q = { ...data.q, myVote: v, score: data.q.score + v - data.q.myVote };
     setData({ ...data, q });
     onChanged(q);
-    api.vote('q', q.id, v).catch(() => toast(L('Something went wrong')));
+    api.vote('q', q.id, v).catch((e) => toast(askErrText(L, e, 'Something went wrong')));
   });
   const voteA = (a: AskAnswer, tap: -1 | 1) => need(() => {
     if (!data) return;
     const v = nextVote(a.myVote, tap);
     setData({ ...data, answers: data.answers.map((x) => (x.id === a.id ? { ...x, myVote: v, score: x.score + v - x.myVote } : x)) });
-    api.vote('a', a.id, v).catch(() => toast(L('Something went wrong')));
+    api.vote('a', a.id, v).catch((e) => toast(askErrText(L, e, 'Something went wrong')));
   });
   const send = () => need(async () => {
     if (!data || busy || (!text.trim() && !media.file)) return;
@@ -127,8 +139,8 @@ const Thread: React.FC<{
       await api.answer(data.q.id, replyTo ? replyTo.parentId || replyTo.id : null, text.slice(0, ASK_MAX_TEXT), media.file);
       setText(''); media.clear(); setReplyTo(null); setEmoji(false);
       load();
-    } catch {
-      toast(L('Couldn’t post · try again'));
+    } catch (e) {
+      toast(askErrText(L, e, 'Couldn’t post · try again'));
     } finally {
       setBusy(false);
     }
@@ -244,8 +256,8 @@ const Compose: React.FC<{
     try {
       const id = await api.ask({ body: body.slice(0, ASK_MAX_Q), details: details.slice(0, ASK_MAX_TEXT), area, file: media.file });
       onDone(id);
-    } catch {
-      toast(L('Couldn’t post · try again'));
+    } catch (e) {
+      toast(askErrText(L, e, 'Couldn’t post · try again'));
       setBusy(false);
     }
   };
@@ -351,7 +363,7 @@ export const AskThaiView: React.FC<AskThaiViewProps> = ({ L, api, me, areas, are
   const vote = (q: AskQuestion) => need(() => {
     const v = nextVote(q.myVote, 1);
     patch({ ...q, myVote: v, score: q.score + v - q.myVote });
-    api.vote('q', q.id, v).catch(() => toast(L('Something went wrong')));
+    api.vote('q', q.id, v).catch((e) => toast(askErrText(L, e, 'Something went wrong')));
   });
   const share = async (q: AskQuestion) => {
     const url = typeof location !== 'undefined' ? location.origin + location.pathname : '';
