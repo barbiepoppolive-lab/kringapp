@@ -7052,7 +7052,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         )}
         {sheet === 'claimed' && live && (
           <ClaimedPage key={kxClaimFocus.id || 'h'} L={L} Lf={Lf} lang={lang} data={kxRewards} focus={kxClaimFocus.id} fresh={kxClaimFocus.fresh} toast={showToast}
-            onClose={() => setSheet('rewards')} onChanged={() => void kxLoadRewards()} />
+            onClose={() => setSheet('rewards')} onChanged={() => void kxLoadRewards()}
+            needsVerify={!!meProfile && !meProfile.verified && !verifyPending} onVerify={() => setSheet('verify')} />
         )}
         {goPlayer && live && (
           <GoReelPlayer L={L} Lf={Lf} lang={lang} reels={goPlayer.reels} start={goPlayer.start} title={goPlayer.title} viewProfile={goPlayer.viewProfile}

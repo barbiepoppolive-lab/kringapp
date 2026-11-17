@@ -257,7 +257,7 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
 
 /** Gold ticket + history (NEW / USED) with "Mark as used" on every code */
 export function ClaimedPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards | null; focus: string | null; fresh?: boolean; toast: (m: string) => void;
-  onClose: () => void; onChanged: () => void }) {
+  onClose: () => void; onChanged: () => void; needsVerify?: boolean; onVerify?: () => void }) {
   const { L, Lf, data } = props;
   const [focus, setFocus] = useState<string | null>(props.focus);
   const [used, setUsed] = useState<Record<string, boolean>>({});
@@ -297,6 +297,12 @@ export function ClaimedPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewar
         <div className="kx-cd-none">
           <div className="kx-cd-h">{pending.length ? L('Your code is on the way') : L('History')}</div>
           {pending.length ? <p className="kx-restock" id="kxRestock">{L('Your prize is safe. We’ll let you know here the moment your code is ready.')}</p> : null}
+          {pending.length && props.needsVerify && props.onVerify ? (
+            <div className="kx-verify-nudge" id="kxVerifyNudge">
+              <p><TE th="ยืนยันใบหน้าเพื่อรับโค้ด ใช้เวลาไม่กี่วินาที" en="Verify your face to get your code. It takes a few seconds." /></p>
+              <button type="button" className="kx-cta" onClick={props.onVerify}><TE th="ยืนยันใบหน้า" en="Verify my face" /></button>
+            </div>
+          ) : null}
         </div>
       )}
       <div className="kx-hs"><h2>{L('History')}</h2></div>

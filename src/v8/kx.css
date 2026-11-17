@@ -925,3 +925,6 @@
 .v8-app-root .kx-rk.rka .rka-row.low.mer { background: linear-gradient(90deg, rgba(255,79,163,.12), rgba(139,92,255,.07)); border-color: rgba(255,79,163,.4); box-shadow: none; }
 .v8-app-root .rka-row.low .who { opacity: .55; }
 .v8-app-root .rka-row.low .kx-pz, .v8-app-root .rka-row.low .kx-pz.off { color: #6f6a86; font-size: .85rem; }
+
+.v8-app-root .kx-verify-nudge { margin: 10px 0 14px; padding: 12px 14px; border-radius: 14px; background: rgba(255,79,163,.1); border: 1px solid rgba(255,79,163,.35); }
+.v8-app-root .kx-verify-nudge p { margin: 0 0 10px; font: 600 .82rem/1.35 var(--kx-j); color: #fff; }
