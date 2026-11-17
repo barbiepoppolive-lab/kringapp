@@ -399,9 +399,9 @@ export function ActivitySheet(props: { L: Tx; Lf: Txf; rows: V5Activity[] | null
         <p className="kme-empty" id="activityEmpty">{L('Nothing yet. Follows, likes and rewards show up here.')}</p>
       ) : (
         <div className="kme-list kme-scroll">
-          {todays.length ? <div className="kme-grp">{L('Today')}</div> : null}
+          {todays.length ? <div className="kme-grph">{L('Today')}</div> : null}
           {todays.map(row)}
-          {earlier.length ? <div className="kme-grp">{L('Earlier')}</div> : null}
+          {earlier.length ? <div className="kme-grph">{L('Earlier')}</div> : null}
           {earlier.map(row)}
         </div>
       )}

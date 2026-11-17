@@ -3659,3 +3659,10 @@
 .v8-app-root .spill.kp-wx::after, .v8-app-root .a2s-chip::after, .v8-app-root .kx-wk-box .kx-wk-rk::after { inset: -7px -2px; }
 .v8-app-root .at-sw button::before { content: ''; position: absolute; inset: -12px -8px; }
 .v8-app-root .at-tw-f button::after, .v8-app-root .at-votes button::after { content: ''; position: absolute; inset: -10px -8px; }
+/* T301-021 (17 Nov): the right rail on short phones (360x780). The last button's caption ("แชร์" on your own Reel) sat on the
+   progress line and the tab bar: a captioned last button keeps 18px under it, and the rail packs a little tighter below 820px tall
+   (buttons stay 44px). */
+.v8-app-root .slide.has-reel .rails > .rail:last-child:not(.more) { margin-bottom: 18px; }
+@media (max-height: 820px) {
+  .v8-app-root .has-reel .rails { gap: 18px; }
+}

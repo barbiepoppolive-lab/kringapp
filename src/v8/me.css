@@ -235,7 +235,8 @@
 .v8-app-root .kme-bk { width: 40px; height: 40px; font-size: 1.875rem !important; line-height: 1; display: grid; place-items: center; margin-left: -8px; }
 .v8-app-root .kme-mark { font-size: 0.8125rem !important; font-weight: 800 !important; color: #8fa0ff !important; padding: 8px 4px !important; }
 .v8-app-root .kme-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
-.v8-app-root .kme-grp { font-size: 0.7812rem; font-weight: 800; opacity: .6; letter-spacing: .04em; margin: 14px 6px 4px; text-transform: uppercase; }
+/* T301-018: the Today / Earlier header in Notifications had the settings group class, so every settings group (and ops@kringapp.com) went capitals at 60% */
+.v8-app-root .kme-grph { font-size: 0.7812rem; font-weight: 800; opacity: .6; letter-spacing: .04em; margin: 14px 6px 4px; text-transform: uppercase; }
 .v8-app-root .kme-list .li .av { flex: none; padding: 0; }
 .v8-app-root .kme-list .li .who { flex: 1; min-width: 0; text-align: left; }
 .v8-app-root .kme-list .li .who .n { display: flex; flex-direction: column; gap: 2px; }
