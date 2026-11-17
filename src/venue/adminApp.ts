@@ -283,50 +283,11 @@ async function todoView() {
       tile('todo-reports', '#q/reports', c.reports, 'Reports', 'red', c.hiddenNow ? `${c.hiddenNow} Reel hidden now` : 'Open reports'),
       tile('todo-replies', '#q/replies', c.replies, 'Replies to send', '', 'Reddit + Instagram'),
       venueTile),
-    total ? el('div', { class: 'est' }, ic('clock'), `About ${total} min in all`) : '',
-    newPlacesCard());
+    total ? el('div', { class: 'est' }, ic('clock'), `About ${total} min in all`) : '');
 }
 
-// ───────────────────────────── places members typed in (0054_kr8_member_places) ─────────────────────────────
-export type NewPlace = { id: string; name_en: string; name_th: string | null; area: string; kr_area: string; lat: number; lng: number; maps_url: string | null;
-  coords_rough: boolean; status: 'pending' | 'live' | 'rejected'; created_at: string; by_name: string | null; by_no: number | null; reels: number };
-/** Pending places first. Hidden until 0054 is applied (the function is missing before that). */
-function newPlacesCard(): HTMLElement {
-  const box = el('div', { id: 'newPlaces' });
-  void (async () => {
-    let rows: NewPlace[];
-    try { rows = await rpc<NewPlace[]>('kr8_admin_places_pending'); } catch { return; }
-    if (!Array.isArray(rows) || !rows.length) return;
-    const waiting = rows.filter((r) => r.status === 'pending').length;
-    const row = (r: NewPlace): HTMLElement => {
-      const en = el('input', { class: 'inp', value: r.name_en, 'aria-label': 'English name', id: 'npEn-' + r.id }) as HTMLInputElement;
-      const th = el('input', { class: 'inp', value: r.name_th || '', placeholder: 'Thai name', 'aria-label': 'Thai name', id: 'npTh-' + r.id }) as HTMLInputElement;
-      const map = r.maps_url ? el('a', { href: r.maps_url, target: '_blank', rel: 'noopener', class: 'sm' }, 'Their map link')
-        : el('a', { href: `https://www.google.com/maps/search/${encodeURIComponent((r.name_th || r.name_en) + ' Bangkok')}`, target: '_blank', rel: 'noopener', class: 'sm' }, 'Search on Google Maps');
-      const act = (a: 'approve' | 'reject') => async () => {
-        try {
-          await rpc('kr8_admin_place_review', { p_id: r.id, p_action: a, p_name_en: en.value.trim() || null, p_name_th: th.value.trim(), p_area: null, p_lat: null, p_lng: null });
-          toast(a === 'approve' ? `Approved: ${en.value.trim()}` : 'Rejected');
-          box.replaceWith(newPlacesCard());
-        } catch (e) { toast(String((e as Error)?.message || e)); }
-      };
-      const ok = el('button', { class: 'btn', type: 'button', 'data-approve': r.id }, 'Approve') as HTMLButtonElement; ok.onclick = act('approve');
-      const no = el('button', { class: 'btn ghost', type: 'button', 'data-reject': r.id }, 'Reject') as HTMLButtonElement; no.onclick = act('reject');
-      return el('div', { class: 'ml-row', 'data-place': r.id },
-        el('div', { class: 'ml-name' }, el('b', {}, r.name_en), r.name_th && r.name_th !== r.name_en ? el('span', { class: 'dim' }, r.name_th) : null,
-          pill(r.status === 'pending' ? 'waiting' : r.status, r.status === 'pending' ? 'a' : r.status === 'live' ? 'g' : '')),
-        el('div', { class: 'dim xs' }, `${r.kr_area} · added by ${r.by_name || 'member'} #${r.by_no ?? '–'} · ${ago(r.created_at)} · on ${r.reels} Reel${r.reels === 1 ? '' : 's'}`
-          + (r.coords_rough ? ' · pin is only the area centre' : '')),
-        el('div', { style: 'margin:6px 0' }, map),
-        r.status === 'pending' ? el('div', { style: 'display:grid;gap:6px' }, en, th, el('div', { style: 'display:flex;gap:8px' }, ok, no)) : null);
-    };
-    box.replaceChildren(el('details', { class: 'card', id: 'newPlacesCard', open: waiting > 0 },
-      el('summary', {}, el('span', { class: 'icb' }, ic('store')), el('div', { class: 'grow' }, el('b', {}, `New places from members (${waiting} waiting)`),
-        el('span', { class: 'dim sm' }, 'Members added these while posting a Reel. Fix the name, then approve.')), ic('chev')),
-      el('div', { class: 'in' }, ...rows.map(row))));
-  })();
-  return box;
-}
+// Places members type in decide themselves since 0086 (live / linked to an existing place / quietly refused, then pinned
+// in the background). They are browsed and undone in admin v2 → More → Places (adminV2.ts placesView).
 
 // ───────────────────────────── site visits (0052_kr8_admin_site_visits) ─────────────────────────────
 type VisitDay = { visitors: number; th: number; other: number; us: number; signups: number };
@@ -1700,6 +1661,7 @@ function moreView() {
     li('#log', 'hist', 'Activity log', 'Everything, newest first · sign-ups, money, face checks, your actions', 'moreLog'),
     li('#listings', 'store', 'Listings', 'Stay / Do and venues', 'moreListings'),
     li('#todo', 'check', 'Queues (old To do)', 'Reels, face checks, reports, replies, venues one at a time', 'moreTodo'),
+    li('#places', 'store', 'Places', 'Places members added · automatic decisions · hide or restore', 'morePlaces'),
     el('div', { class: 'sec' }, 'Health'),
     li('#problems', 'warn', 'Problems', 'Reel and face-check failures on members’ phones · funnel', 'moreProblems'),
     li('#recruiters', 'link', 'Recruiters', 'Sign-ups per ref code · credit members who joined without one', 'moreRecruiters'),

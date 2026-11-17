@@ -35,7 +35,12 @@ export interface Snapshot {
   pending: { reels: { id: string; user_id: string; at: string; poster_path: string | null; video_path: string | null; body: string | null }[];
     checks: { id: string; user_id: string; at: string; auto: string | null; review: string[] | null; selfie_path: string | null }[]; reports: number; places: number };
   alerts: { kind: string; subject: string; at: string; sent: boolean; error: string | null }[];
+  /** 0086 kr8_admin_places_auto: what the place robot did (loaded next to the snapshot; missing before 0086) */
+  places_auto?: PlaceAuto[];
 }
+export interface PlaceAuto { at: string; action: 'place_auto_reject' | 'place_auto_link' | 'place_auto_live' | 'place_geo_found' | 'place_geo_miss' | string;
+  place_id: string | null; name: string | null; reason: string | null; into: string | null; outside: boolean | null; area: string | null; no: number | null;
+  status: string | null; now_name: string | null }
 export function isSnapshot(x: unknown): x is Snapshot {
   const s = x as Snapshot | null;
   return !!s && typeof s === 'object' && !!s.counts && Array.isArray(s.people) && Array.isArray(s.claims) && Array.isArray(s.codes) && !!s.board && !!s.pending;
@@ -99,14 +104,14 @@ export function personFlags(p: Person, all: Person[] = [], claims: Claim[] = [])
 }
 
 // ───────── Needs you: one card per person-group, ranked, with auto-handled kept apart ─────────
-export type InboxKind = 'held' | 'lookalike' | 'check' | 'reel' | 'reports' | 'places';
+export type InboxKind = 'held' | 'lookalike' | 'check' | 'reel' | 'reports';
 export interface InboxItem {
   key: string; kind: InboxKind; rank: number; title: string; why: string; people: Person[]; claims: Claim[]; links: { a: string; b: string; reason: string; dist: number | null }[];
   reelIds: string[]; checkIds: string[]; at: string; count?: number;
 }
 export interface Handled { key: string; at: string; text: string }
 
-const RANK: Record<InboxKind, number> = { held: 100, lookalike: 80, check: 70, reports: 60, reel: 50, places: 20 };
+const RANK: Record<InboxKind, number> = { held: 100, lookalike: 80, check: 70, reports: 60, reel: 50 };
 
 /** Groups look-alike links into one card per set of accounts (union-find), the oldest account first. */
 export function linkGroups(people: Person[]): Person[][] {
@@ -175,7 +180,7 @@ export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[
       reelIds: rs.map((r) => r.id), checkIds: [], why: p.verified ? 'Verified member.' : 'Member is not face-verified yet.' });
   }
   if (s.pending.reports) items.push({ key: 'reports', kind: 'reports', rank: RANK.reports, title: `${s.pending.reports} open report${s.pending.reports === 1 ? '' : 's'}`, why: 'Members reported a Reel or a person.', people: [], claims: [], links: [], reelIds: [], checkIds: [], at: s.at, count: s.pending.reports });
-  if (s.pending.places) items.push({ key: 'places', kind: 'places', rank: RANK.places, title: `${s.pending.places} new place${s.pending.places === 1 ? '' : 's'} from members`, why: 'Fix the name, then approve.', people: [], claims: [], links: [], reelIds: [], checkIds: [], at: s.at, count: s.pending.places });
+  // places members type in are no longer a job for the founder (0086): they show in "Handled automatically" below
 
   // auto-decided things the founder never needs to touch, for the "Handled automatically" log
   for (const p of people) {
@@ -183,6 +188,7 @@ export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[
     else if (p.check?.status === 'rejected' && /one (verified )?account/i.test(p.check.reason || '')) handled.push({ key: 'a:' + p.check.id, at: p.check.at, text: `${who(p)} refused: one account per person` });
   }
   for (const c of s.claims) if (c.status === 'assigned' && !c.held && !c.decided && (s.include_test || !c.is_test)) handled.push({ key: 'p:' + c.id, at: c.assigned_at || c.created_at, text: `${who(c)} paid ฿${c.amount} ${c.brand} automatically` });
+  for (const a of s.places_auto || []) { const text = placeAutoText(a); if (text) handled.push({ key: `pl:${a.action}:${a.place_id}:${a.at}`, at: a.at, text }); }
   items.sort((a, b) => b.rank - a.rank || Date.parse(a.at) - Date.parse(b.at));
   handled.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
   return { items, handled };
@@ -258,3 +264,32 @@ export function summary(s: Snapshot, inbox = buildInbox(s)): string[] {
   if (!inbox.items.length) out.push('Nothing needs you right now.');
   return out;
 }
+
+// ───────── places the robot decided (0086) ─────────
+const REASON: Record<string, string> = { phone: 'phone number', url: 'web link', line_id: 'LINE id', rude: 'rude word', too_short: 'too short', no_letters: 'no letters',
+  banned: 'banned word', placeholder: 'not a place name' };
+const q = (t: string | null | undefined) => `“${(t || '').trim().slice(0, 50)}”`;
+/** One plain line per automatic place decision, for "Handled automatically". */
+export function placeAutoText(a: PlaceAuto): string | null {
+  const by = a.no != null ? ` (#${a.no})` : '';
+  switch (a.action) {
+    case 'place_auto_live': return `New place ${q(a.name)} added${by}${a.outside ? ' · outside Bangkok' : ''}`;
+    case 'place_auto_link': return `Place ${q(a.name)}${by} matched existing ${q(a.into)}`;
+    case 'place_auto_reject': return `Place ${q(a.name)}${by} refused: ${REASON[a.reason || ''] || a.reason || 'junk'}`;
+    case 'place_geo_found': return `Pinned ${q(a.name)} on the map${a.outside ? ' · outside Bangkok' : a.area && a.area !== 'Bangkok' ? ` · ${a.area}` : ''}`;
+    case 'place_geo_miss': return `Not on the map: ${q(a.name)} (kept as a name-only tag)`;
+    default: return null;
+  }
+}
+export interface PlaceRow { id: string; name_en: string; name_th: string | null; area: string; status: 'live' | 'pending' | 'rejected'; added_how: string | null;
+  outside_bkk: boolean; coords_rough: boolean; osm_ref: string | null; lat: number; lng: number; created_at: string; by_no: number | null; by_name: string | null;
+  geo: string | null; reels: number; auto: string | null }
+/** Chips for a row in More → Places. */
+export function placeFlags(p: PlaceRow): [string, string][] {
+  const f: [string, string][] = [];
+  if (p.status === 'rejected') f.push([p.auto?.startsWith('place_auto_reject') ? `refused · ${REASON[p.auto.split(':')[1] || ''] || 'junk'}` : 'hidden', 'r']);
+  if (p.outside_bkk) f.push(['outside Bangkok', 'a']);
+  if (p.status !== 'rejected') f.push(p.coords_rough ? [p.geo === 'not_found' ? 'name only' : 'finding pin…', ''] : ['on map', 'g']);
+  return f;
+}
+

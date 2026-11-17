@@ -7,8 +7,8 @@
 import { el, rpc } from './shared';
 import { signReelPaths } from '../v8/v5Reel';
 import {
-  ago, both, buildInbox, claimChip, clock, filterPeople, isSnapshot, lookalikeWords, money, personFlags, referrers, summary, who,
-  type Claim, type InboxItem, type Person, type PeopleFilter, type Snapshot,
+  ago, both, buildInbox, claimChip, clock, filterPeople, isSnapshot, lookalikeWords, money, personFlags, placeFlags, referrers, summary, who,
+  type Claim, type InboxItem, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot,
 } from './adminV2Logic';
 import './adminV2.css';
 
@@ -48,8 +48,10 @@ const hiddenKeys = new Set<string>();
 export async function loadSnapshot(force = false): Promise<Snapshot | null> {
   if (!force && snap && Date.now() - snapAt < 25_000) return snap;
   if (loadingSnap) return loadingSnap;
-  loadingSnap = rpc<unknown>('kr8_admin_v2_snapshot', { p_include_test: includeTest })
-    .then((s) => { if (!isSnapshot(s)) throw new Error('Admin v2 needs database update 0082'); snap = s; snapAt = Date.now(); return s; })
+  // 0086: the place robot's decisions ride along (an empty list before 0086, so the snapshot never fails because of it)
+  const auto = rpc<PlaceAuto[]>('kr8_admin_places_auto', { p_days: 7 }).catch(() => [] as PlaceAuto[]);
+  loadingSnap = Promise.all([rpc<unknown>('kr8_admin_v2_snapshot', { p_include_test: includeTest }), auto])
+    .then(([s, pa]) => { if (!isSnapshot(s)) throw new Error('Admin v2 needs database update 0082'); s.places_auto = Array.isArray(pa) ? pa : []; snap = s; snapAt = Date.now(); return s; })
     .finally(() => { loadingSnap = null; });
   return loadingSnap;
 }
@@ -192,11 +194,11 @@ export function inboxView() {
       open.length ? null : el('div', { class: 'v2zero', id: 'v2Zero' }, ic('check'), el('b', {}, 'Nothing needs you'), el('span', {}, 'Everything else was handled automatically.')),
       el('div', { id: 'v2Inbox' }, ...open.map((i) => inboxCard(i, s))),
       el('a', { class: 'v2card v2row', href: '#auto', id: 'v2AutoLink' }, ic('robot'), el('div', { class: 'grow' }, el('b', {}, `Handled automatically · ${handled.length}`),
-        el('div', { class: 'v2sub' }, 'Paid claims, robot face checks, already-settled look-alikes')), ic('chev')),
+        el('div', { class: 'v2sub' }, 'Paid claims, robot face checks, already-settled look-alikes, places members added')), ic('chev')),
       testToggle());
   }, header('Needs you'));
 }
-const KIND_LABEL: Record<InboxItem['kind'], [string, string]> = { held: ['Money', 'r'], lookalike: ['Same person?', 'a'], check: ['Face check', 'b'], reel: ['Reel', 'p'], reports: ['Reports', 'r'], places: ['Places', ''] };
+const KIND_LABEL: Record<InboxItem['kind'], [string, string]> = { held: ['Money', 'r'], lookalike: ['Same person?', 'a'], check: ['Face check', 'b'], reel: ['Reel', 'p'], reports: ['Reports', 'r'] };
 function inboxCard(i: InboxItem, s: Snapshot): HTMLElement {
   const [kl, kt] = KIND_LABEL[i.kind];
   const card = el('article', { class: `v2card v2item k-${i.kind}`, 'data-item': i.key },
@@ -242,7 +244,6 @@ function actions(i: InboxItem): HTMLElement {
     box.append(act(i.reelIds.length > 1 ? `Approve all ${i.reelIds.length}` : 'Approve', 'ok', 'v2ReelOk-' + i.key, () => later(i.key, 'Approved', async () => { for (const id of i.reelIds) await rpc('kr8_admin_review_reel', { p_reel: id, p_status: 'approved' }); })),
       el('a', { class: 'v2btn', href: '#q/reels' }, 'Watch first'));
   } else if (i.kind === 'reports') box.append(el('a', { class: 'v2btn ok', href: '#q/reports' }, 'Open reports'));
-  else if (i.kind === 'places') box.append(el('a', { class: 'v2btn ok', href: '#todo' }, 'Open places'));
   if (i.reelIds.length && i.kind !== 'reel') box.append(el('a', { class: 'v2btn', href: '#q/reels' }, `${i.reelIds.length} Reel waiting`));
   return box;
 }
@@ -446,6 +447,46 @@ export async function logView() {
   paint();
 }
 
+// ───────── Places (0086: members' places decide themselves; this is only to look, or to undo) ─────────
+let plFilter = LS('kr8-v2-plf') || 'members';
+let plQuery = '';
+export async function placesView() {
+  const body = el('div', {}, loadingCard());
+  screen('more', header('Places', 'Added by members · decided automatically · tap to hide or restore', '#more'), body);
+  stopV2();
+  let rows: PlaceRow[] = [];
+  const load = async () => {
+    try { rows = await rpc<PlaceRow[]>('kr8_admin_places_list', { p_filter: plFilter, p_q: plQuery || null, p_limit: 300 }); paint(); }
+    catch (e) { body.replaceChildren(errorCard(e)); }
+  };
+  const row = (p: PlaceRow): HTMLElement => {
+    const key = 'place:' + p.id;
+    const hide = p.status !== 'rejected';
+    const btn = el('button', { type: 'button', class: `v2btn ${hide ? 'bad' : 'ok'}`, id: (hide ? 'plHide-' : 'plRestore-') + p.id, style: 'flex:0 0 auto;min-height:38px' }, hide ? 'Hide' : 'Restore');
+    btn.onclick = () => later(key, hide ? `Hidden: ${p.name_en}` : `Restored: ${p.name_en}`, async () => { await rpc('kr8_admin_place_undo', { p_id: p.id, p_action: hide ? 'hide' : 'restore' }); await load(); });
+    const map = !p.coords_rough ? el('a', { href: `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`, target: '_blank', rel: 'noopener', class: 'v2sub' }, 'Map')
+      : el('a', { href: `https://www.google.com/maps/search/${encodeURIComponent(p.name_th || p.name_en)}`, target: '_blank', rel: 'noopener', class: 'v2sub' }, 'Search map');
+    return el('div', { class: 'v2li', 'data-place': p.id, style: hiddenKeys.has(key) ? 'opacity:.4' : undefined },
+      el('div', { class: 'grow' }, el('b', {}, p.name_en), p.name_th && p.name_th !== p.name_en ? el('div', { class: 'v2sub' }, p.name_th) : null,
+        el('small', {}, `${p.area} · ${p.by_no != null ? `#${p.by_no} ${p.by_name || ''} · ` : ''}${ago(p.created_at)} · on ${p.reels} Reel${p.reels === 1 ? '' : 's'} · `, map),
+        el('span', { class: 'v2flags' }, ...placeFlags(p).map(([t, tone]) => chip(t, tone)))),
+      btn);
+  };
+  const paint = () => {
+    const q = el('input', { type: 'search', id: 'plSearch', placeholder: 'Search place name', value: plQuery, autocomplete: 'off' });
+    let t = 0;
+    q.oninput = () => { clearTimeout(t); t = window.setTimeout(() => { plQuery = q.value.trim(); void load(); }, 300); };
+    const chips: [string, string][] = [['members', 'Added by members'], ['hidden', 'Hidden / refused'], ['all', 'All places']];
+    body.replaceChildren(
+      el('label', { class: 'v2search' }, ic('search'), q),
+      el('div', { class: 'v2chips' }, ...chips.map(([k, l]) => { const b = el('button', { type: 'button', class: plFilter === k ? 'on' : '', id: 'plf-' + k }, l); b.onclick = () => { plFilter = k; LS('kr8-v2-plf', k); void load(); }; return b; })),
+      rows.length ? el('div', { class: 'v2card v2list', id: 'v2Places' }, ...rows.map(row)) : el('div', { class: 'v2card v2sub' }, 'No places here.'));
+    if (plQuery) { q.focus(); (q as HTMLInputElement).setSelectionRange(plQuery.length, plQuery.length); }
+  };
+  rerender = () => paint();
+  await load();
+}
+
 /** Router hook: returns true when the hash is a v2 screen. */
 export function v2Route(a: string, b?: string): boolean {
   if (a === 'today' || a === '') { todayView(); return true; }
@@ -455,6 +496,7 @@ export function v2Route(a: string, b?: string): boolean {
   if (a === 'money') { moneyView(); return true; }
   if (a === 'board') { boardView(); return true; }
   if (a === 'log') { void logView(); return true; }
+  if (a === 'places') { void placesView(); return true; }
   if (a === 'm' && b) { void memberView(b); return true; }
   stopV2();
   return false;
