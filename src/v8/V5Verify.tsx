@@ -175,7 +175,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
       const selfie = await read(bestRef.current);
       const mid = await read(midRef.current || firstRef.current);
       const end = await read(endRef.current);
-      const card = cardRef.current ? await cardRef.current : (TESTCOPY ? selfie : null);
+      const card = TESTCOPY ? selfie : cardRef.current ? await cardRef.current : null;
       const r3 = (x: number) => Math.round(x * 1000) / 1000;
       const match = selfie?.emb && card?.emb ? r3(cosine(selfie.emb, card.emb)) : null;
       const others = [mid, end].filter((x): x is FaceRead => !!x);
