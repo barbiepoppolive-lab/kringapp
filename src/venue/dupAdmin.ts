@@ -101,6 +101,36 @@ export function lookalikeBanner(l: FaceLookalikes | null | undefined): { text: s
       : 'Faces look alike (a card photo, or just over the line). Compare by eye before approving.') + (more ? ` Also close: ${more}.` : '') };
 }
 
+// ───────── 0080 Face check v2 (17 Nov: two "same person" lines with opposite meanings confused the founder) ─────────
+/** kr8_admin_lookalike_cards: card photo, referrer code and join date per member (empty before database update 0080) */
+export interface LookCard { member_no: number | null; first_name: string; photo: string | null; ref_code: string | null; joined_at: string | null }
+export function isLookCardMap(x: unknown): x is Record<string, LookCard> {
+  return !!x && typeof x === 'object' && !Array.isArray(x) && Object.values(x as Record<string, unknown>).every((v) => !!v && typeof v === 'object' && 'first_name' in (v as object));
+}
+const whoName = (m: { member_no: number | null; first_name: string }) => `${m.member_no != null ? `#${m.member_no} ` : ''}${m.first_name}`;
+/** look-alike distance → plain verdict. ≤ 0.40 = reject; above = the admin compares by eye. */
+export function lookalikeVerdict(dist: number): { tone: 'r' | 'a'; text: string } {
+  return dist <= 0.4 ? { tone: 'r', text: 'Very likely the same person: reject' } : { tone: 'a', text: 'Borderline: compare faces yourself' };
+}
+/** The "Possible second account" block (first on the card). null = no look-alike flag. */
+export function lookalikeBlock(l: FaceLookalikes | null | undefined): { title: string; dist: string; verdict: { tone: 'r' | 'a'; text: string }; other: FaceLookalike; also: string } | null {
+  const m = l?.matches?.[0];
+  if (!m) return null;
+  return { title: `Possible second account: ${whoName(m)}`, dist: m.dist.toFixed(2), verdict: lookalikeVerdict(m.dist), other: m,
+    also: l!.matches.slice(1).map((x) => `${whoName(x)} ${x.dist.toFixed(2)}`).join(' · ') };
+}
+/** The member's own profile photo vs their own live selfie. Never says "same person" (that wording belongs to the look-alike block). */
+export function ownPhotoLabel(match: number | null | undefined): { tone: 'n' | 'a'; tick: boolean; text: string } {
+  if (match === null || match === undefined) return { tone: 'a', tick: false, text: 'Profile photo vs own selfie: no score (no face found in one photo)' };
+  return match < 0.6 ? { tone: 'n', tick: true, text: `Profile photo vs own selfie: ✓ matches (${match.toFixed(2)})` }
+    : { tone: 'a', tick: false, text: `Profile photo vs own selfie: may not match (${match.toFixed(2)}), look carefully` };
+}
+/** "12 Nov 2026" (Bangkok date) or "–" */
+export function joinDate(iso: string | null | undefined): string {
+  if (!iso || Number.isNaN(Date.parse(iso))) return '–';
+  return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Bangkok' }).format(Date.parse(iso));
+}
+
 export function prizeName(p: { kind: string | null; founding_no?: number | null; rank?: number | null; week?: string | null }): string {
   return p.kind === 'founding' ? `Founding Local #${p.founding_no ?? ''}` : p.kind === 'weekly' ? `Weekly #${p.rank ?? ''}${p.week ? ` (${p.week})` : ''}` : 'Prize';
 }

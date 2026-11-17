@@ -119,3 +119,50 @@ describe('server + email (written, not applied)', () => {
     expect(fn).toMatch(/looks like \$\{rec\.other_name\} #\$\{rec\.other_no\} · \$\{Number\(rec\.dist\)\.toFixed\(2\)\}/);
   });
 });
+
+// 0080 Face check v2 (17 Nov): two "same person" lines with opposite meanings confused the founder
+describe('Face check v2: look-alike block, own-photo line, buttons', async () => {
+  const { lookalikeBlock, lookalikeVerdict, ownPhotoLabel, isLookCardMap, joinDate } = await import('../venue/dupAdmin');
+  const look = (dist: number): FaceLookalikes => ({ has_print: true, matches: [{ user_id: 'u50', member_no: 50, first_name: 'Eyes', verified: false, dist, strength: 'same' },
+    { user_id: 'u29', member_no: 29, first_name: 'JERJAM', verified: false, dist: 0.52, strength: 'maybe' }] });
+  it('names the other account and gives a plain verdict by distance', () => {
+    const b = lookalikeBlock(look(0.48))!;
+    expect(b.title).toBe('Possible second account: #50 Eyes');
+    expect(b.dist).toBe('0.48');
+    expect(b.verdict.text).toBe('Borderline: compare faces yourself');
+    expect(b.also).toBe('#29 JERJAM 0.52');
+    expect(lookalikeVerdict(0.4).text).toBe('Very likely the same person: reject');
+    expect(lookalikeVerdict(0.33).tone).toBe('r');
+    expect(lookalikeVerdict(0.401).text).toBe('Borderline: compare faces yourself');
+    expect(lookalikeVerdict(0.5).tone).toBe('a');
+    expect(lookalikeBlock({ has_print: true, matches: [] })).toBeNull();
+  });
+  it('the own-photo line never says "same person"', () => {
+    expect(ownPhotoLabel(0.49).text).toBe('Profile photo vs own selfie: ✓ matches (0.49)');
+    expect(ownPhotoLabel(0.49).tone).toBe('n');
+    for (const m of [0.2, 0.49, 0.55, 0.7, null, undefined]) expect(ownPhotoLabel(m).text).not.toMatch(/same person/i);
+    expect(ownPhotoLabel(0.7).tone).toBe('a');
+  });
+  it('card map check + join date', () => {
+    expect(isLookCardMap({ u: { member_no: 1, first_name: 'A', photo: null, ref_code: null, joined_at: null } })).toBe(true);
+    expect(isLookCardMap([])).toBe(false);
+    expect(joinDate('2026-11-12T03:00:00Z')).toBe('12 Nov 2026');
+    expect(joinDate(null)).toBe('–');
+  });
+  it('the admin screen: look-alike block first, equal buttons when flagged, no "Very likely the same person" on the own photo', () => {
+    const app = readFileSync('src/venue/adminApp.ts', 'utf8');
+    const body = app.slice(app.indexOf('function faceBody('), app.indexOf('/** 0076: the admin page makes a face code itself'));
+    expect(body.indexOf('lkBox,')).toBeLessThan(body.indexOf("pic(r.profile_photo, 'Profile photo'"));
+    expect(body).not.toMatch(/same person/i);
+    expect(app).toMatch(/class: lkFlag \? 'two even' : 'two'/);
+    expect(app).toMatch(/btn\(lkFlag \? 'ghost big' : 'go big', \[ic\('check'\), 'Approve'\]/);
+    expect(readFileSync('src/venue/admin2.css', 'utf8')).toMatch(/\.two\.even \{ grid-template-columns: 1fr 1fr; \}/);
+  });
+  it('0080 is admin-only and read-only', () => {
+    const sql = readFileSync('supabase/migrations/0080_kr8_admin_lookalike_cards.sql', 'utf8');
+    expect(sql).toMatch(/if not public\.kr8_is_admin\(\) then raise exception 'KR8_ADMIN_ONLY'/);
+    expect(sql).toMatch(/language plpgsql stable security definer/);
+    expect(sql).toMatch(/revoke all on function public\.kr8_admin_lookalike_cards\(uuid\[\]\) from public, anon;/);
+    expect(sql.replace(/--.*$/gm, '')).not.toMatch(/\b(insert|update|delete|alter|drop|truncate)\b/i);
+  });
+});

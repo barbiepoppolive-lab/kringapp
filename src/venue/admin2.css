@@ -144,6 +144,19 @@ h1, h2, h3 { font-family: var(--h); margin: 0; letter-spacing: -0.01em; }
 .warnbox.lookalike { margin: 0 0 12px; }
 .warnbox.lookalike b { font-size: 16px; }
 .warnbox.lookalike.amber { background: rgba(255, 196, 77, 0.08); border-color: rgba(255, 196, 77, 0.45); color: var(--warn); }
+/* 0080 Face check v2: look-alike block first (other account vs this selfie), own-photo line neutral with a green tick, equal buttons */
+.lkbox { padding: 12px; border-radius: 18px; background: rgba(255, 90, 107, 0.08); border: 1px solid rgba(255, 90, 107, 0.4); color: #ff9aa5; margin: 14px 0 2px; }
+.lkbox.amber { background: rgba(255, 196, 77, 0.08); border-color: rgba(255, 196, 77, 0.45); color: var(--warn); }
+.lkbox .lk-t { display: flex; align-items: center; gap: 8px; font: 600 17px var(--h); }
+.lkbox .lk-t svg { width: 20px; height: 20px; flex: none; }
+.lkbox .pair { margin: 10px 0; }
+.lkbox .lk-v { display: flex; align-items: center; gap: 12px; font-size: 15px; }
+.lkbox .lk-v .v { font: 700 28px/1 var(--h); }
+.lk-facts { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 12px; margin-top: 10px; font-size: 13px; color: var(--dim); }
+.lk-facts b { color: var(--text); font-weight: 600; }
+.score.n { background: var(--s1); border-color: var(--line); color: var(--text); }
+.score .tick { color: var(--go2); }
+.two.even { grid-template-columns: 1fr 1fr; }
 .tip { display: flex; gap: 8px; color: var(--dim); font-size: 13.5px; margin-top: 12px; }
 .tip svg { width: 16px; height: 16px; flex: none; margin-top: 2px; }
 

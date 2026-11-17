@@ -15,7 +15,7 @@ import { IG_TOP, type IgDm } from './igData';
 import { pushSendArgs } from './pushAdmin';
 import { agentsByLabel, cleanRef, codeMeaning, funnelLine, funnelRate, isProblemLog, isRecruiters, kindName, uaInfo,
   type ProblemLog, type RecruitMember, type Recruiters } from './problemsAdmin';
-import { buildClusters, faceWords, flagText, isLookalikeMap, lookalikeBanner, type FaceLookalikes, istWhen, weekRange, type WeekRow, HOLD_LABEL, isDupOverview, isLinkReason, isWeekReview, linkText, prizeName, REASON_LABEL, weekFlags,
+import { buildClusters, faceWords, flagText, isLookalikeMap, isLookCardMap, joinDate, lookalikeBlock, ownPhotoLabel, type LookCard, type FaceLookalikes, istWhen, weekRange, type WeekRow, HOLD_LABEL, isDupOverview, isLinkReason, isWeekReview, linkText, prizeName, REASON_LABEL, weekFlags,
   type DupCluster, type DupFlagged, type DupHeld, type DupMember, type WeekReview, reviewText } from './dupAdmin';
 import './admin2.css';
 
@@ -635,28 +635,44 @@ async function signSelfies(rows: Face[]) {
   for (const d of data || []) if (d.path && d.signedUrl) out[d.path] = d.signedUrl;
   return out;
 }
-function faceBody(r: Face, signed: Record<string, string>, look?: FaceLookalikes | null): HTMLElement {
-  const lb = lookalikeBanner(look);
+function faceBody(r: Face, signed: Record<string, string>, look?: FaceLookalikes | null, cards: Record<string, LookCard> = {}): HTMLElement {
+  // 0080 (17 Nov): the look-alike block comes first and compares the OTHER account with this selfie; the own-photo line below
+  // never uses the look-alike wording (two look-alike-sounding lines with opposite meanings confused the founder)
+  const lk = lookalikeBlock(look);
   const lc = r.live_check || {};
   const m = lc.match;
-  const [cls, label] = m === null || m === undefined ? ['a', 'No score · no face found in one of the photos']
-    : m < 0.5 ? ['g', 'Very likely the same person'] : m < 0.6 ? ['g', 'Likely the same person'] : ['a', 'Look carefully: may be a different person'];
+  const own = ownPhotoLabel(m);
+  const selfie = r.selfie_path ? signed[r.selfie_path] : null;
   const pic = (src: string | null | undefined, cap: string, none: string) => el('figure', {}, src ? el('img', { src, alt: cap }) : el('div', { class: 'none' }, none), el('figcaption', { class: 'chip' }, cap));
   const step = (on: boolean | undefined, icon: string, t: string, bad = false) => el('div', { class: on ? 'y' : bad ? 'n' : '' }, ic(icon), t);
   const noBlink = (!!lc.right && !lc.blink) || lc.blink_fallback === true;   // audit P2-5: the 12-s fallback is never shown as a blink
+  const ownParts = own.text.split('✓');
+  let lkBox: HTMLElement | null = null;
+  if (lk) {
+    const oc = cards[lk.other.user_id], me = cards[r.user_id];
+    const otherName = `${lk.other.member_no != null ? `#${lk.other.member_no} ` : ''}${lk.other.first_name}`;
+    const fact = (who: string, c: LookCard | undefined, joined: string | null | undefined, id: string) =>
+      [el('span', {}, who), el('b', { 'data-ref': id }, c?.ref_code || '–'), el('b', { 'data-joined': id }, joinDate(joined))];
+    lkBox = el('div', { class: 'lkbox' + (lk.verdict.tone === 'a' ? ' amber' : ''), id: 'verifyLookalike-' + r.id, 'data-tone': lk.verdict.tone },
+      el('div', { class: 'lk-t' }, ic('warn'), lk.title),
+      el('div', { class: 'pair' }, pic(oc?.photo, otherName, 'No card photo'), pic(selfie, 'This member’s selfie', 'Selfie deleted (30 days)')),
+      el('div', { class: 'lk-v', 'data-dist': lk.dist }, el('span', { class: 'v' }, lk.dist), el('b', {}, lk.verdict.text)),
+      el('div', { class: 'lk-facts' }, el('span', {}), el('span', {}, 'Referrer code'), el('span', {}, 'Joined'),
+        ...fact('This member', me, me?.joined_at ?? r.account_created, 'me'), ...fact(otherName, oc, oc?.joined_at, 'other')),
+      lk.also ? el('div', { class: 'xs', style: 'margin-top:8px' }, `Also close: ${lk.also}`) : null);
+  }
   return el('div', { 'data-verify': r.id },
     el('h2', { style: 'font-size:26px' }, r.first_name),
     el('div', { class: 'dim sm', style: 'margin-top:2px' }, `Joined ${ago(r.account_created)} · ${r.approved_reels} approved Reels · sent ${ago(r.created_at)}`),
-    // 0076: another member with the same / a look-alike face (all face codes: card photos + selfies)
-    lb ? el('div', { class: 'warnbox lookalike' + (lb.tone === 'a' ? ' amber' : ''), id: 'verifyLookalike-' + r.id, 'data-tone': lb.tone },
-      ic('warn'), el('div', {}, el('b', {}, lb.text), el('div', { class: 'xs', style: 'margin-top:3px' }, lb.more))) : null,
-    el('div', { class: 'pair' }, pic(r.profile_photo, 'Profile photo', 'No photo'), pic(r.selfie_path ? signed[r.selfie_path] : null, 'Live selfie', 'Selfie deleted (30 days)')),
-    el('div', { class: 'score ' + cls, 'data-match': String(m ?? '') }, el('span', { class: 'v' }, m === null || m === undefined ? '–' : m.toFixed(2)), el('b', {}, label)),
+    lkBox,
+    el('div', { class: 'pair' }, pic(r.profile_photo, 'Profile photo', 'No photo'), pic(selfie, 'Live selfie', 'Selfie deleted (30 days)')),
+    el('div', { class: 'score ' + own.tone, 'data-match': String(m ?? '') },
+      el('b', {}, ...(ownParts.length > 1 ? [ownParts[0], el('span', { class: 'tick' }, '✓'), ownParts[1]] : [own.text]))),
     el('div', { class: 'steps' }, step(lc.straight, 'face', 'Straight'), step(lc.left, 'left', 'Left'), step(lc.right, 'right', 'Right'), step(lc.blink && !lc.blink_fallback, 'blink', noBlink ? 'No blink seen' : 'Blink', noBlink)),
     noBlink ? el('div', { class: 'warnbox', 'data-noblink': '1' }, ic('warn'), 'No blink seen (moved on after 12 s facing the camera). Could be a still photo held up: look at the selfie carefully.') : null,
     lc.device ? el('div', { class: 'faint xs', style: 'margin-top:8px' }, lc.device) : null,
     r.reject_reason ? el('p', { class: 'dim sm' }, 'Reason: ' + r.reject_reason) : null,
-    el('div', { class: 'tip' }, ic('info'), 'Same person, clear face, not a photo of a screen.'));
+    el('div', { class: 'tip' }, ic('info'), 'Profile photo matches the selfie, clear face, not a photo of a screen.'));
 }
 /** 0076: the admin page makes a face code itself (same face-api models as the phone). Never throws. */
 async function adminFacePrint(src: string): Promise<Float32Array | null> {
@@ -692,17 +708,23 @@ async function faceQueue() {
   const signed = await signSelfies(rows).catch(() => ({} as Record<string, string>));
   // 0076: look-alikes for the banner (empty before database update 0076)
   const looks = await rpc<unknown>('kr8_admin_verify_lookalikes', { p_ids: rows.map((r) => r.id) }).then((x) => (isLookalikeMap(x) ? x : {})).catch(() => ({} as Record<string, FaceLookalikes>));
+  // 0080: card photo, referrer code and join date for each flagged member and the account it looks like (empty before 0080)
+  const flagged = rows.filter((r) => looks[r.id]?.matches?.length);
+  const cardIds = [...new Set(flagged.flatMap((r) => [r.user_id, looks[r.id].matches[0].user_id]))].slice(0, 20);
+  const cards = cardIds.length ? await rpc<unknown>('kr8_admin_lookalike_cards', { p_users: cardIds }).then((x) => (isLookCardMap(x) ? x : {})).catch(() => ({} as Record<string, LookCard>)) : {};
   queue('Face checks', rows, (r, api) => {
-    api.actions(el('div', {}, el('div', { class: 'two' },
+    // 0080: with a look-alike flag, Approve is not the big green default: both buttons the same size and weight
+    const lkFlag = !!looks[r.id]?.matches?.length;
+    api.actions(el('div', {}, el('div', { class: lkFlag ? 'two even' : 'two' },
       btn('out-bad big', [ic('x'), 'Reject'], () => rejectSheet('Why not?', 'The member sees this reason.', FACE_CHIPS, 'verifyReject-' + r.id,
         (why) => rpc('kr8_admin_review_verification', { p_id: r.id, p_approve: false, p_reason: why }), api.next), { id: 'verifyReject-' + r.id }),
-      btn('go big', [ic('check'), 'Approve'], () => api.done('Verified ✓', async () => {
+      btn(lkFlag ? 'ghost big' : 'go big', [ic('check'), 'Approve'], () => api.done('Verified ✓', async () => {
         await rpc('kr8_admin_review_verification', { p_id: r.id, p_approve: true });
         // 0076: every approved face check keeps a face code (older app builds never sent one)
         if (looks[r.id] && !looks[r.id].has_print && r.selfie_path && signed[r.selfie_path]) void adminSelfiePrint(r.user_id, r.id, signed[r.selfie_path]);
       }), { id: 'verifyApprove-' + r.id })),
     skipBtn(api)));
-    return faceBody(r, signed, looks[r.id]);
+    return faceBody(r, signed, looks[r.id], cards);
   });
 }
 
