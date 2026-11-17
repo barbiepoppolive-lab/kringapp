@@ -14,10 +14,20 @@ const FRESH_S = 60, STALE_S = 600, SIGN_S = 3600;
 const OK_PATH = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(mp4|webm|mov|jpg|jpeg|webp)$/;
 const H = { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' };
 
-async function build() {
+// 0085 (17 Nov): visitors get the ranked order (kr8_feed_ranked) like members; one seed per Bangkok day, so every visitor in
+// the 60-s cache window shares one stable order. If the ranked call is missing or fails, the old newest-first kr8_feed.
+const bkkDay = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
+async function feedRows() {
+  const rr = await fetch(`${SUPA}/rest/v1/rpc/kr8_feed_ranked`, { method: 'POST', headers: H,
+    body: JSON.stringify({ p_area: null, p_limit: 60, p_offset: 0, p_seed: 'feed0:' + bkkDay() }) }).catch(() => null);
+  if (rr && rr.ok) return rr.json();
   const fr = await fetch(`${SUPA}/rest/v1/rpc/kr8_feed`, { method: 'POST', headers: H, body: JSON.stringify({ p_area: null, p_limit: 60 }) });
   if (!fr.ok) throw new Error('feed ' + fr.status);
-  const rows = await fr.json();
+  return fr.json();
+}
+
+async function build() {
+  const rows = await feedRows();
   const paths = [...new Set((rows || []).flatMap((r) => (r.kind === 'reel' ? [r.video_path, r.poster_path] : [])).filter((p) => p && OK_PATH.test(p)))];
   const signed = {};
   if (paths.length) {
@@ -36,7 +46,7 @@ const out = (body, state) => new Response(body, { headers: { 'Content-Type': 'ap
 
 export async function onRequestGet({ request, waitUntil }) {
   const cache = caches.default;
-  const key = new Request(new URL('/__feed0/v1', request.url).toString());
+  const key = new Request(new URL('/__feed0/v2', request.url).toString());
   const refresh = async () => {
     const body = await build();
     await cache.put(key, new Response(body, { headers: { 'Content-Type': 'application/json', 'Cache-Control': `public, max-age=${STALE_S}`, 'X-At': String(Date.now()) } }));
