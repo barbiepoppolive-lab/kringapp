@@ -4,7 +4,7 @@ S_TIMELEFT = ('Timeleft – Southeast Asia cities incl. Bangkok', 'https://timel
 S_BUMBLE = ('TechCrunch – Bumble BFF\'s revamped app (18 Sep 2025)', 'https://techcrunch.com/2025/09/18/bumble-bffs-revamped-app-is-here-focusing-on-friend-groups-and-community-building')
 S_BOARD = ('The Thaiger – Board game cafés in Bangkok (19 Oct 2025)', 'https://thethaiger.com/guides/board-game-cafes-in-bangkok-to-unleash-your-competitive-streak')
 S_BACC = ('BACC – Plan your visit', 'https://www.bacc.or.th/en/plan-your-visit')
-S_SKY = ('Thai Holiday Guide – Chao Phraya Sky Park (updated Jul 2026)', 'https://www.thaiholidayguide.com/attraction/chao-phraya-sky-park/')
+S_SKY = ('Thai PBS – Chao Phraya Sky Park opens, daily 05:00–20:00 (25 Jun 2020)', 'https://www.thaipbs.or.th/news/content/293992')
 S_JODD = ('Travjoy – Jodd Fairs Ratchada, 2026 (29 Jul 2026)', 'https://travjoy.com/blog/jodd-fairs-night-market-bangkok-a-complete-2026-guide-to-the-ratchada-site')
 S_ZAFIGO = ('Zafigo – Making new friends in Bangkok (InterNations, Couchsurfing)', 'https://zafigo.com/travel/zafigo-stories/how-to-meet-new-people-in-bangkok/')
 S_LUMPHINI = ('Wikipedia – Lumphini Park', 'https://en.wikipedia.org/wiki/Lumphini_Park')
@@ -35,7 +35,7 @@ dict(slug='make-friends-bangkok', group='friends', img='twilight', areas=['ari',
 ## 1. เลือกกิจกรรมประจำ ไม่ใช่อีเวนต์ครั้งเดียว
 อีเวนต์ครั้งเดียวสนุกก็จริง แต่แทบไม่มีใครกลายเป็นเพื่อนกันหลังเจอแค่ครั้งเดียว สิ่งที่ได้ผลกว่าคือกิจกรรมที่จัดทุกสัปดาห์ ไปครั้งที่สามคนเริ่มจำชื่อได้ ครั้งที่ห้าเริ่มมีคนชวนไปกินข้าวต่อ
 
-- **รันคลับ** หลายกลุ่มวิ่งฟรีและไม่ต้องสมัคร เช่น SarDine Run Club ที่วิ่งวันเสาร์ สลับไปมาระหว่างสวนรถไฟ สวนลุมพินี และสวนเบญจกิติ (ข้อมูลจาก Time Out ก.พ. 2026)
+- **รันคลับ** หลายกลุ่มวิ่งฟรีและไม่ต้องสมัคร เช่น SarDine Run Club ที่วิ่งวันเสาร์ สลับไปมาระหว่างสวนรถไฟ สวนลุมพินี และสวนเบญจกิติ
 - **บอร์ดเกมคาเฟ่** เกมบังคับให้คุยกันตั้งแต่นาทีแรก ไม่ต้องคิดหัวข้อเอง อ่านต่อใน[บอร์ดเกมคาเฟ่ในกรุงเทพฯ](/blog/board-game-cafes-bangkok/)
 - **คลาสที่เรียนต่อเนื่อง** มวยไทย ปั้นเซรามิก ทำอาหาร หรือภาษา คลาสแบบคอร์สดีกว่าเวิร์กช็อปวันเดียว เพราะเจอเพื่อนร่วมคลาสหลายครั้ง
 
@@ -151,7 +151,7 @@ dict(slug='friend-apps-bangkok', group='friends', img='cafe', areas=['siam'],
 - **ข้อจำกัด:** ห้องเยอะมาก คุณภาพไม่เท่ากัน บางห้องเงียบ บางห้องมีแต่โฆษณา ลองเข้าหลายห้องแล้วเก็บไว้แค่ห้องที่มีคนนัดกันจริง
 
 ## Bumble BFF: ปัดหาเพื่อน และตอนนี้เน้นกลุ่มมากขึ้น
-Bumble แยกโหมดหาเพื่อนออกมาเป็นแอป Bumble BFF และปรับใหม่เมื่อกันยายน 2025 ให้มีแท็บกลุ่ม สร้างหรือเข้ากลุ่ม แชตในห้อง และวางแผนกิจกรรมด้วยปฏิทินในแอป (ตาม TechCrunch)
+Bumble แยกโหมดหาเพื่อนออกมาเป็นแอป Bumble BFF และปรับใหม่เมื่อกันยายน 2025 ให้มีแท็บกลุ่ม สร้างหรือเข้ากลุ่ม แชตในห้อง และวางแผนกิจกรรมด้วยปฏิทินในแอป
 
 - **เหมาะกับ:** คนที่อยากได้เพื่อนวัยใกล้กัน และชินกับการปัดแบบแอปทั่วไป
 - **ข้อจำกัด:** บทความต้นทางไม่ได้ยืนยันว่าทุกฟีเจอร์ใช้ได้ทุกประเทศ ลองโหลดมาดูว่าในไทยมีอะไรให้ใช้บ้าง
@@ -172,7 +172,7 @@ InterNations เป็นชุมชนสำหรับชาวต่าง�
 ถ้าวิ่งหรือปั่นจักรยาน คลับใน Strava กับอินสตาแกรมของรันคลับคือทางลัด หลายกลุ่มวิ่งฟรี ไม่ต้องสมัคร แค่ไปให้ตรงเวลา อ่านต่อใน[วิ่งที่ไหนดีในกรุงเทพฯ](/blog/run-clubs-bangkok/)
 
 ## กริ๊ง!: หาเพื่อนจากสถานที่จริง (แอปของเรา)
-กริ๊ง! ทำมาเพื่อกรุงเทพฯ โดยเฉพาะ คุณทำการ์ดของตัวเอง โพสต์ Reel สั้น ๆ จากที่ที่ชอบ แล้วเห็นว่าใครชอบที่เดียวกัน มีบอร์ดประจำสัปดาห์ที่มีรางวัลจริงสำหรับคนที่ลงคลิปดี และห้อง "ถามคนไทย" ไว้ถามตอบเรื่องกรุงเทพฯ แชตแปลไทย-อังกฤษให้อัตโนมัติ
+กริ๊ง! ทำมาเพื่อกรุงเทพฯ โดยเฉพาะ คุณทำการ์ดโปรไฟล์ของตัวเอง โพสต์ Reel สั้น ๆ จากที่ที่ชอบ แล้วเห็นว่าใครชอบที่เดียวกัน มีบอร์ดประจำสัปดาห์ที่มีรางวัลจริงสำหรับคนที่ลงคลิปดี และห้อง "ถามคนไทย" ไว้ถามตอบเรื่องกรุงเทพฯ แชตแปลไทย-อังกฤษให้อัตโนมัติ
 
 - **เหมาะกับ:** คนไทยที่อยากมีเพื่อนใหม่และอยากโชว์กรุงเทพฯ ในมุมของตัวเอง และนักท่องเที่ยวที่อยากคุยกับคนที่อยู่ที่นี่จริง
 - **ข้อจำกัด:** เริ่มเปิดให้ใช้ 1 ธันวาคม 2026 ช่วงแรกคนอาจยังไม่เยอะเท่าแอปใหญ่ ตอนนี้มีเฉพาะกรุงเทพฯ และไม่ใช่แอปหาคู่
@@ -193,7 +193,7 @@ InterNations เป็นชุมชนสำหรับชาวต่าง�
 
 ไม่ต้องเลือกแค่ตัวเดียว ใช้สองตัวคู่กับกิจกรรมจริงหนึ่งอย่างทุกสัปดาห์ ได้ผลกว่าโหลดมาห้าแอปแล้วไม่เปิดเลย
 ''',
-  cta=('ลองกริ๊ง! ดูไหม', 'ทำการ์ด โพสต์ Reel จากที่ที่ชอบ แล้วคุยกับคนที่ชอบที่เดียวกัน ใช้ฟรี ล็อกอินด้วย LINE ได้ สำหรับอายุ 20 ปีขึ้นไป'),
+  cta=('ลองกริ๊ง! ดูไหม', 'ทำการ์ดโปรไฟล์ โพสต์ Reel จากที่ที่ชอบ แล้วคุยกับคนที่ชอบที่เดียวกัน ใช้ฟรี ล็อกอินด้วย LINE ได้ สำหรับอายุ 20 ปีขึ้นไป'),
   faq=[('แอปหาเพื่อนกับแอปหาคู่ต่างกันยังไง', 'แอปหาเพื่อนออกแบบมาเพื่อมิตรภาพ มักเน้นกลุ่มและกิจกรรม ไม่ได้จับคู่เชิงโรแมนติก ถ้าอยากได้เพื่อนจริง ๆ ใช้แอปที่ทำมาเพื่อเพื่อนจะตรงกว่า'),
        ('แอปหาเพื่อนตัวไหนฟรี', 'LINE OpenChat และกริ๊ง! ใช้ฟรี Bumble BFF โหลดฟรีแต่อาจมีฟีเจอร์เสียเงิน Timeleft เป็นบริการแบบเสียเงิน เช็กราคาล่าสุดในแอป'),
        ('ใช้แอปหาเพื่อนปลอดภัยไหม', 'ปลอดภัยถ้าเจอกันครั้งแรกในที่สาธารณะ บอกคนใกล้ตัวว่าไปไหน และเดินทางเอง อย่าให้ที่อยู่หรือข้อมูลการเงินกับคนที่เพิ่งรู้จัก'),
@@ -237,7 +237,7 @@ InterNations is a community for people who have moved abroad, with social events
 If you run or cycle, Strava clubs and run-club Instagram accounts are a shortcut. Many groups are free with no sign-up; you just turn up on time. See [running in Bangkok](/en/blog/run-clubs-bangkok/).
 
 ## Kring: friends through real places (our app)
-Kring is built for Bangkok. You make a card, post short Reels from spots you love and see who else loves them. There is a weekly board with real prizes for the best Reels, and an "Ask a Thai" space for questions about the city. Chats translate between Thai and English automatically.
+Kring is built for Bangkok. You make a profile card, post short Reels from spots you love and see who else loves them. There is a weekly board with real prizes for the best Reels, and an "Ask a Thai" space for questions about the city. Chats translate between Thai and English automatically.
 
 - **Best for:** Thais who want new friends and to show their side of Bangkok, and travellers who want to talk to people who actually live here.
 - **Limits:** Kring opens on 1 December 2026, so early on it has fewer members than the big apps. It is Bangkok-only for now, and it is for friends, not romance.
@@ -258,7 +258,7 @@ If you see these, stop replying and report the account. A good app makes reporti
 
 You do not need just one. Two apps plus one real weekly activity works far better than five apps you never open.
 ''',
-  cta=('Try Kring', 'Make a card, post a Reel from a spot you love and chat with people who love it too. Free, sign in with LINE or email, ages 20+.'),
+  cta=('Try Kring', 'Make a profile card, post a Reel from a spot you love and chat with people who love it too. Free, sign in with LINE or email, ages 20+.'),
   faq=[('How is a friend app different from a romance app?', 'Friend apps are designed around friendship, usually groups and activities, not romantic matching. If you want real friends, an app built for friends is the better tool.'),
        ('Which friend apps are free in Bangkok?', 'LINE OpenChat and Kring are free. Bumble BFF is free to download with optional paid features. Timeleft is a paid service; check current prices in the app.'),
        ('Are friend apps safe to use?', 'Yes, if you keep first hangouts in public places, tell someone where you are going and travel on your own. Never share your address or money details with someone you have just met online.'),
@@ -276,18 +276,18 @@ dict(slug='solo-travel-bangkok', group='friends', img='tuktuk', areas=['siam', '
   card='คลาส รันคลับ บอร์ดเกม ตลาดกลางคืน และเคล็ดลับความปลอดภัย',
   body='''
 ## บทความนี้สำหรับใคร
-สำหรับคนที่มาเที่ยวกรุงเทพฯ คนเดียว ไม่ว่าจะเป็นคนไทยที่มาเที่ยวกรุงเทพฯ ช่วงสุดสัปดาห์ หรือเพื่อนต่างชาติที่คุณอยากส่งลิงก์นี้ให้ หลักคิดง่าย ๆ คือ ไปที่ที่คนอื่นก็มาคนเดียว และมีอะไรให้ทำด้วยกัน
+สำหรับคนที่มาเที่ยวกรุงเทพฯ คนเดียวแล้วอยากได้เพื่อนระหว่างทาง เช่น คนไทยที่แวะมาเที่ยวกรุงเทพฯ คนเดียวช่วงวันหยุด หลักคิดง่าย ๆ คือ ไปที่ที่คนอื่นก็มาคนเดียว และมีอะไรให้ทำด้วยกัน ถ้าอยู่กรุงเทพฯ อยู่แล้วและแค่อยากมีวันชิลคนเดียว อ่าน[ไปไหนดีคนเดียวในกรุงเทพฯ](/blog/things-to-do-alone-bangkok/)
 
 ## ช่วงเช้า: รันคลับและสวน
 กรุงเทพฯ ร้อน คนเลยออกกำลังกายตอนเช้ามืดกับหัวค่ำ รันคลับหลายกลุ่มเปิดรับคนนอกโดยไม่ต้องสมัคร เช่น SarDine Run Club วิ่งวันเสาร์ สลับระหว่างสวนรถไฟ สวนลุมพินี และสวนเบญจกิติ ส่วน URT วิ่งเกือบทุกเช้าราว 6:30 น. ที่ประตู 3 สวนเบญจกิติ (ตาม Time Out ก.พ. 2026) วิ่งเสร็จมักมีคนชวนไปหาอะไรกินต่อ เป็นจังหวะที่ดีที่สุดในการทำความรู้จัก
 
 ## ช่วงกลางวัน: คลาสและเวิร์กช็อป
-คลาสทำอาหารไทยและคลาสมวยไทยคือสองอย่างที่นักเดินทางคนเดียวชอบที่สุด เพราะทุกคนเริ่มจากศูนย์พร้อมกัน ระหว่างคลาสได้คุยกันเองโดยธรรมชาติ เลือกคลาสกลุ่มเล็กที่สอนภาษาอังกฤษ และจองล่วงหน้าหนึ่งสองวัน
+คลาสทำอาหารไทยและคลาสมวยไทยคือสองอย่างที่นักเดินทางคนเดียวชอบที่สุด เพราะทุกคนเริ่มจากศูนย์พร้อมกัน ระหว่างคลาสได้คุยกันเองโดยธรรมชาติ เลือกคลาสหรือเวิร์กช็อปกลุ่มเล็กที่ได้ลงมือทำจริง และจองล่วงหน้าหนึ่งสองวัน
 
 ถ้าชอบศิลปะ[หอศิลปวัฒนธรรมแห่งกรุงเทพมหานคร](/blog/free-things-bangkok/) ที่สยามเข้าชมนิทรรศการฟรี เปิดอังคาร-อาทิตย์ 10:00-20:00 น. ใกล้ ๆ กันมีย่าน[สยาม](/bangkok/siam/) ให้เดินต่อ
 
 ## ช่วงบ่าย: บอร์ดเกมคาเฟ่
-บอร์ดเกมคาเฟ่เป็นที่ที่คนแปลกหน้าเล่นเกมด้วยกันได้โดยไม่แปลก บางร้านพนักงานช่วยหาคนมาร่วมโต๊ะหรือสอนกติกาให้ เช่น Quest Board Game Café ชั้น 7 MBK ที่คิดราว 60 บาทต่อคนต่อชั่วโมง (ตาม The Thaiger ต.ค. 2025) ดูรายชื่อเพิ่มใน[บอร์ดเกมคาเฟ่ในกรุงเทพฯ](/blog/board-game-cafes-bangkok/)
+บอร์ดเกมคาเฟ่เป็นที่ที่คนแปลกหน้าเล่นเกมด้วยกันได้โดยไม่แปลก บางร้านพนักงานช่วยหาคนมาร่วมโต๊ะหรือสอนกติกาให้ เช่น Quest Board Game Café ชั้น 7 MBK ที่คิดราว 60 บาทต่อคนต่อชั่วโมง ดูรายชื่อเพิ่มใน[บอร์ดเกมคาเฟ่ในกรุงเทพฯ](/blog/board-game-cafes-bangkok/)
 
 ## ช่วงเย็น: ริมน้ำและตลาดกลางคืน
 - **สวนลอยฟ้าเจ้าพระยา** บนสะพานพระปกเกล้า เปิดทุกวัน 05:00-20:00 น. เข้าฟรี เดินข้ามจากฝั่งพระนครไปฝั่ง[ธนบุรี](/bangkok/thonburi/) ได้ คนมาถ่ายรูปพระอาทิตย์ตกกันเยอะ
@@ -298,7 +298,7 @@ dict(slug='solo-travel-bangkok', group='friends', img='tuktuk', areas=['siam', '
 ถ้าเป้าหมายคือได้เพื่อนระหว่างทาง ที่พักสำคัญกว่าที่คิด เกสต์เฮาส์ที่มีห้องนั่งเล่นรวมและบอร์ดกิจกรรมประจำสัปดาห์ช่วยได้มาก ลองอ่านรายละเอียดก่อนจองว่ามีกิจกรรมอะไรบ้าง และเลือกทำเลใกล้ BTS หรือ MRT จะได้ไปไหนต่อได้ง่าย
 
 ## แผนสามวันสำหรับคนมาคนเดียว
-- **วันแรก:** เช้าเดินสวนลุมพินี บ่ายหอศิลป์ที่สยาม เย็นจ๊อดแฟร์ พระราม 9
+- **วันแรก:** เช้าเดินสวนลุมพินี บ่ายหอศิลป์ที่สยาม เย็นจ๊อดแฟร์ รัชดา
 - **วันที่สอง:** เช้าคลาสทำอาหารหรือมวยไทย บ่ายตลาดน้อย เย็นสวนลอยฟ้าเจ้าพระยา
 - **วันที่สาม:** เช้าวิ่งกับรันคลับ (ถ้าตรงกับวันเสาร์) บ่ายบอร์ดเกมคาเฟ่ เย็นนั่งเรือด่วนเจ้าพระยา
 
@@ -325,7 +325,7 @@ dict(slug='solo-travel-bangkok', group='friends', img='tuktuk', areas=['siam', '
   card='Classes, run clubs, board games, riverside evenings and safety tips.',
   body='''
 ## The one rule
-Go where other people also turn up alone, and where there is something to do together. That removes the hardest part, the opening line, because the activity starts the conversation for you.
+Go where other people also turn up alone, and where there is something to do together. That removes the hardest part, the opening line, because the activity starts the conversation for you. (Live here and just want a calm day out on your own? That is a different plan: see [things to do alone in Bangkok](/en/blog/things-to-do-alone-bangkok/).)
 
 ## Mornings: run clubs and parks
 Bangkok is hot, so the city exercises at dawn and after dark. Several run clubs welcome visitors with no sign-up. SarDine Run Club runs on Saturdays, rotating between Suan Rot Fai, Lumphini Park and Benjakitti Park, and Ugly Running Training Club (URT) runs most mornings around 6:30am at Gate 3 of Benjakitti Park (per Time Out, February 2026). Post-run breakfast is when people actually talk.
@@ -380,11 +380,11 @@ dict(slug='things-to-do-alone-bangkok', group='do', img='river', areas=['siam', 
   card='หอศิลป์ฟรี ห้องสมุดดีไซน์ สวนลอยฟ้า เรือด่วน และย่านเก่าริมน้ำ',
   body='''
 ## ไปคนเดียวไม่ได้แปลว่าเหงา
-หลายคนไม่กล้าไปไหนคนเดียวเพราะกลัวคนมอง จริง ๆ ในกรุงเทพฯ มีคนไปไหนมาไหนคนเดียวเยอะมาก โดยเฉพาะที่ด้านล่างนี้ ซึ่งการมาคนเดียวคือเรื่องปกติ และหลายที่ทำให้ได้คุยกับคนอื่นแบบไม่ต้องพยายาม
+หลายคนไม่กล้าไปไหนคนเดียวเพราะกลัวคนมอง จริง ๆ ในกรุงเทพฯ มีคนไปไหนมาไหนคนเดียวเยอะมาก โดยเฉพาะที่ด้านล่างนี้ ซึ่งการมาคนเดียวคือเรื่องปกติ และหลายที่ทำให้ได้คุยกับคนอื่นแบบไม่ต้องพยายาม ถ้ากำลังมาเที่ยวกรุงเทพฯ และอยากได้เพื่อนระหว่างทาง อ่าน[เที่ยวกรุงเทพฯ คนเดียว](/blog/solo-travel-bangkok/)
 
 ## สายศิลปะและความรู้
 1. **หอศิลปวัฒนธรรมแห่งกรุงเทพมหานคร (BACC)** ที่[สยาม](/bangkok/siam/) เข้าชมนิทรรศการฟรี เปิดอังคาร-อาทิตย์ 10:00-20:00 น. ปิดวันจันทร์ เดินเชื่อมจาก BTS สนามกีฬาแห่งชาติได้เลย ชั้นล่าง ๆ มีร้านหนังสือและร้านเล็ก ๆ ให้นั่งต่อ
-2. **TCDC ที่อาคารไปรษณีย์กลาง บางรัก** ห้องสมุดดีไซน์ทั้งชั้น มีโซนนั่งอ่านเงียบ ๆ และสวนบนดาดฟ้า ปิดวันจันทร์ Time Out ระบุว่ามีบัตรรายวันและสมาชิกรายปี เช็กราคาล่าสุดที่หน้าเคาน์เตอร์
+2. **TCDC ที่อาคารไปรษณีย์กลาง บางรัก** ห้องสมุดดีไซน์ทั้งชั้น มีโซนนั่งอ่านเงียบ ๆ และสวนบนดาดฟ้า ปิดวันจันทร์ ห้องสมุดมีบัตรรายวันและสมาชิกรายปี เช็กราคาล่าสุดที่หน้าเคาน์เตอร์
 3. **ร้านหนังสืออิสระและแกลเลอรีเล็ก ๆ** ใน[อารีย์](/bangkok/ari/) และเจริญกรุง ไปคนเดียวสบายที่สุด เดินดูได้นานเท่าที่อยาก
 
 ## สายเดินและสวน
@@ -406,7 +406,7 @@ dict(slug='things-to-do-alone-bangkok', group='do', img='river', areas=['siam', 
 - **09:00** เดินสวนลุมพินี แล้วขึ้นทางเดินลอยฟ้าไปสวนเบญจกิติ
 - **12:00** หลบแดดที่หอศิลป์ สยาม ดูนิทรรศการ นั่งร้านหนังสือ
 - **15:30** ต่อ MRT ไปหัวลำโพง แล้วเดินเข้าตลาดน้อย
-- **17:30** เดินต่อไปสวนลอยฟ้าเจ้าพระยา รอดูพระอาทิตย์ตก
+- **17:30** เรียกรถต่อไปสวนลอยฟ้าเจ้าพระยา (ราว 10–15 นาที) รอดูพระอาทิตย์ตก
 
 ## จากวันคนเดียว สู่เพื่อนใหม่
 วันคนเดียวไม่จำเป็นต้องจบคนเดียว ถ้าเห็นใครถ่ายรูปมุมเดียวกัน ลองเสนอถ่ายให้ หรือถามว่ามุมไหนสวยกว่า ในหอศิลป์หรือร้านหนังสือ ถามความเห็นเรื่องงานที่ยืนดูอยู่ก็เป็นการเริ่มคุยที่เป็นธรรมชาติ
@@ -431,7 +431,7 @@ dict(slug='things-to-do-alone-bangkok', group='do', img='river', areas=['siam', 
   card='Free art, a design library, sky parks, river boats and old riverside streets.',
   body='''
 ## Alone does not mean lonely
-Plenty of people in Bangkok go out on their own, and at the places below it is completely normal. Several of them also make it easy to start talking to someone without trying.
+Plenty of people in Bangkok go out on their own, and at the places below it is completely normal. Several of them also make it easy to start talking to someone without trying. Visiting and hoping to find people to hang out with? See [solo travel in Bangkok](/en/blog/solo-travel-bangkok/).
 
 ## Art and ideas
 1. **Bangkok Art and Culture Centre (BACC)** at [Siam](/en/bangkok/siam/): free exhibitions, open Tuesday to Sunday 10:00–20:00, closed Mondays, with a direct link from BTS National Stadium. The lower floors have bookshops and small cafés.
@@ -457,7 +457,7 @@ Plenty of people in Bangkok go out on their own, and at the places below it is c
 - **09:00** walk Lumphini Park, then take the skywalk to Benjakitti.
 - **12:00** escape the heat at BACC in Siam: exhibitions, then a bookshop.
 - **15:30** take the MRT to Hua Lamphong and walk into Talat Noi.
-- **17:30** carry on to Chao Phraya Sky Park for sunset.
+- **17:30** take a short ride (10–15 minutes) to Chao Phraya Sky Park for sunset.
 
 ## From a solo day to new friends
 A solo day does not have to end solo. If someone is photographing the same view, offer to take their picture or ask which angle looks better. In a gallery or bookshop, asking what someone thinks of the piece in front of you is a natural opener.
@@ -493,13 +493,13 @@ dict(slug='weekend-activities-friends', group='friends', img='twilight', areas=[
 - **URT (Ugly Running Training Club)** วิ่งเกือบทุกเช้าราว 6:30 น. ที่ประตู 3 สวนเบญจกิติ ข้างโซนยืดเหยียด
 - **Sabai Run Club** มีรอบเช้าวันอาทิตย์และรอบคืนวันศุกร์ คนมาร่วมเยอะมาก
 
-ทั้งหมดอ้างอิงจาก Time Out ก.พ. 2026 ไม่ต้องวิ่งเร็ว หลายกลุ่มมีเพซช้าให้เลือก อ่านเพิ่มใน[วิ่งที่ไหนดีในกรุงเทพฯ](/blog/run-clubs-bangkok/)
+ตารางเปลี่ยนได้ เช็กไอจีของแต่ละกลุ่มก่อนไป ไม่ต้องวิ่งเร็ว หลายกลุ่มมีเพซช้าให้เลือก อ่านเพิ่มใน[วิ่งที่ไหนดีในกรุงเทพฯ](/blog/run-clubs-bangkok/)
 
 ## สายวันเสาร์-อาทิตย์: ปั่นจักรยานสวนรถไฟ
-สวนวชิรเบญจทัศ (สวนรถไฟ) แถวจตุจักรมีที่ให้เช่าจักรยาน ทางปั่นร่มรื่น และมีสวนผีเสื้อ คนเยอะช่วงสุดสัปดาห์ ชวนเพื่อนใหม่จากแอปมาปั่นด้วยกันเป็นนัดแรกที่สบายใจ ไม่ต้องคุยตลอดเวลา
+สวนวชิรเบญจทัศ (สวนรถไฟ) แถวจตุจักรมีที่ให้เช่าจักรยาน ทางปั่นร่มรื่น และมีสวนผีเสื้อ คนเยอะช่วงสุดสัปดาห์ ชวนแก๊งเพื่อนใหม่ 3–4 คนมาปั่นรับลมเช้ากันได้แบบไม่เกร็ง ไม่ต้องคุยตลอดเวลา
 
 ## บ่ายวันเสาร์: บอร์ดเกมคาเฟ่
-เกมช่วยให้คนแปลกหน้าคุยกันได้ทันที ร้านที่ The Thaiger แนะนำ (ต.ค. 2025) เช่น The Stronghold ในสยามสแควร์ ซอย 9, Quest ชั้น 7 MBK (ราว 60 บาทต่อคนต่อชั่วโมง) และ Turn The Tables แถวอนุสาวรีย์ชัยฯ ดูรายละเอียดใน[บอร์ดเกมคาเฟ่ในกรุงเทพฯ](/blog/board-game-cafes-bangkok/)
+เกมช่วยให้คนแปลกหน้าคุยกันได้ทันที ร้านที่เดินทางง่าย เช่น The Stronghold ในสยามสแควร์ ซอย 9, Quest ชั้น 7 MBK (ราว 60 บาทต่อคนต่อชั่วโมง) และ Turn The Tables แถวอนุสาวรีย์ชัยฯ ดูรายละเอียดใน[บอร์ดเกมคาเฟ่ในกรุงเทพฯ](/blog/board-game-cafes-bangkok/)
 
 ## บ่ายวันอาทิตย์: แลกเปลี่ยนภาษา
 กลุ่มแลกเปลี่ยนภาษาไทย-อังกฤษในกรุงเทพฯ มีมานาน บางกลุ่มเคยนั่งกันในสวนลุมพินีบ่ายวันอาทิตย์ แบ่งเวลาพูดไทยครึ่ง อังกฤษครึ่ง และไม่เก็บเงิน คนไทยได้ฝึกภาษา ต่างชาติได้ฝึกไทย ทุกคนได้เพื่อนต่างวัฒนธรรม ตารางเปลี่ยนบ่อย ให้เช็กประกาศล่าสุดของกลุ่มก่อนไป
@@ -526,7 +526,7 @@ Scholars of Sustenance (SOS) เป็นองค์กรช่วยลดข
 ''',
   cta=('หาเพื่อนที่ชอบกิจกรรมเดียวกัน', 'ลง Reel จากรันคลับหรือร้านบอร์ดเกมที่ไป แล้วเจอคนที่ชอบแบบเดียวกันในกริ๊ง! ชวนกันไปครั้งหน้าได้เลย ใช้ฟรี สำหรับอายุ 20 ปีขึ้นไป'),
   faq=[('วันหยุดในกรุงเทพฯ ทำอะไรดีให้ได้เพื่อนใหม่', 'รันคลับตอนเช้า บอร์ดเกมคาเฟ่ตอนบ่าย กลุ่มแลกเปลี่ยนภาษา คลาสแบบเป็นคอร์ส และงานอาสา เป็นกิจกรรมที่จัดซ้ำและมีคนมาคนเดียวเยอะ'),
-       ('รันคลับในกรุงเทพฯ ต้องเสียเงินไหม', 'หลายกลุ่มวิ่งฟรีและไม่ต้องสมัคร เช่น SarDine Run Club ตามข้อมูลของ Time Out ก.พ. 2026 แต่บางงานพิเศษอาจต้องลงทะเบียนล่วงหน้า'),
+       ('รันคลับในกรุงเทพฯ ต้องเสียเงินไหม', 'หลายกลุ่มวิ่งฟรีและไม่ต้องสมัคร เช่น SarDine Run Club แต่บางงานพิเศษอาจต้องลงทะเบียนล่วงหน้า'),
        ('เช่าจักรยานปั่นในสวนรถไฟได้ไหม', 'ได้ ในสวนวชิรเบญจทัศ (สวนรถไฟ) มีจุดให้เช่าจักรยาน คนเยอะช่วงเสาร์อาทิตย์'),
        ('อยากเป็นอาสาสมัครในกรุงเทพฯ เริ่มที่ไหน', 'ลองติดต่อองค์กรที่มีโครงการชัดเจน เช่น Scholars of Sustenance ที่ทำโครงการ Rescue Kitchen ส่งอาหารให้ชุมชนรายได้น้อย')],
  ),
@@ -548,7 +548,7 @@ A weekly activity puts you in front of the same people again and again, which is
 All per Time Out, February 2026. You do not need to be fast; many groups have easy-pace options. More in [running in Bangkok](/en/blog/run-clubs-bangkok/).
 
 ## Any weekend: cycling at Suan Rot Fai
-Wachirabenchathat Park (Suan Rot Fai), near Chatuchak, has bike rental, shaded cycle paths and a butterfly garden, and it gets busy at weekends. Riding together is a relaxed first plan with someone from a friend app, because you do not have to talk the whole time.
+Wachirabenchathat Park (Suan Rot Fai), near Chatuchak, has bike rental, shaded cycle paths and a butterfly garden, and it gets busy at weekends. Riding as a small group of new friends is relaxed, because you do not have to talk the whole time.
 
 ## Saturday afternoon: board-game cafés
 Games get strangers talking immediately. The Thaiger's October 2025 picks include The Stronghold in Siam Square Soi 9, Quest on the 7th floor of MBK Center (about 60 baht per person per hour) and Turn The Tables near Victory Monument. Details in [board-game cafés in Bangkok](/en/blog/board-game-cafes-bangkok/).

@@ -2,7 +2,7 @@
 S_DTV = ('Royal Thai Embassy, Budapest – Destination Thailand Visa (DTV)', 'https://budapest.thaiembassy.org/en/publicservice/destination-thailand-visa-dtv')
 S_COWORK = ('Digital Nomads World – Coworking in Bangkok (26 Sep 2026)', 'https://digitalnomads.world/tips/coworking-bangkok/')
 S_TCDC = ('Time Out Bangkok – TCDC', 'https://www.timeout.com/bangkok/attractions/thailand-creative-design-center-tcdc')
-S_MRT = ('The Star / ANN – MRT taps shift to EMV cards (8 Apr 2026)', 'https://www.thestar.com.my/aseanplus/aseanplus-news/2026/04/08/thailand-pushes-common-ticketing-as-mrt-taps-shift-to-emv-cards')
+S_MRT = ('Asia News Network (thestar.com.my) – MRT taps shift to EMV cards (8 Apr 2026)', 'https://www.thestar.com.my/aseanplus/aseanplus-news/2026/04/08/thailand-pushes-common-ticketing-as-mrt-taps-shift-to-emv-cards')
 S_RUN = ('Time Out Bangkok – Bangkok\'s top run clubs (23 Feb 2026)', 'https://www.timeout.com/bangkok/sports-and-fitness/bangkoks-top-run-clubs')
 S_LUMPHINI = ('Wikipedia – Lumphini Park', 'https://en.wikipedia.org/wiki/Lumphini_Park')
 S_BENJA = ('Wikipedia – Benjakitti Park', 'https://en.wikipedia.org/wiki/Benjakitti_Park')
@@ -15,7 +15,7 @@ ARTS = [
 # ---------------------------------------------------------------- 6
 dict(slug='digital-nomads-bangkok', group='live', img='twilight', areas=['ari', 'thonglor', 'siam'],
  related=['expat-first-month-bangkok', 'make-friends-bangkok', 'rainy-season-bangkok'],
- sources=[S_DTV, S_COWORK, S_TCDC, S_MRT],
+ sources=[S_DTV, ('Asia Lifestyle Magazine – DTV application changes from 31 Aug 2026 (28 Aug 2026)', 'https://www.asialifestylemagazine.com/thailand-dtv-visa-changes-31-august-2026/'), S_COWORK, S_TCDC, S_MRT],
  th=dict(
   title='กรุงเทพฯ สำหรับดิจิทัลโนแมด 2027: วีซ่า DTV ย่าน และที่ทำงาน',
   desc='กรุงเทพฯ ยังน่าอยู่สำหรับคนทำงานรีโมตปี 2027 ไหม? สรุปวีซ่า DTV ย่านที่น่าอยู่ ราคาโคเวิร์กกิ้งสเปซรายวัน การเดินทาง และวิธีมีเพื่อนในเมือง',
@@ -27,12 +27,13 @@ dict(slug='digital-nomads-bangkok', group='live', img='twilight', areas=['ari', 
 ถ้าคุณเป็นคนกรุงเทพฯ ที่ทำงานรีโมต หรืออยากมีเพื่อนต่างชาติที่อยู่ยาว คนกลุ่มนี้คือเพื่อนร่วมโต๊ะในโคเวิร์กกิ้งสเปซของคุณ บทความนี้เขียนให้ใช้ได้ทั้งสองฝั่ง ทั้งคนไทยที่ทำงานแบบเดียวกัน และเพื่อนต่างชาติที่คุณอยากส่งลิงก์ให้อ่าน
 
 ## วีซ่า DTV แบบสั้น ๆ
-Destination Thailand Visa (DTV) เป็นวีซ่าสำหรับคนทำงานทางไกล ฟรีแลนซ์ และคนที่มาเรียนกิจกรรมอย่างมวยไทยหรือทำอาหารไทย ตามข้อมูลของสถานทูตไทยในบูดาเปสต์
+Destination Thailand Visa (DTV) เป็นวีซ่าสำหรับคนทำงานทางไกล ฟรีแลนซ์ และคนที่มาเรียนกิจกรรมอย่างมวยไทยหรือทำอาหารไทย ตามข้อมูลของสถานทูตไทยและกติกาใหม่ที่ใช้ตั้งแต่ 31 ส.ค. 2026
 
-- อายุวีซ่า 5 ปี อยู่ได้ครั้งละไม่เกิน 180 วัน และยื่นขยายเวลาพำนักที่ตรวจคนเข้าเมืองในไทยได้ (เช็กกติกาและค่าธรรมเนียมล่าสุด)
+- อายุวีซ่า 5 ปี อยู่ได้ครั้งละไม่เกิน 180 วัน และขยายเวลาพำนักที่ตรวจคนเข้าเมืองในไทยได้อีกหนึ่งครั้ง ไม่เกิน 180 วัน (ค่าธรรมเนียมที่มีรายงานคือ 1,900 บาท)
 - ต้องแสดงเงินหรือทรัพย์สินอย่างน้อย 500,000 บาท
 - ทำงานให้บริษัทไทยหรือรับงานลูกค้าไทยไม่ได้ และไม่ได้ใบอนุญาตทำงาน
-- ค่าธรรมเนียมขึ้นกับสถานทูตที่ยื่น
+- ใบสมัครตั้งแต่ 31 ส.ค. 2026 ต้องยื่นที่สถานทูตหรือสถานกงสุลไทยของประเทศที่ถือสัญชาติหรือมีถิ่นพำนัก และแนบหนังสือรับรองประวัติอาชญากรรม
+- ค่าธรรมเนียมวีซ่ามีรายงานว่า 10,000 บาท เช็กกับสถานทูตที่ยื่นอีกครั้ง
 
 กติกาวีซ่าเปลี่ยนได้ ยื่นจริงให้เช็กกับเว็บไซต์สถานทูตหรือสถานกงสุลที่ดูแลประเทศของผู้ยื่นเสมอ
 
@@ -48,7 +49,7 @@ Destination Thailand Visa (DTV) เป็นวีซ่าสำหรับค
 - **True Digital Park** สุขุมวิท 101 บัตรรายวันโปรโมชัน 300 บาท (ราคาปกติ 500 บาท)
 - **UnionSPACE WorkPod** หลายสาขา เช่น เอกมัย ทองหล่อ สีลม เริ่มต้น 250 บาทต่อ 24 ชั่วโมง
 
-ทางเลือกแบบเงียบ ๆ คือ **TCDC** ที่อาคารไปรษณีย์กลาง มีห้องสมุดดีไซน์ทั้งชั้นและโซนอ่านแบบเงียบ Time Out ระบุว่ามีบัตรรายวันและสมาชิกรายปี เช็กราคาล่าสุดที่เคาน์เตอร์
+ทางเลือกแบบเงียบ ๆ คือ **TCDC** ที่อาคารไปรษณีย์กลาง มีห้องสมุดดีไซน์ทั้งชั้นและโซนอ่านแบบเงียบ ห้องสมุดมีบัตรรายวันและสมาชิกรายปี เช็กราคาล่าสุดที่เคาน์เตอร์
 
 ## เดินทางยังไง
 MRT สายสีน้ำเงินและสีม่วงรับบัตรเดบิตหรือบัตรเติมเงินแบบแตะจ่าย (Visa, Mastercard และ UnionPay บางประเภท) และตั้งแต่ 1 มิ.ย. 2026 บัตร MRT แบบเก่าใช้ผ่านประตูไม่ได้แล้ว ส่วน BTS มีระบบบัตรของตัวเอง ให้ดูที่ห้องขายตั๋ว เลือกที่พักใกล้สถานีจะประหยัดเวลาได้มากกว่าเลือกห้องที่ใหญ่กว่า
@@ -71,7 +72,7 @@ MRT สายสีน้ำเงินและสีม่วงรับบ�
 - **อาทิตย์** พักจริง ๆ หรือไปกลุ่มแลกเปลี่ยนภาษาตอนบ่าย
 ''',
   cta=('มีเพื่อนใหม่นอกเวลางาน', 'ในกริ๊ง! คุณโพสต์ Reel จากคาเฟ่หรือที่ทำงานที่ชอบ แล้วเจอคนที่ทำงานแถวเดียวกัน ทั้งคนไทยและต่างชาติ แชตแปลไทย-อังกฤษให้ ใช้ฟรี อายุ 20 ปีขึ้นไป'),
-  faq=[('วีซ่า DTV อยู่ไทยได้นานแค่ไหน', 'วีซ่ามีอายุ 5 ปี อยู่ได้ครั้งละไม่เกิน 180 วัน ต้องแสดงเงินอย่างน้อย 500,000 บาท และทำงานให้บริษัทหรือลูกค้าไทยไม่ได้ ตามข้อมูลสถานทูตไทย'),
+  faq=[('วีซ่า DTV อยู่ไทยได้นานแค่ไหน', 'วีซ่ามีอายุ 5 ปี อยู่ได้ครั้งละไม่เกิน 180 วัน ขยายในไทยได้อีกหนึ่งครั้งไม่เกิน 180 วัน ต้องแสดงเงินอย่างน้อย 500,000 บาท และทำงานให้บริษัทหรือลูกค้าไทยไม่ได้ ตามข้อมูลสถานทูตไทย'),
        ('โคเวิร์กกิ้งสเปซในกรุงเทพฯ ราคาเท่าไหร่', 'ตัวอย่างจากเดือนกันยายน 2026 อยู่ราว 250-750 บาทต่อวัน ขึ้นกับที่และโปรโมชัน'),
        ('ย่านไหนในกรุงเทพฯ เหมาะกับคนทำงานรีโมต', 'อารีย์สำหรับคนชอบความสงบ ทองหล่อ-เอกมัยสำหรับคนชอบความคึกคัก สยาม-ชิดลมสำหรับความสะดวก และเจริญกรุงสำหรับสายครีเอทีฟ'),
        ('ขึ้น MRT ด้วยบัตรธนาคารได้ไหม', 'ได้ MRT สายสีน้ำเงินและสีม่วงรับบัตร Visa และ Mastercard แบบแตะจ่าย รวมถึงบัตรเดบิตบางประเภท')],
@@ -84,12 +85,13 @@ MRT สายสีน้ำเงินและสีม่วงรับบ�
   card='The DTV visa, best areas, co-working prices, transport and friends.',
   body='''
 ## The DTV visa in brief
-The Destination Thailand Visa (DTV) is aimed at remote workers, freelancers and people coming for activities such as Muay Thai or Thai cooking courses. According to the Royal Thai Embassy in Budapest:
+The Destination Thailand Visa (DTV) is aimed at remote workers, freelancers and people coming for activities such as Muay Thai or Thai cooking courses. According to the Royal Thai Embassy in Budapest, plus the application changes that apply from 31 August 2026:
 
-- The visa is valid for 5 years, with stays of up to 180 days per entry; a stay can be extended at immigration inside Thailand (check the current rules and fee).
+- The visa is valid for 5 years, with stays of up to 180 days per entry. Each stay can be extended once at immigration inside Thailand, for up to another 180 days (reported fee: 1,900 baht).
 - You need to show at least 500,000 baht in funds or assets.
 - It does not allow a Thai work permit, employment with Thai companies or freelance work for Thai clients.
-- Fees depend on the embassy where you apply.
+- From 31 August 2026 you must apply at the Thai embassy or consulate covering your nationality or country of residence, and include a criminal-record certificate.
+- The visa fee is reported at 10,000 baht; confirm with the embassy where you apply.
 
 Visa rules change. Always check with the Thai embassy or consulate that covers your country before applying.
 
@@ -128,7 +130,7 @@ In the rainy season, Bangkok downpours usually hit in the afternoon or evening. 
 - **Sun**: real rest, or an afternoon language exchange.
 ''',
   cta=('New friends outside work hours', 'On Kring you post a Reel from your favourite café or workspace and find people working nearby, Thai and foreign. Chats translate between Thai and English. Free, ages 20+.'),
-  faq=[('How long can I stay on the DTV visa?', 'The visa is valid for 5 years, with stays of up to 180 days per entry; a stay can be extended at immigration inside Thailand (check the current rules and fee). You must show at least 500,000 baht and cannot work for Thai companies or Thai clients, according to the Thai embassy.'),
+  faq=[('How long can I stay on the DTV visa?', 'The visa is valid for 5 years, with stays of up to 180 days per entry, and each stay can be extended once inside Thailand for up to another 180 days. You must show at least 500,000 baht and cannot work for Thai companies or Thai clients, according to the Thai embassy.'),
        ('How much is co-working in Bangkok?', 'Examples from September 2026 range from about 250 to 750 baht per day, depending on the space and promotions.'),
        ('Which Bangkok area is best for digital nomads?', 'Ari for calm, Thonglor–Ekkamai for energy, Siam–Chit Lom for convenience and Charoen Krung for creative types.'),
        ('Can I ride the MRT with a bank card?', 'Yes. The MRT Blue and Purple lines accept contactless Visa and Mastercard cards and certain debit and prepaid cards.')],
@@ -367,7 +369,7 @@ dict(slug='run-clubs-bangkok', group='do', img='twilight', areas=['ari', 'thongl
 - **สวนจตุจักรและสวนสมเด็จพระนางเจ้าสิริกิติ์** อยู่ติดกัน วิ่งต่อจากสวนรถไฟได้
 
 ## รันคลับที่น่าลอง
-ข้อมูลจาก Time Out (ก.พ. 2026) เช็กอินสตาแกรมของแต่ละกลุ่มก่อนไป เพราะตารางเปลี่ยนได้
+เช็กอินสตาแกรมของแต่ละกลุ่มก่อนไป เพราะตารางเปลี่ยนได้
 - **SarDine Run Club** วิ่งเช้าวันเสาร์ ฟรี ไม่ต้องสมัคร สลับสถานที่ระหว่างสวนรถไฟ สวนลุมพินี และสวนเบญจกิติ มีงานป๊อปอัปในเมืองบ้าง
 - **URT (Ugly Running Training Club)** วิ่งเกือบทุกเช้าราว 6:30 น. ที่ประตู 3 สวนเบญจกิติ ข้างโซนยืดเหยียด ไม่มีระบบสมาชิก
 - **Sabai Run Club** มีรอบเช้าวันอาทิตย์ และรอบคืนวันศุกร์ที่คนมาร่วมเกินพันคน
@@ -402,7 +404,7 @@ dict(slug='run-clubs-bangkok', group='do', img='twilight', areas=['ari', 'thongl
 ''',
   cta=('หาเพื่อนวิ่งในย่านเดียวกัน', 'โพสต์ Reel จากสวนที่วิ่งประจำลงกริ๊ง! แล้วดูว่าใครวิ่งที่เดียวกัน ชวนกันไปรันคลับสัปดาห์หน้าได้เลย ใช้ฟรี อายุ 20 ปีขึ้นไป'),
   faq=[('วิ่งที่ไหนในกรุงเทพฯ ดีที่สุด', 'สวนลุมพินี (ทางวิ่งราว 2.5 กม.) สวนเบญจกิติที่ต่อกับสวนลุมพินีด้วยสะพานเขียว 1.3 กม. และสวนรถไฟที่ร่มรื่นและกว้าง'),
-       ('รันคลับในกรุงเทพฯ ฟรีไหม', 'หลายกลุ่มฟรีและไม่ต้องสมัคร เช่น SarDine Run Club ตามข้อมูล Time Out ก.พ. 2026 แต่บางงานพิเศษต้องลงทะเบียนล่วงหน้า'),
+       ('รันคลับในกรุงเทพฯ ฟรีไหม', 'หลายกลุ่มฟรีและไม่ต้องสมัคร เช่น SarDine Run Club แต่บางงานพิเศษต้องลงทะเบียนล่วงหน้า'),
        ('สวนลุมพินีเปิดกี่โมง', 'เปิดทุกวัน 04:30-21:00 น.'),
        ('วิ่งช่วงไหนดีที่สุดในกรุงเทพฯ', 'ก่อน 7 โมงเช้าหรือหลัง 6 โมงเย็น อากาศเย็นกว่าและเป็นช่วงที่รันคลับส่วนใหญ่วิ่ง')],
  ),
@@ -477,7 +479,7 @@ dict(slug='board-game-cafes-bangkok', group='do', img='cafe', areas=['siam'],
 นั่งโต๊ะเดียวกับคนแปลกหน้าแล้วต้องหาเรื่องคุยเองคือส่วนที่ยากที่สุด บอร์ดเกมแก้ปัญหานี้ทันที ทุกคนมีเรื่องให้พูด มีให้หัวเราะ และไม่ต้องเล่าเรื่องตัวเองตั้งแต่แรก หลายคนสนิทกันเพราะเคยแพ้เกมเดียวกันมาแล้ว
 
 ## ร้านที่น่าไป
-รายชื่อจาก The Thaiger (ต.ค. 2025) ก่อนไปให้เช็กเวลาเปิด-ปิดและราคาล่าสุดทางเพจของร้าน
+ร้านติดรถไฟฟ้าที่ไปแจมโต๊ะได้ง่าย ก่อนไปให้เช็กเวลาเปิด-ปิดและราคาล่าสุดทางเพจของร้าน
 - **The Stronghold Siam** ในสยามสแควร์ ซอย 9 เดินจาก BTS สยามได้ เหมาะกับนัดหลังเลิกงานหรือหลังเรียน
 - **Quest Board Game Café** ชั้น 7 MBK เซ็นเตอร์ ราว 60 บาทต่อคนต่อชั่วโมง ใกล้ BTS สนามกีฬาแห่งชาติ
 - **Turn The Tables Board Game Café** ซอยราชวิถี 3 ใกล้ BTS อนุสาวรีย์ชัยสมรภูมิ
@@ -524,7 +526,7 @@ dict(slug='board-game-cafes-bangkok', group='do', img='cafe', areas=['siam'],
 เล่นเสร็จแถวสยาม เดินต่อไปหอศิลปวัฒนธรรมแห่งกรุงเทพมหานครที่เปิดถึงสองทุ่ม หรือวันฝนตกก็อยู่ในร่มต่อได้ทั้งวัน ดู[ทำอะไรดีหน้าฝน](/blog/rainy-season-bangkok/)
 ''',
   cta=('หาเพื่อนเล่นเกมโต๊ะต่อไป', 'โพสต์ Reel จากร้านบอร์ดเกมที่ชอบลงกริ๊ง! แล้วชวนคนที่ชอบเกมแนวเดียวกันมาเล่นครั้งหน้า ใช้ฟรี อายุ 20 ปีขึ้นไป'),
-  faq=[('บอร์ดเกมคาเฟ่ในกรุงเทพฯ ราคาเท่าไหร่', 'ขึ้นกับร้าน ตัวอย่างเช่น Quest ที่ MBK คิดราว 60 บาทต่อคนต่อชั่วโมง ตามข้อมูล ต.ค. 2025 เช็กราคาล่าสุดกับร้าน'),
+  faq=[('บอร์ดเกมคาเฟ่ในกรุงเทพฯ ราคาเท่าไหร่', 'ขึ้นกับร้าน ตัวอย่างเช่น Quest ที่ MBK คิดราว 60 บาทต่อคนต่อชั่วโมง เช็กราคาล่าสุดกับร้าน'),
        ('ไปบอร์ดเกมคาเฟ่คนเดียวได้ไหม', 'ได้ บอกพนักงานว่ามาคนเดียว บางร้านช่วยหาโต๊ะหรือสอนเกมให้ และช่วงเย็นวันศุกร์หรือเสาร์อาทิตย์มีคนเยอะ'),
        ('บอร์ดเกมคาเฟ่ใกล้ BTS สยามมีที่ไหนบ้าง', 'The Stronghold ในสยามสแควร์ ซอย 9 และ Quest ชั้น 7 MBK ใกล้ BTS สนามกีฬาแห่งชาติ'),
        ('เกมอะไรเหมาะกับคนเพิ่งรู้จักกัน', 'เกมทายคำแบบทีมอย่าง Codenames เกมจับโกหกอย่าง Coup และเกมร่วมมือที่กติกาสั้น')],
