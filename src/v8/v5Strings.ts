@@ -756,6 +756,7 @@ export const KX_L: Record<string, Record<string, string>> = {
     'in review': 'กำลังตรวจ',
     'Usually under 2 hours': 'ปกติไม่เกิน 2 ชม.',
     'needs {0}': 'ต้องมี {0}',
+    '{0} more Rings to be eligible': 'อีก {0} ริงถึงจะมีสิทธิ์รับรางวัล',
     'Open seat': 'ยังว่างอยู่',
     'This week · resets Monday 00:00': 'สัปดาห์นี้ · เริ่มนับใหม่วันจันทร์ 00:00',
     'Prizes start when {0} Locals are on the board this week': 'รางวัลเริ่มเมื่อมี {0} คนติดกระดานสัปดาห์นี้',

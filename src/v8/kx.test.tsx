@@ -284,8 +284,9 @@ describe('Ranking screen', () => {
     render(<RankingPage L={L} Lf={Lf} lang="en" myArea="Ari" myPhoto={null} myName="Mint" myId="me" onBack={() => undefined} onPerson={() => undefined} onPost={() => undefined} onShare={() => undefined} />);
     await screen.findByText('PRIZE LINE · 25 RINGS TO TAKE A SEAT');
     expect([...document.querySelectorAll('[data-seat="open"]')].map((e) => e.textContent)).toEqual(['6+Open seat฿250', '7+Open seat฿150', '8+Open seat฿100']);
-    expect(document.querySelector('[data-rank="5"]')!.textContent).toContain('needs 25');
+    expect(document.querySelector('[data-rank="5"]')!.textContent).toContain('7 more Rings to be eligible');
     expect(document.querySelector('[data-rank="5"] .kx-pz')!.className).toContain('off');
+    expect(document.querySelector('[data-rank="5"]')!.className).toContain('low');
     expect(document.querySelector('#kxMeRow')!.textContent).toContain('Seat #6 is open · ฿250');
   });
   it('look A: only 2 on the board → #3 is an open ring with its ฿ base, 4–8 open seats, no prize line without a floor note', async () => {

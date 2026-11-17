@@ -503,5 +503,14 @@ const T: Record<string, string> = {
     '{0}% chance of afternoon rain — the covered BTS skywalks around Siam keep you dry.': '下午降雨概率 {0}%，暹罗一带有顶的 BTS 空中步道能让你不淋雨。',
     'Tropical showers are usually short — the covered BTS skywalks around Siam keep you dry.': '热带阵雨通常很短，暹罗一带有顶的 BTS 空中步道能让你不淋雨。',
     'See deals →': '查看优惠 →',
+    'Approved Reels get a public page on kringapp.com. First name and area only.': '通过审核的 Reel 会在 kringapp.com 上有公开页面，只显示名字和区域。',
+    'Could not save. Try again.': '保存失败，请重试。',
+    'Each approved Reel gets its own page on kringapp.com. First name and area only. Change it any time in Settings.': '每个通过审核的 Reel 都会在 kringapp.com 上有自己的页面，只显示名字和区域。可随时在设置中更改。',
+    'Let your Reels show up on Google?': '让你的 Reel 出现在 Google 上？',
+    'No thanks': '不用了',
+    'Show my Reels on the web': '在网页上显示我的 Reel',
+    'Yes, show them': '好，显示',
+    'Your Reels can now show on kringapp.com': '你的 Reel 现在可以在 kringapp.com 上显示',
+    'Your Reels stay in the app only': '你的 Reel 只留在应用内',
 };
 export default T;

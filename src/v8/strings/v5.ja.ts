@@ -503,5 +503,14 @@ const T: Record<string, string> = {
     '{0}% chance of afternoon rain — the covered BTS skywalks around Siam keep you dry.': '午後の降水確率 {0}%。サイアム周辺の屋根付き BTS スカイウォークなら濡れません。',
     'Tropical showers are usually short — the covered BTS skywalks around Siam keep you dry.': '熱帯のにわか雨はたいてい短時間。サイアム周辺の屋根付き BTS スカイウォークなら濡れません。',
     'See deals →': 'ディールを見る →',
+    'Approved Reels get a public page on kringapp.com. First name and area only.': '承認されたReelはkringapp.comに公開ページができます。表示は名前とエリアのみ。',
+    'Could not save. Try again.': '保存できませんでした。もう一度お試しください。',
+    'Each approved Reel gets its own page on kringapp.com. First name and area only. Change it any time in Settings.': '承認された各Reelにkringapp.comの専用ページができます。表示は名前とエリアのみ。設定でいつでも変更できます。',
+    'Let your Reels show up on Google?': 'あなたのReelをGoogleに表示しますか？',
+    'No thanks': 'やめておく',
+    'Show my Reels on the web': 'Reelをウェブに表示',
+    'Yes, show them': 'はい、表示する',
+    'Your Reels can now show on kringapp.com': 'Reelがkringapp.comに表示されるようになりました',
+    'Your Reels stay in the app only': 'Reelはアプリ内だけに表示されます',
 };
 export default T;

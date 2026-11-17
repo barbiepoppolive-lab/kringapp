@@ -172,14 +172,16 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   const ownTh = ownRow(thL, thLf, data?.gap, data?.mine).l2;
   const ownEn = ownRow(enL, enLf, data?.gap, data?.mine).l2;
   const floorNote = !!data && data.floor > 0 && (data.open_seats > 0 || rows.some((r) => r.needs));
+  // below the prize floor: soft grey card + one small line, on every rank (founder pick A, 17 Nov)
+  const elig = (r: KxRankRow) => (r.needs ? <em className="rka-elig">{Lf('{0} more Rings to be eligible', fmtN(Math.max(1, r.needs - r.rings)))}</em> : null);
   // plain render functions (not components): the 1 s countdown re-render must not remount rows and replay their entrance
   const Score = ({ r, cls }: { r: KxRankRow; cls: string }) => (
     <button type="button" className={cls} data-score={r.rings} aria-label={L('See the math')} onClick={(e) => { e.stopPropagation(); setMath(r.user_id); }}>
-      {fmtN(r.rings)} <RingGlyph />{r.needs ? <em className="rka-need">{Lf('needs {0}', fmtN(r.needs))}</em> : null}
+      {fmtN(r.rings)} <RingGlyph />{elig(r)}
     </button>
   );
   const Row = ({ r }: { r: KxRankRow }) => (
-    <div className={`kx-row rka-row${r.is_me ? ' mer' : ''}`} data-rank={r.rank}>
+    <div className={`kx-row rka-row${r.is_me ? ' mer' : ''}${r.needs ? ' low' : ''}`} data-rank={r.rank}>
       <button type="button" className="who" onClick={() => props.onPerson(r.user_id)}>
         <span className="n">{r.rank}</span><Av photo={r.photo} name={r.first_name} size={38} />
         <span className="t">{r.is_me ? L('You') : r.first_name}{r.is_new && !r.is_me ? <i className="nw">{L('NEW')}</i> : null}</span>
@@ -212,7 +214,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
               const r = at(rank);
               const pz = prizes[rank - 1] || 0;
               return (
-                <div key={rank} className={`rka-pc p${rank}${r ? '' : ' open'}${r?.is_me ? ' me' : ''}`}>
+                <div key={rank} className={`rka-pc p${rank}${r ? '' : ' open'}${r?.is_me ? ' me' : ''}${r?.needs ? ' low' : ''}`}>
                   <div className="rka-ph">
                     {rank === 1 ? <span className="rka-crown" aria-hidden="true">👑</span> : null}
                     {r ? (
