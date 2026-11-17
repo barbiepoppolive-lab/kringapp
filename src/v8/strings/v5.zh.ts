@@ -601,5 +601,13 @@ const T: Record<string, string> = {
   'Getting ready… {0}%': '准备中… {0}%',
   'Use your real face in front of the camera, not a photo or a screen.': '请用真人的脸对着镜头，不要用照片或屏幕。',
   '{0} of {1} paid seats left': '付费名额剩 {0} / {1} 个',
+  // Board V2 (18 Nov)
+  'Closes {0}': '{0} 截止',
+  'Closes in {0}': '{0} 后截止',
+  '{0}/{1} seats left': '剩 {0}/{1} 个名额',
+  'Your spot?': '你的位置？',
+  '{0} more Rings for a prize seat': '再得 {0} Rings 即可获得奖励名额',
+  'Share my Reel': '分享我的短视频',
+  'How to win': '如何赢',
 };
 export default T;

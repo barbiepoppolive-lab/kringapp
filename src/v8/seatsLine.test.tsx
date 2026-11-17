@@ -21,10 +21,10 @@ describe('Board: "X of 50 paid seats left" (0096)', () => {
     render(<SeatsLine L={en} Lf={enf} lang="en" left={37} />);
     expect(screen.getByText('37 of 50 paid seats left')).toBeTruthy();
   });
-  it('Thai: Thai line with the English under it', () => {
+  it('Thai: Thai only (one language at a time, 18 Nov)', () => {
     render(<SeatsLine L={th} Lf={thf} lang="th" left={37} />);
     expect(screen.getByText('ที่นั่งรับรางวัล เหลือ 37 จาก 50 ที่')).toBeTruthy();
-    expect(screen.getByText('37 of 50 paid seats left')).toBeTruthy();
+    expect(screen.queryByText('37 of 50 paid seats left')).toBeNull();
   });
   it('hidden when full, off (null) or unknown', () => {
     for (const left of [0, null, undefined]) {
@@ -33,13 +33,15 @@ describe('Board: "X of 50 paid seats left" (0096)', () => {
       unmount();
     }
   });
-  it('on the board, from kr8_seats_left', async () => {
+  it('on the board (V2: in the line under the title "… · 37/50 seats left"), from kr8_seats_left', async () => {
     render(<RankingPage L={en} Lf={enf} lang="en" myArea={null} myPhoto={null} myName="" myId={null} onBack={() => undefined} onPerson={() => undefined} onPost={() => undefined} onShare={() => undefined} />);
-    await waitFor(() => expect(document.querySelector('#kxSeatsLeft')?.textContent).toBe('37 of 50 paid seats left'));
+    await waitFor(() => expect(document.querySelector('#kxSeatsLeft')?.textContent).toBe('37/50 seats left'));
+    expect(document.querySelector('#kxBoardSub')!.textContent).toMatch(/^Closes .+ · 37\/50 seats left$/);
     expect(kxMock.kxSeatsLeft).toHaveBeenCalled();
   });
   it('copy has no banned words; the SQL returns one integer and never reads voucher stock', () => {
     expect(BANNED.test('{0} of {1} paid seats left')).toBe(false);
+    expect(BANNED.test('{0}/{1} seats left') || BANNED.test(KX_L.th['{0}/{1} seats left'])).toBe(false);
     expect(BANNED.test(KX_L.th['{0} of {1} paid seats left'])).toBe(false);
     const sql = readFileSync(`${process.cwd()}/supabase/migrations/0096_kr8_seats_left.sql`, 'utf8').replace(/^--.*$/gm, '');
     expect(sql).toMatch(/returns integer/);

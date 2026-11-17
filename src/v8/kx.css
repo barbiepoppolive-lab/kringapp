@@ -931,3 +931,148 @@
 
 .v8-app-root .kx-verify-nudge { margin: 10px 0 14px; padding: 12px 14px; border-radius: 14px; background: rgba(255,79,163,.1); border: 1px solid rgba(255,79,163,.35); }
 .v8-app-root .kx-verify-nudge p { margin: 0 0 10px; font: 600 .82rem/1.35 var(--kx-j); color: #fff; }
+
+/* ───────────── Board V2 "Compact" (founder pick 18 Nov, BOARDX_V2.png) ─────────────
+   One background picture (WebP, JPG fallback, < 100 KB); everything else CSS/SVG. No animation except a gentle
+   pulse in the last 6 h (only with prefers-reduced-motion: no-preference). No backdrop-filter anywhere on the page;
+   the How to win sheet blurs only on capable phones (.lowfx = solid tint). */
+.v8-app-root .kx-page.bx { --bx-gold: #FFE491; --bx-th: var(--kr-thai-body), 'Noto Sans Thai', 'Anuphan', sans-serif;
+  background: #0B0E3A; padding: 0 0 calc(196px + env(safe-area-inset-bottom)); isolation: isolate; }
+.v8-app-root .bx-bg { position: sticky; top: 0; display: block; height: 100vh; height: 100lvh; margin-bottom: -100vh; margin-bottom: -100lvh; z-index: -1; pointer-events: none;
+  background: #0B0E3A url('./art/board_bg.jpg') center top / cover no-repeat;
+  background-image: image-set(url('./art/board_bg.webp') type('image/webp'), url('./art/board_bg.jpg') type('image/jpeg')); }
+.v8-app-root .bx.lth { font-family: var(--bx-th); }
+
+/* header: back · title + one line · ⓘ */
+.v8-app-root .bx-top { position: relative; display: flex; align-items: flex-start; gap: 8px; padding: calc(10px + env(safe-area-inset-top)) 12px 0; }
+.v8-app-root .bx .bx-bk { flex: none; width: 38px; height: 38px; margin-top: 4px; padding: 0; border-radius: 50%; background: rgba(255,255,255,.08); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); }
+.v8-app-root .bx-bk svg { width: 20px; height: 20px; }
+.v8-app-root .bx-tt { flex: 1; min-width: 0; text-align: center; padding-top: 2px; }
+.v8-app-root .bx-tt h1 { position: relative; display: inline-block; max-width: calc(100% - 24px); margin: 0; padding: 0 4px; font: 800 clamp(20px, 6vw, 25px)/1.4 var(--kx-j); letter-spacing: -.01em;
+  white-space: nowrap; color: #FFE6F7; background: linear-gradient(180deg, #FFFFFF 20%, #FFC2EE 70%, #FF7FD6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 8px rgba(255,90,200,.55)); }
+.v8-app-root .bx.lth .bx-tt h1 { font-family: var(--bx-th); font-weight: 700; }
+.v8-app-root .bx-tcr { position: absolute; right: -24px; top: -12px; transform: rotate(16deg); filter: drop-shadow(0 0 6px rgba(255,200,80,.8)); }
+.v8-app-root .bx-sub { margin: 1px 0 0; font: 600 0.78rem/1.4 var(--kx-j); color: rgba(225,228,255,.74); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .bx.lth .bx-sub { font-family: var(--bx-th); }
+.v8-app-root .bx-cd.hot { color: #FF9AD8; }
+@media (prefers-reduced-motion: no-preference) { .v8-app-root .bx-cd.hot { animation: bxHot 2.4s ease-in-out infinite; } }
+@keyframes bxHot { 50% { opacity: .55; } }
+.v8-app-root .bx .bx-i { flex: none; width: 38px; height: 38px; margin-top: 4px; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center; background: none; color: rgba(255,255,255,.88); }
+.v8-app-root .bx-i svg { width: 26px; height: 26px; }
+
+/* podium: #2 · #1 · #3 */
+.v8-app-root .bx-pod { position: relative; display: flex; justify-content: center; align-items: flex-end; padding: 18px 2px 0; margin: 0 auto; max-width: 420px; }
+.v8-app-root .bx-aura { position: absolute; left: 50%; top: 4px; width: 250px; height: 250px; margin-left: -125px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(255,214,110,.5) 0, rgba(255,180,60,.24) 26%, rgba(255,120,60,.08) 48%, rgba(255,120,60,0) 66%); }
+.v8-app-root .bx-pc { position: relative; flex: 0 0 31%; min-width: 0; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.v8-app-root .bx-pc.p1 { flex-basis: 35%; z-index: 2; }
+.v8-app-root .bx-pc.p2 { margin-right: -2%; } .v8-app-root .bx-pc.p3 { margin-left: -2%; }
+.v8-app-root .bx-beam { position: absolute; left: 12%; right: 12%; bottom: 22px; height: 150px; pointer-events: none; clip-path: polygon(16% 0, 84% 0, 100% 100%, 0 100%); }
+.v8-app-root .bx-beam.b1 { height: 168px; background: linear-gradient(to top, rgba(255,196,80,.42), rgba(255,196,80,.1) 60%, rgba(255,196,80,0)); }
+.v8-app-root .bx-beam.b2 { background: linear-gradient(to top, rgba(80,150,255,.36), rgba(80,150,255,.08) 60%, rgba(80,150,255,0)); }
+.v8-app-root .bx-beam.b3 { background: linear-gradient(to top, rgba(255,80,180,.36), rgba(255,80,180,.08) 60%, rgba(255,80,180,0)); }
+.v8-app-root .bx-ph { position: relative; padding-top: 18px; margin-bottom: 14px; }
+.v8-app-root .bx-pc.p1 .bx-ph { padding-top: 24px; }
+.v8-app-root .bx-crown { position: absolute; left: 50%; top: 0; transform: translateX(-50%); z-index: 3; filter: drop-shadow(0 0 6px rgba(255,200,80,.75)); }
+.v8-app-root .bx-pc.p2 .bx-crown { filter: drop-shadow(0 0 6px rgba(120,170,255,.8)); }
+.v8-app-root .bx-pc.p3 .bx-crown { filter: drop-shadow(0 0 6px rgba(255,150,120,.8)); }
+.v8-app-root .bx-img { position: relative; display: grid; place-items: center; width: 66px; height: 66px; padding: 0; border: 0; border-radius: 50%;
+  background: #2a2340 center 25% / cover; color: #e6e0fb; font: 800 1.5rem var(--kx-j); cursor: pointer; }
+/* #2 and #3 as in V2: a glossy metal ring with a coloured glow */
+.v8-app-root .bx-pc.p2 .bx-img, .v8-app-root .bx-pc.p3 .bx-img { box-shadow: 0 0 0 4px var(--bx-r1), 0 0 0 5px var(--bx-r2), 0 0 16px 3px var(--bx-glow), 0 0 34px var(--bx-glow); }
+.v8-app-root .bx-pc.p2 { --bx-r1: #9DBBF2; --bx-r2: #E2ECFF; --bx-glow: rgba(80,150,255,.6); }
+.v8-app-root .bx-pc.p3 { --bx-r1: #EFA286; --bx-r2: #FFE1D4; --bx-glow: rgba(255,90,170,.55); }
+/* #1 (founder fix 18 Nov): bigger photo, a thin gold ring with a soft warm glow, the crown, no wreath */
+.v8-app-root .bx-pc.p1 .bx-img { width: 84px; height: 84px; box-shadow: 0 0 0 2.5px #F7C955, 0 0 12px 2px rgba(255,196,84,.55), 0 0 30px 6px rgba(255,166,60,.28); }
+.v8-app-root .bx-img::after { content: ''; position: absolute; inset: 0; border-radius: 50%; pointer-events: none; background: radial-gradient(circle at 30% 18%, rgba(255,255,255,.28), transparent 36%); }
+.v8-app-root .bx-img.empty { background: rgba(255,255,255,.05); color: rgba(255,255,255,.7); box-shadow: 0 0 0 1.5px rgba(255,255,255,.35) !important; outline: 1.5px dashed rgba(255,228,145,.55); outline-offset: 4px; }
+.v8-app-root .bx-img.empty::after { display: none; }
+.v8-app-root .bx-img.empty svg { width: 26px; height: 26px; }
+.v8-app-root .bx-md { position: absolute; left: 50%; bottom: -12px; transform: translateX(-50%); width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; z-index: 3;
+  font: 800 0.8125rem/1 var(--kx-j); font-style: normal; }
+.v8-app-root .bx-md.m1 { width: 28px; height: 28px; bottom: -14px; font-size: 0.9375rem; color: #5A3A00; background: radial-gradient(circle at 35% 30%, #FFF3B8, #F2B92F 45%, #9C650A); box-shadow: 0 0 0 1.5px #FFF3B8aa, 0 0 10px #F2B92F, 0 2px 5px rgba(0,0,0,.45); }
+.v8-app-root .bx-md.m2 { color: #14245A; background: radial-gradient(circle at 35% 30%, #EAF2FF, #8DB2F0 45%, #3A5BB8); box-shadow: 0 0 0 1.5px #EAF2FFaa, 0 0 10px #8DB2F0, 0 2px 5px rgba(0,0,0,.45); }
+.v8-app-root .bx-md.m3 { color: #5A1C10; background: radial-gradient(circle at 35% 30%, #FFE2D4, #F59A74 45%, #B14E36); box-shadow: 0 0 0 1.5px #FFE2D4aa, 0 0 10px #F59A74, 0 2px 5px rgba(0,0,0,.45); }
+.v8-app-root .bx-nm { position: relative; max-width: 100%; padding: 2px 8px 4px; margin: -2px 0 -4px; font: 800 1.0625rem/1.2 var(--kx-j); color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 4px rgba(0,0,0,.55); }
+.v8-app-root .bx-pc.p1 .bx-nm { font-size: 1.1875rem; }
+.v8-app-root .bx.lth .bx-pc.open .bx-nm, .v8-app-root .bx-pc.open .bx-nm { font-size: 0.875rem; font-weight: 700; color: rgba(255,255,255,.8); }
+.v8-app-root .bx-pc.me .bx-nm { color: #FFB0E4; }
+.v8-app-root .bx-r { position: relative; display: inline-flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px; background: none; border: 0; padding: 1px 2px; color: rgba(255,255,255,.88);
+  font: 600 0.78rem/1.35 var(--kx-j); white-space: nowrap; text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+.v8-app-root .bx.lth .bx-r { font-family: var(--kx-j), var(--bx-th); }
+.v8-app-root .bx-r.none { visibility: hidden; }
+.v8-app-root .bx-r .rka-elig { display: block; flex-basis: 100%; max-width: 110px; margin: 1px auto 0; white-space: normal; line-height: 1.2; color: rgba(255,255,255,.62); }
+.v8-app-root .bx-pz { position: relative; margin-top: 1px; font: 800 1.0625rem/1.2 var(--kx-j); color: var(--bx-gold); text-shadow: 0 0 10px rgba(255,190,60,.85), 0 1px 2px rgba(0,0,0,.6); }
+.v8-app-root .bx-pc.p1 .bx-pz { font-size: 1.3125rem; }
+.v8-app-root .bx-pz.off { color: #C9B783; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.v8-app-root .bx-pz.none { visibility: hidden; }
+.v8-app-root .bx-disc { display: block; position: relative; margin: -6px -30px -40px; max-width: none; pointer-events: none; }
+.v8-app-root .bx-pc.p1 .bx-disc { margin-top: -8px; margin-bottom: -36px; }
+
+/* #4–#8 slim rows, no boxes, thin dividers; #9+ plain */
+.v8-app-root .bx-note { position: relative; margin: 14px 18px 0; background: rgba(255,211,107,.1); }
+.v8-app-root .kx-list.bx-list { position: relative; gap: 0; margin: 2px 16px 0 10px; }
+.v8-app-root .bx .bx-row { position: relative; min-height: 52px; padding: 0 2px 0 0; gap: 10px; border-radius: 0; background: none; border-top: 1px solid rgba(255,255,255,.12); }
+.v8-app-root .bx .bx-row:first-child { border-top: 0; }
+.v8-app-root .bx .bx-line + .bx-row { border-top: 0; }
+.v8-app-root .bx-row .who { flex: none; gap: 10px; align-self: stretch; }
+.v8-app-root .bx .bx-row .n { width: 30px; font: italic 800 1.1875rem/1 var(--kx-j); color: rgba(255,255,255,.92); text-align: center; }
+.v8-app-root .bx .bx-row.plain .n { font-size: 1rem; color: rgba(255,255,255,.62); }
+.v8-app-root .bx-ra { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; padding: 2px; }
+.v8-app-root .bx-ra .kx-av { width: 100% !important; height: 100% !important; box-shadow: 0 0 0 1.5px rgba(10,8,40,.7); }
+.v8-app-root .bx-ra.c0 { background: linear-gradient(135deg, #7FB2FF, #3D6BFF); box-shadow: 0 0 9px rgba(80,140,255,.6); }
+.v8-app-root .bx-ra.c1 { background: linear-gradient(135deg, #FF9AD8, #E8259A); box-shadow: 0 0 9px rgba(255,63,184,.6); }
+.v8-app-root .bx-ra.c2 { background: linear-gradient(135deg, #FFD08A, #FF7AA8); box-shadow: 0 0 9px rgba(255,150,120,.6); }
+.v8-app-root .bx-ra.c3 { background: linear-gradient(135deg, #8EF0FF, #4F7BFF); box-shadow: 0 0 9px rgba(80,200,255,.5); }
+.v8-app-root .bx-row.plain .bx-ra { width: 36px; height: 36px; background: rgba(255,255,255,.22); box-shadow: none; }
+.v8-app-root .bx-rt { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+.v8-app-root .bx .bx-row .t { flex: none; max-width: 100%; padding: 0; border: 0; background: none; color: #fff; font: 800 0.95rem/1.25 var(--kx-j); text-align: left; cursor: pointer; }
+.v8-app-root .bx.lth .bx-row .t { font-family: var(--kx-j), var(--bx-th); }
+.v8-app-root .bx-row .bx-sc { padding: 0; font: 600 0.75rem/1.35 var(--kx-j); color: rgba(255,255,255,.72); gap: 5px; flex-wrap: wrap; white-space: normal; text-align: left; }
+.v8-app-root .bx.lth .bx-sc { font-family: var(--kx-j), var(--bx-th); }
+.v8-app-root .bx-sc .rka-elig::before { content: '· '; }
+.v8-app-root .bx .bx-row .kx-pz { margin-left: auto; min-width: 0; font: 800 1rem var(--kx-j); color: var(--bx-gold); text-shadow: 0 0 8px rgba(255,190,60,.55); }
+.v8-app-root .bx .bx-row .kx-pz.off { color: #B5A57A; text-shadow: none; }
+.v8-app-root .bx .bx-row .kx-tl { margin-left: auto; min-width: 0; font: 600 0.72rem var(--kx-j); color: rgba(255,255,255,.6); }
+.v8-app-root .bx .bx-row.mer { margin: 0; box-shadow: none; background: linear-gradient(90deg, rgba(255,79,192,.16), rgba(255,79,192,0)); }
+.v8-app-root .bx .bx-row.seat .kx-plus { width: 40px; height: 40px; border: 1.5px dashed rgba(255,228,145,.55); color: var(--bx-gold); background: none; }
+.v8-app-root .bx .bx-row.seat .kx-plus svg { width: 18px; height: 18px; }
+.v8-app-root .bx .bx-row.seat .t { color: rgba(255,255,255,.82); font-weight: 700; }
+.v8-app-root .bx .bx-line { height: 36px; margin: 0; }
+.v8-app-root .bx .bx-line::before { border-top: 1px dashed rgba(255,228,145,.45); }
+.v8-app-root .bx .bx-line span { background: none; padding: 2px 10px; border-radius: 999px; color: var(--bx-gold); font-size: 0.625rem; text-shadow: 0 0 8px rgba(11,14,58,1), 0 0 4px rgba(11,14,58,1); }
+.v8-app-root .bx .bx-line span::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: rgba(20,14,62,.85); }
+.v8-app-root .bx-endpad { height: 8px; }
+
+/* pinned: my row on a soft fade (no opaque box) + one main button, above the dock */
+.v8-app-root .bx-pin { position: fixed; left: 0; right: 0; bottom: calc(58px + env(safe-area-inset-bottom)); z-index: 47; max-width: 480px; margin: 0 auto; padding: 30px 12px 16px;
+  display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(18,8,54,0), rgba(18,8,54,.97) 26px, #120836 40px); }
+.v8-app-root .bx-pin > * { pointer-events: auto; }
+.v8-app-root .bx-you { position: relative; min-height: 60px; border-radius: 18px; display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 8px; color: #fff; cursor: pointer;
+  background: rgba(255,255,255,.08); box-shadow: inset 0 0 0 1px rgba(255,160,230,.42); }
+.v8-app-root .bx-you .n { flex: none; min-width: 34px; font: italic 800 1.1875rem/1 var(--kx-j); text-align: center; text-shadow: 0 0 10px rgba(255,120,220,.9); }
+.v8-app-root .bx-ra.me { width: 44px; height: 44px; background: linear-gradient(135deg, #FF9AD8, #E8259A); box-shadow: 0 0 10px rgba(255,63,184,.6); position: relative; }
+.v8-app-root .bx-you .t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.v8-app-root .bx-you .l1 { font: 800 0.95rem/1.25 var(--kx-j); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .bx-you small { display: block; font: 600 0.75rem/1.3 var(--kx-j); color: rgba(255,255,255,.84); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v8-app-root .bx.lth .bx-you .l1, .v8-app-root .bx.lth .bx-you small { font-family: var(--kx-j), var(--bx-th); }
+.v8-app-root .bx-bar { position: relative; display: block; height: 4px; margin-top: 5px; border-radius: 3px; background: rgba(255,255,255,.16); overflow: hidden; }
+.v8-app-root .bx-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: linear-gradient(90deg, #9B6BFF, #FF4FC0); box-shadow: 0 0 8px #FF4FC0; }
+.v8-app-root .bx-bar.full i { background: linear-gradient(90deg, #F5C451, #FFE491); box-shadow: 0 0 8px rgba(255,190,60,.8); }
+.v8-app-root .bx .bx-cta { position: relative; height: 54px; border: 0; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 10px; color: #fff; overflow: hidden;
+  background: linear-gradient(90deg, #FF4FC0 0%, #F0239E 50%, #FF3FCF 100%); box-shadow: inset 0 0 0 1.4px rgba(255,200,240,.7), 0 0 20px rgba(255,46,170,.5); }
+.v8-app-root .bx-cta::before { content: ''; position: absolute; left: 18px; right: 18px; top: 3px; height: 22px; border-radius: 999px; background: linear-gradient(180deg, rgba(255,255,255,.42), rgba(255,255,255,0)); pointer-events: none; }
+.v8-app-root .bx-cta .ic { position: relative; display: grid; } .v8-app-root .bx-cta .ic svg { width: 22px; height: 22px; }
+.v8-app-root .bx-cta .tx { position: relative; font: 800 1.0625rem/1 var(--kx-j); text-shadow: 0 1px 6px rgba(150,0,80,.45); }
+.v8-app-root .bx.lth .bx-cta .tx { font: 700 1.125rem/1.2 var(--bx-th); }
+.v8-app-root .bx-cta[aria-busy="true"] { opacity: .85; }
+.v8-app-root .bx-pin .rw-toast { position: static; }
+
+/* How to win: a light glass sheet (no opaque box). Cheap phones get a tint instead of the blur. */
+.v8-app-root .rw-sheet.glass { background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.07) 40%), rgba(34,24,90,.5);
+  -webkit-backdrop-filter: blur(20px) saturate(140%); backdrop-filter: blur(20px) saturate(140%); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 -10px 40px rgba(10,6,40,.45); }
+.v8-app-root .lowfx .rw-sheet.glass { -webkit-backdrop-filter: none; backdrop-filter: none; background: linear-gradient(180deg, rgba(92,72,170,.97), rgba(40,28,98,.98) 45%); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .v8-app-root .rw-sheet.glass { background: linear-gradient(180deg, rgba(92,72,170,.97), rgba(40,28,98,.98) 45%); } }
+.v8-app-root .rw-sheet.glass .rw-card { background: rgba(255,255,255,.1); }

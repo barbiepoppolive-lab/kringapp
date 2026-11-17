@@ -601,5 +601,13 @@ const T: Record<string, string> = {
   'Getting ready… {0}%': '준비 중… {0}%',
   'Use your real face in front of the camera, not a photo or a screen.': '사진이나 화면이 아니라 실제 얼굴을 카메라에 보여 주세요.',
   '{0} of {1} paid seats left': '상금 자리 {1}개 중 {0}개 남음',
+  // Board V2 (18 Nov)
+  'Closes {0}': '{0} 마감',
+  'Closes in {0}': '{0} 후 마감',
+  '{0}/{1} seats left': '{0}/{1}자리 남음',
+  'Your spot?': '당신의 자리?',
+  '{0} more Rings for a prize seat': '상금 자리까지 {0} Rings 더',
+  'Share my Reel': '내 릴 공유하기',
+  'How to win': '이기는 방법',
 };
 export default T;

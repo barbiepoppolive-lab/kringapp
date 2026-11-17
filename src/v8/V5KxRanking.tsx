@@ -1,18 +1,18 @@
 /**
  * Weekly ranking (LOCKED rules 15 Nov; look A "Gold-ring podium" approved 17 Nov — no scope tabs).
  * Rings = likes ×1, saves ×3, share-link opens ×5, visitors' likes/saves ×2, your best Reel of the week (best_reels = 1 since 15 Nov) (Mon 00:00 – Sun 23:59 Bangkok).
- * Top 10 always: podium (mini N2 cards, ฿ on the pedestals), rows 4–8 with a ฿ tag, dashed PRIZE LINE, #9–10 with "12 to #8".
- * Empty paid ranks show "Open seat · ฿250". Pinned own row = the next step in Rings and what it pays. Tap any score → the math.
+ * Board V2 "Compact" (18 Nov): podium with gold ฿ text, rows 4–8 slim with the ฿, PRIZE LINE, #9+ with "12 to #8".
+ * Empty paid ranks show "Your spot? · ฿250". Pinned own row = progress to the prize floor + the next step. Tap any score → the math.
  * Every number comes from the server (kr8_weekly_ranking / kr8_score_breakdown); nothing is computed here.
  */
 import React, { useEffect, useState } from 'react';
 import './kx.css';
 import { countdown, fmtN, mathLines, weekEnd } from './kxLogic';
-import { kxBreakdown, kxRanking, kxRules, kxSeatsLeft, type KxBreakdown, type KxGap, type KxRanking, type KxRankRow } from './v5Kx';
+import { kxBreakdown, kxMemberReels, kxRanking, kxRules, kxSeatsLeft, type KxBreakdown, type KxGap, type KxRanking, type KxRankRow } from './v5Kx';
 import { RingGlyph } from './V5KxCard';
-import { KX_L, V5_L } from './v5Strings';
 import { signReelPaths } from './v5Reel';
-import { RingToast, rulesVariant, WinEntry, WinSheet, winRules, YouBar, youState } from './V5KxRules';
+import { RingToast, rulesVariant, WinSheet, winRules } from './V5KxRules';
+import { BackIcon, Crown, Disc, InfoIcon, Medal, PlusIcon, ShareIcon, type Tone } from './BoardArt';
 
 type Tx = (en: string) => string;
 type Txf = (en: string, a: string, b?: string) => string;
@@ -111,7 +111,7 @@ export interface OwnRow { n: string; l1: React.ReactNode; l2: string; btn: 'math
 /** The pinned row: what I have, then the next step and what it pays (six states, mock m2). */
 export function ownRow(L: Tx, Lf: Txf, gap: KxGap | null | undefined, mine: KxRanking['mine'] | undefined | null): OwnRow {
   const rt = (n: number) => ringsText(L, Lf, n);
-  const you = (g: KxGap) => <>{L('You')} · {fmtN(g.rings)} <RingGlyph /></>;
+  const you = (g: KxGap) => `${L('You')} · ${rt(g.rings)}`;
   const toRank = (t: NonNullable<KxGap['target']>) => `${Lf('{0} to #{1}', rt(t.need), String(t.rank))}${t.prize > 0 ? ` · ${baht(t.prize)}` : ''}`;
   if (!gap) return { n: '–', l1: L('Not on the board yet'), l2: L('One Reel at a place puts you on it'), btn: 'post', key: 'none' };
   const g = gap, t = g.target;
@@ -132,188 +132,234 @@ export function ownRow(L: Tx, Lf: Txf, gap: KxGap | null | undefined, mine: KxRa
   return { n: '–', l1: L('Not on the board yet'), l2: L('One Reel at a place puts you on it'), btn: 'post', key: 'none' };
 }
 
-/** Thai copy of a key (same tables the app's L() reads), so the pinned row can show Thai first and English under in any UI language. */
-const thL: Tx = (en) => (V5_L.th && V5_L.th[en]) || (KX_L.th && KX_L.th[en]) || en;
-const thLf: Txf = (en, a, b = '') => thL(en).replace('{0}', a).replace('{1}', b);
-const enL: Tx = (en) => en;
-const enLf: Txf = (en, a, b = '') => en.replace('{0}', a).replace('{1}', b);
-/** Last 6 h of the week (Sun 18:00 → 24:00 Bangkok): the countdown chip pulses pink. */
+/** Last 6 h of the week (Sun 18:00 → 24:00 Bangkok): the closing line turns pink. */
 export const isLastHours = (now = Date.now(), end = weekEnd(now)) => end - now > 0 && end - now <= 6 * 3600_000;
 
-/**
- * Look A · Gold-ring podium (founder-approved 17 Nov, Weekly_Ranking_3_looks.png left phone).
- * Top: title + Thai + one live countdown chip (no scope tabs: the board is always All Bangkok).
- * Podium: round photos (#1 gold ring + crown + glow, #2 blue, #3 orange), numbered badge, name, Rings, glowing glass base with the prize.
- * Ranks 4–8 glass cards with the prize in gold, "needs 25" under the floor; 9–10 the same cards without a prize.
- * Prizes, floor and paid ranks all come from kr8_weekly_ranking. No ▲/▼: the server keeps no daily snapshot to compare with.
- */
-/** "37 of 50 paid seats left" (Founding Local seats, from kr8_seats_left). Hidden when unknown, off or full. Never a voucher count. */
+/** "37 of 50 paid seats left" (Founding Local seats, from kr8_seats_left). Hidden when unknown, off or full. Never a voucher count. One language. */
 export const PAID_SEATS = 50;
+const seatsOk = (left: number | null | undefined): left is number => typeof left === 'number' && Number.isFinite(left) && left > 0;
 export function SeatsLine(props: { L: Tx; Lf: Txf; lang: string; left: number | null | undefined }) {
   const { left } = props;
-  if (typeof left !== 'number' || !Number.isFinite(left) || left <= 0) return null;
-  const n = String(Math.min(left, PAID_SEATS)), of = String(PAID_SEATS);
-  const en = enLf('{0} of {1} paid seats left', n, of);
-  return (
-    <p className="rka-seats" id="kxSeatsLeft" data-left={n}>
-      {props.lang === 'th'
-        ? <><span lang="th">{thLf('{0} of {1} paid seats left', n, of)}</span><small lang="en">{en}</small></>
-        : <span lang={props.lang}>{props.lang === 'en' ? en : props.Lf('{0} of {1} paid seats left', n, of)}</span>}
-    </p>
-  );
+  if (!seatsOk(left)) return null;
+  const n = String(Math.min(left, PAID_SEATS));
+  return <p className="rka-seats" id="kxSeatsLeft" data-left={n}><span lang={props.lang}>{props.Lf('{0} of {1} paid seats left', n, String(PAID_SEATS))}</span></p>;
 }
 
+/** When the week closes, in the member's language: "Sun 23:59" · "อา. 23:59" (Bangkok time; the week ends Mon 00:00, shown as the minute before). */
+const TH_DAY = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
+const EN_DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const LOCALE: Record<string, string> = { zh: 'zh-CN', hi: 'hi-IN', ja: 'ja-JP', ko: 'ko-KR' };
+export function closesAt(end: number, lang: string): string {
+  const b = new Date(end - 60_000 + 7 * 3600_000);
+  const hm = `${String(b.getUTCHours()).padStart(2, '0')}:${String(b.getUTCMinutes()).padStart(2, '0')}`;
+  if (lang === 'th') return `${TH_DAY[b.getUTCDay()]} ${hm}`;
+  if (!LOCALE[lang]) return `${EN_DAY[b.getUTCDay()]} ${hm}`;
+  try { return new Intl.DateTimeFormat(LOCALE[lang], { weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Asia/Bangkok' }).format(end - 60_000); }
+  catch { return `${EN_DAY[b.getUTCDay()]} ${hm}`; }
+}
+/** The one line under the title: "Closes Sun 23:59" (the last 24 h: a live countdown "Closes in 05:12"). */
+export function closeLine(Lf: Txf, lang: string, now: number, end: number): { text: string; soon: boolean } {
+  const left = end - now;
+  if (left > 0 && left <= 24 * 3600_000) return { text: Lf('Closes in {0}', countdown(now, end).replace(/^0d /, '')), soon: true };
+  return { text: Lf('Closes {0}', closesAt(end, lang)), soon: false };
+}
+
+/** The pinned row's progress: Rings toward the prize floor (25 by default, from the server). Full once you qualify. */
+export function floorProgress(rings: number, floor: number): { pct: number; below: boolean; need: number } {
+  const f = Math.max(0, floor | 0), r = Math.max(0, rings | 0);
+  if (f <= 0 || r >= f) return { pct: 100, below: false, need: 0 };
+  return { pct: Math.round((r * 100) / f), below: true, need: f - r };
+}
+
+/** The member's newest approved Reel (what "Share my Reel" shares); null = none yet → the button posts one. */
+export function latestApproved(reels: { id: string; status: string; created_at: string }[] | null | undefined): string | null {
+  const ok = (reels || []).filter((r) => r.status === 'approved').sort((a, b) => (Date.parse(b.created_at) || 0) - (Date.parse(a.created_at) || 0));
+  return ok[0]?.id || null;
+}
+
+/** Cheap phones: no backdrop blur (the sheet gets a solid tint instead). */
+const lowFx = () => {
+  try {
+    const n = navigator as Navigator & { deviceMemory?: number };
+    return (typeof n.deviceMemory === 'number' && n.deviceMemory <= 4) || (typeof n.hardwareConcurrency === 'number' && n.hardwareConcurrency > 0 && n.hardwareConcurrency <= 4);
+  } catch { return false; }
+};
+const RING_CLS = ['c0', 'c1', 'c2', 'c3'];
+
+/**
+ * Board V2 "Compact" (founder pick 18 Nov, BOARDX_V2.png). One background picture; the rest is CSS/SVG.
+ * Top: back · title (+ small crown) · one line "Closes Sun 23:59 · 38/50 seats left" · ⓘ (How to win + prize rules in a light glass sheet).
+ * Podium: #1 bigger with a thin gold ring, soft warm glow and the crown (no wreath); #2 blue, #3 rose; prizes as gold text on 3D discs.
+ * #4–#8 slim rows with thin dividers, the prize line, #9+ plain with "X to #8". Pinned: my row (progress to the prize floor) + one button,
+ * "Share my Reel" (newest approved Reel, the app's share flow) or "Post a Reel" when there is none. Empty spots say "Your spot?".
+ * Every number comes from the server (kr8_weekly_ranking, kr8_seats_left, kr8_rings_rules); nothing is computed here but the display.
+ */
 export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: string | null; myPhoto: string | null; myName: string; myId: string | null;
   onBack: () => void; onPerson: (id: string) => void; onPost: () => void; onShare: (reel: string) => void;
   /** 0066: not face-verified yet → a small nudge under my photo (everyone still shows on the board) */
   needsVerify?: boolean; onVerify?: () => void }) {
-  const { L, Lf } = props;
+  const { L, Lf, lang } = props;
   const [data, setData] = useState<KxRanking | null>(null);
   const [err, setErr] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const [math, setMath] = useState<string | null>(null);
   const [how, setHow] = useState(false);
-  // rules-ui preview (?rules=A|B|C): "How to win" sheet + You bar + Ring toast; off = the page as it is live
   const [rv] = useState(rulesVariant);
+  const [low] = useState(lowFx);
   const [cfg, setCfg] = useState<Record<string, number> | null>(null);
-  const [win, setWin] = useState(() => { try { return !!rv && new URLSearchParams(location.search).get('win') === '1'; } catch { return false; } });
+  const [win, setWin] = useState(() => { try { return new URLSearchParams(location.search).get('win') === '1'; } catch { return false; } });
   const [toast] = useState(() => { try { return !!rv && new URLSearchParams(location.search).get('toast') === '1'; } catch { return false; } });
-  const [bestReel, setBestReel] = useState<string | null>(null);
-  useEffect(() => {
-    if (!rv) return;
-    let dead = false;
-    Promise.resolve(kxRules()).then((c) => { if (!dead) setCfg(c); }).catch(() => undefined);
-    if (props.myId) Promise.resolve(kxBreakdown(props.myId)).then((b) => { if (!dead) setBestReel(b?.reels?.[0]?.post_id || null); }).catch(() => undefined);
-    return () => { dead = true; };
-  }, [rv, props.myId]);
+  /** undefined = still loading; null = no approved Reel yet */
+  const [latest, setLatest] = useState<string | null | undefined>(props.myId ? undefined : null);
   const [seatsLeft, setSeatsLeft] = useState<number | null>(null);
   useEffect(() => {
     let dead = false;
+    Promise.resolve(kxRules()).then((c) => { if (!dead) setCfg(c || null); }).catch(() => undefined);
     Promise.resolve(kxSeatsLeft()).then((n) => { if (!dead) setSeatsLeft(typeof n === 'number' ? n : null); }).catch(() => undefined);
+    kxRanking('all').then((d) => { if (!dead) setData(d); }).catch(() => { if (!dead) setErr(true); });
     return () => { dead = true; };
   }, []);
   useEffect(() => {
     let dead = false;
-    kxRanking('all').then((d) => { if (!dead) setData(d); }).catch(() => { if (!dead) setErr(true); });
+    if (!props.myId) { setLatest(null); return; }
+    setLatest(undefined);
+    Promise.resolve(kxMemberReels(props.myId)).then((m) => { if (!dead) setLatest(latestApproved(m?.reels)); }).catch(() => { if (!dead) setLatest(null); });
     return () => { dead = true; };
-  }, []);
+  }, [props.myId]);
   const end = data?.ends_at ? Date.parse(data.ends_at) || weekEnd(now) : weekEnd(now);
   const hot = isLastHours(now, end);
+  const close = closeLine(Lf, lang, now, end);
   useEffect(() => { const id = window.setInterval(() => setNow(Date.now()), hot ? 1000 : 15000); return () => window.clearInterval(id); }, [hot]);
   const rows = data?.rows || [];
   const paid = data?.paid_ranks ?? 8;
   const prizes = data?.prizes || [];
   const at = (rank: number) => rows.find((r) => r.rank === rank);
   const own = ownRow(L, Lf, data?.gap, data?.mine);
-  const ownTh = ownRow(thL, thLf, data?.gap, data?.mine).l2;
-  const ownEn = ownRow(enL, enLf, data?.gap, data?.mine).l2;
-  const wr = rv ? winRules(cfg, data) : null;
+  const wr = winRules(cfg, data);
+  const floor = data?.floor ?? wr?.floor ?? 25;
+  const prog = floorProgress(data?.gap?.rings ?? 0, floor);
+  const youLine = prog.below && (data?.gap?.rings ?? 0) > 0 && ['board', 'far', 'zero'].includes(own.key) ? Lf('{0} more Rings for a prize seat', fmtN(prog.need)) : own.l2;
   const floorNote = !!data && data.floor > 0 && (data.open_seats > 0 || rows.some((r) => r.needs));
-  // below the prize floor: soft grey card + one small line, on every rank (founder pick A, 17 Nov)
+  const postLabel = lang === 'th' ? 'โพสต์คลิป' : L('Post a Reel');   // founder copy for this button (the app says โพสต์รีล elsewhere)
+  const share = latest !== null;
   const elig = (r: KxRankRow) => (r.needs ? <em className="rka-elig">{Lf('{0} more Rings to be eligible', fmtN(Math.max(1, r.needs - r.rings)))}</em> : null);
-  // plain render functions (not components): the 1 s countdown re-render must not remount rows and replay their entrance
+  // plain render functions (not components): the countdown re-render must not remount rows
   const Score = ({ r, cls }: { r: KxRankRow; cls: string }) => (
     <button type="button" className={cls} data-score={r.rings} aria-label={L('See the math')} onClick={(e) => { e.stopPropagation(); setMath(r.user_id); }}>
-      {fmtN(r.rings)} <RingGlyph />{elig(r)}
+      <RingGlyph />{ringsText(L, Lf, r.rings)}{elig(r)}
     </button>
   );
   const Row = ({ r }: { r: KxRankRow }) => (
-    <div className={`kx-row rka-row${r.is_me ? ' mer' : ''}${r.needs ? ' low' : ''}`} data-rank={r.rank}>
-      <button type="button" className="who" onClick={() => props.onPerson(r.user_id)}>
-        <span className="n">{r.rank}</span><Av photo={r.photo} name={r.first_name} size={38} />
-        <span className="t">{r.is_me ? L('You') : r.first_name}{r.is_new && !r.is_me ? <i className="nw">{L('NEW')}</i> : null}</span>
+    <div className={`kx-row bx-row${r.is_me ? ' mer' : ''}${r.needs ? ' low' : ''}${r.rank > paid ? ' plain' : ''}`} data-rank={r.rank}>
+      <button type="button" className="who" onClick={() => props.onPerson(r.user_id)} aria-label={r.is_me ? L('You') : r.first_name}>
+        <span className="n">{r.rank}</span>
+        <span className={`bx-ra ${RING_CLS[r.rank % 4]}`}><Av photo={r.photo} name={r.first_name} size={36} /></span>
       </button>
-      {Score({ r, cls: 'kx-sc rka-sc' })}
+      <span className="bx-rt">
+        <button type="button" className="t" onClick={() => props.onPerson(r.user_id)}>{r.is_me ? L('You') : r.first_name}{r.is_new && !r.is_me ? <i className="nw">{L('NEW')}</i> : null}</button>
+        {Score({ r, cls: 'kx-sc bx-sc' })}
+      </span>
       {r.prize > 0 && r.all_rank <= paid
         ? <span className={`kx-pz${r.paid ? '' : ' off'}`} data-prize={r.prize}>{baht(r.prize)}</span>
         : <span className="kx-tl">{r.to_line ? Lf('{0} to #{1}', fmtN(r.to_line), String(paid)) : ''}</span>}
     </div>
   );
   const Seat = ({ rank }: { rank: number }) => (
-    <button type="button" className="kx-row rka-row seat" data-rank={rank} data-seat="open" onClick={props.onPost}>
-      <span className="n">{rank}</span><i className="kx-plus" aria-hidden="true">+</i>
-      <span className="t">{L('Open seat')}</span>
+    <button type="button" className="kx-row bx-row seat" data-rank={rank} data-seat="open" onClick={props.onPost}>
+      <span className="n">{rank}</span><i className="kx-plus" aria-hidden="true"><PlusIcon /></i>
+      <span className="bx-rt"><span className="t">{L('Your spot?')}</span></span>
       <span className="kx-pz">{baht(prizes[rank - 1] || 0)}</span>
     </button>
   );
+  const TONE: Record<number, Tone> = { 1: 'gold', 2: 'blue', 3: 'rose' };
   return (
-    <div className={`kx-page kx-rk rka${rv ? ' rwv' : ''}`} id="kxRanking">
-      <div className="rka-top">
-        <button type="button" className="kx-bk rka-bk" aria-label={L('Back')} onClick={props.onBack}>‹</button>
-        {/* T-301 round 2 (T301-009/020): one language on the page, "5 วัน" not "5d" in Thai */}
-        <div className="rka-tt"><h1>{L('Weekly Ranking')}</h1></div>
-        <span className={`rka-cd${hot ? ' hot' : ''}`} id="kxCountdown" data-hot={hot ? '1' : '0'}><i aria-hidden="true" />{Lf('Ends {0}', props.lang === 'th' ? countdown(now, end).replace(/^(\d+)d /, '$1 วัน ') : countdown(now, end))}</span>
+    <div className={`kx-page kx-rk bx${low ? ' lowfx' : ''}${lang === 'th' ? ' lth' : ''}`} id="kxRanking" lang={lang}>
+      <div className="bx-bg" aria-hidden="true" />
+      <div className="bx-top">
+        <button type="button" className="kx-bk bx-bk" aria-label={L('Back')} onClick={props.onBack}><BackIcon /></button>
+        <div className="bx-tt">
+          <h1>{L('Weekly Ranking')}<Crown tone="gold" w={24} cls="bx-tcr" /></h1>
+          <p className="bx-sub" id="kxBoardSub">
+            <span className={`bx-cd${close.soon ? ' soon' : ''}${hot ? ' hot' : ''}`} id="kxCountdown" data-hot={hot ? '1' : '0'}>{close.text}</span>
+            {seatsOk(seatsLeft) ? <> · <span id="kxSeatsLeft" data-left={Math.min(seatsLeft, PAID_SEATS)}>{Lf('{0}/{1} seats left', String(Math.min(seatsLeft, PAID_SEATS)), String(PAID_SEATS))}</span></> : null}
+          </p>
+        </div>
+        <button type="button" className="bx-i" id="kxWinOpen" aria-label={L('How to win')} onClick={() => (wr ? setWin(true) : setHow(true))}><InfoIcon /></button>
       </div>
-      <SeatsLine L={L} Lf={Lf} lang={props.lang} left={seatsLeft} />
-      {rv && wr ? <WinEntry v={rv} lang={props.lang} total={wr.prizes.reduce((a, b) => a + b, 0)} seats={wr.prizes.length} onOpen={() => setWin(true)} /> : null}
       {data === null && !err ? <p className="kx-empty pad">…</p> : err ? <p className="kx-empty pad">{L('Couldn’t reach Kring. Check your connection and try again.')}</p> : (
         <>
-          <div className="rka-pod" id="kxPodium">
+          <div className="bx-pod" id="kxPodium">
+            <i className="bx-aura" aria-hidden="true" />
             {[2, 1, 3].map((rank) => {
               const r = at(rank);
               const pz = prizes[rank - 1] || 0;
+              const n = rank as 1 | 2 | 3;
               return (
-                <div key={rank} className={`rka-pc p${rank}${r ? '' : ' open'}${r?.is_me ? ' me' : ''}${r?.needs ? ' low' : ''}`}>
-                  <div className="rka-ph">
-                    {rank === 1 ? <span className="rka-crown" aria-hidden="true">👑</span> : null}
+                <div key={rank} className={`bx-pc p${rank}${r ? '' : ' open'}${r?.is_me ? ' me' : ''}${r?.needs ? ' low' : ''}`}>
+                  <i className={`bx-beam b${rank}`} aria-hidden="true" />
+                  <div className="bx-ph">
+                    <Crown tone={TONE[rank]} w={rank === 1 ? 40 : 30} cls="bx-crown" />
                     {r ? (
-                      <button type="button" className="rka-img" data-rank={rank} aria-label={r.first_name} onClick={() => props.onPerson(r.user_id)}
+                      <button type="button" className="bx-img" data-rank={rank} aria-label={r.is_me ? L('You') : r.first_name} onClick={() => props.onPerson(r.user_id)}
                         style={r.photo ? { backgroundImage: `url('${r.photo}')` } : undefined}>{r.photo ? '' : (r.first_name || '?').charAt(0).toUpperCase()}</button>
                     ) : (
-                      <button type="button" className="rka-img empty" data-seat="open" aria-label={L('Open seat')} onClick={props.onPost}>+</button>
+                      <button type="button" className="bx-img empty" data-seat="open" aria-label={L('Your spot?')} onClick={props.onPost}><PlusIcon /></button>
                     )}
-                    <span className="rka-bd">{rank}</span>
+                    <Medal n={n} />
                   </div>
-                  <span className="rka-nm">{r ? (r.is_me ? L('You') : r.first_name) : L('Open seat')}</span>
-                  {r ? Score({ r, cls: 'rka-r' }) : <span className="rka-r none">&nbsp;</span>}
-                  <div className="rka-base">
-                    {pz > 0 ? <b className={r && !r.paid ? 'off' : ''} data-prize={pz}>{baht(pz)}</b> : null}
-                  </div>
+                  <span className="bx-nm">{r ? (r.is_me ? L('You') : r.first_name) : L('Your spot?')}</span>
+                  {r ? Score({ r, cls: 'bx-r' }) : <span className="bx-r none">&nbsp;</span>}
+                  {pz > 0 ? <b className={`bx-pz${r && !r.paid ? ' off' : ''}`} data-prize={pz}>{baht(pz)}</b> : <b className="bx-pz none">&nbsp;</b>}
+                  <Disc tone={rank === 1 ? 'gold' : rank === 2 ? 'blue' : 'pink'} w={rank === 1 ? 116 : 92} h={rank === 1 ? 18 : 10} />
                 </div>
               );
             })}
           </div>
-          {data && !data.payout_on ? <p className="kx-rk-note" id="kxPayoutNote">{Lf('Prizes start when {0} Locals are on the board this week', String(data.min_posters))}</p> : null}
-          <div className="kx-list rka-list" id="kxRankList">
+          {data && !data.payout_on ? <p className="kx-rk-note bx-note" id="kxPayoutNote">{Lf('Prizes start when {0} Locals are on the board this week', String(data.min_posters))}</p> : null}
+          <div className="kx-list bx-list" id="kxRankList">
             {Array.from({ length: Math.max(0, paid - 3) }, (_, i) => i + 4).map((rank) => { const r = at(rank); return <React.Fragment key={rank}>{r ? Row({ r }) : Seat({ rank })}</React.Fragment>; })}
             {rows.some((r) => r.rank > paid) || floorNote
-              ? <div className="kx-div" id="kxPrizeLine"><span>{floorNote ? Lf('PRIZE LINE · {0} RINGS TO TAKE A SEAT', String(data?.floor ?? 0)) : L('PRIZE LINE')}</span></div> : null}
+              ? <div className="kx-div bx-line" id="kxPrizeLine"><span>{floorNote ? Lf('PRIZE LINE · {0} RINGS TO TAKE A SEAT', String(data?.floor ?? 0)) : L('PRIZE LINE')}</span></div> : null}
             {rows.filter((r) => r.rank > paid).map((r) => <React.Fragment key={r.user_id}>{Row({ r })}</React.Fragment>)}
           </div>
-          <div className="kx-fade rka-fade" />
- {rv && wr && props.myId ? (
-            <>
-              {toast ? <RingToast v={rv} lang={props.lang} pts={wr.save} who="Mint" act="save" /> : null}
-              <YouBar v={rv} lang={props.lang} r={wr} s={youState(data)} photo={props.myPhoto} name={props.myName}
-                onShare={() => { if (bestReel) props.onShare(bestReel); else setMath(props.myId); }} onPost={props.onPost} />
-            </>
-          ) : props.myId ? (
-            <div className="kx-me rka-me" id="kxMeRow" data-state={own.key}>
-              <span className="n">{own.n}</span>
-              <span className="rka-meph">
-                <Av photo={props.myPhoto} name={props.myName} size={42} />
-                {props.needsVerify && props.onVerify ? (
-                  <button type="button" className="rka-vfy" id="kxVerifyNudge" onClick={props.onVerify}
-                    aria-label={props.lang === 'th' ? 'ยืนยันใบหน้าสั้น ๆ เพื่อให้รีลของคุณติดบอร์ดอันดับ' : 'Quick face check to keep your Reel on the ranking board'}
-                    title={props.lang === 'th' ? 'ยืนยันใบหน้าสั้น ๆ เพื่อให้รีลของคุณติดบอร์ดอันดับ' : 'Quick face check to keep your Reel on the ranking board'}>
-                    {props.lang === 'th' ? <span lang="th">ยืนยันหน้า</span> : <small lang="en">verify</small>}
-                  </button>
-                ) : null}
-              </span>
-              <span className="t"><span className="l1">{own.l1}</span>
-                {props.lang === 'th' ? <small className="th" lang="th" id="kxMeNextTh">{ownTh}</small>
-                  : <small id="kxMeNext" lang={props.lang === 'en' ? 'en' : props.lang}>{props.lang === 'en' ? ownEn : own.l2}</small>}</span>
-              {own.btn === 'math' ? <button type="button" className="kx-go" id="kxMeBtn" onClick={() => setMath(props.myId)}>{L('See my math')}</button>
-                : own.btn === 'share' ? <button type="button" className="kx-go" id="kxMeBtn" onClick={() => setMath(props.myId)}>{L('Share')}</button>
-                : own.btn === 'post' ? <button type="button" className="kx-go" id="kxMeBtn" onClick={props.onPost}>{L('Post')}</button> : null}
-            </div>
-          ) : null}
         </>
       )}
-      {math ? <MathSheet L={L} Lf={Lf} lang={props.lang} user={math} onClose={() => setMath(null)} onHow={() => { setMath(null); setHow(true); }}
+      <div className="bx-endpad" />
+      <div className="bx-pin" id="kxPin">
+        {toast && rv ? <RingToast v={rv} lang={lang} pts={wr?.save ?? 3} who="Mint" act="save" /> : null}
+        {props.myId && data ? (
+          <div className="bx-you" id="kxMeRow" data-state={own.key} role="button" tabIndex={0}
+            onClick={() => { if (own.btn !== 'post' && own.key !== 'review') setMath(props.myId); }}
+            onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && own.btn !== 'post') setMath(props.myId); }}>
+            <span className="n">{/^\d+$/.test(own.n) ? `#${own.n}` : own.n}</span>
+            <span className="rka-meph bx-ra me">
+              <Av photo={props.myPhoto} name={props.myName} size={42} />
+              {props.needsVerify && props.onVerify ? (
+                <button type="button" className="rka-vfy" id="kxVerifyNudge" onClick={(e) => { e.stopPropagation(); props.onVerify?.(); }}
+                  aria-label={lang === 'th' ? 'ยืนยันใบหน้าสั้น ๆ เพื่อให้รีลของคุณติดบอร์ดอันดับ' : 'Quick face check to keep your Reel on the ranking board'}
+                  title={lang === 'th' ? 'ยืนยันใบหน้าสั้น ๆ เพื่อให้รีลของคุณติดบอร์ดอันดับ' : 'Quick face check to keep your Reel on the ranking board'}>
+                  {lang === 'th' ? <span lang="th">ยืนยันหน้า</span> : <small lang="en">verify</small>}
+                </button>
+              ) : null}
+            </span>
+            <span className="t">
+              <span className="l1">{own.l1}</span>
+              <small id="kxMeNext">{youLine}</small>
+              <span className={`bx-bar${prog.below ? '' : ' full'}`} id="kxMeBar" data-pct={prog.pct} data-floor={floor}
+                role="progressbar" aria-valuemin={0} aria-valuemax={floor} aria-valuenow={Math.min(floor, data.gap?.rings ?? 0)}><i style={{ width: `${prog.pct}%` }} /></span>
+            </span>
+          </div>
+        ) : null}
+        <button type="button" className={`bx-cta${share ? ' share' : ' post'}`} id="kxBoardCta" data-act={share ? 'share' : 'post'} aria-busy={latest === undefined}
+          onClick={() => { if (latest) props.onShare(latest); else if (latest === null) props.onPost(); }}>
+          <span className="ic">{share ? <ShareIcon /> : <PlusIcon />}</span>
+          <span className="tx">{share ? L('Share my Reel') : postLabel}</span>
+        </button>
+      </div>
+      {math ? <MathSheet L={L} Lf={Lf} lang={lang} user={math} onClose={() => setMath(null)} onHow={() => { setMath(null); setHow(true); }}
         onShare={(reel) => { setMath(null); if (reel) props.onShare(reel); else props.onPost(); }} /> : null}
       {how ? <HowSheet L={L} onClose={() => setHow(false)} /> : null}
-      {rv && wr && win ? <WinSheet v={rv} lang={props.lang} r={wr} onClose={() => setWin(false)} /> : null}
+      {wr && win ? <WinSheet v={rv || 'C'} lang={lang} r={wr} glass onClose={() => setWin(false)} /> : null}
     </div>
   );
 }

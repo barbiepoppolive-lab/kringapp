@@ -33,10 +33,10 @@ export function winRules(cfg: Record<string, number> | null, rk: KxRanking | nul
 }
 
 const B = (n: number) => `฿${fmtN(n)}`;
-/** Thai first with the English under it (TH mode); English alone otherwise. */
+/** One language at a time (founder rule, 18 Nov): Thai alone in Thai mode, English alone otherwise. Never Thai with an English sub-line. */
 function Bi({ th, en, lang, cls }: { th: string; en: string; lang: string; cls?: string }) {
   return lang === 'th'
-    ? <span className={`bi ${cls || ''}`}><span lang="th" className="th">{th}</span><small lang="en" className="en">{en}</small></span>
+    ? <span className={`bi ${cls || ''}`}><span lang="th" className="th">{th}</span></span>
     : <span className={`bi ${cls || ''}`}><span lang="en">{en}</span></span>;
 }
 const pick = (lang: string, th: string, en: string) => (lang === 'th' ? th : en);
@@ -48,7 +48,6 @@ export function WinEntry({ v, lang, total, seats, onOpen }: { v: RulesVariant; l
       <button type="button" className="rw-how" id="kxWinOpen" onClick={onOpen}>
         <i className="ic" aria-hidden="true">{v === 'B' ? '📜' : v === 'C' ? '🏆' : '?'}</i>
         <span>{pick(lang, 'วิธีชนะ', 'How to win')}</span>
-        {lang === 'th' ? <small lang="en">How to win</small> : null}
         <b aria-hidden="true">›</b>
       </button>
       {total > 0 ? (
@@ -61,7 +60,7 @@ export function WinEntry({ v, lang, total, seats, onOpen }: { v: RulesVariant; l
 }
 
 /* ───────────── the sheet ───────────── */
-interface SheetProps { v: RulesVariant; lang: string; r: WinRules; onClose: () => void }
+interface SheetProps { v: RulesVariant; lang: string; r: WinRules; onClose: () => void; /** Board V2: light glass sheet */ glass?: boolean }
 
 function earnRows(r: WinRules) {
   return [
@@ -80,7 +79,7 @@ function fineRows(r: WinRules) {
   ];
 }
 
-export function WinSheet({ v, lang, r, onClose }: SheetProps) {
+export function WinSheet({ v, lang, r, onClose, glass }: SheetProps) {
   const total = r.prizes.reduce((a, b) => a + b, 0);
   const title = <h2 className="rw-h"><Bi lang={lang} th="วิธีชนะ" en="How to win" /></h2>;
   const sub = <p className="rw-sub"><Bi lang={lang} th={`ทุกสัปดาห์ ${r.prizes.length} อันดับแรกแบ่งกัน ${B(total)}`} en={`Every week the top ${r.prizes.length} share ${B(total)}`} /></p>;
@@ -165,7 +164,7 @@ export function WinSheet({ v, lang, r, onClose }: SheetProps) {
   }
   return (
     <div className="kx-shbg rw-bg" onClick={onClose}>
-      <div className={`rw-sheet v${v}${lang === 'th' ? ' lth' : ''}`} id="kxWin" role="dialog" aria-label={pick(lang, 'วิธีชนะ', 'How to win')} onClick={(e) => e.stopPropagation()}>
+      <div className={`rw-sheet v${v}${lang === 'th' ? ' lth' : ''}${glass ? ' glass' : ''}`} id="kxWin" role="dialog" aria-label={pick(lang, 'วิธีชนะ', 'How to win')} onClick={(e) => e.stopPropagation()}>
         <span className="grab" />
         {body}
       </div>

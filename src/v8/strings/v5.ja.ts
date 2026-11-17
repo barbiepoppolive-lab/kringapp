@@ -601,5 +601,13 @@ const T: Record<string, string> = {
   'Getting ready… {0}%': '準備中… {0}%',
   'Use your real face in front of the camera, not a photo or a screen.': '写真や画面ではなく、本人の顔をカメラに向けてください。',
   '{0} of {1} paid seats left': '賞金枠 残り {0} / {1}',
+  // Board V2 (18 Nov)
+  'Closes {0}': '締切 {0}',
+  'Closes in {0}': '締切まで {0}',
+  '{0}/{1} seats left': '残り {0}/{1} 枠',
+  'Your spot?': 'あなたの席？',
+  '{0} more Rings for a prize seat': 'あと {0} Rings で賞金枠',
+  'Share my Reel': '自分のリールをシェア',
+  'How to win': '勝ち方',
 };
 export default T;

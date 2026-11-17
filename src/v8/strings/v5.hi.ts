@@ -601,5 +601,13 @@ const T: Record<string, string> = {
   'Getting ready… {0}%': 'तैयारी हो रही है… {0}%',
   'Use your real face in front of the camera, not a photo or a screen.': 'कैमरे के सामने अपना असली चेहरा रखें, फ़ोटो या स्क्रीन नहीं।',
   '{0} of {1} paid seats left': '{1} में से {0} इनाम वाली सीटें बाकी',
+  // Board V2 (18 Nov)
+  'Closes {0}': '{0} को बंद',
+  'Closes in {0}': '{0} में बंद',
+  '{0}/{1} seats left': '{0}/{1} सीटें बाकी',
+  'Your spot?': 'आपकी जगह?',
+  '{0} more Rings for a prize seat': 'इनाम वाली सीट के लिए {0} और Rings',
+  'Share my Reel': 'मेरी रील शेयर करें',
+  'How to win': 'कैसे जीतें',
 };
 export default T;
