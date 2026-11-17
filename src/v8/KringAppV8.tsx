@@ -102,6 +102,9 @@ import { inAppOf, isLiffOpen, openEscape } from './escape';
 import { TripPerks } from './V5Trip';
 // founder 17 Nov: hide café treats / stays; Deals = trip partners + "more deals coming soon"
 const DEALS_TRIP_ONLY = true;
+/** 0093 (supabase/migrations/0093_kr8_face_required_to_be_seen.sql): members above this number must pass the face check before
+ *  they post, answer, say hi or chat; members ≤ 68 are exempt. Mirrors kr8_rcfg('face_gate_after_no', 68); the server is the real guard. */
+const FACE_GATE_AFTER_NO = 68;
 import { StayDo } from './V5StayDo';
 import { v5CardPrintOk, v5HandoffBoot, v5LogClient, v5MyFaceStatus, v5MyVerification, v5SaveCardPrint, V5_AREAS } from './v5Live';
 import { v5AcceptTerms, v5PromoGet, v5SetPromo, V5_TERMS_VERSION, type V5Promo } from './v5Live';
@@ -1182,8 +1185,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [adminView, setAdminViewState] = useState(false);
   const adminViewRef = useRef(false);
   const adminNoRef = useRef<() => void>(() => undefined);
+  // 0093 face gate on the phone: a gated member (see FACE_GATE_AFTER_NO) is sent to the face check BEFORE the Reel composer
+  // opens, so no video / thumbnail is ever uploaded for the server to refuse. The kr8_posts trigger stays the real guard.
+  const faceGateRef = useRef(false);
+  const verifyFirstRef = useRef<() => void>(() => undefined);
   const setSheet = useCallback((v: SheetId | ((cur: SheetId) => SheetId)) => {
     if (adminViewRef.current && typeof v !== 'function' && v && ADMIN_VIEW_NO_SHEETS.has(v)) { adminNoRef.current(); return; }
+    if (v === 'post' && faceGateRef.current) { verifyFirstRef.current(); return; }
     setSheetRaw((cur) => {
       const next = typeof v === 'function' ? v(cur) : v;
       return adminViewRef.current && next && ADMIN_VIEW_NO_SHEETS.has(next) ? cur : next;
@@ -1399,6 +1407,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     if (m === 'ask' && !askSeen) { setAskSeen(true); try { localStorage.setItem('kr8_ask_seen', '1'); } catch { /* private mode */ } }
   };
   const askApi = useMemo(() => createAskApi({ live, demo: isDemo, me: () => askMeRef.current,
+    // 0093: no Ask / answer photo upload for a face-gated member; the Ask screen shows the verify text, this opens the check
+    gate: () => { if (!faceGateRef.current) return false; try { window.dispatchEvent(new CustomEvent('kr8-verify-first')); } catch { /* ignore */ } return true; },
     base: ((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.BASE_URL) || '/' }), [live, isDemo]);
   const [v5Uid, setV5Uid] = useState<string>('');
   const [deepPersonId, setDeepPersonId] = useState<string>('');
@@ -2640,6 +2650,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     return () => { gone = true; };
   }, [live, v5Card?.photo]);   // eslint-disable-line react-hooks/exhaustive-deps
   const kxPostAt = (p?: PickedPlace) => {
+    if (faceGateRef.current) { verifyFirstRef.current(); return; }   // 0093: face check first, no composer, no upload
     if (p) { setPostPlaces((prev) => (prev.some((x) => x.id === p.id) ? prev : [p, ...prev].slice(0, 2))); setPostArea((a) => a || p.kr_area || 'Bangkok'); }
     setTab('feed');
     setPostPhotoUrl('');
@@ -2775,6 +2786,15 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [activitySeenAt, setActivitySeenAt] = useState('');
   const [followBusy, setFollowBusy] = useState(false);
   const [verifyPending, setVerifyPending] = useState(false);
+  // 0093 face gate (client copy): gated = not verified AND member_no > FACE_GATE_AFTER_NO AND not ghost.
+  const [faceOkNow, setFaceOkNow] = useState(false);   // passed the check in this visit
+  const [myMemberNo, setMyMemberNo] = useState<number | null>(null);
+  useEffect(() => {
+    if (!live || !v5Uid || !v5Card || v5Card.verified) { setMyMemberNo(null); return; }
+    let on = true;
+    kxCardExtras().then((x) => { if (on) setMyMemberNo(x?.member_no ?? null); }).catch(() => undefined);
+    return () => { on = false; };
+  }, [live, v5Uid, !!v5Card, v5Card?.verified]);   // eslint-disable-line react-hooks/exhaustive-deps
   const [verifyNudge, setVerifyNudge] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [legalOpen, setLegalOpen] = useState(false);
@@ -2901,6 +2921,15 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     void v5MyGhost().then((g) => { if (on) setV5Ghost(g); });
     return () => { on = false; };
   }, [live, v5Uid, !!v5Card]);   // eslint-disable-line react-hooks/exhaustive-deps
+  {
+    const no = myMemberNo ?? kxMe?.member_no ?? null;
+    faceGateRef.current = live && !!v5Card && !adminView && !(v5Card.verified || meProfile?.verified || faceOkNow)
+      && !v5Ghost && no != null && Number(no) > FACE_GATE_AFTER_NO;
+    verifyFirstRef.current = () => {
+      showToast(L('Verify your face in 5 seconds to post and chat. One person, one account.'));
+      try { window.dispatchEvent(new CustomEvent('kr8-verify-first')); } catch { /* ignore */ }
+    };
+  }
   useEffect(() => {
     if (!live || !v5Uid || !v5Card) return;
     void v5Touch();
@@ -3184,6 +3213,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   };
   const publishReel = async (cap: string) => {
     if (!reelInfo) return;
+    if (faceGateRef.current) { verifyFirstRef.current(); return; }   // 0093: never upload what the server will refuse
     const reelArea = postArea || postPlaces[0]?.kr_area || (postPlaces.length ? 'Bangkok' : '');
     if (!reelArea) { showToast(L('Add the area pin first')); return; }   // area pin is required for Reels
     const ac = reelWorkRef.current.ready ? null : makeAudio();   // inside the tap: lets the phone capture the sound
@@ -7077,7 +7107,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               if (afterVerifyRef.current) { afterVerifyRef.current = false; markReelNudgeSeen(v5LastUid.current || v5Uid); setTab('me'); }
             }}
             onSent={() => setVerifyPending(true)}
-            onVerified={() => { setVerifyPending(false); setMeProfile((p) => (p ? { ...p, verified: true } : p)); }}
+            onVerified={() => { setVerifyPending(false); setFaceOkNow(true); setMeProfile((p) => (p ? { ...p, verified: true } : p)); }}
             onAddPhoto={() => setSheet('v5card')} />
         )}
         {sheet === 'follow' && followFor && (

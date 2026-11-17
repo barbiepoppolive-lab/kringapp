@@ -289,7 +289,7 @@ export function isMissing(e: unknown): boolean {
   return o.code === 'PGRST202' || o.code === '42883' || o.code === '42P01' || /could not find the function|does not exist/i.test(o.message || '');
 }
 
-function liveApi(): Omit<AskApi, 'mode'> {
+function liveApi(gate?: () => boolean): Omit<AskApi, 'mode'> {
   const lib = () => import('./v5Live');
   const call = async <T,>(fn: string, args: Record<string, unknown>): Promise<T> => {
     const m = await lib();
@@ -339,10 +339,12 @@ function liveApi(): Omit<AskApi, 'mode'> {
       return { q: await mapQ(r.q, P), answers: orderThread(answers) };
     },
     async ask(d) {
+      if (gate?.()) throw new Error('KR8_VERIFY_FIRST');   // 0093: a face-gated member never uploads a photo the server would refuse
       const m = await upload(d.file);
       return call<string>('kr8_ask_create', { p_body: d.body.trim(), p_details: (d.details || '').trim(), p_area: d.area || 'Bangkok', p_media_path: m.path, p_media_kind: m.kind });
     },
     async answer(postId, parentId, body, file) {
+      if (gate?.()) throw new Error('KR8_VERIFY_FIRST');
       const m = await upload(file);
       return call<string>('kr8_ask_answer', { p_post: postId, p_parent: parentId, p_body: body.trim(), p_media_path: m.path, p_media_kind: m.kind });
     },
@@ -359,11 +361,12 @@ function liveApi(): Omit<AskApi, 'mode'> {
  * live = the app is on real accounts. demo = example posts (demo / harness builds only).
  * The first "function missing" answer from the database moves this screen to the local store for the rest of the visit.
  */
-export function createAskApi(o: { live: boolean; demo: boolean; me: () => AskPerson | null; base?: string }): AskApi {
+/** gate (0093): true when the signed-in member must pass the face check before posting; it also opens the check */
+export function createAskApi(o: { live: boolean; demo: boolean; me: () => AskPerson | null; base?: string; gate?: () => boolean }): AskApi {
   if (o.demo) seed(o.base ?? '/');
   const loc = localApi(o.me);
   if (!o.live) return { mode: () => 'local', ...loc };
-  const lv = liveApi();
+  const lv = liveApi(o.gate);
   let mode: 'live' | 'local' = 'live';
   const wrap = <A extends unknown[], R>(k: keyof typeof lv) => async (...a: A): Promise<R> => {
     if (mode === 'local') return (loc[k] as unknown as (...x: A) => Promise<R>)(...a);
