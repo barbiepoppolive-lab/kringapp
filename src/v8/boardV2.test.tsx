@@ -215,7 +215,8 @@ describe('Board V2: light for cheap Android', () => {
   it('one background picture under 100 KB (WebP + JPG fallback); no backdrop-filter on the page itself', () => {
     for (const f of ['board_bg.webp', 'board_bg.jpg']) expect(fs.statSync(path.join(__dirname, 'art', f)).size).toBeLessThan(100 * 1024);
     const css = fs.readFileSync(path.join(__dirname, 'kx.css'), 'utf8');
-    const bx = css.slice(css.indexOf('Board V2 "Compact"'));
+    const bxAll = css.slice(css.indexOf('Board V2 "Compact"'));
+    const bx = bxAll.includes('Kring Light 5a') ? bxAll.slice(0, bxAll.indexOf('Kring Light 5a')) : bxAll;   // app-wide sheet glass (Light 5a) lives after the board block
     const blurRules = bx.split('}').filter((l) => /backdrop-filter: blur/.test(l));
     expect(blurRules.length).toBeGreaterThan(0);
     expect(blurRules.every((l) => /\.rw-sheet\.glass \{/.test(l))).toBe(true);
