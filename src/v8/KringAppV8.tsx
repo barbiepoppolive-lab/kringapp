@@ -4426,10 +4426,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     <div className="top">
                       {p.online && <span className="odot" />}
                       <span className="nm">{p.name}</span>
-                      {false && p.verified && (
+                      {p.verified === true && (
                         <button
                           type="button"
                           className="v"
+                          aria-label={L('verified')}
                           onClick={(e) => {
                             e.stopPropagation();
                             setSheet('verified');
@@ -4437,7 +4438,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                           style={{
                             background: 'none',
                             border: 0,
-                            padding: 0,
+                            padding: '0 0 0 4px',
+                            color: '#6EE7A8',
+                            fontWeight: 800,
                             cursor: 'pointer',
                           }}
                         >
