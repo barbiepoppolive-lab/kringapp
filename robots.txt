@@ -6,3 +6,4 @@ Disallow: /cdn-cgi/
 
 Sitemap: https://kringapp.com/sitemap.xml
 Sitemap: https://kringapp.com/sitemap-reels.xml
+Sitemap: https://kringapp.com/sitemap-blog.xml

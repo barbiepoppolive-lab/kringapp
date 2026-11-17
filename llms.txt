@@ -16,6 +16,8 @@
 - [Privacy](https://kringapp.com/privacy)
 - [Partner terms (cafés and venues)](https://kringapp.com/partner-terms)
 - [Contact](https://kringapp.com/contact)
+- [Blog (English): making friends and things to do in Bangkok](https://kringapp.com/en/blog/)
+- [บล็อก (Thai)](https://kringapp.com/blog/)
 
 ## Social
 - Instagram: https://www.instagram.com/kring.bkk/
