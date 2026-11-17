@@ -191,7 +191,10 @@ export function moneyRobotVerdict(c: Claim, p: Person | undefined, s: Snapshot):
   if (call === 'PAY' && pool.length < 3) pool.push('No duplicate face or phone links');
   if (!pool.length) pool.push(call === 'WAIT' ? 'Borderline signals — check card and Reel first' : 'Standard member signals');
 
-  const reasons = pool.slice(0, 3);
+  // reasons that SUPPORT the call come first (a REFUSE card should not lead with "+30 face verified")
+  const plus = (r: string) => r.startsWith('+');
+  const support = (r: string) => (call === 'PAY' ? plus(r) || !/^[−-]\d/.test(r) : !plus(r));
+  const reasons = [...pool.filter(support), ...pool.filter((r) => !support(r))].slice(0, 3);
   const headline = call === 'WAIT' ? `Robot says: WAIT · trust ${tr.score}` : `Robot says: ${call} · trust ${tr.score}`;
   const clarity = (call !== 'WAIT' ? 60 : 0) + Math.abs(tr.score - 50) + (hardDup ? 20 : 0);
   return { call, score: tr.score, headline, tone, reasons, clarity };
