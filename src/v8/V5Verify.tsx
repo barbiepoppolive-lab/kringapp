@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FACE_CONSENT_VERSION, faceDescriptor, loadFaceApi, loadImage } from './v5Face';
 import { cosine, loadFaceEngine, readFace } from './faceEngine';
 import type { FaceRead } from './faceEngine';
-import { bestSampler, brightness, canvasJpeg, snap } from './v5Mp';
+import { bestSampler, brightness, canvasJpeg, faceapiSampler, snap } from './v5Mp';
 import type { Sampler } from './v5Mp';
 import { checkPayload, clientVerdict, currentTurn, frontalScore, liveStart, liveStep, progressOf } from './verifyLive';
 import type { FailWhy, Hint, LiveState } from './verifyLive';
@@ -46,6 +46,7 @@ const ua = () => (typeof navigator === 'undefined' ? '' : navigator.userAgent);
 export const CAM_FRAME_MS = 6000;
 const camAskMs = () => (inAppBrowser(ua()) ? 6000 : 15000);   // a real browser may be showing its Allow prompt
 export const CAM_BLACK_MS = 3000;     // frames still black this long after the video starts = the browser can't show the camera
+export const TRACKER_MS = 2000;       // tracker errors (or MediaPipe blind while face-api sees a face) this long = switch tracker
 export const ENGINE_MS = 20000;       // the face engine must load within this, or the simple path (one selfie → the founder looks)
 // some phone-maker / X5 browsers take over a <video> with their own player (black picture, a "download" button): ask them not to
 const VIDEO_ATTRS = { 'x5-playsinline': 'true', 'webkit-playsinline': 'true', 'x5-video-player-type': 'h5-page', controlsList: 'nodownload nofullscreen noremoteplayback', disablePictureInPicture: true, disableRemotePlayback: true } as Record<string, unknown>;
@@ -65,6 +66,8 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
   const [copied, setCopied] = useState(false);
   const inApp = inAppBrowser(ua());
   const [simple, setSimple] = useState<string | null>(null);   // why the simple path is used (null = the full check)
+  const [ready, setReady] = useState(false);   // the tracker is loaded (the camera shows before it)
+  const [pct, setPct] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const runRef = useRef(0);
@@ -110,54 +113,62 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
   const start = async () => {
     setErr('');
     setCamBlocked(false);
+    setSimple(null);
+    setReady(false);
+    setPct(0);
     setStage('loading');
     const run = ++runRef.current;
+    // no WebAssembly / no SIMD here: the face engine can't run at all → the simple path, never a hang
+    let why: string | null = simpleWhy(engineSupport());
+    // T-310: the models load IN PARALLEL with the camera; the camera never waits for them
+    const engine = why ? null : loadFaceEngine();
+    engine?.catch(() => undefined);
+    const samplerP = why ? null : samplerRef.current ? Promise.resolve(samplerRef.current) : withTimeout(bestSampler(), ENGINE_MS);
+    samplerP?.catch(() => undefined);
+    let stream: MediaStream;
     try {
-      // no WebAssembly / no SIMD here: the face engine can't run at all → the simple path, never a hang
-      let why: string | null = simpleWhy(engineSupport());
-      // the camera opens as soon as the live-check tracker is ready; the face models finish loading meanwhile
-      const engine = why ? null : loadFaceEngine();
-      engine?.catch(() => undefined);
-      const samplerP = why ? null : samplerRef.current ? Promise.resolve(samplerRef.current) : withTimeout(bestSampler(), ENGINE_MS);
-      samplerP?.catch(() => undefined);
       // in-app browsers can leave getUserMedia hanging forever: give up after a few seconds (a late stream is stopped)
-      const stream = await (async () => withTimeout(navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, audio: false }),
-        camAskMs(), (late) => late.getTracks().forEach((t) => t.stop())))().catch((cam: unknown) => Promise.reject({ cam }));
-      const sampler = samplerP ? await samplerP.catch((e: unknown) => { why = (e as Error)?.name === 'CamTimeout' ? 'model_timeout' : 'engine_fail'; return null; }) : null;
-      if (run !== runRef.current) { stream.getTracks().forEach((t) => t.stop()); return; }
-      if (!sampler || !engine) {
-        v5LogClient('verify_simple', why || 'engine_fail', device());
-        setSimple(why || 'engine_fail');
-        streamRef.current = stream;
-        bestRef.current = null;
-        setStage('camera');
-        requestAnimationFrame(() => void attach(stream, run));
-        return;
-      }
-      setSimple(null);
-      samplerRef.current = sampler;
-      streamRef.current = stream;
-      bestRef.current = null; midRef.current = null; firstRef.current = null; endRef.current = null;
-      setLive(liveStart());
-      setStage('camera');
-      // the card photo is read while the member lines up their face (before the timed part starts)
-      if (!cardRef.current && props.photo) cardRef.current = engine.then(() => loadImage(props.photo!)).then((im) => readFace(im, { fas: false })).catch(() => null);
-      requestAnimationFrame(() => void loop(stream, sampler, run));
+      stream = await (async () => withTimeout(navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, audio: false }),
+        camAskMs(), (late) => late.getTracks().forEach((t) => t.stop())))();
     } catch (e) {
       if (run !== runRef.current) return;
-      const cam = (e as { cam?: { name?: string; message?: string } } | null)?.cam;
-      const name = (cam ?? (e as { name?: string }))?.name || '';
+      const name = (e as { name?: string })?.name || '';
       // the camera itself refused or never answered (not "no camera"): Camera blocked + Open in Chrome
-      if (cam !== undefined && name !== 'NotFoundError' && name !== 'OverconstrainedError') { blocked(name || cam?.message || 'UNKNOWN'); return; }
+      if (name !== 'NotFoundError' && name !== 'OverconstrainedError') { blocked(name || (e as Error)?.message || 'UNKNOWN'); return; }
       stop();
-      v5LogClient('verify_cam_fail', name || (e as Error)?.message || 'UNKNOWN');
-      setErr(name === 'NotFoundError' || name === 'OverconstrainedError' ? L('No front camera found on this device.')
-        : L('The face check could not start on this phone. Try again, or try later on another phone.'));
+      v5LogClient('verify_cam_fail', name);
+      setErr(L('No front camera found on this device.'));
       setStage('error');
+      return;
     }
+    if (run !== runRef.current) { stream.getTracks().forEach((t) => t.stop()); return; }
+    streamRef.current = stream;
+    bestRef.current = null; midRef.current = null; firstRef.current = null; endRef.current = null;
+    setLive(liveStart());
+    setStage('camera');   // the member sees themselves at once; "Getting ready… x%" while the tracker loads
+    await new Promise((ok) => requestAnimationFrame(() => ok(undefined)));
+    const v = await attach(stream, run);
+    if (!v) return;
+    const toSimple = (w: string) => { v5LogClient('verify_simple', w, device()); setSimple(w); setReady(true); };
+    if (why || !samplerP) { toSimple(why || 'engine_fail'); return; }
+    const sampler = await samplerP.catch((e: unknown) => { why = (e as Error)?.name === 'CamTimeout' ? 'model_timeout' : 'engine_fail'; return null; });
+    if (run !== runRef.current) return;
+    if (!sampler) { toSimple(why || 'engine_fail'); return; }
+    samplerRef.current = sampler;
+    setPct(100);
+    setReady(true);
+    // the card photo is read while the member lines up their face (before the timed part starts)
+    if (!cardRef.current && props.photo && engine) cardRef.current = engine.then(() => loadImage(props.photo!)).then((im) => readFace(im, { fas: false })).catch(() => null);
+    void loop(v, sampler, run);
   };
+  // "Getting ready… x%": eases towards 92 % while the tracker loads, 100 % when it is ready
+  useEffect(() => {
+    if (stage !== 'camera' || ready) return undefined;
+    const t = window.setInterval(() => setPct((p) => Math.min(92, p + Math.max(0.6, (92 - p) * 0.07))), 200);
+    return () => clearInterval(t);
+  }, [stage, ready]);
 
-  /** stream → <video>; false (and "Camera blocked") when no frame arrives in time. Then watches for an all-black picture. */
+  /** stream → <video>, played at once; null (and "Camera blocked") when no frame arrives in time. Then watches for an all-black picture. */
   const attach = async (stream: MediaStream, run: number): Promise<HTMLVideoElement | null> => {
     const v = videoRef.current;
     if (!v) return null;
@@ -179,21 +190,57 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
     return v;
   };
 
-  const loop = async (stream: MediaStream, sampler: Sampler, run: number) => {
-    const v = await attach(stream, run);
-    if (!v) return;
+  /** T-310: the tracker broke (errors on every frame for 2 s) or MediaPipe sees no face for 2 s while face-api does:
+   *  switch to face-api; if face-api can't load either, the simple path (one selfie → the founder). */
+  const fallbackTracker = async (run: number): Promise<Sampler | null> => {
+    const alt = await withTimeout(faceapiSampler(), ENGINE_MS).catch(() => null);
+    if (run !== runRef.current) return null;
+    if (alt) { samplerRef.current = alt; v5LogClient('verify_tracker_switch', 'faceapi', device()); return alt; }
+    v5LogClient('verify_simple', 'tracker_fail', device());
+    setSimple('engine_fail');
+    return null;
+  };
+
+  const loop = async (v: HTMLVideoElement, first: Sampler, run: number) => {
+    let sampler = first;
     let s = liveStart();
     let best = -9;
     let afterDone = 0;
+    let errSince = 0, emptySince = 0, probed = false;
+    let probe: Promise<Sampler | null> | null = null;
     // test aid: localStorage kr8_face_debug = '1' keeps the last 600 readings in window.__kr8Frames (numbers only, never sent)
     const dbg = (() => { try { return localStorage.getItem('kr8_face_debug') === '1'; } catch { return false; } })();
     const W = window as unknown as { __kr8Frames?: unknown[] };
     if (dbg) W.__kr8Frames = [];
     while (run === runRef.current) {
       if (v.readyState < 2) { await new Promise((ok) => setTimeout(ok, 40)); continue; }
-      const f = await sampler.read(v).catch(() => null);
+      const f = await sampler.read(v).then((x) => { errSince = 0; return x; }, () => { errSince ||= performance.now(); return null; });
       if (run !== runRef.current) return;
-      if (!f) { await new Promise((ok) => setTimeout(ok, 30)); continue; }
+      if (!f) {
+        if (errSince && performance.now() - errSince > TRACKER_MS) {
+          const alt = await fallbackTracker(run);
+          if (!alt) return;
+          sampler = alt; s = liveStart(); best = -9; errSince = 0; setLive(s);
+        }
+        await new Promise((ok) => setTimeout(ok, 30));
+        continue;
+      }
+      // MediaPipe sees nothing for 2 s: ask face-api once (in the background) whether there is a face after all
+      if (sampler.engine === 'mediapipe' && !f.found && !probed) {
+        emptySince ||= performance.now();
+        if (performance.now() - emptySince > TRACKER_MS) {
+          probed = true;
+          probe = withTimeout(faceapiSampler(), ENGINE_MS).then(async (alt) => ((await alt.read(v)).found ? alt : null)).catch(() => null);
+        }
+      } else if (f.found) emptySince = 0;
+      if (probe) {
+        const p = probe;
+        const alt = await Promise.race([p, Promise.resolve(undefined)]);
+        if (alt !== undefined) {
+          probe = null;
+          if (alt && run === runRef.current) { samplerRef.current = alt; sampler = alt; s = liveStart(); best = -9; v5LogClient('verify_tracker_switch', 'faceapi_probe', device()); setLive(s); continue; }
+        }
+      }
       if (s.step !== 'done') {
         const before = s.step;
         s = liveStep(s, f);
@@ -301,6 +348,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
     }
   };
 
+  const tracking = stage === 'camera' && ready && !simple;
   const turn = currentTurn(live);
   const prompt = live.step === 'straight' ? L('Look straight at the camera')
     : turn === 'left' ? L('Turn your head slightly left') : turn === 'right' ? L('Turn your head slightly right')
@@ -322,22 +370,28 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
               <ellipse cx="50" cy="66.5" rx="48" ry="64.5" className="arc" pathLength={ringLen}
                 style={{ strokeDasharray: `${Math.max(0.001, (stage === 'checking' ? 1 : prog) * ringLen)} ${ringLen}` }} />
             </svg>
-            {stage === 'camera' && turn && <span className={`kfv2-arrow ${turn}`} aria-hidden="true"><i /><i /><i /></span>}
-            {stage === 'camera' && live.step === 'blink' && <span className="kfv2-eye" aria-hidden="true"><i /></span>}
+            {tracking && turn && <span className={`kfv2-arrow ${turn}`} aria-hidden="true"><i /><i /><i /></span>}
+            {tracking && live.step === 'blink' && <span className="kfv2-eye" aria-hidden="true"><i /></span>}
           </div>
           <div className="kfv2-top">
             <button type="button" className="kfv2-x" aria-label={L('Close')} onClick={close}>✕</button>
           </div>
           <div className="kfv2-say" aria-live="polite">
             <b id="verifyStep" key={stage === 'camera' ? live.step + (turn || '') : stage}>
-              {stage === 'loading' ? L('Getting the camera ready…') : stage === 'checking' ? L('Checking…') : simple ? L('Look straight at the camera') : prompt}
+              {stage === 'loading' ? L('Getting the camera ready…') : stage === 'checking' ? L('Checking…') : !tracking ? L('Look straight at the camera') : prompt}
             </b>
-            <span className={`kfv2-hint${hint && stage === 'camera' ? ' on' : ''}`} id="verifyHint" data-hint={hint || ''}>
-              {hint && stage === 'camera' ? L(HINT_TEXT[hint]) : ' '}
+            <span className={`kfv2-hint${hint && tracking ? ' on' : ''}`} id="verifyHint" data-hint={hint || ''}>
+              {hint && tracking ? L(HINT_TEXT[hint]) : ' '}
             </span>
           </div>
           <div className="kfv2-foot">
-            <div className="kfv2-dots" aria-hidden="true" hidden={!!simple}>
+            {stage === 'camera' && !ready && !simple && (
+              <div className="kfv2-ready" id="verifyReady" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(pct)}>
+                <span>{L('Getting ready… {0}%').replace('{0}', String(Math.round(pct)))}</span>
+                <i><b style={{ transform: `scaleX(${pct / 100})` }} /></i>
+              </div>
+            )}
+            <div className="kfv2-dots" aria-hidden="true" hidden={!!simple || (stage === 'camera' && !ready)}>
               {(['straight', 'turn1', 'turn2', 'blink'] as const).map((k, i) => <i key={k} className={prog * 4 > i + 0.99 || stage === 'checking' ? 'on' : Math.floor(prog * 4) === i ? 'now' : ''} />)}
             </div>
             {stage === 'camera' && simple

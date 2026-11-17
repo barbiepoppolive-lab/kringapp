@@ -593,6 +593,7 @@ const T: Record<string, string> = {
   'You’re in an app’s built-in browser, where the camera often doesn’t work. If it doesn’t start, open this page in Chrome (or Safari).': '你正在使用应用内置的浏览器，相机经常无法使用。如果相机没有打开，请在 Chrome（或 Safari）中打开此页面。',
   'Paste it in Safari (or Chrome) and allow the camera.': '将链接粘贴到 Safari（或 Chrome）中，并允许使用相机。',
   'Take selfie': '拍自拍',
+  'Getting ready… {0}%': '准备中… {0}%',
   'Use your real face in front of the camera, not a photo or a screen.': '请用真人的脸对着镜头，不要用照片或屏幕。',
 };
 export default T;

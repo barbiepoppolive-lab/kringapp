@@ -22,8 +22,11 @@ const withTimeout = <T,>(p: Promise<T>, ms: number): Promise<T> =>
 type Delegate = 'GPU' | 'CPU';
 const lmP: Partial<Record<Delegate, Promise<FaceLandmarker>>> = {};
 const SLOW_KEY = 'kr8_mp_cpu';
+/** T-310 (17 Nov): CPU by default. On Android the GPU path fell back from WebGL2 to WebGL1 and then aborted on EVERY frame
+ *  (gl_texture_buffer.cc "Check failed: prod_token"), while createFromOptions still resolved. GPU only when asked for
+ *  (localStorage kr8_mp_delegate = 'GPU', a test aid). */
 function preferCpu(): boolean {
-  try { return localStorage.getItem('kr8_mp_delegate') === 'CPU' || localStorage.getItem(SLOW_KEY) === '1'; } catch { return false; }
+  try { return localStorage.getItem('kr8_mp_delegate') !== 'GPU' || localStorage.getItem(SLOW_KEY) === '1'; } catch { return true; }
 }
 /** The landmarker on the phone's GPU (WebGL) or CPU (wasm + XNNPACK). GPU first; CPU when the GPU path fails or was slow here. */
 export function loadLandmarker(want: Delegate = preferCpu() ? 'CPU' : 'GPU', timeoutMs = 12000): Promise<FaceLandmarker> {
@@ -135,7 +138,8 @@ export async function faceapiSampler(): Promise<Sampler> {
 /** MediaPipe first; face-api if MediaPipe can't load here. The face-api models load in the background either way
  *  (they make the face code that is compared with the card photo and with other members). */
 export async function bestSampler(): Promise<Sampler> {
-  void loadFaceApi().catch(() => undefined);
+  // T-310: face-api is no longer loaded alongside (it was part of a ~40 MB boot); it loads only as the fallback tracker or
+  // after a passed check (the 0075 prize-claim print)
   try { return await mediapipeSampler(); } catch { return await faceapiSampler(); }
 }
 

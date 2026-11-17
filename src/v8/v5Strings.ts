@@ -594,6 +594,7 @@ export const V5_L: Record<string, Record<string, string>> = {
     'You’re in an app’s built-in browser, where the camera often doesn’t work. If it doesn’t start, open this page in Chrome (or Safari).': 'ตอนนี้คุณเปิดผ่านเบราว์เซอร์ในแอป ซึ่งกล้องมักใช้ไม่ได้ ถ้ากล้องไม่เปิด ให้เปิดหน้านี้ใน Chrome (หรือ Safari) นะ',
     'Paste it in Safari (or Chrome) and allow the camera.': 'วางลิงก์ใน Safari (หรือ Chrome) แล้วอนุญาตให้ใช้กล้อง',
     'Take selfie': 'ถ่ายเซลฟี่',
+    'Getting ready… {0}%': 'กำลังเตรียม… {0}%',
   },
   // zh, hi, ja, ko: separate files, downloaded only when that language is chosen (loadV5Lang below)
 };

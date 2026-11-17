@@ -112,7 +112,11 @@ export function loadFaceEngine(): Promise<Engine> {
   if (!engP) {
     engP = (async () => {
       const ort = await import('onnxruntime-web/wasm');
-      ort.env.wasm.wasmPaths = base() + 'ort/';
+      // T-310: same-origin absolute paths, no proxy worker, one thread → onnxruntime never makes a blob: worker / wasm URL
+      // (some phone browsers showed a "Download failed" toast for those)
+      const dir = new URL(base() + 'ort/', typeof location !== 'undefined' ? location.href : 'https://kringapp.com/').href;
+      ort.env.wasm.wasmPaths = { mjs: dir + 'ort-wasm-simd-threaded.mjs', wasm: dir + 'ort-wasm-simd-threaded.wasm' };
+      ort.env.wasm.proxy = false;
       ort.env.wasm.numThreads = 1;   // no cross-origin isolation on kringapp.com → no threads; also the safe choice on cheap phones
       ort.env.logLevel = 'error';
       const opt: InferenceSession.SessionOptions = { executionProviders: ['wasm'], graphOptimizationLevel: 'all' };

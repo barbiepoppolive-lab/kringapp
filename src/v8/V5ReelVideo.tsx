@@ -6,6 +6,18 @@ import { rememberSound, soundHintWanted, soundWanted, SOUND_PREF_EVENT } from '.
 let somethingPlaying = false;
 const PLAYING_EVENT = 'kr8-reel-playing';
 
+/** 17 Nov (T-310): while the face check is open, every Reel behind it stops and drops its video (no media requests: some
+ *  phone browsers turned a failed Reel download into a "Download failed" toast, and the playing feed slowed the camera).
+ *  A ?open=verify link holds the Reels from the very first paint, until the face check closes. */
+let held = typeof location !== 'undefined' && /[?&]open=verify(&|$)/.test(location.search || '');
+const HOLD_EVENT = 'kr8-reel-hold';
+export function holdReels(on: boolean) {
+  if (held === on) return;
+  held = on;
+  try { window.dispatchEvent(new Event(HOLD_EVENT)); } catch { /* ignore */ }
+}
+export const reelsHeld = () => held;
+
 /** Tap anywhere on a Reel slide (except its buttons) toggles sound for this and every later Reel. */
 export function toggleReelSound(e: { target: EventTarget | null; currentTarget: EventTarget | null }) {
   const t = e.target as HTMLElement | null;
@@ -35,7 +47,14 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed, first, soun
   }, []);
   // M (15 Nov): only the Reel on screen and the one next to it load their video; the rest show their poster and download nothing
   const boxRef = useRef<HTMLDivElement>(null);
-  const [near, setNear] = useState(!!first);   // the first Reel shows its poster on the very first paint (no dark frame)
+  const [nearRaw, setNear] = useState(!!first);   // the first Reel shows its poster on the very first paint (no dark frame)
+  const [hold, setHold] = useState(held);
+  useEffect(() => {
+    const on = () => setHold(held);
+    window.addEventListener(HOLD_EVENT, on);
+    return () => window.removeEventListener(HOLD_EVENT, on);
+  }, []);
+  const near = nearRaw && !hold;
   const [onScreen, setOnScreen] = useState(false);
   const [mayPrefetch, setMayPrefetch] = useState(somethingPlaying);
   useEffect(() => {
@@ -62,7 +81,7 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed, first, soun
     const io = new IntersectionObserver(
       ([e]) => {
         setOnScreen(e.isIntersecting && e.intersectionRatio >= 0.6);
-        if (e.isIntersecting && e.intersectionRatio >= 0.6) {
+        if (e.isIntersecting && e.intersectionRatio >= 0.6 && !held) {
           v.muted = !soundWanted();
           setMuted(v.muted);
           void v.play().catch(() => { v.muted = true; setMuted(true); void v.play().catch(() => undefined); });

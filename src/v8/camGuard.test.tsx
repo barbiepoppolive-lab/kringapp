@@ -129,4 +129,39 @@ describe('face check screen', () => {
     expect(engineMock.loadFaceEngine).not.toHaveBeenCalled();
     expect(samplerMock.bestSampler).not.toHaveBeenCalled();
   });
+
+  it('T-310: the camera starts first: the video plays and "Getting ready… x%" shows while the tracker is still loading', async () => {
+    const track = { stop: vi.fn() };
+    const gum = vi.fn(async () => ({ getTracks: () => [track] }));
+    vi.stubGlobal('navigator', { ...navigator, userAgent: CHROME_ANDROID, mediaDevices: { getUserMedia: gum } });
+    vi.spyOn(HTMLVideoElement.prototype, 'videoWidth', 'get').mockReturnValue(640);
+    vi.spyOn(HTMLMediaElement.prototype, 'readyState', 'get').mockReturnValue(4);
+    const play = vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
+    samplerMock.bestSampler.mockReturnValue(new Promise(() => undefined));   // the ~40 MB boot never finishes here
+    engineMock.loadFaceEngine.mockReturnValue(new Promise(() => undefined));
+    const { container } = sheet();
+    if (container.querySelector('#verifyAgree')) {
+      fireEvent.click(container.querySelector('#verifyAgree')!);
+      await act(async () => { fireEvent.click(container.querySelector('#verifyStart')!); });
+    }
+    await act(async () => { await new Promise((ok) => setTimeout(ok, 250)); });
+    expect(gum).toHaveBeenCalledTimes(1);
+    expect(play).toHaveBeenCalled();
+    expect(container.querySelector('#sh-verify')?.getAttribute('data-stage')).toBe('camera');
+    expect(container.querySelector('#verifyReady')?.textContent).toMatch(/^Getting ready… \d+%$/);
+    expect(container.querySelector('#verifyStep')?.textContent).toBe('Look straight at the camera');
+  });
+});
+
+describe('Reels behind the face check (T-310)', () => {
+  it('holdReels drops the Reel video and its poster; letting go loads it again', async () => {
+    vi.stubGlobal('IntersectionObserver', class { observe() { /* none */ } disconnect() { /* none */ } });
+    const { V5ReelVideo, holdReels } = await import('./V5ReelVideo');
+    const { container } = render(<V5ReelVideo src="https://x/r.mp4" poster="https://x/p.jpg" label="Reel" first />);
+    expect(container.querySelector('video')?.getAttribute('src')).toBe('https://x/r.mp4');
+    act(() => holdReels(true));
+    expect(container.querySelector('video')?.getAttribute('src')).toBeNull();
+    act(() => holdReels(false));
+    expect(container.querySelector('video')?.getAttribute('src')).toBe('https://x/r.mp4');
+  });
 });

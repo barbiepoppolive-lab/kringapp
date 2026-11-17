@@ -124,7 +124,7 @@ import { inviteCode } from './kxLogic';
 import { V5Qr, V5SignInSheet } from './V5Sheets';
 import { V5ShareCard } from './V5ShareCard';
 import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, showFirstReelChip } from './V5ReelNudge';
-import { V5ReelVideo, toggleReelSound } from './V5ReelVideo';
+import { V5ReelVideo, holdReels, reelsHeld, toggleReelSound } from './V5ReelVideo';
 import { restoredTab, rememberTab } from './tabMemory';
 import { AskSwitch } from './V5AskSwitch';
 import { createAskApi, type AskPerson } from './askThai';
@@ -1191,6 +1191,18 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // T-301 (T301-005): an open sheet used to push TWO history steps (this block and the A-11 block below), so one Back closed the
   // sheet but left a stale step behind (the next Back did nothing visible). Only the A-11 block keeps history now.
   useEffect(() => { sheetRef.current = sheet; }, [sheet]);
+  // T-310 (17 Nov): the Reels behind the face check stop and unload while it is open; a ?open=verify link holds them from the
+  // first paint and lets go when the check closes (or after 8 s if the check never opened, e.g. signed out)
+  const verifySeenRef = useRef(false);
+  useEffect(() => {
+    if (sheet === 'verify') { verifySeenRef.current = true; holdReels(true); }
+    else if (verifySeenRef.current) holdReels(false);
+  }, [sheet]);
+  useEffect(() => {
+    if (!reelsHeld()) return undefined;
+    const t = window.setTimeout(() => { if (sheetRef.current !== 'verify' && !verifySeenRef.current) holdReels(false); }, 8000);
+    return () => clearTimeout(t);
+  }, []);
   useEffect(() => {
     // keyboard users: Escape closes the open sheet (same path as the Back button)
     const onKey = (e: KeyboardEvent) => {

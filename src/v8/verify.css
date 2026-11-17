@@ -5,11 +5,13 @@
 }
 
 /* ── camera ── */
+/* T-310: the oval also fits short screens (≤ 44 % of the height), so the prompt above it never leaves the screen */
+.v8-app-root .kfv2 { --kfv2-ow: min(68vw, 292px, 44vh); }
 .v8-app-root .kfv2-cam { position: absolute; inset: 0; }
 .v8-app-root .kfv2-cam video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); background: #07060C; }
 .v8-app-root .kfv2[data-stage="loading"] video { opacity: 0; }
 .v8-app-root .kfv2-oval {
-  position: absolute; left: 50%; top: 47%; width: min(68vw, 292px); aspect-ratio: 100 / 133; transform: translate(-50%, -50%);
+  position: absolute; left: 50%; top: 47%; width: var(--kfv2-ow); aspect-ratio: 100 / 133; transform: translate(-50%, -50%);
   border-radius: 50%; box-shadow: 0 0 0 200vmax rgba(7, 6, 12, 0.66); transition: box-shadow .3s var(--ease, ease);
 }
 .v8-app-root .kfv2[data-stage="checking"] .kfv2-oval { box-shadow: 0 0 0 200vmax rgba(7, 6, 12, 0.8); }
@@ -41,7 +43,7 @@
 .v8-app-root .kfv2-top { position: absolute; top: max(14px, env(safe-area-inset-top)); left: 16px; right: 16px; display: flex; z-index: 2; }
 .v8-app-root .kfv2-x { width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255, 247, 236, 0.14); color: #FFF7EC; font-size: 16px;
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); cursor: pointer; }
-.v8-app-root .kfv2-say { position: absolute; left: 16px; right: 16px; top: calc(47% - min(68vw, 292px) * 0.665 - 92px); text-align: center; z-index: 2;
+.v8-app-root .kfv2-say { position: absolute; left: 16px; right: 16px; top: max(calc(env(safe-area-inset-top, 0px) + 60px), calc(47% - var(--kfv2-ow) * 0.665 - 92px)); text-align: center; z-index: 2;
   display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .v8-app-root .kfv2-say b { font-size: 1.5rem; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; text-shadow: 0 2px 18px rgba(0, 0, 0, .45);
   animation: kfv2-in .32s var(--ease, ease); }
@@ -50,6 +52,10 @@
 .v8-app-root .kfv2-hint.on { opacity: 1; background: #FFC44D; color: #1A1408; }
 .v8-app-root .kfv2-foot { position: absolute; left: 16px; right: 16px; bottom: max(22px, env(safe-area-inset-bottom)); text-align: center; z-index: 2; }
 .v8-app-root .kfv2-foot p { margin: 12px 0 0; font-size: .78rem; color: rgba(255, 247, 236, 0.62); }
+.v8-app-root .kfv2-ready { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: .85rem; font-weight: 600; color: rgba(255, 247, 236, 0.86); }
+.v8-app-root .kfv2-ready i { display: block; width: min(220px, 60vw); height: 5px; border-radius: 99px; background: rgba(255, 247, 236, 0.22); overflow: hidden; }
+.v8-app-root .kfv2-ready b { display: block; height: 100%; background: linear-gradient(90deg, #5B6CFF, #FF4FA3); transform-origin: left; transition: transform .2s linear; }
+.v8-app-root .kfv2-dots[hidden] { display: none; }
 .v8-app-root .kfv2-dots { display: flex; justify-content: center; gap: 8px; }
 .v8-app-root .kfv2-dots i { width: 28px; height: 5px; border-radius: 99px; background: rgba(255, 247, 236, 0.22); transition: background .25s; }
 .v8-app-root .kfv2-dots i.now { background: rgba(255, 247, 236, 0.6); }
@@ -105,4 +111,10 @@
 .v8-app-root .kfv2-tips .ic-turn { border-left-color: transparent; }
 @media (prefers-reduced-motion: reduce) {
   .v8-app-root .kfv2 *, .v8-app-root .kfv2 *::before, .v8-app-root .kfv2 *::after { animation: none !important; transition: none !important; }
+}
+/* T-310: short screens (small phones, landscape-ish WebViews): a smaller prompt so it stays fully on screen */
+@media (max-height: 640px) {
+  .v8-app-root .kfv2-say { gap: 6px; }
+  .v8-app-root .kfv2-say b { font-size: 1.2rem; }
+  .v8-app-root .kfv2-hint { min-height: 26px; padding: 3px 12px; font-size: .82rem; }
 }
