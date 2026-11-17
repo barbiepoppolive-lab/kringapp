@@ -399,6 +399,7 @@ button.tile.wide { font: inherit; cursor: pointer; }
 .post-btns { display: grid; gap: 12px; }
 .post-btns .btn { justify-content: flex-start; padding: 0 20px; min-height: 68px; font-size: 18px; gap: 14px; }
 .post-btns .btn svg { width: 26px; height: 26px; }
+.post-btns .btn .grow { text-align: left; }
 .post-btns .post-instagram { background: linear-gradient(115deg, #f9a03f, #e1306c 45%, #833ab4); color: #fff; }
 .post-btns .post-youtube { background: #ff0033; color: #fff; }
 .post-btns .post-x { background: #000; color: #fff; border: 1px solid var(--line2); }

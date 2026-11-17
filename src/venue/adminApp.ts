@@ -1883,7 +1883,7 @@ const post: { file: File | null; url: string; caption: string; done: Set<Platfor
 const PLAT_ICON: Record<Platform, string> = {
   instagram: '<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r=".6" fill="currentColor"/>',
   youtube: '<rect x="2.5" y="5.5" width="19" height="13" rx="4"/><path d="M10 9v6l5-3z" fill="currentColor"/>',
-  x: '<path d="M4 4l16 16M20 4L4 20"/>',
+  x: '<path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L2 3h6.4l4.4 5.8zm-1.1 16.2h1.7L7.4 4.7H5.6z" fill="currentColor" stroke="none"/>',
 };
 function postView() {
   const fileIn = el('input', { type: 'file', accept: 'video/*', id: 'postFile', style: 'display:none' }) as HTMLInputElement;
