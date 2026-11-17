@@ -1700,6 +1700,7 @@ function moreView() {
   const cleaned = cleanedNote || LS('kr8-admin-cleaned');
   screen('more', head('Kring admin', 'More'),
     el('div', { class: 'sec', style: 'margin-top:0' }, 'Every day'),
+    li('#autopilot', 'spark', 'Autopilot', 'Every robot · ON / DRY-RUN / OFF · daily caps · Undo · Pause all', 'moreAutopilot'),
     li('#post', 'reel', 'Post a Reel', 'One tap each: Instagram · YouTube · X', 'morePost'),
     li('#money', 'party', 'Money', 'Codes left · paid this week · every claim', 'moreMoney'),
     li('#faces', 'face', 'Face checks', 'Selfie next to the card photo · 1-tap reject (with undo)', 'moreFaces'),

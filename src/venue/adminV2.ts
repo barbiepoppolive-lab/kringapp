@@ -12,6 +12,10 @@ import {
   INBOX_FILTERS, waitShort, type Handled,
   type Claim, type DupAuto, type FaceCheck, type InboxItem, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot, type Trust,
 } from './adminV2Logic';
+import {
+  capStatus, fallbackAutopilotState, formatRobotLogLine, heartbeatSummary, isAutopilotState, modeLabel, modeTone, scheduleWords,
+  type AutopilotState, type RobotLogRow, type RobotMode, type RobotRow,
+} from './autopilotLogic';
 import './adminV2.css';
 
 type Kid = Node | string | null | undefined | false;
@@ -227,6 +231,7 @@ export function todayView() {
       // 6. shortcuts he uses
       el('div', { class: 'v2links grid2' },
         el('a', { href: '#post', class: 'v2link', id: 'v2Post', style: 'grid-column:1 / -1' }, ic('reel'), 'Post a Reel · Instagram · YouTube · X'),
+        el('a', { href: '#autopilot', class: 'v2link', id: 'todayAutopilot', style: 'grid-column:1 / -1' }, ic('robot'), 'Autopilot · switches, caps & Undo'),
         el('a', { href: '#faces', class: 'v2link' }, ic('face'), 'Face checks'), el('a', { href: '#recruiters', class: 'v2link' }, ic('link'), 'Recruiters'),
         el('a', { href: '#push', class: 'v2link' }, ic('send'), 'Send a ding'), el('a', { href: '#log', class: 'v2link' }, ic('log'), 'Activity log')),
       el('details', { class: 'v2brief', id: 'v2Brief' }, el('summary', { class: 'v2brief-k' }, ic('robot'), 'In plain words'),
@@ -697,6 +702,225 @@ export async function facesView() {
   await load();
 }
 
+// ───────── Autopilot (0098 M1: More -> Autopilot) ─────────
+let apLogFilter = 'all';
+export async function autopilotView() {
+  const body = el('div', {}, loadingCard());
+  screen('more', header('Autopilot', 'Robots watch & fix safe tasks · you decide money & bans', '#more'), body);
+  stopV2();
+  let st: AutopilotState = fallbackAutopilotState(snap);
+
+  const load = async () => {
+    try {
+      const raw = await rpc<unknown>('kr8_admin_autopilot_state', { p_limit: 120 });
+      st = isAutopilotState(raw) ? raw : fallbackAutopilotState(snap);
+    } catch {
+      st = fallbackAutopilotState(snap);
+    }
+    snapAt = Date.now();
+    const freshEl = document.getElementById('v2Fresh');
+    if (freshEl) freshEl.textContent = 'Updated 0s ago';
+    paint();
+  };
+
+  const renderRobot = (r: RobotRow): HTMLElement => {
+    const cap = capStatus(r);
+    const dryOnly = r.dry_run_only || r.name === 'growth_nudges';
+    const effMode: RobotMode = st.paused ? 'off' : r.mode;
+    const tone = modeTone(r.mode, st.paused);
+    const modes: RobotMode[] = ['off', 'dry_run', 'on'];
+
+    const seg = el('div', { class: 'ap-seg', role: 'group', 'aria-label': `${r.title} mode` },
+      ...modes.map((m) => {
+        const blockedOn = dryOnly && m === 'on';
+        const btn = el('button', {
+          type: 'button',
+          id: `apMode-${r.name}-${m}`,
+          class: r.mode === m ? `on m-${m}` : '',
+          disabled: blockedOn || st.fallback,
+          title: blockedOn ? 'Growth nudges stay DRY-RUN until approved' : undefined,
+        }, blockedOn ? 'ON (locked)' : modeLabel(m));
+        btn.onclick = async () => {
+          if (r.mode === m || blockedOn) return;
+          btn.disabled = true;
+          try {
+            await rpc('kr8_admin_robot_set', { p_name: r.name, p_mode: m, p_daily_cap: r.daily_cap });
+            toast(`${r.title} set to ${modeLabel(m)}`);
+            await load();
+          } catch (e) {
+            btn.disabled = false;
+            toast(`Could not update ${r.title}: ${(e as Error).message}`);
+          }
+        };
+        return btn;
+      }));
+
+    const capInput = el('input', {
+      type: 'number',
+      id: `apCap-${r.name}`,
+      class: 'ap-cap-in',
+      min: '0',
+      max: '10000',
+      value: String(r.daily_cap),
+      disabled: !!st.fallback,
+      'aria-label': `${r.title} daily cap`,
+    });
+    const capSave = el('button', {
+      type: 'button',
+      id: `apCapSave-${r.name}`,
+      class: 'ap-mini-btn',
+      disabled: !!st.fallback,
+    }, 'Save cap');
+    capSave.onclick = async () => {
+      const nextCap = Math.max(0, Math.min(10000, Math.round(Number(capInput.value) || 0)));
+      capSave.disabled = true;
+      try {
+        await rpc('kr8_admin_robot_set', { p_name: r.name, p_mode: r.mode, p_daily_cap: nextCap });
+        toast(`${r.title} daily cap set to ${nextCap}`);
+        await load();
+      } catch (e) {
+        capSave.disabled = false;
+        toast(`Could not save cap: ${(e as Error).message}`);
+      }
+    };
+
+    const runBtn = el('button', {
+      type: 'button',
+      id: `apRun-${r.name}`,
+      class: 'ap-mini-btn',
+      disabled: st.paused || !!st.fallback,
+    }, 'Run check');
+    runBtn.onclick = async () => {
+      runBtn.disabled = true;
+      runBtn.textContent = 'Running…';
+      try {
+        await rpc('kr8_admin_robot_run_now', { p_name: r.name });
+        toast(`${r.title} check finished`);
+        await load();
+      } catch (e) {
+        runBtn.disabled = false;
+        runBtn.textContent = 'Run check';
+        toast(`Check failed: ${(e as Error).message}`);
+      }
+    };
+
+    const lastLine = r.last_run
+      ? `Last run ${ago(r.last_run)} (${clock(r.last_run)} IST) · ${r.last_ok === false ? 'error' : 'OK'}${r.last_note ? ` · ${r.last_note}` : ''}`
+      : 'Never run yet';
+
+    return el('article', { class: `v2card ap-robot ${st.paused ? 'paused' : ''}`, 'data-robot': r.name },
+      el('div', { class: 'ap-robot-hd' },
+        el('div', { class: 'grow' },
+          el('div', { class: 'ap-title-row' },
+            el('b', {}, r.title),
+            chip(st.paused ? `PAUSED (${modeLabel(r.mode)})` : modeLabel(effMode), tone),
+            chip(scheduleWords(r.schedule), '')),
+          el('p', { class: 'ap-note' }, r.note)),
+      ),
+      seg,
+      el('div', { class: 'ap-meta' },
+        el('span', { class: `ap-cap-stat ${cap.atCap ? 'hot' : cap.nearCap ? 'warn' : ''}` }, cap.text),
+        el('div', { class: 'ap-cap-edit' },
+          el('label', { for: `apCap-${r.name}` }, 'Cap/day'),
+          capInput,
+          capSave,
+          runBtn)),
+      el('small', { class: `ap-last ${r.last_ok === false ? 'bad' : ''}` }, lastLine));
+  };
+
+  const renderLogRow = (l: RobotLogRow): HTMLElement => {
+    const key = `aplog:${l.id}`;
+    const undoBtn = l.can_undo && !l.undone_at
+      ? el('button', { type: 'button', class: 'v2btn ok ap-undo', id: `apUndo-${l.id}` }, 'Undo')
+      : null;
+    if (undoBtn) {
+      undoBtn.onclick = () => later(key, `Undoing ${l.robot}: ${l.action.replace(/_/g, ' ')}`, async () => {
+        await rpc('kr8_admin_robot_undo', { p_log_id: l.id });
+        await load();
+      });
+    }
+    return el('div', { class: 'v2li ap-log-row', 'data-log': String(l.id), style: hiddenKeys.has(key) ? 'opacity:.4' : undefined },
+      ic('robot'),
+      el('div', { class: 'grow' },
+        el('div', { class: 'ap-log-top' },
+          chip(l.dry_run ? 'DRY-RUN' : 'APPLIED', l.dry_run ? 'a' : 'g'),
+          l.undone_at ? chip('undone', 'k') : null),
+        el('b', {}, formatRobotLogLine(l)),
+        el('small', {}, `${ago(l.at)} · ${both(l.at, true)}`)),
+      undoBtn);
+  };
+
+  const paint = () => {
+    const hb = heartbeatSummary(st);
+    const killBtn = el('button', {
+      type: 'button',
+      id: 'apKillBtn',
+      class: `v2btn ${st.paused ? 'ok' : 'bad'} ap-kill-btn`,
+      disabled: !!st.fallback,
+    }, st.paused ? 'Resume robots' : 'Pause all robots');
+    killBtn.onclick = async () => {
+      killBtn.disabled = true;
+      const nextPaused = !st.paused;
+      try {
+        await rpc('kr8_admin_pause_all_robots', { p_pause: nextPaused });
+        toast(nextPaused ? 'All robots paused immediately' : 'Robots resumed (each keeps its own ON / DRY-RUN / OFF mode)');
+        await load();
+      } catch (e) {
+        killBtn.disabled = false;
+        toast(`Kill switch failed: ${(e as Error).message}`);
+      }
+    };
+
+    const killCard = el('section', { class: `v2card ap-kill ${st.paused ? 'is-paused' : ''}`, id: 'apKillSwitch' },
+      el('div', { class: 'ap-kill-info' },
+        el('b', {}, st.paused ? 'All robots are PAUSED' : 'Master kill switch'),
+        el('div', { class: 'v2sub' }, st.paused
+          ? 'Every scheduled check, self-fix, and automatic duplicate action is halted until you tap Resume.'
+          : 'One tap halts every robot immediately. Money, bans, and claim refusals already require your tap.')),
+      killBtn);
+
+    const hbCard = el('section', { class: `v2card ap-hb ${hb.tone}`, id: 'apHeartbeat' },
+      el('div', { class: 'v2row' },
+        ic('shield'),
+        el('div', { class: 'grow' },
+          el('b', {}, hb.headline),
+          el('div', { class: 'v2sub' }, st.heartbeats.length
+            ? st.heartbeats.map((h) => `${h.job.replace(/^kr8_/, '')}: ${h.last_beat ? ago(h.last_beat) : 'waiting'}`).join(' · ')
+            : 'No heartbeats registered yet'))));
+
+    const filterOpts: [string, string][] = [
+      ['all', `All (${st.logs.length})`],
+      ['applied', `Applied (${st.logs.filter((l) => !l.dry_run).length})`],
+      ['dry', `Dry-run (${st.logs.filter((l) => l.dry_run).length})`],
+      ['undoable', `Undoable (${st.logs.filter((l) => l.can_undo && !l.undone_at).length})`],
+    ];
+    const filteredLogs = st.logs.filter((l) => {
+      if (apLogFilter === 'applied') return !l.dry_run;
+      if (apLogFilter === 'dry') return l.dry_run;
+      if (apLogFilter === 'undoable') return l.can_undo && !l.undone_at;
+      return true;
+    });
+
+    body.replaceChildren(
+      killCard,
+      hbCard,
+      el('div', { class: 'v2sec' }, `Robots · ${st.robots.length}`),
+      el('div', { id: 'apRobots' }, ...st.robots.map(renderRobot)),
+      el('div', { class: 'v2sec' }, 'Robot action log'),
+      el('div', { class: 'v2chips' }, ...filterOpts.map(([k, label]) => {
+        const b = el('button', { type: 'button', class: apLogFilter === k ? 'on' : '', id: `aplf-${k}` }, label);
+        b.onclick = () => { apLogFilter = k; paint(); };
+        return b;
+      })),
+      filteredLogs.length
+        ? el('div', { class: 'v2card v2list', id: 'apLog' }, ...filteredLogs.map(renderLogRow))
+        : el('div', { class: 'v2card v2sub', id: 'apLogEmpty' }, 'No robot actions logged for this filter yet.'));
+  };
+
+  rerender = () => paint();
+  await load();
+}
+
 /** Router hook: returns true when the hash is a v2 screen. */
 export function v2Route(a: string, b?: string): boolean {
   if (a === 'today' || a === '') { todayView(); return true; }
@@ -708,6 +932,7 @@ export function v2Route(a: string, b?: string): boolean {
   if (a === 'log') { void logView(); return true; }
   if (a === 'places') { void placesView(); return true; }
   if (a === 'faces') { void facesView(); return true; }
+  if (a === 'autopilot') { void autopilotView(); return true; }
   if (a === 'm' && b) { void memberView(b); return true; }
   stopV2();
   return false;
