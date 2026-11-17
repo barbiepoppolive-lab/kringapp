@@ -54,7 +54,7 @@ describe('Kring Helper FAQ matcher', () => {
   it('normalises case, curly quotes and spacing', () => {
     expect(normHelp('  Why  DIDN’T it…  ')).toBe("why didn't it");
   });
-  it('the team line keeps the founder's 1-hour promise, and every Thai team line ends politely (ครับ, never ค่ะ)', () => {
+  it('the team line keeps the founder 1-hour promise, and every Thai team line ends politely (ครับ, never ค่ะ)', () => {
     expect(HELP_TEAM_PROMISE.th).toBe('ทีมงานตอบกลับในแชทนี้ภายใน 1 ชั่วโมงครับ');
     expect(HELP_TEAM_PROMISE.en).toBe('The team replies in this chat within 1 hour');
     expect(`${HELP_TEAM_PROMISE.th} ${HELP_TEAM_PROMISE.en}`).toMatch(/1 ชั่วโมง.*1 hour/);   // founder 18 Nov: reply within an hour
