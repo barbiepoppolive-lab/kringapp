@@ -12,6 +12,15 @@ import {
   INBOX_FILTERS, waitShort, type Handled,
   type Claim, type DupAuto, type FaceCheck, type InboxItem, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot, type Trust,
 } from './adminV2Logic';
+import {
+  aiRulesFallback, capStatus, computeVoucherRunway, DEFAULT_VOUCHER_BUY_URL, fallbackAiSlotStatus, fallbackAutopilotState,
+  fallbackGrowthNudgesPreview, fallbackHealthWatch, fallbackProtectOverview, fallbackSelfFixStatus, flagKeyLabel,
+  formatRobotLogLine, guardAiPayload, heartbeatSummary, isAiSlotStatus, isAutopilotState, isGrowthNudgesPreview,
+  isHealthWatchReport, isMorningBriefData, isProtectOverview, isSelfFixStatus, modeLabel, modeTone, scheduleWords,
+  severityMeta, sortRobotAlerts, synthesizeMorningBrief,
+  type AiSlotStatus, type AutopilotState, type GrowthNudgesPreview, type HealthWatchReport, type MorningBriefData,
+  type ProtectOverview, type RobotAlert, type RobotLogRow, type RobotMode, type RobotRow, type SelfFixStatus,
+} from './autopilotLogic';
 import './adminV2.css';
 
 type Kid = Node | string | null | undefined | false;
@@ -42,6 +51,7 @@ const chip = (text: string, tone = '') => el('span', { class: `v2chip ${tone}` }
 
 // ───────── data: one snapshot, polled ─────────
 let snap: Snapshot | null = null;
+let morningCache: MorningBriefData | null = null;
 let snapAt = 0;
 let loadingSnap: Promise<Snapshot | null> | null = null;
 let includeTest = LS('kr8-v2-test') === '1';
@@ -60,13 +70,18 @@ export async function loadSnapshot(force = false): Promise<Snapshot | null> {
   const extra = rpc<PeopleExtra>('kr8_admin_v2_people_extra').catch(() => null);
   // 0095: duplicate robot actions (embedded in 0095 snapshot, or fetched alongside if needed)
   const dups = rpc<DupAuto[]>('kr8_admin_dups_auto', { p_days: 14 }).catch(() => null);
-  loadingSnap = Promise.all([rpc<unknown>('kr8_admin_v2_snapshot', { p_include_test: includeTest }), auto, extra, dups])
-    .then(([s, pa, ex, da]) => {
+  // 0099 M2: Morning Brief + unified Alert Centre (falls back to client synthesis before 0099 is applied)
+  const mb = rpc<unknown>('kr8_admin_morning_brief', { p_include_test: includeTest }).catch(() => null);
+  loadingSnap = Promise.all([rpc<unknown>('kr8_admin_v2_snapshot', { p_include_test: includeTest }), auto, extra, dups, mb])
+    .then(([s, pa, ex, da, mbRaw]) => {
       if (!isSnapshot(s)) throw new Error('Admin v2 needs database update 0082');
       s.places_auto = Array.isArray(pa) ? pa : [];
       if (ex && ex.counts && ex.rows) s.extra = ex;
       if (!Array.isArray(s.dups_auto) && Array.isArray(da)) s.dups_auto = da;
-      snap = withAdminLogins(s); snapAt = Date.now(); return snap;
+      snap = withAdminLogins(s);
+      morningCache = isMorningBriefData(mbRaw) ? mbRaw : synthesizeMorningBrief(snap);
+      snapAt = Date.now();
+      return snap;
     })
     .finally(() => { loadingSnap = null; });
   return loadingSnap;
@@ -169,6 +184,97 @@ function steps(p: Person, s: Snapshot): HTMLElement {
   const st: [string, boolean][] = [['Photo', realPhoto(p, s)], ['Reel', (p.reels?.live || 0) + (p.reels?.waiting || 0) > 0], ['Face', p.verified === true], ['Prize', (p.claims?.paid || 0) > 0]];
   return el('span', { class: 'v2steps' }, ...st.map(([t, ok]) => el('i', { class: ok ? 'ok' : '' }, (ok ? '✓ ' : '') + t)));
 }
+function renderMorningBrief(s: Snapshot, inboxItems: InboxItem[]): HTMLElement {
+  const mb = morningCache || synthesizeMorningBrief(s, { items: inboxItems });
+  const b = mb.brief;
+  const runway = computeVoucherRunway(b.voucher_stock.available, b.voucher_stock.burn_7d);
+  const daysStr = b.voucher_stock.days_left === null ? 'Steady' : `${b.voucher_stock.days_left}d left`;
+
+  const stat = (id: string, val: string, label: string, sub: string, href: string, hot = false) =>
+    el('a', { class: `mb-stat ${hot ? 'hot' : ''}`, href, id },
+      el('b', {}, val),
+      el('span', {}, label),
+      el('small', {}, sub));
+
+  const top3 = b.top3_needs_you.slice(0, 3);
+
+  return el('section', { class: 'v2card mb-card', id: 'v2MorningBrief' },
+    el('div', { class: 'mb-hd' },
+      ic('robot'),
+      el('div', { class: 'grow' },
+        el('b', {}, 'Morning brief'),
+        el('small', {}, 'Real counts · 7-day voucher burn · 24h health')),
+      el('a', { class: 'v2robot-go', href: '#autopilot' }, 'Autopilot →')),
+    el('div', { class: 'mb-grid' },
+      stat('mbMembers', `+${b.new_members.today}`, 'New members', `${b.new_members.total} real total`, '#people'),
+      stat('mbFaces', String(b.face_checks.today), 'Face checks', `${b.face_checks.pass} pass · ${b.face_checks.waiting} waiting`, '#faces', b.face_checks.waiting > 0),
+      stat('mbPosts', String(b.posts.reels_today + b.posts.asks_today), 'Posts today', `${b.posts.reels_live} live · ${b.posts.reels_waiting} waiting`, '#inbox', b.posts.reels_waiting > 0),
+      stat('mbHeld', `฿${b.held_payouts.thb.toLocaleString('en-US')}`, 'Held payouts', `${b.held_payouts.count} waiting for you`, '#inbox', b.held_payouts.count > 0),
+      stat('mbStock', daysStr, 'Voucher stock', runway.sub, '#money', runway.hot),
+      stat('mbErrors', String(b.errors.total), 'Errors (24h)', `${b.errors.client_24h} phone · ${b.errors.outbox_failed_24h + b.errors.robot_failed_24h} sys`, '#problems', b.errors.total > 0)),
+    el('div', { class: 'mb-top3', id: 'v2BriefTop3' },
+      el('div', { class: 'mb-top3-hd' }, top3.length ? `${top3.length} thing${top3.length === 1 ? '' : 's'} that need you` : '3 things that need you · all clear'),
+      ...(top3.length
+        ? top3.map((t, idx) => el('a', { class: `mb-need sev-${t.severity}`, href: t.href },
+            el('span', { class: 'mb-num' }, String(idx + 1)),
+            el('div', { class: 'grow' }, el('b', {}, t.title), t.sub ? el('small', {}, t.sub) : null),
+            ic('chev')))
+        : [el('div', { class: 'mb-clear' }, '0 urgent decisions — robots are watching everything.')])));
+}
+
+function renderAlertCentre(s: Snapshot, inboxItems: InboxItem[]): HTMLElement {
+  const mb = morningCache || synthesizeMorningBrief(s, { items: inboxItems });
+  const visible = sortRobotAlerts(mb.alerts).filter((a) => !hiddenKeys.has('alert:' + a.id));
+  const redN = visible.filter((a) => a.severity === 'red').length;
+  const ambN = visible.filter((a) => a.severity === 'amber').length;
+  const gryN = visible.filter((a) => a.severity === 'grey').length;
+
+  const row = (a: RobotAlert): HTMLElement => {
+    const meta = severityMeta(a.severity);
+    const key = 'alert:' + a.id;
+    const dismissBtn = !a.synthetic
+      ? el('button', { type: 'button', class: 'ap-mini-btn', id: 'alertDismiss-' + a.id }, 'Dismiss')
+      : null;
+    if (dismissBtn) {
+      dismissBtn.onclick = () => later(key, `Alert dismissed: ${a.title}`, async () => {
+        await rpc('kr8_admin_alert_dismiss', { p_id: a.id });
+      });
+    }
+    const buyUrl = typeof a.detail?.buy_url === 'string' && a.detail.buy_url.startsWith('https://')
+      ? a.detail.buy_url
+      : (a.dedupe_key === 'selffix:voucher_restock' || a.dedupe_key === 'sys:voucher_stock_low' ? DEFAULT_VOUCHER_BUY_URL : '');
+    const buyLink = buyUrl
+      ? el('a', { class: 'ap-mini-btn ap-buy-link', href: buyUrl, target: '_blank', rel: 'noopener noreferrer' }, 'Buy codes ↗')
+      : null;
+    return el('div', { class: `ac-row sev-${a.severity}`, 'data-alert': a.dedupe_key },
+      el('span', { class: `ac-dot sev-${a.severity}` }),
+      el('div', { class: 'grow' },
+        el('div', { class: 'ac-tags' },
+          chip(meta.label, meta.tone),
+          chip(a.robot, ''),
+          el('small', { class: 'dim' }, ago(a.at))),
+        el('b', {}, a.title),
+        a.body ? el('small', {}, a.body) : null),
+      el('div', { class: 'ac-acts' },
+        buyLink,
+        el('a', { class: 'ap-mini-btn', href: a.href }, 'Open →'),
+        dismissBtn));
+  };
+
+  return el('section', { class: 'v2card ac-card', id: 'v2AlertCentre' },
+    el('div', { class: 'ac-hd' },
+      ic('shield'),
+      el('div', { class: 'grow' },
+        el('b', {}, 'Alert centre'),
+        el('small', {}, visible.length
+          ? `${redN} broken · ${ambN} needs decision · ${gryN} FYI`
+          : '0 alerts — all robots report green')),
+      el('a', { class: 'v2robot-go', href: '#autopilot' }, 'Switches →')),
+    visible.length
+      ? el('div', { class: 'ac-list' }, ...visible.map(row))
+      : el('div', { class: 'v2sub', style: 'margin-top:6px' }, 'No broken checks, held alarms, or robot notices right now.'));
+}
+
 export function todayView() {
   const date = new Date().toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'short' });
   void withSnap('today', (s) => {
@@ -191,6 +297,7 @@ export function todayView() {
       el('a', { class: `v2kpi ${tone}`, href, id }, el('b', {}, n), el('span', {}, label), el('small', {}, sub));
     const rr = buildRobotReport(s, { items, handled: inbox.handled });
     screen('today', header('Today', `${date} · India time`),
+      renderMorningBrief(s, items),
       // 1. what needs a decision
       items.length ? el('div', { class: 'v2sec' }, `Needs you · ${items.length}`) : el('a', { class: 'v2card v2row v2allclear', href: '#auto', id: 'v2Clear' }, ic('check'),
         el('div', { class: 'grow' }, el('b', {}, 'Nothing needs you'), el('div', { class: 'v2sub' }, `${inbox.handled.length} things were handled automatically`)), ic('chev')),
@@ -227,6 +334,7 @@ export function todayView() {
       // 6. shortcuts he uses
       el('div', { class: 'v2links grid2' },
         el('a', { href: '#post', class: 'v2link', id: 'v2Post', style: 'grid-column:1 / -1' }, ic('reel'), 'Post a Reel · Instagram · YouTube · X'),
+        el('a', { href: '#autopilot', class: 'v2link', id: 'todayAutopilot', style: 'grid-column:1 / -1' }, ic('robot'), 'Autopilot · switches, caps & Undo'),
         el('a', { href: '#faces', class: 'v2link' }, ic('face'), 'Face checks'), el('a', { href: '#recruiters', class: 'v2link' }, ic('link'), 'Recruiters'),
         el('a', { href: '#push', class: 'v2link' }, ic('send'), 'Send a ding'), el('a', { href: '#log', class: 'v2link' }, ic('log'), 'Activity log')),
       el('details', { class: 'v2brief', id: 'v2Brief' }, el('summary', { class: 'v2brief-k' }, ic('robot'), 'In plain words'),
@@ -261,6 +369,7 @@ export function inboxView() {
       return b;
     }));
     screen('inbox', header('Needs you', open.length ? `${open.length} decision${open.length === 1 ? '' : 's'}` : 'Inbox zero'),
+      renderAlertCentre(s, open),
       open.length ? chips : null,
       open.length ? null : el('div', { class: 'v2zero', id: 'v2Zero' }, ic('check'), el('b', {}, 'Nothing needs you'), el('span', {}, 'Everything else was handled automatically.')),
       el('div', { id: 'v2Inbox' }, ...shown.map((i) => inboxCard(i, open))),
@@ -697,6 +806,670 @@ export async function facesView() {
   await load();
 }
 
+// ───────── Autopilot (0098 M1: More -> Autopilot) ─────────
+async function flushQueuedStorageDeletions(): Promise<{ verifyRemoved: number; otherRemoved: number }> {
+  let verifyRemoved = 0;
+  let otherRemoved = 0;
+  const cli = await v5Client();
+
+  try {
+    const due = await rpc<{ id: string; selfie_path: string }[]>('kr8_admin_verify_files_due');
+    if (Array.isArray(due) && due.length > 0) {
+      const paths = due.map((d) => d.selfie_path).filter(Boolean);
+      const { error } = paths.length ? await cli.storage.from('kr8-verify').remove(paths) : { error: null };
+      if (!error) {
+        const n = await rpc<number>('kr8_admin_mark_selfies_deleted', { p_ids: due.map((d) => d.id) });
+        verifyRemoved = typeof n === 'number' ? n : due.length;
+      }
+    }
+  } catch { /* verify queue optional in offline unit tests */ }
+
+  try {
+    const trash = await rpc<{ id: string; bucket: string; name: string }[]>('kr8_admin_storage_trash');
+    if (Array.isArray(trash) && trash.length > 0) {
+      const byBucket = new Map<string, { id: string; name: string }[]>();
+      for (const t of trash) {
+        if (!t.bucket || !t.name) continue;
+        const arr = byBucket.get(t.bucket) || [];
+        arr.push({ id: t.id, name: t.name });
+        byBucket.set(t.bucket, arr);
+      }
+      const doneIds: string[] = [];
+      for (const [bucket, items] of byBucket) {
+        const { error } = await cli.storage.from(bucket).remove(items.map((x) => x.name));
+        if (!error) doneIds.push(...items.map((x) => x.id));
+      }
+      if (doneIds.length > 0) {
+        const n = await rpc<number>('kr8_admin_storage_trash_done', { p_ids: doneIds });
+        otherRemoved = typeof n === 'number' ? n : doneIds.length;
+      }
+    }
+  } catch { /* general trash queue optional in offline unit tests */ }
+
+  return { verifyRemoved, otherRemoved };
+}
+
+let apLogFilter = 'all';
+let apShowMemberCopy = false;
+export async function autopilotView() {
+  apShowMemberCopy = false;
+  const body = el('div', {}, loadingCard());
+  screen('more', header('Autopilot', 'Robots watch & fix safe tasks · you decide money & bans', '#more'), body);
+  stopV2();
+  let st: AutopilotState = fallbackAutopilotState(snap);
+  let hw: HealthWatchReport = fallbackHealthWatch(snap, st);
+  let sf: SelfFixStatus = fallbackSelfFixStatus(snap, st);
+  let pr: ProtectOverview = fallbackProtectOverview(snap, st);
+  let gn: GrowthNudgesPreview = fallbackGrowthNudgesPreview(snap, st);
+  let ai: AiSlotStatus = fallbackAiSlotStatus(st);
+  let aiTestLine = '';
+
+  const load = async () => {
+    const t0 = Date.now();
+    try {
+      const [raw, rawHw, rawSf, rawPr, rawGn, rawAi] = await Promise.all([
+        rpc<unknown>('kr8_admin_autopilot_state', { p_limit: 120 }),
+        rpc<unknown>('kr8_admin_health_watch', { p_run: false }).catch(() => null),
+        rpc<unknown>('kr8_admin_self_fix_status').catch(() => null),
+        rpc<unknown>('kr8_admin_protect_overview').catch(() => null),
+        rpc<unknown>('kr8_admin_growth_nudges_preview').catch(() => null),
+        rpc<unknown>('kr8_admin_ai_slot_status').catch(() => null),
+      ]);
+      const elapsed = Date.now() - t0;
+      st = isAutopilotState(raw) ? raw : fallbackAutopilotState(snap);
+      hw = isHealthWatchReport(rawHw) ? rawHw : fallbackHealthWatch(snap, st, elapsed);
+      sf = isSelfFixStatus(rawSf) ? rawSf : fallbackSelfFixStatus(snap, st);
+      pr = isProtectOverview(rawPr) ? rawPr : fallbackProtectOverview(snap, st);
+      gn = isGrowthNudgesPreview(rawGn) ? rawGn : fallbackGrowthNudgesPreview(snap, st);
+      ai = isAiSlotStatus(rawAi) ? rawAi : fallbackAiSlotStatus(st);
+    } catch {
+      st = fallbackAutopilotState(snap);
+      hw = fallbackHealthWatch(snap, st);
+      sf = fallbackSelfFixStatus(snap, st);
+      pr = fallbackProtectOverview(snap, st);
+      gn = fallbackGrowthNudgesPreview(snap, st);
+      ai = fallbackAiSlotStatus(st);
+    }
+    snapAt = Date.now();
+    const freshEl = document.getElementById('v2Fresh');
+    if (freshEl) freshEl.textContent = 'Updated 0s ago';
+    paint();
+  };
+
+  const renderRobot = (r: RobotRow): HTMLElement => {
+    const cap = capStatus(r);
+    const dryOnly = r.dry_run_only || r.name === 'growth_nudges';
+    const effMode: RobotMode = st.paused ? 'off' : r.mode;
+    const tone = modeTone(r.mode, st.paused);
+    const modes: RobotMode[] = ['off', 'dry_run', 'on'];
+
+    const seg = el('div', { class: 'ap-seg', role: 'group', 'aria-label': `${r.title} mode` },
+      ...modes.map((m) => {
+        const blockedOn = dryOnly && m === 'on';
+        const btn = el('button', {
+          type: 'button',
+          id: `apMode-${r.name}-${m}`,
+          class: r.mode === m ? `on m-${m}` : '',
+          disabled: blockedOn || st.fallback,
+          title: blockedOn ? 'Growth nudges stay DRY-RUN until approved' : undefined,
+        }, blockedOn ? 'ON (locked)' : modeLabel(m));
+        btn.onclick = async () => {
+          if (r.mode === m || blockedOn) return;
+          btn.disabled = true;
+          try {
+            await rpc('kr8_admin_robot_set', { p_name: r.name, p_mode: m, p_daily_cap: r.daily_cap });
+            toast(`${r.title} set to ${modeLabel(m)}`);
+            await load();
+          } catch (e) {
+            btn.disabled = false;
+            toast(`Could not update ${r.title}: ${(e as Error).message}`);
+          }
+        };
+        return btn;
+      }));
+
+    const capInput = el('input', {
+      type: 'number',
+      id: `apCap-${r.name}`,
+      class: 'ap-cap-in',
+      min: '0',
+      max: '10000',
+      value: String(r.daily_cap),
+      disabled: !!st.fallback,
+      'aria-label': `${r.title} daily cap`,
+    });
+    const capSave = el('button', {
+      type: 'button',
+      id: `apCapSave-${r.name}`,
+      class: 'ap-mini-btn',
+      disabled: !!st.fallback,
+    }, 'Save cap');
+    capSave.onclick = async () => {
+      const nextCap = Math.max(0, Math.min(10000, Math.round(Number(capInput.value) || 0)));
+      capSave.disabled = true;
+      try {
+        await rpc('kr8_admin_robot_set', { p_name: r.name, p_mode: r.mode, p_daily_cap: nextCap });
+        toast(`${r.title} daily cap set to ${nextCap}`);
+        await load();
+      } catch (e) {
+        capSave.disabled = false;
+        toast(`Could not save cap: ${(e as Error).message}`);
+      }
+    };
+
+    const runBtn = el('button', {
+      type: 'button',
+      id: `apRun-${r.name}`,
+      class: 'ap-mini-btn',
+      disabled: st.paused || !!st.fallback,
+    }, 'Run check');
+    runBtn.onclick = async () => {
+      runBtn.disabled = true;
+      runBtn.textContent = 'Running…';
+      try {
+        await rpc('kr8_admin_robot_run_now', { p_name: r.name });
+        toast(`${r.title} check finished`);
+        await load();
+      } catch (e) {
+        runBtn.disabled = false;
+        runBtn.textContent = 'Run check';
+        toast(`Check failed: ${(e as Error).message}`);
+      }
+    };
+
+    const lastLine = r.last_run
+      ? `Last run ${ago(r.last_run)} (${clock(r.last_run)} IST) · ${r.last_ok === false ? 'error' : 'OK'}${r.last_note ? ` · ${r.last_note}` : ''}`
+      : 'Never run yet';
+
+    return el('article', { class: `v2card ap-robot ${st.paused ? 'paused' : ''}`, 'data-robot': r.name },
+      el('div', { class: 'ap-robot-hd' },
+        el('div', { class: 'grow' },
+          el('div', { class: 'ap-title-row' },
+            el('b', {}, r.title),
+            chip(st.paused ? `PAUSED (${modeLabel(r.mode)})` : modeLabel(effMode), tone),
+            chip(scheduleWords(r.schedule), '')),
+          el('p', { class: 'ap-note' }, r.note)),
+      ),
+      seg,
+      el('div', { class: 'ap-meta' },
+        el('span', { class: `ap-cap-stat ${cap.atCap ? 'hot' : cap.nearCap ? 'warn' : ''}` }, cap.text),
+        el('div', { class: 'ap-cap-edit' },
+          el('label', { for: `apCap-${r.name}` }, 'Cap/day'),
+          capInput,
+          capSave,
+          runBtn)),
+      el('small', { class: `ap-last ${r.last_ok === false ? 'bad' : ''}` }, lastLine));
+  };
+
+  const renderLogRow = (l: RobotLogRow): HTMLElement => {
+    const key = `aplog:${l.id}`;
+    const undoBtn = l.can_undo && !l.undone_at
+      ? el('button', { type: 'button', class: 'v2btn ok ap-undo', id: `apUndo-${l.id}` }, 'Undo')
+      : null;
+    if (undoBtn) {
+      undoBtn.onclick = () => later(key, `Undoing ${l.robot}: ${l.action.replace(/_/g, ' ')}`, async () => {
+        await rpc('kr8_admin_robot_undo', { p_log_id: l.id });
+        await load();
+      });
+    }
+    return el('div', { class: 'v2li ap-log-row', 'data-log': String(l.id), style: hiddenKeys.has(key) ? 'opacity:.4' : undefined },
+      ic('robot'),
+      el('div', { class: 'grow' },
+        el('div', { class: 'ap-log-top' },
+          chip(l.dry_run ? 'DRY-RUN' : 'APPLIED', l.dry_run ? 'a' : 'g'),
+          l.undone_at ? chip('undone', 'k') : null),
+        el('b', {}, formatRobotLogLine(l)),
+        el('small', {}, `${ago(l.at)} · ${both(l.at, true)}`)),
+      undoBtn);
+  };
+
+  const paint = () => {
+    const hb = heartbeatSummary(st);
+    const killBtn = el('button', {
+      type: 'button',
+      id: 'apKillBtn',
+      class: `v2btn ${st.paused ? 'ok' : 'bad'} ap-kill-btn`,
+      disabled: !!st.fallback,
+    }, st.paused ? 'Resume robots' : 'Pause all robots');
+    killBtn.onclick = async () => {
+      killBtn.disabled = true;
+      const nextPaused = !st.paused;
+      try {
+        await rpc('kr8_admin_pause_all_robots', { p_pause: nextPaused });
+        toast(nextPaused ? 'All robots paused immediately' : 'Robots resumed (each keeps its own ON / DRY-RUN / OFF mode)');
+        await load();
+      } catch (e) {
+        killBtn.disabled = false;
+        toast(`Kill switch failed: ${(e as Error).message}`);
+      }
+    };
+
+    const killCard = el('section', { class: `v2card ap-kill ${st.paused ? 'is-paused' : ''}`, id: 'apKillSwitch' },
+      el('div', { class: 'ap-kill-info' },
+        el('b', {}, st.paused ? 'All robots are PAUSED' : 'Master kill switch'),
+        el('div', { class: 'v2sub' }, st.paused
+          ? 'Every scheduled check, self-fix, and automatic duplicate action is halted until you tap Resume.'
+          : 'One tap halts every robot immediately. Money, bans, and claim refusals already require your tap.')),
+      killBtn);
+
+    const hbCard = el('section', { class: `v2card ap-hb ${hb.tone}`, id: 'apHeartbeat' },
+      el('div', { class: 'v2row' },
+        ic('shield'),
+        el('div', { class: 'grow' },
+          el('b', {}, hb.headline),
+          el('div', { class: 'v2sub' }, st.heartbeats.length
+            ? st.heartbeats.map((h) => `${h.job.replace(/^kr8_/, '')}: ${h.last_beat ? ago(h.last_beat) : 'waiting'}`).join(' · ')
+            : 'No heartbeats registered yet'))));
+
+    const passCount = hw.checks.filter((c) => c.ok).length;
+    const hwRunBtn = el('button', {
+      type: 'button',
+      id: 'apHealthRunBtn',
+      class: 'ap-mini-btn',
+      disabled: st.paused,
+    }, 'Run all 8 checks');
+    hwRunBtn.onclick = async () => {
+      hwRunBtn.disabled = true;
+      hwRunBtn.textContent = 'Probing…';
+      const t0 = Date.now();
+      let authOk = true;
+      let storageOk = true;
+      try {
+        const cli = await v5Client();
+        const sess = await cli.auth.getSession();
+        authOk = !sess.error;
+        const stProbe = await cli.storage.from('kr8-ask').list('', { limit: 1 });
+        storageOk = !stProbe.error;
+      } catch {
+        /* client probe optional in unit tests */
+      }
+      const rpcMs = Date.now() - t0;
+      try {
+        const res = await rpc<unknown>('kr8_admin_health_watch', {
+          p_run: true,
+          p_client_probe: { auth_ok: authOk, storage_ok: storageOk, rpc_ms: rpcMs },
+        });
+        if (isHealthWatchReport(res)) hw = res;
+        toast(hw.all_ok ? 'All 8 health checks green' : 'Health check found broken item(s) — see red alerts');
+        await load();
+      } catch (e) {
+        hwRunBtn.disabled = false;
+        hwRunBtn.textContent = 'Run all 8 checks';
+        toast(`Health check failed: ${(e as Error).message}`);
+      }
+    };
+
+    const healthCard = el('section', { class: `v2card ap-health ${hw.all_ok ? 'ok' : 'bad'}`, id: 'apHealthCard' },
+      el('div', { class: 'ap-health-hd' },
+        ic('check'),
+        el('div', { class: 'grow' },
+          el('b', {}, `Health watch · ${passCount}/${hw.checks.length} green`),
+          el('small', {}, `Every 15 min · red alert on failure · auto-clears when fixed · checked ${ago(hw.at)}`)),
+        hwRunBtn),
+      el('div', { class: 'ap-health-grid', id: 'apHealthGrid' },
+        ...hw.checks.map((c) => el('div', { class: `ap-hitem ${c.ok ? 'ok' : 'bad'}`, 'data-hkey': c.key },
+          el('div', { class: 'ap-hitem-top' },
+            chip(c.ok ? 'OK' : 'FAIL', c.ok ? 'g' : 'r'),
+            el('b', {}, c.title),
+            c.ms != null ? el('small', { class: 'ap-hms' }, `${c.ms} ms`) : null),
+          el('small', { class: 'ap-hsum' }, c.summary)))));
+
+    const totalTrashQueued = sf.pdpa_queued + sf.other_trash_queued;
+    const stuckTotal = sf.stuck_geo + sf.stuck_push;
+    const lowStock = sf.available_vouchers <= sf.restock_warn_at;
+    const buyUrl = sf.voucher_buy_url || DEFAULT_VOUCHER_BUY_URL;
+
+    const flushBtn = el('button', {
+      type: 'button',
+      id: 'apFlushTrashBtn',
+      class: `ap-mini-btn ${sf.pdpa_late > 0 ? 'bad' : ''}`,
+      disabled: st.paused,
+    }, totalTrashQueued > 0 ? `Flush queued deletions (${totalTrashQueued})` : 'Flush queued deletions');
+    flushBtn.onclick = async () => {
+      flushBtn.disabled = true;
+      flushBtn.textContent = 'Flushing…';
+      try {
+        const { verifyRemoved, otherRemoved } = await flushQueuedStorageDeletions();
+        await rpc('kr8_admin_robot_run_now', { p_name: 'self_fix' }).catch(() => null);
+        toast(`Flushed ${verifyRemoved + otherRemoved} queued storage deletion(s)`);
+        await load();
+      } catch (e) {
+        flushBtn.disabled = false;
+        flushBtn.textContent = 'Flush queued deletions';
+        toast(`Storage flush failed: ${(e as Error).message}`);
+      }
+    };
+
+    const sfRunBtn = el('button', {
+      type: 'button',
+      id: 'apSelfFixRunBtn',
+      class: 'ap-mini-btn',
+      disabled: st.paused || !!st.fallback,
+    }, sf.mode === 'on' ? 'Run self-fix now' : 'Preview self-fix (DRY-RUN)');
+    sfRunBtn.onclick = async () => {
+      sfRunBtn.disabled = true;
+      sfRunBtn.textContent = 'Running…';
+      try {
+        await rpc('kr8_admin_robot_run_now', { p_name: 'self_fix' });
+        toast(sf.mode === 'on' ? 'Self-fix applied safe tasks' : 'Self-fix DRY-RUN logged what it would fix');
+        await load();
+      } catch (e) {
+        sfRunBtn.disabled = false;
+        sfRunBtn.textContent = sf.mode === 'on' ? 'Run self-fix now' : 'Preview self-fix (DRY-RUN)';
+        toast(`Self-fix check failed: ${(e as Error).message}`);
+      }
+    };
+
+    const sfStat = (id: string, val: string, title: string, sub: string, tone: '' | 'hot' | 'warn' = '') =>
+      el('div', { class: `ap-sf-stat ${tone}`, id },
+        el('b', {}, val),
+        el('span', {}, title),
+        el('small', {}, sub));
+
+    const selfFixCard = el('section', { class: `v2card ap-selffix ${sf.pdpa_late > 0 ? 'late' : ''}`, id: 'apSelfFixCard' },
+      el('div', { class: 'ap-health-hd' },
+        ic('robot'),
+        el('div', { class: 'grow' },
+          el('b', {}, `Self-fix & PDPA queue · ${modeLabel(sf.mode)}`),
+          el('small', {}, `Every 30 min · safe fixes only · PDPA SLA ${sf.pdpa_sla_hours}h · restock alert <= ${sf.restock_warn_at} vouchers`)),
+        chip(sf.pdpa_late > 0 ? `${sf.pdpa_late} PDPA LATE` : 'PDPA on time', sf.pdpa_late > 0 ? 'r' : 'g')),
+      el('div', { class: 'ap-sf-grid' },
+        sfStat(
+          'sfPdpa',
+          sf.pdpa_late > 0 ? `${sf.pdpa_late} late` : `${sf.pdpa_queued} due`,
+          'PDPA deletions',
+          sf.pdpa_late > 0 ? `Oldest ${sf.oldest_queued_hours}h (> ${sf.pdpa_sla_hours}h SLA)` : `0 overdue · ${sf.other_trash_queued} media trash`,
+          sf.pdpa_late > 0 ? 'hot' : '',
+        ),
+        sfStat(
+          'sfOrphans',
+          String(sf.orphan_candidates),
+          'Orphan files',
+          'Uploads >24h with no DB row',
+          sf.orphan_candidates > 0 ? 'warn' : '',
+        ),
+        sfStat(
+          'sfThreads',
+          String(sf.stale_threads),
+          'Stale threads',
+          `Pending >14d · ${sf.stale_holds} held >24h`,
+          sf.stale_threads > 0 ? 'warn' : '',
+        ),
+        sfStat(
+          'sfStuck',
+          String(stuckTotal),
+          'Stuck jobs',
+          `${sf.stuck_geo} geocode · ${sf.stuck_push} push`,
+          stuckTotal > 0 ? 'warn' : '',
+        ),
+        sfStat(
+          'sfStock',
+          String(sf.available_vouchers),
+          'Vouchers left',
+          lowStock ? `LOW (<= ${sf.restock_warn_at}) · restock now` : `Healthy (> ${sf.restock_warn_at})`,
+          sf.available_vouchers <= 2 ? 'hot' : lowStock ? 'warn' : '',
+        ),
+        sfStat(
+          'sfSafety',
+          '0 auto-bans',
+          'Money & bans',
+          'Held claims stay founder-only',
+        )),
+      el('div', { class: 'ap-sf-acts' },
+        sfRunBtn,
+        flushBtn,
+        el('a', {
+          class: `ap-mini-btn ap-buy-link ${lowStock ? 'on' : ''}`,
+          id: 'apBuyVouchersLink',
+          href: buyUrl,
+          target: '_blank',
+          rel: 'noopener noreferrer',
+        }, lowStock ? `Restock vouchers (${sf.available_vouchers} left) ↗` : 'Buy vouchers link ↗'),
+        el('a', { class: 'ap-mini-btn', href: '#codes' }, 'Paste codes →')));
+
+    const prRunBtn = el('button', {
+      type: 'button',
+      id: 'apProtectRunBtn',
+      class: 'ap-mini-btn',
+      disabled: st.paused || !!st.fallback,
+    }, pr.mode === 'on' ? 'Scan flags now' : 'Preview protect (DRY-RUN)');
+    prRunBtn.onclick = async () => {
+      prRunBtn.disabled = true;
+      prRunBtn.textContent = 'Scanning…';
+      try {
+        await rpc('kr8_admin_robot_run_now', { p_name: 'protect' });
+        toast('Protect scan complete (0 auto-bans — flags updated)');
+        await load();
+      } catch (e) {
+        prRunBtn.disabled = false;
+        prRunBtn.textContent = pr.mode === 'on' ? 'Scan flags now' : 'Preview protect (DRY-RUN)';
+        toast(`Protect scan failed: ${(e as Error).message}`);
+      }
+    };
+
+    const visibleFlags = pr.flags.filter((f) => !hiddenKeys.has(`pflag:${f.user_id}:${f.flag_key}`));
+    const protectCard = el('section', { class: 'v2card ap-protect', id: 'apProtectCard' },
+      el('div', { class: 'ap-health-hd' },
+        ic('shield'),
+        el('div', { class: 'grow' },
+          el('b', {}, `Protect flags · ${modeLabel(pr.mode)}`),
+          el('small', {}, 'Every 15 min · feeds trust score · auto-hides >= 3 reports (undoable) · NEVER auto-bans')),
+        chip(`${visibleFlags.length} active`, visibleFlags.some((f) => f.severity === 'red') ? 'r' : visibleFlags.length > 0 ? 'a' : 'g')),
+      el('div', { class: 'ap-sf-grid' },
+        sfStat('pfScam', String(pr.counts.scam_chat), 'Scam / LINE chat', 'Money / crypto / LINE hunt', pr.counts.scam_chat > 0 ? 'hot' : ''),
+        sfStat('pfLinks', String(pr.counts.link_tries), 'Blocked links', 'Repeated link attempts', pr.counts.link_tries > 0 ? 'warn' : ''),
+        sfStat('pfFarm', String(pr.counts.ring_farming), 'Ring farming', 'Pairs liking only each other', pr.counts.ring_farming > 0 ? 'warn' : ''),
+        sfStat('pfShared', String(pr.counts.shared_signals), 'Shared signals', 'Same face / phone / Wi-Fi', pr.counts.shared_signals > 0 ? 'warn' : ''),
+        sfStat('pfReports', String(pr.counts.reported_posts_3plus), '>= 3 reports', 'Auto-hide + you decide', pr.counts.reported_posts_3plus > 0 ? 'warn' : ''),
+        sfStat('pfPolicy', 'Founder taps', 'Ban policy', 'Robots never ban')),
+      visibleFlags.length > 0
+        ? el('div', { class: 'ap-protect-list', id: 'apProtectFlags' },
+            ...visibleFlags.slice(0, 6).map((f) => {
+              const pkey = `pflag:${f.user_id}:${f.flag_key}`;
+              const dismissBtn = el('button', {
+                type: 'button',
+                class: 'ap-mini-btn',
+                id: `pfDismiss-${f.user_id}-${f.flag_key}`,
+              }, 'Dismiss');
+              dismissBtn.onclick = () => later(pkey, `Dismissed ${flagKeyLabel(f.flag_key)} flag for #${f.member_no ?? '?'}`, async () => {
+                await rpc('kr8_admin_protect_dismiss', { p_user: f.user_id, p_flag_key: f.flag_key });
+                await load();
+              });
+              const whoText = `#${f.member_no ?? '?'} · ${flagKeyLabel(f.flag_key)}`;
+              const trustText = f.trust ? `Trust ${f.trust.score}/100` : '';
+              return el('div', { class: `ap-pflag sev-${f.severity}`, 'data-flag': `${f.user_id}:${f.flag_key}` },
+                el('div', { class: 'grow' },
+                  el('div', { class: 'ac-tags' },
+                    chip(f.severity === 'red' ? 'High risk' : f.severity === 'amber' ? 'Warning' : 'Signal', f.severity === 'red' ? 'r' : f.severity === 'amber' ? 'a' : 'k'),
+                    trustText ? chip(trustText, f.trust && f.trust.score < 35 ? 'r' : 'a') : null),
+                  el('b', {}, whoText),
+                  el('small', {}, f.summary)),
+                el('div', { class: 'ap-pflag-acts' },
+                  el('a', { class: 'ap-mini-btn', href: `#m/${f.user_id}` }, 'Member →'),
+                  dismissBtn));
+            }))
+        : el('div', { class: 'v2sub', style: 'margin-top:10px' }, 'No active scam-chat, Ring-farming, or repeated link-try flags.'),
+      pr.reported_posts.length > 0
+        ? el('div', { class: 'ap-protect-list', id: 'apProtectPosts' },
+            ...pr.reported_posts.map((rp) =>
+              el('div', { class: 'ap-pflag sev-amber' },
+                el('div', { class: 'grow' },
+                  el('b', {}, `${rp.kind.toUpperCase()} by #${rp.member_no ?? '?'} · ${rp.reporters} reports`),
+                  el('small', {}, rp.hidden ? 'Auto-hidden temporarily (Undo in Robot action log below · decide in Needs you)' : 'DRY-RUN: would auto-hide at >= 3 reports')),
+                el('a', { class: 'ap-mini-btn', href: '#inbox' }, 'Decide →'))))
+        : null,
+      el('div', { class: 'ap-sf-acts' },
+        prRunBtn,
+        el('a', { class: 'ap-mini-btn', href: '#inbox' }, 'Open Needs you →')));
+
+    const totalWouldReach = gn.cohorts.reduce((n, c) => n + c.would_send_count, 0);
+    const toggleCopyBtn = el('button', {
+      type: 'button',
+      id: 'apGrowthToggleCopyBtn',
+      class: 'ap-mini-btn',
+    }, apShowMemberCopy ? 'Hide TH + EN member copy' : 'Show TH + EN copy for approval');
+    toggleCopyBtn.onclick = () => {
+      apShowMemberCopy = !apShowMemberCopy;
+      paint();
+    };
+
+    const gnRunBtn = el('button', {
+      type: 'button',
+      id: 'apGrowthRunBtn',
+      class: 'ap-mini-btn',
+      disabled: st.paused || !!st.fallback,
+    }, 'Log DRY-RUN preview');
+    gnRunBtn.onclick = async () => {
+      gnRunBtn.disabled = true;
+      gnRunBtn.textContent = 'Previewing…';
+      try {
+        await rpc('kr8_admin_robot_run_now', { p_name: 'growth_nudges' });
+        toast('Growth nudges DRY-RUN logged (0 messages sent to members)');
+        await load();
+      } catch (e) {
+        gnRunBtn.disabled = false;
+        gnRunBtn.textContent = 'Log DRY-RUN preview';
+        toast(`Preview failed: ${(e as Error).message}`);
+      }
+    };
+
+    const growthCard = el('section', { class: 'v2card ap-growth', id: 'apGrowthCard' },
+      el('div', { class: 'ap-health-hd' },
+        ic('robot'),
+        el('div', { class: 'grow' },
+          el('b', {}, 'Growth nudges · DRY-RUN ONLY'),
+          el('small', {}, `0 messages sent · would reach ${totalWouldReach} across 4 cohorts · locked until founder approves`)),
+        chip('0 SENT (DRY-RUN)', 'a')),
+      el('div', { class: 'ap-glist', id: 'apGrowthCohorts' },
+        ...gn.cohorts.map((c) => {
+          const sampleTxt = c.sample_nos.length > 0
+            ? `Sample: ${c.sample_nos.map((n) => `#${n}`).join(', ')}`
+            : '0 matching members right now';
+          const approveBtn = el('button', {
+            type: 'button',
+            class: `ap-mini-btn ${c.approved_by_founder ? 'on' : ''}`,
+            id: `gnApprove-${c.key}`,
+            disabled: !!gn.fallback,
+          }, c.approved_by_founder ? 'Copy approved ✓' : 'Approve copy');
+          approveBtn.onclick = async () => {
+            approveBtn.disabled = true;
+            try {
+              const nextVal = !c.approved_by_founder;
+              await rpc('kr8_admin_growth_nudge_approve', { p_cohort_key: c.key, p_approved: nextVal });
+              c.approved_by_founder = nextVal;
+              toast(nextVal ? `Approved copy for "${c.label}" (still DRY-RUN)` : `Unmarked "${c.label}"`);
+              paint();
+            } catch (e) {
+              approveBtn.disabled = false;
+              toast(`Could not update copy approval: ${(e as Error).message}`);
+            }
+          };
+
+          return el('div', { class: 'ap-gitem', 'data-cohort': c.key },
+            el('div', { class: 'ap-gitem-hd' },
+              el('div', { class: 'grow' },
+                el('div', { class: 'ac-tags' },
+                  chip(c.key === 'weekly_winners_post' ? '1 draft post' : `Would nudge ${c.would_send_count}`, c.would_send_count > 0 ? 'a' : 'k'),
+                  c.approved_by_founder ? chip('Founder approved', 'g') : null),
+                el('b', {}, c.label),
+                el('small', {}, `${c.title_en} · ${sampleTxt}`)),
+              approveBtn),
+            apShowMemberCopy
+              ? el('div', { class: 'ap-gcopy', 'data-member-copy': '1' },
+                  el('div', { class: 'ap-gcopy-line' },
+                    el('span', { class: 'ap-gcopy-tag' }, 'TH'),
+                    el('strong', {}, `${c.title_th} — `),
+                    c.body_th),
+                  el('div', { class: 'ap-gcopy-line' },
+                    el('span', { class: 'ap-gcopy-tag' }, 'EN'),
+                    el('strong', {}, `${c.title_en} — `),
+                    c.body_en))
+              : null);
+        })),
+      el('div', { class: 'ap-sf-acts' },
+        toggleCopyBtn,
+        gnRunBtn));
+
+    const aiTestBtn = el('button', {
+      type: 'button',
+      id: 'apAiTestFallbackBtn',
+      class: 'ap-mini-btn',
+    }, 'Test rules fallback');
+    aiTestBtn.onclick = async () => {
+      aiTestBtn.disabled = true;
+      const safeAgg = guardAiPayload('morning_brief', {
+        new_members_today: snap ? snap.counts.real_today : 0,
+        held_count: snap ? money(snap).heldN : 0,
+        held_thb: snap ? money(snap).heldThb : 0,
+        available_vouchers: sf.available_vouchers,
+        errors_24h: 0,
+      });
+      try {
+        const res = await rpc<{ used_ai?: boolean; fallback_reason?: string; output?: { headline?: string } }>('kr8_ai_call', {
+          p_task: 'morning_brief',
+          p_input: safeAgg,
+        });
+        aiTestLine = res?.output?.headline
+          ? `${res.used_ai ? 'OpenRouter Mimo v2' : `Rules fallback (${res.fallback_reason || 'robot_off'})`}: ${res.output.headline}`
+          : `Rules fallback (robot_${ai.mode}): ${aiRulesFallback('morning_brief', safeAgg).headline}`;
+      } catch {
+        aiTestLine = `Rules fallback (robot_${ai.mode}): ${aiRulesFallback('morning_brief', safeAgg).headline}`;
+      }
+      paint();
+    };
+
+    const aiCard = el('section', { class: 'v2card ap-ai', id: 'apAiCard' },
+      el('div', { class: 'ap-health-hd' },
+        ic('robot'),
+        el('div', { class: 'grow' },
+          el('b', {}, `AI helper slot · ${modeLabel(ai.mode)}`),
+          el('small', {}, `Model: ${ai.model} · Vault key "${ai.secret_name}": ${ai.secret_configured ? 'present' : 'not set (add tomorrow)'}`)),
+        chip(ai.mode === 'on' && ai.secret_configured ? 'AI ON' : 'OFF · RULES FALLBACK', ai.mode === 'on' && ai.secret_configured ? 'g' : 'k')),
+      el('div', { class: 'ap-sf-grid' },
+        sfStat('aiMode', modeLabel(ai.mode), 'Slot status', ai.secret_configured ? 'Vault key ready' : 'No key in code / DB'),
+        sfStat('aiTasks', '3 tasks', 'Allowlist only', 'Brief · errors · captions'),
+        sfStat('aiPrivacy', 'Blocked', 'PII firewall', '0 names · chats · photos · faces')),
+      aiTestLine ? el('div', { class: 'ap-ai-out', id: 'apAiOut' }, aiTestLine) : null,
+      el('div', { class: 'ap-sf-acts' }, aiTestBtn));
+
+    const filterOpts: [string, string][] = [
+      ['all', `All (${st.logs.length})`],
+      ['applied', `Applied (${st.logs.filter((l) => !l.dry_run).length})`],
+      ['dry', `Dry-run (${st.logs.filter((l) => l.dry_run).length})`],
+      ['undoable', `Undoable (${st.logs.filter((l) => l.can_undo && !l.undone_at).length})`],
+    ];
+    const filteredLogs = st.logs.filter((l) => {
+      if (apLogFilter === 'applied') return !l.dry_run;
+      if (apLogFilter === 'dry') return l.dry_run;
+      if (apLogFilter === 'undoable') return l.can_undo && !l.undone_at;
+      return true;
+    });
+
+    body.replaceChildren(
+      killCard,
+      hbCard,
+      healthCard,
+      selfFixCard,
+      protectCard,
+      growthCard,
+      aiCard,
+      el('div', { class: 'v2sec' }, `Robots · ${st.robots.length}`),
+      el('div', { id: 'apRobots' }, ...st.robots.map(renderRobot)),
+      el('div', { class: 'v2sec' }, 'Robot action log'),
+      el('div', { class: 'v2chips' }, ...filterOpts.map(([k, label]) => {
+        const b = el('button', { type: 'button', class: apLogFilter === k ? 'on' : '', id: `aplf-${k}` }, label);
+        b.onclick = () => { apLogFilter = k; paint(); };
+        return b;
+      })),
+      filteredLogs.length
+        ? el('div', { class: 'v2card v2list', id: 'apLog' }, ...filteredLogs.map(renderLogRow))
+        : el('div', { class: 'v2card v2sub', id: 'apLogEmpty' }, 'No robot actions logged for this filter yet.'));
+  };
+
+  rerender = () => paint();
+  await load();
+}
+
 /** Router hook: returns true when the hash is a v2 screen. */
 export function v2Route(a: string, b?: string): boolean {
   if (a === 'today' || a === '') { todayView(); return true; }
@@ -708,6 +1481,7 @@ export function v2Route(a: string, b?: string): boolean {
   if (a === 'log') { void logView(); return true; }
   if (a === 'places') { void placesView(); return true; }
   if (a === 'faces') { void facesView(); return true; }
+  if (a === 'autopilot') { void autopilotView(); return true; }
   if (a === 'm' && b) { void memberView(b); return true; }
   stopV2();
   return false;
