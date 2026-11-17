@@ -102,7 +102,7 @@ import { TripPerks } from './V5Trip';
 // founder 17 Nov: hide café treats / stays; Deals = trip partners + "more deals coming soon"
 const DEALS_TRIP_ONLY = true;
 import { StayDo } from './V5StayDo';
-import { v5CardPrintOk, v5HandoffBoot, v5LogClient, v5MyVerification, v5SaveCardPrint, V5_AREAS } from './v5Live';
+import { v5CardPrintOk, v5HandoffBoot, v5LogClient, v5MyFaceStatus, v5MyVerification, v5SaveCardPrint, V5_AREAS } from './v5Live';
 import { v5AcceptTerms, v5PromoGet, v5SetPromo, V5_TERMS_VERSION, type V5Promo } from './v5Live';
 import { TermsAgreeText } from './V5Sheets';
 import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
@@ -155,7 +155,7 @@ import { applyTrim, checkReel, createReel, makeAudio, prepareReel, ReelError, up
 import { GoTrim, WindowVideo } from './V5Trim';
 import { clock } from './reelTrim';
 import { isMemberId } from './deepLink';
-import { ADMIN_VIEW_NO_SHEETS, adminPanelHref, adminViewWanted, setAdminViewActive } from './adminView';
+import { ADMIN_VIEW_NO_SHEETS, adminPanelHref, adminViewActive, adminViewWanted, setAdminViewActive } from './adminView';
 const appBasePath = () => ((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.BASE_URL) || '/app/';
 import { AdminViewMe, AdminViewPill } from './V5AdminView';
 
@@ -2752,6 +2752,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [activitySeenAt, setActivitySeenAt] = useState('');
   const [followBusy, setFollowBusy] = useState(false);
   const [verifyPending, setVerifyPending] = useState(false);
+  const [verifyNudge, setVerifyNudge] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [legalOpen, setLegalOpen] = useState(false);
   const signPosters = async (paths: string[]) => {
@@ -2797,6 +2798,28 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       // no activity yet
     }
   };
+  // 0081 (founder, 17 Nov): ask every member ONCE to do the new 5-second check, so everyone gets a face code and future
+  // duplicates are caught automatically. Existing ✓ badges keep working until then. Only when no other sheet is open.
+  useEffect(() => {
+    if (!live || !v5Uid || !v5Card?.photo || adminViewActive()) return;
+    const key = 'kr8_facecheck2_asked:' + v5Uid;
+    try { if (localStorage.getItem(key)) return; } catch { return; }
+    // waits while any sheet or the Terms dialog is open (checks again every 4 s, for up to 2 minutes)
+    let t = 0, tries = 0;
+    const busy = () => !!sheetRef.current || !!document.getElementById('termsDlg');
+    const ask = () => {
+      if (busy()) { if (++tries < 30) t = window.setTimeout(ask, 4000); return; }
+      void v5MyFaceStatus().then((st) => {
+        if (!st || st.new_check || st.pending || st.blocked || st.tries_left < 1 || busy()) return;
+        try { localStorage.setItem(key, new Date().toISOString()); } catch { /* private mode */ }
+        setVerifyNudge(true);
+        setSheet('verify');
+      });
+    };
+    t = window.setTimeout(ask, 6000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live, v5Uid, !!v5Card?.photo]);
   useEffect(() => {
     if (live && v5Uid && v5Card && tab === 'me') void loadMe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -7012,9 +7035,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onDeals={() => { closeTicket(); setTab('deals'); }} />
         )}
         {sheet === 'verify' && live && v5Card && (
-          <V5VerifySheet L={L} photo={v5Card.photo} errText={(e) => v5Msg(e)}
-            onClose={() => { setSheet(null); void loadMe(); }}
+          <V5VerifySheet L={L} photo={v5Card.photo} errText={(e) => v5Msg(e)} nudge={verifyNudge}
+            onClose={() => { setSheet(null); setVerifyNudge(false); void loadMe(); }}
             onSent={() => setVerifyPending(true)}
+            onVerified={() => { setVerifyPending(false); setMeProfile((p) => (p ? { ...p, verified: true } : p)); }}
             onAddPhoto={() => setSheet('v5card')} />
         )}
         {sheet === 'follow' && followFor && (

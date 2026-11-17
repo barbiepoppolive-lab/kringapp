@@ -729,6 +729,42 @@ export async function v5RequestVerification(selfie: Blob, check: { straight: boo
   if (!up || !up.ok) throw new V5Error('UPLOAD');
   return rpc<string>('kr8_request_verification', { p_selfie_path: path, p_consent_version: consent, p_check: check });
 }
+/** 0081 instant face check: what the server decided. */
+export interface V5FaceDecision { result: 'pass' | 'review' | 'block' | 'fail'; reasons?: string[]; verified?: boolean; tries_left?: number; again?: boolean }
+/** 0081: uploads the frontal selfie (only when the live check passed on the phone; a fail sends no photo) with its SFace embedding
+ *  and the card photo's SFace embedding, and asks the server to decide. Falls back to the 0031 queue (kr8_request_verification + face code) when the server has no 0081 yet → "review". */
+export async function v5VerifyInstant(selfie: Blob | null, check: Record<string, unknown>, emb: ArrayLike<number> | null, cardEmb: ArrayLike<number> | null, consent: string): Promise<V5FaceDecision> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new V5Error('OFFLINE');
+  if (adminViewActive()) throw new V5Error('ADMIN_VIEW');
+  const c = await v5Client();
+  const { data } = await c.auth.getSession();
+  const uid = data.session?.user?.id;
+  if (!uid) throw new V5Error('SIGN_IN');
+  let path: string | null = null;
+  if (selfie) {
+    path = `${uid}/${crypto.randomUUID()}.jpg`;
+    const up = await fetch(`${SUPA_URL.replace(/\/$/, '')}/storage/v1/object/kr8-verify/${path}`, {
+      method: 'POST', headers: { authorization: `Bearer ${data.session!.access_token}`, apikey: SUPA_KEY, 'content-type': 'image/jpeg', 'x-upsert': 'false' }, body: selfie,
+    }).catch(() => null);
+    if (!up || !up.ok) throw new V5Error('UPLOAD');
+  }
+  const vec = (v: ArrayLike<number> | null) => (v && v.length === 128 ? Array.from(v, (x) => Math.round(x * 1e6) / 1e6) : null);
+  try {
+    return await rpc<V5FaceDecision>('kr8_verify_instant', { p_selfie_path: path, p_consent_version: consent, p_check: check, p_emb: vec(emb), p_card_emb: vec(cardEmb) });
+  } catch (e) {
+    if (v5ErrCode(e) !== 'UNKNOWN') throw e;   // a known refusal (SLOW_DOWN, CONSENT_REQUIRED, …) stays as it is
+    // server without 0081: the old queue (the team approves by hand)
+    if (!path) return { result: 'fail', reasons: [String(check.fail || 'timeout')] };
+    await rpc<string>('kr8_request_verification', { p_selfie_path: path, p_consent_version: consent,
+      p_check: { straight: true, left: true, right: true, blink: true, match: check.match ?? null, device: check.device ?? '' } });
+    return { result: 'review', reasons: ['old_server'] };   // the face-api code is saved by the caller in the background
+  }
+}
+/** 0081: does this member still need the new 5-second check? null = not signed in / no card / server without 0081 */
+export interface V5FaceStatus { verified: boolean; new_check: boolean; pending: boolean; blocked: boolean; tries_left: number }
+export async function v5MyFaceStatus(): Promise<V5FaceStatus | null> {
+  try { return (await rpc<V5FaceStatus | null>('kr8_my_face_status')) || null; } catch { return null; }
+}
 /** 0075: uploads the claim photo frame (private kr8-verify bucket, team-only) and returns its path; null on any failure
  *  (the claim still goes ahead and simply waits for the founder). Never throws. */
 export async function v5UploadClaimPhoto(photo: Blob | null | undefined): Promise<string | null> {

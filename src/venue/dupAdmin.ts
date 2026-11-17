@@ -120,7 +120,10 @@ export function lookalikeBlock(l: FaceLookalikes | null | undefined): { title: s
     also: l!.matches.slice(1).map((x) => `${whoName(x)} ${x.dist.toFixed(2)}`).join(' · ') };
 }
 /** The member's own profile photo vs their own live selfie. Never says "same person" (that wording belongs to the look-alike block). */
-export function ownPhotoLabel(match: number | null | undefined): { tone: 'n' | 'a'; tick: boolean; text: string } {
+export function ownPhotoLabel(match: number | null | undefined, sface = false): { tone: 'n' | 'a'; tick: boolean; text: string } {
+  // 0081: SFace similarity, higher = more alike (0.45+ = match, calibrated on LFW); older checks: face-api distance, lower = more alike
+  if (sface && match !== null && match !== undefined) return match >= 0.45 ? { tone: 'n', tick: true, text: `Profile photo vs own selfie: ✓ matches (similarity ${match.toFixed(2)})` }
+    : { tone: 'a', tick: false, text: `Profile photo vs own selfie: may not match (similarity ${match.toFixed(2)}), look carefully` };
   if (match === null || match === undefined) return { tone: 'a', tick: false, text: 'Profile photo vs own selfie: no score (no face found in one photo)' };
   return match < 0.6 ? { tone: 'n', tick: true, text: `Profile photo vs own selfie: ✓ matches (${match.toFixed(2)})` }
     : { tone: 'a', tick: false, text: `Profile photo vs own selfie: may not match (${match.toFixed(2)}), look carefully` };

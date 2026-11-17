@@ -26,7 +26,8 @@ type Reel = { id: string; author_id: string; author_name: string; ref_code: stri
   /** 0070 kr8_admin_member_who: the member's own "I live here / Visiting" (audit P3-2: the card always said "Kring Local") */ author_who?: 'local' | 'traveller' | null };
 type Counts = { id: string; views: number; likes: number; saves: number; shares: number; open_reports: number };
 type Face = { id: string; user_id: string; first_name: string; profile_photo: string | null; selfie_path: string | null;
-  live_check: { straight?: boolean; left?: boolean; right?: boolean; blink?: boolean; blink_fallback?: boolean; match?: number | null; device?: string };
+  live_check: { straight?: boolean; left?: boolean; right?: boolean; blink?: boolean; blink_fallback?: boolean; match?: number | null; device?: string;
+    /** 0081 instant check */ auto?: 'pass' | 'review' | 'block'; review?: string[]; engine?: string; ms?: number; order?: string; same?: number | null; real?: number | null; dup_sim?: number | null; model?: string };
   status: 'pending' | 'approved' | 'rejected'; created_at: string; reviewed_at: string | null; reject_reason: string | null; approved_reels: number; account_created: string };
 type Report = { id: string; created_at: string; category: string | null; reason: string; reporter_name: string | null; target_id: string | null; target_name: string | null;
   post_id: string | null; post_kind: string | null; post_body: string | null; video_path: string | null; poster_path: string | null; post_hidden: boolean | null;
@@ -598,7 +599,7 @@ function faceBody(r: Face, signed: Record<string, string>, look?: FaceLookalikes
   const lk = lookalikeBlock(look);
   const lc = r.live_check || {};
   const m = lc.match;
-  const own = ownPhotoLabel(m);
+  const own = ownPhotoLabel(m, /^sface/.test(lc.model || ''));
   const selfie = r.selfie_path ? signed[r.selfie_path] : null;
   const pic = (src: string | null | undefined, cap: string, none: string) => el('figure', {}, src ? el('img', { src, alt: cap }) : el('div', { class: 'none' }, none), el('figcaption', { class: 'chip' }, cap));
   const step = (on: boolean | undefined, icon: string, t: string, bad = false) => el('div', { class: on ? 'y' : bad ? 'n' : '' }, ic(icon), t);
@@ -627,7 +628,10 @@ function faceBody(r: Face, signed: Record<string, string>, look?: FaceLookalikes
       el('b', {}, ...(ownParts.length > 1 ? [ownParts[0], el('span', { class: 'tick' }, '✓'), ownParts[1]] : [own.text]))),
     el('div', { class: 'steps' }, step(lc.straight, 'face', 'Straight'), step(lc.left, 'left', 'Left'), step(lc.right, 'right', 'Right'), step(lc.blink && !lc.blink_fallback, 'blink', noBlink ? 'No blink seen' : 'Blink', noBlink)),
     noBlink ? el('div', { class: 'warnbox', 'data-noblink': '1' }, ic('warn'), 'No blink seen (moved on after 12 s facing the camera). Could be a still photo held up: look at the selfie carefully.') : null,
-    lc.device ? el('div', { class: 'faint xs', style: 'margin-top:8px' }, lc.device) : null,
+    lc.review && lc.review.length ? el('div', { class: 'warnbox', 'data-review': lc.review.join(' ') }, ic('info'),
+      el('span', {}, el('b', {}, 'Why it\u2019s here: '), lc.review.map((k) => FACE_REASON[k] || k).join(' · '))) : null,
+    lc.device || lc.engine ? el('div', { class: 'faint xs', style: 'margin-top:8px' },
+      [lc.auto ? `Instant check (${lc.auto})` : '', lc.real != null ? `real-face ${lc.real}` : '', lc.dup_sim != null ? `most alike other ${lc.dup_sim}` : '', lc.ms ? `${(lc.ms / 1000).toFixed(1)} s` : '', lc.device || ''].filter(Boolean).join(' · ')) : null,
     r.reject_reason ? el('p', { class: 'dim sm' }, 'Reason: ' + r.reject_reason) : null,
     el('div', { class: 'tip' }, ic('info'), 'Profile photo matches the selfie, clear face, not a photo of a screen.'));
 }
@@ -656,6 +660,44 @@ export async function faceBackfill(progress: (t: string) => void): Promise<{ don
     catch { failed++; }
   }
   return { done, noFace, failed };
+}
+/** 0081: the instant check's reasons, in plain words for the founder */
+const FACE_REASON: Record<string, string> = {
+  same_face_other_account: 'Same face as an older account (similarity 0.60+): blocked as a second account',
+  same_face_newer_account: 'Same face (0.60+) as a NEWER account: this one may be the original',
+  looks_like_other_account: 'Looks like another member (similarity 0.50\u20130.60, or 0.50+ to their card photo)',
+  borderline_match: 'Selfie only partly matches the card photo (below 0.45)',
+  no_card_face: 'No face found in the card photo',
+  liveness_doubt: 'Real-face score or frame-to-frame match lower than usual',
+  auto_off: 'Instant decisions are switched off',
+  old_server: 'Sent by the old route',
+  live_check: 'Live check not passed', timeout: 'No head turn + blink in time', still: 'Never moved (still photo?)', lost: 'Face left the oval',
+  noface: 'No clear face', swap: 'Face changed during the check', mismatch: 'Selfie is clearly not the card photo', spoof: 'Photo or screen held up (anti-spoof)',
+};
+type FaceDecisionRow = { id: string; created_at: string; decision: 'pass' | 'review' | 'block' | 'fail'; reasons: string[]; match: number | null; dup_sim: number | null;
+  dup_source: string | null; was_verified: boolean; engine: string | null; ms: string | null; device: string | null; user_id: string; member_no: number | null;
+  first_name: string | null; photo: string | null; dup_member_no: number | null; dup_name: string | null };
+type FaceCoverage = { members: number; new_check: number; comparable: number; card_only: number; none: number; verified: number; verified_not_comparable: number; old_faceapi_codes: number };
+const DECISION: Record<FaceDecisionRow['decision'], [string, string]> = { pass: ['Verified', 'g'], review: ['Founder checks', 'p'], block: ['Blocked · 2nd account', 'r'], fail: ['Retry', ''] };
+async function faceLogView() {
+  const body = el('div', {}, loading());
+  app.replaceChildren(el('div', { class: 'scr' }, el('div', { class: 'row', style: 'margin:6px 0 16px' }, el('a', { class: 'icb', href: '#more', 'aria-label': 'Back' }, ic('back')),
+    el('h1', { style: 'font-size:26px' }, 'Face auto-decisions')), body), tabbar('more'));
+  window.scrollTo(0, 0);
+  try {
+    const [rows, cov] = await Promise.all([rpc<FaceDecisionRow[]>('kr8_admin_face_decisions', { p_limit: 200 }), rpc<FaceCoverage>('kr8_admin_face_coverage').catch(() => null)]);
+    const covBox = cov ? el('div', { class: 'card', id: 'faceCoverage', style: 'margin-bottom:12px' },
+      el('b', {}, `${cov.comparable} of ${cov.members} members can be compared`),
+      el('p', { class: 'dim sm', style: 'margin:6px 0 0' }, `${cov.new_check} passed the new 5-second check · ${cov.verified_not_comparable} have an old ✓ but no new face code (asked once in the app) · ${cov.none} have none yet`)) : null;
+    body.replaceChildren(covBox || el('span'), ...(rows.length ? rows.map((r) => el('div', { class: 'li', 'data-decision': r.decision, 'data-id': r.id },
+      r.photo ? el('img', { class: 'thumb', src: r.photo, alt: '', style: 'border-radius:12px' }) : el('span', { class: 'ic' }, ic('face')),
+      el('span', { class: 'grow' },
+        el('b', {}, `${r.member_no != null ? '#' + r.member_no + ' ' : ''}${r.first_name || '–'}`),
+        el('span', { class: 's' }, `${bkkTime(r.created_at)} · ${r.reasons.length ? r.reasons.map((k) => FACE_REASON[k] || k).join(' · ') : 'All clear'}`),
+        el('span', { class: 's', style: 'display:block' }, [r.match != null ? `own photo ${r.match}` : '', r.dup_sim != null ? `most alike ${r.dup_member_no != null ? '#' + r.dup_member_no + ' ' : ''}${r.dup_name || ''} ${r.dup_sim}${r.dup_source === 'card' ? ' (card photo)' : ''}` : '',
+          r.engine || '', r.ms ? `${(Number(r.ms) / 1000).toFixed(1)} s` : '', r.was_verified ? 'had old ✓' : ''].filter(Boolean).join(' · '))),
+      pill(DECISION[r.decision]?.[0] || r.decision, DECISION[r.decision]?.[1] || ''))) : [empty('No instant checks yet')]));
+  } catch (e) { body.replaceChildren(errP(e)); }
 }
 async function faceQueue() {
   app.replaceChildren(el('div', { class: 'scr' }, loading()));
@@ -1675,6 +1717,7 @@ function moreView() {
     el('div', { class: 'sec' }, 'History'),
     li('#history/reels', 'reel', 'All Reels', 'Waiting, approved and hidden', 'histReels'),
     li('#history/faces', 'face', 'Past face checks', 'Approved and rejected', 'histFaces'),
+    li('#facelog', 'face', 'Face auto-decisions', 'Every instant check: verified, blocked, sent to you, retry', 'faceLog'),
     li('#history/reports', 'flag', 'Closed reports', 'Kept, removed and closed', 'histReports'),
     li('#top5', 'trophy', 'Old manual awards', 'The Top 5 awards given by hand before 17 Nov', 'moreOldAwards'),
     el('div', { class: 'sec' }, 'Rarely needed'),
@@ -2243,6 +2286,7 @@ function route() {
     if (b === 'replies') return void replyQueue();
     if (b === 'venues') return void venueQueue();
   }
+  if (a === 'facelog') return void faceLogView();
   if (a === 'members') return void membersView(b === 'all');
   if (a === 'top5') return void top5View();
   if (a === 'listings') return void listingsView();

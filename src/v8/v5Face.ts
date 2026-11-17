@@ -9,7 +9,9 @@ let apiP: Promise<FaceApi> | null = null;
 /** 0066: the consent now says a face code is kept (one person, one account). The server only takes a face code after this version. */
 /** 17 Nov release: 'face-2026-11-17c' adds "and from your card photo". Card-photo face codes are only made for members who agreed
  *  to this version (server: kr8_save_card_print / kr8_card_print_ok). Older members are NOT asked again; they simply get no card code. */
-export const FACE_CONSENT_VERSION = 'face-2026-11-17c';
+/** 0081 instant check: 'face-2026-11-17d' = 17c wording + "the result comes right away" + "compared with other members' face codes".
+ *  Server rules unchanged: anything >= 17c may keep card and selfie face codes (string order: 17d > 17c). */
+export const FACE_CONSENT_VERSION = 'face-2026-11-17d';
 export const CARD_PRINT_CONSENT = 'face-2026-11-17c';
 
 function modelUrl(): string {

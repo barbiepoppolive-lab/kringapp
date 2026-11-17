@@ -227,8 +227,8 @@ export function MeView(props: {
         <button type="button" className="kme-verify" id="meVerify" onClick={props.onVerify} disabled={props.verifyState === 'pending'}>
           <span className="ic">✓</span>
           <span className="t">
-            <b>{props.verifyState === 'pending' ? L('Verification sent · we check within 24 hours') : L('Get verified ✓')}</b>
-            <small>{props.verifyState === 'pending' ? L('You’ll see ✓ verified on your card when it’s done') : L('A 20-second face check on your phone. People reply more to verified members.')}</small>
+            <b>{props.verifyState === 'pending' ? L('We’re checking · usually within a day') : L('Get verified ✓')}</b>
+            <small>{props.verifyState === 'pending' ? L('You’ll see ✓ verified on your card when it’s done') : L('A 5-second face check on your phone. People reply more to verified members.')}</small>
           </span>
           {props.verifyState === 'pending' ? null : <span className="go">›</span>}
         </button>
