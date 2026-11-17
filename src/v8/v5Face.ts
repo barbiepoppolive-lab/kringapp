@@ -7,7 +7,10 @@ type FaceApi = typeof import('@vladmandic/face-api');
 let apiP: Promise<FaceApi> | null = null;
 
 /** 0066: the consent now says a face code is kept (one person, one account). The server only takes a face code after this version. */
-export const FACE_CONSENT_VERSION = 'face-2026-11-17';
+/** 17 Nov release: 'face-2026-11-17c' adds "and from your card photo". Card-photo face codes are only made for members who agreed
+ *  to this version (server: kr8_save_card_print / kr8_card_print_ok). Older members are NOT asked again; they simply get no card code. */
+export const FACE_CONSENT_VERSION = 'face-2026-11-17c';
+export const CARD_PRINT_CONSENT = 'face-2026-11-17c';
 
 function modelUrl(): string {
   const base = ((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.BASE_URL || '/').replace(/\/?$/, '/');

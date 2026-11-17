@@ -35,6 +35,11 @@
 -- Adds: column kr8_reward_claims.face_photo, reason 'review' on kr8_claim_holds, 3 config rows, kr8_admin_held_count().
 -- kr8_claim_notify: same body as 0066 + push title for 'review' + claim photo path in the alert.
 --
+-- 17 Nov (founder): CLAIM PHOTOS ARE KEPT 30 DAYS FOR THE KRING TEAM'S CHECK, THEN DELETED.
+--   Nightly pg_cron job 'kr8_claim_photo_cleanup' (20:17 UTC = 03:17 Bangkok) runs kr8_cleanup_kick(): claim photos older than
+--   30 days are queued in kr8_storage_trash (kr8_reward_claims.face_photo_deleted_at is set) and the edge function kr8-cleanup
+--   removes the files with the Storage API (Postgres may not delete Storage files itself). Fallback: the admin page's selfie
+--   clean-up already removes every queued kr8-verify file (kr8_admin_verify_files_due includes kr8_storage_trash).
 -- ORDER: apply BEFORE the new app build (the new app sends p_selfie; the old server would refuse an unknown argument).
 -- UNDO: re-run kr8_claim_prize + kr8_claim_notify from 0066 (and drop function kr8_claim_prize(uuid,text,text,real[],text),
 --       kr8_admin_held_count()); the column, config rows and the wider check constraint can stay.
@@ -251,6 +256,68 @@ begin
   return new;
 exception when others then
   return new;   -- never block a claim
+end $$;
+
+
+-- ───────────── 17 Nov: claim photos kept 30 days, then deleted ─────────────
+alter table public.kr8_reward_claims add column if not exists face_photo_deleted_at timestamptz;
+
+/** claim photos older than 30 days → queued for removal (kr8-cleanup / admin page remove the files). Returns how many. */
+create or replace function public.kr8_claim_photos_expire() returns integer
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare n int;
+begin
+  insert into public.kr8_storage_trash (bucket, name, user_id)
+  select 'kr8-verify', c.face_photo, c.member_id from public.kr8_reward_claims c
+   where c.face_photo is not null and c.face_photo_deleted_at is null and c.created_at < now() - interval '30 days'
+  on conflict (bucket, name) do nothing;
+  update public.kr8_reward_claims set face_photo_deleted_at = now()
+   where face_photo is not null and face_photo_deleted_at is null and created_at < now() - interval '30 days';
+  get diagnostics n = row_count;
+  return n;
+end $$;
+
+/** for the kr8-cleanup edge function only (service key): queued kr8-verify files not removed yet */
+create or replace function public.kr8_service_verify_trash() returns table (id uuid, name text)
+language sql stable security definer set search_path = public, pg_temp as $$
+  select t.id, t.name from public.kr8_storage_trash t where t.bucket = 'kr8-verify' and t.removed_at is null order by t.queued_at limit 200
+$$;
+create or replace function public.kr8_service_verify_trash_done(p_ids uuid[]) returns integer
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare n int;
+begin
+  update public.kr8_storage_trash set removed_at = now() where id = any (coalesce(p_ids, '{}')) and bucket = 'kr8-verify' and removed_at is null;
+  get diagnostics n = row_count;
+  return n;
+end $$;
+
+/** the nightly job: queue what is due, then ask kr8-cleanup to remove the files. Never raises. */
+create or replace function public.kr8_cleanup_kick() returns integer
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare n int := 0; k text;
+begin
+  n := public.kr8_claim_photos_expire();
+  select decrypted_secret into k from vault.decrypted_secrets where name = 'notify_hook_secret' limit 1;
+  if k is not null and exists (select 1 from public.kr8_storage_trash where bucket = 'kr8-verify' and removed_at is null) then
+    perform net.http_post(
+      url := 'https://pedxoxpammnyfnizljyj.supabase.co/functions/v1/kr8-cleanup',
+      headers := jsonb_build_object('Content-Type', 'application/json', 'x-hook-secret', k),
+      body := '{"job":"verify_trash"}'::jsonb, timeout_milliseconds := 30000);
+  end if;
+  return n;
+exception when others then
+  return n;
+end $$;
+
+revoke all on function public.kr8_claim_photos_expire(), public.kr8_cleanup_kick() from public, anon, authenticated;
+revoke all on function public.kr8_service_verify_trash(), public.kr8_service_verify_trash_done(uuid[]) from public, anon, authenticated;
+grant execute on function public.kr8_service_verify_trash(), public.kr8_service_verify_trash_done(uuid[]) to service_role;
+
+do $$ begin
+  if exists (select 1 from pg_extension where extname = 'pg_cron') then
+    perform cron.unschedule(jobid) from cron.job where jobname = 'kr8_claim_photo_cleanup';
+    perform cron.schedule('kr8_claim_photo_cleanup', '17 20 * * *', 'select public.kr8_cleanup_kick()');
+  end if;
 end $$;
 
 commit;

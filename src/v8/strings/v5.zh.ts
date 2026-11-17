@@ -339,7 +339,7 @@ const T: Record<string, string> = {
     'That took too long. Try again in good light, face to the camera.': '时间太长了。请在光线充足处、面向镜头重试。',
     'The face check could not start on this phone. Try again, or try later on another phone.': '无法在此手机上开始人脸检查。请重试，或稍后用另一部手机试试。',
     'The face check runs on your phone. We never store a face scan or face measurements.': '人脸检查在你的手机上进行。我们从不保存人脸扫描或面部数据。',
-    'The check runs on your phone. To keep Kring one person, one account, we keep a face code made from your selfie (numbers, not a photo). Only the Kring team can use it.': '检查在你的手机上进行。为了让 Kring 保持一人一个账号，我们会保存一个由你的自拍生成的面部代码（是数字，不是照片），只有 Kring 团队可以使用。',
+    'The check runs on your phone. To keep Kring one person, one account, we keep a face code made from your selfie and from your card photo (numbers, not a photo). Only the Kring team can use it.': '检查在你的手机上进行。为了让 Kring 保持一人一个账号，我们会保存一个由你的自拍和卡片照片生成的面部代码（是数字，不是照片），只有 Kring 团队可以使用。',
     'We delete the face code with your account. If you received a prize, we keep it for one year so the same prize can’t be claimed twice.': '面部代码会随你的账号一起删除。如果你领过奖，我们会保存一年，防止同一个奖被领两次。',
     'This week': '本周',
     'Today': '今天',

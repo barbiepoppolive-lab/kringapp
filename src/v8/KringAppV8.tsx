@@ -99,7 +99,7 @@ import { TripPerks } from './V5Trip';
 // founder 17 Nov: hide café treats / stays; Deals = trip partners + "more deals coming soon"
 const DEALS_TRIP_ONLY = true;
 import { StayDo } from './V5StayDo';
-import { v5HandoffBoot, v5LogClient, v5MyVerification, v5SaveCardPrint, V5_AREAS } from './v5Live';
+import { v5CardPrintOk, v5HandoffBoot, v5LogClient, v5MyVerification, v5SaveCardPrint, V5_AREAS } from './v5Live';
 import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
 import type { V5Blocked, V5Card, V5FeedItem, V5Me, V5ReportReason, V5TagPlace, V5Thread } from './v5Live';
 import { V5_L, KX_L, kxArea, v5ErrText, loadV5Lang, v5LangReady } from './v5Strings';
@@ -2543,7 +2543,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     let ok = false;
     try { ok = !!src && localStorage.getItem(key) === '1'; } catch { /* ignore */ }
     // 0076: the card photo's face code (one person, one account), once per photo, in the background
-    const cardPrint = () => { void ensureCardPrint(src, { describe: (u) => loadImage(u).then(faceDescriptor), save: v5SaveCardPrint }); };
+    const cardPrint = () => { void ensureCardPrint(src, { describe: (u) => loadImage(u).then(faceDescriptor), save: v5SaveCardPrint, allowed: v5CardPrintOk }); };
     if (ok) { setPhotoFix(false); cardPrint(); return; }
     let gone = false;
     (async () => {

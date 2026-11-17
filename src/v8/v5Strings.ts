@@ -327,7 +327,7 @@ export const V5_L: Record<string, Record<string, string>> = {
     'That took too long. Try again in good light, face to the camera.': 'ใช้เวลานานเกินไป ลองใหม่ในที่สว่าง หันหน้าเข้ากล้อง',
     'The face check could not start on this phone. Try again, or try later on another phone.': 'เริ่มการตรวจใบหน้าบนโทรศัพท์นี้ไม่ได้ ลองใหม่ หรือลองภายหลังด้วยโทรศัพท์เครื่องอื่น',
     'The face check runs on your phone. We never store a face scan or face measurements.': 'การตรวจใบหน้าทำบนโทรศัพท์ของคุณ เราไม่เก็บภาพสแกนหรือข้อมูลลักษณะใบหน้า',
-    'The check runs on your phone. To keep Kring one person, one account, we keep a face code made from your selfie (numbers, not a photo). Only the Kring team can use it.': 'การตรวจทำบนโทรศัพท์ของคุณ เพื่อให้ กริ๊ง! เป็นหนึ่งคนต่อหนึ่งบัญชี เราเก็บรหัสใบหน้าที่สร้างจากเซลฟี่ของคุณ (เป็นตัวเลข ไม่ใช่รูป) มีแค่ทีม กริ๊ง! ที่ใช้ได้',
+    'The check runs on your phone. To keep Kring one person, one account, we keep a face code made from your selfie and from your card photo (numbers, not a photo). Only the Kring team can use it.': 'การตรวจทำบนโทรศัพท์ของคุณ เพื่อให้ กริ๊ง! เป็นหนึ่งคนต่อหนึ่งบัญชี เราเก็บรหัสใบหน้าที่สร้างจากเซลฟี่และรูปบนบัตรของคุณ (เป็นตัวเลข ไม่ใช่รูป) มีแค่ทีม กริ๊ง! ที่ใช้ได้',
     'We delete the face code with your account. If you received a prize, we keep it for one year so the same prize can’t be claimed twice.': 'เราลบรหัสใบหน้าพร้อมบัญชีของคุณ ถ้าคุณเคยได้รับรางวัล เราเก็บไว้ 1 ปี เพื่อไม่ให้รับรางวัลเดิมซ้ำได้',
     'This week': 'สัปดาห์นี้',
     'Today': 'วันนี้',

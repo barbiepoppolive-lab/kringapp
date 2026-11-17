@@ -339,7 +339,7 @@ const T: Record<string, string> = {
     'That took too long. Try again in good light, face to the camera.': '時間がかかりすぎました。明るい場所でカメラに顔を向けて、もう一度お試しください。',
     'The face check could not start on this phone. Try again, or try later on another phone.': 'このスマホでは顔チェックを開始できませんでした。もう一度試すか、後で別のスマホでお試しください。',
     'The face check runs on your phone. We never store a face scan or face measurements.': '顔チェックはあなたのスマホ上で行われます。顔のスキャンや計測データは保存しません。',
-    'The check runs on your phone. To keep Kring one person, one account, we keep a face code made from your selfie (numbers, not a photo). Only the Kring team can use it.': 'チェックはあなたのスマホ上で行われます。Kring を1人1アカウントに保つため、自撮りから作った顔コード（写真ではなく数字）を保管します。使えるのは Kring チームだけです。',
+    'The check runs on your phone. To keep Kring one person, one account, we keep a face code made from your selfie and from your card photo (numbers, not a photo). Only the Kring team can use it.': 'チェックはあなたのスマホ上で行われます。Kring を1人1アカウントに保つため、自撮りとカード写真から作った顔コード（写真ではなく数字）を保管します。使えるのは Kring チームだけです。',
     'We delete the face code with your account. If you received a prize, we keep it for one year so the same prize can’t be claimed twice.': '顔コードはアカウントと一緒に削除します。賞を受け取った方は、同じ賞が二重に受け取られないよう1年間保管します。',
     'This week': '今週',
     'Today': '今日',

@@ -1,4 +1,10 @@
--- 0076 · Duplicate faces caught automatically (17 Nov 2026). WRITTEN, NOT APPLIED.
+-- 0076 · Duplicate faces caught automatically (17 Nov 2026).
+--
+-- CONSENT (founder decision 17 Nov, go-live): older members are NOT asked to consent again, so
+--   · no face code is ever made from a selfie taken under consent face-2026-11-10 (admin 'selfie' codes need >= face-2026-11-17);
+--   · a CARD-PHOTO face code is made only for a member who agreed to face-2026-11-17c (the Get-verified consent that names the
+--     card photo): kr8_save_card_print / kr8_admin_save_face_print('backfill-card') refuse everyone else, kr8_card_print_ok()
+--     tells the phone not to even compute one, and the admin "Backfill face codes" button is gone (its to-do list is filtered too).
 --
 -- WHAT WAS MISSED: member #53 "Pom" (2nd account of #30 "Pom Thanatp") sent two face checks; the founder caught it by eye.
 --   0066 compares a new face code with every OTHER member's face code, but members verified before 0066 (#24, #30, …) had
@@ -62,6 +68,21 @@ do $$ begin
 end $$;
 -- one card code per member is kept (a new photo replaces it); lookups by source
 create index if not exists kr8_face_prints_source_idx on public.kr8_face_prints (source, user_id);
+
+/** 17 Nov: has this member agreed to a face consent at least this version? (any of their Get-verified checks) */
+create or replace function public.kr8_face_consent_ok(p_user uuid, p_version text) returns boolean
+language sql stable security definer set search_path = public, pg_temp as $$
+  select exists (select 1 from public.kr8_verifications v where v.user_id = p_user and v.consent_version >= p_version)
+$$;
+revoke all on function public.kr8_face_consent_ok(uuid, text) from public, anon, authenticated;
+
+/** the phone asks before computing a card-photo face code: only members who agreed to face-2026-11-17c */
+create or replace function public.kr8_card_print_ok() returns boolean
+language sql stable security definer set search_path = public, pg_temp as $$
+  select auth.uid() is not null and public.kr8_rcfg('card_print_on', 1) = 1 and public.kr8_face_consent_ok(auth.uid(), 'face-2026-11-17c')
+$$;
+revoke all on function public.kr8_card_print_ok() from public, anon;
+grant execute on function public.kr8_card_print_ok() to authenticated;
 
 -- a face code that came from a live face check (not a card photo)
 create or replace function public.kr8_face_is_check(p_source text) returns boolean
@@ -197,6 +218,7 @@ begin
   if uid is null then raise exception 'KR8_SIGN_IN'; end if;
   if public.kr8_rcfg('card_print_on', 1) <> 1 then return false; end if;
   if not exists (select 1 from public.kr8_members where user_id = uid and coalesce(photo, '') <> '') then raise exception 'KR8_NO_CARD'; end if;
+  if not public.kr8_face_consent_ok(uid, 'face-2026-11-17c') then return false; end if;   -- 17 Nov: no card-photo consent → no code
   if not public.kr8_face_ok(p_desc) then raise exception 'KR8_BAD_FACE'; end if;
   if (select count(*) from public.kr8_face_prints where user_id = uid and source = 'card' and created_at > now() - interval '1 day') >= 10 then raise exception 'KR8_SLOW_DOWN'; end if;
   delete from public.kr8_face_prints where user_id = uid and source = 'card';
@@ -219,10 +241,13 @@ begin
   if not public.kr8_face_ok(p_desc) then raise exception 'KR8_BAD_FACE'; end if;
   if p_source = 'selfie' then
     if p_verification is null or not exists (select 1 from public.kr8_verifications where id = p_verification and user_id = p_user) then raise exception 'KR8_NO_VERIFICATION'; end if;
+    -- 17 Nov: never a code from a selfie taken under the older consent (face-2026-11-10 did not mention a face code)
+    if not exists (select 1 from public.kr8_verifications where id = p_verification and consent_version >= 'face-2026-11-17') then raise exception 'KR8_CONSENT_REQUIRED'; end if;
     if not exists (select 1 from public.kr8_face_prints where verification_id = p_verification and source in ('selfie', 'verify', 'backfill-selfie')) then
       insert into public.kr8_face_prints (user_id, descriptor, source, verification_id) values (p_user, p_desc, 'selfie', p_verification);
     end if;
   elsif p_source = 'backfill-card' then
+    if not public.kr8_face_consent_ok(p_user, 'face-2026-11-17c') then raise exception 'KR8_CONSENT_REQUIRED'; end if;
     delete from public.kr8_face_prints where user_id = p_user and source = 'backfill-card';
     insert into public.kr8_face_prints (user_id, descriptor, source) values (p_user, p_desc, 'backfill-card');
   else
@@ -259,10 +284,11 @@ begin
     'cards', coalesce((select jsonb_agg(jsonb_build_object('user_id', m.user_id, 'member_no', m.member_no, 'photo', m.photo) order by m.member_no)
                from public.kr8_members m
                where coalesce(m.photo, '') <> '' and not public.kr8_is_test_member(m.user_id) and not public.kr8_is_team(m.user_id)
+                 and public.kr8_face_consent_ok(m.user_id, 'face-2026-11-17c')
                  and not exists (select 1 from public.kr8_face_prints f where f.user_id = m.user_id and f.source in ('card', 'backfill-card'))), '[]'::jsonb),
     'selfies', coalesce((select jsonb_agg(jsonb_build_object('user_id', v.user_id, 'verification_id', v.id, 'selfie_path', v.selfie_path) order by v.created_at)
                from public.kr8_verifications v
-               where v.selfie_path is not null and v.selfie_deleted_at is null
+               where v.selfie_path is not null and v.selfie_deleted_at is null and v.consent_version >= 'face-2026-11-17'
                  and not exists (select 1 from public.kr8_face_prints f where f.verification_id = v.id)), '[]'::jsonb));
 end $$;
 revoke all on function public.kr8_admin_face_backfill_todo() from public, anon;

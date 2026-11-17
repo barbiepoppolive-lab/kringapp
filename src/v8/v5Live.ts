@@ -709,6 +709,10 @@ export async function v5SaveFacePrint(desc: Float32Array | null): Promise<boolea
 }
 /** 0076: the face code of the member's CURRENT card photo (one per member, team-only; only ever a "looks alike" flag).
  *  Resolves true when stored, false when the server has it switched off; throws on errors (the caller retries later). */
+/** 17 Nov: card-photo face codes only for members who agreed to consent face-2026-11-17c (false on any error / older server) */
+export async function v5CardPrintOk(): Promise<boolean> {
+  try { return (await rpc<boolean>('kr8_card_print_ok')) === true; } catch { return false; }
+}
 export async function v5SaveCardPrint(desc: Float32Array): Promise<boolean> {
   if (desc.length !== 128) throw new V5Error('BAD_FACE');
   return (await rpc<boolean>('kr8_save_card_print', { p_desc: Array.from(desc, (x) => Math.round(x * 1e6) / 1e6) })) === true;

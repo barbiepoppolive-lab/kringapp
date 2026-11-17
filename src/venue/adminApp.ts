@@ -2190,12 +2190,9 @@ async function dupsView() {
   let signed: Record<string, string> = {};
   if (paths.length) { const { data } = await (await v5Client()).storage.from('kr8-verify').createSignedUrls([...new Set(paths)], 600); for (const d of data || []) if (d.path && d.signedUrl) signed[d.path] = d.signedUrl; }
   const again = () => void dupsView();
-  const bf = btn('ghost', [ic('users'), 'Backfill face codes (card photos + selfies)'], async () => {
-    bf.setAttribute('disabled', '');
-    try { const r = await faceBackfill((t) => { bf.textContent = t; }); toast(`Face codes: ${r.done} made · ${r.noFace} no face · ${r.failed} failed`, { ms: 5000 }); again(); }
-    catch (e) { bf.removeAttribute('disabled'); toast(errText(e), { ms: 6000 }); }
-  }, { id: 'dupBackfill', style: 'margin-bottom:12px;width:100%' });
-  body.replaceChildren(bf, dupFlagBlock(ov.flagged || []) || '', dupBlock(clusters, signed, {
+  // 17 Nov (founder): no "Backfill face codes" button. It made codes for older members who never agreed to a card-photo / selfie
+  // face code (consent face-2026-11-10). Codes now come only from members who agreed (face-2026-11-17c); the server refuses the rest.
+  body.replaceChildren(dupFlagBlock(ov.flagged || []) || '', dupBlock(clusters, signed, {
     pay: async (h) => { try { await rpc('kr8_admin_release_claim', { p_claim: h.claim_id }); toast('Paid · the code goes out now (if in stock)', { ms: 3000 }); again(); } catch (e) { toast(errText(e), { ms: 6000 }); } },
     refuse: (h, giveBack) => rejectSheet(giveBack ? 'Refuse this claim for now' : 'Refuse and cancel the prize',
       giveBack ? 'The prize goes back to “Claim”. Nothing is paid.' : 'The prize is cancelled. Nothing is paid. The member is not told why.',

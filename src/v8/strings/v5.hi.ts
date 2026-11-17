@@ -339,7 +339,7 @@ const T: Record<string, string> = {
     'That took too long. Try again in good light, face to the camera.': 'बहुत समय लग गया। अच्छी रोशनी में, कैमरे की ओर चेहरा करके फिर कोशिश करें।',
     'The face check could not start on this phone. Try again, or try later on another phone.': 'इस फ़ोन पर फ़ेस जाँच शुरू नहीं हो सकी। फिर कोशिश करें या बाद में दूसरे फ़ोन पर।',
     'The face check runs on your phone. We never store a face scan or face measurements.': 'फ़ेस जाँच आपके फ़ोन पर होती है। हम कभी फ़ेस स्कैन या चेहरे का माप नहीं रखते।',
-    'The check runs on your phone. To keep Kring one person, one account, we keep a face code made from your selfie (numbers, not a photo). Only the Kring team can use it.': 'जाँच आपके फ़ोन पर होती है। Kring में एक व्यक्ति का एक ही अकाउंट रहे, इसलिए हम आपकी सेल्फ़ी से बना एक फ़ेस कोड रखते हैं (संख्याएँ, फ़ोटो नहीं)। इसे सिर्फ़ Kring टीम इस्तेमाल कर सकती है।',
+    'The check runs on your phone. To keep Kring one person, one account, we keep a face code made from your selfie and from your card photo (numbers, not a photo). Only the Kring team can use it.': 'जाँच आपके फ़ोन पर होती है। Kring में एक व्यक्ति का एक ही अकाउंट रहे, इसलिए हम आपकी सेल्फ़ी और कार्ड फ़ोटो से बना एक फ़ेस कोड रखते हैं (संख्याएँ, फ़ोटो नहीं)। इसे सिर्फ़ Kring टीम इस्तेमाल कर सकती है।',
     'We delete the face code with your account. If you received a prize, we keep it for one year so the same prize can’t be claimed twice.': 'आपका अकाउंट हटाने पर फ़ेस कोड भी हट जाता है। अगर आपको कोई इनाम मिला है, तो हम इसे एक साल रखते हैं ताकि वही इनाम दोबारा न लिया जा सके।',
     'This week': 'इस हफ़्ते',
     'Today': 'आज',

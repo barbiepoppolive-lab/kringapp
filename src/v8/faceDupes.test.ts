@@ -34,6 +34,16 @@ describe('card photo face code (phone)', () => {
     expect(await ensureCardPrint('y.jpg', { describe: async () => desc(), save: async () => true, store })).toBe('saved');
     expect(await ensureCardPrint(null, { describe: async () => desc(), save: async () => true, store })).toBe('no-face');
   });
+  it('17 Nov: no card-photo consent (older members) → no face work and nothing sent; asked again next time', async () => {
+    const store = memStore();
+    const describe_ = vi.fn(async () => desc());
+    const save = vi.fn(async () => true);
+    expect(await ensureCardPrint('z.jpg', { describe: describe_, save, store, allowed: async () => false })).toBe('off');
+    expect(await ensureCardPrint('z.jpg', { describe: describe_, save, store, allowed: async () => { throw new Error('old server'); } })).toBe('off');
+    expect(describe_).not.toHaveBeenCalled();
+    expect(save).not.toHaveBeenCalled();
+    expect(await ensureCardPrint('z.jpg', { describe: describe_, save, store, allowed: async () => true })).toBe('saved');
+  });
   it('the memo key is short even for a 50 KB data URL, and ignores ?query', () => {
     const big = 'data:image/jpeg;base64,' + 'A'.repeat(50000);
     expect(photoKey(big).length).toBeLessThan(40);
@@ -42,7 +52,7 @@ describe('card photo face code (phone)', () => {
   });
   it('the app runs it after the card photo check passes', () => {
     const app = readFileSync('src/v8/KringAppV8.tsx', 'utf8');
-    expect(app).toMatch(/ensureCardPrint\(src, \{ describe: \(u\) => loadImage\(u\)\.then\(faceDescriptor\), save: v5SaveCardPrint \}\)/);
+    expect(app).toMatch(/ensureCardPrint\(src, \{ describe: \(u\) => loadImage\(u\)\.then\(faceDescriptor\), save: v5SaveCardPrint, allowed: v5CardPrintOk \}\)/);
     expect(app).toMatch(/if \(ok\) \{ setPhotoFix\(false\); cardPrint\(\); return; \}/);
   });
 });

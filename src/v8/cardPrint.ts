@@ -1,12 +1,15 @@
 /**
  * 0076: every card photo gets a face code (numbers, not a photo) so a 2nd account with the same face is flagged for the
- * team, also for members who were verified before face codes existed. Runs on the phone after the card photo passed
- * checkProfilePhoto; once per photo (remembered in localStorage). Old members are covered the next time they open the app.
+ * team. Runs on the phone after the card photo passed checkProfilePhoto; once per photo (remembered in localStorage).
+ * 17 Nov (founder): ONLY for members who agreed to the face consent that names the card photo (face-2026-11-17c, asked in the
+ * Get-verified check). Older members are not asked again and get no card code: `allowed` says no → nothing is computed or sent.
  * Never throws and never blocks the member.
  */
 export interface CardPrintDeps {
   describe: (src: string) => Promise<Float32Array | null>;
   save: (desc: Float32Array) => Promise<boolean>;
+  /** has this member agreed to the card-photo face code? (server kr8_card_print_ok) Asked before any face work. */
+  allowed?: () => Promise<boolean>;
   store?: Pick<Storage, 'getItem' | 'setItem'> | null;
 }
 export type CardPrintResult = 'saved' | 'done-before' | 'no-face' | 'off' | 'error' | 'busy';
@@ -29,6 +32,7 @@ export async function ensureCardPrint(src: string | null | undefined, deps: Card
   running.add(key);
   const mark = (v: string) => { try { store?.setItem(key, v); } catch { /* ignore */ } };
   try {
+    if (deps.allowed && !(await deps.allowed().catch(() => false))) return 'off';   // no consent: nothing computed, nothing sent
     const d = await deps.describe(src);
     if (!d || d.length !== 128) { mark('none'); return 'no-face'; }
     const ok = await deps.save(d);

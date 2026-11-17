@@ -120,7 +120,7 @@ export function ClaimFace(props: { onDone: (face: Float32Array | null, photo?: B
         <>
           <ul className="kx-cf-tips">
             <li><TE th="มองกล้องตรง ๆ ให้หน้าอยู่ในวงรี" en="Look straight at the camera, face in the oval" /></li>
-            <li><TE th="เราเก็บรูปนี้ไว้ให้ทีม กริ๊ง! ตรวจเท่านั้น ไม่แสดงให้ใครเห็น" en="We keep this photo for the Kring team’s check only. Nobody else sees it" /></li>
+            <li><TE th="เราเก็บรูปนี้ไว้ 30 วันให้ทีม กริ๊ง! ตรวจ แล้วลบทิ้ง ไม่แสดงให้ใครเห็น" en="We keep this photo for 30 days for the Kring team’s check, then delete it. Nobody else sees it" /></li>
           </ul>
           <button type="button" className="kx-btn tall" id="kxClaimFaceStart" onClick={() => void start()}><TE th="เปิดกล้อง" en="Open camera" /></button>
           <button type="button" className="kx-cf-later" onClick={props.onCancel}><TE th="ย้อนกลับ" en="Back" /></button>

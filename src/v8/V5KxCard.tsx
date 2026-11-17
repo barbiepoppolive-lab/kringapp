@@ -27,6 +27,11 @@ export const SocialIcon = ({ kind, size }: { kind: Social; size?: number }) => (
 );
 
 const TH_RE = /[\u0E00-\u0E7F]/;
+/** 17 Nov (founder): the card badge stays English ("FOUNDING LOCAL"); in Thai mode it adds "· รุ่นแรก" (= first generation). Other languages: English only. */
+const foundingThai = (L: Tx) => TH_RE.test(L('New'));
+export function foundingBadge(L: Tx, no: number): string {
+  return `★ Founding Local${foundingThai(L) ? ' · รุ่นแรก' : ''} #${String(no).padStart(2, '0')}`;
+}
 /** "LV 1 LOCAL" in the member's language */
 export function levelLabel(L: Tx, n: number): string {
   return `LV ${n} ${L(LEVEL_KEY[Math.min(5, Math.max(1, n)) - 1]).toLocaleUpperCase()}`;
@@ -72,7 +77,7 @@ export function NeonCard(p: NeonCardProps) {
       {!p.photo ? <span className="kx-n2-ph" aria-hidden="true">{(p.name || '?').trim().charAt(0).toUpperCase() || '?'}</span> : null}
       <div className="kx-n2-top"><span className={`kx-lv${TH_RE.test(levelLabel(p.L, p.level)) ? ' thai' : ''}`}>⚡ {levelLabel(p.L, p.level)}</span><span className="kx-id">{memberNo(p.no)}</span></div>
       <div className="kx-n2-b">
-        {p.founding ? <div className={`kx-fl${TH_RE.test(p.L('Founding Local')) ? ' thai' : ''}`} data-founding={p.founding}>★ {p.L('Founding Local')} #{String(p.founding).padStart(2, '0')}</div> : null}
+        {p.founding ? <div className={`kx-fl${foundingThai(p.L) ? ' thai' : ''}`} data-founding={p.founding}>{foundingBadge(p.L, p.founding)}</div> : null}
         <div className="kx-nm">{p.name || ' '}</div>
         {p.sub ? <div className="kx-sub">{p.sub}</div> : null}
         {p.gender ? <div className="kx-grow"><GenderChip L={p.L} gender={p.gender} /></div> : null}
