@@ -13,6 +13,23 @@ SITE = 'https://kringapp.com'
 DATE = '2026-11-17'
 DATE_TH = '17 พ.ย. 2026'
 DATE_EN = '17 Nov 2026'
+TH_MON = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']
+EN_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+def adate(a):
+    # Article key date='YYYY-MM-DD' (optional): its own publish date; older articles use DATE
+    return a.get('date', DATE)
+def dlabel(d, lang):
+    y, m, dd = d.split('-')
+    return '%d %s %s' % (int(dd), (TH_MON if lang == 'th' else EN_MON)[int(m) - 1], y)
+# Typographic hero (article key hero='type'): no photo, big type in the site colours. Extra CSS only on those pages.
+TYPE_CSS = '''
+.hero-t{background:radial-gradient(110% 70% at 100% 0%,rgba(255,79,216,.34),transparent 58%),radial-gradient(90% 60% at 0% 45%,rgba(63,240,255,.16),transparent 62%),#07060c}
+.hero-t::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(255,255,255,.035) 0 2px,transparent 2px 14px);-webkit-mask:linear-gradient(180deg,#000,transparent 70%);mask:linear-gradient(180deg,#000,transparent 70%)}
+.hero-t::after{background:linear-gradient(180deg,rgba(7,6,12,0) 34%,rgba(7,6,12,.72) 66%,#07060c 97%)}
+.hero-t{flex-direction:column;justify-content:flex-end;align-items:stretch}.hero-t .in{padding-top:6px}
+.tg{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-end;padding:78px 20px 0;max-width:760px;margin:0 auto;width:100%;pointer-events:none}
+.tg b{font:800 clamp(96px,30vw,230px)/.86 Unbounded,sans-serif;letter-spacing:-.05em;background:linear-gradient(135deg,#ff4fd8 10%,#8b5cff 55%,#3ff0ff);-webkit-background-clip:text;background-clip:text;color:transparent;padding-right:.04em}
+.tg span{margin-top:12px;font:700 11.5px/1.4 "Plus Jakarta Sans","Noto Sans Thai",sans-serif;letter-spacing:.22em;color:rgba(255,255,255,.72);text-transform:uppercase;text-align:right}html[lang=th] .tg span{font-size:13px;letter-spacing:.02em}'''
 
 def load():
     arts = []
@@ -162,7 +179,7 @@ def path(lang, slug=None):
     p = '/blog/' if lang == 'th' else '/en/blog/'
     return p + (slug + '/' if slug else '')
 
-def head(lang, title, desc, canon_th, canon_en, ld, img, ogtype='article'):
+def head(lang, title, desc, canon_th, canon_en, ld, img, ogtype='article', css_extra=''):
     me = canon_th if lang == 'th' else canon_en
     return '''<!doctype html>
 <html lang="%s">
@@ -184,7 +201,7 @@ def head(lang, title, desc, canon_th, canon_en, ld, img, ogtype='article'):
 </head>
 <body>
 ''' % (lang, E(title), E(desc), SITE, me, SITE, canon_th, SITE, canon_en, SITE, canon_th, ogtype, T[lang]['locale'], SITE, me,
-       E(title), E(desc), SITE, img, E(title), E(title), E(desc), SITE, img, json.dumps(ld, ensure_ascii=False, separators=(',', ':')), CSS)
+       E(title), E(desc), SITE, img, E(title), E(title), E(desc), SITE, img, json.dumps(ld, ensure_ascii=False, separators=(',', ':')), CSS + css_extra)
 
 def foot(lang):
     return '<footer>%s<span style="flex:1 0 100%%;padding:8px">© 2026 %s</span></footer>\n</body>\n</html>\n' % (
@@ -201,9 +218,15 @@ def words(lang, text):
 def build_article(a, lang, arts_by_slug):
     L = a[lang]; t = T[lang]; slug = a['slug']
     canon_th, canon_en = path('th', slug), path('en', slug)
-    hk = HERO.get(slug, a['img'])
-    img = IMG[hk]
-    alt = IMG_ALT[hk][0 if lang == 'th' else 1]
+    d = adate(a); dl = dlabel(d, lang); dl0 = DATE_TH if lang == 'th' else DATE_EN
+    typ = a.get('hero') == 'type'
+    if typ:
+        og = a['og']; ldimg = [SITE + og]
+    else:
+        hk = HERO.get(slug, a['img'])
+        img = IMG[hk]
+        alt = IMG_ALT[hk][0 if lang == 'th' else 1]
+        og = OG[hk]; ldimg = [SITE + img[0], SITE + OG[hk]]
     body = body_html(L['body'])
     allt = plain(L['body']) + ' ' + ' '.join(q + ' ' + x for q, x in L['faq'])
     mins = max(3, round(words(lang, allt) / 220))
@@ -214,18 +237,23 @@ def build_article(a, lang, arts_by_slug):
             {'@type': 'ListItem', 'position': 2, 'name': t['blog'], 'item': SITE + path(lang)},
             {'@type': 'ListItem', 'position': 3, 'name': L['h1'], 'item': SITE + path(lang, slug)}]},
         {'@type': 'Article', 'headline': L['h1'][:110], 'description': L['desc'], 'inLanguage': lang,
-         'datePublished': DATE, 'dateModified': DATE, 'image': [SITE + img[0], SITE + OG[hk]],
+         'datePublished': d, 'dateModified': d, 'image': ldimg,
          'author': {'@type': 'Organization', 'name': 'Kring', 'url': SITE + '/about'},
          'publisher': {'@type': 'Organization', 'name': 'Kring', 'url': SITE + '/', 'logo': {'@type': 'ImageObject', 'url': SITE + '/icon-512.png'}},
          'mainEntityOfPage': SITE + path(lang, slug)},
         {'@type': 'FAQPage', 'inLanguage': lang, 'mainEntity': [
             {'@type': 'Question', 'name': q, 'acceptedAnswer': {'@type': 'Answer', 'text': plain(x)}} for q, x in L['faq']]}]}
-    o = head(lang, L['title'], L['desc'], canon_th, canon_en, ld, OG[hk])
+    o = head(lang, L['title'], L['desc'], canon_th, canon_en, ld, og, css_extra=TYPE_CSS if typ else '')
     o += '<div class="top"><a class="logo" href="%s">กริ๊ง<i>!</i></a><a class="lg" href="%s" hreflang="%s">%s</a></div>\n' % (
         '/' if lang == 'th' else '/en/', canon_en if lang == 'th' else canon_th, 'en' if lang == 'th' else 'th', t['switch'])
-    o += '<header class="hero"><img alt="%s" fetchpriority="high" height="%d" src="%s" width="%d"/><div class="in"><p class="bc"><a href="%s">%s</a> › <a href="%s">%s</a></p><h1>%s</h1><p class="lead">%s</p><p class="meta"><a href="%s">%s</a> · %s · %s</p></div></header>\n' % (
+    if typ:
+        tg = a['typo'][lang]
+        o += '<header class="hero hero-t"><div class="tg" aria-hidden="true"><b>%s</b><span>%s</span></div><div class="in"><p class="bc"><a href="%s">%s</a> › <a href="%s">%s</a></p><h1>%s</h1><p class="lead">%s</p><p class="meta"><a href="%s">%s</a> · %s · %s</p></div></header>\n' % (
+            E(tg[0]), E(tg[1]), '/' if lang == 'th' else '/en/', t['home'], path(lang), t['blog'], E(L['h1']), inline(L['lead']), t['about'], t['by'], t['upd'].replace(dl0, dl), t['read'] % mins)
+    else:
+      o += '<header class="hero"><img alt="%s" fetchpriority="high" height="%d" src="%s" width="%d"/><div class="in"><p class="bc"><a href="%s">%s</a> › <a href="%s">%s</a></p><h1>%s</h1><p class="lead">%s</p><p class="meta"><a href="%s">%s</a> · %s · %s</p></div></header>\n' % (
         E(alt), img[2], img[0], img[1], '/' if lang == 'th' else '/en/', t['home'], path(lang), t['blog'], E(L['h1']), inline(L['lead']), t['about'], t['by'], t['upd'], t['read'] % mins)
-    o += '<main>\n<p class="fresh">✓ %s</p>\n<article>\n' % (t['fresh'][a.get('recheck', 'quarterly')] % (DATE_TH if lang == 'th' else DATE_EN)) + body + '\n'
+    o += '<main>\n<p class="fresh">✓ %s</p>\n<article>\n' % (t['fresh'][a.get('recheck', 'quarterly')] % dl) + body + '\n'
     k = L['cta']
     o += '<aside class="kr"><h2>%s</h2><p>%s</p><a class="btn" href="%s">%s →</a><small>%s · %s</small></aside>\n' % (E(k[0]), inline(k[1]), E(join), t['open'], t['disc'], t['sub'])
     o += '<section><h2>%s</h2>%s</section>\n' % (t['faq'], ''.join('<details><summary>%s</summary><p>%s</p></details>' % (E(q), inline(x)) for q, x in L['faq']))
@@ -242,7 +270,7 @@ def build_article(a, lang, arts_by_slug):
     o += '<section class="src"><h2>%s</h2><ol>%s</ol><p class="note">%s</p></section>\n' % (t['src'], ''.join('<li><a href="%s" rel="noopener nofollow">%s</a></li>' % (E(u), E(n)) for n, u in a.get('sources_' + lang, a['sources'])), t['srcnote'])
     nx = a.get('next')
     nxl = (nx[0 if lang == 'th' else 1] if nx else k[0])
-    o += '<aside class="about"><h2 style="font-size:16px">%s</h2><p>%s</p><p class="nx"><a href="%s">%s →</a></p></aside>\n' % (t['abouth'], t['abouttxt'], E(join), E(nxl))
+    o += '<aside class="about"><h2 style="font-size:16px">%s</h2><p>%s</p><p class="nx"><a href="%s">%s →</a></p></aside>\n' % (t['abouth'], t['abouttxt'].replace(dl0, dl), E(join), E(nxl))
     o += '</main>\n' + foot(lang)
     return o, words(lang, allt)
 
@@ -263,7 +291,7 @@ def build_index(lang, arts):
             {'@type': 'ListItem', 'position': 1, 'name': 'Kring', 'item': SITE + ('/' if lang == 'th' else '/en/')},
             {'@type': 'ListItem', 'position': 2, 'name': t['blog'], 'item': SITE + path(lang)}]},
         {'@type': 'Blog', 'name': title, 'inLanguage': lang, 'url': SITE + path(lang),
-         'blogPost': [{'@type': 'BlogPosting', 'headline': a[lang]['h1'][:110], 'url': SITE + path(lang, a['slug']), 'datePublished': DATE} for a in arts]}]}
+         'blogPost': [{'@type': 'BlogPosting', 'headline': a[lang]['h1'][:110], 'url': SITE + path(lang, a['slug']), 'datePublished': adate(a)} for a in arts]}]}
     o = head(lang, title, desc, path('th'), path('en'), ld, '/assets/hoods/og-bangkok.jpg', 'website')
     o += '<div class="top"><a class="logo" href="%s">กริ๊ง<i>!</i></a><a class="lg" href="%s" hreflang="%s">%s</a></div>\n' % (
         '/' if lang == 'th' else '/en/', path('en') if lang == 'th' else path('th'), 'en' if lang == 'th' else 'th', t['switch'])
@@ -271,7 +299,7 @@ def build_index(lang, arts):
         E(IMG_ALT['bangkok'][0 if lang == 'th' else 1]), '/' if lang == 'th' else '/en/', t['home'], h1, E(lead))
     o += '<main>\n'
     for gk, gname in GROUPS[lang]:
-        items = [a for a in arts if a['group'] == gk]
+        items = sorted([a for a in arts if a['group'] == gk], key=adate, reverse=True)  # stable: newest first, older keep their order
         if not items: continue
         o += '<section><h2>%s</h2><ul class="cards">%s</ul></section>\n' % (E(gname), ''.join(
             '<li><a href="%s"><b>%s</b><span>%s</span></a></li>' % (path(lang, a['slug']), E(a[lang]['h1']), E(a[lang]['card'])) for a in items))
@@ -290,7 +318,7 @@ BANNED = [r'\bmeet', r'\bguides?\b', r'\bguidebooks?\b', r'\btours?\b', r'\bhost
           r'alcohol', r'\bgifts?\b', r'\bwallets?\b', r'\bcredits?\b', r'\blucky\b', r'\bdraws?\b', r'\bdrawn\b', r'temples?', r'\brates?\b',
           r'\bstars?\b', r'\bcoins?\b', r'\blaunch', r'dating', r'go together', r'\bbeer\b', r'\bwine\b', r'cocktail',
           'ลุ้น', 'โฮสต์', 'ไกด์', 'ทัวร์', 'ครีเอเตอร์', 'ของขวัญ', 'วอลเล็ท', 'กระเป๋าเงิน', 'เครดิต', 'เหรียญ', 'จับฉลาก', 'นำโชค',
-          'รีวิว', 'แอลกอฮอล์', 'เหล้า', 'เบียร์', r'(?<!ห)วัด', 'นัดเจอ', 'เดท', 'ไปด้วยกัน', 'อัญมณี', 'คราฟต์เบียร์']
+          'รีวิว', 'แอลกอฮอล์', 'เหล้า', 'เบียร์', r'(?<!ห)วัด(?!มังกร|ปทุมคงคา)', 'นัดเจอ', 'เดท', 'ไปด้วยกัน', 'อัญมณี', 'คราฟต์เบียร์']
 
 def check(arts):
     bad = 0
@@ -347,10 +375,11 @@ def main():
         d = os.path.join(R, path(lang).strip('/')); os.makedirs(d, exist_ok=True)
         open(os.path.join(d, 'index.html'), 'w', encoding='utf-8').write(build_index(lang, arts))
     sm = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">']
-    for slug in [None] + [a['slug'] for a in arts]:
+    newest = max(adate(a) for a in arts)
+    for slug, lm in [(None, newest)] + [(a['slug'], adate(a)) for a in arts]:
         for lang in ('th', 'en'):
             sm.append('  <url>\n    <loc>%s%s</loc>\n    <lastmod>%s</lastmod>\n    <xhtml:link rel="alternate" hreflang="th" href="%s%s"/>\n    <xhtml:link rel="alternate" hreflang="en" href="%s%s"/>\n    <xhtml:link rel="alternate" hreflang="x-default" href="%s%s"/>\n  </url>' % (
-                SITE, path(lang, slug), DATE, SITE, path('th', slug), SITE, path('en', slug), SITE, path('th', slug)))
+                SITE, path(lang, slug), lm, SITE, path('th', slug), SITE, path('en', slug), SITE, path('th', slug)))
     sm.append('</urlset>\n')
     open(os.path.join(R, 'sitemap-blog.xml'), 'w', encoding='utf-8').write('\n'.join(sm))
     # Same blog entries inside the main sitemap.xml too, between markers (replaced on every build)
