@@ -8,7 +8,7 @@
 import React, { useEffect, useState } from 'react';
 import './kx.css';
 import { countdown, fmtN, mathLines, weekEnd } from './kxLogic';
-import { kxBreakdown, kxRanking, kxRules, type KxBreakdown, type KxGap, type KxRanking, type KxRankRow } from './v5Kx';
+import { kxBreakdown, kxRanking, kxRules, kxSeatsLeft, type KxBreakdown, type KxGap, type KxRanking, type KxRankRow } from './v5Kx';
 import { RingGlyph } from './V5KxCard';
 import { KX_L, V5_L } from './v5Strings';
 import { signReelPaths } from './v5Reel';
@@ -147,6 +147,22 @@ export const isLastHours = (now = Date.now(), end = weekEnd(now)) => end - now >
  * Ranks 4–8 glass cards with the prize in gold, "needs 25" under the floor; 9–10 the same cards without a prize.
  * Prizes, floor and paid ranks all come from kr8_weekly_ranking. No ▲/▼: the server keeps no daily snapshot to compare with.
  */
+/** "37 of 50 paid seats left" (Founding Local seats, from kr8_seats_left). Hidden when unknown, off or full. Never a voucher count. */
+export const PAID_SEATS = 50;
+export function SeatsLine(props: { L: Tx; Lf: Txf; lang: string; left: number | null | undefined }) {
+  const { left } = props;
+  if (typeof left !== 'number' || !Number.isFinite(left) || left <= 0) return null;
+  const n = String(Math.min(left, PAID_SEATS)), of = String(PAID_SEATS);
+  const en = enLf('{0} of {1} paid seats left', n, of);
+  return (
+    <p className="rka-seats" id="kxSeatsLeft" data-left={n}>
+      {props.lang === 'th'
+        ? <><span lang="th">{thLf('{0} of {1} paid seats left', n, of)}</span><small lang="en">{en}</small></>
+        : <span lang={props.lang}>{props.lang === 'en' ? en : props.Lf('{0} of {1} paid seats left', n, of)}</span>}
+    </p>
+  );
+}
+
 export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: string | null; myPhoto: string | null; myName: string; myId: string | null;
   onBack: () => void; onPerson: (id: string) => void; onPost: () => void; onShare: (reel: string) => void;
   /** 0066: not face-verified yet → a small nudge under my photo (everyone still shows on the board) */
@@ -170,6 +186,12 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
     if (props.myId) Promise.resolve(kxBreakdown(props.myId)).then((b) => { if (!dead) setBestReel(b?.reels?.[0]?.post_id || null); }).catch(() => undefined);
     return () => { dead = true; };
   }, [rv, props.myId]);
+  const [seatsLeft, setSeatsLeft] = useState<number | null>(null);
+  useEffect(() => {
+    let dead = false;
+    Promise.resolve(kxSeatsLeft()).then((n) => { if (!dead) setSeatsLeft(typeof n === 'number' ? n : null); }).catch(() => undefined);
+    return () => { dead = true; };
+  }, []);
   useEffect(() => {
     let dead = false;
     kxRanking('all').then((d) => { if (!dead) setData(d); }).catch(() => { if (!dead) setErr(true); });
@@ -222,6 +244,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
         <div className="rka-tt"><h1>{L('Weekly Ranking')}</h1></div>
         <span className={`rka-cd${hot ? ' hot' : ''}`} id="kxCountdown" data-hot={hot ? '1' : '0'}><i aria-hidden="true" />{Lf('Ends {0}', props.lang === 'th' ? countdown(now, end).replace(/^(\d+)d /, '$1 วัน ') : countdown(now, end))}</span>
       </div>
+      <SeatsLine L={L} Lf={Lf} lang={props.lang} left={seatsLeft} />
       {rv && wr ? <WinEntry v={rv} lang={props.lang} total={wr.prizes.reduce((a, b) => a + b, 0)} seats={wr.prizes.length} onOpen={() => setWin(true)} /> : null}
       {data === null && !err ? <p className="kx-empty pad">…</p> : err ? <p className="kx-empty pad">{L('Couldn’t reach Kring. Check your connection and try again.')}</p> : (
         <>

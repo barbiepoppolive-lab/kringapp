@@ -600,5 +600,6 @@ const T: Record<string, string> = {
   'Take selfie': '셀카 찍기',
   'Getting ready… {0}%': '준비 중… {0}%',
   'Use your real face in front of the camera, not a photo or a screen.': '사진이나 화면이 아니라 실제 얼굴을 카메라에 보여 주세요.',
+  '{0} of {1} paid seats left': '상금 자리 {1}개 중 {0}개 남음',
 };
 export default T;
