@@ -13,7 +13,7 @@ const KEY = 'kr8_admin_view';
 /** Read-only database calls the admin view may make. Everything else (likes, saves, hellos, views, opens, touch, logs…) is refused. */
 export const ADMIN_VIEW_READS: ReadonlySet<string> = new Set([
   'kr8_admin_view_ok', 'kr8_is_admin', 'kr8_admin_reels',
-  'kr8_me', 'kr8_people', 'kr8_profile', 'kr8_feed', 'kr8_feed_extras', 'kr8_member_reels', 'kr8_reel_people', 'kr8_reel_awards_list',
+  'kr8_me', 'kr8_people', 'kr8_profile', 'kr8_feed', 'kr8_feed_ranked', 'kr8_feed_extras', 'kr8_member_reels', 'kr8_reel_people', 'kr8_reel_awards_list',
   'kr8_follow_list', 'kr8_place_page', 'kr8_places_search', 'kr8_places_search2', 'kr8_tag_places', 'kr8_recent_places',
   'kr8_ask_feed', 'kr8_ask_thread', 'kr8_inbox', 'kr8_thread_messages', 'kr8_thread_translations',
   'kr8_weekly_ranking', 'kr8_top10', 'kr8_score_breakdown', 'kr8_rings_rules', 'kr8_reward_start', 'kr8_recent_claims',

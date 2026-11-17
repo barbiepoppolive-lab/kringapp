@@ -431,7 +431,7 @@ export async function v5People(): Promise<V8Person[]> {
     here: r.here === true,
   }));
 }
-interface FeedRow { id: string; kind: 'photo' | 'plan' | 'ask' | 'reel'; area: string; body: string; photo: string | null; event_id: string | null; here: boolean; created_at: string;
+export interface FeedRow { id: string; kind: 'photo' | 'plan' | 'ask' | 'reel'; area: string; body: string; photo: string | null; event_id: string | null; here: boolean; created_at: string;
   video_path?: string | null; poster_path?: string | null; reel_status?: 'pending' | 'approved' | null;
   author_id: string | null; author_name: string; author_photo: string | null; author_langs: string[]; author_who: string; mine: boolean | null;
   answers: { id: string; body: string; name: string; who: string; photo: string | null }[]
@@ -498,8 +498,32 @@ async function v5FeedOnce(): Promise<V5FeedItem[]> {
     const d = await p;
     if (d) return mapFeed(d.rows, await signedFor(d.rows, d.signed, d.at, d.ttl));
   }
-  const all = await rpcLite<FeedRow>('kr8_feed', { p_area: null, p_limit: 60 }, FEED_COLS, [{ id: 'author_id', photo: 'author_photo' }, { id: 'id', photo: 'photo' }]);
+  const all = await v5FeedRows();
   return mapFeed(all || [], await signedFor(all || [], null));
+}
+/** 0085 ranked feed (17 Nov): one seed per app session, so the order stays put while scrolling and paging, and a new visit
+ *  gets a slightly different mix. Kept in sessionStorage (per tab); without it, one seed for this page load. */
+let seedMem: string | null = null;
+export function v5FeedSeed(): string {
+  if (seedMem) return seedMem;
+  try {
+    const old = sessionStorage.getItem('kr8-feed-seed');
+    if (old && /^[a-z0-9]{6,32}$/.test(old)) return (seedMem = old);
+  } catch { /* private mode: page-load seed */ }
+  seedMem = Math.random().toString(36).slice(2, 12).padEnd(8, '0');
+  try { sessionStorage.setItem('kr8-feed-seed', seedMem); } catch { /* ignore */ }
+  return seedMem;
+}
+/** for tests */ export const _resetFeedSeed = () => { seedMem = null; };
+const FEED_PHOTOS: PhotoSpec[] = [{ id: 'author_id', photo: 'author_photo' }, { id: 'id', photo: 'photo' }];
+/** Ranked order from kr8_feed_ranked; the old newest-first kr8_feed if that call is missing or fails (e.g. before 0085 is applied). */
+export async function v5FeedRows(): Promise<FeedRow[]> {
+  try {
+    return await rpcLite<FeedRow>('kr8_feed_ranked', { p_area: null, p_limit: 60, p_offset: 0, p_seed: v5FeedSeed() }, FEED_COLS, FEED_PHOTOS);
+  } catch (e) {
+    if (v5ErrCode(e) === 'OFFLINE') throw e;
+    return rpcLite<FeedRow>('kr8_feed', { p_area: null, p_limit: 60 }, FEED_COLS, FEED_PHOTOS);
+  }
 }
 function mapFeed(all: FeedRow[], signed: Record<string, string>): V5FeedItem[] {
   // Reels-only feed (founder 9 Nov): photo posts are no longer made; old ones still show. Reels need signed links.
