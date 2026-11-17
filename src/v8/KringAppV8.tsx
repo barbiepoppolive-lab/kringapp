@@ -129,6 +129,8 @@ import { AskSwitch } from './V5AskSwitch';
 import { createAskApi, type AskPerson } from './askThai';
 import { lazyPart, prefetchParts } from './lazyPart';
 import { PrizeBanner } from './V5PrizeBanner';
+import { NextStepCard } from './V5NextStep';
+import { hideNextStep, nextStepHidden, pickNextStep } from './nextStep';
 import './kx.css';
 import { fmtN as kxFmtN } from './kxLogic';
 // 16 Nov perf 2: not needed for the first screen, so downloaded separately (see lazyPart)
@@ -2810,6 +2812,38 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [live, v5Uid, !!v5Card, adminView]);
   useEffect(() => { if (live && v5Uid && (v5Card || adminView) && tab === 'feed') kxLoadWeek(); }, [tab]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // 17 Nov "Your next step": the one thing to do next (Feed pill + top of Me), from my Reels, prizes, claims and verified.
+  // Reels + rewards load quietly once signed in, and again when Feed / Me opens (at most once a minute).
+  const [nextHideTick, setNextHideTick] = useState(0);
+  const nextAt = useRef(0);
+  useEffect(() => {
+    if (!live || !v5Uid || !v5Card || (tab !== 'feed' && tab !== 'me')) return;
+    if (Date.now() - nextAt.current < 60_000) return;
+    nextAt.current = Date.now();
+    if (tab === 'feed' || goMine === null) goLoadMine();
+    kxMyRewards().then(setKxRewards).catch(() => { nextAt.current = 0; });
+    if (!v5Card.verified && !meProfile?.verified) v5MyVerification().then((v) => setVerifyPending(v?.status === 'pending')).catch(() => undefined);
+  }, [live, v5Uid, !!v5Card, tab]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const nextStep = (() => {
+    if (!live || !signedIn || !v5Uid || adminView) return null;
+    const s = pickNextStep({
+      hasCard: !!v5Card, reels: goMine, prizes: kxRewards?.prizes ?? null, claims: kxRewards?.claims ?? null,
+      verified: !!(meProfile?.verified || v5Card?.verified), verifyPending,
+      foundingLeft: kxRewards?.founding_left ?? kxMe?.founding_left ?? 0, foundingThb: kxMe?.founding_thb ?? 100,
+      rings: kxWeek?.me?.rings ?? kxMe?.week ?? 0, floor: kxWeek?.floor || kxRewards?.floor || 25,
+    });
+    void nextHideTick;
+    return s && !nextStepHidden(v5Uid, s.kind) ? s : null;
+  })();
+  const nextGo = (where: 'feed' | 'me') => {
+    const s = nextStep;
+    if (!s) return;
+    if (s.kind === 'reel' || s.kind === 'retry') kxPostAt();
+    else if (s.kind === 'claim' && s.prize) { setKxPrizeSel(s.prize); void kxLoadRewards(); setSheet('claim'); }
+    else if (s.kind === 'verify') setSheet('verify');
+    else if (s.kind === 'climb') { if (where === 'feed') setTab('me'); setSheet('ranking'); }
+  };
+  const nextHide = () => { if (nextStep) { hideNextStep(v5Uid, nextStep.kind); setNextHideTick((n) => n + 1); } };
   // "Online" = opened the app in the last 5 minutes
   // 0061: the admin's own ghost card shows one line on Me (the database already hides it from everyone else)
   const [v5Ghost, setV5Ghost] = useState(false);
@@ -3911,7 +3945,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
         {/* ==================== 1. FEED SCREEN ==================== */}
         <section
-          className={`v8-screen ${tab === 'feed' ? 'active' : ''} at-has-sw${feedMode === 'ask' ? ' at-on' : ''}`}
+          className={`v8-screen ${tab === 'feed' ? 'active' : ''} at-has-sw${feedMode === 'ask' ? ' at-on' : ''}${feedMode !== 'ask' && nextStep ? ' nx-on' : ''}`}
           id="s-feed"
           aria-label={L('Feed')}
         >
@@ -3992,7 +4026,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <AskThaiView L={L} api={askApi} me={askMeRef.current} areas={V5_AREAS} areaLabel={(a) => kxArea(lang, a, L)}
               defaultArea={(live && v5Card?.area) || 'Bangkok'} need={requireSignInForAction} toast={showToast} />
           )}
-          {PRIZE_TICKER_ON_FEED && feedMode !== 'ask' && live && signedIn && v5Card && v5Uid && kxWeek ? (
+          {feedMode !== 'ask' && nextStep ? (
+            <NextStepCard step={nextStep} variant="pill" lang={lang} L={L} Lf={Lf} onGo={() => nextGo('feed')} onHide={nextHide} />
+          ) : PRIZE_TICKER_ON_FEED && feedMode !== 'ask' && live && signedIn && v5Card && v5Uid && kxWeek ? (
             <PrizeBanner variant="ticker" lang={lang} uid={v5Uid} week={kxWeek} hideTick={prizeHideTick} onHide={() => setPrizeHideTick((n) => n + 1)}
               onOpen={() => { setTab('me'); setSheet('ranking'); }} />
           ) : null}
@@ -4692,6 +4728,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onReel={openReelFromProfile}
               onPost={() => kxPostAt()}
               onVerify={() => setSheet('verify')}
+              nextSlot={nextStep ? <div className="nx-cardwrap"><NextStepCard step={nextStep} variant="card" lang={lang} L={L} Lf={Lf} onGo={() => nextGo('me')} onHide={nextHide} /></div> : null}
               gender={shownGender(v5Card)}
               onReplay={() => { void coachReplay(coachRef.current, true).then(() => { setTab('feed'); showToast(L('Intro is on again')); }); }}
               reelsSlot={(

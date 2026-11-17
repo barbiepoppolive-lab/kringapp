@@ -526,5 +526,20 @@ const T: Record<string, string> = {
     'Yes, show them': '好，显示',
     'Your Reels can now show on kringapp.com': '你的 Reel 现在可以在 kringapp.com 上显示',
     'Your Reels stay in the app only': '你的 Reel 只留在应用内',
+    // 17 Nov "Your next step"
+    'Your next step': '你的下一步',
+    'Post your first Reel, get {0}': '发布第一条 Reel，得 {0}',
+    'Post again': '再发一次',
+    'We’re checking your Reel': '我们正在审核你的 Reel',
+    'Claim your {0}': '领取你的 {0}',
+    'Claim': '领取',
+    'Verify your face to get your code': '验证面部以获取兑换码',
+    'Verify': '验证',
+    'Climb this week’s board': '冲上本周排行榜',
+    'See board': '查看排行',
+    'Post': '发布',
+    '{0} Rings · {1} more to {2}': '{0} 枚 Ring · 还差 {1} 枚到 {2}',
+    '{0} Rings · {1} reached': '{0} 枚 Ring · 已达到 {1}',
+    'Hide for a day': '隐藏一天',
 };
 export default T;

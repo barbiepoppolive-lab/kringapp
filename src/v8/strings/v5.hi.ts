@@ -526,5 +526,20 @@ const T: Record<string, string> = {
     'Yes, show them': 'हाँ, दिखाएँ',
     'Your Reels can now show on kringapp.com': 'आपकी Reels अब kringapp.com पर दिख सकती हैं',
     'Your Reels stay in the app only': 'आपकी Reels सिर्फ़ ऐप में रहेंगी',
+    // 17 Nov "Your next step"
+    'Your next step': 'आपका अगला कदम',
+    'Post your first Reel, get {0}': 'अपनी पहली Reel पोस्ट करें, पाएँ {0}',
+    'Post again': 'फिर से पोस्ट करें',
+    'We’re checking your Reel': 'हम आपकी Reel देख रहे हैं',
+    'Claim your {0}': 'अपना {0} लें',
+    'Claim': 'लें',
+    'Verify your face to get your code': 'कोड पाने के लिए चेहरा सत्यापित करें',
+    'Verify': 'सत्यापित करें',
+    'Climb this week’s board': 'इस हफ़्ते की रैंकिंग में ऊपर चढ़ें',
+    'See board': 'रैंकिंग देखें',
+    'Post': 'पोस्ट करें',
+    '{0} Rings · {1} more to {2}': '{0} Rings · {2} तक {1} और',
+    '{0} Rings · {1} reached': '{0} Rings · {1} पूरे',
+    'Hide for a day': 'एक दिन के लिए छिपाएँ',
 };
 export default T;

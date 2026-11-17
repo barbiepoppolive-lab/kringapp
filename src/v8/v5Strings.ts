@@ -525,6 +525,21 @@ export const V5_L: Record<string, Record<string, string>> = {
     '{0}% chance of afternoon rain — the covered BTS skywalks around Siam keep you dry.': 'บ่ายนี้มีโอกาสฝนตกราว {0} ใน 10 เดินใต้สกายวอล์ก BTS ที่มีหลังคาแถวสยามไว้ ไม่เปียกแน่นอน',
     'Tropical showers are usually short — the covered BTS skywalks around Siam keep you dry.': 'ฝนเมืองร้อนมักตกไม่นาน สกายวอล์ก BTS ที่มีหลังคาแถวสยามช่วยให้ไม่เปียก',
     'See deals →': 'ดูดีล →',
+    // 17 Nov "Your next step"
+    'Your next step': 'ขั้นต่อไปของคุณ',
+    'Post your first Reel, get {0}': 'โพสต์รีลแรก รับ {0}',
+    'Post again': 'โพสต์ใหม่',
+    'We’re checking your Reel': 'กำลังตรวจรีลของคุณ',
+    'Claim your {0}': 'รับ {0} ของคุณ',
+    'Claim': 'กดรับ',
+    'Verify your face to get your code': 'ยืนยันใบหน้าเพื่อรับโค้ด',
+    'Verify': 'ยืนยัน',
+    'Climb this week’s board': 'ไต่อันดับสัปดาห์นี้',
+    'See board': 'ดูอันดับ',
+    'Post': 'โพสต์',
+    '{0} Rings · {1} more to {2}': '{0} ริง · อีก {1} ริงถึง {2}',
+    '{0} Rings · {1} reached': '{0} ริง · ถึง {1} แล้ว',
+    'Hide for a day': 'ซ่อนไว้ 1 วัน',
   },
   // zh, hi, ja, ko: separate files, downloaded only when that language is chosen (loadV5Lang below)
 };

@@ -526,5 +526,20 @@ const T: Record<string, string> = {
     'Yes, show them': '네, 표시할게요',
     'Your Reels can now show on kringapp.com': '이제 내 Reel이 kringapp.com에 표시될 수 있어요',
     'Your Reels stay in the app only': '내 Reel은 앱 안에서만 보여요',
+    // 17 Nov "Your next step"
+    'Your next step': '다음 단계',
+    'Post your first Reel, get {0}': '첫 릴스를 올리고 {0} 받기',
+    'Post again': '다시 올리기',
+    'We’re checking your Reel': '릴스를 확인하고 있어요',
+    'Claim your {0}': '{0} 받기',
+    'Claim': '받기',
+    'Verify your face to get your code': '얼굴 인증하고 코드 받기',
+    'Verify': '인증하기',
+    'Climb this week’s board': '이번 주 랭킹을 올려 보세요',
+    'See board': '랭킹 보기',
+    'Post': '올리기',
+    '{0} Rings · {1} more to {2}': '{0} Rings · {2}까지 {1} 남음',
+    '{0} Rings · {1} reached': '{0} Rings · {1} 달성',
+    'Hide for a day': '하루 동안 숨기기',
 };
 export default T;

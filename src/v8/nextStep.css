@@ -1,0 +1,72 @@
+/* 17 Nov "Your next step" — dark neon (blue #4D6BFF → pink #FF4FA3). Feed pill floats over the Reel; Me card sits at the top. */
+.v8-app-root .nx { --nx-b: #4D6BFF; --nx-p: #FF4FA3; position: relative; color: #fff; font-family: inherit; animation: nxIn .45s cubic-bezier(.2,.9,.25,1.05) both; }
+.v8-app-root .nx::before { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(100deg, rgba(77,107,255,.95), rgba(255,79,163,.95));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+.v8-app-root .nx-hit { display: flex; align-items: center; gap: 10px; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; background: none; color: inherit;
+  font: inherit; text-align: left; cursor: pointer; border-radius: inherit; -webkit-tap-highlight-color: transparent; }
+.v8-app-root .nx-hit:disabled { cursor: default; opacity: 1; }
+.v8-app-root .nx-ic { flex: none; display: grid; place-items: center; border-radius: 50%; color: #fff;
+  background: linear-gradient(135deg, var(--nx-b), var(--nx-p)); box-shadow: 0 0 14px rgba(255,79,163,.45), 0 0 10px rgba(77,107,255,.35); }
+.v8-app-root .nx-ic svg { width: 58%; height: 58%; }
+.v8-app-root .nx[data-kind="climb"] .nx-ic { background: rgba(255,255,255,.06); box-shadow: none; }
+.v8-app-root .nx-meter { width: 100% !important; height: 100% !important; }
+.v8-app-root .nx-meter text { fill: #fff; font: 800 11px/1 system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.v8-app-root .nx-tx { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.v8-app-root .nx-main { font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.005em; }
+.v8-app-root .nx-sub { font-weight: 500; color: rgba(255,255,255,.72); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .nx-btn { flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 99px; font-weight: 800; color: #fff; white-space: nowrap;
+  background: linear-gradient(100deg, var(--nx-b), var(--nx-p)); box-shadow: 0 4px 14px -4px rgba(255,79,163,.7), inset 0 1px 0 rgba(255,255,255,.25); }
+.v8-app-root .nx-hit:active .nx-btn { transform: scale(.96); }
+.v8-app-root .nx-wait { flex: none; display: inline-flex; gap: 4px; padding: 0 8px; }
+.v8-app-root .nx-wait i { width: 5px; height: 5px; border-radius: 50%; background: var(--nx-p); animation: nxDot 1.2s ease-in-out infinite; }
+.v8-app-root .nx-wait i:nth-child(2) { animation-delay: .15s; background: #A55DD1; }
+.v8-app-root .nx-wait i:nth-child(3) { animation-delay: .3s; background: var(--nx-b); }
+.v8-app-root .nx-x { position: absolute; display: grid; place-items: center; padding: 0; border: 0; background: none; color: rgba(255,255,255,.6); cursor: pointer; }
+.v8-app-root .nx-x svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+
+/* ── Feed pill: under the top row (same line as the prize ticker, which steps aside while the pill shows) ── */
+.v8-app-root .nx-pill { position: absolute; z-index: 41; top: calc(env(safe-area-inset-top) + 52px); left: 0; right: 0; margin: 0 auto;
+  width: max-content; min-width: 240px; max-width: calc(100% - 24px); height: 42px; border-radius: 21px;
+  background: rgba(12,10,24,.72); -webkit-backdrop-filter: blur(16px) saturate(150%); backdrop-filter: blur(16px) saturate(150%);
+  box-shadow: 0 8px 22px -6px rgba(255,79,163,.35), 0 6px 18px -8px rgba(77,107,255,.45); text-shadow: 0 1px 2px rgba(0,0,0,.35); }
+.v8-app-root .nx-pill .nx-hit { padding: 0 5px 0 5px; gap: 9px; }
+.v8-app-root .nx-pill[data-kind="claim"] .nx-hit, .v8-app-root .nx-pill[data-kind="verify"] .nx-hit { padding-right: 5px; }
+.v8-app-root .nx-pill .nx-ic { width: 32px; height: 32px; }
+.v8-app-root .nx-pill .nx-main { font-size: 0.8125rem; line-height: 1.2; }
+.v8-app-root .nx-pill .nx-sub { font-size: 0.6562rem; line-height: 1.2; }
+.v8-app-root .nx-pill[data-one="en"] .nx-main { font-size: 0.8125rem; }
+.v8-app-root .nx-pill .nx-btn { height: 30px; padding: 0 13px; font-size: 0.75rem; }
+.v8-app-root .nx-pill .nx-x { top: -7px; right: -5px; width: 22px; height: 22px; border-radius: 50%; background: rgba(12,10,24,.9); border: 1px solid rgba(255,255,255,.18); color: rgba(255,255,255,.8); }
+.v8-app-root .nx-pill .nx-x svg { width: 9px; height: 9px; }
+.v8-app-root .nx-pill .nx-x::after { content: ''; position: absolute; inset: -8px; }
+/* the "Tap for sound" badge keeps its own row under the pill */
+.v8-app-root #s-feed.nx-on .reel-sound { top: calc(env(safe-area-inset-top) + 104px); }
+
+/* ── Me card: at the top, under the header ── */
+.v8-app-root .nx-cardwrap { padding: 4px 18px 10px; }
+.v8-app-root .nx-card { border-radius: 20px; min-height: 76px;
+  background: radial-gradient(120px 90px at 0% 0%, rgba(77,107,255,.28), transparent 70%), radial-gradient(140px 100px at 100% 100%, rgba(255,79,163,.22), transparent 70%), #120F1E;
+  box-shadow: 0 16px 34px -20px rgba(255,79,163,.55); }
+.v8-app-root .nx-card .nx-hit { flex-wrap: wrap; align-items: flex-start; padding: 13px 14px 13px 13px; gap: 12px; }
+.v8-app-root .nx-card .nx-ic { width: 44px; height: 44px; }
+.v8-app-root .nx-card .nx-tx { flex: 1 1 0; padding-right: 22px; }
+.v8-app-root .nx-cap { font-size: 0.6562rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #FF8CC6; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .nx-card .nx-main { font-size: 1rem; line-height: 1.3; white-space: normal; }
+.v8-app-root .nx-card .nx-sub { font-size: 0.75rem; line-height: 1.3; margin-top: 1px; white-space: normal; }
+.v8-app-root .nx-foot { flex: 1 0 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-left: 56px; margin-top: -2px; }
+.v8-app-root .nx-fill { flex: 1; }
+.v8-app-root .nx-extra { flex: 1; min-width: 0; font-size: 0.75rem; line-height: 1.35; color: rgba(255,255,255,.86); font-weight: 600; }
+.v8-app-root .nx-extra em { font-style: normal; font-weight: 500; color: rgba(255,255,255,.6); }
+.v8-app-root .nx-extra.note { padding: 6px 9px; border-radius: 10px; background: rgba(255,79,163,.12); border-left: 2px solid var(--nx-p); color: #FFD9EC; font-weight: 500; }
+.v8-app-root .nx-extra.note > span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.v8-app-root .nx-card .nx-btn { height: 36px; padding: 0 18px; font-size: 0.8125rem; }
+.v8-app-root .nx-card .nx-x { top: 6px; right: 6px; width: 26px; height: 26px; }
+
+@keyframes nxIn { from { opacity: 0; transform: translateY(-8px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes nxDot { 0%, 100% { opacity: .35; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.1); } }
+@media (max-width: 370px) {
+  .v8-app-root .nx-pill { min-width: 0; }
+  .v8-app-root .nx-pill .nx-btn { padding: 0 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .v8-app-root .nx, .v8-app-root .nx-wait i { animation: none; } }

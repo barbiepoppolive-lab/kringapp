@@ -526,5 +526,20 @@ const T: Record<string, string> = {
     'Yes, show them': 'はい、表示する',
     'Your Reels can now show on kringapp.com': 'Reelがkringapp.comに表示されるようになりました',
     'Your Reels stay in the app only': 'Reelはアプリ内だけに表示されます',
+    // 17 Nov "Your next step"
+    'Your next step': '次のステップ',
+    'Post your first Reel, get {0}': '最初のリールを投稿して {0} をもらおう',
+    'Post again': 'もう一度投稿',
+    'We’re checking your Reel': 'リールを確認中です',
+    'Claim your {0}': '{0} を受け取る',
+    'Claim': '受け取る',
+    'Verify your face to get your code': '顔認証でコードを受け取る',
+    'Verify': '認証する',
+    'Climb this week’s board': '今週のランキングを駆け上がろう',
+    'See board': 'ランキングを見る',
+    'Post': '投稿',
+    '{0} Rings · {1} more to {2}': '{0} Rings · {2} まであと {1}',
+    '{0} Rings · {1} reached': '{0} Rings · {1} 達成',
+    'Hide for a day': '1日非表示',
 };
 export default T;

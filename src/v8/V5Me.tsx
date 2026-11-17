@@ -150,6 +150,8 @@ export function MeView(props: {
   prizeSlot?: React.ReactNode;
   /** 0078: the one-time "Show my Reels on the web" ask (members with an approved Reel who were never asked) */
   webAskSlot?: React.ReactNode;
+  /** 17 Nov: "Your next step" card, at the top */
+  nextSlot?: React.ReactNode;
 }) {
   const { L, Lf, p } = props;
   const lv = p.level;
@@ -170,6 +172,7 @@ export function MeView(props: {
           </button>
         </span>
       </div>
+      {props.nextSlot || null}
       {props.ghost ? <p className="kme-ghost" id="meGhost" role="status"><span aria-hidden="true">👻</span>{L('Ghost mode · nobody can see you')}</p> : null}
       <div className="kme-cardwrap">
         <KxMemberCard L={L} Lf={Lf} p={p} kx={props.kx} gender={props.gender} />
