@@ -88,6 +88,10 @@ describe('face check screen', () => {
     try { localStorage.removeItem('kr8_face_consent'); } catch { /* ignore */ }
     const { container } = sheet();
     expect(container.querySelector('#verifyInApp')?.textContent).toContain('built-in browser');
+    // T-392 (PDPA): the consent says when one selfie goes to the team, never "never leaves your phone"
+    const consent = container.querySelector('#verifyConsent')!.textContent!;
+    expect(consent).not.toContain('never leaves your phone');
+    expect(consent).toContain('one selfie goes to our team to look at, and we delete it about 30 days after the review');
   });
 
   it('getUserMedia blocked → "Camera blocked" with Open in Chrome / Try again / Not now (never stuck on "Getting the camera ready")', async () => {
@@ -126,6 +130,8 @@ describe('face check screen', () => {
     }
     await act(async () => { await new Promise((ok) => setTimeout(ok, 250)); });
     expect(container.querySelector('#verifySnap')?.textContent).toBe('Take selfie');
+    // T-392: before the one selfie is sent, the screen says it goes to the team and is deleted after
+    expect(container.querySelector('#verifyPhotoNote')?.textContent).toBe('We’ll send this one photo to our team to check, then delete it.');
     expect(engineMock.loadFaceEngine).not.toHaveBeenCalled();
     expect(samplerMock.bestSampler).not.toHaveBeenCalled();
   });

@@ -742,7 +742,9 @@ export async function v5RequestVerification(selfie: Blob, check: { straight: boo
 export interface V5FaceDecision { result: 'pass' | 'review' | 'block' | 'fail'; reasons?: string[]; verified?: boolean; tries_left?: number; again?: boolean }
 /** 0081: uploads the frontal selfie (only when the live check passed on the phone; a fail sends no photo) with its SFace embedding
  *  and the card photo's SFace embedding, and asks the server to decide. Falls back to the 0031 queue (kr8_request_verification + face code) when the server has no 0081 yet → "review". */
-export async function v5VerifyInstant(selfie: Blob | null, check: Record<string, unknown>, emb: ArrayLike<number> | null, cardEmb: ArrayLike<number> | null, consent: string): Promise<V5FaceDecision> {
+export async function v5VerifyInstant(selfie: Blob | null, check: Record<string, unknown>, emb: ArrayLike<number> | null, cardEmb: ArrayLike<number> | null, consent: string,
+  /** T-392 (PDPA): awaited right before the one selfie is uploaded on need_photo, so the screen can tell the member first */
+  beforeUpload?: () => Promise<void> | void): Promise<V5FaceDecision> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new V5Error('OFFLINE');
   if (adminViewActive()) throw new V5Error('ADMIN_VIEW');
   const c = await v5Client();
@@ -766,6 +768,7 @@ export async function v5VerifyInstant(selfie: Blob | null, check: Record<string,
     const args = { p_consent_version: consent, p_check: check, p_emb: vec(emb), p_card_emb: vec(cardEmb) };
     const first = await rpc<{ result: string }>('kr8_verify_instant', { p_selfie_path: null, ...args });
     if (first.result !== 'need_photo') return first as unknown as V5FaceDecision;
+    if (selfie) await beforeUpload?.();
     path = await upload();
     if (!path) return { result: 'fail', reasons: ['no_photo'] };
     return await rpc<V5FaceDecision>('kr8_verify_instant', { p_selfie_path: path, ...args });

@@ -193,7 +193,7 @@ describe('Board V2: one language at a time', () => {
     expect(sheet.className).toContain('glass');
     expect(sheet.textContent).toContain('วิธีชนะ');
     expect(sheet.textContent).toContain('฿1,500');
-    expect(sheet.textContent!.replace(/TrueMoney/g, '')).not.toMatch(/[A-Za-z]{3,}/);
+    expect(sheet.textContent!.replace(/TrueMoney|Grab/g, '')).not.toMatch(/[A-Za-z]{3,}/);
   });
   it('new board copy has Thai and every other language, and no banned words', () => {
     const KEYS = ['Closes {0}', 'Closes in {0}', '{0}/{1} seats left', 'Your spot?', '{0} more Rings for a prize seat', 'Share my Reel', 'How to win'];

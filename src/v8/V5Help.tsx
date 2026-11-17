@@ -5,7 +5,7 @@
  * ONE language at a time (founder rule, 18 Nov): Thai mode shows Thai only; every other language shows English only.
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { HELP_CHIPS, HELP_EMAIL, HELP_TEAM_PROMISE, faqById, matchHelp, type HelpFaq } from './helpFaq';
+import { HELP_CHIPS, HELP_EMAIL, HELP_TEAM_PROMISE, faqAnswer, faqById, matchHelp, type HelpFaq } from './helpFaq';
 import './help.css';
 
 /** helper UI copy: [Thai, English] */
@@ -81,10 +81,22 @@ export interface HelpSheetProps {
   /** opens the member's Kring Team thread with this first question; resolves when the chat is open */
   onTeam: (question: string) => Promise<void>;
   onEvent?: (kind: HelpEventKind, faq: string | null, query: string | null) => void;
+  /** live rules (kr8_rings_rules) for answers that quote a number; without them the rewardsConfig defaults are used */
+  rules?: Record<string, number> | null;
+  /** fetches the live rules when `rules` isn't given (T-392) */
+  loadRules?: () => Promise<Record<string, number> | null>;
 }
 
-export function HelpSheet({ lang, name, onClose, onTeam, onEvent }: HelpSheetProps) {
+export function HelpSheet({ lang, name, onClose, onTeam, onEvent, rules, loadRules }: HelpSheetProps) {
   const thai = lang === 'th';
+  const [fetched, setFetched] = useState<Record<string, number> | null>(null);
+  useEffect(() => {
+    if (rules || !loadRules) return undefined;
+    let dead = false;
+    loadRules().then((r) => { if (!dead && r && typeof r === 'object') setFetched(r); }).catch(() => { /* defaults stay */ });
+    return () => { dead = true; };
+  }, [rules, loadRules]);
+  const liveRules = rules || fetched;
   const [msgs, setMsgs] = useState<Msg[]>([{ id: 0, kind: 'greet' }]);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -189,7 +201,7 @@ export function HelpSheet({ lang, name, onClose, onTeam, onEvent }: HelpSheetPro
               <div className="hp-bub card" data-answer={f.id}>
                 <span className="hp-tag">{thai ? HELP_UI.fromFaq[0] : HELP_UI.fromFaq[1]}</span>
                 <b className="hp-aq"><Bi th={f.qTh} en={f.qEn} thai={thai} /></b>
-                <p className="hp-ans"><Bi th={f.aTh} en={f.aEn} thai={thai} /></p>
+                <p className="hp-ans"><Bi th={faqAnswer(f, true, liveRules)} en={faqAnswer(f, false, liveRules)} thai={thai} /></p>
                 <div className="hp-yn">
                   <button type="button" className={`up${m.vote === 'up' ? ' on' : ''}`} data-vote="up" disabled={!!m.vote} onClick={() => vote(m.id, 'up')}>
                     <span aria-hidden="true">👍</span><Bi k="answered" thai={thai} />

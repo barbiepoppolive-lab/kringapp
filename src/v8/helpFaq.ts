@@ -4,6 +4,8 @@
  * each FAQ has Thai keywords (substring, spaces ignored) and English keywords (word-start match; "!" = whole word only).
  * Best score ≥ MATCH_MIN wins; otherwise "not sure" + Talk to the team.
  */
+import { RINGS, fmtBaht, ringsRules, sumBaht, weeklyLadder, type RingsRules } from './rewardsConfig';
+
 export type HelpCat = 'start' | 'rings' | 'codes' | 'safe' | 'acct';
 export interface HelpFaq {
   id: string; cat: HelpCat;
@@ -14,7 +16,8 @@ export interface HelpFaq {
   th: [string, number][]; en: [string, number][];
 }
 
-export const HELP_TEAM_PROMISE = { th: 'ทีมงานตอบภายใน 1 ชั่วโมง', en: 'The team replies within 1 hour' };
+// T-392: no reply-time promise (nothing in the app guarantees one); the reply comes in the member's Kring Team chat
+export const HELP_TEAM_PROMISE = { th: 'ทีมงานจะตอบกลับในแชทนี้โดยเร็วครับ', en: 'The team replies in this chat as soon as they can' };
 export const HELP_EMAIL = 'ops@kringapp.com';
 
 export const HELP_FAQS: HelpFaq[] = [
@@ -25,8 +28,10 @@ export const HELP_FAQS: HelpFaq[] = [
     th: [['ยืนยันใบหน้า', 3], ['สแกนหน้า', 3], ['ทำไมต้องยืนยัน', 3], ['ยืนยันตัวตน', 2], ['ยืนยัน', 1], ['เซลฟี่', 1], ['ใบหน้า', 1]],
     en: [['why verify', 3], ['why face', 3], ['why the face', 3], ['why do i have to verif', 3], ['why do i need', 2], ['face check', 2], ['face scan', 2], ['verif', 1], ['selfie', 1]] },
   { id: 'face_privacy', cat: 'start', qTh: 'รูปหน้าของฉันถูกส่งออกจากมือถือไหม?', qEn: 'Does my face photo leave my phone?',
-    aTh: 'ไม่ครับ การตรวจทำบนมือถือของคุณเอง กริ๊ง! เก็บแค่ “รหัสใบหน้า” ที่เป็นตัวเลข ไม่ใช่รูปภาพ ใช้เพื่อเช็กว่าหนึ่งคนมีบัญชีเดียวเท่านั้น',
-    aEn: 'No. The check runs on your phone. Kring keeps only a face code (numbers, not a picture), used only to keep it one person, one account.',
+    // T-392 (PDPA): true to the code. Pass/block send only the face code; need_photo (0092) and the simple path (0082) upload ONE selfie
+    // for the team; reviewed selfies are queued for deletion 30 days after the review (0081 kr8_verify_selfies_expire, nightly 0075 job)
+    aTh: 'ส่วนใหญ่ไม่ออกครับ การตรวจทำบนมือถือของคุณ และกริ๊ง! เก็บแค่ “รหัสใบหน้า” ที่เป็นตัวเลข ไว้เช็กว่าหนึ่งคนมีบัญชีเดียว แต่ถ้าระบบยังไม่แน่ใจ หรือมือถือตรวจเองไม่ได้ เราจะส่งเซลฟี่ 1 รูปให้ทีมงานดู แล้วลบทิ้งราว 30 วันหลังตรวจเสร็จครับ ลบข้อมูลใบหน้าเองได้ทุกเมื่อที่ การตั้งค่า ครับ',
+    aEn: 'Usually not. The check runs on your phone, and Kring keeps a face code (numbers) to keep it one person, one account. If the check is unsure, or your phone can’t run it, one selfie goes to our team to look at, and we delete it about 30 days after the review. You can delete your face data in Settings any time.',
     th: [['ออกจากมือถือ', 3], ['ส่งออก', 2], ['เก็บรูป', 3], ['เก็บหน้า', 3], ['รูปหน้า', 2], ['ความเป็นส่วนตัว', 2], ['ปลอดภัยไหม', 2], ['เก็บไว้ไหม', 2], ['ใครเห็น', 2]],
     en: [['leave my phone', 3], ['leave the phone', 3], ['leaves my phone', 3], ['privacy', 2], ['private', 1], ['store', 2], ['stored', 2], ['keep my face', 3], ['face photo', 2], ['upload', 1], ['safe', 1], ['who can see my face', 3]] },
   { id: 'face_fail', cat: 'start', qTh: 'ยืนยันใบหน้าไม่ผ่าน ทำยังไงดี?', qEn: 'The face check didn’t work. What now?',
@@ -51,18 +56,19 @@ export const HELP_FAQS: HelpFaq[] = [
     th: [['ริงไม่ขึ้น', 3], ['ไม่ได้ริง', 3], ['ริงไม่เพิ่ม', 3], ['ไลน์', 2], ['แชร์ลิงก์', 2], ['แชร์แล้ว', 2], ['ไม่นับ', 2]],
     en: [['line!', 2], ['no rings', 3], ['shared', 1], ['share', 1], ['my link', 1], ['didn\'t count', 2], ['not counting', 2], ['don\'t count', 2], ['opens', 1]] },
   { id: 'prize_win', cat: 'rings', qTh: 'ต้องทำยังไงถึงได้รางวัลประจำสัปดาห์?', qEn: 'How do I win a weekly prize?',
-    aTh: 'ทุกสัปดาห์ 8 อันดับแรกบนบอร์ดได้รางวัล ต้องมีอย่างน้อย 25 ริง นับ 2 รีลที่ดีที่สุดของคุณ และรีลต้องปักหมุดสถานที่ในกรุงเทพฯ',
-    aEn: 'Every week the top 8 on the board win. You need at least 25 Rings, your best 2 Reels count, and each Reel must be pinned to a Bangkok place.',
-    th: [['ได้รางวัล', 3], ['รางวัลประจำสัปดาห์', 3], ['ชนะ', 3], ['ถึงได้รางวัล', 3], ['อันดับ', 1], ['8อันดับ', 2], ['รางวัล', 1]],
-    en: [['win', 3], ['weekly prize', 3], ['prize', 2], ['top 8', 2], ['top eight', 2], ['rank', 1], ['reward', 1], ['25 rings', 2]] },
+    // T-392: every number is a {token} filled from the live rules (kr8_rings_config over rewardsConfig RINGS) by faqAnswer()
+    aTh: 'ทุกสัปดาห์ {seats} อันดับแรกบนบอร์ดแบ่งกัน {total} (อันดับ 1 ได้ {first}) ต้องมีอย่างน้อย {floor} ริง {best_th} และรีลต้องปักหมุดสถานที่ในกรุงเทพฯ{founding_th} ครับ',
+    aEn: 'Every week the top {seats} on the board share {total} ({first} for #1). You need at least {floor} Rings, {best_en}, and the Reel must be pinned to a Bangkok place.{founding_en}',
+    th: [['ได้รางวัล', 3], ['รางวัลประจำสัปดาห์', 3], ['ชนะ', 3], ['ถึงได้รางวัล', 3], ['อันดับ', 1], ['8อันดับ', 2], ['รางวัล', 1], ['เท่าไหร่', 2]],
+    en: [['win', 3], ['weekly prize', 3], ['prize', 2], ['top 8', 2], ['top eight', 2], ['rank', 1], ['reward', 1], ['25 rings', 2], ['how much', 2]] },
   { id: 'week_end', cat: 'rings', qTh: 'รอบสัปดาห์ปิดเมื่อไหร่?', qEn: 'When does the week end?',
     aTh: 'ทุกวันอาทิตย์ 23:59 น. เวลากรุงเทพฯ แล้วสัปดาห์ใหม่ทุกคนเริ่มนับจาก 0 ครับ',
     aEn: 'Every Sunday at 23:59 Bangkok time. Then the new week starts and everyone is back at 0.',
     th: [['ปิดเมื่อไหร่', 3], ['หมดเมื่อไหร่', 3], ['จบเมื่อไหร่', 3], ['วันอาทิตย์', 2], ['รีเซ็ต', 2], ['เริ่มใหม่', 2], ['รอบสัปดาห์', 2], ['สัปดาห์', 1]],
     en: [['week end', 3], ['week ends', 3], ['end of the week', 3], ['when does the week', 3], ['sunday', 2], ['reset', 3], ['deadline', 2], ['new week', 2], ['ends', 1]] },
   { id: 'reel_board', cat: 'rings', qTh: 'ทำไมรีลของฉันยังไม่ขึ้นบอร์ด?', qEn: 'Why isn’t my Reel on the board yet?',
-    aTh: 'รีลใหม่ต้องผ่านการตรวจสั้น ๆ ก่อน ระหว่างรอจะเห็นแค่คุณคนเดียว ผ่านแล้วจะขึ้นฟีดและบอร์ดเอง อย่าลืมปักหมุดสถานที่ในกรุงเทพฯ นะครับ',
-    aEn: 'New Reels get a quick check first; until then only you can see it. Once approved it shows in the Feed and on the board. Remember to pin a Bangkok place.',
+    aTh: 'รีลใหม่ส่วนใหญ่ต้องผ่านการตรวจสั้น ๆ ก่อน ระหว่างรอจะเห็นแค่คุณคนเดียว (สมาชิกที่มีรีลผ่านแล้ว 3 รีลขึ้นไปจะขึ้นทันที) ผ่านแล้วจะขึ้นฟีดและบอร์ด ถ้าปักหมุดสถานที่ในกรุงเทพฯ ไว้ รีลที่ทีมงานตั้งเป็น “ฟีดเท่านั้น” เช่น รีลที่ไม่ได้ถ่ายเอง จะขึ้นฟีดแต่ไม่ขึ้นบอร์ดครับ',
+    aEn: 'Most new Reels get a quick check first; until then only you can see it (members with 3 approved Reels skip the wait). Once approved it shows in the Feed, and on the board if it’s pinned to a Bangkok place. Reels the team marks Feed-only, like ones you didn’t film yourself, stay off the board.',
     th: [['ไม่ขึ้นบอร์ด', 3], ['ขึ้นบอร์ด', 3], ['รีลไม่ขึ้น', 3], ['รีลหาย', 3], ['บอร์ด', 2], ['รอตรวจ', 2], ['ไม่ขึ้นฟีด', 3]],
     en: [['board', 2], ['not on the board', 3], ['reel not showing', 3], ['can\'t see my reel', 3], ['my reel', 1], ['pending', 2], ['approved', 2], ['not in the feed', 3], ['missing', 1]] },
   // ── codes ──
@@ -72,13 +78,14 @@ export const HELP_FAQS: HelpFaq[] = [
     th: [['รับรางวัลยังไง', 3], ['รับรางวัล', 3], ['กดรับ', 3], ['รับยังไง', 2], ['แลกรางวัล', 2]],
     en: [['claim', 3], ['how to claim', 3], ['get my prize', 2], ['collect', 2], ['grab', 1], ['truemoney', 1]] },
   { id: 'code_late', cat: 'codes', qTh: 'กดรับแล้ว แต่โค้ดยังไม่มา', qEn: 'I claimed, but my code hasn’t come', chipTh: 'โค้ดยังไม่มา', chipEn: 'Code not here yet',
-    aTh: 'รางวัลของคุณปลอดภัยครับ เราตรวจผลประจำสัปดาห์ก่อน แล้วจะแจ้งในแอปทันทีที่โค้ดพร้อม ปกติภายใน 24 ชั่วโมง',
-    aEn: 'Your prize is safe. We check the week’s results first and let you know in the app the moment your code is ready, usually within 24 hours.',
+    // T-392: after Claim a code waits only when the claim is held for the team to check (0075) or that amount is out of stock
+    aTh: 'รางวัลของคุณยังอยู่ครบครับ บางครั้งทีมงานต้องตรวจการกดรับก่อน หรือกำลังเติมโค้ดมูลค่านั้นอยู่ พอโค้ดพร้อมจะขึ้นใน “รางวัลของฉัน” เลยครับ',
+    aEn: 'Your prize is safe. Sometimes our team checks a claim first, or we’re restocking codes of that amount. Your code shows in My prizes as soon as it’s ready.',
     th: [['โค้ดยังไม่มา', 3], ['ยังไม่ได้รับโค้ด', 3], ['ยังไม่มา', 3], ['ยังไม่ได้รับ', 3], ['ยังไม่ได้โค้ด', 3], ['รอโค้ด', 2], ['โค้ด', 1]],
     en: [['hasn\'t come', 3], ['hasnt come', 3], ['not here', 2], ['not received', 3], ['haven\'t received', 3], ['didn\'t get', 2], ['no code', 3], ['still waiting', 2], ['waiting', 1], ['code', 1]] },
   { id: 'code_use', cat: 'codes', qTh: 'ใช้โค้ดยังไง?', qEn: 'How do I use my code?',
-    aTh: 'กด “คัดลอก” แล้วกดเปิด Grab หรือเติมเข้า TrueMoney ใช้แล้วกด “ใช้แล้ว” จะได้รู้ว่าเหลือโค้ดไหนบ้าง',
-    aEn: 'Tap Copy, then open Grab or redeem into TrueMoney. After using it, mark it USED so you know which codes are left.',
+    aTh: 'กด “คัดลอก” (หรือ “คัดลอกลิงก์” ถ้าเป็นลิงก์ TrueMoney) แล้วเปิด Grab หรือกดเติมเข้า TrueMoney ใช้แล้วเลื่อนสวิตช์เป็น “ใช้แล้ว” จะได้รู้ว่าเหลือโค้ดไหนบ้าง',
+    aEn: 'Tap Copy (or Copy link for a TrueMoney link), then open Grab or tap Redeem into TrueMoney. After using it, switch it to USED so you know which codes are left.',
     th: [['ใช้โค้ด', 3], ['ใช้ยังไง', 2], ['คัดลอก', 2], ['เติมเงิน', 2], ['เติม', 1], ['โค้ด', 1]],
     en: [['use my code', 3], ['use the code', 3], ['use code', 3], ['how to use', 2], ['redeem', 2], ['copy', 2], ['top up', 2], ['code', 1]] },
   // ── safe ──
@@ -98,8 +105,10 @@ export const HELP_FAQS: HelpFaq[] = [
     th: [['รายงาน', 3], ['บล็อก', 3], ['ปลดบล็อก', 3], ['ฉุกเฉิน', 2], ['คุกคาม', 2], ['ไม่ปลอดภัย', 2], ['โดนหลอก', 2]],
     en: [['report', 3], ['block', 3], ['unblock', 3], ['harass', 2], ['emergency', 2], ['unsafe', 2], ['creepy', 2], ['spam', 1], ['scam', 1]] },
   { id: 'delete_data', cat: 'safe', qTh: 'ลบข้อมูลใบหน้าหรือบัญชี (PDPA) ยังไง?', qEn: 'How do I delete my face data or account (PDPA)?', chipTh: 'ลบข้อมูลของฉัน', chipEn: 'Delete my data',
-    aTh: 'การตั้งค่า → “ลบข้อมูลใบหน้าของฉัน” (เครื่องหมาย ✓ จะหายจนกว่าจะยืนยันใหม่) หรือ “ลบบัญชี” ถ้าเคยได้รางวัล เราเก็บรหัสใบหน้าไว้ 1 ปี กันรับรางวัลซ้ำครับ',
-    aEn: 'Settings → “Delete my face data” (your ✓ goes until you verify again) or “Delete account”. If you won a prize, we keep the face code for one year so a prize can’t be claimed twice.',
+    // T-392 + 0107: kr8_forget_my_face deletes every face code (kr8_face_vectors + kr8_face_prints) and queues the selfies for deletion;
+    // a prize winner's face code is copied to kr8_prize_faces (kept 1 year, checked only by kr8_founding_try), as on account deletion (0067)
+    aTh: 'การตั้งค่า → “ลบข้อมูลใบหน้าของฉัน” ลบรหัสใบหน้าและเซลฟี่ทั้งหมด (เครื่องหมาย ✓ จะหายจนกว่าจะยืนยันใหม่) หรือ “ลบบัญชี” ถ้าเคยได้รางวัล เราเก็บรหัสใบหน้า (ตัวเลข ไม่ใช่รูป) ไว้ไม่เกิน 1 ปี ใช้แค่กันไม่ให้คนเดิมรับรางวัล Founding Local ซ้ำครับ',
+    aEn: 'Settings → “Delete my face data” deletes your face codes and selfies (your ✓ goes until you verify again), or “Delete account”. If you’ve won a prize, we keep a face code (numbers, not a photo) for up to one year, used only to stop the same person getting the Founding Local prize twice.',
     th: [['ลบข้อมูล', 3], ['ลบบัญชี', 3], ['ลบใบหน้า', 3], ['ลบ', 2], ['ปิดบัญชี', 3], ['ข้อมูลใบหน้า', 2]],
     en: [['delete', 3], ['pdpa', 3], ['remove my data', 3], ['remove my account', 3], ['erase', 2], ['close my account', 3], ['face data', 2], ['gdpr', 2]] },
   // ── acct ──
@@ -119,6 +128,28 @@ export const HELP_FAQS: HelpFaq[] = [
 export const HELP_CHIPS = ['face_why', 'rings_what', 'claim_how', 'code_late', 'links', 'delete_data'];
 
 export const faqById = (id: string) => HELP_FAQS.find((f) => f.id === id);
+
+/**
+ * An FAQ answer with its {tokens} filled from the rules (server kr8_rings_config over the defaults), so a config change
+ * (best_reels, prizes, the Rings floor, Founding Local) changes the Help answer without a code edit. One language at a time.
+ */
+export function faqAnswer(f: HelpFaq, thai: boolean, server?: Record<string, number> | null): string {
+  const r: RingsRules = server ? ringsRules(server) : { ...RINGS };
+  const ladder = weeklyLadder(r);
+  const best = Math.max(1, Math.round(r.best_reels));
+  const founding = r.founding_on === 1 && r.founding_slots > 0 && r.founding_thb > 0;
+  const tok: Record<string, string> = {
+    seats: String(ladder.length),
+    total: fmtBaht(sumBaht(ladder)),
+    first: fmtBaht(ladder[0] ?? 0),
+    floor: String(r.min_rings_for_paid_seat),
+    best_th: best === 1 ? 'นับเฉพาะรีลที่ดีที่สุดของคุณรีลเดียว' : `นับ ${best} รีลที่ดีที่สุดของคุณ`,
+    best_en: best === 1 ? 'only your single best Reel of the week counts' : `your best ${best} Reels of the week count`,
+    founding_th: founding ? ` ส่วน ${r.founding_slots} คนแรกที่มีรีลผ่านการตรวจ รับเพิ่ม ${fmtBaht(r.founding_thb)} (Founding Local)` : '',
+    founding_en: founding ? ` The first ${r.founding_slots} members with an approved Reel also get ${fmtBaht(r.founding_thb)} (Founding Local).` : '',
+  };
+  return (thai ? f.aTh : f.aEn).replace(/\{([a-z_]+)\}/g, (m, k: string) => (k in tok ? tok[k] : m));
+}
 
 /** lower case, NFC, curly quotes → straight, punctuation → space, one space between words */
 export function normHelp(s: string): string {

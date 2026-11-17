@@ -47,7 +47,8 @@ export const CAM_FRAME_MS = 6000;
 const camAskMs = () => (inAppBrowser(ua()) ? 6000 : 15000);   // a real browser may be showing its Allow prompt
 export const CAM_BLACK_MS = 3000;     // frames still black this long after the video starts = the browser can't show the camera
 export const TRACKER_MS = 2000;       // tracker errors (or MediaPipe blind while face-api sees a face) this long = switch tracker
-export const ENGINE_MS = 20000;       // the face engine must load within this, or the simple path (one selfie → the founder looks)
+export const ENGINE_MS = 20000;
+export const PHOTO_NOTE_MS = 1500;   // T-392: how long "We'll send this one photo to our team…" shows before the upload starts       // the face engine must load within this, or the simple path (one selfie → the founder looks)
 // some phone-maker / X5 browsers take over a <video> with their own player (black picture, a "download" button): ask them not to
 const VIDEO_ATTRS = { 'x5-playsinline': 'true', 'webkit-playsinline': 'true', 'x5-video-player-type': 'h5-page', controlsList: 'nodownload nofullscreen noremoteplayback', disablePictureInPicture: true, disableRemotePlayback: true } as Record<string, unknown>;
 const device = () => (navigator.userAgent.match(/iPhone|iPad|Android|Mac|Windows|Linux/) || ['other'])[0];
@@ -68,6 +69,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
   const [simple, setSimple] = useState<string | null>(null);   // why the simple path is used (null = the full check)
   const [ready, setReady] = useState(false);   // the tracker is loaded (the camera shows before it)
   const [pct, setPct] = useState(0);
+  const [photoNote, setPhotoNote] = useState(false);   // T-392: the selfie is about to go to the team (need_photo)
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const runRef = useRef(0);
@@ -116,6 +118,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
     setSimple(null);
     setReady(false);
     setPct(0);
+    setPhotoNote(false);
     setStage('loading');
     const run = ++runRef.current;
     // no WebAssembly / no SIMD here: the face engine can't run at all → the simple path, never a hang
@@ -328,7 +331,9 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
       if (verdict.kind === 'fail') { await sendFail(s, engine, verdict.why, { match, same: null, realMin: null }); return; }
       const blob = await canvasJpeg(bestRef.current!);
       const r: V5FaceDecision = await v5VerifyInstant(blob, checkPayload(s, { engine, match, same: verdict.same, realMin: verdict.realMin, frames: 1 + others.length, doubt: verdict.doubt, device: device() }),
-        selfie!.emb, card?.emb ?? null, FACE_CONSENT_VERSION);
+        selfie!.emb, card?.emb ?? null, FACE_CONSENT_VERSION,
+        // need_photo: say so on screen before the one selfie is uploaded for the team (PDPA, T-392)
+        () => { setPhotoNote(true); return new Promise<void>((ok) => setTimeout(ok, PHOTO_NOTE_MS)); });
       setLeft(typeof r.tries_left === 'number' ? r.tries_left : null);
       if (r.result === 'pass') { setStage('pass'); props.onVerified?.(); }
       else if (r.result === 'block') setStage('block');
@@ -395,8 +400,10 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
               {(['straight', 'turn1', 'turn2', 'blink'] as const).map((k, i) => <i key={k} className={prog * 4 > i + 0.99 || stage === 'checking' ? 'on' : Math.floor(prog * 4) === i ? 'now' : ''} />)}
             </div>
             {stage === 'camera' && simple
-              ? <button type="button" className="kfv2-cta" id="verifySnap" onClick={takeSelfie}>{L('Take selfie')}</button>
-              : <p>{L('Checked on your phone · about 5 seconds')}</p>}
+              ? <><p id="verifyPhotoNote">{L('We’ll send this one photo to our team to check, then delete it.')}</p><button type="button" className="kfv2-cta" id="verifySnap" onClick={takeSelfie}>{L('Take selfie')}</button></>
+              : photoNote && stage === 'checking'
+                ? <p id="verifyPhotoNote" role="status">{L('We’ll send this one photo to our team to check, then delete it.')}</p>
+                : <p>{L('Checked on your phone · about 5 seconds')}</p>}
           </div>
         </div>
       )}
@@ -418,7 +425,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
               <li>{L('Your face is sensitive personal data under Thailand’s PDPA. We use it only to confirm you are a real person and that your profile photo is you.')}</li>
               <li>{L('The check runs on your phone and the result comes right away. To keep Kring one person, one account, we keep a face code made from your selfie and from your card photo (numbers, not a photo) and compare it with other members’ face codes. Only the Kring team can see it.')}</li>
               <li>{L('We delete the face code with your account. If you received a prize, we keep it for one year so the same prize can’t be claimed twice.')}</li>
-              <li><b>{L('Your face photo never leaves your phone. Kring keeps only a face code (numbers, not a picture).')}</b></li>
+              <li><b>{L('Usually your face photo stays on your phone and Kring keeps only a face code (numbers). If the check is unsure, or your phone can’t run it, one selfie goes to our team to look at, and we delete it about 30 days after the review.')}</b></li>
               <li>{L('Questions or deletion: ops@kringapp.com')}</li>
             </ul>
           </details>

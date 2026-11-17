@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HELP_BANNED, HELP_CHIPS, HELP_FAQS, HELP_TEAM_PROMISE, faqById, matchHelp, normHelp } from './helpFaq';
+import { HELP_BANNED, HELP_CHIPS, HELP_FAQS, HELP_TEAM_PROMISE, faqAnswer, faqById, matchHelp, normHelp } from './helpFaq';
 import { HELP_UI } from './V5Help';
 
 /** each FAQ found by one Thai and one English phrasing that are NOT the FAQ's own question */
@@ -54,20 +54,62 @@ describe('Kring Helper FAQ matcher', () => {
   it('normalises case, curly quotes and spacing', () => {
     expect(normHelp('  Why  DIDN’T it…  ')).toBe("why didn't it");
   });
-  it('the team promise is 1 hour, and every Thai team line ends politely (ครับ, never ค่ะ)', () => {
-    expect(HELP_TEAM_PROMISE.th).toBe('ทีมงานตอบภายใน 1 ชั่วโมง');
-    expect(HELP_TEAM_PROMISE.en).toBe('The team replies within 1 hour');
+  it('the team line promises no reply time (T-392), and every Thai team line ends politely (ครับ, never ค่ะ)', () => {
+    expect(HELP_TEAM_PROMISE.th).toBe('ทีมงานจะตอบกลับในแชทนี้โดยเร็วครับ');
+    expect(HELP_TEAM_PROMISE.en).toBe('The team replies in this chat as soon as they can');
+    expect(`${HELP_TEAM_PROMISE.th} ${HELP_TEAM_PROMISE.en}`).not.toMatch(/ชั่วโมง|hour/);
     const all = [...HELP_FAQS.flatMap((f) => [f.aTh, f.qTh]), ...Object.values(HELP_UI).map((v) => v[0])].join(' ');
     expect(all).not.toMatch(/ค่ะ|คะ(\s|$)/);
     expect(HELP_UI.greet[0]).toMatch(/ครับ$/);
     expect(HELP_UI.notSure[0]).toMatch(/ครับ$/);
   });
   it('no banned words anywhere member-facing (FAQs, chips, helper UI)', () => {
-    const texts = [...HELP_FAQS.flatMap((f) => [f.qTh, f.qEn, f.aTh, f.aEn, f.chipTh || '', f.chipEn || '']),
+    const texts = [...HELP_FAQS.flatMap((f) => [f.qTh, f.qEn, faqAnswer(f, true), faqAnswer(f, false), f.chipTh || '', f.chipEn || '']),
       ...Object.values(HELP_UI).flat(), HELP_TEAM_PROMISE.th, HELP_TEAM_PROMISE.en];
     for (const t of texts) for (const w of HELP_BANNED) {
       const re = /^[a-z ]+$/.test(w) ? new RegExp(`\\b${w}`, 'i') : new RegExp(w);
       expect(re.test(t), `"${w}" in: ${t}`).toBe(false);
     }
+  });
+});
+
+describe('T-392 FAQ truth check: answers match the code', () => {
+  const en = (id: string, r?: Record<string, number>) => faqAnswer(faqById(id)!, false, r);
+  const th = (id: string, r?: Record<string, number>) => faqAnswer(faqById(id)!, true, r);
+  it('prize_win: only the single best Reel counts (best_reels = 1), with the ladder, floor and Founding Local from the rules', () => {
+    expect(en('prize_win')).toBe('Every week the top 8 on the board share ฿4,400 (฿1,500 for #1). You need at least 25 Rings, only your single best Reel of the week counts, and the Reel must be pinned to a Bangkok place. The first 50 members with an approved Reel also get ฿100 (Founding Local).');
+    expect(th('prize_win')).toContain('นับเฉพาะรีลที่ดีที่สุดของคุณรีลเดียว');
+    expect(th('prize_win')).toMatch(/ครับ$/);
+    for (const t of [en('prize_win'), th('prize_win')]) expect(t).not.toMatch(/\{|best 2|2 รีล/);
+  });
+  it('prize_win follows a config change without a code edit', () => {
+    const t = en('prize_win', { best_reels: 2, min_rings_for_paid_seat: 30, prize_4: 0, founding_on: 0 });
+    expect(t).toContain('your best 2 Reels of the week count');
+    expect(t).toContain('top 3 on the board share ฿3,000');
+    expect(t).toContain('at least 30 Rings');
+    expect(t).not.toContain('Founding Local');
+    expect(th('prize_win', { best_reels: 2 })).toContain('นับ 2 รีลที่ดีที่สุดของคุณ');
+  });
+  it('"how much is the prize" finds prize_win', () => {
+    expect(matchHelp('how much is the prize').faq?.id).toBe('prize_win');
+    expect(matchHelp('รางวัลเท่าไหร่').faq?.id).toBe('prize_win');
+  });
+  it('face_privacy no longer says the photo never leaves the phone: one selfie can go to the team, then it is deleted', () => {
+    const e = en('face_privacy'); const t = th('face_privacy');
+    expect(e).not.toMatch(/^No\.|only a face code|not a picture/);
+    expect(e).toMatch(/one selfie goes to our team/);
+    expect(e).toMatch(/30 days after the review/);
+    expect(e).toMatch(/delete your face data in Settings/);
+    expect(t).not.toMatch(/^ไม่ครับ|ไม่ใช่รูปภาพ/);
+    expect(t).toContain('เซลฟี่ 1 รูป');
+    expect(t).toMatch(/ครับ$/);
+  });
+  it('delete_data says what the 1-year prize rule covers; code_late has no 24-hour promise', () => {
+    expect(en('delete_data')).toMatch(/face codes and selfies/);
+    expect(en('delete_data')).toMatch(/Founding Local prize twice/);
+    expect(en('code_late')).not.toMatch(/24 hours|week’s results/);
+    expect(th('code_late')).not.toMatch(/24 ชั่วโมง/);
+    expect(en('code_use')).toContain('Copy link');
+    expect(en('reel_board')).toContain('Feed-only');
   });
 });

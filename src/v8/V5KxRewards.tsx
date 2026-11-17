@@ -247,7 +247,7 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
         ))}
       </div>
       <div className="kx-cl-foot">
-        {err ? <p className="kx-err center" role="alert" id="kxClaimErr">{err}</p> : <p className="kx-inst">{L('Your code arrives')} <b>{L('instantly')}</b></p>}
+        {err ? <p className="kx-err center" role="alert" id="kxClaimErr">{err}</p> : <p className="kx-inst">{L('Your code shows in My prizes as soon as it’s ready.')}</p>}
         <button type="button" className="kx-btn tall" id="kxClaimGo" disabled={busy || !prize || !!opensAt || step === 'line'} onClick={go}>
           <b>{busy ? '…' : Lf('Claim with {0} · {1}', BRAND_NAME[brand], baht(valueFor(brand, amount, pct)))}</b>
         </button>

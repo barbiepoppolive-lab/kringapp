@@ -2,7 +2,9 @@
 const T: Record<string, string> = {
     'Tap again to confirm': '한 번 더 탭해서 확인',
     'Verify your face in 5 seconds to post and chat. One person, one account.': '게시하고 채팅하려면 5초 얼굴 인증이 필요해요. 한 사람, 한 계정.',
-    'Your face photo never leaves your phone. Kring keeps only a face code (numbers, not a picture).': '얼굴 사진은 휴대폰 밖으로 나가지 않아요. Kring은 얼굴 코드(숫자, 사진 아님)만 보관해요.',
+    'Usually your face photo stays on your phone and Kring keeps only a face code (numbers). If the check is unsure, or your phone can’t run it, one selfie goes to our team to look at, and we delete it about 30 days after the review.': '얼굴 사진은 보통 휴대폰에만 있고, Kring은 얼굴 코드(숫자)만 보관해요. 자동 확인이 확실하지 않거나 휴대폰에서 확인을 할 수 없으면 셀카 1장을 팀이 확인하고, 확인 후 약 30일 뒤에 삭제해요.',
+    // T-392: shown before the one selfie is uploaded for the team (need_photo / simple path)
+    'We’ll send this one photo to our team to check, then delete it.': '이 사진 1장을 팀에 보내 확인한 뒤 삭제해요.',
     'Delete my face data': '내 얼굴 데이터 삭제',
     'Face data deleted. Your ✓ is off until you verify again.': '얼굴 데이터를 삭제했어요. 다시 인증할 때까지 ✓가 사라져요.',
     'For everyone’s safety, links can’t be sent in chat. Swap Instagram once you trust each other.': '모두의 안전을 위해 채팅에서는 링크를 보낼 수 없어요. 서로 믿을 수 있게 되면 인스타그램을 교환하세요.',

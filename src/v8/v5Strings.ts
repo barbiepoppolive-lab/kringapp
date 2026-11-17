@@ -3,7 +3,9 @@ export const V5_L: Record<string, Record<string, string>> = {
   th: {
     'Tap again to confirm': 'แตะอีกครั้งเพื่อยืนยัน',
     'Verify your face in 5 seconds to post and chat. One person, one account.': 'ยืนยันใบหน้า 5 วินาทีก่อนโพสต์และแชตนะ หนึ่งคน หนึ่งบัญชี',
-    'Your face photo never leaves your phone. Kring keeps only a face code (numbers, not a picture).': 'รูปหน้าของคุณไม่ออกจากมือถือ Kring เก็บแค่รหัสใบหน้าที่เป็นตัวเลข ไม่ใช่รูป',
+    'Usually your face photo stays on your phone and Kring keeps only a face code (numbers). If the check is unsure, or your phone can’t run it, one selfie goes to our team to look at, and we delete it about 30 days after the review.': 'ปกติรูปหน้าของคุณจะอยู่แค่ในมือถือ และกริ๊ง! เก็บแค่รหัสใบหน้าที่เป็นตัวเลข ถ้าระบบยังไม่แน่ใจ หรือมือถือตรวจเองไม่ได้ เราจะส่งเซลฟี่ 1 รูปให้ทีมงานดู แล้วลบทิ้งราว 30 วันหลังตรวจเสร็จครับ',
+    // T-392: shown before the one selfie is uploaded for the team (need_photo / simple path)
+    'We’ll send this one photo to our team to check, then delete it.': 'เราจะส่งรูปนี้ 1 รูปให้ทีมงานตรวจ แล้วลบทิ้งครับ',
     'Delete my face data': 'ลบข้อมูลใบหน้าของฉัน',
     'Face data deleted. Your ✓ is off until you verify again.': 'ลบข้อมูลใบหน้าแล้ว เครื่องหมาย ✓ จะหายไปจนกว่าคุณจะยืนยันใหม่',
     // 17 Nov: chat link block + Instagram/TikTok switch (Otop's advice)
@@ -768,6 +770,8 @@ export const KX_L: Record<string, Record<string, string>> = {
     'Get it on': 'รับผ่าน',
     'Your code arrives': 'ได้โค้ด',
     'instantly': 'ทันที',
+    // T-392: the claim page no longer promises "instantly" (a claim can be held for the team, or wait for stock)
+    'Your code shows in My prizes as soon as it’s ready.': 'โค้ดจะขึ้นใน “รางวัลของฉัน” ทันทีที่พร้อม',
     'claimed': 'กดรับ',
     'No claims yet. Yours could be the first.': 'ยังไม่มีใครกดรับ คุณอาจเป็นคนแรก',
     'This phone already claimed for another account. One person, one account.': 'มือถือเครื่องนี้กดรับให้บัญชีอื่นไปแล้ว หนึ่งคน หนึ่งบัญชีนะ',

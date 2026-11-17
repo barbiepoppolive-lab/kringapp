@@ -2,7 +2,9 @@
 const T: Record<string, string> = {
     'Tap again to confirm': 'もう一度タップして確認',
     'Verify your face in 5 seconds to post and chat. One person, one account.': '投稿とチャットには5秒の顔認証が必要です。1人1アカウント。',
-    'Your face photo never leaves your phone. Kring keeps only a face code (numbers, not a picture).': '顔写真はスマホから外に出ません。Kringが保存するのは顔コード（数字、写真ではありません）だけです。',
+    'Usually your face photo stays on your phone and Kring keeps only a face code (numbers). If the check is unsure, or your phone can’t run it, one selfie goes to our team to look at, and we delete it about 30 days after the review.': '顔写真は通常スマホの中だけにあり、Kringが保存するのは顔コード（数字）だけです。自動チェックで判断できない場合やスマホでチェックできない場合は、自撮り1枚をチームが確認し、確認から約30日後に削除します。',
+    // T-392: shown before the one selfie is uploaded for the team (need_photo / simple path)
+    'We’ll send this one photo to our team to check, then delete it.': 'この1枚の写真をチームに送って確認し、その後削除します。',
     'Delete my face data': '顔データを削除',
     'Face data deleted. Your ✓ is off until you verify again.': '顔データを削除しました。再認証するまで ✓ は外れます。',
     'For everyone’s safety, links can’t be sent in chat. Swap Instagram once you trust each other.': 'みんなの安全のため、チャットではリンクを送れません。仲良くなったらInstagramを交換しましょう。',

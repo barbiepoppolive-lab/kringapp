@@ -11,7 +11,10 @@ let apiP: Promise<FaceApi> | null = null;
  *  to this version (server: kr8_save_card_print / kr8_card_print_ok). Older members are NOT asked again; they simply get no card code. */
 /** 0081 instant check: 'face-2026-11-17d' = 17c wording + "the result comes right away" + "compared with other members' face codes".
  *  Server rules unchanged: anything >= 17c may keep card and selfie face codes (string order: 17d > 17c). */
-export const FACE_CONSENT_VERSION = 'face-2026-11-17d';
+/** T-392 (18 Nov): 'face-2026-11-18' = 17d + the true photo line (one selfie goes to the team when the check is unsure or the phone
+ *  can't run it; deleted about 30 days after the review). A new version so members who agreed to the old "never leaves your phone"
+ *  line see the consent again. Server rules unchanged (>= 17c; '18' > '17d' in string order). */
+export const FACE_CONSENT_VERSION = 'face-2026-11-18';
 export const CARD_PRINT_CONSENT = 'face-2026-11-17c';
 
 function modelUrl(): string {

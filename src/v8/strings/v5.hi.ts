@@ -2,7 +2,9 @@
 const T: Record<string, string> = {
     'Tap again to confirm': 'पुष्टि के लिए फिर से टैप करें',
     'Verify your face in 5 seconds to post and chat. One person, one account.': 'पोस्ट और चैट के लिए 5 सेकंड में चेहरा सत्यापित करें। एक व्यक्ति, एक अकाउंट।',
-    'Your face photo never leaves your phone. Kring keeps only a face code (numbers, not a picture).': 'आपकी चेहरे की फ़ोटो आपके फ़ोन से बाहर नहीं जाती। Kring सिर्फ़ फ़ेस कोड (नंबर, फ़ोटो नहीं) रखता है।',
+    'Usually your face photo stays on your phone and Kring keeps only a face code (numbers). If the check is unsure, or your phone can’t run it, one selfie goes to our team to look at, and we delete it about 30 days after the review.': 'आम तौर पर आपकी चेहरे की फ़ोटो आपके फ़ोन में ही रहती है, और Kring सिर्फ़ फ़ेस कोड (नंबर) रखता है। अगर अपने-आप होने वाली जाँच पक्की न हो, या आपका फ़ोन जाँच न चला सके, तो एक सेल्फ़ी हमारी टीम देखती है, और जाँच के लगभग 30 दिन बाद हम उसे हटा देते हैं।',
+    // T-392: shown before the one selfie is uploaded for the team (need_photo / simple path)
+    'We’ll send this one photo to our team to check, then delete it.': 'हम यह एक फ़ोटो जाँच के लिए अपनी टीम को भेजेंगे, फिर उसे हटा देंगे।',
     'Delete my face data': 'मेरा चेहरा डेटा हटाएँ',
     'Face data deleted. Your ✓ is off until you verify again.': 'चेहरा डेटा हटा दिया गया। दोबारा सत्यापित करने तक आपका ✓ हट जाएगा।',
     'For everyone’s safety, links can’t be sent in chat. Swap Instagram once you trust each other.': 'सबकी सुरक्षा के लिए चैट में लिंक नहीं भेजे जा सकते। भरोसा होने के बाद Instagram शेयर करें।',

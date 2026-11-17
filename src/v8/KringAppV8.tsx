@@ -123,7 +123,7 @@ import { coachDue, coachMark, coachPick, coachReplay, coachSync, newCoachState, 
 import { shownGender } from './V5Gender';
 import { useChatTranslate } from './v5Translate';
 import { kxBreakdown, kxGenderShown, kxMemberReels, kxReelPeople, kxTagPeople, type KxGridReel, type KxMemberReels, type KxTagPerson } from './v5Kx';
-import { kxSetWebReels, kxWebReelsGet, type KxWebReels } from './v5Kx';
+import { kxRules, kxSetWebReels, kxWebReelsGet, type KxWebReels } from './v5Kx';
 import { PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, SavedReelsPage, type PickedPlace } from './V5KxPlaces';
 import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRanking, kxRefName, kxSavedReels, kxShareLink, kxShareLinkCached, kxShareOpenSeen,
   type KxCardExtras, type KxClaimResult, type KxFeedExtra, type KxPrize, type KxRanking, type KxRewards, type KxSavedReel, type KxWeekResult } from './v5Kx';
@@ -7252,6 +7252,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {sheet === 'help' && (
           // 18 Nov (0097): Kring Helper. "Talk to the team" opens the member's Kring Team chat (works before the face check)
           <HelpSheet lang={lang} name={v5Card?.first_name || user.name || ''} onClose={() => setSheet(null)}
+            rules={kxRewards?.rules ?? null} loadRules={live ? kxRules : undefined}
             onEvent={(k, faq, q) => { if (live && signedIn) void v5HelpEvent(k, faq, q, lang); }}
             onTeam={async (q) => {
               if (!live) { window.location.href = 'mailto:ops@kringapp.com?subject=Kring%20help'; return; }
