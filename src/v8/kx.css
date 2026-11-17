@@ -787,6 +787,9 @@
 .v8-app-root .rka-tt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .v8-app-root .rka-tt h1 { margin: 0; font: 800 clamp(19px, 5.6vw, 25px)/1.15 var(--kx-j); letter-spacing: -.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .v8-app-root .rka-tt span { font: 500 0.7812rem/1.4 var(--kx-t); color: #b9b2d6; }
+/* 0096: "37 of 50 paid seats left" (Founding Local seats; never voucher stock): one quiet gold line under the header */
+.v8-app-root .rka-seats { margin: 8px 16px 0; text-align: center; font: 700 0.75rem/1.3 var(--kx-j); color: var(--kx-gd); overflow-wrap: anywhere; position: relative; z-index: 1; }
+.v8-app-root .rka-seats small { display: block; font: 600 0.6562rem/1.3 var(--kx-j); color: var(--kx-mu); }
 .v8-app-root .rka-cd { flex: none; display: flex; align-items: center; gap: 7px; font: 700 0.7812rem var(--kx-j); padding: 7px 11px; border-radius: 999px; white-space: nowrap;
   background: rgba(255,79,163,.12); border: 1px solid rgba(255,79,163,.55); color: #fff; font-variant-numeric: tabular-nums; }
 .v8-app-root .rka-cd i { width: 7px; height: 7px; border-radius: 50%; background: #FF4FA3; box-shadow: 0 0 8px #FF4FA3; }

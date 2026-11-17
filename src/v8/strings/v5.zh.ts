@@ -600,5 +600,6 @@ const T: Record<string, string> = {
   'Take selfie': '拍自拍',
   'Getting ready… {0}%': '准备中… {0}%',
   'Use your real face in front of the camera, not a photo or a screen.': '请用真人的脸对着镜头，不要用照片或屏幕。',
+  '{0} of {1} paid seats left': '付费名额剩 {0} / {1} 个',
 };
 export default T;

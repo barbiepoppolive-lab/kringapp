@@ -74,6 +74,8 @@ export interface KxRanking { week_start: string; ends_at: string; scope: KxScope
   me: { rank: number; all_rank: number; rings: number; prize: number; move: number | null } | null; gap: KxGap | null;
   mine: { pending: number; live: number; no_place: number } | null }
 export const kxRanking = (scope: KxScope) => rpc<KxRanking>('kr8_weekly_ranking', { p_scope: scope });
+/** 0096: Founding Local paid seats left (of 50) — one integer, null when Founding Local is off. Never voucher stock. */
+export const kxSeatsLeft = () => rpc<number | null>('kr8_seats_left');
 export interface KxMathReel { post_id: string; posted_at: string; poster_path: string | null; place: string | null; place_th: string | null;
   l_local: number; l_trav: number; s_local: number; s_trav: number; opens: number; score: number }
 export interface KxBreakdown { user_id: string; first_name: string; is_me: boolean; rings: number; rank: number | null; more: number;
