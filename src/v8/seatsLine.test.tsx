@@ -43,7 +43,7 @@ describe('Board: "X of 50 paid seats left" (0096)', () => {
     expect(BANNED.test(KX_L.th['{0} of {1} paid seats left'])).toBe(false);
     const sql = readFileSync(`${process.cwd()}/supabase/migrations/0096_kr8_seats_left.sql`, 'utf8').replace(/^--.*$/gm, '');
     expect(sql).toMatch(/returns integer/);
-    expect(sql).toMatch(/count(distinct assigned_to)/);   // 18 Nov: seats = people who received a voucher (one person = one seat)
+    expect(sql).toMatch(/count\(distinct assigned_to\)/);   // 18 Nov: seats = people who received a voucher (one person = one seat)
     expect(sql).not.toMatch(/status = 'available'/);       // never counts stock left
   });
 });
