@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+# Server endpoints and Cloudflare internals: nothing to index there.
+Disallow: /api/
+Disallow: /cdn-cgi/
 
 Sitemap: https://kringapp.com/sitemap.xml

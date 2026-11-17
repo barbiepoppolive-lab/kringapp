@@ -2,61 +2,61 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://kringapp.com/</loc>
-    <lastmod>2026-11-15</lastmod>
+    <lastmod>2026-11-17</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://kringapp.com/en/"/>
     <xhtml:link rel="alternate" hreflang="th" href="https://kringapp.com/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://kringapp.com/"/>
   </url>
   <url>
     <loc>https://kringapp.com/en/</loc>
-    <lastmod>2026-11-15</lastmod>
+    <lastmod>2026-11-17</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://kringapp.com/en/"/>
     <xhtml:link rel="alternate" hreflang="th" href="https://kringapp.com/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://kringapp.com/"/>
   </url>
   <url>
     <loc>https://kringapp.com/about</loc>
-    <lastmod>2026-11-10</lastmod>
+    <lastmod>2026-11-17</lastmod>
   </url>
   <url>
     <loc>https://kringapp.com/contact</loc>
-    <lastmod>2026-11-10</lastmod>
+    <lastmod>2026-11-17</lastmod>
   </url>
   <url>
     <loc>https://kringapp.com/terms</loc>
-    <lastmod>2026-11-11</lastmod>
+    <lastmod>2026-11-17</lastmod>
   </url>
   <url>
     <loc>https://kringapp.com/privacy</loc>
-    <lastmod>2026-11-10</lastmod>
+    <lastmod>2026-11-17</lastmod>
   </url>
   <url>
     <loc>https://kringapp.com/partner-terms</loc>
-    <lastmod>2026-11-10</lastmod>
+    <lastmod>2026-11-17</lastmod>
   </url>
   <url>
     <loc>https://kringapp.com/refund</loc>
-    <lastmod>2026-11-09</lastmod>
+    <lastmod>2026-11-17</lastmod>
   </url>
   <url>
     <loc>https://kringapp.com/delivery</loc>
-    <lastmod>2026-11-10</lastmod>
+    <lastmod>2026-11-17</lastmod>
   </url>
   <url>
     <loc>https://kringapp.com/safety</loc>
-    <lastmod>2026-11-09</lastmod>
+    <lastmod>2026-11-17</lastmod>
   </url>
   <url>
     <loc>https://kringapp.com/delete-account</loc>
-    <lastmod>2026-11-09</lastmod>
+    <lastmod>2026-11-17</lastmod>
   </url>
   <url>
     <loc>https://kringapp.com/locals/</loc>
-    <lastmod>2026-11-15</lastmod>
+    <lastmod>2026-11-17</lastmod>
   </url>
   <url>
     <loc>https://kringapp.com/partners/</loc>
-    <lastmod>2026-11-15</lastmod>
+    <lastmod>2026-11-17</lastmod>
   </url>
   <url>
     <loc>https://kringapp.com/rules/</loc>
@@ -159,5 +159,9 @@
     <xhtml:link rel="alternate" hreflang="th" href="https://kringapp.com/bangkok/"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://kringapp.com/en/bangkok/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://kringapp.com/bangkok/"/>
+  </url>
+  <url>
+    <loc>https://kringapp.com/app/</loc>
+    <lastmod>2026-11-17</lastmod>
   </url>
 </urlset>
