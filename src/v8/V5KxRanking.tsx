@@ -8,10 +8,11 @@
 import React, { useEffect, useState } from 'react';
 import './kx.css';
 import { countdown, fmtN, mathLines, weekEnd } from './kxLogic';
-import { kxBreakdown, kxRanking, type KxBreakdown, type KxGap, type KxRanking, type KxRankRow } from './v5Kx';
+import { kxBreakdown, kxRanking, kxRules, type KxBreakdown, type KxGap, type KxRanking, type KxRankRow } from './v5Kx';
 import { RingGlyph } from './V5KxCard';
 import { KX_L, V5_L } from './v5Strings';
 import { signReelPaths } from './v5Reel';
+import { RingToast, rulesVariant, WinEntry, WinSheet, winRules, YouBar, youState } from './V5KxRules';
 
 type Tx = (en: string) => string;
 type Txf = (en: string, a: string, b?: string) => string;
@@ -156,6 +157,19 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   const [now, setNow] = useState(() => Date.now());
   const [math, setMath] = useState<string | null>(null);
   const [how, setHow] = useState(false);
+  // rules-ui preview (?rules=A|B|C): "How to win" sheet + You bar + Ring toast; off = the page as it is live
+  const [rv] = useState(rulesVariant);
+  const [cfg, setCfg] = useState<Record<string, number> | null>(null);
+  const [win, setWin] = useState(() => { try { return !!rv && new URLSearchParams(location.search).get('win') === '1'; } catch { return false; } });
+  const [toast] = useState(() => { try { return !!rv && new URLSearchParams(location.search).get('toast') === '1'; } catch { return false; } });
+  const [bestReel, setBestReel] = useState<string | null>(null);
+  useEffect(() => {
+    if (!rv) return;
+    let dead = false;
+    kxRules().then((c) => { if (!dead) setCfg(c); }).catch(() => undefined);
+    if (props.myId) kxBreakdown(props.myId).then((b) => { if (!dead) setBestReel(b?.reels?.[0]?.post_id || null); }).catch(() => undefined);
+    return () => { dead = true; };
+  }, [rv, props.myId]);
   useEffect(() => {
     let dead = false;
     kxRanking('all').then((d) => { if (!dead) setData(d); }).catch(() => { if (!dead) setErr(true); });
@@ -171,6 +185,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   const own = ownRow(L, Lf, data?.gap, data?.mine);
   const ownTh = ownRow(thL, thLf, data?.gap, data?.mine).l2;
   const ownEn = ownRow(enL, enLf, data?.gap, data?.mine).l2;
+  const wr = rv ? winRules(cfg, data) : null;
   const floorNote = !!data && data.floor > 0 && (data.open_seats > 0 || rows.some((r) => r.needs));
   // below the prize floor: soft grey card + one small line, on every rank (founder pick A, 17 Nov)
   const elig = (r: KxRankRow) => (r.needs ? <em className="rka-elig">{Lf('{0} more Rings to be eligible', fmtN(Math.max(1, r.needs - r.rings)))}</em> : null);
@@ -200,13 +215,14 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
     </button>
   );
   return (
-    <div className="kx-page kx-rk rka" id="kxRanking">
+    <div className={`kx-page kx-rk rka${rv ? ' rwv' : ''}`} id="kxRanking">
       <div className="rka-top">
         <button type="button" className="kx-bk rka-bk" aria-label={L('Back')} onClick={props.onBack}>‹</button>
         {/* T-301 round 2 (T301-009/020): one language on the page, "5 วัน" not "5d" in Thai */}
         <div className="rka-tt"><h1>{L('Weekly Ranking')}</h1></div>
         <span className={`rka-cd${hot ? ' hot' : ''}`} id="kxCountdown" data-hot={hot ? '1' : '0'}><i aria-hidden="true" />{Lf('Ends {0}', props.lang === 'th' ? countdown(now, end).replace(/^(\d+)d /, '$1 วัน ') : countdown(now, end))}</span>
       </div>
+      {rv && wr ? <WinEntry v={rv} lang={props.lang} total={wr.prizes.reduce((a, b) => a + b, 0)} seats={wr.prizes.length} onOpen={() => setWin(true)} /> : null}
       {data === null && !err ? <p className="kx-empty pad">…</p> : err ? <p className="kx-empty pad">{L('Couldn’t reach Kring. Check your connection and try again.')}</p> : (
         <>
           <div className="rka-pod" id="kxPodium">
@@ -242,7 +258,13 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
             {rows.filter((r) => r.rank > paid).map((r) => <React.Fragment key={r.user_id}>{Row({ r })}</React.Fragment>)}
           </div>
           <div className="kx-fade rka-fade" />
-          {props.myId ? (
+ {rv && wr && props.myId ? (
+            <>
+              {toast ? <RingToast v={rv} lang={props.lang} pts={wr.save} who="Mint" act="save" /> : null}
+              <YouBar v={rv} lang={props.lang} r={wr} s={youState(data)} photo={props.myPhoto} name={props.myName}
+                onShare={() => { if (bestReel) props.onShare(bestReel); else setMath(props.myId); }} onPost={props.onPost} />
+            </>
+          ) : props.myId ? (
             <div className="kx-me rka-me" id="kxMeRow" data-state={own.key}>
               <span className="n">{own.n}</span>
               <span className="rka-meph">
@@ -268,6 +290,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
       {math ? <MathSheet L={L} Lf={Lf} lang={props.lang} user={math} onClose={() => setMath(null)} onHow={() => { setMath(null); setHow(true); }}
         onShare={(reel) => { setMath(null); if (reel) props.onShare(reel); else props.onPost(); }} /> : null}
       {how ? <HowSheet L={L} onClose={() => setHow(false)} /> : null}
+      {rv && wr && win ? <WinSheet v={rv} lang={props.lang} r={wr} onClose={() => setWin(false)} /> : null}
     </div>
   );
 }
