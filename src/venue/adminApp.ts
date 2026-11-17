@@ -18,6 +18,7 @@ import { agentsByLabel, cleanRef, codeMeaning, funnelLine, funnelRate, isProblem
 import { buildClusters, faceWords, flagText, isLookalikeMap, isLookCardMap, joinDate, lookalikeBlock, ownPhotoLabel, type LookCard, type FaceLookalikes, istWhen, weekRange, type WeekRow, HOLD_LABEL, isDupOverview, isLinkReason, isWeekReview, linkText, prizeName, REASON_LABEL, weekFlags,
   type DupCluster, type DupFlagged, type DupHeld, type DupMember, type WeekReview, reviewText } from './dupAdmin';
 import './admin2.css';
+import { v2Flush, v2Route, v2TabFor, v2Tabbar } from './adminV2';
 
 // ───────────────────────────── types (same rows as v1) ─────────────────────────────
 type Reel = { id: string; author_id: string; author_name: string; ref_code: string | null; area: string; body: string; created_at: string;
@@ -174,13 +175,8 @@ let counts: { reels: number; faces: number; reports: number; hiddenNow: number; 
 let me = '';
 
 function tabbar(active: Tab): HTMLElement {
-  // audit P2-12: the old manual "Top 5 gifts" tab is gone from the bar (weekly prizes are automatic: Top 8 from kr8_close_week);
-  // its history stays under More → Old manual awards.
-  const items: [Tab, string, string][] = [['todo', 'home', 'To do'], ['members', 'users', 'Members'], ['listings', 'store', 'Listings'], ['more', 'more', 'More']];
-  const total = counts ? counts.reels + counts.faces + counts.reports + counts.replies + counts.venues + counts.held : 0;
-  return el('div', { class: 'tabbar' }, el('nav', {}, ...items.map(([k, i, label]) =>
-    el('a', { href: '#' + k, class: k === active ? 'on' : '', id: 'tab-' + k, 'aria-current': k === active ? 'page' : undefined },
-      ic(i), label, k === 'todo' && total ? el('span', { class: 'bdg', id: 'todoBadge' }, String(total)) : null))));
+  // admin v2 (17 Nov): one tab bar everywhere — Today · Needs you · People · Money · More (old screens map onto it)
+  return v2Tabbar(v2TabFor(active));
 }
 function screen(active: Tab, ...kids: Kid[]): HTMLElement {
   const s = el('div', { class: 'scr' }, ...kids);
@@ -1699,7 +1695,12 @@ function moreView() {
   out.onclick = async () => { flushWrite(); (await v5Client()).auth.signOut().catch(() => undefined); location.hash = ''; void boot(); };
   const cleaned = cleanedNote || LS('kr8-admin-cleaned');
   screen('more', head('Kring admin', 'More'),
-    el('div', { class: 'sec', style: 'margin-top:0' }, 'Health'),
+    el('div', { class: 'sec', style: 'margin-top:0' }, 'Overview'),
+    li('#board', 'trophy', 'Board', 'Live weekly ranking with flags (opens only, new, look-alike)', 'moreBoard'),
+    li('#log', 'hist', 'Activity log', 'Everything, newest first · sign-ups, money, face checks, your actions', 'moreLog'),
+    li('#listings', 'store', 'Listings', 'Stay / Do and venues', 'moreListings'),
+    li('#todo', 'check', 'Queues (old To do)', 'Reels, face checks, reports, replies, venues one at a time', 'moreTodo'),
+    el('div', { class: 'sec' }, 'Health'),
     li('#problems', 'warn', 'Problems', 'Reel and face-check failures on members’ phones · funnel', 'moreProblems'),
     li('#recruiters', 'link', 'Recruiters', 'Sign-ups per ref code · credit members who joined without one', 'moreRecruiters'),
     el('div', { class: 'sec' }, 'History'),
@@ -2271,8 +2272,10 @@ function route() {
   flushWrite();
   toastEl?.remove(); toastEl = null;
   document.querySelectorAll('.scrim').forEach((n) => n.remove());
-  const h = decodeURIComponent(location.hash.replace(/^#/, '')) || 'todo';
+  v2Flush();
+  const h = decodeURIComponent(location.hash.replace(/^#/, '')) || 'today';
   const [a, b, c] = h.split('/');
+  if (v2Route(a, b)) return;   // admin v2 screens (adminV2.ts)
   if (a === 'q') {
     if (b === 'reels') return void reelQueue();
     if (b === 'faces') return void faceQueue();
