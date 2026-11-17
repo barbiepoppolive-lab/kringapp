@@ -177,13 +177,14 @@ def head(lang, title, desc, canon_th, canon_en, ld, img, ogtype='article'):
 <meta content="#07060c" name="theme-color"/><meta content="dark" name="color-scheme"/><meta content="Kring" name="author"/><link href="/icon-192.png" rel="icon" sizes="192x192" type="image/png"/>
 <meta content="%s" property="og:type"/><meta content="Kring" property="og:site_name"/><meta content="%s" property="og:locale"/><meta content="%s%s" property="og:url"/>
 <meta content="%s" property="og:title"/><meta content="%s" property="og:description"/><meta content="%s%s" property="og:image"/>
-<meta content="summary_large_image" name="twitter:card"/>
+<meta content="%s" property="og:image:alt"/><meta content="1200" property="og:image:width"/><meta content="630" property="og:image:height"/>
+<meta content="summary_large_image" name="twitter:card"/><meta content="%s" name="twitter:title"/><meta content="%s" name="twitter:description"/><meta content="%s%s" name="twitter:image"/>
 <script type="application/ld+json">%s</script>
 <style>%s</style>
 </head>
 <body>
 ''' % (lang, E(title), E(desc), SITE, me, SITE, canon_th, SITE, canon_en, SITE, canon_th, ogtype, T[lang]['locale'], SITE, me,
-       E(title), E(desc), SITE, img, json.dumps(ld, ensure_ascii=False, separators=(',', ':')), CSS)
+       E(title), E(desc), SITE, img, E(title), E(title), E(desc), SITE, img, json.dumps(ld, ensure_ascii=False, separators=(',', ':')), CSS)
 
 def foot(lang):
     return '<footer>%s<span style="flex:1 0 100%%;padding:8px">© 2026 %s</span></footer>\n</body>\n</html>\n' % (
@@ -206,7 +207,7 @@ def build_article(a, lang, arts_by_slug):
     body = body_html(L['body'])
     allt = plain(L['body']) + ' ' + ' '.join(q + ' ' + x for q, x in L['faq'])
     mins = max(3, round(words(lang, allt) / 220))
-    join = '/app/?join=1&src=blog_' + slug.replace('-', '_')
+    join = SITE + '/app/?src=blog_' + slug + '&join=1'
     ld = {'@context': 'https://schema.org', '@graph': [
         {'@type': 'BreadcrumbList', 'itemListElement': [
             {'@type': 'ListItem', 'position': 1, 'name': 'Kring', 'item': SITE + ('/' if lang == 'th' else '/en/')},
@@ -214,7 +215,7 @@ def build_article(a, lang, arts_by_slug):
             {'@type': 'ListItem', 'position': 3, 'name': L['h1'], 'item': SITE + path(lang, slug)}]},
         {'@type': 'Article', 'headline': L['h1'][:110], 'description': L['desc'], 'inLanguage': lang,
          'datePublished': DATE, 'dateModified': DATE, 'image': [SITE + img[0], SITE + OG[hk]],
-         'author': {'@type': 'Organization', 'name': 'Kring team', 'url': SITE + '/about'},
+         'author': {'@type': 'Organization', 'name': 'Kring', 'url': SITE + '/about'},
          'publisher': {'@type': 'Organization', 'name': 'Kring', 'url': SITE + '/', 'logo': {'@type': 'ImageObject', 'url': SITE + '/icon-512.png'}},
          'mainEntityOfPage': SITE + path(lang, slug)},
         {'@type': 'FAQPage', 'inLanguage': lang, 'mainEntity': [
@@ -274,7 +275,7 @@ def build_index(lang, arts):
         if not items: continue
         o += '<section><h2>%s</h2><ul class="cards">%s</ul></section>\n' % (E(gname), ''.join(
             '<li><a href="%s"><b>%s</b><span>%s</span></a></li>' % (path(lang, a['slug']), E(a[lang]['h1']), E(a[lang]['card'])) for a in items))
-    o += '<aside class="kr"><h2>%s</h2><p>%s</p><a class="btn" href="/app/?join=1&amp;src=blog_index">%s →</a><small>%s</small></aside>\n' % (
+    o += '<aside class="kr"><h2>%s</h2><p>%s</p><a class="btn" href="https://kringapp.com/app/?src=blog_index&amp;join=1">%s →</a><small>%s</small></aside>\n' % (
         ('กริ๊ง! คืออะไร' if lang == 'th' else 'What is Kring?'),
         ('แอปหาเพื่อนใหม่ในกรุงเทพฯ สำหรับคนไทยและนักท่องเที่ยว โพสต์ Reels สั้น ๆ จากที่จริงในเมือง ขึ้นบอร์ดประจำสัปดาห์ที่มีรางวัลจริง และถามตอบในห้อง "ถามคนไทย" แชตแปลไทย-อังกฤษให้อัตโนมัติ'
          if lang == 'th' else 'A Bangkok app for making new friends, for Thais and travellers. Post short Reels from real places, climb a weekly board with real prizes, and ask questions in "Ask a Thai". Chats translate between Thai and English automatically.'),
@@ -352,6 +353,14 @@ def main():
                 SITE, path(lang, slug), DATE, SITE, path('th', slug), SITE, path('en', slug), SITE, path('th', slug)))
     sm.append('</urlset>\n')
     open(os.path.join(R, 'sitemap-blog.xml'), 'w', encoding='utf-8').write('\n'.join(sm))
+    # Same blog entries inside the main sitemap.xml too, between markers (replaced on every build)
+    mp = os.path.join(R, 'sitemap.xml'); ms = open(mp, encoding='utf-8').read()
+    blk = '  <!-- blog:start -->\n' + '\n'.join(sm[2:-1]) + '\n  <!-- blog:end -->\n'
+    if '<!-- blog:start -->' in ms:
+        ms = re.sub(r'  <!-- blog:start -->.*?<!-- blog:end -->\n', lambda m: blk, ms, flags=re.S)
+    else:
+        ms = ms.replace('</urlset>', blk + '</urlset>')
+    open(mp, 'w', encoding='utf-8').write(ms)
     print('built %d articles x 2 languages + 2 index pages' % len(arts))
     if '--check' in sys.argv: check(arts)
 

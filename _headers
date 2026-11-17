@@ -75,3 +75,18 @@
 
 /llms.txt
   Content-Type: text/plain; charset=utf-8
+
+# Face check models (on-device): right types so phones load them, kept for 30 days
+/app/models/*.wasm
+  Content-Type: application/wasm
+  Cache-Control: public, max-age=2592000
+/app/models/*.mjs
+  Content-Type: text/javascript; charset=utf-8
+/app/models/*.onnx
+  Content-Type: application/octet-stream
+  Content-Disposition: inline
+  Cache-Control: public, max-age=2592000
+/app/models/*.task
+  Content-Type: application/octet-stream
+  Content-Disposition: inline
+  Cache-Control: public, max-age=2592000
