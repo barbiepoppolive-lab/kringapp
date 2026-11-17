@@ -93,7 +93,13 @@ export function HelpSheet({ lang, name, onClose, onTeam, onEvent }: HelpSheetPro
   const body = useRef<HTMLDivElement>(null);
   const nid = () => idRef.current++;
 
-  useEffect(() => { const b = body.current; if (b && msgs.length > 1) b.scrollTo({ top: b.scrollHeight, behavior: 'smooth' }); }, [msgs]);
+  // the newest question goes to the top, so the answer card reads from its first line
+  useEffect(() => {
+    const b = body.current; if (!b || msgs.length < 2) return;
+    const mine = b.querySelectorAll<HTMLElement>('[data-me]');
+    const last = mine[mine.length - 1];
+    b.scrollTo({ top: last ? Math.max(0, last.offsetTop - b.offsetTop - 10) : b.scrollHeight, behavior: 'smooth' });
+  }, [msgs]);
 
   const ask = (q: string, fromChip?: HelpFaq) => {
     const query = q.trim().slice(0, 300);
