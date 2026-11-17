@@ -8,11 +8,13 @@ import { pickNextStep, type NextStepInput, type NextStepKind } from '../v8/nextS
 
 // ───────── rows from 0082 ─────────
 export type Kind = 'real' | 'test' | 'team' | 'ghost' | 'admin' | 'nocard';
-export interface Link { user_id: string; no: number | null; name: string | null; reason: string; dist: number | null; at: string }
+export interface Link { user_id: string; no: number | null; name: string | null; reason: string; dist: number | null; sface_sim?: number | null; at: string }
+export interface Trust { score: number; reasons: string[] }
 export interface Person {
   user_id: string; kind: Kind; no: number | null; name: string; who: string | null; area: string | null; joined_at: string; last_active_at: string | null;
   ref: string | null; src: string | null; verified: boolean; ig: string | null; tt: string | null; has_photo: boolean; photo_check: string | null;
   email_hint: string | null; line: boolean;
+  trust?: Trust | null;
   check: { id: string; status: string; at: string; auto: string | null; reason: string | null; selfie_path?: string | null } | null;
   reels: { live: number; waiting: number; hidden: number; board_off: number; board_off_reason: string | null } | null;
   claims: { n: number; paid: number; held: number; thb: number; first_at: string | null } | null;
@@ -28,19 +30,32 @@ export interface Claim {
   prize: { kind: string; week: string | null; rank: number | null } | null;
 }
 export interface CodeStock { brand: string; amount: number; available: number; assigned: number; used: number }
-export interface BoardRow { rank: number; user_id: string; rings: number; prize: number; likes: number | null; saves: number | null; opens: number | null; is_new: boolean; no: number | null; name: string | null }
+export interface BoardRow {
+  rank: number; user_id: string; rings: number; prize: number; likes: number | null; saves: number | null; opens: number | null;
+  is_new: boolean; no: number | null; name: string | null;
+  /** 0095 Rings guard: Rings from low-trust (<30) or <24h accounts ignored on this row */
+  ignored_rings?: number | null;
+}
+export interface DupAuto {
+  at: string; dup: string; dup_no: number | null; dup_name: string | null;
+  keep: string | null; keep_no: number | null; keep_name: string | null;
+  why: 'same_face' | 'same_device' | string | null; dup_sim: number | null;
+  voided_reels: number; ledger_void: number; ghost: boolean; undone: boolean;
+}
 export interface Snapshot {
   at: string; day_start: string; week_start: string; include_test: boolean;
   counts: { real: number; real_today: number; test: number; team: number; ghost: number; admin: number; nocard: number };
   people: Person[]; claims: Claim[]; codes: CodeStock[];
-  board: { week_start: string; paid_ranks: number; floor: number; rows: BoardRow[] };
+  board: { week_start: string; paid_ranks: number; floor: number; guard_on?: boolean; rows: BoardRow[] };
   pending: { reels: { id: string; user_id: string; at: string; poster_path: string | null; video_path: string | null; body: string | null }[];
     checks: { id: string; user_id: string; at: string; auto: string | null; review: string[] | null; selfie_path: string | null }[]; reports: number; places: number };
-  alerts: { kind: string; subject: string; at: string; sent: boolean; error: string | null }[];
+  alerts: { kind: string; subject: string; at: string; sent: boolean; error: boolean | string | null }[];
   /** 0086 kr8_admin_places_auto: what the place robot did (loaded next to the snapshot; missing before 0086) */
   places_auto?: PlaceAuto[];
   /** 0087 kr8_admin_v2_people_extra: real-photo flag, step inputs, Removed list, one set of counts (missing before 0087) */
   extra?: PeopleExtra;
+  /** 0095 kr8_admin_dups_auto: duplicates automatically ghosted by the duplicate robot (with Undo) */
+  dups_auto?: DupAuto[];
 }
 export interface PeopleExtraRow {
   real_photo: boolean;
@@ -85,14 +100,111 @@ export const who = (p: { no: number | null; name: string | null }) => `${p.name 
 export const isReal = (p: Person) => p.kind === 'real';
 
 // ───────── face distance → one wording everywhere (audit: two "same person" lines meant opposite things) ─────────
-/** Look-alike between TWO accounts. Lower = more alike. Never used for "is the photo the same person as the selfie". */
-export function lookalikeWords(dist: number | null | undefined, reason = 'face'): { tone: 'r' | 'a'; text: string } {
+/** Look-alike between TWO accounts. Lower = more alike (face-api dist); higher sface_sim = more alike. Never used for "is the photo the same person as the selfie". */
+export function lookalikeWords(dist: number | null | undefined, reason = 'face', sfaceSim?: number | null): { tone: 'r' | 'a'; text: string } {
   if (reason === 'device') return { tone: 'a', text: 'Same phone' };
   if (reason === 'network') return { tone: 'a', text: 'Same Wi-Fi / network' };
+  if (sfaceSim != null) {
+    if (sfaceSim >= 0.6) return { tone: 'r', text: `Same face · ${sfaceSim.toFixed(2)}` };
+    return { tone: 'a', text: `Looks alike · ${sfaceSim.toFixed(2)}` };
+  }
   if (dist == null) return { tone: 'a', text: 'Looks alike' };
   if (dist < 0.4) return { tone: 'r', text: `Same face · ${dist.toFixed(2)}` };
   if (dist <= 0.5) return { tone: 'a', text: `Looks alike · ${dist.toFixed(2)}` };
   return { tone: 'a', text: `Slightly alike · ${dist.toFixed(2)}` };
+}
+
+// ───────── Trust score 0–100 (0095 kr8_trust + client fallback before 0095) ─────────
+export function personTrust(p: Person, s?: Snapshot): Trust {
+  if (p.trust && typeof p.trust.score === 'number' && Array.isArray(p.trust.reasons)) {
+    return { score: Math.max(0, Math.min(100, Math.round(p.trust.score))), reasons: p.trust.reasons };
+  }
+  if (p.kind === 'nocard' || p.kind === 'admin') return { score: 25, reasons: ['−25 no member card yet'] };
+  let score = 50;
+  const items: { w: number; t: string }[] = [];
+  if (p.verified) { score += 30; items.push({ w: 30, t: '+30 face verified' }); }
+  else if (p.check?.status === 'rejected') { score -= 20; items.push({ w: 20, t: '−20 face check refused' }); }
+  const hasRealPh = s ? realPhoto(p, s) : p.has_photo && (p.photo_check == null || p.photo_check === 'ok');
+  if (hasRealPh) { score += 10; items.push({ w: 10, t: '+10 real photo' }); }
+  if ((p.reels?.live || 0) > 0) { score += 10; items.push({ w: 10, t: '+10 approved Reel' }); }
+
+  const sameFace = p.links.find((l) => l.reason === 'face' && ((l.sface_sim ?? 0) >= 0.6 || (l.dist != null && l.dist < 0.4)));
+  const alikeFace = !sameFace ? p.links.find((l) => l.reason === 'face') : undefined;
+  if (sameFace) { score -= 40; items.push({ w: 40, t: `−40 same face as #${sameFace.no ?? '?'}` }); }
+  else if (alikeFace) { score -= 20; items.push({ w: 20, t: `−20 looks like #${alikeFace.no ?? '?'}` }); }
+
+  const sameDev = p.links.find((l) => l.reason === 'device');
+  const sameNet = p.links.some((l) => l.reason === 'network') || p.shared_net > 0;
+  if (sameDev) { score -= 35; items.push({ w: 35, t: `−35 same phone as #${sameDev.no ?? '?'}` }); }
+  else if (sameNet) { score -= 25; items.push({ w: 25, t: '−25 same Wi-Fi as a claimer' }); }
+
+  const firstAt = p.claims?.first_at || s?.claims.filter((c) => c.user_id === p.user_id && !c.is_test).map((c) => c.created_at).sort()[0] || null;
+  const mins = firstAt ? minutesBetween(p.joined_at, firstAt) : null;
+  if (mins != null && mins <= 15) { score -= 20; items.push({ w: 20, t: '−20 claimed within 15 min of joining' }); }
+
+  items.sort((a, b) => b.w - a.w);
+  return { score: Math.max(0, Math.min(100, score)), reasons: items.map((x) => x.t) };
+}
+export function trustChip(t: Trust): { text: string; tone: 'g' | 'a' | 'r' } {
+  if (t.score >= 70) return { text: `trust ${t.score}`, tone: 'g' };
+  if (t.score <= 30) return { text: `trust ${t.score}`, tone: 'r' };
+  return { text: `trust ${t.score}`, tone: 'a' };
+}
+
+// ───────── Money Robot (recommendation only; founder taps Pay / Refuse) ─────────
+export type MoneyCall = 'PAY' | 'WAIT' | 'REFUSE';
+export interface MoneyVerdict {
+  call: MoneyCall;
+  score: number;
+  headline: string;
+  tone: 'g' | 'a' | 'r';
+  reasons: string[];
+  clarity: number;
+}
+export function moneyRobotVerdict(c: Claim, p: Person | undefined, s: Snapshot): MoneyVerdict {
+  const tr = p ? personTrust(p, s) : { score: 25, reasons: ['−25 no member card yet'] };
+  const holdOthers = c.hold_others || [];
+  const strongHoldOther = holdOthers.some((o) => (o.reasons || []).includes('device') || (o.face_dist != null && o.face_dist < 0.4));
+  const strongPersonLink = !!p?.links.some((l) => l.reason === 'device' || (l.reason === 'face' && ((l.sface_sim ?? 0) >= 0.6 || (l.dist != null && l.dist < 0.4))));
+  const hardDup = strongHoldOther || strongPersonLink || p?.kind === 'ghost' || p?.check?.status === 'rejected';
+  const anyDupLink = holdOthers.length > 0 || !!p?.links.some((l) => l.reason === 'face' || l.reason === 'device');
+
+  let call: MoneyCall;
+  let tone: 'g' | 'a' | 'r';
+  if (hardDup || tr.score <= 30) {
+    call = 'REFUSE';
+    tone = 'r';
+  } else if (tr.score >= 70 && p?.verified && c.hold_reason !== 'review' && !anyDupLink) {
+    call = 'PAY';
+    tone = 'g';
+  } else {
+    call = 'WAIT';
+    tone = 'a';
+  }
+
+  const pool: string[] = [...tr.reasons];
+  if (c.hold_reason === 'review' && !pool.some((r) => /face check/i.test(r))) pool.push('Face check needs your eye before paying');
+  for (const o of holdOthers) {
+    const tag = `#${o.member_no ?? '?'}`;
+    if (!pool.some((r) => r.includes(tag))) pool.push(`Linked to ${tag}${o.first_name ? ` ${o.first_name}` : ''}`);
+  }
+  if (call === 'PAY' && pool.length < 3) pool.push('No duplicate face or phone links');
+  if (!pool.length) pool.push(call === 'WAIT' ? 'Borderline signals — check card and Reel first' : 'Standard member signals');
+
+  const reasons = pool.slice(0, 3);
+  const headline = call === 'WAIT' ? `Robot says: WAIT · trust ${tr.score}` : `Robot says: ${call} · trust ${tr.score}`;
+  const clarity = (call !== 'WAIT' ? 60 : 0) + Math.abs(tr.score - 50) + (hardDup ? 20 : 0);
+  return { call, score: tr.score, headline, tone, reasons, clarity };
+}
+
+export function dupAutoText(d: DupAuto): string {
+  const dupWho = `${d.dup_name || 'member'}${d.dup_no != null ? ` #${d.dup_no}` : ''}`;
+  const keepWho = d.keep_no != null ? `#${d.keep_no}${d.keep_name ? ` ${d.keep_name}` : ''}` : 'older account';
+  const why = d.why === 'same_device'
+    ? `same phone as ${keepWho}`
+    : `same face as ${keepWho}${d.dup_sim != null ? ` · ${Number(d.dup_sim).toFixed(2)}` : ''}`;
+  const ringsNote = d.voided_reels || d.ledger_void ? ' · voided this week’s Rings' : '';
+  return `Duplicate robot ghosted ${dupWho} (${why})${ringsNote}${d.undone ? ' · undone by you' : ''}`;
 }
 
 // ───────── anomaly flags (plain words) ─────────
@@ -101,7 +213,7 @@ export interface Flag { key: FlagKey; text: string; tone: 'r' | 'a' }
 export function personFlags(p: Person, all: Person[] = [], claims: Claim[] = []): Flag[] {
   const f: Flag[] = [];
   const alike = p.links.filter((l) => l.reason.startsWith('face'));
-  if (alike.length) f.push({ key: 'lookalike', tone: alike.some((l) => (l.dist ?? 1) < 0.4) ? 'r' : 'a', text: `Looks like ${alike.map((l) => `#${l.no ?? '?'}`).join(', ')}` });
+  if (alike.length) f.push({ key: 'lookalike', tone: alike.some((l) => (l.sface_sim ?? 0) >= 0.6 || (l.dist ?? 1) < 0.4) ? 'r' : 'a', text: `Looks like ${alike.map((l) => `#${l.no ?? '?'}`).join(', ')}` });
   const dev = p.links.filter((l) => !l.reason.startsWith('face'));
   if (dev.length || p.shared_net) f.push({ key: 'shared', tone: 'a', text: dev.length ? `Same phone/Wi-Fi as ${dev.map((l) => `#${l.no ?? '?'}`).join(', ')}` : `Claimed on the same Wi-Fi/phone as ${p.shared_net} other` });
   if (p.reels?.board_off) f.push({ key: 'board_off', tone: 'a', text: 'Off the board' + (p.reels.board_off_reason ? ` · ${p.reels.board_off_reason}` : '') });
@@ -123,10 +235,12 @@ export function personFlags(p: Person, all: Person[] = [], claims: Claim[] = [])
 // ───────── Needs you: one card per person-group, ranked, with auto-handled kept apart ─────────
 export type InboxKind = 'held' | 'lookalike' | 'check' | 'reel' | 'reports';
 export interface InboxItem {
-  key: string; kind: InboxKind; rank: number; title: string; why: string; people: Person[]; claims: Claim[]; links: { a: string; b: string; reason: string; dist: number | null }[];
+  key: string; kind: InboxKind; rank: number; title: string; why: string; people: Person[]; claims: Claim[];
+  links: { a: string; b: string; reason: string; dist: number | null; sface_sim?: number | null }[];
   reelIds: string[]; checkIds: string[]; at: string; count?: number;
+  verdict?: MoneyVerdict;
 }
-export interface Handled { key: string; at: string; text: string }
+export interface Handled { key: string; at: string; text: string; undoDup?: string; undone?: boolean }
 
 const RANK: Record<InboxKind, number> = { held: 100, lookalike: 80, check: 70, reports: 60, reel: 50 };
 
@@ -152,7 +266,7 @@ export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[
   // 1) look-alike groups (+ any held claim inside the group rides on the same card)
   for (const g of linkGroups(people)) {
     const ids = new Set(g.map((p) => p.user_id));
-    const links = dedupeLinks(g.flatMap((p) => p.links.filter((l) => ids.has(l.user_id)).map((l) => ({ a: p.user_id, b: l.user_id, reason: l.reason, dist: l.dist }))));
+    const links = dedupeLinks(g.flatMap((p) => p.links.filter((l) => ids.has(l.user_id)).map((l) => ({ a: p.user_id, b: l.user_id, reason: l.reason, dist: l.dist, sface_sim: l.sface_sim }))));
     const held = s.claims.filter((c) => c.user_id && ids.has(c.user_id) && c.held && c.status === 'pending');
     const newer = g.slice(1);
     const settled = newer.every((p) => p.kind === 'ghost' || (p.check?.status === 'rejected' && !p.reels?.live && !(p.claims?.paid)));
@@ -162,23 +276,27 @@ export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[
       continue;
     }
     g.forEach((p) => used.add(p.user_id));
-    const strong = links.some((l) => (l.dist ?? 1) < 0.4 || l.reason === 'device');
+    const strong = links.some((l) => (l.sface_sim ?? 0) >= 0.6 || (l.dist ?? 1) < 0.4 || l.reason === 'device');
     const why = [
-      `${g.length} accounts ${strong ? 'are very likely one person' : 'look alike'} (${links.map((l) => `#${byId.get(l.a)?.no}↔#${byId.get(l.b)?.no} ${lookalikeWords(l.dist, l.reason).text}`).join('; ')}).`,
+      `${g.length} accounts ${strong ? 'are very likely one person' : 'look alike'} (${links.map((l) => `#${byId.get(l.a)?.no}↔#${byId.get(l.b)?.no} ${lookalikeWords(l.dist, l.reason, l.sface_sim).text}`).join('; ')}).`,
       held.length ? `${held.length} prize claim held: no code goes out until you decide.` : '',
       newer.some((p) => p.reels?.live) ? `Newer account still has ${newer.reduce((n, p) => n + (p.reels?.live || 0), 0)} live Reel(s).` : '',
       newer.some((p) => p.claims?.paid) ? `Newer account was already paid ฿${newer.reduce((n, p) => n + (p.claims?.thb || 0), 0)}.` : '',
     ].filter(Boolean).join(' ');
-    items.push({ key: 'g:' + g.map((p) => p.user_id).join(','), kind: held.length ? 'held' : 'lookalike', rank: (held.length ? RANK.held : RANK.lookalike) + (strong ? 5 : 0),
-      title: held.length ? `Prize held · ${label}` : `Same person? ${label}`, why, people: g, claims: held, links, reelIds: [], checkIds: [], at: latest(links.map(() => g[g.length - 1].joined_at)) });
+    const verdict = held.length ? moneyRobotVerdict(held[0], held[0].user_id ? byId.get(held[0].user_id) : g[g.length - 1], s) : undefined;
+    const rank = held.length ? RANK.held + Math.round((verdict?.clarity || 0) / 4) : RANK.lookalike + (strong ? 5 : 0);
+    items.push({ key: 'g:' + g.map((p) => p.user_id).join(','), kind: held.length ? 'held' : 'lookalike', rank,
+      title: held.length ? `Prize held · ${label}` : `Same person? ${label}`, why, people: g, claims: held, links, reelIds: [], checkIds: [],
+      at: latest(links.map(() => g[g.length - 1].joined_at)), verdict });
   }
   // 2) held claims of people not already on a card
   for (const c of s.claims.filter((x) => x.held && x.status === 'pending' && x.user_id && !used.has(x.user_id))) {
     const p = byId.get(c.user_id!); if (!p) continue;
     used.add(p.user_id);
     const others = (c.hold_others || []).map((o) => `#${o.member_no ?? '?'}`).join(', ');
-    items.push({ key: 'c:' + c.id, kind: 'held', rank: RANK.held, title: `Prize held · ${who(p)}`, at: c.created_at, people: [p], claims: [c], links: [], reelIds: [], checkIds: [],
-      why: `฿${c.amount} ${c.brand} claim is waiting.` + (others ? ` Looks like ${others}.` : '') + (c.hold_reason === 'review' ? ' Face check needs your eye.' : '') });
+    const verdict = moneyRobotVerdict(c, p, s);
+    items.push({ key: 'c:' + c.id, kind: 'held', rank: RANK.held + Math.round(verdict.clarity / 4), title: `Prize held · ${who(p)}`, at: c.created_at, people: [p], claims: [c], links: [], reelIds: [], checkIds: [],
+      why: `฿${c.amount} ${c.brand} claim is waiting.` + (others ? ` Looks like ${others}.` : '') + (c.hold_reason === 'review' ? ' Face check needs your eye.' : ''), verdict });
   }
   // 3) face checks the robot sent to a human (pending), one per person
   for (const v of s.pending.checks) {
@@ -200,15 +318,69 @@ export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[
   // places members type in are no longer a job for the founder (0086): they show in "Handled automatically" below
 
   // auto-decided things the founder never needs to touch, for the "Handled automatically" log
+  const dupLogged = new Set<string>();
+  for (const d of s.dups_auto || []) {
+    dupLogged.add(d.dup);
+    handled.push({ key: `dup:${d.dup}`, at: d.at, text: dupAutoText(d), undoDup: d.dup, undone: d.undone || !d.ghost });
+  }
   for (const p of people) {
+    if (dupLogged.has(p.user_id)) continue;
     if (p.check && p.check.status !== 'pending' && p.check.auto) handled.push({ key: 'a:' + p.check.id, at: p.check.at, text: `${who(p)} face check ${p.check.status} automatically` });
     else if (p.check?.status === 'rejected' && /one (verified )?account/i.test(p.check.reason || '')) handled.push({ key: 'a:' + p.check.id, at: p.check.at, text: `${who(p)} refused: one account per person` });
   }
   for (const c of s.claims) if (c.status === 'assigned' && !c.held && !c.decided && (s.include_test || !c.is_test)) handled.push({ key: 'p:' + c.id, at: c.assigned_at || c.created_at, text: `${who(c)} paid ฿${c.amount} ${c.brand} automatically` });
   for (const a of s.places_auto || []) { const text = placeAutoText(a); if (text) handled.push({ key: `pl:${a.action}:${a.place_id}:${a.at}`, at: a.at, text }); }
-  items.sort((a, b) => b.rank - a.rank || Date.parse(a.at) - Date.parse(b.at));
+  items.sort((a, b) => {
+    if (a.kind === 'held' && b.kind === 'held') return (b.verdict?.clarity || 0) - (a.verdict?.clarity || 0) || Date.parse(a.at) - Date.parse(b.at);
+    return b.rank - a.rank || Date.parse(a.at) - Date.parse(b.at);
+  });
   handled.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
   return { items, handled };
+}
+
+// ───────── Robot Report card on Today (0095) ─────────
+export interface RobotReport {
+  totalToday: number;
+  lines: string[];
+  needsCount: number;
+}
+export function buildRobotReport(s: Snapshot, inbox = buildInbox(s)): RobotReport {
+  const d0 = Date.parse(s.day_start);
+  const dupsToday = (s.dups_auto || []).filter((d) => !d.undone && d.ghost && Date.parse(d.at) >= d0).length;
+  const dupsActive = (s.dups_auto || []).filter((d) => !d.undone && d.ghost).length;
+  const facesToday = s.people.filter((p) => p.check && p.check.status !== 'pending' && p.check.auto && Date.parse(p.check.at) >= d0).length;
+  const placesToday = (s.places_auto || []).filter((a) => Date.parse(a.at) >= d0).length;
+  const paidToday = s.claims.filter((c) => c.status === 'assigned' && !c.held && !c.decided && !c.is_test && Date.parse(c.assigned_at || c.created_at) >= d0).length;
+  const ignoredRings = s.board.rows.reduce((n, r) => n + (r.ignored_rings || 0), 0);
+  const ignoredRows = s.board.rows.filter((r) => (r.ignored_rings || 0) > 0).length;
+  const heldItems = inbox.items.filter((i) => i.kind === 'held');
+
+  const lines: string[] = [];
+  if (dupsToday > 0) lines.push(`Duplicate robot ghosted ${dupsToday} duplicate account${dupsToday === 1 ? '' : 's'} today (kept the oldest, voided Rings).`);
+  else if (dupsActive > 0) lines.push(`Duplicate robot is holding ${dupsActive} duplicate account${dupsActive === 1 ? '' : 's'} in ghost mode (0 new today).`);
+  else lines.push('Duplicate robot: 0 duplicate accounts caught today.');
+
+  if (ignoredRings > 0) lines.push(`Rings guard ignored ${ignoredRings} Ring${ignoredRings === 1 ? '' : 's'} from low-trust (<30) or <24h accounts across ${ignoredRows} board row${ignoredRows === 1 ? '' : 's'}.`);
+  else if (s.board.guard_on !== false) lines.push('Rings guard is on: 0 suspicious Rings needed blocking on this week’s board.');
+
+  const autoParts: string[] = [];
+  if (facesToday) autoParts.push(`${facesToday} face check${facesToday === 1 ? '' : 's'} decided`);
+  if (placesToday) autoParts.push(`${placesToday} place${placesToday === 1 ? '' : 's'} checked`);
+  if (paidToday) autoParts.push(`${paidToday} clean claim${paidToday === 1 ? '' : 's'} paid`);
+  if (autoParts.length) lines.push(`Handled today without bothering you: ${autoParts.join(' · ')}.`);
+
+  if (heldItems.length) {
+    const payN = heldItems.filter((i) => i.verdict?.call === 'PAY').length;
+    const refN = heldItems.filter((i) => i.verdict?.call === 'REFUSE').length;
+    const waitN = heldItems.filter((i) => i.verdict?.call === 'WAIT').length;
+    const breakdown = [payN ? `${payN} PAY` : '', refN ? `${refN} REFUSE` : '', waitN ? `${waitN} WAIT` : ''].filter(Boolean).join(' · ');
+    lines.push(`Money robot scored ${heldItems.length} held claim${heldItems.length === 1 ? '' : 's'} for your tap (${breakdown}).`);
+  } else {
+    lines.push('Money robot: 0 held claims waiting for your decision.');
+  }
+
+  const totalToday = dupsToday + facesToday + placesToday + paidToday;
+  return { totalToday, lines, needsCount: inbox.items.length };
 }
 function dedupeLinks<T extends { a: string; b: string }>(ls: T[]): T[] {
   const seen = new Set<string>();

@@ -203,3 +203,25 @@ details.v2brief:not([open]) { padding-bottom: 12px; }
 .v2links.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .v2links.grid2 .v2link { margin: 0; }
 .v2links.grid2 a:last-child { grid-column: auto; }
+
+/* 0095 Autopilot Step 1: Money Robot verdict, Today Robot Report, People trust chip */
+.v2pc-tr { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.v2verdict { margin: 10px 0 4px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line2); background: rgba(255, 255, 255, 0.04); }
+.v2verdict.g { background: rgba(33, 196, 122, 0.14); border-color: rgba(33, 196, 122, 0.5); }
+.v2verdict.a { background: rgba(255, 196, 77, 0.12); border-color: rgba(255, 196, 77, 0.45); }
+.v2verdict.r { background: rgba(255, 90, 107, 0.16); border-color: rgba(255, 90, 107, 0.55); }
+.v2verdict-hd { display: flex; align-items: center; gap: 7px; font-size: 14.5px; }
+.v2verdict-hd svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; flex: 0 0 auto; }
+.v2verdict.g .v2verdict-hd { color: var(--go2); }
+.v2verdict.a .v2verdict-hd { color: var(--warn); }
+.v2verdict.r .v2verdict-hd { color: #ff8a97; }
+.v2verdict-ul { margin: 6px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.45; color: var(--text); }
+.v2verdict-ul li { margin: 2px 0; }
+
+.v2robot { color: inherit; border-color: rgba(63, 240, 255, 0.35); background: linear-gradient(160deg, rgba(63, 240, 255, 0.09), rgba(21, 19, 31, 0.9)); }
+.v2robot-hd { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.v2robot-hd svg { width: 20px; height: 20px; stroke: var(--v2cy); fill: none; stroke-width: 2; flex: 0 0 auto; }
+.v2robot-hd b { font-size: 15px; }
+.v2robot-go { font-size: 12.5px; font-weight: 700; color: var(--v2pk); white-space: nowrap; }
+.v2robot-ul { margin: 4px 0 0; padding-left: 18px; font-size: 13.5px; line-height: 1.45; color: var(--text); }
+.v2robot-ul li { margin: 3px 0; }
