@@ -9,11 +9,13 @@ import { useEffect, useRef, useState } from 'react';
 import { FACE_CONSENT_VERSION, faceDescriptor, loadFaceApi, loadImage } from './v5Face';
 import { cosine, loadFaceEngine, readFace } from './faceEngine';
 import type { FaceRead } from './faceEngine';
-import { bestSampler, canvasJpeg, snap } from './v5Mp';
+import { bestSampler, brightness, canvasJpeg, snap } from './v5Mp';
 import type { Sampler } from './v5Mp';
 import { checkPayload, clientVerdict, currentTurn, frontalScore, liveStart, liveStep, progressOf } from './verifyLive';
 import type { FailWhy, Hint, LiveState } from './verifyLive';
-import { v5ErrCode, v5LogClient, v5SaveFacePrint, v5VerifyInstant } from './v5Live';
+import { v5ErrCode, v5HandoffCreate, v5LogClient, v5SaveFacePrint, v5VerifyInstant, v5VerifySimple } from './v5Live';
+import { allBlack, copyText, engineSupport, firstFrame, inAppBrowser, openOutside, simpleWhy, withTimeout } from './camGuard';
+import type { OpenOut } from './camGuard';
 import type { V5FaceDecision } from './v5Live';
 import './verify.css';
 
@@ -39,6 +41,14 @@ const FAIL_TEXT: Record<FailWhy, string> = {
   mismatch: 'This doesn’t look like your card photo. Use a clear, recent photo of your face.',
   spoof: 'Use your real face in front of the camera, not a photo or a screen.',
 };
+const ua = () => (typeof navigator === 'undefined' ? '' : navigator.userAgent);
+// the camera must answer and send a first frame in time, or the member gets "Camera blocked" + Open in Chrome (17 Nov)
+export const CAM_FRAME_MS = 6000;
+const camAskMs = () => (inAppBrowser(ua()) ? 6000 : 15000);   // a real browser may be showing its Allow prompt
+export const CAM_BLACK_MS = 3000;     // frames still black this long after the video starts = the browser can't show the camera
+export const ENGINE_MS = 20000;       // the face engine must load within this, or the simple path (one selfie → the founder looks)
+// some phone-maker / X5 browsers take over a <video> with their own player (black picture, a "download" button): ask them not to
+const VIDEO_ATTRS = { 'x5-playsinline': 'true', 'webkit-playsinline': 'true', 'x5-video-player-type': 'h5-page', controlsList: 'nodownload nofullscreen noremoteplayback', disablePictureInPicture: true, disableRemotePlayback: true } as Record<string, unknown>;
 const device = () => (navigator.userAgent.match(/iPhone|iPad|Android|Mac|Windows|Linux/) || ['other'])[0];
 
 export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: boolean; onClose: () => void; onSent: () => void; onVerified?: () => void;
@@ -50,6 +60,11 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
   const [why, setWhy] = useState<FailWhy>('timeout');
   const [left, setLeft] = useState<number | null>(null);
   const [err, setErr] = useState('');
+  const [camBlocked, setCamBlocked] = useState(false);
+  const [out, setOut] = useState<OpenOut | null>(null);
+  const [copied, setCopied] = useState(false);
+  const inApp = inAppBrowser(ua());
+  const [simple, setSimple] = useState<string | null>(null);   // why the simple path is used (null = the full check)
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const runRef = useRef(0);
@@ -73,19 +88,53 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
   useEffect(() => stop, []);
   const close = () => { stop(); props.onClose(); };
 
+  const blocked = (why: string) => {
+    stop();
+    v5LogClient('verify_cam_fail', why, inApp || '');
+    setErr('');
+    setCamBlocked(true);
+    setStage('error');
+  };
+  // "Open in Chrome": the same page (face check opens again); on Android it carries a one-time sign-in code, renewed every 2.5 min
+  useEffect(() => {
+    if (stage !== 'error' || !camBlocked) return undefined;
+    let live = true;
+    setCopied(false);
+    setOut(openOutside(window.location.href, ua()));
+    const renew = () => { if (openOutside(window.location.href, ua()).kind === 'chrome') void v5HandoffCreate().then((ho) => { if (live) setOut(openOutside(window.location.href, ua(), ho)); }).catch(() => undefined); };
+    renew();
+    const t = window.setInterval(renew, 150_000);
+    return () => { live = false; clearInterval(t); };
+  }, [stage, camBlocked]);
+
   const start = async () => {
     setErr('');
+    setCamBlocked(false);
     setStage('loading');
     const run = ++runRef.current;
     try {
+      // no WebAssembly / no SIMD here: the face engine can't run at all → the simple path, never a hang
+      let why: string | null = simpleWhy(engineSupport());
       // the camera opens as soon as the live-check tracker is ready; the face models finish loading meanwhile
-      const engine = loadFaceEngine();
-      engine.catch(() => undefined);
-      const [sampler, stream] = await Promise.all([
-        samplerRef.current ? Promise.resolve(samplerRef.current) : bestSampler(),
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, audio: false }),
-      ]);
+      const engine = why ? null : loadFaceEngine();
+      engine?.catch(() => undefined);
+      const samplerP = why ? null : samplerRef.current ? Promise.resolve(samplerRef.current) : withTimeout(bestSampler(), ENGINE_MS);
+      samplerP?.catch(() => undefined);
+      // in-app browsers can leave getUserMedia hanging forever: give up after a few seconds (a late stream is stopped)
+      const stream = await (async () => withTimeout(navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, audio: false }),
+        camAskMs(), (late) => late.getTracks().forEach((t) => t.stop())))().catch((cam: unknown) => Promise.reject({ cam }));
+      const sampler = samplerP ? await samplerP.catch((e: unknown) => { why = (e as Error)?.name === 'CamTimeout' ? 'model_timeout' : 'engine_fail'; return null; }) : null;
       if (run !== runRef.current) { stream.getTracks().forEach((t) => t.stop()); return; }
+      if (!sampler || !engine) {
+        v5LogClient('verify_simple', why || 'engine_fail', device());
+        setSimple(why || 'engine_fail');
+        streamRef.current = stream;
+        bestRef.current = null;
+        setStage('camera');
+        requestAnimationFrame(() => void attach(stream, run));
+        return;
+      }
+      setSimple(null);
       samplerRef.current = sampler;
       streamRef.current = stream;
       bestRef.current = null; midRef.current = null; firstRef.current = null; endRef.current = null;
@@ -95,21 +144,44 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
       if (!cardRef.current && props.photo) cardRef.current = engine.then(() => loadImage(props.photo!)).then((im) => readFace(im, { fas: false })).catch(() => null);
       requestAnimationFrame(() => void loop(stream, sampler, run));
     } catch (e) {
+      if (run !== runRef.current) return;
+      const cam = (e as { cam?: { name?: string; message?: string } } | null)?.cam;
+      const name = (cam ?? (e as { name?: string }))?.name || '';
+      // the camera itself refused or never answered (not "no camera"): Camera blocked + Open in Chrome
+      if (cam !== undefined && name !== 'NotFoundError' && name !== 'OverconstrainedError') { blocked(name || cam?.message || 'UNKNOWN'); return; }
       stop();
-      const name = (e as { name?: string })?.name || '';
       v5LogClient('verify_cam_fail', name || (e as Error)?.message || 'UNKNOWN');
-      setErr(name === 'NotAllowedError' ? L('Camera access was blocked. Allow the camera for kringapp.com in your browser settings, then try again.')
-        : name === 'NotFoundError' || name === 'OverconstrainedError' ? L('No front camera found on this device.')
+      setErr(name === 'NotFoundError' || name === 'OverconstrainedError' ? L('No front camera found on this device.')
         : L('The face check could not start on this phone. Try again, or try later on another phone.'));
       setStage('error');
     }
   };
 
-  const loop = async (stream: MediaStream, sampler: Sampler, run: number) => {
+  /** stream → <video>; false (and "Camera blocked") when no frame arrives in time. Then watches for an all-black picture. */
+  const attach = async (stream: MediaStream, run: number): Promise<HTMLVideoElement | null> => {
     const v = videoRef.current;
-    if (!v) return;
+    if (!v) return null;
+    v.muted = true; v.playsInline = true; v.autoplay = true;
     v.srcObject = stream;
-    await v.play().catch(() => undefined);
+    await v.play().catch(() => new Promise((ok) => setTimeout(ok, 300)).then(() => v.play()).catch(() => undefined));
+    // no frame in time (black oval): the browser gave a stream that never plays
+    if (!(await firstFrame(v, CAM_FRAME_MS))) { if (run === runRef.current) blocked('NoFrames'); return null; }
+    if (run !== runRef.current) return null;
+    // frames arrive but are black (the browser can't show the camera): 3 s of readings, in the background
+    void (async () => {
+      const seen: (number | null)[] = [];
+      for (let t0 = performance.now(); performance.now() - t0 < CAM_BLACK_MS && run === runRef.current;) {
+        seen.push(brightness(v));
+        await new Promise((ok) => setTimeout(ok, 250));
+      }
+      if (run === runRef.current && allBlack(seen)) blocked('BlackFrames');
+    })();
+    return v;
+  };
+
+  const loop = async (stream: MediaStream, sampler: Sampler, run: number) => {
+    const v = await attach(stream, run);
+    if (!v) return;
     let s = liveStart();
     let best = -9;
     let afterDone = 0;
@@ -162,6 +234,29 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
     }
   };
 
+  /** the simple path: this one frame goes to the founder's Face checks queue ("We're checking"); nothing is decided on the phone */
+  const sendSimple = async (frame: HTMLCanvasElement | null, w: string) => {
+    setStage('checking');
+    stop();
+    try {
+      if (!frame || !frame.width) throw new Error('FRAME');
+      const r = await v5VerifySimple(await canvasJpeg(frame), { why: w, device: device() }, FACE_CONSENT_VERSION);
+      setLeft(typeof r.tries_left === 'number' ? r.tries_left : null);
+      if (r.result === 'pass') { setStage('pass'); props.onVerified?.(); } else { setStage('review'); props.onSent(); }
+    } catch (e) {
+      const code = v5ErrCode(e);
+      v5LogClient('verify_simple_fail', code || (e as Error)?.message || 'UNKNOWN', w);
+      if (code === 'SLOW_DOWN') { setStage('limit'); return; }
+      setErr(code === 'UNKNOWN' ? L('The face check could not start on this phone. Try again, or try later on another phone.') : props.errText(e));
+      setStage('error');
+    }
+  };
+  const takeSelfie = () => {
+    const v = videoRef.current;
+    if (!v || !v.videoWidth) return;
+    void sendSimple(snap(v), simple || 'engine_fail');
+  };
+
   const finish = async (s: LiveState, engine: Sampler['engine']) => {
     setStage('checking');
     stop();
@@ -170,6 +265,8 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
     const t0 = performance.now();
     try {
       if (s.step !== 'done') { v5LogClient('verify_live_fail', s.fail || 'timeout', `r${s.restarts}`); await sendFail(s, engine, s.fail || 'timeout'); return; }
+      // the face-code models never loaded: the selfie still goes to the founder (simple path), the member is never stuck
+      if (!(await withTimeout(loadFaceEngine(), ENGINE_MS).then(() => true, () => false))) { await sendSimple(bestRef.current, 'model_timeout'); return; }
       const read = (c: HTMLCanvasElement | null) => (c ? readFace(c) : Promise.resolve(null));
       // 3 frames of the check: anti-spoof on all of them, and the same face throughout
       const selfie = await read(bestRef.current);
@@ -217,7 +314,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
     <div className="kfv2" id="sh-verify" data-stage={stage} data-step={live.step} data-turn={turn || ''} role="dialog" aria-modal="true" aria-label={L('Get verified ✓')}>
       {(stage === 'loading' || stage === 'camera' || stage === 'checking') && (
         <div className="kfv2-cam">
-          <video ref={videoRef} playsInline muted autoPlay id="verifyVideo" />
+          <video ref={videoRef} playsInline muted autoPlay id="verifyVideo" {...VIDEO_ATTRS} />
           <div className={`kfv2-oval t-${tone}`} id="verifyOval">
             <svg viewBox="0 0 100 133" aria-hidden="true">
               <defs><linearGradient id="kfv2g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#5B6CFF" /><stop offset="1" stopColor="#FF4FA3" /></linearGradient></defs>
@@ -233,17 +330,19 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
           </div>
           <div className="kfv2-say" aria-live="polite">
             <b id="verifyStep" key={stage === 'camera' ? live.step + (turn || '') : stage}>
-              {stage === 'loading' ? L('Getting the camera ready…') : stage === 'checking' ? L('Checking…') : prompt}
+              {stage === 'loading' ? L('Getting the camera ready…') : stage === 'checking' ? L('Checking…') : simple ? L('Look straight at the camera') : prompt}
             </b>
             <span className={`kfv2-hint${hint && stage === 'camera' ? ' on' : ''}`} id="verifyHint" data-hint={hint || ''}>
               {hint && stage === 'camera' ? L(HINT_TEXT[hint]) : ' '}
             </span>
           </div>
           <div className="kfv2-foot">
-            <div className="kfv2-dots" aria-hidden="true">
+            <div className="kfv2-dots" aria-hidden="true" hidden={!!simple}>
               {(['straight', 'turn1', 'turn2', 'blink'] as const).map((k, i) => <i key={k} className={prog * 4 > i + 0.99 || stage === 'checking' ? 'on' : Math.floor(prog * 4) === i ? 'now' : ''} />)}
             </div>
-            <p>{L('Checked on your phone · about 5 seconds')}</p>
+            {stage === 'camera' && simple
+              ? <button type="button" className="kfv2-cta" id="verifySnap" onClick={takeSelfie}>{L('Take selfie')}</button>
+              : <p>{L('Checked on your phone · about 5 seconds')}</p>}
           </div>
         </div>
       )}
@@ -258,6 +357,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
       {stage === 'intro' && (
         <Panel L={L} onClose={close} icon="intro" title={props.nudge ? L('New: 5-second face check') : L('Verify in 5 seconds')}
           text={props.nudge ? L('Do it once. It keeps your ✓ and your prizes safe.') : L('Look at the camera, turn your head a little, blink. That’s it.')}>
+          {inApp && <p className="kfv2-small kfv2-inapp" id="verifyInApp" role="note">{L('You’re in an app’s built-in browser, where the camera often doesn’t work. If it doesn’t start, open this page in Chrome (or Safari).')}</p>}
           <details className="kfv2-consent" id="verifyConsent">
             <summary>{L('Your face data')}</summary>
             <ul>
@@ -317,7 +417,19 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
         </Panel>
       )}
 
-      {stage === 'error' && (
+      {stage === 'error' && camBlocked && (
+        <Panel L={L} onClose={close} icon="fail" title={L('Camera blocked')} text={L('Open this page in Chrome (or Safari) and allow the camera.')} id="verifyCamBlocked">
+          {out?.kind === 'chrome'
+            ? <a className="kfv2-cta" id="verifyOpenChrome" href={out.url}>{L('Open in Chrome')}</a>
+            : <button type="button" className="kfv2-cta" id="verifyCopyLink" onClick={() => { if (out) void copyText(out.url).then(setCopied); }}>
+              {copied ? L('Link copied') : L('Copy link')}</button>}
+          {out?.kind === 'copy' && copied && <p className="kfv2-small" id="verifyCopied">{L('Paste it in Safari (or Chrome) and allow the camera.')}</p>}
+          <button type="button" className="kfv2-2nd" id="verifyCamRetry" onClick={() => void start()}>{L('Try again')}</button>
+          <button type="button" className="kfv2-2nd" onClick={close}>{L('Not now')}</button>
+        </Panel>
+      )}
+
+      {stage === 'error' && !camBlocked && (
         <Panel L={L} onClose={close} icon="fail" title={L('The camera didn’t start')} text={err} id="verifyError">
           <button type="button" className="kfv2-cta" onClick={() => void start()}>{L('Try again')}</button>
           <button type="button" className="kfv2-2nd" onClick={close}>{L('Not now')}</button>

@@ -587,6 +587,12 @@ const T: Record<string, string> = {
   'Good light': '밝은 곳',
   'Face in the oval': '얼굴은 타원 안에',
   'Turn, then blink': '고개 돌리고, 눈 깜빡',
+  // 17 Nov: camera blocked in an in-app browser
+  'Camera blocked': '카메라가 차단됐어요',
+  'Open this page in Chrome (or Safari) and allow the camera.': '이 페이지를 Chrome(또는 Safari)에서 열고 카메라를 허용하세요.',
+  'You’re in an app’s built-in browser, where the camera often doesn’t work. If it doesn’t start, open this page in Chrome (or Safari).': '지금 앱 안의 브라우저로 열려 있어요. 여기서는 카메라가 잘 안 될 때가 많아요. 카메라가 켜지지 않으면 이 페이지를 Chrome(또는 Safari)에서 여세요.',
+  'Paste it in Safari (or Chrome) and allow the camera.': 'Safari(또는 Chrome)에 링크를 붙여넣고 카메라를 허용하세요.',
+  'Take selfie': '셀카 찍기',
   'Use your real face in front of the camera, not a photo or a screen.': '사진이나 화면이 아니라 실제 얼굴을 카메라에 보여 주세요.',
 };
 export default T;

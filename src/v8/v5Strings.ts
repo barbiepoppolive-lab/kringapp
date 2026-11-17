@@ -588,6 +588,12 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Good light': 'แสงสว่างพอ',
     'Face in the oval': 'หน้าอยู่ในวงรี',
     'Turn, then blink': 'หันหน้า แล้วกะพริบตา',
+    // 17 Nov: camera blocked in an in-app browser
+    'Camera blocked': 'กล้องถูกปิดอยู่',
+    'Open this page in Chrome (or Safari) and allow the camera.': 'เปิดหน้านี้ใน Chrome (หรือ Safari) แล้วอนุญาตให้ใช้กล้อง',
+    'You’re in an app’s built-in browser, where the camera often doesn’t work. If it doesn’t start, open this page in Chrome (or Safari).': 'ตอนนี้คุณเปิดผ่านเบราว์เซอร์ในแอป ซึ่งกล้องมักใช้ไม่ได้ ถ้ากล้องไม่เปิด ให้เปิดหน้านี้ใน Chrome (หรือ Safari) นะ',
+    'Paste it in Safari (or Chrome) and allow the camera.': 'วางลิงก์ใน Safari (หรือ Chrome) แล้วอนุญาตให้ใช้กล้อง',
+    'Take selfie': 'ถ่ายเซลฟี่',
   },
   // zh, hi, ja, ko: separate files, downloaded only when that language is chosen (loadV5Lang below)
 };

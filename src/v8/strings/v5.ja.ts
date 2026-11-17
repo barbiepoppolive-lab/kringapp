@@ -587,6 +587,12 @@ const T: Record<string, string> = {
   'Good light': '明るい場所',
   'Face in the oval': '顔は楕円の中',
   'Turn, then blink': '向いてから、まばたき',
+  // 17 Nov: camera blocked in an in-app browser
+  'Camera blocked': 'カメラがブロックされています',
+  'Open this page in Chrome (or Safari) and allow the camera.': 'このページを Chrome（または Safari）で開いて、カメラを許可してください。',
+  'You’re in an app’s built-in browser, where the camera often doesn’t work. If it doesn’t start, open this page in Chrome (or Safari).': 'アプリ内ブラウザで開いています。ここではカメラが使えないことがよくあります。カメラが起動しない場合は、このページを Chrome（または Safari）で開いてください。',
+  'Paste it in Safari (or Chrome) and allow the camera.': 'Safari（または Chrome）にリンクを貼り付けて、カメラを許可してください。',
+  'Take selfie': '自撮りする',
   'Use your real face in front of the camera, not a photo or a screen.': '写真や画面ではなく、本人の顔をカメラに向けてください。',
 };
 export default T;

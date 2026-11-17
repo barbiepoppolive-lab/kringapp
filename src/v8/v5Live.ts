@@ -760,6 +760,21 @@ export async function v5VerifyInstant(selfie: Blob | null, check: Record<string,
     return { result: 'review', reasons: ['old_server'] };   // the face-api code is saved by the caller in the background
   }
 }
+/** 0082: the simple path when the face engine can't run on this phone: ONE selfie → the founder's Face checks queue. */
+export async function v5VerifySimple(selfie: Blob, check: { why: string; device: string }, consent: string): Promise<V5FaceDecision> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new V5Error('OFFLINE');
+  if (adminViewActive()) throw new V5Error('ADMIN_VIEW');
+  const c = await v5Client();
+  const { data } = await c.auth.getSession();
+  const uid = data.session?.user?.id;
+  if (!uid) throw new V5Error('SIGN_IN');
+  const path = `${uid}/${crypto.randomUUID()}.jpg`;
+  const up = await fetch(`${SUPA_URL.replace(/\/$/, '')}/storage/v1/object/kr8-verify/${path}`, {
+    method: 'POST', headers: { authorization: `Bearer ${data.session!.access_token}`, apikey: SUPA_KEY, 'content-type': 'image/jpeg', 'x-upsert': 'false' }, body: selfie,
+  }).catch(() => null);
+  if (!up || !up.ok) throw new V5Error('UPLOAD');
+  return rpc<V5FaceDecision>('kr8_verify_simple', { p_selfie_path: path, p_consent_version: consent, p_check: check });
+}
 /** 0081: does this member still need the new 5-second check? null = not signed in / no card / server without 0081 */
 export interface V5FaceStatus { verified: boolean; new_check: boolean; pending: boolean; blocked: boolean; tries_left: number }
 export async function v5MyFaceStatus(): Promise<V5FaceStatus | null> {

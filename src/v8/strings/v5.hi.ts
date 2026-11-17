@@ -587,6 +587,12 @@ const T: Record<string, string> = {
   'Good light': 'अच्छी रोशनी',
   'Face in the oval': 'चेहरा ओवल में',
   'Turn, then blink': 'सिर घुमाएँ, फिर पलक झपकाएँ',
+  // 17 Nov: camera blocked in an in-app browser
+  'Camera blocked': 'कैमरा ब्लॉक है',
+  'Open this page in Chrome (or Safari) and allow the camera.': 'यह पेज Chrome (या Safari) में खोलें और कैमरा की अनुमति दें।',
+  'You’re in an app’s built-in browser, where the camera often doesn’t work. If it doesn’t start, open this page in Chrome (or Safari).': 'आप किसी ऐप के अंदर वाले ब्राउज़र में हैं, जहाँ कैमरा अक्सर काम नहीं करता। अगर कैमरा शुरू न हो, तो यह पेज Chrome (या Safari) में खोलें।',
+  'Paste it in Safari (or Chrome) and allow the camera.': 'लिंक Safari (या Chrome) में पेस्ट करें और कैमरा की अनुमति दें।',
+  'Take selfie': 'सेल्फ़ी लें',
   'Use your real face in front of the camera, not a photo or a screen.': 'कैमरे के सामने अपना असली चेहरा रखें, फ़ोटो या स्क्रीन नहीं।',
 };
 export default T;
