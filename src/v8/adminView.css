@@ -1,6 +1,6 @@
 /* 17 Nov admin view: one small pill at the top; read-only controls are hidden */
-.kav-wrap { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 6px); left: 50%; transform: translateX(-50%); z-index: 400; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
-.kav-pill { pointer-events: auto; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px; border-radius: 999px;
+.kav-wrap { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 2px); left: 50%; transform: translateX(-50%); z-index: 400; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+.kav-pill { pointer-events: auto; display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 11px; border-radius: 999px;
   border: 1px solid rgba(255, 247, 236, 0.22); background: rgba(11, 10, 18, 0.72); color: #FFF7EC; font: 600 0.6875rem/1 inherit;
   letter-spacing: 0.02em; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); cursor: pointer; min-width: 44px; }
 .kav-dot { width: 7px; height: 7px; border-radius: 50%; background: #FF5A8A; box-shadow: 0 0 0 3px rgba(255, 90, 138, 0.25); }
@@ -27,3 +27,6 @@
 
 /* read-only: no "say hi", post or compose buttons while the admin view is on (taps elsewhere show "Admin view · read-only") */
 .kr-admin-view .hibtn, .kr-admin-view .kp-plus, .kr-admin-view .kp-empty-btn.pink, .kr-admin-view .kp-blurjoin { display: none !important; }
+/* the pill gets its own 28px strip above the screens, so it never covers the Reels / Ask a Thai switch, titles or chips */
+.v8-app-root.kr-admin-view .v8-screen { top: calc(env(safe-area-inset-top, 0px) + 28px); }
+.v8-app-root.kr-admin-view .v8-screen .kav-me { padding-top: 24px; }

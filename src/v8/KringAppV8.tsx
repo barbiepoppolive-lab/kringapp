@@ -3725,7 +3725,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       data-demo={isDemo ? '1' : undefined}
       data-testid="kring-v8-root"
     >
-      {live && adminView && <AdminViewPill L={L} panelHref={adminPanelHref(appBasePath())} onExit={exitAdminView} />}
+      {live && adminView && !sheet && !goPlayer && <AdminViewPill L={L} panelHref={adminPanelHref(appBasePath())} onExit={exitAdminView} />}
       {/* Official #kr dual-ring SVG symbol from kringapp.com */}
       <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
         <defs>
