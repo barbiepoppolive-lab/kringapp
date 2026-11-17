@@ -4234,7 +4234,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                         style={
                           isSaved
                             ? {
-                                borderColor: 'rgba(110,231,168,0.75)',
+                                // Kring Light: no ring on video icons; the green icon shows it is saved
                                 color: '#6EE7A8',
                               }
                             : undefined
