@@ -1194,6 +1194,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // T-310 (17 Nov): the Reels behind the face check stop and unload while it is open; a ?open=verify link holds them from the
   // first paint and lets go when the check closes (or after 8 s if the check never opened, e.g. signed out)
   const verifySeenRef = useRef(false);
+  /** 17 Nov: the face check opened straight after a new card was minted */
+  const afterVerifyRef = useRef(false);
   useEffect(() => {
     if (sheet === 'verify') { verifySeenRef.current = true; holdReels(true); }
     else if (verifySeenRef.current) holdReels(false);
@@ -5283,6 +5285,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               const wasNew = !!no && !v5CardWasRef.current;
               if (wasNew) pushMoment('minted');   // 16 Nov dings: ask right after the card is minted
               setSheet(null);
+              if (what === 'verify') { afterVerifyRef.current = wasNew; setTimeout(() => setSheet('verify'), 60); return; }
               if (what === 'reel') { markReelNudgeSeen(v5LastUid.current || v5Uid); pendingActionRef.current = null; kxPostAt(); return; }
               const next = pendingActionRef.current;
               pendingActionRef.current = null;
@@ -7049,7 +7052,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         )}
         {sheet === 'verify' && live && v5Card && (
           <V5VerifySheet L={L} photo={v5Card.photo} errText={(e) => v5Msg(e)} nudge={verifyNudge}
-            onClose={() => { setSheet(null); setVerifyNudge(false); void loadMe(); }}
+            onClose={() => {
+              setSheet(null); setVerifyNudge(false); void loadMe();
+              // a brand-new member goes on to Me, where "Your next step" offers the first Reel
+              if (afterVerifyRef.current) { afterVerifyRef.current = false; markReelNudgeSeen(v5LastUid.current || v5Uid); setTab('me'); }
+            }}
             onSent={() => setVerifyPending(true)}
             onVerified={() => { setVerifyPending(false); setMeProfile((p) => (p ? { ...p, verified: true } : p)); }}
             onAddPhoto={() => setSheet('v5card')} />

@@ -169,7 +169,7 @@ const PHOTO_MSG: Record<'none' | 'small' | 'group', string> = {
 
 export function V5MintSheet(props: {
   L: Tx; Lf: Txf; card: (V5Card & { tiktok_handle?: string | null; member_no?: number | null; gender?: string | null; show_gender?: boolean | null }) | null; uiLang: string;
-  onSaved: (me: V5Me) => void; onClose: () => void; toast: (m: string) => void; onAfter: (what: 'share' | 'reel' | 'close', no: number | null) => void;
+  onSaved: (me: V5Me) => void; onClose: () => void; toast: (m: string) => void; onAfter: (what: 'share' | 'reel' | 'close' | 'verify', no: number | null) => void;
   /** 16 Nov: the saved photo shows no clear face, so a new one is required before saving */
   photoFix?: boolean;
 }) {
@@ -270,7 +270,10 @@ export function V5MintSheet(props: {
         if (linkErr) props.toast(linkErr);
         if (!showSocials && (ig || tt)) { try { const r = await v5SetSocialsShown(false); if (me.card) me.card = { ...me.card, ...r } as V5Card; } catch { /* stays shown; the switch is in Edit profile */ } }
         props.onSaved(me);
-        setMinted({ no: (me.card as (V5Card & { member_no?: number }) | null)?.member_no ?? null });
+        // 17 Nov (founder): the 5-second face check comes right after the card photo, while the member is still here
+        const no = (me.card as (V5Card & { member_no?: number }) | null)?.member_no ?? null;
+        if (photo && me.card?.photo) { props.toast(L('Card saved · กริ๊ง!')); props.onAfter('verify', no); }
+        else setMinted({ no });
       } else {
         if (showSocials !== socialsWas) {
           try { const r = await v5SetSocialsShown(showSocials); if (me.card) me.card = { ...me.card, ...r } as V5Card; }
@@ -278,7 +281,8 @@ export function V5MintSheet(props: {
         }
         props.toast(L('Card saved · กริ๊ง!'));
         props.onSaved(me);
-        props.onAfter('close', card?.member_no ?? null);
+        // a new card photo on a member without the ✓: check the face against it now
+        props.onAfter(photo && !card?.verified ? 'verify' : 'close', card?.member_no ?? null);
       }
     } catch (e) {
       setNotice(errText(e));

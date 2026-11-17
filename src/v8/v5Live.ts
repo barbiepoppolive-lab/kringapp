@@ -575,6 +575,8 @@ export const v5SendMessage = (thread: string, body: string) => rpc<number>('kr8_
 /** 0090: a refused chat link is logged for the trust score (the refusal itself rolls back, so the app reports it). */
 export const v5LinkTry = () => rpc<null>('kr8_link_try', { p_place: 'chat' }).catch(() => null);
 /** 0090: show or hide my Instagram / TikTok on my card for everyone else. */
+/** 0092: delete my face code and face-check photos (withdraw consent); the ✓ goes until a new check. */
+export const v5ForgetMyFace = () => rpc<{ forgotten: boolean; codes: number }>('kr8_forget_my_face');
 export const v5SetSocialsShown = (show: boolean) => rpc<{ show_socials: boolean; ig_handle: string | null; tiktok_handle: string | null }>('kr8_set_socials_shown', { p_show: show });
 export type V5Thread = V8ChatThread & { v5Status: 'pending' | 'open'; v5OpenedByMe: boolean; area?: string };
 interface InboxRow { thread_id: string; status: 'pending' | 'open'; opened_by_me: boolean; other_id: string; other_name: string; other_photo: string | null; other_langs: string[];
@@ -741,19 +743,29 @@ export async function v5VerifyInstant(selfie: Blob | null, check: Record<string,
   const uid = data.session?.user?.id;
   if (!uid) throw new V5Error('SIGN_IN');
   let path: string | null = null;
-  if (selfie) {
-    path = `${uid}/${crypto.randomUUID()}.jpg`;
-    const up = await fetch(`${SUPA_URL.replace(/\/$/, '')}/storage/v1/object/kr8-verify/${path}`, {
+  // 0092: the photo is uploaded ONLY when the server says the case is unclear (need_photo); a pass or a block is decided from
+  // the face code alone, so the selfie never leaves the phone for them
+  const upload = async () => {
+    if (!selfie) return null;
+    const p = `${uid}/${crypto.randomUUID()}.jpg`;
+    const up = await fetch(`${SUPA_URL.replace(/\/$/, '')}/storage/v1/object/kr8-verify/${p}`, {
       method: 'POST', headers: { authorization: `Bearer ${data.session!.access_token}`, apikey: SUPA_KEY, 'content-type': 'image/jpeg', 'x-upsert': 'false' }, body: selfie,
     }).catch(() => null);
     if (!up || !up.ok) throw new V5Error('UPLOAD');
-  }
+    return p;
+  };
   const vec = (v: ArrayLike<number> | null) => (v && v.length === 128 ? Array.from(v, (x) => Math.round(x * 1e6) / 1e6) : null);
   try {
-    return await rpc<V5FaceDecision>('kr8_verify_instant', { p_selfie_path: path, p_consent_version: consent, p_check: check, p_emb: vec(emb), p_card_emb: vec(cardEmb) });
+    const args = { p_consent_version: consent, p_check: check, p_emb: vec(emb), p_card_emb: vec(cardEmb) };
+    const first = await rpc<{ result: string }>('kr8_verify_instant', { p_selfie_path: null, ...args });
+    if (first.result !== 'need_photo') return first as unknown as V5FaceDecision;
+    path = await upload();
+    if (!path) return { result: 'fail', reasons: ['no_photo'] };
+    return await rpc<V5FaceDecision>('kr8_verify_instant', { p_selfie_path: path, ...args });
   } catch (e) {
     if (v5ErrCode(e) !== 'UNKNOWN') throw e;   // a known refusal (SLOW_DOWN, CONSENT_REQUIRED, …) stays as it is
     // server without 0081: the old queue (the team approves by hand)
+    if (!path) path = await upload().catch(() => null);
     if (!path) return { result: 'fail', reasons: [String(check.fail || 'timeout')] };
     await rpc<string>('kr8_request_verification', { p_selfie_path: path, p_consent_version: consent,
       p_check: { straight: true, left: true, right: true, blink: true, match: check.match ?? null, device: check.device ?? '' } });

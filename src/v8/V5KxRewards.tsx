@@ -168,7 +168,8 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
     setBusy(true);
     setErr('');
     try {
-      const selfie = face && photo ? await v5UploadClaimPhoto(photo) : null;
+      // 0092: no photo leaves the phone at a claim any more; the face code is enough
+      const selfie = face && photo && !face ? await v5UploadClaimPhoto(photo) : null;
       props.onDone(await (face ? (selfie ? kxClaimPrize(prize.id, brand, face, selfie) : kxClaimPrize(prize.id, brand, face)) : kxClaimPrize(prize.id, brand)));
     } catch (e) {
       const c = v5ErrCode(e);
