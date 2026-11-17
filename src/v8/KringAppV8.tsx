@@ -94,7 +94,7 @@ import { A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip,
 import { parsePushLink, pushConfigured, pushDisable, pushEnable, pushMoment, pushResync, pushState, type PushLink, type PushState } from './push';
 import { PUSH_ASK_LINE, PushAskCard } from './V5Push';
 import { EscapeScreen } from './V5Escape';
-import { isLiffOpen, openEscape } from './escape';
+import { inAppOf, isLiffOpen, openEscape } from './escape';
 import { TripPerks } from './V5Trip';
 // founder 17 Nov: hide café treats / stays; Deals = trip partners + "more deals coming soon"
 const DEALS_TRIP_ONLY = true;
@@ -146,6 +146,7 @@ import { installVersionWatch } from './appVersion';
 import { applyTrim, checkReel, createReel, makeAudio, prepareReel, ReelError, uploadReel, type ReelInfo, type ReelReady, type UploadedReel } from './v5Reel';
 import { GoTrim, WindowVideo } from './V5Trim';
 import { clock } from './reelTrim';
+import { isMemberId } from './deepLink';
 
 const V9_L: Record<string, Record<string, string>> = {
   th: {
@@ -1353,6 +1354,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const askApi = useMemo(() => createAskApi({ live, demo: isDemo, me: () => askMeRef.current,
     base: ((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.BASE_URL) || '/' }), [live, isDemo]);
   const [v5Uid, setV5Uid] = useState<string>('');
+  const [deepPersonId, setDeepPersonId] = useState<string>('');
   const [v5Card, setV5Card] = useState<V5Card | null>(null);
   askMeRef.current = !signedIn ? null
     : live ? (v5Uid && v5Card ? { id: v5Uid, name: v5Card.first_name, photo: v5Card.photo || initialAvatar(v5Card.first_name), local: v5Card.who === 'local' } : null)
@@ -1776,7 +1778,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       setActiveRedeemDealId(dealParam);
     }
     const personParam = params.get('person');
-    if (personParam) {
+    if (personParam && isMemberId(personParam)) {
+      // T301-019: ?person=<member id> opens that member's profile (a name still searches People below)
+      setTab('people');
+      setDeepPersonId(personParam.toLowerCase());
+    } else if (personParam) {
       setTab('people');
       setSearchQuery(personParam);
     }
@@ -2869,6 +2875,21 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   });   // lazy: runs once (it writes the resume note, so it must not run on every render)
   const standRef = useRef(standInit);
   const [v5AuthReady, setV5AuthReady] = useState(false);
+  // T301-019: the ?person=<member id> deep link, once we know whether this is the live app and who is signed in
+  useEffect(() => {
+    if (!deepPersonId || (live && !v5AuthReady)) return;
+    const id = deepPersonId;
+    setDeepPersonId('');
+    void openProfile(id);
+  }, [deepPersonId, live, v5AuthReady]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // T301-020: sign-in inside TikTok / IG / FB / Messenger / LINE (not a LIFF open): offer the phone's real browser, once per tab
+  const escSignInAsked = useRef(false);
+  useEffect(() => {
+    if (sheet !== 'signin' || !live || escSignInAsked.current || typeof navigator === 'undefined') return;
+    if (!inAppOf(navigator.userAgent) || isLiffOpen(location.search, navigator.userAgent)) return;
+    escSignInAsked.current = true;
+    openEscape('signin');
+  }, [sheet, live]);
   const [standOpen, setStandOpen] = useState<{ slug: string; src: string; lat?: number | null; lng?: number | null } | null>(null);
   useEffect(() => {
     if (!live || !standRef.current || standOpen) return;

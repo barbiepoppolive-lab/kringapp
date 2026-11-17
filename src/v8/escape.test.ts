@@ -69,11 +69,16 @@ describe('the link each one opens', () => {
 describe('only when it matters, never loops', () => {
   const p = escapePlan(HREF, UA.line_android)!;
   const ios = escapePlan(HREF, UA.ig_ios)!;
-  it('first open: automatic jump once; then nothing on later opens', () => {
+  it('first open: LINE reloads in the real browser once (silent); no screen; nothing on later opens', () => {
     expect(escapeOnStart(p, { autoTried: false, firstShown: false, back: false }).kind).toBe('auto');
-    expect(escapeOnStart(p, { autoTried: true, firstShown: false, back: false }).kind).toBe('screen');
+    expect(escapeOnStart(p, { autoTried: true, firstShown: false, back: false }).kind).toBe('none');
     expect(escapeOnStart(p, { autoTried: false, firstShown: true, back: false }).kind).toBe('none');
-    expect(escapeOnStart(ios, { autoTried: false, firstShown: false, back: false }).kind).toBe('screen');
+  });
+  it('T301-020: TikTok / IG / FB cold boot (iPhone + Android): no screen and no jump before the first Reel', () => {
+    for (const ua of [UA.ig_ios, UA.tiktok_ios, UA.tiktok_android, UA.fb_android, UA.messenger_ios]) {
+      expect(escapeOnStart(escapePlan(HREF, ua), { autoTried: false, firstShown: false, back: false }).kind).toBe('none');
+    }
+    expect(escapeOnStart(ios, { autoTried: false, firstShown: false, back: false }).kind).toBe('none');
     expect(escapeOnStart(null, { autoTried: false, firstShown: false, back: false }).kind).toBe('none');
   });
   it('Android fallback came back (Chrome missing): the buttons, not another jump', () => {

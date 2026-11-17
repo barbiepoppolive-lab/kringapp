@@ -1,5 +1,5 @@
 /** "Open Kring in your phone's browser" (16 Nov). Runs once on the first open from an in-app browser (LINE / Instagram /
- *  Facebook / Messenger / TikTok), and again when the member taps Turn on dings there. Tries the automatic jump once
+ *  Facebook / Messenger / TikTok) only when an action needs the real browser: sign-in, install, Turn on dings (T301-020). Tries the automatic jump once
  *  (LINE, Android), otherwise shows one big button. Never blocks browsing: "Stay here" closes it. Logic in escape.ts. */
 import { useEffect, useRef, useState } from 'react';
 import { ESCAPE_EVENT, escapeFlags, escapeOnStart, escapePlan, markAutoTried, markFirstShown, type EscapePlan } from './escape';
@@ -9,9 +9,9 @@ import './push.css';
 type Tx = (en: string) => string;
 const CODE_MS = 150_000;   // hand-off codes last 3 minutes: a fresh one every 2.5 min while the screen is open
 
+// T301-020: one language per screen (the active one); the English line under the Thai is gone
 function Two(props: { L: Tx; lang: string; en: string; cls?: string }) {
-  const main = props.L(props.en);
-  return <span className={props.cls}>{main}{props.lang === 'th' && main !== props.en ? <small>{props.en}</small> : null}</span>;
+  return <span className={props.cls}>{props.L(props.en)}</span>;
 }
 
 export function EscapeScreen(props: { L: Tx; lang: string; liff: boolean; signedIn: boolean; authReady: boolean; ua?: string }) {
@@ -46,10 +46,16 @@ export function EscapeScreen(props: { L: Tx; lang: string; liff: boolean; signed
   }, [props.authReady]);   // eslint-disable-line react-hooks/exhaustive-deps
   // Turn on dings in an in-app browser
   useEffect(() => {
-    const open = () => { dingsRef.current = true; void build().then((p) => { if (p) { setPlan(p); setShow(true); } }); };
+    const open = (e: Event) => { dingsRef.current = (e as CustomEvent).detail === 'dings'; void build().then((p) => { if (p) { setPlan(p); setShow(true); } }); };
     window.addEventListener(ESCAPE_EVENT, open);
     return () => window.removeEventListener(ESCAPE_EVENT, open);
   });
+  useEffect(() => {
+    if (!show) return;
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setShow(false); };
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [show]);
   useEffect(() => {
     if (!show) return;
     const t = setInterval(() => { void build().then((p) => p && setPlan(p)); }, CODE_MS);
@@ -64,7 +70,8 @@ export function EscapeScreen(props: { L: Tx; lang: string; liff: boolean; signed
   };
   const label = plan.button.kind === 'chrome' ? 'Open in Chrome' : plan.button.kind === 'safari' ? 'Open in Safari' : 'Open in browser';
   return (
-    <div className="kesc" id="escape" data-app={plan.app} data-os={plan.os} role="dialog" aria-modal="true" aria-label={L('Open Kring in your phone’s browser')}>
+    <div className="kesc" id="escape" data-app={plan.app} data-os={plan.os} role="dialog" aria-modal="true" aria-label={L('Open Kring in your phone’s browser')}
+      onClick={(e) => { if (e.target === e.currentTarget) setShow(false); }}>
       {plan.menuHint ? (
         <div className="kesc-hint" id="escHint" aria-hidden="true"><i className="kesc-arrow" /><Two L={L} lang={lang} en="Tap ⋯ then Open in browser" /></div>
       ) : null}

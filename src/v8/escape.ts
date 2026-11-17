@@ -93,12 +93,15 @@ const AUTO_KEY = 'kr8_esc_auto';     // sessionStorage: the automatic jump was t
 const FIRST_KEY = 'kr8_esc_first';   // localStorage: the first-open screen was shown on this phone/app
 export type EscapeStart = { kind: 'none' } | { kind: 'auto'; plan: EscapePlan } | { kind: 'screen'; plan: EscapePlan };
 /** Pure decision for the app start. `back` = Android loaded our fallback (Chrome missing / blocked). */
+/** T301-020 (17 Nov): the visitor watches Reels first. No screen on a cold boot; it opens only when an action needs the real
+ *  browser (sign-in, install, dings: openEscape). On start only LINE's silent openExternalBrowser reload runs (once), and the
+ *  buttons come back when an Android Chrome jump the member tapped did not work (kr_esc=1). */
 export function escapeOnStart(plan: EscapePlan | null, s: { autoTried: boolean; firstShown: boolean; back: boolean }): EscapeStart {
   if (!plan) return { kind: 'none' };
-  if (s.back) return { kind: 'screen', plan };                         // the jump did not work: offer the buttons
-  if (s.firstShown) return { kind: 'none' };                           // only on the first open (and at Turn on dings)
-  if (plan.auto && !s.autoTried) return { kind: 'auto', plan };
-  return { kind: 'screen', plan };
+  if (s.back) return { kind: 'screen', plan };                         // the tapped jump did not work: offer the buttons
+  if (s.firstShown) return { kind: 'none' };
+  if (plan.app === 'line' && plan.auto && !s.autoTried) return { kind: 'auto', plan };
+  return { kind: 'none' };
 }
 const ss = () => { try { return sessionStorage; } catch { return null; } };
 const ls = () => { try { return localStorage; } catch { return null; } };
@@ -115,7 +118,7 @@ export function markFirstShown() { try { ls()?.setItem(FIRST_KEY, '1'); } catch 
 
 export const ESCAPE_EVENT = 'kr8-escape-open';
 /** Opens the escape screen now (Turn on dings inside an in-app browser). */
-export function openEscape(why: 'dings' | 'start' = 'dings') { try { window.dispatchEvent(new CustomEvent(ESCAPE_EVENT, { detail: why })); } catch { /* ignore */ } }
+export function openEscape(why: 'dings' | 'start' | 'signin' | 'install' = 'dings') { try { window.dispatchEvent(new CustomEvent(ESCAPE_EVENT, { detail: why })); } catch { /* ignore */ } }
 
 /** Opened as a LIFF app inside LINE (liff.line.me link): Kring signs the member in there on purpose, so no automatic jump. */
 export function isLiffOpen(search: string, ua: string): boolean {

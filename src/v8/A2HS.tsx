@@ -8,6 +8,7 @@
  *  Inside LINE / Instagram / Facebook / TikTok browsers: "Open in browser" first. */
 import { useEffect, useRef, useState } from 'react';
 import './a2hs.css';
+import { openEscape } from './escape';
 
 type Tx = (en: string) => string;
 const KEY = 'kr8_a2hs';
@@ -264,7 +265,8 @@ export function A2HSBanner(props: { L: Tx; blocked?: boolean; force?: A2hsVarian
       <>
         <p className="a2s-step"><b>1</b>{variant === 'inapp-line' ? L('Open Kring in your phone’s browser') : L('Tap ⋯ then “Open in browser”')}</p>
         <p className="a2s-step dim"><b>2</b>{L('Then tap “Add to Home Screen” there')}</p>
-        {variant === 'inapp-line' ? <a className="a2s-go" id="a2hsOpen" href={externalBrowserUrl(window.location.href)}>{L('Open in browser')}</a> : null}
+        {variant === 'inapp-line' ? <a className="a2s-go" id="a2hsOpen" href={externalBrowserUrl(window.location.href)}>{L('Open in browser')}</a>
+          : <button type="button" className="a2s-go" id="a2hsOpen" onClick={() => openEscape('install')}>{L('Open in browser')}</button>}
       </>
     );
   } else if (variant === 'ios') {

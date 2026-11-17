@@ -7,10 +7,10 @@ import * as push from '../src/v8/push';
 import { PushAskCard } from '../src/v8/V5Push';
 import { EscapeScreen } from '../src/v8/V5Escape';
 import { isLiffOpen } from '../src/v8/escape';
-import { V5_L } from '../src/v8/v5Strings';
+import { KX_L, V5_L } from '../src/v8/v5Strings';
 import { v5HandoffBoot, v5Session } from '../src/v8/v5Live';
 const lang = new URLSearchParams(location.search).get('lang') || 'th';
-const L = (en: string) => (V5_L[lang] && V5_L[lang][en]) || en;
+const L = (en: string) => (V5_L[lang] && V5_L[lang][en]) || (KX_L[lang] && KX_L[lang][en]) || en;   // same lookup order as the app
 const w = window as unknown as Record<string, unknown>;
 w.__push = push;
 void v5HandoffBoot().then(async (r) => { w.__handoff = r; w.__uid = (await v5Session().catch(() => null))?.user?.id || null; });
