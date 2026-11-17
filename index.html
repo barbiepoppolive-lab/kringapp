@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <script>/* Kring language: ?lang= > saved choice > phone language (th* = Thai) > English. Same key as the app. Thai lives at /, English at /en/. */(function(){try{var P='th',S=location.search,q=(new URLSearchParams(S).get('lang')||'').toLowerCase(),l=null;if(q==='th'||q==='en'){l=q;try{localStorage.setItem('kr8_lang',q)}catch(e){}}else{try{l=localStorage.getItem('kr8_lang')}catch(e){}if(P==='en')l='en'}if(l!=='th'&&l!=='en'){if(navigator.webdriver||/bot|crawl|spider|facebookexternalhit|line-poker|preview|lighthouse|slurp/i.test(navigator.userAgent))return;var n=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||''];l=String(n[0]||'').toLowerCase().indexOf('th')===0?'th':'en'}if(l!==P)location.replace((l==='en'?'/en/':'/')+S+location.hash)}catch(e){}})();</script>
 <script>/* js flag early; if the main script never arrives, drop it after 4 s so nothing stays hidden */document.documentElement.classList.add('js','hl');setTimeout(function(){if(!window.__krOK)document.documentElement.classList.remove('js')},4000);</script>
-<script>/* opening rings: first visit only (16 Nov perf 2: a phone that has seen it once opens straight onto the page; ~0.6 s when shown). Not replayed only when coming back to home from inside the site (or by Back) within 60 s. ?noop=1 skips */(function(){var H=document.documentElement;try{window.__opT0=performance.now();if(/[?&]noop=/.test(location.search))return;try{if(localStorage.getItem('kr_op_seen'))return}catch(e){}var t=0;try{t=+sessionStorage.getItem('kr_op_t')||0}catch(e){}var n=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0],ty=n&&n.type,inn=document.referrer&&document.referrer.indexOf(location.origin)===0;if(ty!=='reload'&&(inn||ty==='back_forward')&&Date.now()-t<60000)return;H.classList.add('opon')}catch(e){H.classList.add('opon')}})();</script>
+<script>/* opening rings: first visit only, home pages only, never with reduced motion; gone by ~0.4 s (W-003, 17 Nov). (16 Nov perf 2: a phone that has seen it once opens straight onto the page; ~0.6 s when shown). Not replayed only when coming back to home from inside the site (or by Back) within 60 s. ?noop=1 skips */(function(){var H=document.documentElement;try{window.__opT0=performance.now();if(/[?&]noop=/.test(location.search))return;if(!/^\/(en\/)?(index\.html)?$/.test(location.pathname))return;try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return}catch(e){}try{if(localStorage.getItem('kr_op_seen'))return}catch(e){}var t=0;try{t=+sessionStorage.getItem('kr_op_t')||0}catch(e){}var n=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0],ty=n&&n.type,inn=document.referrer&&document.referrer.indexOf(location.origin)===0;if(ty!=='reload'&&(inn||ty==='back_forward')&&Date.now()-t<60000)return;H.classList.add('opon')}catch(e){H.classList.add('opon')}})();</script>
 <meta content="notranslate" name="google"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
 <title>กริ๊ง! · หาเพื่อนใหม่ในกรุงเทพฯ | แอปของคนกรุงเทพฯ</title>
@@ -201,7 +201,9 @@ html[lang=th] .eb{letter-spacing:.04em;font-size:13px}
 .iab .arrow{position:absolute;right:14px;top:10px;font-size:40px;color:var(--pk)}
 /* opening: the Kring rings (brought back unchanged from the previous home; plays on every fresh load) */
 .op{display:none;--th:var(--fu);--g:var(--gx);--ctah:40px}
-html.opon .op{display:block;animation:opsafe .01s 7s forwards}
+html.opon .op{display:block;animation:opsafe .01s .38s forwards}   /* W-003 (17 Nov): the opening never covers the page past ~0.4 s, even before the script runs */
+html.opon .hero .rv{animation:opshow .18s .38s forwards}
+@keyframes opshow{to{opacity:1;transform:none}}
 .op .obg{transition:opacity .5s}.op .obg:not(.isld){opacity:0!important}
 /* pure-CSS start: if the script is late, the locked rings and the line still fade in by themselves */
 @keyframes oprise{from{opacity:0;transform:scale(.72)}to{opacity:1;transform:none}}
@@ -328,6 +330,13 @@ html[lang=th] .op .opt{line-height:1.3}
 .fab{display:none}
 .ft{padding-bottom:40px}
 }
+/* W-001 (17 Nov): one primary button. The hero Install card is the primary; "Open Kring" is the secondary (outline);
+   the top-bar Install pill is an outline too, and below 430px it steps aside (the hero has Install) so EN | ไทย fits at 360px. */
+#hero .ctas .btn{background:rgba(7,6,13,.42);border:1.5px solid rgba(255,255,255,.5);box-shadow:none;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.nv a.nvi{background:rgba(7,6,13,.35);box-shadow:0 0 0 1.5px rgba(255,255,255,.5) inset}
+@media (max-width:429px){.nv a.nvi{display:none}}
+/* W-003 (17 Nov): the hero words fade in fast once the quick opening clears */
+html.opdone .hero .rv{transition-duration:.2s;transition-delay:0s}
 </style>
 </head>
 <body>
@@ -351,7 +360,7 @@ try{localStorage.setItem('kr_op_seen',String(Date.now()))}catch(e){}   // 16 Nov
 var RM=matchMedia('(prefers-reduced-motion: reduce)').matches,started=false,auto=0,T00=window.__opT0||performance.now(),LATE=performance.now()-T00>560,himg=op&&op.querySelector('.obg'),ready=false,want=0;
 function setReady(){if(ready)return;ready=true;if(want)go(want===2)}
 if(!himg)ready=true;else{var chk=function(){if(himg.decode)himg.decode().then(setReady,setReady);else setReady()};if(himg.complete)chk();else{himg.addEventListener('load',chk);himg.addEventListener('error',setReady)}}
-setTimeout(setReady,Math.max(0,600-(performance.now()-T00)));   // 16 Nov perf 2: never hold the page longer than ~0.6 s for the picture
+setTimeout(setReady,Math.max(0,120-(performance.now()-T00)));   // W-003 (17 Nov): never hold the page for the picture   // 16 Nov perf 2: never hold the page longer than ~0.6 s for the picture
 function bell(){try{var C=window.AudioContext||window.webkitAudioContext;if(!C)return;var c=new C(),m=c.createGain();m.gain.value=.25;m.connect(c.destination);
 [0,.17].forEach(function(d){var t=c.currentTime+d;[[1,1],[2.01,.55],[2.76,.4],[5.4,.22]].forEach(function(p,i){var o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=1318*p[0];
 g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(p[1],t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+1.4/(1+i*.7));o.connect(g);g.connect(m);o.start(t);o.stop(t+1.5)})})}catch(e){}}
@@ -405,16 +414,16 @@ return C;
 }
 function start(tapped){if(started)return;started=true;clearTimeout(auto);if(tapped)bell();if(ready)go(tapped);else want=tapped?2:1}
 function go(tapped){clearTimeout(idleT);if(tapped)AN.forEach(function(x){try{x.finish()}catch(e){}});
-if(RM){op.style.opacity='0';setTimeout(function(){op.classList.add('gone');done()},400);return}
+if(RM){op.classList.add('gone');done();return}
 op.style.pointerEvents='none'; // 16 Nov perf: from the first frame of the exit, taps go straight to the page under it
-var WP=520,pre=tapped?90:120;
+var WP=230,pre=tapped?30:50;   // W-003 (17 Nov): the wipe is short so the page is fully there by ~0.4 s
 if(op.animate){[op.querySelector('.opt'),op.querySelector('.opc')].forEach(function(el){if(el)el.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-12px)'}],{duration:pre,easing:'cubic-bezier(.4,0,.8,.4)',fill:'forwards'})})}
 op.classList.add('ring');op.classList.add('out');
 setTimeout(function(){if(op.animate){var w=innerWidth,h=innerHeight,cx=w*.5,cy=h*.52,R=Math.ceil(Math.sqrt(Math.pow(Math.max(cx,w-cx),2)+Math.pow(Math.max(cy,h-cy),2)));op.style.transition='none';op.animate([{clipPath:'circle('+R+'px at 50% 52%)'},{clipPath:'circle(0px at 50% 52%)'}],{duration:WP,easing:'cubic-bezier(.5,0,.2,1)',fill:'forwards'});op.animate([{opacity:1},{opacity:1,offset:.55},{opacity:0}],{duration:WP,easing:'linear',fill:'forwards'})}else op.classList.add('wipe');done()},pre);
-setTimeout(function(){op.classList.add('gone')},pre+WP+40)}
+setTimeout(function(){op.classList.add('gone')},pre+WP+20)}
 var lk=RM?0:intro(); // reduced motion: the CSS fade-in is the whole (gentle) opening
 op.addEventListener('click',function(){start(true)});op.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '||e.key==='Escape'){e.preventDefault();start(true)}});
-auto=setTimeout(function(){start(false)},RM?Math.max(300,1000-(performance.now()-T00)):Math.max(0,Math.min(lk+60,600-(performance.now()-T00))));
+auto=setTimeout(function(){start(false)},Math.max(0,110-(performance.now()-T00)));   // W-003 (17 Nov): a quick brand beat (~0.1 s), then the page
 ['pointerdown','touchstart','keydown','wheel'].forEach(function(ev){addEventListener(ev,function(){start(true)},{once:true,passive:true,capture:true})});
 })();</script>
 <header class="top" id="top">
@@ -430,7 +439,7 @@ auto=setTimeout(function(){start(false)},RM?Math.max(300,1000-(performance.now()
 <p class="eb rv"><i></i>เปิด 1 ธ.ค. 2026 · กรุงเทพฯ</p>
 <h1 class="rv" style="--d:.08s">กรุงเทพฯ สวยกว่า<br/>เมื่อมี<em>เพื่อน</em></h1>
 <p class="ld rv" style="--d:.16s">ทำการ์ด โพสต์ Reel ได้เพื่อนใหม่</p>
-<p class="rv ctas" style="--d:.24s;margin-top:18px"><a class="inst" data-install="" href="/app/?install=1" id="heroInstall"><span aria-hidden="true" class="ai"></span><span class="il"><b>ติดตั้งแอป กริ๊ง!</b><small lang="en">Install the app · Free</small></span><span aria-hidden="true" class="ig"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></svg></span></a><a class="btn" data-app="" data-join="" href="/app/?join=1">เปิด Kring<svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
+<p class="rv ctas" style="--d:.24s;margin-top:18px"><a class="inst" data-install="" href="/app/?install=1" id="heroInstall"><span aria-hidden="true" class="ai"></span><span class="il"><b>ติดตั้งแอป กริ๊ง!</b><small>ฟรี · เปิดเร็วเหมือนแอป</small></span><span aria-hidden="true" class="ig"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></svg></span></a><a class="btn" data-app="" data-join="" href="/app/?join=1">เปิด Kring<svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
 <p class="nt rv" style="--d:.3s">เข้าร่วมด้วย LINE หรืออีเมล · ฟรี · 20+</p>
 </div>
 </section>
@@ -439,7 +448,7 @@ auto=setTimeout(function(){start(false)},RM?Math.max(300,1000-(performance.now()
 <picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/card-d.webp" type="image/webp"/><img alt="ซอยย่านเจริญกรุงยามค่ำ ไฟนีออนสีชมพูฟ้าและผู้คนเดินเล่น" decoding="async" height="1376" loading="lazy" src="/assets/neon/card-m.webp" width="768"/></picture>
 <div class="kcw rv"><div aria-label="ตัวอย่างการ์ด Kring ของพลอย" class="kc" id="kc" role="img"><div class="kc-in">
 <img alt="" decoding="async" height="863" loading="lazy" src="/assets/neon/cardface.webp" width="640"/>
-<span class="lv"><svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>LV 1 LOCAL</span><span class="no">#00030</span>
+<span class="lv"><svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>LV 1 มือใหม่</span><span class="no">#00030</span>
 <div class="nm"><b>พลอย</b><span>กรุงเทพฯ · ไทย · อังกฤษ</span></div>
 <i class="sheen"></i></div></div></div>
 <div class="tx">
