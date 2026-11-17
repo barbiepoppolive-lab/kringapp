@@ -2,7 +2,7 @@
  * Kring Autopilot M1+ pure logic & types (rebased onto live-base 8a29fdb, 18 Nov 2026).
  * Admin text is strictly plain English. Money, bans, and claim refusals never auto-execute.
  */
-import { buildInbox, money, peopleCounts, type InboxItem, type Snapshot } from './adminV2Logic';
+import { buildInbox, money, peopleCounts, type InboxItem, type Snapshot, type Trust } from './adminV2Logic';
 
 export type RobotMode = 'off' | 'dry_run' | 'on';
 
@@ -876,6 +876,245 @@ export function fallbackSelfFixStatus(snap?: Snapshot | null, st?: AutopilotStat
     available_vouchers: avail,
     restock_warn_at: 5,
     voucher_buy_url: DEFAULT_VOUCHER_BUY_URL,
+    fallback: true,
+  };
+}
+
+// ───────── M5 (0102): Protect Robot (flags, never auto-ban, >=3 reports auto-hide undoable, feeds kr8_trust) ─────────
+export type ProtectFlagKey = 'link_tries' | 'scam_chat' | 'shared_signals' | 'ring_farming';
+export type ScamChatReason = 'money_request' | 'crypto_or_gambling' | 'line_hunting';
+
+export interface ProtectFlagRow {
+  user_id: string;
+  member_no: number | null;
+  name: string | null;
+  flag_key: ProtectFlagKey;
+  severity: AlertSeverity;
+  summary: string;
+  detail: Record<string, unknown>;
+  last_at: string;
+  trust?: Trust | null;
+}
+
+export interface ProtectReportedPost {
+  post_id: string;
+  author_id: string;
+  member_no: number | null;
+  name: string | null;
+  kind: string;
+  hidden: boolean;
+  reporters: number;
+  latest_at: string;
+}
+
+export interface ProtectOverview {
+  at: string;
+  mode: RobotMode;
+  counts: {
+    scam_chat: number;
+    link_tries: number;
+    ring_farming: number;
+    shared_signals: number;
+    reported_posts_3plus: number;
+  };
+  flags: ProtectFlagRow[];
+  reported_posts: ProtectReportedPost[];
+  fallback?: boolean;
+}
+
+export function isProtectOverview(v: unknown): v is ProtectOverview {
+  const x = v as ProtectOverview | null;
+  return !!x && typeof x === 'object' && !!x.counts && Array.isArray(x.flags) && Array.isArray(x.reported_posts);
+}
+
+const THAI_DIGITS: Record<string, string> = {
+  '๐': '0', '๑': '1', '๒': '2', '๓': '3', '๔': '4',
+  '๕': '5', '๖': '6', '๗': '7', '๘': '8', '๙': '9',
+};
+
+/** Pure detector mirroring SQL kr8_chat_scam_reason(text). Never auto-bans — flags for founder. */
+export function detectChatScamPhrase(body: string): ScamChatReason | null {
+  const raw = (body || '').replace(/[๐-๙]/g, (d) => THAI_DIGITS[d] || d);
+  if (!raw.trim()) return null;
+  const lo = raw.toLowerCase();
+
+  if (
+    /\b(send\s+(me\s+)?money|wire\s+money|transfer\s+money|western\s+union|moneygram|lend\s+me\s+money|need\s+money\s+urgently|bank\s+account\s+number)\b/.test(lo) ||
+    /(โอนเงิน|ยืมเงิน|ร้อนเงิน|ขอเงินหน่อย|ช่วยโอน|โอนให้หน่อย|เลขบัญชี|พร้อมเพย์\s*[0-9]{8,})/.test(raw)
+  ) {
+    return 'money_request';
+  }
+
+  if (
+    /\b(usdt|crypto\s+invest\w*|bitcoin\s+profit|forex\s+signal\w*|guaranteed\s+profit|whatsapp\s+me|telegram\s+me)\b/.test(lo) ||
+    /(ชวนลงทุน|เทรดหุ้นกำไร|เว็บพนัน|บาคาร่า|สล็อตเว็บตรง|ปั่นบาคาร่า|หวยออนไลน์)/.test(raw)
+  ) {
+    return 'crypto_or_gambling';
+  }
+
+  if (
+    /(\bline\s*(id)?\s*[:：=]|\bline\s*id\b|\bid\s*line\b|\badd\s+(my\s+)?line\b)/.test(lo) ||
+    /(แอดไลน์|ทักไลน์|ไอดีไลน์|ไลน์ไอดี|ขอไลน์หน่อย)/.test(raw)
+  ) {
+    return 'line_hunting';
+  }
+
+  return null;
+}
+
+/** Pure Ring-farming pair detector: >=3 likes/saves given, >=80% to one partner, and >=2 reciprocated back. */
+export function detectRingFarmingPairs(
+  interactions: { giver: string; receiver: string }[],
+): { userId: string; partnerId: string; givenToPartner: number; totalGiven: number; receivedBack: number }[] {
+  const valid = interactions.filter((x) => x.giver && x.receiver && x.giver !== x.receiver);
+  const totalByGiver = new Map<string, number>();
+  const pairCount = new Map<string, number>();
+
+  for (const x of valid) {
+    totalByGiver.set(x.giver, (totalByGiver.get(x.giver) || 0) + 1);
+    const k = `${x.giver}|${x.receiver}`;
+    pairCount.set(k, (pairCount.get(k) || 0) + 1);
+  }
+
+  const out: { userId: string; partnerId: string; givenToPartner: number; totalGiven: number; receivedBack: number }[] = [];
+  for (const [k, givenToPartner] of pairCount) {
+    if (givenToPartner < 3) continue;
+    const [giver, receiver] = k.split('|');
+    const totalGiven = totalByGiver.get(giver) || 0;
+    if (totalGiven < 3 || givenToPartner / totalGiven < 0.8) continue;
+    const receivedBack = pairCount.get(`${receiver}|${giver}`) || 0;
+    if (receivedBack < 2) continue;
+    out.push({ userId: giver, partnerId: receiver, givenToPartner, totalGiven, receivedBack });
+  }
+  return out;
+}
+
+/** Pure >=3 distinct reports policy: auto-hide (logged, undoable via unhide_post) + founder decides. */
+export function evaluateReportedPostAction(
+  distinctReporters: number,
+  alreadyHidden: boolean,
+  mode: RobotMode,
+): {
+  reachedThreshold: boolean;
+  shouldHideNow: boolean;
+  dryRunPreview: boolean;
+  raiseFounderAlert: boolean;
+  undoKind: 'unhide_post' | null;
+} {
+  if (distinctReporters < 3 || mode === 'off') {
+    return {
+      reachedThreshold: false,
+      shouldHideNow: false,
+      dryRunPreview: false,
+      raiseFounderAlert: false,
+      undoKind: null,
+    };
+  }
+  if (alreadyHidden) {
+    return {
+      reachedThreshold: true,
+      shouldHideNow: false,
+      dryRunPreview: false,
+      raiseFounderAlert: true,
+      undoKind: mode === 'on' ? 'unhide_post' : null,
+    };
+  }
+  return {
+    reachedThreshold: true,
+    shouldHideNow: mode === 'on',
+    dryRunPreview: mode === 'dry_run',
+    raiseFounderAlert: true,
+    undoKind: mode === 'on' ? 'unhide_post' : null,
+  };
+}
+
+/**
+ * Pure additive trust score calculator matching 0102 kr8_trust(uuid):
+ * - Preserves live-base 0095 rules: ZERO Rings guard; shared Wi-Fi alone = 0 (-10 ONLY alongside another warning sign).
+ * - Adds -25 for active scam_chat and -15 for active ring_farming.
+ */
+export function computeTrustWithProtect(
+  baseScore: number,
+  baseReasons: string[],
+  opts: {
+    hasScamChat?: boolean;
+    scamReason?: ScamChatReason;
+    ringFarmPartnerNo?: number | null;
+    hasRingFarming?: boolean;
+    sharedWifi?: boolean;
+    hasExistingWarning?: boolean;
+  },
+): Trust {
+  let score = baseScore;
+  const reasons = [...baseReasons];
+
+  if (opts.hasScamChat) {
+    score -= 25;
+    const label = opts.scamReason === 'money_request'
+      ? '−25 money request phrase in chat'
+      : opts.scamReason === 'crypto_or_gambling'
+        ? '−25 crypto / gambling phrase in chat'
+        : '−25 LINE-ID hunting phrase in chat';
+    reasons.push(label);
+  }
+
+  if (opts.hasRingFarming) {
+    score -= 15;
+    reasons.push(`−15 Ring farming pair${opts.ringFarmPartnerNo != null ? ` with #${opts.ringFarmPartnerNo}` : ''}`);
+  }
+
+  const anyWarning = !!opts.hasExistingWarning || !!opts.hasScamChat || !!opts.hasRingFarming;
+  if (opts.sharedWifi && anyWarning && !reasons.some((r) => r.includes('same Wi-Fi'))) {
+    score -= 10;
+    reasons.push('−10 same Wi-Fi as a claimer');
+  }
+
+  return {
+    score: Math.max(0, Math.min(100, score)),
+    reasons,
+  };
+}
+
+export function flagKeyLabel(k: ProtectFlagKey): string {
+  if (k === 'scam_chat') return 'Chat scam / LINE hunt';
+  if (k === 'link_tries') return 'Blocked link tries';
+  if (k === 'ring_farming') return 'Ring farming pair';
+  return 'Shared face / device / Wi-Fi';
+}
+
+export function fallbackProtectOverview(snap?: Snapshot | null, st?: AutopilotState | null): ProtectOverview {
+  const flags: ProtectFlagRow[] = [];
+  if (snap) {
+    for (const p of snap.people) {
+      if (p.kind !== 'real') continue;
+      if (p.links && p.links.length > 0) {
+        const rs = [...new Set(p.links.map((l) => l.reason))];
+        flags.push({
+          user_id: p.user_id,
+          member_no: p.no,
+          name: p.name,
+          flag_key: 'shared_signals',
+          severity: rs.includes('face') || rs.includes('device') ? 'amber' : 'grey',
+          summary: `Shared ${rs.join(' / ')} with ${p.links.length} linked account(s)`,
+          detail: { reasons: rs, peers: p.links.length },
+          last_at: snap.at,
+          trust: p.trust || null,
+        });
+      }
+    }
+  }
+  return {
+    at: new Date().toISOString(),
+    mode: st?.robots.find((r) => r.name === 'protect')?.mode || 'dry_run',
+    counts: {
+      scam_chat: 0,
+      link_tries: 0,
+      ring_farming: 0,
+      shared_signals: flags.length,
+      reported_posts_3plus: 0,
+    },
+    flags: flags.slice(0, 20),
+    reported_posts: [],
     fallback: true,
   };
 }

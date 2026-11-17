@@ -13,10 +13,12 @@ import {
   type Claim, type DupAuto, type FaceCheck, type InboxItem, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot, type Trust,
 } from './adminV2Logic';
 import {
-  capStatus, computeVoucherRunway, DEFAULT_VOUCHER_BUY_URL, fallbackAutopilotState, fallbackHealthWatch, fallbackSelfFixStatus,
-  formatRobotLogLine, heartbeatSummary, isAutopilotState, isHealthWatchReport, isMorningBriefData, isSelfFixStatus,
-  modeLabel, modeTone, scheduleWords, severityMeta, sortRobotAlerts, synthesizeMorningBrief,
-  type AutopilotState, type HealthWatchReport, type MorningBriefData, type RobotAlert, type RobotLogRow, type RobotMode, type RobotRow, type SelfFixStatus,
+  capStatus, computeVoucherRunway, DEFAULT_VOUCHER_BUY_URL, fallbackAutopilotState, fallbackHealthWatch, fallbackProtectOverview,
+  fallbackSelfFixStatus, flagKeyLabel, formatRobotLogLine, heartbeatSummary, isAutopilotState, isHealthWatchReport,
+  isMorningBriefData, isProtectOverview, isSelfFixStatus, modeLabel, modeTone, scheduleWords, severityMeta,
+  sortRobotAlerts, synthesizeMorningBrief,
+  type AutopilotState, type HealthWatchReport, type MorningBriefData, type ProtectOverview, type RobotAlert,
+  type RobotLogRow, type RobotMode, type RobotRow, type SelfFixStatus,
 } from './autopilotLogic';
 import './adminV2.css';
 
@@ -854,23 +856,27 @@ export async function autopilotView() {
   let st: AutopilotState = fallbackAutopilotState(snap);
   let hw: HealthWatchReport = fallbackHealthWatch(snap, st);
   let sf: SelfFixStatus = fallbackSelfFixStatus(snap, st);
+  let pr: ProtectOverview = fallbackProtectOverview(snap, st);
 
   const load = async () => {
     const t0 = Date.now();
     try {
-      const [raw, rawHw, rawSf] = await Promise.all([
+      const [raw, rawHw, rawSf, rawPr] = await Promise.all([
         rpc<unknown>('kr8_admin_autopilot_state', { p_limit: 120 }),
         rpc<unknown>('kr8_admin_health_watch', { p_run: false }).catch(() => null),
         rpc<unknown>('kr8_admin_self_fix_status').catch(() => null),
+        rpc<unknown>('kr8_admin_protect_overview').catch(() => null),
       ]);
       const elapsed = Date.now() - t0;
       st = isAutopilotState(raw) ? raw : fallbackAutopilotState(snap);
       hw = isHealthWatchReport(rawHw) ? rawHw : fallbackHealthWatch(snap, st, elapsed);
       sf = isSelfFixStatus(rawSf) ? rawSf : fallbackSelfFixStatus(snap, st);
+      pr = isProtectOverview(rawPr) ? rawPr : fallbackProtectOverview(snap, st);
     } catch {
       st = fallbackAutopilotState(snap);
       hw = fallbackHealthWatch(snap, st);
       sf = fallbackSelfFixStatus(snap, st);
+      pr = fallbackProtectOverview(snap, st);
     }
     snapAt = Date.now();
     const freshEl = document.getElementById('v2Fresh');
@@ -1209,6 +1215,81 @@ export async function autopilotView() {
         }, lowStock ? `Restock vouchers (${sf.available_vouchers} left) ↗` : 'Buy vouchers link ↗'),
         el('a', { class: 'ap-mini-btn', href: '#codes' }, 'Paste codes →')));
 
+    const prRunBtn = el('button', {
+      type: 'button',
+      id: 'apProtectRunBtn',
+      class: 'ap-mini-btn',
+      disabled: st.paused || !!st.fallback,
+    }, pr.mode === 'on' ? 'Scan flags now' : 'Preview protect (DRY-RUN)');
+    prRunBtn.onclick = async () => {
+      prRunBtn.disabled = true;
+      prRunBtn.textContent = 'Scanning…';
+      try {
+        await rpc('kr8_admin_robot_run_now', { p_name: 'protect' });
+        toast('Protect scan complete (0 auto-bans — flags updated)');
+        await load();
+      } catch (e) {
+        prRunBtn.disabled = false;
+        prRunBtn.textContent = pr.mode === 'on' ? 'Scan flags now' : 'Preview protect (DRY-RUN)';
+        toast(`Protect scan failed: ${(e as Error).message}`);
+      }
+    };
+
+    const visibleFlags = pr.flags.filter((f) => !hiddenKeys.has(`pflag:${f.user_id}:${f.flag_key}`));
+    const protectCard = el('section', { class: 'v2card ap-protect', id: 'apProtectCard' },
+      el('div', { class: 'ap-health-hd' },
+        ic('shield'),
+        el('div', { class: 'grow' },
+          el('b', {}, `Protect flags · ${modeLabel(pr.mode)}`),
+          el('small', {}, 'Every 15 min · feeds trust score · auto-hides >= 3 reports (undoable) · NEVER auto-bans')),
+        chip(`${visibleFlags.length} active`, visibleFlags.some((f) => f.severity === 'red') ? 'r' : visibleFlags.length > 0 ? 'a' : 'g')),
+      el('div', { class: 'ap-sf-grid' },
+        sfStat('pfScam', String(pr.counts.scam_chat), 'Scam / LINE chat', 'Money / crypto / LINE hunt', pr.counts.scam_chat > 0 ? 'hot' : ''),
+        sfStat('pfLinks', String(pr.counts.link_tries), 'Blocked links', 'Repeated link attempts', pr.counts.link_tries > 0 ? 'warn' : ''),
+        sfStat('pfFarm', String(pr.counts.ring_farming), 'Ring farming', 'Pairs liking only each other', pr.counts.ring_farming > 0 ? 'warn' : ''),
+        sfStat('pfShared', String(pr.counts.shared_signals), 'Shared signals', 'Same face / phone / Wi-Fi', pr.counts.shared_signals > 0 ? 'warn' : ''),
+        sfStat('pfReports', String(pr.counts.reported_posts_3plus), '>= 3 reports', 'Auto-hide + you decide', pr.counts.reported_posts_3plus > 0 ? 'warn' : ''),
+        sfStat('pfPolicy', 'Founder taps', 'Ban policy', 'Robots never ban')),
+      visibleFlags.length > 0
+        ? el('div', { class: 'ap-protect-list', id: 'apProtectFlags' },
+            ...visibleFlags.slice(0, 6).map((f) => {
+              const pkey = `pflag:${f.user_id}:${f.flag_key}`;
+              const dismissBtn = el('button', {
+                type: 'button',
+                class: 'ap-mini-btn',
+                id: `pfDismiss-${f.user_id}-${f.flag_key}`,
+              }, 'Dismiss');
+              dismissBtn.onclick = () => later(pkey, `Dismissed ${flagKeyLabel(f.flag_key)} flag for #${f.member_no ?? '?'}`, async () => {
+                await rpc('kr8_admin_protect_dismiss', { p_user: f.user_id, p_flag_key: f.flag_key });
+                await load();
+              });
+              const whoText = `#${f.member_no ?? '?'} · ${flagKeyLabel(f.flag_key)}`;
+              const trustText = f.trust ? `Trust ${f.trust.score}/100` : '';
+              return el('div', { class: `ap-pflag sev-${f.severity}`, 'data-flag': `${f.user_id}:${f.flag_key}` },
+                el('div', { class: 'grow' },
+                  el('div', { class: 'ac-tags' },
+                    chip(f.severity === 'red' ? 'High risk' : f.severity === 'amber' ? 'Warning' : 'Signal', f.severity === 'red' ? 'r' : f.severity === 'amber' ? 'a' : 'k'),
+                    trustText ? chip(trustText, f.trust && f.trust.score < 35 ? 'r' : 'a') : null),
+                  el('b', {}, whoText),
+                  el('small', {}, f.summary)),
+                el('div', { class: 'ap-pflag-acts' },
+                  el('a', { class: 'ap-mini-btn', href: `#m/${f.user_id}` }, 'Member →'),
+                  dismissBtn));
+            }))
+        : el('div', { class: 'v2sub', style: 'margin-top:10px' }, 'No active scam-chat, Ring-farming, or repeated link-try flags.'),
+      pr.reported_posts.length > 0
+        ? el('div', { class: 'ap-protect-list', id: 'apProtectPosts' },
+            ...pr.reported_posts.map((rp) =>
+              el('div', { class: 'ap-pflag sev-amber' },
+                el('div', { class: 'grow' },
+                  el('b', {}, `${rp.kind.toUpperCase()} by #${rp.member_no ?? '?'} · ${rp.reporters} reports`),
+                  el('small', {}, rp.hidden ? 'Auto-hidden temporarily (Undo in Robot action log below · decide in Needs you)' : 'DRY-RUN: would auto-hide at >= 3 reports')),
+                el('a', { class: 'ap-mini-btn', href: '#inbox' }, 'Decide →'))))
+        : null,
+      el('div', { class: 'ap-sf-acts' },
+        prRunBtn,
+        el('a', { class: 'ap-mini-btn', href: '#inbox' }, 'Open Needs you →')));
+
     const filterOpts: [string, string][] = [
       ['all', `All (${st.logs.length})`],
       ['applied', `Applied (${st.logs.filter((l) => !l.dry_run).length})`],
@@ -1227,6 +1308,7 @@ export async function autopilotView() {
       hbCard,
       healthCard,
       selfFixCard,
+      protectCard,
       el('div', { class: 'v2sec' }, `Robots · ${st.robots.length}`),
       el('div', { id: 'apRobots' }, ...st.robots.map(renderRobot)),
       el('div', { class: 'v2sec' }, 'Robot action log'),
