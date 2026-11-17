@@ -26,7 +26,7 @@
 .kav-row.exit { justify-content: center; color: #FF8FA8; margin-top: 18px; }
 
 /* read-only: no "say hi", post or compose buttons while the admin view is on (taps elsewhere show "Admin view · read-only") */
-.kr-admin-view .hibtn, .kr-admin-view .kp-plus, .kr-admin-view .kp-empty-btn.pink, .kr-admin-view .kp-blurjoin { display: none !important; }
+.kr-admin-view .hibtn, .kr-admin-view .kp-plus, .kr-admin-view #profileFollow, .kr-admin-view #profileHi, .kr-admin-view .at-fab, .kr-admin-view .kp-empty-btn.pink, .kr-admin-view .kp-blurjoin { display: none !important; }
 /* the pill gets its own 28px strip above the screens, so it never covers the Reels / Ask a Thai switch, titles or chips */
 .v8-app-root.kr-admin-view .v8-screen { top: calc(env(safe-area-inset-top, 0px) + 28px); }
 .v8-app-root.kr-admin-view .v8-screen .kav-me { padding-top: 24px; }
