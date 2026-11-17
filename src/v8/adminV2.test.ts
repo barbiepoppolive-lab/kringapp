@@ -119,7 +119,7 @@ describe('admin v2 · People', () => {
     expect(all.some((p) => p.kind === 'team' || p.kind === 'test')).toBe(false);
     expect(all.some((p) => p.kind === 'nocard')).toBe(true);
     expect(all[0].no).toBe(58);
-    expect(filterPeople(s, 'all', '', '', true).length).toBe(s.people.length);
+    expect(filterPeople(s, 'all', '', '', true).length).toBe(s.people.length - 1);   // 0087: Kring Team is never listed, even with test rows on
   });
   it('filters: today (India day), flagged, has claims, referrer, search by #no', () => {
     const s = snap();

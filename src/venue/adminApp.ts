@@ -1662,6 +1662,7 @@ function moreView() {
     li('#listings', 'store', 'Listings', 'Stay / Do and venues', 'moreListings'),
     li('#todo', 'check', 'Queues (old To do)', 'Reels, face checks, reports, replies, venues one at a time', 'moreTodo'),
     li('#places', 'store', 'Places', 'Places members added · automatic decisions · hide or restore', 'morePlaces'),
+    li('#faces', 'face', 'Auto-approved face checks', 'Selfie next to the card photo · 1-tap reject (with undo)', 'moreFaces'),
     el('div', { class: 'sec' }, 'Health'),
     li('#problems', 'warn', 'Problems', 'Reel and face-check failures on members’ phones · funnel', 'moreProblems'),
     li('#recruiters', 'link', 'Recruiters', 'Sign-ups per ref code · credit members who joined without one', 'moreRecruiters'),

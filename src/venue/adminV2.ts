@@ -4,11 +4,12 @@
  * Real members only by default; "Show test rows" includes test / demo / Kring Team / ghost / admin sign-ins.
  * Reads only through 0082. Writes only through the existing admin RPCs, sent 5 s later so every tap has Undo.
  */
-import { el, rpc } from './shared';
+import { el, rpc, v5Client } from './shared';
 import { signReelPaths } from '../v8/v5Reel';
 import {
-  ago, both, buildInbox, claimChip, clock, filterPeople, isSnapshot, lookalikeWords, money, personFlags, placeFlags, referrers, summary, who,
-  type Claim, type InboxItem, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot,
+  ago, both, buildInbox, claimChip, clock, filterPeople, groupPeople, isSnapshot, lookalikeWords, money, noCard, peopleCounts, peopleHeadline, personFlags, placeFlags,
+  referrers, stepChip, summary, who, withAdminLogins, faceChip, faceStatusWords, liveSteps, type FaceCheck,
+  type Claim, type InboxItem, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot,
 } from './adminV2Logic';
 import './adminV2.css';
 
@@ -50,8 +51,15 @@ export async function loadSnapshot(force = false): Promise<Snapshot | null> {
   if (loadingSnap) return loadingSnap;
   // 0086: the place robot's decisions ride along (an empty list before 0086, so the snapshot never fails because of it)
   const auto = rpc<PlaceAuto[]>('kr8_admin_places_auto', { p_days: 7 }).catch(() => [] as PlaceAuto[]);
-  loadingSnap = Promise.all([rpc<unknown>('kr8_admin_v2_snapshot', { p_include_test: includeTest }), auto])
-    .then(([s, pa]) => { if (!isSnapshot(s)) throw new Error('Admin v2 needs database update 0082'); s.places_auto = Array.isArray(pa) ? pa : []; snap = s; snapAt = Date.now(); return s; })
+  // 0087: real-photo flag, step inputs, Removed list and the one set of counts (null before 0087: the panel falls back)
+  const extra = rpc<PeopleExtra>('kr8_admin_v2_people_extra').catch(() => null);
+  loadingSnap = Promise.all([rpc<unknown>('kr8_admin_v2_snapshot', { p_include_test: includeTest }), auto, extra])
+    .then(([s, pa, ex]) => {
+      if (!isSnapshot(s)) throw new Error('Admin v2 needs database update 0082');
+      s.places_auto = Array.isArray(pa) ? pa : [];
+      if (ex && ex.counts && ex.rows) s.extra = ex;
+      snap = withAdminLogins(s); snapAt = Date.now(); return snap;
+    })
     .finally(() => { loadingSnap = null; });
   return loadingSnap;
 }
@@ -147,6 +155,7 @@ export function todayView() {
     const m = money(s);
     const d0 = Date.parse(s.day_start);
     const fresh = s.people.filter((p) => p.kind === 'real' && Date.parse(p.joined_at) >= d0);
+    const pc = peopleCounts(s);
     const leader = s.board.rows[0];
     void loadPhotos([...fresh.map((p) => p.user_id), ...s.board.rows.slice(0, 3).map((r) => r.user_id), ...items.slice(0, 2).flatMap((i) => i.people.map((p) => p.user_id))]).then(paintPhotos);
     const kpi = (id: string, n: string, label: string, sub: string, href: string, tone = '') =>
@@ -155,7 +164,7 @@ export function todayView() {
       el('section', { class: 'v2brief', id: 'v2Brief' }, el('div', { class: 'v2brief-k' }, ic('robot'), 'In plain words'),
         ...summary(s, { items, handled: inbox.handled }).map((t) => el('p', {}, t))),
       el('div', { class: 'v2kpis' },
-        kpi('kpiMembers', String(s.counts.real), 'Real members', `+${s.counts.real_today} today${s.counts.test + s.counts.team ? ` · ${s.counts.test + s.counts.team} test/team not counted` : ''}`, '#people'),
+        kpi('kpiMembers', String(pc.members), 'Members', `${pc.withPhoto} with photo · ${pc.noCard} without a card · +${pc.today} today`, '#people'),
         kpi('kpiInbox', String(items.length), 'Needs you', items.length ? `${items.filter((i) => i.kind === 'held').length} money · ${items.filter((i) => i.kind === 'lookalike').length} look-alike` : 'All clear', '#inbox', items.length ? 'hot' : 'ok'),
         kpi('kpiCodes', String(m.available), 'Codes left', `${m.assigned} given out`, '#money', m.available < 5 ? 'hot' : ''),
         kpi('kpiPaid', `฿${m.paidWeekThb.toLocaleString('en-US')}`, 'Paid this week', m.heldN ? `฿${m.heldThb} held` : `${m.paidWeekN} claims`, '#money')),
@@ -258,39 +267,61 @@ export function autoView() {
 // ───────── People (looks like the member app's People tab, plus admin overlays) ─────────
 let pFilter: PeopleFilter = (LS('kr8-v2-pf') as PeopleFilter) || 'all';
 let pQuery = ''; let pRef = '';
+let showRemoved = false;
 export function peopleView() {
   void withSnap('people', (s) => {
-    const list = filterPeople(s, pFilter, pQuery, pRef, includeTest);
-    void loadPhotos(list.map((p) => p.user_id)).then(paintPhotos);
+    const list = filterPeople(s, pFilter, pQuery, pRef, false);
+    const pc = peopleCounts(s);
+    void loadPhotos([...list.map((p) => p.user_id), ...(showRemoved ? (s.extra?.removed || []).map((r) => r.user_id) : [])]).then(paintPhotos);
     const q = el('input', { type: 'search', id: 'v2Search', placeholder: 'Search name, #no, referrer, IG', value: pQuery, autocomplete: 'off' });
     q.oninput = () => { pQuery = q.value; const g = document.getElementById('v2Grid'); if (g) g.replaceWith(grid(s)); };
     const fb = (k: PeopleFilter, label: string) => { const b = el('button', { type: 'button', class: pFilter === k ? 'on' : '', id: 'pf-' + k }, label); b.onclick = () => { pFilter = k; LS('kr8-v2-pf', k); peopleView(); }; return b; };
     const refSel = el('select', { id: 'v2Ref', 'aria-label': 'Referrer' }, el('option', { value: '' }, 'Any referrer'), ...referrers(s).map((r) => el('option', { value: r, selected: r === pRef }, r)));
     refSel.onchange = () => { pRef = refSel.value; peopleView(); };
     const d0 = Date.parse(s.day_start);
-    screen('people', header('People', `${s.counts.real} real members${s.counts.nocard ? ` · ${s.counts.nocard} signed in without a card` : ''} · newest first`),
+    const rm = el('input', { type: 'checkbox', id: 'v2RemovedToggle', checked: showRemoved });
+    rm.onchange = () => { showRemoved = rm.checked; peopleView(); };
+    screen('people', header('People', peopleHeadline(pc)),
       el('label', { class: 'v2search' }, ic('search'), q),
       el('div', { class: 'v2chips', role: 'tablist' }, fb('all', 'All'), fb('today', `New today · ${s.people.filter((p) => p.kind === 'real' && Date.parse(p.joined_at) >= d0).length}`),
         fb('unverified', 'Not verified'), fb('flagged', 'Flagged'), fb('claims', 'Has claims'), fb('nocard', 'No card')),
-      el('div', { class: 'v2row2' }, refSel, testToggle()),
+      el('div', { class: 'v2row2' }, refSel, el('label', { class: 'v2toggle' }, el('span', {}, `Removed (${pc.removed})`), rm, el('i', {}))),
       grid(s));
   }, header('People'));
 }
 function grid(s: Snapshot): HTMLElement {
-  const list = filterPeople(s, pFilter, pQuery, pRef, includeTest);
-  if (!list.length) return el('div', { id: 'v2Grid', class: 'v2card v2sub' }, 'Nobody matches.');
-  return el('div', { class: 'v2grid', id: 'v2Grid' }, ...list.map((p) => pcard(p, s)));
+  const list = filterPeople(s, pFilter, pQuery, pRef, false);
+  const g = groupPeople(list, s);
+  const removed = showRemoved ? (s.extra?.removed || []) : [];
+  const box = el('div', { id: 'v2Grid' });
+  if (!list.length) box.append(el('div', { class: 'v2card v2sub' }, 'Nobody matches.'));
+  // members with a real photo first (newest first), then "No photo yet", then "Signed up, no card" (filterPeople keeps newest first)
+  if (g.photo.length) box.append(el('div', { class: 'v2grid', id: 'v2GridPhoto' }, ...g.photo.map((p) => pcard(p, s))));
+  if (g.nophoto.length) box.append(el('div', { class: 'v2sec', id: 'v2SecNoPhoto' }, `No photo yet (${g.nophoto.length})`), el('div', { class: 'v2grid' }, ...g.nophoto.map((p) => pcard(p, s))));
+  if (g.nocard.length) box.append(el('div', { class: 'v2sec', id: 'v2SecNoCard' }, `Signed up, no card (${g.nocard.length})`),
+    el('div', { class: 'v2stack' }, ...g.nocard.map((p) => el('a', { class: 'v2card v2row', href: personLink(p), 'data-uid': p.user_id },
+      el('span', { class: 'v2av none', style: 'width:36px;height:36px' }, (p.email_hint || '?').slice(0, 1)),
+      el('div', { class: 'grow' }, el('b', {}, p.email_hint || 'No email'), el('div', { class: 'v2sub' }, `${p.kind === 'admin' ? 'Admin sign-in · ' : ''}signed in ${ago(p.joined_at)} · no card yet`)),
+      p.kind === 'admin' ? chip('admin', 'k') : chip('no card', '')))));
+  if (removed.length) box.append(el('div', { class: 'v2sec', id: 'v2SecRemoved' }, `Removed (${removed.length}) · demo & duplicates`),
+    el('div', { class: 'v2stack' }, ...removed.map((r) => el('a', { class: 'v2card v2row v2gone', href: `#m/${r.user_id}`, 'data-uid': r.user_id },
+      avatar({ user_id: r.user_id, name: r.name }, 36),
+      el('div', { class: 'grow' }, el('b', {}, `${r.name || 'member'}${r.no != null ? ` #${r.no}` : ''}`), el('div', { class: 'v2sub' }, `joined ${ago(r.joined_at)}`)),
+      chip(r.why === 'demo' ? 'demo' : 'duplicate', 'k')))));
+  return box;
 }
 function pcard(p: Person, s: Snapshot): HTMLElement {
   const src = photos.get(p.user_id);
   const flags = personFlags(p, s.people, s.claims);
-  const kindChip = p.kind === 'real' || p.kind === 'nocard' ? null : chip(p.kind === 'nocard' ? 'no card' : p.kind, 'k');
+  const kindChip = p.kind === 'real' || noCard(p) ? null : chip(p.kind, 'k');
+  const step = stepChip(p, s);
   return el('a', { class: `v2pc ${p.who === 'traveller' ? 'trav' : ''} ${flags.some((f) => f.tone === 'r') ? 'red' : ''}`, href: personLink(p), 'data-uid': p.user_id, 'data-who': p.who || 'local' },
     el('span', { class: `v2pc-img ${src ? '' : 'none'}`, style: src ? `background-image:url("${src}")` : '' }, src ? '' : (p.name || p.email_hint || '?').slice(0, 1)),
     el('span', { class: 'v2pc-scrim' }),
     el('span', { class: 'v2pc-tl' }, el('b', {}, p.no != null ? `#${p.no}` : 'no card'), kindChip),
-    el('span', { class: 'v2pc-tr' }, p.verified ? chip('✓ verified', 'g') : p.kind === 'nocard' ? null : chip(p.check?.status === 'rejected' ? 'refused' : 'not verified', p.check?.status === 'rejected' ? 'r' : '')),
+    el('span', { class: 'v2pc-tr' }, ((f) => (f ? chip(f.text, f.tone) : null))(faceChip(p))),
     el('span', { class: 'v2pc-info' },
+      step ? el('span', { class: `v2step ${step.tone}`, 'data-step': step.key }, step.text) : null,
       el('b', { class: 'nm' }, p.name || p.email_hint || 'No name'),
       el('small', {}, p.kind === 'nocard' ? 'Signed in · no card yet' : `${p.who === 'traveller' ? 'Visiting' : 'Local'}${p.area ? ' · ' + p.area : ''}`),
       el('small', {}, `joined ${ago(p.joined_at)} · ${clock(p.joined_at, 'Asia/Kolkata', false)} IST`),
@@ -324,7 +355,11 @@ export async function memberView(uid: string) {
   const c = m.card;
   const snapP = snap?.people.find((p) => p.user_id === uid);
   const flags = snapP && snap ? personFlags(snapP, snap.people, snap.claims) : [];
-  const urls = await signReelPaths(m.reels.map((r) => r.poster_path || '').filter(Boolean)).catch(() => ({} as Record<string, string>));
+  const [urls, faces] = await Promise.all([
+    signReelPaths(m.reels.map((r) => r.poster_path || '').filter(Boolean)).catch(() => ({} as Record<string, string>)),
+    rpc<FaceCheck[]>('kr8_admin_v2_face_checks', { p_user: uid, p_auto_only: false, p_limit: 10 }).catch(() => [] as FaceCheck[]),
+  ]);
+  const selfies = await signSelfies(faces);
   const sec = (title: string, n: number | string, ...kids: Kid[]) => el('section', { class: 'v2card v2m' }, el('h2', {}, title, el('small', {}, String(n))), ...kids);
   const kv = (k: string, v: Kid) => el('div', { class: 'v2kv' }, el('span', {}, k), el('b', {}, v ?? '–'));
   const yes = (b: boolean | null | undefined) => (b ? 'Yes' : b === false ? 'No' : '–');
@@ -366,6 +401,7 @@ export async function memberView(uid: string) {
     sec('Consents', m.consents.terms_version || '–', el('div', { class: 'v2kvs' },
       kv('Terms', m.consents.terms_version ? `${m.consents.terms_version} · ${clock(m.consents.terms_at)}` : 'Not accepted'),
       kv('Promo use of content', yes(m.consents.promo_ok)), kv('Reels on the website', yes(m.consents.web_reels)), kv('20+ confirmed', c?.age_ok_at ? clock(c.age_ok_at) : '–'))),
+    faces.length ? sec('Face check', faceStatusWords(faces[0]), ...faces.map((f, i) => facePair(f, c?.photo || null, selfies, i === 0))) : "",
     sec('Verification', m.checks.length ? m.checks[0].status : 'none', ...m.checks.map((v) => el('div', { class: 'v2li' },
       el('div', { class: 'grow' }, el('b', {}, `${v.status}${v.auto ? ` · robot: ${v.auto}` : ''}`), el('small', {}, `${both(v.at, true)}${v.reason ? ' · ' + v.reason.split('\n').pop() : ''}`)),
       chip(v.by_admin ? 'by you' : v.reviewed_at ? 'auto' : 'waiting', '')))),
@@ -487,6 +523,61 @@ export async function placesView() {
   await load();
 }
 
+// ───────── Face checks (0089): selfie next to the card photo ─────────
+/** 10-minute signed URLs from the PRIVATE kr8-verify bucket, signed with the admin's own sign-in (storage policy: kr8_is_admin()). */
+async function signSelfies(fs: FaceCheck[]): Promise<Record<string, string>> {
+  const paths = fs.map((f) => f.selfie_path).filter((x): x is string => !!x);
+  if (!paths.length) return {};
+  try {
+    const { data } = await (await v5Client()).storage.from('kr8-verify').createSignedUrls(paths, 600);
+    return Object.fromEntries((data || []).filter((d) => d.path && d.signedUrl).map((d) => [d.path as string, d.signedUrl as string]));
+  } catch { return {}; }
+}
+function facePair(f: FaceCheck, photo: string | null, selfies: Record<string, string>, big = true): HTMLElement {
+  const pic = (src: string | null | undefined, cap: string, empty: string) => el('figure', { class: 'v2fpic' },
+    src ? el('img', { src, alt: '' }) : el('div', { class: 'none' }, empty), el('figcaption', {}, cap));
+  const selfie = f.selfie_path ? selfies[f.selfie_path] : null;
+  const tone = f.status === 'approved' ? 'g' : f.status === 'pending' ? 'a' : 'r';
+  return el('div', { class: `v2face1 ${big ? '' : 'small'}`, 'data-face': f.id },
+    el('div', { class: 'v2fpair' }, pic(photo, 'Card photo', 'No photo'),
+      pic(selfie, 'Live selfie', f.selfie_deleted_at ? 'Deleted after 30 days' : f.selfie_path ? 'Could not load' : 'No selfie')),
+    el('div', { class: 'v2flags' }, chip(faceStatusWords(f), tone), chip(f.auto ? 'auto' : f.status === 'pending' ? 'waiting' : 'manual', 'k'),
+      f.live?.match != null ? chip(`match ${f.live.match.toFixed(2)}`, '') : null),
+    el('small', { class: 'v2sub' }, `${both(f.at, true)}${f.reviewed_at ? ` · decided ${clock(f.reviewed_at)} IST` : ''}`),
+    el('small', { class: 'v2sub' }, liveSteps(f.live)),
+    f.reason && f.status === 'rejected' ? el('small', { class: 'v2sub' }, f.reason.split('\n').pop() || '') : null);
+}
+export async function facesView() {
+  const body = el('div', {}, loadingCard());
+  screen('more', header('Face checks', 'Auto-approved · newest first · straight + left + right passed', '#more'), body);
+  stopV2();
+  let rows: FaceCheck[] = [];
+  let selfies: Record<string, string> = {};
+  const load = async () => {
+    try { rows = await rpc<FaceCheck[]>('kr8_admin_v2_face_checks', { p_user: null, p_auto_only: true, p_limit: 60 }); } catch (e) { body.replaceChildren(errorCard(e)); return; }
+    selfies = await signSelfies(rows);
+    await loadPhotos(rows.map((r) => r.user_id));
+    paint();
+  };
+  const paint = () => {
+    if (!rows.length) { body.replaceChildren(el('div', { class: 'v2card v2sub' }, 'No automatic face approvals yet.')); return; }
+    body.replaceChildren(...rows.map((f) => {
+      const key = 'face:' + f.id;
+      const btn = f.status === 'approved'
+        ? act('Reject', 'bad', 'faceReject-' + f.id, () => later(key, `Face check of ${who(f)} rejected · ${f.paid ? `${f.paid} paid code${f.paid === 1 ? '' : 's'} flagged` : 'member un-verified'}`,
+            async () => { await rpc('kr8_admin_v2_face_reject', { p_id: f.id, p_reason: null }); await load(); }))
+        : f.undo ? act('Undo reject', 'ok', 'faceUndo-' + f.id, () => later(key, `${who(f)} approved again`, async () => { await rpc('kr8_admin_v2_face_undo', { p_id: f.id }); await load(); })) : null;
+      return el('section', { class: 'v2card', style: hiddenKeys.has(key) ? 'opacity:.4' : undefined },
+        el('a', { class: 'v2row', href: `#m/${f.user_id}`, style: 'margin-bottom:10px;text-decoration:none;color:inherit' }, el('b', { class: 'grow' }, who(f)),
+          f.paid ? chip(`฿ ${f.paid} paid${f.status === 'rejected' ? ' · flagged' : ''}`, f.status === 'rejected' ? 'r' : 'g') : null, ic('chev')),
+        facePair(f, photos.get(f.user_id) || null, selfies),
+        btn ? el('div', { class: 'v2acts' }, btn) : null);
+    }));
+  };
+  rerender = () => paint();
+  await load();
+}
+
 /** Router hook: returns true when the hash is a v2 screen. */
 export function v2Route(a: string, b?: string): boolean {
   if (a === 'today' || a === '') { todayView(); return true; }
@@ -497,6 +588,7 @@ export function v2Route(a: string, b?: string): boolean {
   if (a === 'board') { boardView(); return true; }
   if (a === 'log') { void logView(); return true; }
   if (a === 'places') { void placesView(); return true; }
+  if (a === 'faces') { void facesView(); return true; }
   if (a === 'm' && b) { void memberView(b); return true; }
   stopV2();
   return false;

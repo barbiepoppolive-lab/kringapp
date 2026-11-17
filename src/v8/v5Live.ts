@@ -4,6 +4,7 @@
  * Off unless VITE_AUTH_LIVE=1, so the current "Sign-in opens on 1 Dec · join the waitlist" sheet stays the default.
  * supabase-js is lazy-loaded, so the waitlist build never downloads it.
  */
+import { photoFirst } from './peopleSort';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { initialAvatar, NEUTRAL_IMG } from './v8Data';
 import { demoPostAvatar } from './v5DemoAvatars';
@@ -416,7 +417,7 @@ export const v5SetHere = (on: boolean) => rpc<void>('kr8_set_here', { p_on: on }
 interface PersonRow { user_id: string; first_name: string; photo: string | null; langs: string[]; bio: string; area: string; who: 'local' | 'traveller'; here: boolean; verified: boolean }
 export async function v5People(): Promise<V8Person[]> {
   const rows = await rpcLite<PersonRow>('kr8_people', { p_limit: adminViewActive() ? 200 : 60 }, ['user_id', 'first_name', 'photo', 'langs', 'bio', 'area', 'who', 'here', 'verified'], [{ id: 'user_id', photo: 'photo' }]);
-  return (rows || []).map((r) => ({
+  return photoFirst((rows || []).map((r) => ({
     id: r.user_id,
     name: r.first_name,
     langs: (r.langs || []).join(' · '),
@@ -429,7 +430,7 @@ export async function v5People(): Promise<V8Person[]> {
     tags: '',
     area: r.area,
     here: r.here === true,
-  }));
+  })));
 }
 export interface FeedRow { id: string; kind: 'photo' | 'plan' | 'ask' | 'reel'; area: string; body: string; photo: string | null; event_id: string | null; here: boolean; created_at: string;
   video_path?: string | null; poster_path?: string | null; reel_status?: 'pending' | 'approved' | null;

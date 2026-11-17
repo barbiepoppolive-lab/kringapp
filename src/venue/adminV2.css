@@ -159,3 +159,24 @@
 @keyframes v2bar { from { width: 100%; } to { width: 0; } }
 .v2bar nav a { font-size: 11px; }
 .v2li > .v2chip { flex: 0 0 auto; max-width: 46%; white-space: normal; text-align: right; }
+
+/* 0087 People sort: step chip on each card, no-card / Removed rows */
+.v2step { align-self: flex-start; margin-bottom: 3px; padding: 2px 8px; border-radius: 99px; font: 700 10.5px var(--b); letter-spacing: 0.01em;
+  background: rgba(11, 10, 18, 0.78); color: var(--text); border: 1px solid rgba(255, 247, 236, 0.22); }
+.v2step.g { color: var(--go2); border-color: rgba(33, 196, 122, 0.5); }
+.v2step.a { color: var(--warn); border-color: rgba(255, 196, 77, 0.5); }
+.v2step.r { color: #ff8a97; border-color: rgba(255, 90, 107, 0.55); }
+.v2stack { display: flex; flex-direction: column; gap: 8px; }
+.v2stack .v2card { margin: 0; text-decoration: none; color: inherit; }
+.v2gone { opacity: 0.6; }
+
+/* 0089 face checks: card photo next to the live selfie */
+.v2face1 { display: flex; flex-direction: column; gap: 6px; padding: 6px 0 10px; border-bottom: 1px solid var(--line); }
+.v2face1:last-child { border-bottom: 0; }
+.v2fpair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.v2fpic { margin: 0; position: relative; }
+.v2fpic img, .v2fpic .none { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 14px; display: block; background: var(--s1); }
+.v2fpic .none { display: grid; place-items: center; text-align: center; padding: 10px; font-size: 12px; color: var(--faint); border: 1px dashed var(--line2); }
+.v2fpic figcaption { position: absolute; left: 8px; bottom: 8px; font: 700 10.5px var(--b); background: rgba(11, 10, 18, 0.75); padding: 2px 8px; border-radius: 99px; }
+.v2face1.small .v2fpair { grid-template-columns: 1fr 1fr; max-width: 220px; }
+.v2face1 small.v2sub { display: block; font-size: 11.5px; }

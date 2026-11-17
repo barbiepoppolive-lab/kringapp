@@ -4,6 +4,8 @@
  * can never disagree. Times are shown in India time (the founder), Bangkok in small text.
  */
 
+import { pickNextStep, type NextStepInput, type NextStepKind } from '../v8/nextStep';
+
 // ───────── rows from 0082 ─────────
 export type Kind = 'real' | 'test' | 'team' | 'ghost' | 'admin' | 'nocard';
 export interface Link { user_id: string; no: number | null; name: string | null; reason: string; dist: number | null; at: string }
@@ -37,6 +39,21 @@ export interface Snapshot {
   alerts: { kind: string; subject: string; at: string; sent: boolean; error: string | null }[];
   /** 0086 kr8_admin_places_auto: what the place robot did (loaded next to the snapshot; missing before 0086) */
   places_auto?: PlaceAuto[];
+  /** 0087 kr8_admin_v2_people_extra: real-photo flag, step inputs, Removed list, one set of counts (missing before 0087) */
+  extra?: PeopleExtra;
+}
+export interface PeopleExtraRow {
+  real_photo: boolean;
+  reel: { status: 'approved' | 'pending' | 'hidden'; note: string | null; at: string } | null;
+  won: { kind: 'weekly' | 'founding'; amount: number; status: 'won' }[];
+  open_claims: number;
+  check: string | null;
+}
+export interface PeopleExtra {
+  counts: { members: number; with_photo: number; no_photo: number; nocard: number; removed: number; team: number };
+  rows: Record<string, PeopleExtraRow>;
+  removed: { user_id: string; no: number | null; name: string | null; joined_at: string; why: string }[];
+  admins: { user_id: string; joined_at: string; email_hint: string | null }[];
 }
 export interface PlaceAuto { at: string; action: 'place_auto_reject' | 'place_auto_link' | 'place_auto_live' | 'place_geo_found' | 'place_geo_miss' | string;
   place_id: string | null; name: string | null; reason: string | null; into: string | null; outside: boolean | null; area: string | null; no: number | null;
@@ -225,19 +242,82 @@ export function claimChip(c: Claim): { text: string; tone: 'g' | 'a' | 'r' | '' 
 }
 
 // ───────── people list ─────────
+/** Real photo = 0087 real_photo (base64 data URL > 200 chars, photo_check ok/unset); before 0087 fall back to "has any photo". */
+export const realPhoto = (p: Person, s: Snapshot): boolean => (s.extra?.rows[p.user_id]?.real_photo ?? p.has_photo) === true;
+export const noCard = (p: Person) => p.kind === 'nocard' || p.kind === 'admin';
+/** ONE set of counts for the People header and the Today tab. Kring Team is never a member. */
+export interface PeopleCounts { members: number; withPhoto: number; noPhoto: number; noCard: number; removed: number; today: number }
+export function peopleCounts(s: Snapshot): PeopleCounts {
+  const d0 = Date.parse(s.day_start);
+  const real = s.people.filter((p) => p.kind === 'real');
+  const withPhoto = real.filter((p) => realPhoto(p, s)).length;
+  return {
+    members: s.extra?.counts.members ?? s.counts.real,
+    withPhoto: s.extra?.counts.with_photo ?? withPhoto,
+    noPhoto: s.extra?.counts.no_photo ?? real.length - withPhoto,
+    noCard: s.extra?.counts.nocard ?? s.counts.nocard + s.counts.admin,
+    removed: s.extra?.counts.removed ?? s.counts.ghost + s.counts.test,
+    today: real.filter((p) => Date.parse(p.joined_at) >= d0).length,
+  };
+}
+/** "18 members · 14 with photo · 5 without a card" */
+export const peopleHeadline = (c: PeopleCounts) => `${c.members} member${c.members === 1 ? '' : 's'} · ${c.withPhoto} with photo · ${c.noCard} without a card`;
+/** Admin sign-ins without a card (0087) as rows of the "Signed up, no card" group. */
+export function withAdminLogins(s: Snapshot): Snapshot {
+  const have = new Set(s.people.map((p) => p.user_id));
+  const extra = (s.extra?.admins || []).filter((a) => !have.has(a.user_id)).map((a): Person => ({
+    user_id: a.user_id, kind: 'admin', no: null, name: '', who: null, area: null, joined_at: a.joined_at, last_active_at: null, ref: null, src: null, verified: false,
+    ig: null, tt: null, has_photo: false, photo_check: null, email_hint: a.email_hint, line: false, check: null, reels: null, claims: null, links: [], shared_net: 0, refs: 0,
+    board: null, score: null }));
+  return extra.length ? { ...s, people: [...s.people, ...extra] } : s;
+}
+/** Members with a real photo (newest first), then "No photo yet", then "Signed up, no card". */
+export interface PeopleGroups { photo: Person[]; nophoto: Person[]; nocard: Person[] }
+export function groupPeople(list: Person[], s: Snapshot): PeopleGroups {
+  const g: PeopleGroups = { photo: [], nophoto: [], nocard: [] };
+  for (const p of list) (noCard(p) ? g.nocard : realPhoto(p, s) ? g.photo : g.nophoto).push(p);
+  return g;
+}
+
+/** The member's next step, worded for the founder — the same rules as the member app's "Your next step" (src/v8/nextStep.ts). */
+export type StepChip = { key: NextStepKind | 'won'; text: string; tone: 'g' | 'a' | 'r' | '' };
+const STEP_WORDS: Record<NextStepKind | 'won', [string, StepChip['tone']]> = {
+  reel: ['No Reel', ''], retry: ['Reel rejected', 'r'], pending: ['Reel pending', 'a'], claim: ['Prize won – not claimed', 'a'],
+  won: ['Prize won – not claimed', 'a'], verify: ['Claim held – verify face', 'a'], climb: ['Done ✓', 'g'],
+};
+export function stepChip(p: Person, s: Snapshot): StepChip | null {
+  if (p.kind !== 'real') return null;
+  const x = s.extra?.rows[p.user_id];
+  if (!x) return null;
+  const won = x.won.map((w, i) => ({ id: `${p.user_id}:${i}`, kind: w.kind, week: null, rank: null, founding_no: null, amount: w.amount, rings: null, status: 'won' as const, claim_id: null, created_at: '' }));
+  const claims = Array.from({ length: x.open_claims }, (_, i) => ({ id: `${p.user_id}:c${i}`, status: 'pending' as const })) as unknown as NextStepInput['claims'];
+  // founder's view of the same rules: a hidden latest Reel with no live Reel left is "rejected" even without a note, and a claim
+  // waiting on a face check is "held – verify face" even while the check sits with the team (the member pill hides it then)
+  const note = x.reel?.status === 'hidden' ? x.reel.note || (p.reels?.live ? null : 'hidden') : null;
+  const step = pickNextStep({
+    hasCard: true, reels: x.reel ? [{ status: x.reel.status, note, created_at: x.reel.at }] : [],
+    prizes: won, claims, verified: p.verified, verifyPending: false,
+  });
+  // the member pill only shouts about the Founding prize; the founder also wants a weekly prize nobody claimed
+  const kind: StepChip['key'] | null = step && step.kind === 'climb' && won.length ? 'won' : step ? step.kind : null;
+  if (!kind) return null;
+  const [text, tone] = STEP_WORDS[kind];
+  return { key: kind, text, tone };
+}
 export type PeopleFilter = 'all' | 'today' | 'unverified' | 'flagged' | 'claims' | 'nocard';
 export function filterPeople(s: Snapshot, f: PeopleFilter, q = '', ref = '', includeTest = false): Person[] {
   const d0 = Date.parse(s.day_start);
   const needle = q.trim().toLowerCase().replace(/^#/, '');
   return s.people.filter((p) => {
-    if (!includeTest && !(p.kind === 'real' || p.kind === 'nocard')) return false;
+    if (p.kind === 'team') return false;   // Kring Team is never a member, never listed
+    if (!includeTest && !(p.kind === 'real' || noCard(p))) return false;
     if (ref && (p.ref || p.src || '') !== ref) return false;
     if (needle && !(`${p.name} ${p.no ?? ''} ${p.ref ?? ''} ${p.ig ?? ''} ${p.area ?? ''}`.toLowerCase().includes(needle) || String(p.no) === needle)) return false;
     if (f === 'today') return Date.parse(p.joined_at) >= d0;
-    if (f === 'unverified') return p.kind !== 'nocard' && !p.verified;
+    if (f === 'unverified') return !noCard(p) && !p.verified;
     if (f === 'flagged') return personFlags(p, s.people, s.claims).some((x) => x.key !== 'no_photo');
     if (f === 'claims') return (p.claims?.n || 0) > 0;
-    if (f === 'nocard') return p.kind === 'nocard';
+    if (f === 'nocard') return noCard(p);
     return true;
   }).sort((a, b) => Date.parse(b.joined_at) - Date.parse(a.joined_at));
 }
@@ -293,3 +373,30 @@ export function placeFlags(p: PlaceRow): [string, string][] {
   return f;
 }
 
+
+// ───────── face checks (0089) ─────────
+export interface FaceCheck {
+  id: string; user_id: string; no: number | null; name: string | null; status: 'approved' | 'pending' | 'rejected'; at: string; reviewed_at: string | null;
+  auto: boolean; live: { straight?: boolean; left?: boolean; right?: boolean; blink?: boolean; blink_fallback?: boolean; device?: string; match?: number | null } | null;
+  reason: string | null; selfie_path: string | null; selfie_deleted_at: string | null; verified: boolean; undo: boolean; paid: number;
+}
+/** Card chip: "✓ face" / "face pending" / "face refused" / "no face check". */
+export function faceChip(p: Person): { text: string; tone: 'g' | 'a' | 'r' | '' } | null {
+  if (p.kind !== 'real') return null;
+  if (p.verified) return { text: '✓ face', tone: 'g' };
+  if (p.check?.status === 'pending') return { text: 'face pending', tone: 'a' };
+  if (p.check?.status === 'rejected') return { text: 'face refused', tone: 'r' };
+  return { text: 'no face check', tone: '' };
+}
+/** "straight ✓ · left ✓ · right ✓ · blink – · iPhone" */
+export function liveSteps(l: FaceCheck['live']): string {
+  if (!l) return 'no live-check data';
+  const t = (b: boolean | undefined) => (b ? '✓' : b === false ? '✗' : '–');
+  return [`straight ${t(l.straight)}`, `left ${t(l.left)}`, `right ${t(l.right)}`, `blink ${l.blink ? '✓' : l.blink_fallback ? 'skipped' : t(l.blink)}`, l.device || null]
+    .filter(Boolean).join(' · ');
+}
+export function faceStatusWords(f: FaceCheck): string {
+  if (f.status === 'pending') return 'Waiting for review';
+  if (f.status === 'approved') return f.auto ? 'Approved automatically' : 'Approved by you';
+  return f.undo ? 'Rejected by you after auto-approval' : f.auto ? 'Refused automatically' : 'Rejected by you';
+}
