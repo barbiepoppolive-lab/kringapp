@@ -1,0 +1,10 @@
+Kring face check models (0081), served from /app/models/face2/ and run on the member's phone with onnxruntime-web.
+
+yunet_2023mar.onnx          face detector + 5 landmarks. OpenCV Zoo face_detection_yunet (face_detection_yunet_2023mar.onnx),
+                            MIT License, Copyright (c) 2020 Shiqi Yu. See LICENSE-yunet-MIT.txt.
+sface_2021dec_int8.onnx     face recognition, 128-number embedding. OpenCV Zoo face_recognition_sface
+                            (face_recognition_sface_2021dec_int8.onnx), Apache License 2.0. See LICENSE-sface-Apache-2.0.txt.
+minifasnet_v2_v1se_80.onnx  passive anti-spoof. Weights 2.7_80x80_MiniFASNetV2.pth + 4_0_0_80x80_MiniFASNetV1SE.pth from
+                            minivision-ai/Silent-Face-Anti-Spoofing, Apache License 2.0 (see LICENSE-minifasnet-Apache-2.0.txt).
+                            MODIFIED by Kring: both networks exported together to ONNX (opset 13); output = mean of the two
+                            softmax outputs [fake-2D, real, fake-3D]. Inputs: BGR 0-255 crops, 80x80, at 2.7x and 4.0x the face box.
