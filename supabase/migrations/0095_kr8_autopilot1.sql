@@ -11,8 +11,13 @@
 --
 -- ADDITIVE + RE-RUNNABLE. Written for kring-test (pgvector in schema "extensions"; live converts extensions.vector -> public.vector).
 --
--- UNDO:
+-- UNDO (order matters):
 --   update public.kr8_rings_config set value = 0 where key in ('dup_robot_on', 'rings_guard_on');
+--   -- un-ghost everyone the robot hid (restores their Reels/Rings and marks the pair "different people"):
+--   --   select public.kr8_admin_dup_auto_undo((detail->>'dup')::uuid) from (select distinct on (detail->>'dup') detail from public.kr8_admin_actions_log
+--   --     where action = 'dup_auto_ghost' order by detail->>'dup', at desc) g;   -- run as an admin session (kr8_is_admin)
+--   -- FIRST re-run the pre-0095 bodies of kr8_reel_scores (0074), kr8_admin_v2_snapshot / _member (0082),
+--   -- kr8_admin_v2_activity (0086) and kr8_verify_instant (0092) — they call the functions dropped below — THEN:
 --   drop trigger if exists kr8_dup_robot_claim on public.kr8_reward_claims;
 --   drop function if exists public.kr8_dup_robot_claim_trg();
 --   drop function if exists public.kr8_admin_dup_auto_undo(uuid, text);
@@ -22,7 +27,6 @@
 --   drop function if exists public.kr8_liker_guard_ok(uuid);
 --   drop function if exists public.kr8_trust(uuid);
 --   drop function if exists public.kr8_is_admin_uid(uuid);
---   -- then re-run 0074 (kr8_reel_scores), 0082 (kr8_admin_v2_snapshot, kr8_admin_v2_member), 0086 (kr8_admin_v2_activity), and 0092 (kr8_verify_instant).
 
 begin;
 
@@ -324,7 +328,12 @@ begin
   limit 1;
 
   if other_uid is not null then
-    perform public.kr8_dup_robot_ghost(other_uid, new.member_id, 'same_device', null);
+    -- a robot error must never block the member's claim
+    begin
+      perform public.kr8_dup_robot_ghost(other_uid, new.member_id, 'same_device', null);
+    exception when others then
+      raise warning 'kr8_dup_robot_claim: %', sqlerrm;
+    end;
   end if;
   return new;
 end $$;
@@ -438,7 +447,11 @@ begin
     update public.kr8_members set verified = false, updated_at = now() where user_id = uid;
     perform public.kr8_link_add(uid, chk.user_id, 'face', jsonb_build_object('sface_sim', round(chk.sim::numeric, 3), 'sources', 'face check vs face check (SFace)'));
     -- 0095: Duplicate Robot automatically ghosts the newer account + voids its Rings this week (logged + undoable)
-    perform public.kr8_dup_robot_ghost(chk.user_id, uid, 'same_face', round(chk.sim::numeric, 3));
+    begin  -- a robot error must never break the member's face check
+      perform public.kr8_dup_robot_ghost(chk.user_id, uid, 'same_face', round(chk.sim::numeric, 3));
+    exception when others then
+      raise warning 'kr8_dup_robot (verify): %', sqlerrm;
+    end;
   end if;
   insert into public.kr8_face_decisions (user_id, verification_id, decision, reasons, match, dup_sim, dup_user, dup_source, was_verified, live)
   values (uid, vid, decision, reasons, round(m::numeric, 3), round(best.s::numeric, 3), best.u, best.src, me.verified, live);

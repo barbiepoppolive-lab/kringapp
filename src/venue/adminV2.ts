@@ -295,7 +295,11 @@ function actions(i: InboxItem): HTMLElement {
           for (const cl of i.claims) await rpc('kr8_admin_release_claim', { p_claim: cl.id });
         })),
         act(`Refuse · keep #${keep.no}`, 'bad', 'v2Refuse-' + c.id, () => later(i.key, `Claim refused (member is not told why) · kept #${keep.no}`,
-          () => rpc('kr8_admin_dup_resolve', { p_keep: keep.user_id, p_others: otherIds, p_action: 'hide' }))));
+          async () => {
+            await rpc('kr8_admin_dup_resolve', { p_keep: keep.user_id, p_others: otherIds, p_action: 'hide' });
+            // dup_resolve refuses the hidden accounts' claims; a held claim on the KEPT account must be refused too, or "Refuse" would leave it held
+            for (const cl of i.claims) if (cl.user_id === keep.user_id) await rpc('kr8_admin_refuse_claim', { p_claim: cl.id, p_reason: 'One person, one account', p_return: false });
+          })));
     } else {
       box.append(act(`Pay ฿${c.amount}`, 'ok', 'v2Pay-' + c.id, () => later(i.key, `Paying ฿${c.amount} to ${who(c)}`, () => rpc('kr8_admin_release_claim', { p_claim: c.id }))),
         act('Refuse', 'bad', 'v2Refuse-' + c.id, () => later(i.key, 'Claim refused (member is not told why)', () => rpc('kr8_admin_refuse_claim', { p_claim: c.id, p_reason: 'One person, one account', p_return: false }))));
