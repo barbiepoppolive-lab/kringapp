@@ -60,35 +60,53 @@ describe('admin v2 · one wording for look-alikes', () => {
 });
 
 describe('admin v2 · Needs you', () => {
-  it('shows ONE card per look-alike group, not one per pair', () => {
+  it('one case per card: one look-alike card per PAIR, the older account first', () => {
     const groups = linkGroups(snap().people);
     expect(groups.map((g) => g.map((p) => p.no))).toEqual(expect.arrayContaining([[30, 53, 58], [50, 56, 57]]));
     const { items } = buildInbox(snap());
     const look = items.filter((i) => i.kind === 'lookalike');
-    expect(look).toHaveLength(2);
-    const ids = items.flatMap((i) => i.people.map((p) => p.user_id));
-    expect(new Set(ids).size).toBe(ids.length);   // nobody on two cards
+    expect(look.map((i) => i.people.map((p) => p.no))).toEqual(expect.arrayContaining([[30, 53], [53, 58], [50, 56], [50, 57], [56, 57]]));
+    expect(look.every((i) => i.people.length === 2 && i.what.length <= 2)).toBe(true);
+    expect(look.find((i) => i.people[0].no === 30)!.question).toBe('#30 and #53 look alike. Same person?');
   });
-  it('explains why: #53 still has live Reels even though its face check was refused', () => {
-    const g = buildInbox(snap()).items.find((i) => i.people[0].no === 30)!;
-    expect(g.people.map((p) => p.no)).toEqual([30, 53, 58]);
-    expect(g.why).toMatch(/live Reel/);
-    expect(g.why).toMatch(/very likely one person/);
+  it('says what happened in words, never decimals: #53 still has live Reels even though its face check was refused', () => {
+    const g = buildInbox(snap()).items.find((i) => i.people[0].no === 30 && i.people[1].no === 53)!;
+    expect(g.what.join(' ')).toMatch(/2 live Reels/);
+    expect(g.what.join(' ')).toMatch(/face check refused/);
+    expect(g.what.join(' ')).toMatch(/Looks alike/);
+    expect(g.what.join(' ')).not.toMatch(/0\.\d/);
+    const strong = buildInbox(snap()).items.find((i) => i.people[0].no === 53 && i.people[1].no === 58)!;
+    expect(strong.what[0]).toBe('Faces: Very alike — very likely one person');
   });
-  it('a held claim outranks look-alikes and rides on the same card', () => {
+  it('a held claim inside a look-alike group is its OWN money card, first, linked by "related"', () => {
     const s = snap();
     s.claims.push(claim(58, { status: 'pending', held: true, assigned_at: null, hold_reason: 'linked' }));
     const { items } = buildInbox(s);
     expect(items[0].kind).toBe('held');
-    expect(items[0].people.map((p) => p.no)).toEqual([30, 53, 58]);
+    expect(items[0].people.map((p) => p.no)).toEqual([58]);
+    expect(items[0].question).toBe('Pay M58 (#58) ฿100 TrueMoney?');
     expect(items[0].claims).toHaveLength(1);
+    const pair = items.find((i) => i.kind === 'lookalike' && i.people.some((p) => p.no === 58))!;
+    expect(items[0].related).toContain(pair.key);
+    expect(pair.related).toContain(items[0].key);
   });
-  it('settled groups go to Handled automatically, not to the inbox', () => {
+  it('red money first (longest wait on top), then amber, then FYI Reels', () => {
+    const s = snap();
+    s.claims.push(claim(16, { status: 'pending', held: true, assigned_at: null, created_at: '2026-11-17T08:00:00Z' }),
+      claim(30, { status: 'pending', held: true, assigned_at: null, created_at: '2026-11-16T08:00:00Z' }));
+    s.pending.reels = [{ id: 'r1', user_id: 'u16', at: '2026-11-15T08:00:00Z', poster_path: null, video_path: null, body: '' }];
+    const { items } = buildInbox(s);
+    expect(items.map((i) => i.tone)).toEqual([...items.map((i) => i.tone)].sort((a, b) => 'raf'.indexOf(a) - 'raf'.indexOf(b)));
+    expect(items.slice(0, 2).map((i) => i.people[0].no)).toEqual([30, 16]);
+    expect(items[items.length - 1].kind).toBe('reel');
+  });
+  it('settled pairs go to Handled automatically, not to the inbox', () => {
     const s = snap();
     for (const p of s.people) if (p.no === 53 || p.no === 58) p.reels = { live: 0, waiting: 0, hidden: 3, board_off: 0, board_off_reason: null };
     const { items, handled } = buildInbox(s);
-    expect(items.some((i) => i.people.some((p) => p.no === 53))).toBe(false);
-    expect(handled.some((h) => h.text.includes('#30 · #53 · #58'))).toBe(true);
+    expect(items.some((i) => i.people.some((p) => p.no === 58))).toBe(false);
+    expect(handled.some((h) => h.text.includes('#30 · #53'))).toBe(true);
+    expect(handled.some((h) => h.text.includes('#53 · #58'))).toBe(true);
   });
   it('paid claims are logged as automatic', () => {
     expect(buildInbox(snap()).handled.filter((h) => h.text.includes('paid ฿100 truemoney automatically'))).toHaveLength(3);
@@ -143,7 +161,7 @@ describe('admin v2 · plain-English summary + times', () => {
     const t = summary(snap()).join(' ');
     expect(t).toMatch(/^5 new members today, via no referrer, eiko, pich\./);
     expect(t).toMatch(/2 members claimed a prize within 15 min of joining/);
-    expect(t).toMatch(/2 look-alike groups to settle/);
+    expect(t).toMatch(/5 look-alike pairs to settle/);
     expect(t).toMatch(/10 codes left/);
   });
   it('India time first, Bangkok small', () => {

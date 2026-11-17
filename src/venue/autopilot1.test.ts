@@ -158,9 +158,13 @@ describe('T-370 Autopilot Step 1', () => {
 
     // Clearest cases (REFUSE + PAY) sort ahead of grey-zone WAIT even though WAIT arrived earliest!
     const inbox = buildInbox(snap);
-    const calls = inbox.items.map((i) => i.verdict?.call);
-    expect(calls.slice(0, 2)).toEqual(['REFUSE', 'PAY']);
-    expect(calls[2]).toBe('WAIT');
+    // money cards come first, the claim that has waited longest on top; every held claim is its own card
+    const money = inbox.items.filter((i) => i.kind === 'held');
+    expect(inbox.items.slice(0, money.length).every((i) => i.kind === 'held')).toBe(true);
+    expect(money.map((i) => i.verdict?.call).sort()).toEqual(['PAY', 'REFUSE', 'WAIT']);
+    const ats = money.map((i) => Date.parse(i.at));
+    expect(ats).toEqual([...ats].sort((a, b) => a - b));
+    expect(money.every((i) => i.claims.length === 1 && i.people.length === 1 && /^Pay .+ \(#\d+\) ฿\d+ TrueMoney\?$/.test(i.question))).toBe(true);
   });
 
   it('lists Duplicate Robot actions under Handled automatically with Undo metadata, keeping 0.50–0.60 look-alikes for founder', () => {
@@ -200,7 +204,7 @@ describe('T-370 Autopilot Step 1', () => {
 
     const inbox = buildInbox(snap);
     // 0.54 look-alike stays a founder decision in Needs you
-    expect(inbox.items.some((i) => i.kind === 'lookalike' && i.title.includes('#30 · #31'))).toBe(true);
+    expect(inbox.items.some((i) => i.kind === 'lookalike' && i.question === '#30 and #31 look alike. Same person?')).toBe(true);
     // >= 0.60 auto-ghosted duplicate appears in Handled automatically with undoDup
     const dupRow = inbox.handled.find((h) => h.undoDup === 'u-dup99');
     expect(dupRow).toBeTruthy();

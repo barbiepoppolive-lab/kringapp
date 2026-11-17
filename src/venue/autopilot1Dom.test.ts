@@ -209,11 +209,23 @@ describe('T-370 Autopilot Step 1 DOM views', () => {
     // 2. Needs you -> Money Robot verdicts, clearest first, Pay / Refuse keep Undo toast
     v2.inboxView();
     await new Promise((r) => setTimeout(r, 30));
-    const verdicts = [...document.querySelectorAll('.v2verdict')];
-    expect(verdicts.length).toBe(2);
-    expect(verdicts[0].textContent).toContain('Robot says: REFUSE · trust 18');
-    expect(verdicts[0].textContent).toContain('−40 same face as #24');
-    expect(verdicts[1].textContent).toContain('Robot says: PAY · trust 82');
+    // one case per card: a money card has ONE question, one person, a robot pill + 2 reason chips, and Pay / Refuse
+    const pills = [...document.querySelectorAll('.v2pill')].map((x) => x.textContent);
+    expect(pills).toEqual(expect.arrayContaining(['Robot: REFUSE · trust 18', 'Robot: PAY · trust 82']));
+    const refuseCard = [...document.querySelectorAll('.v2case.k-held')].find((c) => c.textContent!.includes('REFUSE'))!;
+    expect(refuseCard.querySelector('.v2q')?.textContent).toMatch(/^Pay .+ \(#\d+\) ฿\d+ TrueMoney\?$/);
+    expect(refuseCard.querySelectorAll('.v2who')).toHaveLength(1);
+    expect(refuseCard.querySelector('.v2verdict2 .v2flags')?.textContent).toContain('−40 same face as #24');
+    expect(refuseCard.textContent).not.toMatch(/0\.\d\d/);   // no similarity decimals on a card
+    // filter chips with counts, and the collapsed robot section at the bottom
+    expect(document.getElementById('v2InboxFilters')?.textContent).toMatch(/All\d+Money\d+Look-alike\d+Face check\d+Reels\d+Reports\d+/);
+    expect((document.getElementById('v2AutoBox') as HTMLDetailsElement).open).toBe(false);
+    // Money filter shows only money cards; All brings everything back
+    (document.querySelector('#v2InboxFilters [data-f="held"]') as HTMLButtonElement).click();
+    await new Promise((r) => setTimeout(r, 10));
+    expect([...document.querySelectorAll('#v2Inbox .v2case')].every((c) => c.classList.contains('k-held'))).toBe(true);
+    (document.querySelector('#v2InboxFilters [data-f="all"]') as HTMLButtonElement).click();
+    await new Promise((r) => setTimeout(r, 10));
 
     const payBtn = document.getElementById('v2Pay-cl-good') as HTMLButtonElement;
     expect(payBtn).toBeTruthy();

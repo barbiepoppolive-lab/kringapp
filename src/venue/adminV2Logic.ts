@@ -241,17 +241,47 @@ export function personFlags(p: Person, all: Person[] = [], claims: Claim[] = [])
   return f;
 }
 
-// ───────── Needs you: one card per person-group, ranked, with auto-handled kept apart ─────────
+// ───────── Needs you: ONE decision about ONE person (or one pair) per card ─────────
 export type InboxKind = 'held' | 'lookalike' | 'check' | 'reel' | 'reports';
+/** r = money (red), a = needs a look (amber), f = FYI-level (Reels waiting) */
+export type InboxTone = 'r' | 'a' | 'f';
 export interface InboxItem {
-  key: string; kind: InboxKind; rank: number; title: string; why: string; people: Person[]; claims: Claim[];
+  key: string; kind: InboxKind; rank: number;
+  /** the plain-English question the founder answers, e.g. "Pay Pang (#137) ฿100 TrueMoney?" (title = question) */
+  title: string; question: string;
+  /** "What happened": at most 2 short lines */
+  what: string[];
+  /** what.join(' ') — kept for older callers */
+  why: string;
+  tone: InboxTone;
+  /** keys of other open cases about the same person(s) */
+  related: string[];
+  people: Person[]; claims: Claim[];
   links: { a: string; b: string; reason: string; dist: number | null; sface_sim?: number | null }[];
   reelIds: string[]; checkIds: string[]; at: string; count?: number;
   verdict?: MoneyVerdict;
 }
+export const INBOX_FILTERS: { key: 'all' | InboxKind; label: string }[] = [
+  { key: 'all', label: 'All' }, { key: 'held', label: 'Money' }, { key: 'lookalike', label: 'Look-alike' },
+  { key: 'check', label: 'Face check' }, { key: 'reel', label: 'Reels' }, { key: 'reports', label: 'Reports' },
+];
+/** "Very alike / Looks alike / Slightly alike / Same phone" — never a decimal on a card (decimals live on the member page) */
+export function alikeWord(dist: number | null | undefined, reason = 'face', sfaceSim?: number | null): string {
+  const t = lookalikeWords(dist, reason, sfaceSim).text.split(' · ')[0];
+  return t === 'Same face' ? 'Very alike' : t;
+}
+/** Waiting time for the card corner: "12 min", "36 h", "3 d" */
+export function waitShort(iso: string, now = Date.now()): string {
+  const m = Math.max(0, Math.round((now - Date.parse(iso)) / 60000));
+  if (m < 60) return `${m} min`;
+  const h = Math.round(m / 60); if (h < 48) return `${h} h`;
+  return `${Math.round(h / 24)} d`;
+}
+const BRAND: Record<string, string> = { truemoney: 'TrueMoney', grab: 'Grab', shopeepay: 'ShopeePay' };
+const nameNo = (p: { name: string | null; no: number | null }) => `${p.name || 'Member'} (#${p.no ?? '?'})`;
+const TONE_ORDER: Record<InboxTone, number> = { r: 0, a: 1, f: 2 };
 export interface Handled { key: string; at: string; text: string; undoDup?: string; undone?: boolean }
 
-const RANK: Record<InboxKind, number> = { held: 100, lookalike: 80, check: 70, reports: 60, reel: 50 };
 
 /** Groups look-alike links into one card per set of accounts (union-find), the oldest account first. */
 export function linkGroups(people: Person[]): Person[][] {
@@ -270,61 +300,68 @@ export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[
   const byId = new Map(people.map((p) => [p.user_id, p]));
   const items: InboxItem[] = [];
   const handled: Handled[] = [];
-  const used = new Set<string>();   // a person appears on ONE card only
+  const heldAll = s.claims.filter((c) => c.held && c.status === 'pending' && c.user_id);
+  const base = { related: [] as string[], claims: [] as Claim[], links: [] as InboxItem['links'], reelIds: [] as string[], checkIds: [] as string[] };
+  const push = (i: Omit<InboxItem, 'why' | 'title' | 'related' | 'claims' | 'links' | 'reelIds' | 'checkIds'> & Partial<InboxItem>) =>
+    items.push({ ...base, ...i, title: i.question, why: i.what.join(' '), related: [] } as InboxItem);
 
-  // 1) look-alike groups (+ any held claim inside the group rides on the same card)
+  // 1) look-alikes: one card per PAIR (older account first)
   for (const g of linkGroups(people)) {
     const ids = new Set(g.map((p) => p.user_id));
-    const links = dedupeLinks(g.flatMap((p) => p.links.filter((l) => ids.has(l.user_id)).map((l) => ({ a: p.user_id, b: l.user_id, reason: l.reason, dist: l.dist, sface_sim: l.sface_sim }))));
-    const held = s.claims.filter((c) => c.user_id && ids.has(c.user_id) && c.held && c.status === 'pending');
-    const newer = g.slice(1);
-    const settled = newer.every((p) => p.kind === 'ghost' || (p.check?.status === 'rejected' && !p.reels?.live && !(p.claims?.paid)));
-    const label = g.map((p) => `#${p.no ?? '?'}`).join(' · ');
-    if (settled && !held.length) {
-      handled.push({ key: 'g:' + label, at: latest(links.map(() => g[g.length - 1].joined_at)), text: `${label}: newer account already refused at face check and has nothing live` });
-      continue;
+    const links = dedupeLinks(g.flatMap((p) => p.links.filter((l) => ids.has(l.user_id)).map((l) => ({ a: p.user_id, b: l.user_id, reason: l.reason, dist: l.dist, sface_sim: l.sface_sim, at: l.at }))));
+    for (const l of links) {
+      const [older, newer] = [byId.get(l.a)!, byId.get(l.b)!].sort((x, y) => Date.parse(x.joined_at) - Date.parse(y.joined_at));
+      const label = `#${older.no ?? '?'} · #${newer.no ?? '?'}`;
+      const settled = newer.kind === 'ghost' || (newer.check?.status === 'rejected' && !newer.reels?.live && !(newer.claims?.paid));
+      if (settled && !heldAll.some((c) => c.user_id === newer.user_id)) {
+        handled.push({ key: 'g:' + label, at: l.at || newer.joined_at, text: `${label}: newer account already refused at face check and has nothing live` });
+        continue;
+      }
+      const strong = (l.sface_sim ?? 0) >= 0.6 || (l.dist ?? 1) < 0.4 || l.reason === 'device';
+      const facts = [newer.reels?.live ? `${newer.reels.live} live Reel${newer.reels.live === 1 ? '' : 's'}` : '', newer.claims?.paid ? `paid ฿${newer.claims.thb}` : '',
+        newer.check?.status === 'rejected' ? 'face check refused' : ''].filter(Boolean);
+      push({ key: `l:${older.user_id},${newer.user_id}`, kind: 'lookalike', tone: 'a', rank: 80 + (strong ? 5 : 0), at: l.at || newer.joined_at,
+        question: `#${older.no ?? '?'} and #${newer.no ?? '?'} look alike. Same person?`,
+        what: [`${l.reason === 'device' ? 'Same phone' : `Faces: ${alikeWord(l.dist, l.reason, l.sface_sim)}`}${strong ? ' — very likely one person' : ''}`,
+          `#${newer.no ?? '?'} joined ${ago(newer.joined_at)}${facts.length ? ' · ' + facts.join(' · ') : ''}`],
+        people: [older, newer], links: [{ a: l.a, b: l.b, reason: l.reason, dist: l.dist, sface_sim: l.sface_sim }] });
     }
-    g.forEach((p) => used.add(p.user_id));
-    const strong = links.some((l) => (l.sface_sim ?? 0) >= 0.6 || (l.dist ?? 1) < 0.4 || l.reason === 'device');
-    const why = [
-      `${g.length} accounts ${strong ? 'are very likely one person' : 'look alike'} (${links.map((l) => `#${byId.get(l.a)?.no}↔#${byId.get(l.b)?.no} ${lookalikeWords(l.dist, l.reason, l.sface_sim).text}`).join('; ')}).`,
-      held.length ? `${held.length} prize claim held: no code goes out until you decide.` : '',
-      newer.some((p) => p.reels?.live) ? `Newer account still has ${newer.reduce((n, p) => n + (p.reels?.live || 0), 0)} live Reel(s).` : '',
-      newer.some((p) => p.claims?.paid) ? `Newer account was already paid ฿${newer.reduce((n, p) => n + (p.claims?.thb || 0), 0)}.` : '',
-    ].filter(Boolean).join(' ');
-    const verdict = held.length ? moneyRobotVerdict(held[0], held[0].user_id ? byId.get(held[0].user_id) : g[g.length - 1], s) : undefined;
-    const rank = held.length ? RANK.held + Math.round((verdict?.clarity || 0) / 4) : RANK.lookalike + (strong ? 5 : 0);
-    items.push({ key: 'g:' + g.map((p) => p.user_id).join(','), kind: held.length ? 'held' : 'lookalike', rank,
-      title: held.length ? `Prize held · ${label}` : `Same person? ${label}`, why, people: g, claims: held, links, reelIds: [], checkIds: [],
-      at: latest(links.map(() => g[g.length - 1].joined_at)), verdict });
   }
-  // 2) held claims of people not already on a card
-  for (const c of s.claims.filter((x) => x.held && x.status === 'pending' && x.user_id && !used.has(x.user_id))) {
+  // 2) every held claim is its own Money card
+  for (const c of heldAll) {
     const p = byId.get(c.user_id!); if (!p) continue;
-    used.add(p.user_id);
-    const others = (c.hold_others || []).map((o) => `#${o.member_no ?? '?'}`).join(', ');
-    const verdict = moneyRobotVerdict(c, p, s);
-    items.push({ key: 'c:' + c.id, kind: 'held', rank: RANK.held + Math.round(verdict.clarity / 4), title: `Prize held · ${who(p)}`, at: c.created_at, people: [p], claims: [c], links: [], reelIds: [], checkIds: [],
-      why: `฿${c.amount} ${c.brand} claim is waiting.` + (others ? ` Looks like ${others}.` : '') + (c.hold_reason === 'review' ? ' Face check needs your eye.' : ''), verdict });
+    const mins = minutesBetween(p.joined_at, c.created_at);
+    const alike = [...new Set([...(c.hold_others || []).map((o) => `#${o.member_no ?? '?'}`), ...p.links.map((l) => `#${l.no ?? '?'}`)])];
+    const held = c.hold_reason === 'review' ? 'Held: face check needs your eye' : alike.length ? `Held: looks like ${alike.slice(0, 3).join(', ')}` : 'Held by the robot for a check';
+    push({ key: 'c:' + c.id, kind: 'held', tone: 'r', rank: 100, at: c.created_at, people: [p], claims: [c], verdict: moneyRobotVerdict(c, p, s),
+      question: `Pay ${nameNo(p)} ฿${c.amount} ${BRAND[c.brand] || c.brand}?`,
+      what: [mins != null && mins >= 0 && mins <= 60 ? `Claimed ${mins} min after joining` : `Claimed ${ago(c.created_at)}`, held] });
   }
-  // 3) face checks the robot sent to a human (pending), one per person
+  // 3) face checks the robot sent to a human
   for (const v of s.pending.checks) {
-    const p = byId.get(v.user_id); if (!p || used.has(p.user_id)) continue;
-    used.add(p.user_id);
-    items.push({ key: 'v:' + v.id, kind: 'check', rank: RANK.check, title: `Face check · ${who(p)}`, at: v.at, people: [p], claims: [], links: [], reelIds: [], checkIds: [v.id],
-      why: v.review?.length ? `The instant check was not sure: ${v.review.join(', ').replace(/_/g, ' ')}.` : 'Waiting for your yes / no.' });
+    const p = byId.get(v.user_id); if (!p) continue;
+    push({ key: 'v:' + v.id, kind: 'check', tone: 'a', rank: 70, at: v.at, people: [p], checkIds: [v.id],
+      question: `Approve ${nameNo(p)}'s face check?`,
+      what: [v.review?.length ? `Robot was not sure: ${v.review.slice(0, 2).join(', ').replace(/_/g, ' ')}` : 'Waiting for your yes / no'] });
   }
-  // 4) Reels waiting, grouped per person
+  // 4) Reels waiting, one card per person
   const reelsBy = new Map<string, Snapshot['pending']['reels']>();
   for (const r of s.pending.reels) reelsBy.set(r.user_id, [...(reelsBy.get(r.user_id) || []), r]);
   for (const [uid, rs] of reelsBy) {
     const p = byId.get(uid); if (!p) continue;
-    if (used.has(uid)) { const card = items.find((i) => i.people.some((x) => x.user_id === uid)); card?.reelIds.push(...rs.map((r) => r.id)); continue; }
-    items.push({ key: 'r:' + uid, kind: 'reel', rank: RANK.reel, title: `${rs.length === 1 ? 'Reel' : `${rs.length} Reels`} to approve · ${who(p)}`, at: rs[0].at, people: [p], claims: [], links: [],
-      reelIds: rs.map((r) => r.id), checkIds: [], why: p.verified ? 'Verified member.' : 'Member is not face-verified yet.' });
+    push({ key: 'r:' + uid, kind: 'reel', tone: 'f', rank: 50, at: rs[0].at, people: [p], reelIds: rs.map((r) => r.id),
+      question: `Approve ${nameNo(p)}'s ${rs.length === 1 ? 'Reel' : `${rs.length} Reels`}?`,
+      what: [p.verified ? 'Face-verified member' : 'Member is not face-verified yet'] });
   }
-  if (s.pending.reports) items.push({ key: 'reports', kind: 'reports', rank: RANK.reports, title: `${s.pending.reports} open report${s.pending.reports === 1 ? '' : 's'}`, why: 'Members reported a Reel or a person.', people: [], claims: [], links: [], reelIds: [], checkIds: [], at: s.at, count: s.pending.reports });
+  if (s.pending.reports) push({ key: 'reports', kind: 'reports', tone: 'a', rank: 60, at: s.at, people: [], count: s.pending.reports,
+    question: `Look at ${s.pending.reports} open report${s.pending.reports === 1 ? '' : 's'}?`, what: ['Members reported a Reel or a person'] });
   // places members type in are no longer a job for the founder (0086): they show in "Handled automatically" below
+
+  // related: other open cases about the same person
+  for (const i of items) {
+    const ids = new Set(i.people.map((p) => p.user_id));
+    i.related = items.filter((o) => o !== i && o.people.some((p) => ids.has(p.user_id))).map((o) => o.key);
+  }
 
   // auto-decided things the founder never needs to touch, for the "Handled automatically" log
   const dupLogged = new Set<string>();
@@ -341,10 +378,8 @@ export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[
   }
   for (const c of s.claims) if (c.status === 'assigned' && !c.held && !c.decided && (s.include_test || !c.is_test)) handled.push({ key: 'p:' + c.id, at: c.assigned_at || c.created_at, text: `${who(c)} paid ฿${c.amount} ${c.brand} automatically` });
   for (const a of s.places_auto || []) { const text = placeAutoText(a); if (text) handled.push({ key: `pl:${a.action}:${a.place_id}:${a.at}`, at: a.at, text }); }
-  items.sort((a, b) => {
-    if (a.kind === 'held' && b.kind === 'held') return (b.verdict?.clarity || 0) - (a.verdict?.clarity || 0) || Date.parse(a.at) - Date.parse(b.at);
-    return b.rank - a.rank || Date.parse(a.at) - Date.parse(b.at);
-  });
+  // red (money) first, then amber, then FYI; inside each, stronger cases first, then whoever has waited longest
+  items.sort((a, b) => TONE_ORDER[a.tone] - TONE_ORDER[b.tone] || b.rank - a.rank || Date.parse(a.at) - Date.parse(b.at));
   handled.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
   preview.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
   return { items, handled, preview };
@@ -371,7 +406,7 @@ export function buildRobotReport(s: Snapshot, inbox: { items: InboxItem[]; handl
   else if (dupsActive > 0) lines.push(`Duplicate robot is holding ${dupsActive} duplicate account${dupsActive === 1 ? '' : 's'} in ghost mode (0 new today).`);
   else lines.push('Duplicate robot: 0 duplicate accounts caught today.');
 
-  if (previewN > 0) lines.push(`Duplicate robot preview: ${previewN} older case${previewN === 1 ? '' : 's'} it would hide — nobody hidden until you switch the sweep on.`);
+  if (previewN > 0) lines.push(`Duplicate robot preview: ${previewN} past case${previewN === 1 ? '' : 's'} it would hide — nobody hidden until you switch the sweep on.`);
 
   const autoParts: string[] = [];
   if (facesToday) autoParts.push(`${facesToday} face check${facesToday === 1 ? '' : 's'} decided`);
@@ -396,7 +431,6 @@ function dedupeLinks<T extends { a: string; b: string }>(ls: T[]): T[] {
   const seen = new Set<string>();
   return ls.filter((l) => { const k = [l.a, l.b].sort().join('|'); if (seen.has(k)) return false; seen.add(k); return true; });
 }
-const latest = (xs: string[]) => xs.reduce((m, x) => (Date.parse(x) > Date.parse(m) ? x : m), xs[0] || new Date(0).toISOString());
 
 // ───────── money ─────────
 export interface Money { available: number; assigned: number; paidWeekThb: number; paidWeekN: number; heldThb: number; heldN: number; paidAllThb: number; byMember: { p: { no: number | null; name: string | null; user_id: string | null }; n: number; thb: number }[] }
@@ -518,7 +552,7 @@ export function summary(s: Snapshot, inbox: { items: InboxItem[]; handled: Handl
   const look = inbox.items.filter((i) => i.kind === 'lookalike');
   const hn = held.reduce((n, i) => n + i.claims.length, 0);
   if (hn) out.push(`${hn} prize claim${hn === 1 ? '' : 's'} held: possible second account.`);
-  if (look.length) out.push(`${look.length} look-alike group${look.length === 1 ? '' : 's'} to settle (${look.map((i) => i.people.map((p) => '#' + p.no).join('↔')).join(', ')}).`);
+  if (look.length) out.push(`${look.length} look-alike pair${look.length === 1 ? '' : 's'} to settle (${look.map((i) => i.people.map((p) => '#' + p.no).join('↔')).join(', ')}).`);
   const m = money(s);
   out.push(`${m.available} codes left · ฿${m.paidWeekThb.toLocaleString('en-US')} paid this week${m.heldN ? ` · ฿${m.heldThb} held` : ''}.`);
   const fast = s.people.filter((p) => p.kind === 'real' && personFlags(p, s.people, s.claims).some((f) => f.key === 'fast_claim')).length;

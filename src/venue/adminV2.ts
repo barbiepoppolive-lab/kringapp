@@ -9,6 +9,7 @@ import { signReelPaths } from '../v8/v5Reel';
 import {
   ago, both, buildInbox, buildRobotReport, claimChip, clock, filterPeople, groupPeople, isSnapshot, lookalikeWords, money, noCard, peopleCounts, peopleHeadline,
   personFlags, personTrust, placeFlags, realPhoto, referrers, stepChip, summary, trustChip, who, withAdminLogins, faceChip, faceStatusWords, liveSteps,
+  INBOX_FILTERS, waitShort, type Handled,
   type Claim, type DupAuto, type FaceCheck, type InboxItem, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot, type Trust,
 } from './adminV2Logic';
 import './adminV2.css';
@@ -98,7 +99,9 @@ function later(key: string, label: string, run: () => Promise<unknown>) {
   hiddenKeys.add(key);
   pending = { run, key, timer: window.setTimeout(flush, 5000) };
   toast(label, () => { if (pending?.key === key) { clearTimeout(pending.timer); pending = null; } hiddenKeys.delete(key); rerender?.(); });
-  rerender?.();
+  // a finished card slides away, then the list (and the counter) re-renders
+  const card = document.querySelector<HTMLElement>(`[data-item="${CSS.escape(key)}"]`);
+  if (card) { card.classList.add('v2slide'); window.setTimeout(() => rerender?.(), 260); } else rerender?.();
 }
 function toast(text: string, undo?: () => void) {
   document.getElementById('v2Toast')?.remove();
@@ -191,7 +194,7 @@ export function todayView() {
       // 1. what needs a decision
       items.length ? el('div', { class: 'v2sec' }, `Needs you · ${items.length}`) : el('a', { class: 'v2card v2row v2allclear', href: '#auto', id: 'v2Clear' }, ic('check'),
         el('div', { class: 'grow' }, el('b', {}, 'Nothing needs you'), el('div', { class: 'v2sub' }, `${inbox.handled.length} things were handled automatically`)), ic('chev')),
-      ...items.slice(0, 2).map((i) => inboxCard(i, s)),
+      ...items.slice(0, 2).map((i) => inboxCard(i, items)),
       items.length > 2 ? el('a', { class: 'v2more', href: '#inbox' }, `See all ${items.length} →`) : null,
       // 1b. Robot report: what the robots did today, plain English, links to Needs you
       el('div', { class: 'v2sec' }, 'Robot report'),
@@ -240,86 +243,113 @@ function paintPhotos() {
   });
 }
 
-// ───────── Needs you ─────────
+// ───────── Needs you: one case per card ─────────
+let inboxFilter: 'all' | InboxItem['kind'] = (LS('kr8-v2-if') as 'all' | InboxItem['kind']) || 'all';
 export function inboxView() {
   void withSnap('inbox', (s) => {
-    const { items, handled } = buildInbox(s);
+    const { items, handled, preview } = buildInbox(s);
     const open = items.filter((i) => !hiddenKeys.has(i.key));
-    void loadPhotos(open.flatMap((i) => i.people.map((p) => p.user_id))).then(paintPhotos);
-    screen('inbox', header('Needs you', open.length ? `${open.length} decision${open.length === 1 ? '' : 's'} · most urgent first` : 'Inbox zero'),
+    if (inboxFilter !== 'all' && !open.some((i) => i.kind === inboxFilter)) inboxFilter = 'all';
+    const shown = open.filter((i) => inboxFilter === 'all' || i.kind === inboxFilter);
+    void loadPhotos(shown.flatMap((i) => i.people.map((p) => p.user_id))).then(paintPhotos);
+    const count = (k: 'all' | InboxItem['kind']) => (k === 'all' ? open.length : open.filter((i) => i.kind === k).length);
+    const chips = el('div', { class: 'v2chips v2ifl', id: 'v2InboxFilters', role: 'tablist' }, ...INBOX_FILTERS.map((f) => {
+      const n = count(f.key);
+      const b = el('button', { type: 'button', class: (inboxFilter === f.key ? 'on ' : '') + (n ? '' : 'zero'), 'data-f': f.key, role: 'tab', 'aria-selected': String(inboxFilter === f.key) },
+        f.label, el('span', { class: 'n' }, String(n)));
+      b.onclick = () => { inboxFilter = f.key; LS('kr8-v2-if', f.key); rerender?.(); };
+      return b;
+    }));
+    screen('inbox', header('Needs you', open.length ? `${open.length} decision${open.length === 1 ? '' : 's'}` : 'Inbox zero'),
+      open.length ? chips : null,
       open.length ? null : el('div', { class: 'v2zero', id: 'v2Zero' }, ic('check'), el('b', {}, 'Nothing needs you'), el('span', {}, 'Everything else was handled automatically.')),
-      el('div', { id: 'v2Inbox' }, ...open.map((i) => inboxCard(i, s))),
-      el('a', { class: 'v2card v2row', href: '#auto', id: 'v2AutoLink' }, ic('robot'), el('div', { class: 'grow' }, el('b', {}, `Handled automatically · ${handled.length}`),
-        el('div', { class: 'v2sub' }, 'Paid claims, robot face checks, already-settled look-alikes, places members added')), ic('chev')),
+      el('div', { id: 'v2Inbox' }, ...shown.map((i) => inboxCard(i, open))),
+      handledBox(handled, preview),
       testToggle());
   }, header('Needs you'));
 }
-const KIND_LABEL: Record<InboxItem['kind'], [string, string]> = { held: ['Money', 'r'], lookalike: ['Same person?', 'a'], check: ['Face check', 'b'], reel: ['Reel', 'p'], reports: ['Reports', 'r'] };
-function inboxCard(i: InboxItem, s: Snapshot): HTMLElement {
+const KIND_LABEL: Record<InboxItem['kind'], [string, string]> = { held: ['Money', 'r'], lookalike: ['Look-alike', 'a'], check: ['Face check', 'b'], reel: ['Reel', 'p'], reports: ['Reports', 'a'] };
+function personRow(p: Person): HTMLElement {
+  return el('a', { class: 'v2who', href: personLink(p), 'data-uid': p.user_id }, avatar(p, 52),
+    el('div', { class: 'grow' }, el('b', {}, `${p.name || 'Member'} #${p.no ?? '–'}`), el('small', {}, `joined ${ago(p.joined_at)}`)));
+}
+function inboxCard(i: InboxItem, open?: InboxItem[]): HTMLElement {
   const [kl, kt] = KIND_LABEL[i.kind];
-  const card = el('article', { class: `v2card v2item k-${i.kind}`, 'data-item': i.key },
-    el('div', { class: 'v2item-top' }, chip(kl, kt), el('small', { class: 'dim' }, `${ago(i.at)} · ${clock(i.at)} IST`)),
-    el('h3', {}, i.title));
-  if (i.people.length) {
-    card.append(el('div', { class: 'v2faces' }, ...i.people.map((p, n) => el('a', { class: 'v2face', href: personLink(p), 'data-uid': p.user_id },
-      avatar(p, 72),
-      el('b', {}, `#${p.no ?? '–'} ${p.name}`),
-      el('small', {}, `${n === 0 && i.people.length > 1 ? 'oldest · ' : ''}joined ${clock(p.joined_at)}`),
-      el('small', {}, [p.verified ? '✓ verified' : p.check?.status === 'rejected' ? '✕ face check refused' : 'not verified', p.ref ? `via ${p.ref}` : ''].filter(Boolean).join(' · ')),
-      el('small', {}, `${p.reels?.live || 0} live Reel${p.reels?.live === 1 ? '' : 's'} · ${p.claims?.paid || 0} paid`)))));
-  }
+  const card = el('article', { class: `v2card v2item v2case t-${i.tone} k-${i.kind}`, 'data-item': i.key, id: 'case-' + i.key.replace(/[^a-zA-Z0-9_-]/g, '_') },
+    el('div', { class: 'v2item-top' }, chip(kl, kt), el('small', { class: 'v2wait', title: `${both(i.at, true)}` }, waitShort(i.at))),
+    el('h3', { class: 'v2q' }, i.question));
+  if (i.people.length) card.append(el('div', { class: 'v2whos' }, ...i.people.map(personRow)));
+  card.append(el('div', { class: 'v2what' }, el('span', { class: 'k' }, 'What happened'), ...i.what.slice(0, 2).map((t) => el('div', {}, t))));
   if (i.verdict) {
-    card.append(el('div', { class: `v2verdict ${i.verdict.tone}`, 'data-call': i.verdict.call },
-      el('div', { class: 'v2verdict-hd' }, ic('robot'), el('b', {}, i.verdict.headline)),
-      el('ul', { class: 'v2verdict-ul' }, ...i.verdict.reasons.map((r) => el('li', {}, r)))));
+    const v = i.verdict;
+    const rest = v.reasons.slice(2);
+    const more = rest.length ? el('button', { type: 'button', class: 'v2chip k v2more-r' }, `+${rest.length}`) : null;
+    const restBox = el('div', { class: 'v2rest', hidden: true }, ...rest.map((r) => chip(r, '')));
+    const pill = el('button', { type: 'button', class: `v2pill ${v.tone}`, 'data-call': v.call }, ic('robot'), `Robot: ${v.call} · trust ${v.score}`);
+    const toggle = () => { restBox.hidden = !restBox.hidden; };
+    pill.onclick = toggle; if (more) more.onclick = toggle;
+    card.append(el('div', { class: 'v2verdict2' }, pill, el('div', { class: 'v2flags' }, ...v.reasons.slice(0, 2).map((r) => chip(r, r.startsWith('+') ? 'g' : 'a')), more), restBox));
   }
-  card.append(el('p', { class: 'v2why' }, i.why));
-  const flags = [...new Set(i.people.flatMap((p) => personFlags(p, s.people, s.claims).filter((f) => f.key !== 'lookalike').map((f) => `#${p.no} ${f.text}`)))];
-  if (flags.length) card.append(el('div', { class: 'v2flags' }, ...flags.slice(0, 4).map((f) => chip(f, 'a'))));
   card.append(actions(i));
+  const rel = (i.related || []).filter((k) => !hiddenKeys.has(k) && (!open || open.some((o) => o.key === k)));
+  if (rel.length) {
+    const b = el('button', { type: 'button', class: 'v2rel' }, `related: ${rel.length} more case${rel.length === 1 ? '' : 's'}`);
+    b.onclick = () => {
+      if (inboxFilter !== 'all') { inboxFilter = 'all'; rerender?.(); }
+      window.setTimeout(() => {
+        const t = document.querySelector<HTMLElement>(`[data-item="${CSS.escape(rel[0])}"]`);
+        if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); t.classList.add('v2flash'); window.setTimeout(() => t.classList.remove('v2flash'), 1200); }
+      }, 30);
+    };
+    card.append(b);
+  }
   return card;
 }
 function act(label: string, cls: string, id: string, fn: () => void): HTMLButtonElement {
   const b = el('button', { type: 'button', class: `v2btn ${cls}`, id }, label); b.onclick = fn; return b;
 }
 function actions(i: InboxItem): HTMLElement {
-  const box = el('div', { class: 'v2acts' });
-  const [keep, ...others] = i.people;
+  const box = el('div', { class: 'v2acts v2acts2' });
   if (i.kind === 'held' && i.claims.length) {
     const c = i.claims[0];
-    if (i.people.length > 1) {
-      const otherIds = others.map((p) => p.user_id);
-      box.append(
-        act(`Pay ฿${c.amount}`, 'ok', 'v2Pay-' + c.id, () => later(i.key, `Marked different people · paying ฿${c.amount} to ${who(c)}`, async () => {
-          await rpc('kr8_admin_dup_resolve', { p_keep: keep.user_id, p_others: otherIds, p_action: 'not_same' });
-          for (const cl of i.claims) await rpc('kr8_admin_release_claim', { p_claim: cl.id });
-        })),
-        act(`Refuse · keep #${keep.no}`, 'bad', 'v2Refuse-' + c.id, () => later(i.key, `Claim refused (member is not told why) · kept #${keep.no}`,
-          async () => {
-            await rpc('kr8_admin_dup_resolve', { p_keep: keep.user_id, p_others: otherIds, p_action: 'hide' });
-            // dup_resolve refuses the hidden accounts' claims; a held claim on the KEPT account must be refused too, or "Refuse" would leave it held
-            for (const cl of i.claims) if (cl.user_id === keep.user_id) await rpc('kr8_admin_refuse_claim', { p_claim: cl.id, p_reason: 'One person, one account', p_return: false });
-          })));
-    } else {
-      box.append(act(`Pay ฿${c.amount}`, 'ok', 'v2Pay-' + c.id, () => later(i.key, `Paying ฿${c.amount} to ${who(c)}`, () => rpc('kr8_admin_release_claim', { p_claim: c.id }))),
-        act('Refuse', 'bad', 'v2Refuse-' + c.id, () => later(i.key, 'Claim refused (member is not told why)', () => rpc('kr8_admin_refuse_claim', { p_claim: c.id, p_reason: 'One person, one account', p_return: false }))));
-    }
+    box.append(act(`Pay ฿${c.amount}`, 'ok', 'v2Pay-' + c.id, () => later(i.key, `Paying ฿${c.amount} to ${who(c)}`, () => rpc('kr8_admin_release_claim', { p_claim: c.id }))),
+      act('Refuse', 'bad', 'v2Refuse-' + c.id, () => later(i.key, 'Claim refused (member is not told why)', () => rpc('kr8_admin_refuse_claim', { p_claim: c.id, p_reason: 'One person, one account', p_return: false }))));
   } else if (i.kind === 'lookalike' && i.people.length > 1) {
+    const [keep, ...others] = i.people;
     const otherIds = others.map((p) => p.user_id);
+    const pair = `${keep.user_id}-${otherIds.join('-')}`;
     box.append(
-      act(`Same person · keep #${keep.no}`, 'bad', 'v2Same-' + keep.user_id, () => later(i.key, `Kept #${keep.no}; ${others.map((p) => '#' + p.no).join(', ')} hidden`,
+      act('Same person', 'bad', `v2Same-${pair}`, () => later(i.key, `Kept #${keep.no}; ${others.map((p) => '#' + p.no).join(', ')} hidden`,
         () => rpc('kr8_admin_dup_resolve', { p_keep: keep.user_id, p_others: otherIds, p_action: 'hide' }))),
-      act('Different people', 'ok', 'v2Diff-' + keep.user_id, () => later(i.key, 'Marked as different people',
+      act('Different', 'ok', `v2Diff-${pair}`, () => later(i.key, 'Marked as different people',
         () => rpc('kr8_admin_dup_resolve', { p_keep: keep.user_id, p_others: otherIds, p_action: 'not_same' }))));
   } else if (i.kind === 'check') {
     box.append(act('Approve', 'ok', 'v2Approve-' + i.checkIds[0], () => later(i.key, `${who(i.people[0])} verified`, () => rpc('kr8_admin_review_verification', { p_id: i.checkIds[0], p_approve: true }))),
-      el('a', { class: 'v2btn', href: '#q/faces' }, 'Compare & reject…'));
+      el('a', { class: 'v2btn bad', href: '#q/faces', id: 'v2Reject-' + i.checkIds[0] }, 'Reject…'));
   } else if (i.kind === 'reel') {
     box.append(act(i.reelIds.length > 1 ? `Approve all ${i.reelIds.length}` : 'Approve', 'ok', 'v2ReelOk-' + i.key, () => later(i.key, 'Approved', async () => { for (const id of i.reelIds) await rpc('kr8_admin_review_reel', { p_reel: id, p_status: 'approved' }); })),
       el('a', { class: 'v2btn', href: '#q/reels' }, 'Watch first'));
   } else if (i.kind === 'reports') box.append(el('a', { class: 'v2btn ok', href: '#q/reports' }, 'Open reports'));
-  if (i.reelIds.length && i.kind !== 'reel') box.append(el('a', { class: 'v2btn', href: '#q/reels' }, `${i.reelIds.length} Reel waiting`));
   return box;
+}
+function dupUndoButton(h: Handled): HTMLElement | null {
+  if (!h.undoDup || h.undone) return h.undone ? chip('undone', 'k') : null;
+  const dupId = h.undoDup;
+  const b = el('button', { type: 'button', class: 'v2btn ok v2undo-s', id: 'dupUndo-' + dupId }, 'Undo');
+  b.onclick = () => later(h.key, 'Duplicate restored · ghost mode off', () => rpc('kr8_admin_dup_auto_undo', { p_dup: dupId, p_action: 'undo' }));
+  return b;
+}
+function handledLine(h: Handled, tag?: HTMLElement | null): HTMLElement {
+  return el('div', { class: 'v2li v2hl', style: hiddenKeys.has(h.key) ? 'opacity:.4' : undefined }, ic('robot'),
+    el('div', { class: 'grow' }, el('b', {}, h.text), el('small', {}, ago(h.at))), tag ?? dupUndoButton(h));
+}
+/** "Handled automatically" — collapsed at the bottom of Needs you, one line per robot action, Undo where it can be undone */
+function handledBox(handled: Handled[], preview: Handled[]): HTMLElement {
+  return el('details', { class: 'v2card v2auto', id: 'v2AutoBox' },
+    el('summary', {}, ic('robot'), el('b', { class: 'grow' }, `Handled automatically · ${handled.length}`), preview.length ? chip(`${preview.length} preview`, 'a') : null),
+    preview.length ? el('div', { class: 'v2list', id: 'v2AutoPreview' }, ...preview.map((h) => handledLine(h, chip('preview', 'a')))) : null,
+    el('div', { class: 'v2list' }, ...handled.slice(0, 40).map((h) => handledLine(h))),
+    el('a', { class: 'v2more', href: '#auto' }, 'Full log →'));
 }
 export function autoView() {
   void withSnap('inbox', (s) => {
