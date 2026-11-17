@@ -267,6 +267,7 @@ const T: Record<string, string> = {
     'Get verified ✓': '인증 받기 ✓',
     'Getting the face check ready…': '얼굴 확인 준비 중…',
     'Help and contact': '도움말 및 문의',
+    'The team chat isn’t ready yet. Email ops@kringapp.com.': '팀 채팅이 아직 준비되지 않았어요. ops@kringapp.com 으로 이메일 주세요.',
     'Hindi': '힌디어',
     'I agree that Kring uses my face this way': 'Kring이 이 방식으로 내 얼굴을 사용하는 데 동의해요',
     'I live here / Visiting': '여기 살아요 / 여행 중',

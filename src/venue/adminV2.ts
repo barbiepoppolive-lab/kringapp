@@ -12,6 +12,7 @@ import {
   type Claim, type InboxItem, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot,
 } from './adminV2Logic';
 import './adminV2.css';
+import { helpSection } from './adminHelp';   // 0097: Help cases (self-contained)
 
 type Kid = Node | string | null | undefined | false;
 const app = () => document.getElementById('app')!;
@@ -164,6 +165,7 @@ function steps(p: Person, s: Snapshot): HTMLElement {
   return el('span', { class: 'v2steps' }, ...st.map(([t, ok]) => el('i', { class: ok ? 'ok' : '' }, (ok ? '✓ ' : '') + t)));
 }
 export function todayView() {
+  const help = helpSection();   // 0097: members waiting for the team, at the very top
   const date = new Date().toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'short' });
   void withSnap('today', (s) => {
     const inbox = buildInbox(s);
@@ -184,6 +186,7 @@ export function todayView() {
     const kpi = (id: string, n: string, label: string, sub: string, href: string, tone = '') =>
       el('a', { class: `v2kpi ${tone}`, href, id }, el('b', {}, n), el('span', {}, label), el('small', {}, sub));
     screen('today', header('Today', `${date} · India time`),
+      help,
       // 1. what needs a decision
       items.length ? el('div', { class: 'v2sec' }, `Needs you · ${items.length}`) : el('a', { class: 'v2card v2row v2allclear', href: '#auto', id: 'v2Clear' }, ic('check'),
         el('div', { class: 'grow' }, el('b', {}, 'Nothing needs you'), el('div', { class: 'v2sub' }, `${inbox.handled.length} things were handled automatically`)), ic('chev')),
@@ -232,11 +235,13 @@ function paintPhotos() {
 
 // ───────── Needs you ─────────
 export function inboxView() {
+  const help = helpSection();   // 0097: created once per visit, so a half-typed reply survives the 30 s refresh
   void withSnap('inbox', (s) => {
     const { items, handled } = buildInbox(s);
     const open = items.filter((i) => !hiddenKeys.has(i.key));
     void loadPhotos(open.flatMap((i) => i.people.map((p) => p.user_id))).then(paintPhotos);
     screen('inbox', header('Needs you', open.length ? `${open.length} decision${open.length === 1 ? '' : 's'} · most urgent first` : 'Inbox zero'),
+      help,
       open.length ? null : el('div', { class: 'v2zero', id: 'v2Zero' }, ic('check'), el('b', {}, 'Nothing needs you'), el('span', {}, 'Everything else was handled automatically.')),
       el('div', { id: 'v2Inbox' }, ...open.map((i) => inboxCard(i, s))),
       el('a', { class: 'v2card v2row', href: '#auto', id: 'v2AutoLink' }, ic('robot'), el('div', { class: 'grow' }, el('b', {}, `Handled automatically · ${handled.length}`),

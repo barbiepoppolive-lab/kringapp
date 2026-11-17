@@ -257,6 +257,7 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Get verified ✓': 'ยืนยันตัวตน ✓',
     'Getting the face check ready…': 'กำลังเตรียมการตรวจใบหน้า…',
     'Help and contact': 'ความช่วยเหลือและติดต่อ',
+    'The team chat isn’t ready yet. Email ops@kringapp.com.': 'แชทกับทีมงานยังไม่พร้อม อีเมลหาเราที่ ops@kringapp.com ได้เลยครับ',
     'Hindi': 'ฮินดี',
     'I agree that Kring uses my face this way': 'ฉันยินยอมให้ กริ๊ง! ใช้ใบหน้าของฉันตามนี้',
     'I live here / Visiting': 'อยู่ที่นี่ / มาเที่ยว',
@@ -652,6 +653,7 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
     case 'BAD_CODE': return ['That code is wrong or has expired. Send a new code below.'];
     case 'BAD_HANDLE': return ['That Instagram name doesn’t look right.'];
     case 'VERIFY_FIRST': return ['Verify your face in 5 seconds to post and chat. One person, one account.'];
+    case 'NO_TEAM': return ['The team chat isn’t ready yet. Email ops@kringapp.com.'];
     case 'NO_LINKS': return ['For everyone’s safety, links can’t be sent in chat. Swap Instagram once you trust each other.'];
     case 'OWN_REEL': return ['That’s your own Reel.'];
     case 'NO_REEL': case 'NO_POST': return ['This Reel isn’t available any more.'];

@@ -267,6 +267,7 @@ const T: Record<string, string> = {
     'Get verified ✓': '获得验证 ✓',
     'Getting the face check ready…': '正在准备人脸检查…',
     'Help and contact': '帮助与联系',
+    'The team chat isn’t ready yet. Email ops@kringapp.com.': '团队聊天尚未就绪。请发邮件至 ops@kringapp.com。',
     'Hindi': '印地语',
     'I agree that Kring uses my face this way': '我同意 Kring 以这种方式使用我的面部信息',
     'I live here / Visiting': '住在这里 / 来旅行',

@@ -152,6 +152,8 @@ export function MeView(props: {
   webAskSlot?: React.ReactNode;
   /** 17 Nov: "Your next step" card, at the top */
   nextSlot?: React.ReactNode;
+  /** 18 Nov (0097): "Questions? Ask Kring Helper" row, right under "This week" */
+  helpSlot?: React.ReactNode;
 }) {
   const { L, Lf, p } = props;
   const lv = p.level;
@@ -193,6 +195,7 @@ export function MeView(props: {
           <span className="kx-wk-go">{L('Rewards')} <i>›</i></span>
         </div>
       </div>
+      {props.helpSlot || null}
       {/* founder 17 Nov: the big ฿ prize card is gone from Me (the prize lives in the Feed ticker + Rewards) */}
       {props.webAskSlot || null}
       <FoundingChecklist L={L} Lf={Lf} kx={props.kx} hasSocial={!!(props.kx?.ig_handle || props.kx?.tiktok_handle || p.ig_handle)} onLink={props.onLink || props.onEdit} onPost={props.onPost} />
