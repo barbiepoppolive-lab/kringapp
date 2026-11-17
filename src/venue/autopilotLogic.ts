@@ -1447,3 +1447,60 @@ export function fallbackAiSlotStatus(st?: AutopilotState | null): AiSlotStatus {
     fallback: true,
   };
 }
+
+
+// ───────── M8 (0105): Nightly Self-Test Summary & Alert Reconciler ─────────
+export interface SelfTestStep {
+  step: string;
+  ok: boolean;
+  ms: number;
+  detail?: string;
+  error?: string;
+}
+
+export function summarizeSelfTestRun(steps: SelfTestStep[], totalMs: number): {
+  ok: boolean;
+  passed: number;
+  total: number;
+  note: string;
+} {
+  const total = steps.length;
+  const passed = steps.filter((s) => s.ok).length;
+  const ok = total > 0 && passed === total;
+  return {
+    ok,
+    passed,
+    total,
+    note: `${ok ? 'PASS' : 'FAIL'} · ${passed}/${total} journey steps passed (${totalMs} ms)`,
+  };
+}
+
+export function reconcileSelfTestAlert(
+  existing: RobotAlert[],
+  steps: SelfTestStep[],
+  totalMs: number,
+  nowIso = new Date().toISOString(),
+): { alerts: RobotAlert[]; raised: boolean; cleared: boolean } {
+  const sum = summarizeSelfTestRun(steps, totalMs);
+  const byKey = new Map(existing.map((a) => [a.dedupe_key, a]));
+  const dkey = 'selftest:nightly';
+
+  if (!sum.ok) {
+    const raised = !byKey.has(dkey);
+    byKey.set(dkey, {
+      id: byKey.get(dkey)?.id || 'sf-selftest-nightly',
+      dedupe_key: dkey,
+      robot: 'nightly_selftest',
+      severity: 'red',
+      title: `Nightly self-test FAILED (${sum.passed}/${sum.total} steps)`,
+      body: 'Core test-copy journey failed on local self-test. Inspect kr8_robot_log in Autopilot.',
+      href: '#autopilot',
+      at: nowIso,
+      detail: { steps, ms: totalMs },
+    });
+    return { alerts: sortRobotAlerts([...byKey.values()]), raised, cleared: false };
+  }
+
+  const cleared = byKey.delete(dkey);
+  return { alerts: sortRobotAlerts([...byKey.values()]), raised: false, cleared };
+}
