@@ -21,9 +21,9 @@ dict(slug='make-friends-bangkok', group='friends', img='twilight', areas=['ari',
  related=['friend-apps-bangkok', 'weekend-activities-friends', 'run-clubs-bangkok'],
  sources=[S_RUN, S_BOARD, S_TIMELEFT, S_BUMBLE],
  th=dict(
-  title='วิธีหาเพื่อนใหม่ในกรุงเทพ วัยทำงาน 2027 ที่ได้ผลจริง',
-  desc='เรียนจบแล้ว ทำงานแล้ว เพื่อนหายหมด? วิธีหาเพื่อนใหม่ในกรุงเทพฯ ปี 2027 แบบทำได้จริง เลือกกิจกรรมประจำ ไปที่เดิมซ้ำ ๆ และใช้แอปที่ทำมาเพื่อหาเพื่อน',
-  h1='วิธีหาเพื่อนใหม่ในกรุงเทพฯ สำหรับวัยทำงาน (ฉบับ 2027)',
+  title='วิธีหาเพื่อนใหม่ในกรุงเทพฯ วัยทำงาน: 5 วิธีที่ได้ผลจริง',
+  desc='เรียนจบแล้ว ทำงานแล้ว เพื่อนหายหมด? 5 วิธีหาเพื่อนใหม่ในกรุงเทพฯ ที่ทำได้จริง ทั้งกิจกรรมประจำ ร้านประจำ แอปหาเพื่อน ประโยคเปิดบทสนทนา และความปลอดภัย',
+  h1='วิธีหาเพื่อนใหม่ในกรุงเทพฯ สำหรับวัยทำงาน: 5 วิธีที่ได้ผลจริง',
   lead='วิธีที่เร็วที่สุดคือเลือกกิจกรรมหนึ่งอย่างที่จัดทุกสัปดาห์ แล้วไปให้สม่ำเสมอ จนหน้าเดิม ๆ กลายเป็นคนคุ้นเคย เสริมด้วยแอปหาเพื่อนอีกหนึ่งตัว กับร้านหรือสวนประจำใกล้บ้านสักสองสามที่ ไม่นานก็จะมีแก๊งเล็ก ๆ ของตัวเอง',
   card='เลือกกิจกรรมประจำ มีที่ประจำใกล้บ้าน และใช้แอปให้ถูกตัว',
   body='''
@@ -45,7 +45,7 @@ dict(slug='make-friends-bangkok', group='friends', img='twilight', areas=['ari',
 ถ้ายังไม่รู้จะเริ่มย่านไหน ลองดู[อารีย์](/bangkok/ari/) ที่ซอยเดินง่ายและคนในย่านเป็นมิตร หรือ[ตลาดน้อย](/bangkok/talat-noi/) ที่เดินเล่นริมน้ำได้ทั้งบ่าย
 
 ## 3. ใช้แอปที่ทำมาเพื่อหาเพื่อนจริง ๆ
-แอปหาคู่ไม่ใช่ที่หาเพื่อน ตัวเลือกที่ตรงกว่าคือแอปที่ออกแบบมาเพื่อมิตรภาพ เช่น Bumble BFF ที่ปรับใหม่ให้เน้นกลุ่ม หรือ Timeleft ที่จับคนแปลกหน้า 4–6 คนไปกินมื้อเย็นด้วยกัน (มีในกรุงเทพฯ) และกลุ่ม LINE OpenChat ตามงานอดิเรก รายละเอียดอยู่ใน[แอปหาเพื่อนในกรุงเทพฯ 2027](/blog/friend-apps-bangkok/)
+แอปหาคู่ไม่ใช่ที่หาเพื่อน ตัวเลือกที่ตรงกว่าคือแอปที่ออกแบบมาเพื่อมิตรภาพ เช่น Bumble BFF ที่ปรับใหม่ให้เน้นกลุ่ม หรือ Timeleft ที่จับคนแปลกหน้า 4–6 คนไปกินมื้อเย็นด้วยกัน (มีในกรุงเทพฯ) และกลุ่ม LINE OpenChat ตามงานอดิเรก รายละเอียดอยู่ใน[แอปหาเพื่อนในกรุงเทพฯ](/blog/friend-apps-bangkok/)
 
 ## 4. ตอบตกลง แล้วเป็นคนชวนครั้งต่อไป
 คนส่วนใหญ่ไม่ได้ไม่อยากมีเพื่อน แค่ไม่มีใครเป็นคนเริ่ม ถ้าคุยกันถูกคอ ลองชวนแบบเจาะจงไปเลย เช่น "เสาร์นี้เจ็ดโมงไปวิ่งสวนลุมฯ กันไหม" ดีกว่า "ว่าง ๆ ไปเที่ยวกัน" ที่มักจบแค่ในแชต
@@ -76,9 +76,9 @@ dict(slug='make-friends-bangkok', group='friends', img='twilight', areas=['ari',
        ('กริ๊ง! เป็นแอปหาคู่ไหม', 'ไม่ใช่ กริ๊ง! เป็นแอปหาเพื่อนใหม่และแฮงก์เอาต์ในที่สาธารณะ เน้นกลุ่มและสถานที่จริงในกรุงเทพฯ สำหรับอายุ 20 ปีขึ้นไป')],
  ),
  en=dict(
-  title='How to Make Friends in Bangkok as an Adult (2027)',
-  desc='New to Bangkok or lost touch since uni? Pick one weekly activity, become a regular somewhere and use friend-first apps. What actually works in 2027.',
-  h1='How to Make Friends in Bangkok as an Adult (2027)',
+  title='How to Make Friends in Bangkok as an Adult: 5 Ways That Work',
+  desc='New to Bangkok or lost touch since uni? 5 things that actually work: one weekly activity, regular spots, friend-first apps, easy openers and staying safe.',
+  h1='How to Make Friends in Bangkok as an Adult: 5 Ways That Work',
   lead='The fastest way to make friends in Bangkok as an adult is to pick one activity that runs every week and keep showing up, so the same faces become familiar. Add one friend-first app and two or three regular spots near home, and a small circle tends to follow.',
   card='Pick a weekly thing, shrink your neighbourhood, use the right apps.',
   body='''
@@ -100,7 +100,7 @@ People with friends nearby are usually regulars somewhere. Choose two or three p
 If you are still choosing an area, [Ari](/en/bangkok/ari/) has walkable, leafy sois and a relaxed crowd, and [Talat Noi](/en/bangkok/talat-noi/) is great for slow afternoons by the river.
 
 ## 3. Use apps built for friends
-Apps for finding a partner are a poor tool for this. Better options are apps designed for friendship: **Bumble BFF**, rebuilt in 2025 with a focus on groups; **Timeleft**, which seats four to six strangers at a dinner table and lists Bangkok among its cities; and hobby groups on **LINE OpenChat**, which almost every Thai already uses. We compare them honestly in [best apps to make friends in Bangkok 2027](/en/blog/friend-apps-bangkok/).
+Apps for finding a partner are a poor tool for this. Better options are apps designed for friendship: **Bumble BFF**, rebuilt in 2025 with a focus on groups; **Timeleft**, which seats four to six strangers at a dinner table and lists Bangkok among its cities; and hobby groups on **LINE OpenChat**, which almost every Thai already uses. We compare them honestly in [best apps to make friends in Bangkok](/en/blog/friend-apps-bangkok/).
 
 ## 4. Say yes, then suggest the next plan
 Most people want more friends; they are just waiting for someone else to start. When a conversation clicks, make a specific offer: "Lumphini Park run, Saturday at 7?" beats "we should hang out sometime", which usually dies in the chat.
@@ -133,11 +133,12 @@ The first year in a new city is lonely for a lot of people, Thai and foreign ali
 # ---------------------------------------------------------------- 2
 dict(slug='friend-apps-bangkok', group='friends', img='cafe', areas=['siam'],
  related=['make-friends-bangkok', 'solo-travel-bangkok', 'expat-first-month-bangkok'],
+ recheck='monthly',
  sources=[S_BUMBLE, S_TIMELEFT, S_ZAFIGO, S_RUN],
  th=dict(
-  title='แอปหาเพื่อนในกรุงเทพ 2027 ตัวไหนดี เทียบให้แบบตรงไปตรงมา',
-  desc='เทียบแอปหาเพื่อนในกรุงเทพฯ ปี 2027 ทั้ง Bumble BFF, Timeleft, LINE OpenChat, InterNations และกริ๊ง! (แอปของเราเอง บอกไว้ก่อน) ใครเหมาะกับแบบไหน',
-  h1='แอปหาเพื่อนในกรุงเทพฯ 2027 ตัวไหนดี (เทียบแบบตรงไปตรงมา)',
+  title='แอปหาเพื่อน 2569 ตัวไหนดี? เทียบ 5 แอปในกรุงเทพฯ แบบตรง ๆ',
+  desc='เทียบแอปหาเพื่อนในกรุงเทพฯ ทั้ง LINE OpenChat, Bumble BFF, Timeleft, InterNations และกริ๊ง! (แอปของเราเอง บอกไว้ก่อน) ฟรีไหม เหมาะกับใคร ระวังอะไร',
+  h1='แอปหาเพื่อนในกรุงเทพฯ ตัวไหนดี (เทียบ 5 แอปแบบตรงไปตรงมา)',
   lead='ถ้าอยากได้เพื่อนเป็นกลุ่มตามความชอบ เริ่มจาก LINE OpenChat และ Bumble BFF ถ้าอยากเจอคนใหม่แบบมีโครงสร้าง Timeleft เหมาะกว่า ส่วนกริ๊ง! (แอปของเราเอง) เหมาะกับคนที่อยากหาเพื่อนจากสถานที่จริงในกรุงเทพฯ ทั้งคนไทยและต่างชาติ',
   card='Bumble BFF, Timeleft, LINE OpenChat, InterNations และกริ๊ง! ใครเหมาะกับแบบไหน',
   body='''
@@ -148,7 +149,7 @@ dict(slug='friend-apps-bangkok', group='friends', img='cafe', areas=['siam'],
 แทบทุกคนในไทยมี LINE อยู่แล้ว OpenChat คือห้องแชตกลุ่มที่ค้นหาได้ ตั้งแต่ก๊วนวิ่ง ก๊วนแบดฯ ปีนผา ไปจนถึงกลุ่มฝึกภาษา
 
 - **เหมาะกับ:** คนที่รู้แล้วว่าชอบอะไร และอยากได้กลุ่มที่นัดทำกิจกรรมกันจริง
-- **ข้อจำกัด:** ห้องเยอะมาก คุณภาพไม่เท่ากัน บางห้องเงียบ บางห้องมีแต่โฆษณา ลองเข้าหลายห้องแล้วเก็บไว้แค่ห้องที่มีคนนัดกันจริง
+- **ข้อจำกัด:** ห้องเยอะมากและดูแลโดยแอดมินอาสา ความคึกคักเลยไม่เท่ากัน บางห้องเงียบ บางห้องโฆษณาเยอะ ลองเข้าหลายห้องแล้วเก็บไว้แค่ห้องที่มีคนนัดกันจริง
 
 ## Bumble BFF: ปัดหาเพื่อน และตอนนี้เน้นกลุ่มมากขึ้น
 Bumble แยกโหมดหาเพื่อนออกมาเป็นแอป Bumble BFF และปรับใหม่เมื่อกันยายน 2025 ให้มีแท็บกลุ่ม สร้างหรือเข้ากลุ่ม แชตในห้อง และวางแผนกิจกรรมด้วยปฏิทินในแอป
@@ -166,7 +167,7 @@ Timeleft จับคนที่ไม่รู้จักกันมาน�
 InterNations เป็นชุมชนสำหรับชาวต่างชาติที่ย้ายมาอยู่ มีงานสังสรรค์และกลุ่มตามความสนใจในกรุงเทพฯ
 
 - **เหมาะกับ:** คนไทยที่อยากฝึกภาษาและมีเพื่อนต่างชาติ หรือคนที่เพิ่งย้ายมาจากต่างประเทศ
-- **ข้อจำกัด:** บรรยากาศค่อนไปทางงานสังคม หลายงานจัดในร้านอาหารหรือโรงแรม ค่าใช้จ่ายต่อครั้งสูงกว่ากิจกรรมทั่วไป
+- **ข้อจำกัด:** บรรยากาศค่อนไปทางงานสังคม มีทั้งสมาชิกฟรีและแบบเสียเงิน หลายงานจัดในร้านอาหารหรือโรงแรม ค่าใช้จ่ายต่อครั้งเลยสูงกว่ากิจกรรมทั่วไป
 
 ## Strava และกลุ่มวิ่ง
 ถ้าวิ่งหรือปั่นจักรยาน คลับใน Strava กับอินสตาแกรมของรันคลับคือทางลัด หลายกลุ่มวิ่งฟรี ไม่ต้องสมัคร แค่ไปให้ตรงเวลา อ่านต่อใน[วิ่งที่ไหนดีในกรุงเทพฯ](/blog/run-clubs-bangkok/)
@@ -187,7 +188,7 @@ InterNations เป็นชุมชนสำหรับชาวต่าง�
 
 ## เลือกยังไงดี
 - อยากได้ก๊วนทำกิจกรรม: LINE OpenChat หรือกลุ่มวิ่งใน Strava
-- อยากได้เพื่อนแบบตัวต่อตัวหรือกลุ่มเล็ก: Bumble BFF
+- อยากได้เพื่อนวัยใกล้กันเป็นกลุ่มเล็ก: Bumble BFF
 - อยากมีคนจัดโต๊ะให้: Timeleft
 - อยากได้เพื่อนจากที่ที่ชอบในกรุงเทพฯ ทั้งคนไทยและต่างชาติ: กริ๊ง!
 
@@ -200,9 +201,9 @@ InterNations เป็นชุมชนสำหรับชาวต่าง�
        ('กริ๊ง! ใช้ได้เฉพาะในกรุงเทพฯ ไหม', 'ตอนนี้กริ๊ง! เริ่มที่กรุงเทพฯ ก่อน และเปิดให้ใช้วันที่ 1 ธันวาคม 2026')],
  ),
  en=dict(
-  title='Best Apps to Make Friends in Bangkok 2027 (Honest List)',
-  desc='An honest 2027 comparison of friend apps in Bangkok: Bumble BFF, Timeleft, LINE OpenChat, InterNations and Kring (ours, disclosed). Who each one suits.',
-  h1='Best Apps to Make Friends in Bangkok 2027 (An Honest List)',
+  title='Best Apps to Make Friends in Bangkok (2026): 5 Compared',
+  desc='An honest look at friend apps in Bangkok: LINE OpenChat, Bumble BFF, Timeleft, InterNations and Kring (ours, disclosed): free or paid, who each suits.',
+  h1='Best Apps to Make Friends in Bangkok: 5 Compared Honestly',
   lead='For interest-based groups, start with LINE OpenChat and Bumble BFF; for structured first hangouts with strangers, Timeleft fits better. Kring, which is our own app, suits people who want to make friends around real Bangkok places, Thai and foreign alike.',
   card='Bumble BFF, Timeleft, LINE OpenChat, InterNations and Kring: who each suits.',
   body='''
@@ -213,7 +214,7 @@ This article is written by the Kring team, and Kring is on the list. We have tri
 Almost everyone in Thailand has LINE. OpenChat is its searchable group-chat feature, with rooms for running crews, badminton, climbing, language practice and much more. Most rooms are in Thai, so this suits Thais and foreigners comfortable with some Thai.
 
 - **Best for:** people who know what they enjoy and want a group that actually does things together.
-- **Limits:** quality varies a lot. Some rooms are silent, some are mostly adverts. Join a few and keep the ones where plans really happen.
+- **Limits:** rooms are run by volunteer admins, so quality varies a lot. Some are silent, some carry a lot of adverts. Join a few and keep the ones where plans really happen.
 
 ## Bumble BFF: swiping for friends, now with groups
 Bumble's friend mode became a standalone app, Bumble BFF, which was revamped in September 2025 with a Groups tab: create or join groups, chat in group rooms and plan hangouts with an in-app calendar (per TechCrunch).
@@ -231,7 +232,7 @@ Timeleft seats strangers together at one table, in groups of four to six. Bangko
 InterNations is a community for people who have moved abroad, with social events and interest groups in Bangkok.
 
 - **Best for:** newcomers from overseas, and Thais who want international friends.
-- **Limits:** it leans towards networking-style evenings, often in restaurants or hotels, so a night out costs more than a park run.
+- **Limits:** it leans towards networking-style evenings, often in restaurants or hotels. There are free and paid memberships, but a night out usually costs more than a park run.
 
 ## Strava and run clubs
 If you run or cycle, Strava clubs and run-club Instagram accounts are a shortcut. Many groups are free with no sign-up; you just turn up on time. See [running in Bangkok](/en/blog/run-clubs-bangkok/).
@@ -252,7 +253,7 @@ If you see these, stop replying and report the account. A good app makes reporti
 
 ## How to choose
 - Want an activity crew: LINE OpenChat or a Strava running club.
-- Want one-to-one or small-group friendships: Bumble BFF.
+- Want friends your own age in small groups: Bumble BFF.
 - Want someone to set the table for you: Timeleft.
 - Want friends around places you love in Bangkok, Thai and foreign: Kring.
 
@@ -267,11 +268,12 @@ You do not need just one. Two apps plus one real weekly activity works far bette
 # ---------------------------------------------------------------- 3
 dict(slug='solo-travel-bangkok', group='friends', img='tuktuk', areas=['siam', 'talat-noi', 'thonburi'],
  related=['things-to-do-alone-bangkok', 'night-markets-friends', 'thai-friends-etiquette'],
+ recheck='monthly',
  sources=[S_RUN, S_BOARD, S_JODD, S_SKY],
  th=dict(
-  title='เที่ยวกรุงเทพคนเดียว 2027: หาเพื่อนระหว่างทางได้ที่ไหน',
-  desc='มากรุงเทพฯ คนเดียวแต่อยากมีเพื่อนระหว่างทาง? ที่หาเพื่อนได้จริงปี 2027 ทั้งที่พักสายโซเชียล คลาส รันคลับ บอร์ดเกม ตลาดกลางคืน และวิธีอยู่ให้ปลอดภัย',
-  h1='เที่ยวกรุงเทพฯ คนเดียว 2027: หาเพื่อนระหว่างทางได้ที่ไหน',
+  title='เที่ยวกรุงเทพฯ คนเดียว: หาเพื่อนระหว่างทางที่ไหน + แผน 3 วัน',
+  desc='มากรุงเทพฯ คนเดียวแต่อยากมีเพื่อนระหว่างทาง? ที่หาเพื่อนได้จริง ทั้งที่พักสายโซเชียล คลาส รันคลับ บอร์ดเกม ตลาดกลางคืน และวิธีอยู่ให้ปลอดภัย',
+  h1='เที่ยวกรุงเทพฯ คนเดียว: หาเพื่อนระหว่างทางได้ที่ไหน',
   lead='ที่ที่หาเพื่อนได้ง่ายที่สุดตอนเที่ยวกรุงเทพฯ คนเดียวคือกิจกรรมที่มีคนอื่นมาคนเดียวเหมือนกัน เช่น คลาสทำอาหารหรือมวยไทย รันคลับ บอร์ดเกมคาเฟ่ และกิจกรรมของที่พักสายโซเชียล ส่วนตอนเย็นให้ไปที่ที่คนมานั่งเล่นกันเป็นกลุ่ม อย่างตลาดกลางคืนหรือสวนริมน้ำ',
   card='คลาส รันคลับ บอร์ดเกม ตลาดกลางคืน และเคล็ดลับความปลอดภัย',
   body='''
@@ -311,16 +313,16 @@ dict(slug='solo-travel-bangkok', group='friends', img='tuktuk', areas=['siam', '
 ## เคล็ดลับเล็ก ๆ ที่ได้ผล
 ใส่เสื้อของรันคลับ หรือพกกล้องฟิล์มติดตัว มักกลายเป็นเรื่องเปิดบทสนทนาโดยไม่ตั้งใจ และถ้าอยากรู้ว่าตอนนี้คนกรุงเทพฯ ไปไหนกัน ถามคนที่อยู่ที่นี่จริงได้ผลกว่าการอ่านลิสต์ออนไลน์
 ''',
-  cta=('ถามคนที่อยู่ที่นี่จริงในกริ๊ง!', 'ในห้อง "ถามคนไทย" ของกริ๊ง! คุณถามได้ว่าคืนนี้ไปไหนดี แล้วดู Reels จากที่จริงในเมืองก่อนออกจากที่พัก แชตแปลไทย-อังกฤษให้ ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  cta=('ถามคนที่อยู่ที่นี่จริงในกริ๊ง!', 'ในห้อง "ถามคนไทย" ของกริ๊ง! ถามได้ว่าช่วงนี้คนกรุงเทพฯ ไปไหนกัน แล้วดู Reels จากที่จริงในเมืองก่อนออกจากที่พัก แชตแปลไทย-อังกฤษให้ ใช้ฟรี อายุ 20 ปีขึ้นไป'),
   faq=[('เที่ยวกรุงเทพฯ คนเดียวปลอดภัยไหม', 'โดยทั่วไปถือว่าปลอดภัยสำหรับนักเดินทางที่ระวังตัวตามปกติ ใช้รถไฟฟ้าหรือแอปเรียกรถ เจอคนใหม่ในที่สาธารณะ และระวังคนแปลกหน้าที่เข้ามาชวนไปร้านหรือบอกว่าที่ที่จะไปปิด'),
        ('หาเพื่อนเที่ยวในกรุงเทพฯ ที่ไหนง่ายที่สุด', 'คลาสทำอาหารหรือมวยไทย รันคลับ บอร์ดเกมคาเฟ่ และกิจกรรมของที่พักสายโซเชียล เพราะคนส่วนใหญ่มาคนเดียวและมีกิจกรรมให้ทำร่วมกัน'),
        ('สวนลอยฟ้าเจ้าพระยาเปิดกี่โมง', 'ข้อมูลล่าสุดระบุว่าเปิดทุกวัน 05:00-20:00 น. และเข้าฟรี'),
        ('กริ๊ง! ช่วยนักท่องเที่ยวยังไง', 'นักท่องเที่ยวดู Reels จากสถานที่จริง ถามคำถามในห้อง "ถามคนไทย" และแชตกับคนในกรุงเทพฯ ได้ โดยมีระบบแปลภาษาให้')],
  ),
  en=dict(
-  title='Solo Travel Bangkok 2027: Where to Find People',
-  desc='Travelling to Bangkok alone in 2027? Where solo travellers actually make friends: classes, run clubs, board-game cafés, riverside evenings and safety tips.',
-  h1='Solo Travel in Bangkok 2027: Where to Find People',
+  title='Solo Travel in Bangkok: Where to Find People + a 3-Day Plan',
+  desc='Travelling to Bangkok alone? Where solo travellers actually make friends (classes, run clubs, board-game cafés, night markets), a 3-day plan and scam tips.',
+  h1='Solo Travel in Bangkok: Where to Find People',
   lead='The easiest places to make friends when travelling Bangkok solo are activities where others also come alone: cooking or Muay Thai classes, run clubs, board-game cafés and guesthouse socials. In the evenings, go where people hang out in groups, like night markets and the riverside parks.',
   card='Classes, run clubs, board games, riverside evenings and safety tips.',
   body='''
@@ -362,7 +364,7 @@ If making friends on the way is the goal, where you sleep matters more than you 
 ## Small things that help
 Wearing a run-club shirt, or learning a few Thai phrases, starts conversations on its own. See [Thai phrases and etiquette for making Thai friends](/en/blog/thai-friends-etiquette/). And if you want to know where Bangkok people are actually going this week, ask someone who lives here; it beats any list.
 ''',
-  cta=('Ask people who live here, on Kring', 'In Kring\'s "Ask a Thai" space you can ask where to go tonight and watch Reels from real spots before you leave your room. Chats translate between Thai and English. Free, ages 20+.'),
+  cta=('Ask people who live here, on Kring', 'In Kring\'s "Ask a Thai" space you can ask where Bangkok people are going this week and watch Reels from real spots before you leave your room. Chats translate between Thai and English. Free, ages 20+.'),
   faq=[('Is Bangkok safe for solo travellers?', 'Generally yes, with normal city awareness. Use the BTS, MRT or a booked ride-hailing car, keep first hangouts in public places, and be wary of strangers who say your destination is closed.'),
        ('Where is the easiest place to make friends as a solo traveller in Bangkok?', 'Cooking or Muay Thai classes, run clubs, board-game cafés and guesthouse social events, because most people there came alone and there is an activity to share.'),
        ('What are Chao Phraya Sky Park\'s opening hours?', 'The latest listing we found says it is open daily from 05:00 to 20:00, and entry is free.'),
@@ -371,10 +373,11 @@ Wearing a run-club shirt, or learning a few Thai phrases, starts conversations o
 # ---------------------------------------------------------------- 4
 dict(slug='things-to-do-alone-bangkok', group='do', img='river', areas=['siam', 'talat-noi', 'thonburi'],
  related=['solo-travel-bangkok', 'free-things-bangkok', 'rainy-season-bangkok'],
+ recheck='monthly',
  sources=[S_BACC, S_TCDC, S_SKY, S_LUMPHINI],
  th=dict(
-  title='ไปไหนดีคนเดียวในกรุงเทพฯ: 12 ที่ไปชิลได้ไม่เขิน (2027)',
-  desc='อยากออกไปไหนคนเดียวในกรุงเทพฯ? 12 ที่ที่ไปคนเดียวได้สบายใจ ทั้งหอศิลป์ฟรี ห้องสมุดดีไซน์ สวนลอยฟ้า เรือด่วน และย่านเก่าริมน้ำ อัปเดต 2027',
+  title='ไปไหนดีคนเดียวในกรุงเทพฯ: 12 ที่ไปชิลได้ไม่เขิน',
+  desc='อยากออกไปไหนคนเดียวในกรุงเทพฯ? 12 ที่ที่ไปคนเดียวได้สบายใจ ทั้งหอศิลป์ฟรี ห้องสมุดดีไซน์ สวนลอยฟ้า เรือด่วน และย่านเก่าริมน้ำ พร้อมเวลาที่ดีที่สุด',
   h1='ไปไหนดีคนเดียวในกรุงเทพฯ: 12 ที่ไปชิลได้ไม่เขิน',
   lead='ที่ที่ไปคนเดียวในกรุงเทพฯ แล้วสบายใจที่สุดคือที่ที่ทุกคนมาเพื่อดู ฟัง หรือเดินเงียบ ๆ เช่น หอศิลป์ ห้องสมุด สวนสาธารณะ และเรือด่วนเจ้าพระยา ด้านล่างคือ 12 ที่ที่เราเลือกมา พร้อมเวลาที่เหมาะที่สุด',
   card='หอศิลป์ฟรี ห้องสมุดดีไซน์ สวนลอยฟ้า เรือด่วน และย่านเก่าริมน้ำ',
@@ -394,7 +397,7 @@ dict(slug='things-to-do-alone-bangkok', group='do', img='river', areas=['siam', 
 7. **[ตลาดน้อย](/bangkok/talat-noi/)** เดินดูสตรีทอาร์ต บ้านโซวเฮงไถ่ และตรอกเก่าริมน้ำ ใช้เวลาสองสามชั่วโมงกำลังดี
 
 ## สายแม่น้ำ
-8. **นั่งเรือด่วนเจ้าพระยา** แบบไม่ต้องรีบลง นั่งดูสองฝั่งน้ำเป็นวิธีเห็นเมืองที่ถูกและสวยที่สุดวิธีหนึ่ง
+8. **นั่งเรือด่วนเจ้าพระยา** แบบไม่ต้องรีบลง นั่งดูสองฝั่งน้ำไปเรื่อย ๆ ค่าเรือไม่กี่สิบบาท แต่ได้เห็นกรุงเทพฯ มุมที่สวยมาก
 9. **ฝั่ง[ธนบุรี](/bangkok/thonburi/) ริมน้ำ** ช่วงเย็นลมดี คนน้อยกว่าฝั่งพระนคร มีลานริมน้ำให้นั่งดูเรือ
 
 ## สายนั่งทำอะไรของตัวเอง
@@ -416,6 +419,8 @@ dict(slug='things-to-do-alone-bangkok', group='do', img='river', areas=['siam', 
 - ใช้ BTS, MRT และเรือเป็นหลัก ประหยัดเวลากว่ารถติด
 - วางแผนแค่ย่านเดียวต่อครั้ง เดินให้ทั่วดีกว่ารีบข้ามเมือง
 - ถ้าอยากชวนใครสักคน ลองโพสต์ที่ที่จะไปในแอปหาเพื่อน อาจมีคนที่ชอบที่เดียวกันอยู่ใกล้ ๆ
+- ไปคนเดียวตอนค่ำ แชร์ตำแหน่งให้คนใกล้ตัว และกลับด้วยรถไฟฟ้าหรือแอปเรียกรถ
+
 ''',
   cta=('วันคนเดียวที่อาจได้เพื่อนใหม่', 'โพสต์ Reel จากที่ที่ไปวันนี้ลงกริ๊ง! แล้วดูว่าใครชอบที่เดียวกัน ทักไปชวนครั้งหน้าก็ได้ ใช้ฟรี สำหรับอายุ 20 ปีขึ้นไป'),
   faq=[('ไปไหนคนเดียวในกรุงเทพฯ แล้วไม่เหงา', 'หอศิลปวัฒนธรรมแห่งกรุงเทพมหานคร ห้องสมุด TCDC สวนลุมพินี สวนลอยฟ้าเจ้าพระยา และบอร์ดเกมคาเฟ่ เป็นที่ที่คนมาคนเดียวเยอะและมีอะไรให้ทำตลอด'),
@@ -424,8 +429,8 @@ dict(slug='things-to-do-alone-bangkok', group='do', img='river', areas=['siam', 
        ('ไปคนเดียวช่วงไหนดีที่สุด', 'เช้าตรู่หรือหลังห้าโมงเย็น อากาศเย็นกว่า และเป็นช่วงที่คนกรุงเทพฯ ออกมาเดิน วิ่ง และนั่งเล่นในสวน')],
  ),
  en=dict(
-  title='Things to Do Alone in Bangkok: 12 Easy Ideas (2027)',
-  desc='Things to do alone in Bangkok in 2027: a free art centre, a design library, sky parks, river boats and old riverside streets. 12 ideas with best times.',
+  title='12 Things to Do Alone in Bangkok (With the Best Times)',
+  desc='Things to do alone in Bangkok: a free art centre, a design library, sky parks, river boats and old riverside lanes. 12 ideas, each with the best time.',
   h1='Things to Do Alone in Bangkok: 12 Ideas That Feel Easy',
   lead='The best things to do alone in Bangkok are places where everyone comes to look, listen or wander quietly: art centres, libraries, parks and the Chao Phraya river boats. Here are 12 we like, with the best time for each.',
   card='Free art, a design library, sky parks, river boats and old riverside streets.',
@@ -467,6 +472,8 @@ A solo day does not have to end solo. If someone is photographing the same view,
 - Use the BTS, MRT and river boats; they beat sitting in traffic.
 - Stick to one area per outing. Walking it properly beats racing across town.
 - If you would like company next time, post where you are going on a friend app; someone who loves the same spot may be nearby.
+- Out alone after dark? Share your location with someone close, and head home by train or a booked ride.
+
 ''',
   cta=('A solo day that might end with new friends', 'Post a Reel from today\'s spot on Kring and see who else loves it. Say hi and plan the next one together. Free, ages 20+.'),
   faq=[('What can I do alone in Bangkok without feeling lonely?', 'The Bangkok Art and Culture Centre, the TCDC library, Lumphini Park, Chao Phraya Sky Park and board-game cafés all have lots of solo visitors and plenty to do.'),
@@ -479,9 +486,9 @@ dict(slug='weekend-activities-friends', group='friends', img='twilight', areas=[
  related=['run-clubs-bangkok', 'board-game-cafes-bangkok', 'make-friends-bangkok'],
  sources=[S_RUN, S_BOARD, S_SOS, S_ROTFAI],
  th=dict(
-  title='กิจกรรมวันหยุดหาเพื่อนใหม่ในกรุงเทพ 2027 ที่มีอยู่จริง',
-  desc='เสาร์อาทิตย์นี้ทำอะไรดีให้ได้เพื่อนใหม่? รันคลับ บอร์ดเกมคาเฟ่ แลกเปลี่ยนภาษา ปั่นจักรยานสวนรถไฟ และงานอาสา รวมกิจกรรมในกรุงเทพฯ ที่เช็กแล้วว่ามีจริง',
-  h1='กิจกรรมวันหยุดในกรุงเทพฯ ที่ช่วยให้ได้เพื่อนใหม่ (2027)',
+  title='กิจกรรมวันหยุดหาเพื่อนใหม่ในกรุงเทพฯ: 6 อย่างที่มีอยู่จริง',
+  desc='เสาร์อาทิตย์นี้ทำอะไรดีให้ได้เพื่อนใหม่? รันคลับ บอร์ดเกมคาเฟ่ แลกเปลี่ยนภาษา ปั่นจักรยานสวนรถไฟ คลาสต่อเนื่อง และงานอาสา เช็กแล้วว่ามีอยู่จริง',
+  h1='กิจกรรมวันหยุดหาเพื่อนใหม่ในกรุงเทพฯ ที่มีอยู่จริง',
   lead='กิจกรรมวันหยุดที่ได้เพื่อนใหม่ง่ายที่สุดในกรุงเทพฯ คือรันคลับตอนเช้า บอร์ดเกมคาเฟ่ตอนบ่าย และกลุ่มแลกเปลี่ยนภาษา เพราะคนมาคนเดียวเยอะและจัดซ้ำทุกสัปดาห์ งานอาสาและปั่นจักรยานในสวนก็เป็นทางเลือกที่ดีสำหรับคนที่ไม่ชอบเริ่มคุยก่อน',
   card='รันคลับ บอร์ดเกม แลกภาษา ปั่นจักรยาน และงานอาสา ที่เช็กแล้ว',
   body='''
@@ -523,6 +530,8 @@ Scholars of Sustenance (SOS) เป็นองค์กรช่วยลดข
 - แนะนำตัวกับคนจัดหรือแอดมินกลุ่ม เขามักช่วยแนะนำให้รู้จักคนอื่น
 - ลองทักคนที่มาคนเดียวเหมือนกันดู ส่วนใหญ่เขาก็มองหาเพื่อนคุยอยู่เหมือนกัน
 - ก่อนกลับ ขอ LINE หรือไอจีคนที่คุยถูกคอ แล้วบอกว่าสัปดาห์หน้าจะมาอีก
+- ถ้ารู้จักกันจากแอป เลือกกิจกรรมกลุ่มในที่สาธารณะ เดินทางไปเองกลับเอง
+
 ''',
   cta=('หาเพื่อนที่ชอบกิจกรรมเดียวกัน', 'ลง Reel จากรันคลับหรือร้านบอร์ดเกมที่ไป แล้วเจอคนที่ชอบแบบเดียวกันในกริ๊ง! ชวนกันไปครั้งหน้าได้เลย ใช้ฟรี สำหรับอายุ 20 ปีขึ้นไป'),
   faq=[('วันหยุดในกรุงเทพฯ ทำอะไรดีให้ได้เพื่อนใหม่', 'รันคลับตอนเช้า บอร์ดเกมคาเฟ่ตอนบ่าย กลุ่มแลกเปลี่ยนภาษา คลาสแบบเป็นคอร์ส และงานอาสา เป็นกิจกรรมที่จัดซ้ำและมีคนมาคนเดียวเยอะ'),
@@ -531,9 +540,9 @@ Scholars of Sustenance (SOS) เป็นองค์กรช่วยลดข
        ('อยากเป็นอาสาสมัครในกรุงเทพฯ เริ่มที่ไหน', 'ลองติดต่อองค์กรที่มีโครงการชัดเจน เช่น Scholars of Sustenance ที่ทำโครงการ Rescue Kitchen ส่งอาหารให้ชุมชนรายได้น้อย')],
  ),
  en=dict(
-  title='Weekend Activities to Make Friends in Bangkok (2027)',
-  desc='Weekend ideas for making friends in Bangkok in 2027: run clubs, board-game cafés, language exchanges, park cycling and volunteering. All checked as real.',
-  h1='Weekend Activities to Make Friends in Bangkok (2027)',
+  title='6 Weekend Activities to Make Friends in Bangkok',
+  desc='Weekend ideas for making friends in Bangkok: run clubs, board-game cafés, language exchanges, cycling, courses and volunteering. Each one checked as real.',
+  h1='Weekend Activities to Make Friends in Bangkok',
   lead='The easiest weekend activities for making friends in Bangkok are morning run clubs, afternoon board-game cafés and language exchanges, because many people come alone and they repeat every week. Volunteering and park cycling are great if you would rather not start conversations cold.',
   card='Run clubs, board games, language swaps, park cycling and volunteering.',
   body='''
@@ -575,6 +584,8 @@ You do not need to do it all. Pick one and repeat it every week.
 - Introduce yourself to the organiser or group admin; they often introduce newcomers around.
 - Say hello to someone else who looks like they came alone. They want someone to talk to as much as you do.
 - Before you leave, swap LINE or Instagram with anyone you clicked with, and say you will be back next week.
+- If you know people only from an app, start with a group activity in a public place and travel there and back on your own.
+
 ''',
   cta=('Find people who love the same thing', 'Post a Reel from your run club or board-game table and find people into the same things on Kring. Plan the next one together. Free, ages 20+.'),
   faq=[('What can I do on weekends in Bangkok to make friends?', 'Morning run clubs, afternoon board-game cafés, language exchanges, multi-week courses and volunteering all repeat regularly and attract lots of people who come alone.'),

@@ -15,28 +15,17 @@ ARTS = [
 # ---------------------------------------------------------------- 6
 dict(slug='digital-nomads-bangkok', group='live', img='twilight', areas=['ari', 'thonglor', 'siam'],
  related=['expat-first-month-bangkok', 'make-friends-bangkok', 'rainy-season-bangkok'],
+ recheck='monthly',
  sources=[S_DTV, ('Asia Lifestyle Magazine – DTV application changes from 31 Aug 2026 (28 Aug 2026)', 'https://www.asialifestylemagazine.com/thailand-dtv-visa-changes-31-august-2026/'), S_COWORK, S_TCDC, S_MRT],
  th=dict(
-  title='กรุงเทพฯ สำหรับดิจิทัลโนแมด 2027: วีซ่า DTV ย่าน และที่ทำงาน',
-  desc='กรุงเทพฯ ยังน่าอยู่สำหรับคนทำงานรีโมตปี 2027 ไหม? สรุปวีซ่า DTV ย่านที่น่าอยู่ ราคาโคเวิร์กกิ้งสเปซรายวัน การเดินทาง และวิธีมีเพื่อนในเมือง',
-  h1='กรุงเทพฯ สำหรับดิจิทัลโนแมด 2027: วีซ่า ย่าน ที่ทำงาน และเพื่อน',
-  lead='กรุงเทพฯ ยังเป็นหนึ่งในเมืองที่คนทำงานรีโมตเลือกมากที่สุด เพราะมีวีซ่า DTV ที่ให้อยู่ได้ครั้งละ 180 วัน โคเวิร์กกิ้งสเปซราคาไม่แรง และรถไฟฟ้าที่ครอบคลุมย่านน่าอยู่ บทความนี้สรุปสิ่งที่ต้องรู้ก่อนมาปี 2027 และวิธีไม่ให้ต้องทำงานคนเดียวทุกวัน',
-  card='วีซ่า DTV ย่านน่าอยู่ โคเวิร์กกิ้งสเปซ การเดินทาง และการมีเพื่อน',
+  title='ทำงานรีโมตในกรุงเทพฯ: โคเวิร์กกิ้งราคารายวัน ย่าน และเพื่อน',
+  desc='ทำงานรีโมตในกรุงเทพฯ นั่งที่ไหนดี? โคเวิร์กกิ้งรายวันราว 250–750 บาท ย่านน่าทำงาน วิธีไม่เหงา และสรุปวีซ่า DTV กติกาใหม่ 31 ส.ค. 2026 ไว้ส่งเพื่อนต่างชาติ',
+  h1='ทำงานรีโมตในกรุงเทพฯ: โคเวิร์กกิ้ง ย่านน่าทำงาน และเพื่อนร่วมโต๊ะ',
+  lead='คนทำงานรีโมตในกรุงเทพฯ มีโคเวิร์กกิ้งสเปซให้เลือกตั้งแต่ราว 250 บาทต่อวัน ย่านที่นั่งทำงานสบายคืออารีย์ ทองหล่อ-เอกมัย สยาม-ชิดลม และเจริญกรุง ส่วนเรื่องที่ยากที่สุดไม่ใช่เน็ต แต่คือทั้งวันไม่มีใครให้คุยด้วย ทางแก้คือไปที่เดิมเวลาเดิม และมีกิจกรรมประจำสักอย่าง',
+  card='โคเวิร์กกิ้งราคารายวัน ย่านน่าทำงาน วิธีไม่เหงา และสรุปวีซ่า DTV',
   body='''
-## ทำไมคนไทยควรรู้เรื่องนี้
-ถ้าคุณเป็นคนกรุงเทพฯ ที่ทำงานรีโมต หรืออยากมีเพื่อนต่างชาติที่อยู่ยาว คนกลุ่มนี้คือเพื่อนร่วมโต๊ะในโคเวิร์กกิ้งสเปซของคุณ บทความนี้เขียนให้ใช้ได้ทั้งสองฝั่ง ทั้งคนไทยที่ทำงานแบบเดียวกัน และเพื่อนต่างชาติที่คุณอยากส่งลิงก์ให้อ่าน
-
-## วีซ่า DTV แบบสั้น ๆ
-Destination Thailand Visa (DTV) เป็นวีซ่าสำหรับคนทำงานทางไกล ฟรีแลนซ์ และคนที่มาเรียนกิจกรรมอย่างมวยไทยหรือทำอาหารไทย ตามข้อมูลของสถานทูตไทยและกติกาใหม่ที่ใช้ตั้งแต่ 31 ส.ค. 2026
-
-- อายุวีซ่า 5 ปี อยู่ได้ครั้งละไม่เกิน 180 วัน และขยายเวลาพำนักที่ตรวจคนเข้าเมืองในไทยได้อีกหนึ่งครั้ง ไม่เกิน 180 วัน (ค่าธรรมเนียมที่มีรายงานคือ 1,900 บาท)
-- ต้องแสดงเงินหรือทรัพย์สินอย่างน้อย 500,000 บาท
-- ทำงานให้บริษัทไทยหรือรับงานลูกค้าไทยไม่ได้ และไม่ได้ใบอนุญาตทำงาน
-- ใบสมัครตั้งแต่ 31 ส.ค. 2026 ต้องยื่นที่สถานทูตหรือสถานกงสุลไทยของประเทศที่ถือสัญชาติหรือมีถิ่นพำนัก และแนบหนังสือรับรองประวัติอาชญากรรม
-- ค่าธรรมเนียมวีซ่ามีรายงานว่า 10,000 บาท เช็กกับสถานทูตที่ยื่นอีกครั้ง
-
-กติกาวีซ่าเปลี่ยนได้ ยื่นจริงให้เช็กกับเว็บไซต์สถานทูตหรือสถานกงสุลที่ดูแลประเทศของผู้ยื่นเสมอ
-
+## บทความนี้สำหรับใคร
+สำหรับคนที่ทำงานรีโมตหรือฟรีแลนซ์อยู่ในกรุงเทพฯ แล้วเบื่อการนั่งทำงานคนเดียวในห้อง อยากรู้ว่าโคเวิร์กกิ้งสเปซที่ไหนราคาเท่าไร ย่านไหนน่าทำงาน และจะมีเพื่อนร่วมโต๊ะทั้งคนไทยและต่างชาติได้ยังไง ท้ายบทความมีสรุปวีซ่า DTV ไว้ส่งให้เพื่อนต่างชาติอ่านด้วย
 ## ย่านที่คนทำงานรีโมตชอบ
 - **[อารีย์](/bangkok/ari/)** ซอยร่มรื่น คาเฟ่เยอะ ตึกไม่สูง จังหวะชีวิตช้ากว่าใจกลางเมือง อยู่บน BTS สายสุขุมวิท
 - **[ทองหล่อ](/bangkok/thonglor/) และเอกมัย** คึกคัก ร้านเยอะ มีคอมมูนิตี้มอลล์อย่าง theCOMMONS ในซอยทองหล่อ 17 ที่เปิด 8 โมงเช้าถึงตีหนึ่ง (แต่ละร้านมีเวลาของตัวเอง)
@@ -61,6 +50,20 @@ MRT สายสีน้ำเงินและสีม่วงรับบ�
 - กันเย็นวันธรรมดาหนึ่งวันไว้สำหรับนัดคนอื่นโดยเฉพาะ ไม่งั้นงานจะกินเวลาทั้งหมด
 - ลองกลุ่มแลกเปลี่ยนภาษา ได้ทั้งเพื่อนไทยและฝึกภาษาไปด้วย
 
+## เพื่อนต่างชาติถามเรื่องวีซ่า DTV? สรุปสั้น ๆ
+Destination Thailand Visa (DTV) เป็นวีซ่าสำหรับคนทำงานทางไกล ฟรีแลนซ์ และคนที่มาเรียนกิจกรรมอย่างมวยไทยหรือทำอาหารไทย ตามข้อมูลของสถานทูตไทยและกติกาใหม่ที่ใช้ตั้งแต่ 31 ส.ค. 2026
+
+- อายุวีซ่า 5 ปี อยู่ได้ครั้งละไม่เกิน 180 วัน และขยายเวลาพำนักที่ตรวจคนเข้าเมืองในไทยได้อีกหนึ่งครั้ง ไม่เกิน 180 วัน (ค่าธรรมเนียมที่มีรายงานคือ 1,900 บาท)
+- ต้องแสดงเงินหรือทรัพย์สินอย่างน้อย 500,000 บาท
+- ทำงานให้บริษัทไทยหรือรับงานลูกค้าไทยไม่ได้ และไม่ได้ใบอนุญาตทำงาน
+- ใบสมัครตั้งแต่ 31 ส.ค. 2026 ต้องยื่นที่สถานทูตหรือสถานกงสุลไทยของประเทศที่ถือสัญชาติหรือมีถิ่นพำนัก และแนบหนังสือรับรองประวัติอาชญากรรม
+- ค่าธรรมเนียมวีซ่ามีรายงานว่า 10,000 บาท เช็กกับสถานทูตที่ยื่นอีกครั้ง
+
+กติกาวีซ่าเปลี่ยนได้ ยื่นจริงให้เช็กกับเว็บไซต์สถานทูตหรือสถานกงสุลที่ดูแลประเทศของผู้ยื่นเสมอ
+
+
+ยื่นวีซ่าผ่านสถานทูต สถานกงสุล หรือระบบ e-Visa ทางการของรัฐบาลไทยเท่านั้น ระวังเอเจนต์ที่ "รับรองผ่าน" หรือขอให้โอนเงินเข้าบัญชีส่วนตัว และอย่าอยู่เกินวันที่ได้รับอนุญาต เพราะมีค่าปรับและอาจโดนห้ามเข้าประเทศ
+
 ## ฤดูฝนกับการทำงาน
 ฝนกรุงเทพฯ มักตกหนักช่วงบ่ายถึงเย็นในหน้าฝน วางแผนประชุมออนไลน์สำคัญไว้ในที่ที่ไฟไม่ดับง่ายและเน็ตสำรองได้ อ่านต่อใน[ทำอะไรดีหน้าฝนในกรุงเทพฯ](/blog/rainy-season-bangkok/)
 
@@ -78,10 +81,10 @@ MRT สายสีน้ำเงินและสีม่วงรับบ�
        ('ขึ้น MRT ด้วยบัตรธนาคารได้ไหม', 'ได้ MRT สายสีน้ำเงินและสีม่วงรับบัตร Visa และ Mastercard แบบแตะจ่าย รวมถึงบัตรเดบิตบางประเภท')],
  ),
  en=dict(
-  title='Bangkok for Digital Nomads 2027: Visa, Areas, Co-working',
-  desc='Is Bangkok still good for remote workers in 2027? The DTV visa, areas to live, co-working day-pass prices, getting around and how not to work alone.',
-  h1='Bangkok for Digital Nomads 2027: Visa, Areas, Co-working and Friends',
-  lead='Bangkok remains one of the top cities for remote workers thanks to the DTV visa, which allows stays of up to 180 days per entry, affordable co-working and rail lines that serve the nicest areas. Here is what to know before you come in 2027, and how to avoid working alone every day.',
+  title='Bangkok Digital Nomads (2026): DTV Visa, Areas, Co-working',
+  desc='DTV rules changed on 31 Aug 2026. What remote workers need now: visa basics, areas, co-working from about 250 baht a day and how not to work alone.',
+  h1='Bangkok for Digital Nomads: Visa, Areas, Co-working and Friends',
+  lead='Bangkok remains one of the top cities for remote workers thanks to the DTV visa, which allows stays of up to 180 days per entry, affordable co-working and rail lines that serve the nicest areas. Here is what to know before you come, and how to avoid working alone every day.',
   card='The DTV visa, best areas, co-working prices, transport and friends.',
   body='''
 ## The DTV visa in brief
@@ -94,6 +97,9 @@ The Destination Thailand Visa (DTV) is aimed at remote workers, freelancers and 
 - The visa fee is reported at 10,000 baht; confirm with the embassy where you apply.
 
 Visa rules change. Always check with the Thai embassy or consulate that covers your country before applying.
+
+## Avoid visa scams
+Apply only through a Thai embassy or consulate or the Thai government's official e-Visa system. Be wary of agents who "guarantee approval" or ask for payment into a personal account, and never overstay: it means fines and can mean a ban on re-entry.
 
 ## Areas remote workers like
 - **[Ari](/en/bangkok/ari/)**: leafy sois, lots of cafés, low-rise and slower than downtown, on the BTS Sukhumvit line.
@@ -139,61 +145,82 @@ In the rainy season, Bangkok downpours usually hit in the afternoon or evening. 
 dict(slug='expat-first-month-bangkok', group='live', img='tuktuk', areas=['ari', 'siam'],
  related=['digital-nomads-bangkok', 'thai-friends-etiquette', 'make-friends-bangkok'],
  sources=[S_MRT, S_ZAFIGO, S_LUMPHINI, S_RUN],
+ sources_th=[('Tilleke & Gibbins – ประกาศ สคบ. คุมสัญญาเช่าที่อยู่อาศัย 5 ห้องขึ้นไป (ใช้กับสัญญาตั้งแต่ 29 ม.ค. 2020)', 'https://www.tilleke.com/insights/new-contract-controls-introduced-residential-property-leasing-businesses-thailand-2/'),
+             ('Thai PBS – 4 ช่องทางย้ายสิทธิบัตรทอง โดยไม่ต้องย้ายทะเบียนบ้าน', 'https://www.thaipbs.or.th/news/content/329507'),
+             ('FlowAccount – เปลี่ยนโรงพยาบาลประกันสังคม ปี 2569 (ปรับปรุง 3 เม.ย. 2569)', 'https://flowaccount.com/blog/change-sso-hospital/'),
+             ('PPTV – สายด่วนสุขภาพจิต 1323 ปรึกษาฟรี 24 ชั่วโมง', 'https://www.pptvhd36.com/health/news/5842'),
+             ('กรุงเทพธุรกิจ – สายด่วน กทม. 1555 และ Traffy Fondue (14 ต.ค. 2569)', 'https://www.bangkokbiznews.com/news/news-update/1256351'),
+             S_MRT],
+ recheck='quarterly',
  th=dict(
-  title='ย้ายมากรุงเทพฯ เดือนแรก: เช็กลิสต์ซิม ที่พัก และเพื่อน 2027',
-  desc='มีเพื่อนต่างชาติเพิ่งย้ายมากรุงเทพฯ หรือคุณย้ายมาเอง? เช็กลิสต์เดือนแรก ทั้งซิม การเดินทาง แอปที่ต้องมี หาที่อยู่ และหาเพื่อนใหม่ อัปเดต 2027',
-  h1='เดือนแรกในกรุงเทพฯ: เช็กลิสต์สำหรับคนย้ายมาใหม่ (2027)',
-  lead='เดือนแรกในกรุงเทพฯ ให้ทำสามอย่างก่อน คือ มีเบอร์มือถือไทยกับแอปที่คนไทยใช้ เรียนรู้รถไฟฟ้าสายที่ผ่านบ้าน และสร้างกิจวัตรที่ได้เจอคนเดิมทุกสัปดาห์ ที่เหลือค่อย ๆ ตามมา บทความนี้ใช้ได้ทั้งคนไทยที่ย้ายเข้าเมือง และเพื่อนต่างชาติที่คุณอยากช่วย',
-  card='ซิม แอปที่ต้องมี รถไฟฟ้า ที่อยู่ และหาเพื่อนในเดือนแรก',
+  title='ย้ายมาทำงานกรุงเทพฯ เดือนแรก: เช็กลิสต์ห้อง สิทธิ์ และเพื่อน',
+  desc='เด็กต่างจังหวัดย้ายเข้ากรุงเทพฯ เดือนแรกต้องทำอะไรบ้าง? หาห้องไม่โดนหลอก ค่าน้ำค่าไฟที่เก็บได้ ย้ายสิทธิ์บัตรทอง-ประกันสังคม และวิธีไม่เหงาในเมืองใหม่',
+  h1='ย้ายมาทำงานกรุงเทพฯ เดือนแรก: เช็กลิสต์สำหรับคนต่างจังหวัด',
+  lead='เดือนแรกในกรุงเทพฯ ให้จัดการสี่เรื่องตามลำดับ คือ หาห้องใกล้รถไฟฟ้าโดยไม่โอนมัดจำก่อนเห็นห้องจริง ย้ายสิทธิ์รักษาพยาบาลมาใกล้ที่พัก ลองเส้นทางไปทำงานให้ชิน และมีกิจกรรมประจำสักอย่างที่ได้เจอคนเดิมทุกสัปดาห์ ที่เหลือค่อย ๆ ปรับไป',
+  card='หาห้องไม่โดนหลอก ย้ายสิทธิ์รักษา เส้นทางไปทำงาน และหาเพื่อนในเดือนแรก',
   body='''
-## สัปดาห์ที่ 1: เบอร์ แอป และการเดินทาง
-- **ซิมการ์ด** ชาวต่างชาติซื้อได้ที่ร้านของค่ายมือถือหรือที่สนามบิน ต้องใช้พาสปอร์ตลงทะเบียน คนไทยใช้บัตรประชาชน
-- **LINE** คือแอปแชตหลักของคนไทย ร้านค้า คอนโด และเพื่อนร่วมงานติดต่อผ่าน LINE เกือบทั้งหมด
-- **แอปเรียกรถและส่งอาหาร** เช่น Grab และ Bolt ช่วยได้มากช่วงที่ยังไม่รู้ทาง
-- **รถไฟฟ้า** MRT รับบัตร Visa และ Mastercard แบบแตะจ่าย และบัตรเดบิตหรือบัตรเติมเงินบางประเภท (บัตร MRT แบบเก่าเลิกใช้ผ่านประตูตั้งแต่ 1 มิ.ย. 2026) ส่วน BTS มีระบบบัตรของตัวเอง สอบถามที่ห้องขายตั๋ว
+## บทความนี้สำหรับใคร
+สำหรับคนที่ย้ายจากต่างจังหวัดมาเริ่มงานหรือเรียนต่อในกรุงเทพฯ ไม่ว่าจะมาจากเชียงใหม่ ขอนแก่น หาดใหญ่ หรืออำเภอเล็ก ๆ ที่บ้านเพื่อนอยู่ห่างกันแค่ห้านาที กรุงเทพฯ ใหญ่และเร็วกว่าที่คิดก็จริง แต่ถ้าวางสี่เรื่องนี้ให้ดีตั้งแต่เดือนแรก ชีวิตจะง่ายขึ้นเยอะ
 
-## สัปดาห์ที่ 2: ที่อยู่
-- เลือกที่อยู่ใกล้สถานี BTS หรือ MRT ก่อน แล้วค่อยดูขนาดห้อง รถติดกินเวลามากกว่าที่คิด
-- สัญญาเช่าส่วนใหญ่มีเงินประกันและค่าเช่าล่วงหน้า อ่านสัญญาให้ครบ ถ่ายรูปห้องก่อนเข้าอยู่ทุกมุม
-- ถามเรื่องค่าไฟและค่าน้ำให้ชัด บางตึกคิดค่าน้ำค่าไฟในอัตราของตึกเอง
-- ชาวต่างชาติต้องแจ้งที่พักกับตรวจคนเข้าเมือง (ที่เรียกกันว่า ตม.30) ปกติเจ้าของที่พักเป็นผู้แจ้ง ถามให้แน่ใจว่าเรียบร้อย
+## สัปดาห์ที่ 1: หาห้องให้ถูกที่ และไม่โดนหลอก
+- **ทำเลก่อนขนาดห้อง** เลือกห้องที่เดินถึง BTS หรือ MRT ได้ หรืออยู่สายเดียวกับที่ทำงาน ห้องเล็กลงหน่อยแต่ไม่ต้องนั่งรถติดวันละสองชั่วโมง คุ้มกว่าเสมอ
+- **เห็นห้องจริงก่อนโอน** มิจฉาชีพชอบโพสต์ห้องสวยราคาถูกในกลุ่มหาห้อง แล้วเร่งให้โอนมัดจำ "จองก่อนคนอื่น" ถ้ายังไม่ได้ไปดูห้อง และยังไม่ได้คุยกับเจ้าของหรือสำนักงานของตึกจริง ๆ อย่าเพิ่งโอน
+- **รู้สิทธิ์ตัวเอง** อพาร์ตเมนต์ที่ปล่อยเช่าตั้งแต่ 5 ห้องขึ้นไป เก็บเงินประกันรวมค่าเช่าล่วงหน้าได้ไม่เกิน 3 เดือน คิดค่าน้ำค่าไฟเกินอัตราของการประปาและการไฟฟ้าไม่ได้ และต้องคืนเงินประกันเมื่อย้ายออก (ถ้าต้องตรวจความเสียหายก่อน ให้คืนภายใน 7 วัน) ตามประกาศ สคบ. ที่ใช้กับสัญญาตั้งแต่ปี 2020 ส่วนหอพักนักศึกษาและโรงแรมไม่อยู่ในประกาศนี้
+- **ถ่ายรูปห้องทุกมุมวันย้ายเข้า** แล้วส่งให้เจ้าของทาง LINE เก็บไว้เป็นหลักฐานตอนขอเงินประกันคืน
 
-## สัปดาห์ที่ 3: ชีวิตประจำวัน
-- หาร้านประจำใกล้บ้านหนึ่งร้าน เช่น ร้านกาแฟ ร้านสะดวกซัก หรือร้านข้าว ความคุ้นหน้าช่วยให้รู้สึกเป็นส่วนหนึ่งของย่านเร็วขึ้น
-- ลองเดินสวนสาธารณะใกล้บ้านตอนเช้า เช่น สวนลุมพินีที่เปิด 04:30 น. จะเห็นอีกด้านของเมืองที่คนส่วนใหญ่ไม่เคยเห็น
-- เรียนประโยคภาษาไทยพื้นฐาน หรือถ้าคุณเป็นคนไทย ลองช่วยเพื่อนต่างชาติฝึก ดู[เคล็ดลับคุยกับเพื่อนต่างชาติ](/blog/thai-friends-etiquette/)
+| ก่อนเซ็นสัญญา ถามให้ชัด | ทำไมต้องถาม |
+|---|---|
+| ค่าไฟหน่วยละเท่าไร ค่าน้ำคิดยังไง | ตึก 5 ห้องขึ้นไปคิดเกินอัตรารัฐไม่ได้ |
+| เงินประกันกับค่าเช่าล่วงหน้ารวมกี่เดือน | รวมกันไม่เกิน 3 เดือน |
+| ออกก่อนครบสัญญาเสียอะไรบ้าง | จะได้ไม่เสียเงินประกันทั้งก้อน |
+| ค่าส่วนกลาง เน็ต ที่จอดรถ แยกจ่ายไหม | ค่าใช้จ่ายรายเดือนจริงมักสูงกว่าค่าห้อง |
 
-## สัปดาห์ที่ 4: หาเพื่อนจริงจัง
-เดือนแรกคือช่วงที่เหงาที่สุด และเป็นช่วงที่ควรวางกิจวัตรสังคมไว้ตั้งแต่ต้น
-- เลือกกิจกรรมประจำหนึ่งอย่าง เช่น รันคลับวันเสาร์ บอร์ดเกม หรือกลุ่มแลกเปลี่ยนภาษา ดู[กิจกรรมวันหยุดหาเพื่อนใหม่](/blog/weekend-activities-friends/)
-- ลองชุมชนชาวต่างชาติอย่าง InterNations สำหรับคนที่ย้ายมาจากต่างประเทศ
-- ใช้แอปหาเพื่อนอย่างน้อยหนึ่งตัว ดู[แอปหาเพื่อนในกรุงเทพฯ 2027](/blog/friend-apps-bangkok/)
+## สัปดาห์ที่ 2: ย้ายสิทธิ์รักษาพยาบาลมาใกล้ที่พัก
+หลายคนลืมเรื่องนี้จนถึงวันที่ป่วยครั้งแรก
+- **บัตรทอง** เปลี่ยนหน่วยบริการมาใกล้ที่พักในกรุงเทพฯ ได้เอง โดยไม่ต้องย้ายทะเบียนบ้าน ผ่านแอป สปสช. ไลน์ @nhso หรือโทร 1330
+- **ประกันสังคม** ถ้าเริ่มงานบริษัท ปกติเปลี่ยนโรงพยาบาลได้ปีละครั้งในช่วงราวเดือนธันวาคมถึงมีนาคม แต่ถ้าย้ายที่ทำงานหรือย้ายที่พักข้ามจังหวัดระหว่างปีก็ขอเปลี่ยนได้ ทำผ่านเว็บไซต์ประกันสังคม แอป SSO+ หรือไลน์ @ssothai
+- จดชื่อโรงพยาบาลตามสิทธิ์ไว้ในโทรศัพท์ พร้อมโรงพยาบาลที่ใกล้ห้องที่สุดเผื่อเกิดเหตุฉุกเฉิน
 
-## เรื่องที่คนมาใหม่มักพลาด
-- ประเมินเวลาเดินทางต่ำเกินไป โดยเฉพาะช่วงเย็นวันศุกร์และวันที่ฝนตก
-- ออกไปข้างนอกช่วงเที่ยงถึงบ่ายสามในหน้าร้อน
-- ใช้แต่แอปและไม่ได้ออกไปทำกิจกรรมจริงเลย
-- ไม่เผื่อใจว่าการปรับตัวใช้เวลาเป็นเดือน ไม่ใช่เป็นวัน
+## สัปดาห์ที่ 3: ลองเส้นทางไปทำงานให้ชิน
+- ลองเดินทางไปที่ทำงานจริงหนึ่งรอบก่อนวันเริ่มงาน ในเวลาเดียวกับที่ต้องไปจริง เพราะเจ็ดโมงเช้ากับสิบโมงคือคนละเรื่องกันเลย
+- MRT แตะจ่ายด้วยบัตร Visa หรือ Mastercard แบบไม่ต้องสอดบัตรได้ (บัตร MRT แบบเก่าเลิกใช้ผ่านประตูตั้งแต่ 1 มิ.ย. 2026) ส่วน BTS ใช้บัตร Rabbit ค่าโดยสารและโปรโมชันเปลี่ยนบ่อย เช็กในแอปของแต่ละสายก่อน
+- จดค่าเดินทางสัปดาห์แรกไว้ดูว่าเดือนหนึ่งตกเท่าไร แล้วค่อยตัดสินใจว่าห้องที่ถูกกว่าแต่ไกลกว่านั้นคุ้มจริงไหม
+- วินมอเตอร์ไซค์ปากซอยช่วยได้มากตอนรีบ เลือกวินที่ใส่เสื้อมีเบอร์ และขอหมวกกันน็อกทุกครั้ง
+
+## สัปดาห์ที่ 4: มีคนรู้จักในเมืองนี้
+ช่วงแรกเหงาเป็นเรื่องปกติมาก โดยเฉพาะคนที่เคยอยู่ใกล้เพื่อนและครอบครัวมาตลอด
+- เลือกกิจกรรมประจำหนึ่งอย่างที่จัดทุกสัปดาห์ เช่น [รันคลับที่วิ่งฟรี](/blog/run-clubs-bangkok/) หรือ[บอร์ดเกมคาเฟ่](/blog/board-game-cafes-bangkok/) ไปซ้ำ ๆ จนเริ่มมีคนจำชื่อได้
+- เป็นขาประจำร้านใกล้ห้องสักร้าน ร้านข้าวมันไก่ ร้านกาแฟ หรือร้านซักผ้า ความคุ้นหน้าช่วยให้ย่านใหม่รู้สึกเป็นบ้านเร็วขึ้น
+- ลองหากลุ่มคนจังหวัดเดียวกันใน LINE OpenChat หรือ Facebook มักมีรุ่นพี่ที่ย้ายมาก่อนคอยตอบคำถามเรื่องห้องและการเดินทาง
+- ใช้[แอปหาเพื่อน](/blog/friend-apps-bangkok/)สักตัว และเจอเพื่อนใหม่ครั้งแรกในที่สาธารณะเสมอ
+- ถ้าเหงาหรือเครียดจนนอนไม่หลับติดกันหลายวัน โทรคุยกับสายด่วนสุขภาพจิต 1323 ได้ฟรีตลอด 24 ชั่วโมง ไม่ต้องรอให้หนักก่อน
+
+## เรื่องที่คนย้ายมาใหม่มักพลาด
+- เลือกห้องเพราะค่าเช่าถูก แล้วเสียเวลาเดินทางวันละสามชั่วโมง
+- โอนมัดจำก่อนไปดูห้อง
+- ปล่อยสิทธิ์รักษาไว้ที่บ้านเกิด แล้วมางงตอนป่วยครั้งแรกว่าต้องไปโรงพยาบาลไหน
+- เลิกงานแล้วกลับห้องเลยทุกวัน จนทั้งเดือนไม่ได้รู้จักใครใหม่
+- คิดว่าจะปรับตัวได้ในสัปดาห์เดียว จริง ๆ ใช้เวลาเป็นเดือน
 
 ## เลือกย่านแรกให้ถูก
-ถ้ายังไม่แน่ใจ ย่านที่เริ่มต้นง่ายคือ[อารีย์](/bangkok/ari/) ที่เดินเล่นสบายและมีชุมชนคนในย่านจริง ๆ หรือรอบ[สยาม](/bangkok/siam/) ที่เดินทางสะดวกที่สุดในเมือง
+ถ้ายังไม่รู้จะเริ่มย่านไหน [อารีย์](/bangkok/ari/) ซอยเดินง่ายและมีคนอยู่อาศัยจริง หรือรอบ ๆ [สยาม](/bangkok/siam/) ที่รถไฟฟ้าสองสายตัดกัน ไปไหนต่อก็ง่าย วันหยุดลองไปเดินดูทั้งสองย่านก่อนตัดสินใจเช่ายาว
 
-## เบอร์ฉุกเฉินที่ควรเซฟไว้
-บอกเพื่อนต่างชาติให้เซฟตั้งแต่วันแรก ตำรวจท่องเที่ยว 1155 มีเจ้าหน้าที่พูดภาษาอังกฤษ แจ้งเหตุตำรวจ 191 และเรียกรถพยาบาล 1669 รวมถึงเบอร์สถานทูตของประเทศตัวเอง ส่วนคนไทยที่เพิ่งย้ายเข้าเมือง ก็ควรรู้ว่าโรงพยาบาลรัฐและเอกชนที่ใกล้ที่พักที่สุดอยู่ตรงไหน
-
-## ช่วยเพื่อนต่างชาติที่เพิ่งมา
-ถ้าคุณเป็นคนไทยที่มีเพื่อนต่างชาติเพิ่งย้ายมา ความช่วยเหลือเล็ก ๆ มีค่ามาก เช่น พาไปซื้อซิม ช่วยอ่านสัญญาเช่า สอนสั่งอาหารเป็นภาษาไทย หรือชวนไปกิจกรรมที่คุณไปประจำ มิตรภาพแบบนี้มักอยู่ได้นานกว่าที่คิด
+## เบอร์ที่ควรเซฟไว้ตั้งแต่วันแรก
+- **191** แจ้งเหตุตำรวจ · **1669** เจ็บป่วยฉุกเฉิน
+- **1555** สายด่วน กทม. และไลน์ @traffyfondue ไว้แจ้งปัญหาในเมือง เช่น ไฟทางดับ ทางเท้าพัง หรือน้ำท่วมขัง
+- **1330** สปสช. เรื่องสิทธิ์บัตรทอง
+- **1323** สายด่วนสุขภาพจิต ปรึกษาฟรี 24 ชั่วโมง
 ''',
-  cta=('ถามคนกรุงเทพฯ ได้ทุกเรื่อง', 'ห้อง "ถามคนไทย" ในกริ๊ง! มีไว้ถามเรื่องชีวิตในกรุงเทพฯ ตั้งแต่ย่านไหนน่าอยู่ ถึงร้านสะดวกซักที่ไหนดี แล้วค่อย ๆ มีเพื่อนจากคำตอบเหล่านั้น ใช้ฟรี อายุ 20 ปีขึ้นไป'),
-  faq=[('ย้ายมากรุงเทพฯ ต้องเตรียมอะไรในเดือนแรก', 'เบอร์มือถือไทย แอป LINE และแอปเรียกรถ ที่อยู่ใกล้รถไฟฟ้า และกิจกรรมประจำหนึ่งอย่างที่ได้เจอคนเดิมทุกสัปดาห์'),
-       ('ชาวต่างชาติซื้อซิมไทยต้องใช้อะไร', 'ใช้พาสปอร์ตลงทะเบียน ซื้อได้ที่สนามบินหรือร้านของค่ายมือถือ'),
-       ('ตม.30 คืออะไร', 'คือการแจ้งที่พักของชาวต่างชาติกับตรวจคนเข้าเมือง ปกติเจ้าของที่พักเป็นผู้แจ้ง ผู้เช่าควรถามให้แน่ใจว่าแจ้งแล้ว'),
-       ('มาใหม่ หาเพื่อนในกรุงเทพฯ เริ่มที่ไหน', 'เริ่มจากกิจกรรมที่จัดทุกสัปดาห์ เช่น รันคลับ บอร์ดเกมคาเฟ่ หรือกลุ่มแลกเปลี่ยนภาษา แล้วเสริมด้วยแอปหาเพื่อนหนึ่งตัว')],
+  cta=('มีคำถามเรื่องกรุงเทพฯ ถามคนที่อยู่มาก่อน', 'ห้อง "ถามคนไทย" ในกริ๊ง! ไว้ถามเรื่องชีวิตในกรุงเทพฯ ตั้งแต่ย่านไหนน่าอยู่ ไปจนถึงร้านซักผ้าแถวไหนดี แล้วค่อย ๆ มีเพื่อนจากคำตอบเหล่านั้น ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  faq=[('ย้ายมาทำงานกรุงเทพฯ ต้องย้ายทะเบียนบ้านไหม', 'ถ้าเป็นเรื่องสิทธิ์บัตรทอง ไม่ต้อง เปลี่ยนหน่วยบริการมาใกล้ที่พักได้เองผ่านแอป สปสช. ไลน์ @nhso หรือโทร 1330'),
+       ('เช่าห้องในกรุงเทพฯ ต้องจ่ายล่วงหน้ากี่เดือน', 'อพาร์ตเมนต์ที่ปล่อยเช่าตั้งแต่ 5 ห้องขึ้นไป เก็บเงินประกันรวมค่าเช่าล่วงหน้าได้ไม่เกิน 3 เดือน ตามประกาศ สคบ. ที่ใช้กับสัญญาตั้งแต่ปี 2020'),
+       ('ค่าไฟหอแพงมาก เขาเก็บได้เท่าไร', 'ที่พักที่ปล่อยเช่าตั้งแต่ 5 ห้องขึ้นไป คิดค่าน้ำค่าไฟเกินอัตราที่การประปาและการไฟฟ้าเรียกเก็บไม่ได้ และต้องเขียนอัตราไว้ในสัญญา'),
+       ('ย้ายมาใหม่ ไม่มีเพื่อนเลย เริ่มที่ไหนดี', 'เลือกกิจกรรมที่จัดทุกสัปดาห์หนึ่งอย่าง เช่น รันคลับหรือบอร์ดเกมคาเฟ่ เป็นขาประจำร้านใกล้ห้อง และลองหากลุ่มคนจังหวัดเดียวกันใน LINE OpenChat')],
  ),
  en=dict(
-  title='Your First Month in Bangkok: Expat Checklist 2027',
-  desc='Just moved to Bangkok? A week-by-week first-month checklist for 2027: SIM and apps, getting around, renting, the TM30 address report and making friends.',
-  h1='Your First Month in Bangkok: A Newcomer\'s Checklist (2027)',
+  title='Moving to Bangkok: Your First-Month Checklist, Week by Week',
+  desc='Just moved to Bangkok? A week-by-week first-month checklist: SIM and apps, getting around, renting, the TM30 address report and making friends.',
+  h1='Your First Month in Bangkok: A Newcomer\'s Checklist',
   lead='In your first month in Bangkok, get three things done before anything else: a Thai number with the apps Thais actually use, the rail line that serves your home, and one weekly routine where you see the same people. The rest follows from there.',
   card='SIM, must-have apps, rail, renting and making friends in month one.',
   body='''
@@ -209,6 +236,9 @@ dict(slug='expat-first-month-bangkok', group='live', img='tuktuk', areas=['ari',
 - Ask exactly how electricity and water are billed; some buildings set their own prices.
 - Foreigners' addresses must be reported to immigration (the "TM30" notification). The landlord normally files it, but ask to make sure it is done.
 
+## Before you pay a deposit
+Fake listings are common in Facebook rental groups. Never transfer a deposit before you have seen the room in person and spoken to the landlord or the building office.
+
 ## Week 3: daily life
 - Pick one regular spot near home: a coffee shop, a laundry, a noodle stall. Being recognised makes a neighbourhood feel like yours much faster.
 - Walk your nearest park early in the morning. Lumphini Park opens at 04:30, and dawn shows a side of Bangkok most visitors never see.
@@ -218,7 +248,7 @@ dict(slug='expat-first-month-bangkok', group='live', img='tuktuk', areas=['ari',
 The first month is usually the loneliest, which is exactly why to set up a social routine now.
 - Choose one weekly activity: a Saturday run club, board games or a language exchange. See [weekend activities to make friends](/en/blog/weekend-activities-friends/).
 - Try an expat network such as InterNations if you have moved from abroad.
-- Use at least one friend app. See [best apps to make friends in Bangkok 2027](/en/blog/friend-apps-bangkok/).
+- Use at least one friend app. See [best apps to make friends in Bangkok](/en/blog/friend-apps-bangkok/).
 
 ## Common newcomer mistakes
 - Underestimating travel time, especially on Friday evenings and rainy days.
@@ -296,7 +326,7 @@ dict(slug='thai-friends-etiquette', group='friends', img='cafe', areas=['ari', '
        ('ไปกินข้าวกับเพื่อนต่างชาติ ต้องเลี้ยงไหม', 'ไม่จำเป็น หลายคนชินกับการหารกันคนละส่วน ตกลงกันตรง ๆ ได้เลย')],
  ),
  en=dict(
-  title='Making Thai Friends: Etiquette and Thai Phrases (2027)',
+  title='How to Make Thai Friends: Etiquette and 7 Thai Phrases',
   desc='How to make Thai friends in Bangkok: the etiquette that matters, ideas like kreng jai and mai pen rai, easy Thai phrases and where to find Thai friends.',
   h1='Making Thai Friends: Etiquette, Culture and Phrases That Help',
   lead='Making Thai friends is mostly about warmth, patience and a few cultural basics: be polite, never lose your temper in public and learn a handful of Thai phrases. Then go where Thais already want to know foreigners, such as language exchanges and run clubs.',
@@ -351,15 +381,16 @@ Make friends in public places first. Be wary of anyone, of any nationality, who 
 # ---------------------------------------------------------------- 9
 dict(slug='run-clubs-bangkok', group='do', img='twilight', areas=['ari', 'thonglor'],
  related=['weekend-activities-friends', 'make-friends-bangkok', 'chatuchak-weekend'],
+ recheck='monthly',
  sources=[S_RUN, S_LUMPHINI, S_BENJA, S_COMMONS],
  th=dict(
-  title='วิ่งที่ไหนดีในกรุงเทพ 2027: สวนสาธารณะและรันคลับ',
-  desc='อยากวิ่งในกรุงเทพฯ และได้เพื่อนใหม่ด้วย? สวนลุมพินี เบญจกิติ สวนรถไฟ และรันคลับที่วิ่งฟรีหลายกลุ่ม พร้อมเวลาที่ดีที่สุดในการวิ่ง อัปเดต 2027',
-  h1='วิ่งที่ไหนดีในกรุงเทพฯ 2027: สวนสาธารณะและรันคลับที่วิ่งด้วยกันได้',
+  title='รันคลับกรุงเทพฯ 2569: วิ่งสวนไหนดี กลุ่มไหนวิ่งฟรี',
+  desc='อยากวิ่งและได้เพื่อนใหม่ในกรุงเทพฯ? สวนลุมพินี เบญจกิติ สวนรถไฟ รันคลับที่วิ่งฟรีไม่ต้องสมัครหลายกลุ่ม เวลาที่เหมาะ และสิ่งที่ต้องระวังเรื่องร้อนกับฝุ่น',
+  h1='วิ่งที่ไหนดีในกรุงเทพฯ: สวนสาธารณะและรันคลับที่ควรลอง',
   lead='ที่วิ่งยอดนิยมในกรุงเทพฯ คือสวนลุมพินี สวนเบญจกิติ และสวนรถไฟ ส่วนถ้าอยากได้เพื่อนวิ่ง รันคลับหลายกลุ่มวิ่งฟรีไม่ต้องสมัคร เช่น SarDine Run Club วันเสาร์ และ URT ที่สวนเบญจกิติแทบทุกเช้า',
   card='สวนลุมพินี เบญจกิติ สวนรถไฟ และรันคลับที่วิ่งฟรี',
   body='''
-## ทำไมวิ่งคือวิธีหาเพื่อนที่ดีที่สุดวิธีหนึ่ง
+## ทำไมวิ่งแล้วได้เพื่อน
 วิ่งด้วยกันไม่ต้องคุยตลอดเวลา ไม่ต้องใช้เงิน และเจอคนเดิมทุกสัปดาห์ ช่วงยืดเหยียดก่อนวิ่งกับกาแฟหลังวิ่งคือเวลาที่คนในกลุ่มทำความรู้จักกันจริง ๆ ไม่แปลกที่รันคลับในกรุงเทพฯ โตเร็วมากในช่วงไม่กี่ปีมานี้
 
 ## สวนที่วิ่งได้ดี
@@ -376,11 +407,26 @@ dict(slug='run-clubs-bangkok', group='do', img='twilight', areas=['ari', 'thongl
 - **Meep Meep Run Club** จัดวิ่งเช้าเดือนละสองครั้งร่วมกับ theCOMMONS (เช็กสาขาและเส้นทางในไอจีของคลับ) ประมาณ 7 โมง ให้มาก่อน 15 นาทีเพื่อฟังบรีฟ
 - **Cruise Control Run Club** ติดตามตารางทางอินสตาแกรม
 
+## สรุปรันคลับแบบเร็ว
+| กลุ่ม | วันและเวลา | ที่ไหน |
+|---|---|---|
+| SarDine Run Club | วันเสาร์ ฟรี ไม่ต้องสมัคร | สลับสวนรถไฟ สวนลุมฯ สวนเบญจกิติ |
+| URT | เกือบทุกเช้า ราว 6:30 น. | ประตู 3 สวนเบญจกิติ |
+| Sabai Run Club | เช้าวันอาทิตย์ และคืนวันศุกร์ | ดูไอจีของกลุ่ม |
+| Meep Meep Run Club | เดือนละสองครั้ง ราว 7:00 น. | ร่วมกับ theCOMMONS (สาขาเปลี่ยนได้) |
+
+ตารางเปลี่ยนบ่อย เช็กไอจีของแต่ละกลุ่มก่อนไปทุกครั้ง
+
 ## วิ่งในอากาศกรุงเทพฯ
 - วิ่งก่อน 7 โมงเช้าหรือหลัง 6 โมงเย็น เลี่ยงแดดกลางวัน
 - ดื่มน้ำก่อนวิ่ง และพกน้ำหรือเงินไว้ซื้อเครื่องดื่มเกลือแร่
 - เช็กค่าฝุ่น PM2.5 ช่วงหน้าแล้ง ถ้าสูงมากให้ย้ายไปออกกำลังกายในร่ม
 - หน้าฝน ทางวิ่งในสวนลื่น ลดความเร็วตอนเลี้ยว
+
+## วิ่งให้ปลอดภัย
+- วิ่งตอนเช้ามืดหรือหัวค่ำ ใส่เสื้อสีสว่าง และข้ามถนนตรงทางม้าลายหรือสะพานลอยเท่านั้น
+- ถ้าเวียนหัว คลื่นไส้ หรือหยุดเหงื่อออกกลางอากาศร้อน ให้หยุดทันที เข้าที่ร่ม และบอกคนในกลุ่ม
+- ครั้งแรกบอกผู้จัดว่าเพิ่งมา และถ้ามีโรคประจำตัวก็บอกไว้ด้วย
 
 ## ไปรันคลับครั้งแรก
 - ไปก่อนเวลาเล็กน้อย บอกคนจัดว่ามาครั้งแรก
@@ -409,9 +455,9 @@ dict(slug='run-clubs-bangkok', group='do', img='twilight', areas=['ari', 'thongl
        ('วิ่งช่วงไหนดีที่สุดในกรุงเทพฯ', 'ก่อน 7 โมงเช้าหรือหลัง 6 โมงเย็น อากาศเย็นกว่าและเป็นช่วงที่รันคลับส่วนใหญ่วิ่ง')],
  ),
  en=dict(
-  title='Running in Bangkok 2027: Best Parks and Run Clubs',
-  desc='Where to run in Bangkok in 2027 and make friends doing it: Lumphini, Benjakitti, Suan Rot Fai and free run clubs that welcome newcomers, plus heat tips.',
-  h1='Running in Bangkok 2027: The Best Parks and Run Clubs to Join',
+  title='Run Clubs in Bangkok (2026): Free Groups and the Best Parks',
+  desc='Where to run in Bangkok and make friends doing it: Lumphini, Benjakitti, Suan Rot Fai and free run clubs that welcome newcomers, plus heat and PM2.5 tips.',
+  h1='Running in Bangkok: The Best Parks and Run Clubs to Join',
   lead='The best places to run in Bangkok are Lumphini Park, Benjakitti Forest Park and Suan Rot Fai. For running friends, several clubs are free with no sign-up, such as SarDine Run Club on Saturdays and URT at Benjakitti most mornings.',
   card='Lumphini, Benjakitti, Suan Rot Fai and free run clubs.',
   body='''
@@ -432,11 +478,26 @@ Per Time Out (February 2026). Check each club's Instagram before going, because 
 - **Meep Meep Run Club**: twice-monthly morning sessions with theCOMMONS (check the club's Instagram for which branch and route), starting around 7am; arrive 15 minutes early for the briefing.
 - **Cruise Control Run Club**: follow its Instagram for schedules.
 
+## Run clubs at a glance
+| Club | When | Where |
+|---|---|---|
+| SarDine Run Club | Saturdays, free, no sign-up | Rotates: Suan Rot Fai, Lumphini, Benjakitti |
+| URT | Most mornings, about 6:30am | Gate 3, Benjakitti Park |
+| Sabai Run Club | Sunday mornings and Friday nights | See the club's Instagram |
+| Meep Meep Run Club | Twice a month, about 7am | With theCOMMONS (branch varies) |
+
+Schedules change, so check each club's Instagram before you go.
+
 ## Running in Bangkok weather
 - Run before 7am or after 6pm and skip the midday sun.
 - Hydrate beforehand and carry water or cash for an electrolyte drink.
 - In the dry season, check PM2.5 air quality; on bad days move your workout indoors.
 - In the rainy season, park paths get slippery, so ease off on corners.
+
+## Run safe
+- At dawn or after dark, wear something bright and cross roads only at crossings or footbridges.
+- Dizzy, nauseous or suddenly not sweating in the heat? Stop at once, get into shade and tell someone in the group.
+- On your first run, tell the organiser you are new, and mention any health condition.
 
 ## Your first run-club session
 - Arrive a little early and tell the organiser it is your first time.
@@ -467,12 +528,13 @@ Run Suan Rot Fai and walk on to [Chatuchak Weekend Market](/en/blog/chatuchak-we
 # ---------------------------------------------------------------- 10
 dict(slug='board-game-cafes-bangkok', group='do', img='cafe', areas=['siam'],
  related=['weekend-activities-friends', 'rainy-season-bangkok', 'things-to-do-alone-bangkok'],
+ recheck='monthly',
  sources=[S_BOARD, S_ZAFIGO],
  th=dict(
-  title='บอร์ดเกมคาเฟ่ในกรุงเทพ 2027: ร้านไหนดี ไปคนเดียวได้ไหม',
+  title='บอร์ดเกมคาเฟ่กรุงเทพฯ 2569: ร้านไหนดี ไปคนเดียวได้ไหม',
   desc='รวมบอร์ดเกมคาเฟ่ในกรุงเทพฯ ทั้งสยาม MBK อนุสาวรีย์ชัยฯ และพระราม 3 พร้อมราคาที่มีข้อมูล เกมที่เหมาะกับคนเพิ่งรู้จักกัน และวิธีไปคนเดียวให้ได้เพื่อน',
-  h1='บอร์ดเกมคาเฟ่ในกรุงเทพฯ 2027: ร้านไหนดี และไปคนเดียวได้ไหม',
-  lead='บอร์ดเกมคาเฟ่ในกรุงเทพฯ ที่เดินทางง่ายส่วนใหญ่อยู่แถวสยาม MBK และอนุสาวรีย์ชัยสมรภูมิ เช่น The Stronghold, Quest และ Turn The Tables ไปคนเดียวก็ได้ เพราะพนักงานหลายร้านช่วยสอนเกม และบอร์ดเกมคือวิธีที่ง่ายที่สุดวิธีหนึ่งในการคุยกับคนที่เพิ่งรู้จัก',
+  h1='บอร์ดเกมคาเฟ่ในกรุงเทพฯ: ร้านไหนดี ไปคนเดียวได้ไหม',
+  lead='บอร์ดเกมคาเฟ่ในกรุงเทพฯ ที่เดินทางง่ายส่วนใหญ่อยู่แถวสยาม MBK และอนุสาวรีย์ชัยสมรภูมิ เช่น The Stronghold, Quest และ Turn The Tables ไปคนเดียวก็ได้ เพราะพนักงานหลายร้านช่วยสอนเกม และมีเกมอยู่ตรงหน้า คุยกับคนเพิ่งรู้จักก็ไม่เกร็ง',
   card='ร้านแถวสยาม MBK อนุสาวรีย์ชัยฯ เกมที่เหมาะ และวิธีไปคนเดียว',
   body='''
 ## ทำไมบอร์ดเกมช่วยให้ได้เพื่อน
@@ -486,6 +548,14 @@ dict(slug='board-game-cafes-bangkok', group='do', img='cafe', areas=['siam'],
 - **More Than a Game Café** อาคารริมธาร ถนนพระราม 3
 
 สองร้านแรกอยู่ใกล้กันในย่าน[สยาม](/bangkok/siam/) ถ้ามาครั้งแรกเลือกแถวนี้สะดวกที่สุด
+
+## สรุปร้านแบบเร็ว
+| ร้าน | ใกล้สถานี | ราคา |
+|---|---|---|
+| The Stronghold Siam · [แผนที่](https://www.google.com/maps/search/?api=1&query=The+Stronghold+Siam+board+game) | BTS สยาม (สยามสแควร์ ซอย 9) | เช็กที่ร้าน |
+| Quest Board Game Café · [แผนที่](https://www.google.com/maps/search/?api=1&query=Quest+Board+Game+Cafe+MBK) | BTS สนามกีฬาแห่งชาติ (MBK ชั้น 7) | ราว 60 บาท/คน/ชม. |
+| Turn The Tables · [แผนที่](https://www.google.com/maps/search/?api=1&query=Turn+The+Tables+Board+Game+Cafe+Bangkok) | BTS อนุสาวรีย์ชัยฯ | เช็กที่ร้าน |
+| More Than a Game · [แผนที่](https://www.google.com/maps/search/?api=1&query=More+Than+a+Game+Cafe+Rama+3) | ถนนพระราม 3 (อาคาร Rimtara) | เช็กที่ร้าน |
 
 ## เกมที่เหมาะกับคนเพิ่งรู้จักกัน
 - **เกมทายคำแบบทีม** เช่น Codenames เล่นได้หลายคน ต้องคุยกันในทีมตลอด
@@ -532,9 +602,9 @@ dict(slug='board-game-cafes-bangkok', group='do', img='cafe', areas=['siam'],
        ('เกมอะไรเหมาะกับคนเพิ่งรู้จักกัน', 'เกมทายคำแบบทีมอย่าง Codenames เกมจับโกหกอย่าง Coup และเกมร่วมมือที่กติกาสั้น')],
  ),
  en=dict(
-  title='Board Game Cafés in Bangkok 2027: Where to Play',
-  desc='Board-game cafés in Bangkok for 2027: spots around Siam, MBK, Victory Monument and Rama 3, known prices, the best games for new friends and going solo.',
-  h1='Board Game Cafés in Bangkok 2027: Where to Play (Even Solo)',
+  title='Board Game Cafés in Bangkok (2026): Where to Play, Even Solo',
+  desc='Board-game cafés in Bangkok: spots around Siam, MBK, Victory Monument and Rama 3, known prices, the best games for new friends and how to go solo.',
+  h1='Board Game Cafés in Bangkok: Where to Play (Even Solo)',
   lead='Bangkok\'s most convenient board-game cafés cluster around Siam, MBK and Victory Monument, including The Stronghold, Quest and Turn The Tables. Going alone is fine: staff at many cafés will teach you games, and a game is one of the easiest ways to talk to people you have just met.',
   card='Cafés around Siam, MBK and Victory Monument, best games and going solo.',
   body='''
@@ -549,6 +619,14 @@ From The Thaiger's October 2025 round-up. Check opening hours and current prices
 - **More Than a Game Café**, Rimtara Building, Rama 3 Road.
 
 The first two are close together around [Siam](/en/bangkok/siam/), the easiest area for a first visit. Board-game cafés open and close fairly often in Bangkok, so treat any list, including this one, as a starting point and confirm on the café's own page that it is still running before you travel across town.
+
+## Cafés at a glance
+| Café | Nearest station | Price |
+|---|---|---|
+| The Stronghold Siam · [map](https://www.google.com/maps/search/?api=1&query=The+Stronghold+Siam+board+game) | BTS Siam (Siam Square Soi 9) | Check with the café |
+| Quest Board Game Café · [map](https://www.google.com/maps/search/?api=1&query=Quest+Board+Game+Cafe+MBK) | BTS National Stadium (MBK, 7th floor) | About 60 baht per person per hour |
+| Turn The Tables · [map](https://www.google.com/maps/search/?api=1&query=Turn+The+Tables+Board+Game+Cafe+Bangkok) | BTS Victory Monument | Check with the café |
+| More Than a Game · [map](https://www.google.com/maps/search/?api=1&query=More+Than+a+Game+Cafe+Rama+3) | Rama 3 Road (Rimtara Building) | Check with the café |
 
 ## Games that work with new people
 - **Team word games** such as Codenames: lots of players, constant talking within teams.

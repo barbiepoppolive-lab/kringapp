@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Blog pages for search: /blog/<slug>/ (Thai) and /en/blog/<slug>/ (English), two index pages and sitemap-blog.xml.
    Article text lives in tools/blog_src/b*.py (each defines ARTS = [...]).
-   Body mini-markup: '## ' = H2, '- ' = list item, blank line = new paragraph, [text](url), **bold**.
+   Body mini-markup: '## ' = H2, '- ' = list item, '| a | b |' = table row (first row = header), blank line = new paragraph, [text](url), **bold**.
+   Article keys: recheck='monthly'|'quarterly' (freshness line + re-check list), next=(label_th, label_en) optional end-of-page link text.
    Run: python3 tools/build_blog.py            (build)
         python3 tools/build_blog.py --check    (build + word counts, banned words, title/meta lengths)
         python3 tools/build_blog.py --review N (write a plain-text review file for batch N to stdout)"""
@@ -59,14 +60,26 @@ def inline(t):
     return re.sub(r'\[([^\]]+)\]\(([^)\s]+)\)', lk, t)
 
 def body_html(src):
-    out, para, items = [], [], []
+    out, para, items, rows = [], [], [], []
     sec_open = False
     def flush():
-        nonlocal para, items
+        nonlocal para, items, rows
         if para: out.append('<p>%s</p>' % inline(' '.join(para))); para = []
         if items: out.append('<ul>%s</ul>' % ''.join('<li>%s</li>' % inline(i) for i in items)); items = []
+        if rows:
+            hd, bd = rows[0], rows[1:]
+            out.append('<div class="tw"><table><thead><tr>%s</tr></thead><tbody>%s</tbody></table></div>' % (
+                ''.join('<th scope="col">%s</th>' % inline(c) for c in hd),
+                ''.join('<tr>%s</tr>' % ''.join('<td>%s</td>' % inline(c) for c in r) for r in bd)))
+            rows = []
     for line in src.strip().split('\n'):
         l = line.strip()
+        if l.startswith('|'):
+            if para or items: flush()
+            cells = [c.strip() for c in l.strip('|').split('|')]
+            if not all(re.fullmatch(r':?-{2,}:?', c) for c in cells): rows.append(cells)
+            continue
+        if rows: flush()
         if l.startswith('## '):
             flush()
             if sec_open: out.append('</section>')
@@ -118,6 +131,9 @@ details p{margin-top:8px}
 .rel{list-style:none;padding:0;display:grid;gap:10px}.rel a{display:block;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);text-decoration:none;color:#fff;font-weight:700;line-height:1.45}
 .rel small{display:block;font-weight:400;color:rgba(255,255,255,.65);margin-top:2px}
 .src{font-size:14px}.src li{color:rgba(255,255,255,.72)}.src li a{display:inline-block;padding:6px 0;line-height:1.5}
+.tw{overflow-x:auto;margin-top:12px;-webkit-overflow-scrolling:touch}table{border-collapse:collapse;width:100%;font-size:14.5px;line-height:1.5}th,td{text-align:left;padding:9px 8px;border-bottom:1px solid rgba(255,255,255,.12);vertical-align:top}th{color:#fff;font-weight:700;background:rgba(255,255,255,.05)}td{color:rgba(255,255,255,.86)}td a{display:inline-block;padding:4px 0}
+.fresh{margin:16px 0 0;font-size:13.5px;color:rgba(255,255,255,.72);padding:10px 14px;border-radius:12px;background:rgba(63,240,255,.06);border:1px solid rgba(63,240,255,.18)}
+.nx{margin-top:12px}.nx a{display:inline-flex;align-items:center;min-height:44px;font-weight:700;color:#ff8be6;text-decoration:none}
 .about{margin-top:22px;padding:16px 18px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);font-size:14.5px}.about p{color:rgba(255,255,255,.78)}.note{font-size:13.5px;color:rgba(255,255,255,.62);margin-top:12px}
 .cards{list-style:none;padding:0;display:grid;gap:12px;grid-template-columns:1fr}@media(min-width:640px){.cards{grid-template-columns:1fr 1fr}}
 .cards a{display:block;height:100%;padding:18px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);text-decoration:none;color:#fff}
@@ -128,12 +144,14 @@ footer{max-width:760px;margin:0 auto;padding:18px 20px 40px;font-size:13px;color
 T = {
  'th': dict(home='หน้าแรก', blog='บล็อก', hoods='ย่านในกรุงเทพฯ', upd='อัปเดต ' + DATE_TH, read='อ่าน %d นาที', by='โดยทีมกริ๊ง!', about='/about',
             abouth='เกี่ยวกับบทความนี้', abouttxt='เขียนและตรวจข้อมูลโดยทีมกริ๊ง! ในกรุงเทพฯ ตรวจกับแหล่งข้อมูลด้านบนล่าสุดเมื่อ ' + DATE_TH + ' กริ๊ง! เป็นแอปของเราเอง ไม่มีที่ไหนในบทความนี้จ่ายเงินเพื่อให้ถูกพูดถึง เจอข้อมูลที่ไม่ตรง แจ้งเราได้ที่หน้า<a href="/contact">ติดต่อ</a>', disc='กริ๊ง! เป็นแอปของเราเอง', faq='คำถามที่พบบ่อย',
+            fresh={'monthly': 'ตรวจเวลาเปิด ราคา และการเดินทางในหน้านี้ล่าสุด %s · หน้านี้เราตรวจซ้ำทุกเดือน', 'quarterly': 'ตรวจข้อมูลในหน้านี้ล่าสุด %s · หน้านี้เราตรวจซ้ำทุก 3 เดือน'},
             rel='อ่านต่อ', src='แหล่งข้อมูล', srcnote='ข้อมูลเวลาเปิด-ปิดและราคาอาจเปลี่ยนได้ เช็กกับช่องทางทางการของสถานที่ก่อนไปเสมอ',
             open='เปิดกริ๊ง!', sub='ฟรี · LINE หรืออีเมล · อายุ 20 ปีขึ้นไป', switch='EN',
             foot=[('/', 'หน้าแรก'), ('/blog/', 'บล็อก'), ('/bangkok/', 'ย่านในกรุงเทพฯ'), ('/locals/', 'โลคอลกริ๊ง!'), ('/partners/', 'สำหรับร้าน'), ('/safety', 'ความปลอดภัย'), ('/terms', 'ข้อกำหนด'), ('/privacy', 'ความเป็นส่วนตัว')],
             area='ย่าน', locale='th_TH'),
  'en': dict(home='Home', blog='Blog', hoods='Bangkok areas', upd='Updated ' + DATE_EN, read='%d min read', by='By the Kring team', about='/about',
             abouth='About this article', abouttxt='Written and fact-checked by the Kring team in Bangkok against the sources above, last checked on ' + DATE_EN + '. Kring is our own app. No place mentioned here paid to be included. Spotted something out of date? Tell us on our <a href="/contact">contact page</a>.', disc='Kring is our own app.', faq='FAQ',
+            fresh={'monthly': 'Hours, prices and transport on this page last checked %s · we re-check this page every month', 'quarterly': 'Facts on this page last checked %s · we re-check this page every 3 months'},
             rel='Read next', src='Sources', srcnote='Opening hours and prices can change. Always check the place\'s official channels before you go.',
             open='Open Kring', sub='Free · LINE or email · Ages 20+', switch='ไทย',
             foot=[('/en/', 'Home'), ('/en/blog/', 'Blog'), ('/en/bangkok/', 'Bangkok areas'), ('/locals/', 'Kring Locals'), ('/partners/', 'For venues'), ('/safety', 'Safety'), ('/terms', 'Terms'), ('/privacy', 'Privacy')],
@@ -206,7 +224,7 @@ def build_article(a, lang, arts_by_slug):
         '/' if lang == 'th' else '/en/', canon_en if lang == 'th' else canon_th, 'en' if lang == 'th' else 'th', t['switch'])
     o += '<header class="hero"><img alt="%s" fetchpriority="high" height="%d" src="%s" width="%d"/><div class="in"><p class="bc"><a href="%s">%s</a> › <a href="%s">%s</a></p><h1>%s</h1><p class="lead">%s</p><p class="meta"><a href="%s">%s</a> · %s · %s</p></div></header>\n' % (
         E(alt), img[2], img[0], img[1], '/' if lang == 'th' else '/en/', t['home'], path(lang), t['blog'], E(L['h1']), inline(L['lead']), t['about'], t['by'], t['upd'], t['read'] % mins)
-    o += '<main>\n<article>\n' + body + '\n'
+    o += '<main>\n<p class="fresh">✓ %s</p>\n<article>\n' % (t['fresh'][a.get('recheck', 'quarterly')] % (DATE_TH if lang == 'th' else DATE_EN)) + body + '\n'
     k = L['cta']
     o += '<aside class="kr"><h2>%s</h2><p>%s</p><a class="btn" href="%s">%s →</a><small>%s · %s</small></aside>\n' % (E(k[0]), inline(k[1]), E(join), t['open'], t['disc'], t['sub'])
     o += '<section><h2>%s</h2>%s</section>\n' % (t['faq'], ''.join('<details><summary>%s</summary><p>%s</p></details>' % (E(q), inline(x)) for q, x in L['faq']))
@@ -220,8 +238,10 @@ def build_article(a, lang, arts_by_slug):
         b = arts_by_slug[s]
         rel.append((path(lang, s), b[lang]['h1'], t['blog']))
     o += '<section><h2>%s</h2><ul class="rel">%s</ul></section>\n' % (t['rel'], ''.join('<li><a href="%s">%s<small>%s</small></a></li>' % (u, E(n), E(k)) for u, n, k in rel))
-    o += '<section class="src"><h2>%s</h2><ol>%s</ol><p class="note">%s</p></section>\n' % (t['src'], ''.join('<li><a href="%s" rel="noopener nofollow">%s</a></li>' % (E(u), E(n)) for n, u in a['sources']), t['srcnote'])
-    o += '<aside class="about"><h2 style="font-size:16px">%s</h2><p>%s</p></aside>\n' % (t['abouth'], t['abouttxt'])
+    o += '<section class="src"><h2>%s</h2><ol>%s</ol><p class="note">%s</p></section>\n' % (t['src'], ''.join('<li><a href="%s" rel="noopener nofollow">%s</a></li>' % (E(u), E(n)) for n, u in a.get('sources_' + lang, a['sources'])), t['srcnote'])
+    nx = a.get('next')
+    nxl = (nx[0 if lang == 'th' else 1] if nx else k[0])
+    o += '<aside class="about"><h2 style="font-size:16px">%s</h2><p>%s</p><p class="nx"><a href="%s">%s →</a></p></aside>\n' % (t['abouth'], t['abouttxt'], E(join), E(nxl))
     o += '</main>\n' + foot(lang)
     return o, words(lang, allt)
 
@@ -231,7 +251,7 @@ AREAS = {'ari': ('อารีย์', 'Ari'), 'thonglor': ('ทองหล่�
 
 def build_index(lang, arts):
     t = T[lang]
-    title = 'บล็อกกริ๊ง! หาเพื่อนใหม่และที่เที่ยวในกรุงเทพฯ 2027' if lang == 'th' else 'Kring Blog: Make Friends & Explore Bangkok (2027)'
+    title = 'บล็อกกริ๊ง! หาเพื่อนใหม่และที่เที่ยวในกรุงเทพฯ' if lang == 'th' else 'Kring Blog: Make Friends & Explore Bangkok'
     desc = ('รวมบทความหาเพื่อนใหม่ในกรุงเทพฯ ย่านน่าแฮงก์เอาต์ กิจกรรมวันหยุด ตลาดกลางคืน และที่เที่ยวฟรี เขียนโดยทีมกริ๊ง! อัปเดตพฤศจิกายน 2026'
             if lang == 'th' else 'Honest Bangkok articles on making friends, areas to hang out, weekend activities, night markets and free things to do. Updated November 2026.')
     h1 = 'บล็อก<em style="font-style:normal;color:#ff4fd8">กริ๊ง!</em>' if lang == 'th' else 'The Kring <em style="font-style:normal;color:#ff4fd8">Blog</em>'
@@ -269,7 +289,7 @@ BANNED = [r'\bmeet', r'\bguides?\b', r'\bguidebooks?\b', r'\btours?\b', r'\bhost
           r'alcohol', r'\bgifts?\b', r'\bwallets?\b', r'\bcredits?\b', r'\blucky\b', r'\bdraws?\b', r'\bdrawn\b', r'temples?', r'\brates?\b',
           r'\bstars?\b', r'\bcoins?\b', r'\blaunch', r'dating', r'go together', r'\bbeer\b', r'\bwine\b', r'cocktail',
           'ลุ้น', 'โฮสต์', 'ไกด์', 'ทัวร์', 'ครีเอเตอร์', 'ของขวัญ', 'วอลเล็ท', 'กระเป๋าเงิน', 'เครดิต', 'เหรียญ', 'จับฉลาก', 'นำโชค',
-          'รีวิว', 'แอลกอฮอล์', 'เหล้า', 'เบียร์', 'วัด', 'นัดเจอ', 'เดท', 'ไปด้วยกัน', 'อัญมณี', 'คราฟต์เบียร์']
+          'รีวิว', 'แอลกอฮอล์', 'เหล้า', 'เบียร์', r'(?<!ห)วัด', 'นัดเจอ', 'เดท', 'ไปด้วยกัน', 'อัญมณี', 'คราฟต์เบียร์']
 
 def check(arts):
     bad = 0

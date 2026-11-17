@@ -17,9 +17,9 @@ dict(slug='ari-hang-out', group='areas', img='cafe', areas=['ari', 'siam', 'hub'
  related=['chatuchak-weekend', 'make-friends-bangkok', 'things-to-do-alone-bangkok'],
  sources=[S_ARI, S_COWORK, S_RUN],
  th=dict(
-  title='อารีย์ไปไหนดี 2027: คาเฟ่ แกลเลอรี และเส้นทางเดินครึ่งวัน',
-  desc='อารีย์ย่านซอยร่มรื่นบน BTS สายสุขุมวิท ไปไหนดีปี 2027 ทั้งคาเฟ่ แกลเลอรี พื้นที่จัดเวิร์กช็อป ป๊อปอัป และวิธีมีเพื่อนในย่านนี้ อ้างอิงข้อมูลล่าสุด',
-  h1='อารีย์ไปไหนดี 2027: คาเฟ่ แกลเลอรี และเส้นทางเดินครึ่งวัน',
+  title='อารีย์ไปไหนดี: คาเฟ่ แกลเลอรี และเส้นทางเดินครึ่งวัน',
+  desc='อารีย์ไปไหนดี ย่านซอยร่มรื่นติด BTS อารีย์ คาเฟ่ แกลเลอรี พื้นที่เวิร์กช็อป ป๊อปอัป เส้นทางเดินครึ่งวัน และวิธีเป็นขาประจำจนมีเพื่อนในย่าน',
+  h1='อารีย์ไปไหนดี: คาเฟ่ แกลเลอรี และเส้นทางเดินครึ่งวัน',
   lead='อารีย์ไปไหนดี: ลง BTS อารีย์ เดินเข้าซอยร่มรื่นฝั่งพหลโยธิน 7 แวะ Gump\'s Ari กับแกลเลอรีเล็ก ๆ นั่งคาเฟ่ที่ชอบ แล้วกลับมาซ้ำจนเป็นขาประจำ คนส่วนใหญ่ที่นี่อยู่ในย่านจริง ๆ อารีย์เลยเป็นย่านที่แฮงก์เอาต์กับเพื่อนง่ายที่สุดย่านหนึ่งของกรุงเทพฯ',
   card='คาเฟ่ แกลเลอรี เวิร์กช็อป และวิธีเป็นขาประจำในอารีย์',
   body='''
@@ -76,9 +76,9 @@ dict(slug='ari-hang-out', group='areas', img='cafe', areas=['ari', 'siam', 'hub'
        ('ร้านในอารีย์ปิดวันไหน', 'แต่ละร้านต่างกัน หลายร้านหยุดวันจันทร์หรืออังคาร เช็กเพจของร้านก่อนไป')],
  ),
  en=dict(
-  title='Things to Do in Ari, Bangkok (2027): Cafés, Galleries, Walks',
-  desc='Ari is Bangkok\'s leafy, walkable neighbourhood on the BTS Sukhumvit line. Cafés, galleries, workshop spaces and how to become a regular here in 2027.',
-  h1='Things to Do in Ari, Bangkok (2027)',
+  title='Things to Do in Ari, Bangkok: Cafés, Galleries and a Walk',
+  desc='Ari is Bangkok\'s leafy, walkable neighbourhood on the BTS Sukhumvit line: cafés, galleries, workshop spaces, a half-day route and how to become a regular.',
+  h1='Things to Do in Ari, Bangkok',
   lead='The best things to do in Ari are slow ones: walk the leafy sois behind BTS Ari, browse Gump\'s Ari and small galleries, sit in a café you like and come back until you are a regular. Most people here actually live here, which makes Ari one of the easiest Bangkok areas to hang out with friends.',
   card='Cafés, galleries, workshops and how to become an Ari regular.',
   body='''
@@ -139,10 +139,10 @@ dict(slug='thonglor-ekkamai', group='areas', img='twilight', areas=['thonglor', 
  related=['sukhumvit-benjakitti', 'run-clubs-bangkok', 'digital-nomads-bangkok'],
  sources=[S_COMMONS, S_RUN, S_COWORK],
  th=dict(
-  title='ทองหล่อ-เอกมัย 2027: แฮงก์เอาต์กับเพื่อนที่ไหนดี',
-  desc='ทองหล่อและเอกมัยไปไหนดีปี 2027 ตั้งแต่คอมมูนิตี้มอลล์ theCOMMONS รันคลับยามเช้า โคเวิร์กกิ้งสเปซ ไปจนถึงวิธีเดินย่านนี้ให้สนุกและได้เพื่อนใหม่',
-  h1='ทองหล่อ-เอกมัย 2027: แฮงก์เอาต์ที่ไหน และหาเพื่อนยังไง',
-  lead='ทองหล่อและเอกมัยคือย่านที่คึกคักที่สุดย่านหนึ่งบนสุขุมวิท เหมาะกับการนัดเพื่อนทั้งวันหยุดและหลังเลิกงาน จุดเริ่มต้นที่ง่ายที่สุดคือ theCOMMONS ในซอยทองหล่อ 17 ที่เปิดตั้งแต่ 8 โมงเช้าถึงตีหนึ่ง แล้วค่อยเดินต่อในซอยย่อยรอบ ๆ',
+  title='ทองหล่อ-เอกมัย ไปไหนดี: แฮงก์เอาต์ตั้งแต่เช้าถึงหัวค่ำ',
+  desc='ทองหล่อและเอกมัยไปไหนดี ตั้งแต่คอมมูนิตี้มอลล์ theCOMMONS รันคลับยามเช้า โคเวิร์กกิ้งสเปซ ไปจนถึงวิธีเดินย่านนี้ให้สนุก ปลอดภัย และได้เพื่อนใหม่',
+  h1='ทองหล่อ-เอกมัย: แฮงก์เอาต์ที่ไหนดีกับเพื่อน',
+  lead='ทองหล่อและเอกมัยเป็นย่านที่คึกคักมากของสุขุมวิท เหมาะกับการนัดเพื่อนทั้งวันหยุดและหลังเลิกงาน จุดเริ่มต้นที่ง่ายที่สุดคือ theCOMMONS ในซอยทองหล่อ 17 ที่เปิดตั้งแต่ 8 โมงเช้าถึงตีหนึ่ง แล้วค่อยเดินต่อในซอยย่อยรอบ ๆ',
   card='theCOMMONS รันคลับยามเช้า โคเวิร์กกิ้งสเปซ และวิธีเดินย่านนี้',
   body='''
 ## ทองหล่อกับเอกมัยต่างกันยังไง
@@ -154,10 +154,10 @@ theCOMMONS อยู่ที่ 335 ซอยทองหล่อ 17 เปิ
 จาก BTS ทองหล่อ ทางออก 3 นั่งแท็กซี่หรือแอปเรียกรถราว 5-10 นาที หรือเดิน 15-20 นาที
 
 ## วิ่งเช้าที่ทองหล่อ
-Meep Meep Run Club จัดวิ่งเช้าเดือนละสองครั้งร่วมกับ theCOMMONS (บางรอบอยู่สาขาอื่น เช็กไอจีของคลับก่อน) เริ่มประมาณ 7 โมง ให้ไปก่อน 15 นาทีเพื่อฟังบรีฟ บางเส้นทางในเมืองต้องจองล่วงหน้า (ข้อมูล Time Out ก.พ. 2026) วิ่งเสร็จนั่งกาแฟต่อในตึกเดียวกันได้เลย เป็นวิธีที่ดีมากในการรู้จักคนในย่าน
+Meep Meep Run Club จัดวิ่งเช้าเดือนละสองครั้งร่วมกับ theCOMMONS (บางรอบอยู่สาขาอื่น เช็กไอจีของคลับก่อน) เริ่มประมาณ 7 โมง ให้ไปก่อน 15 นาทีเพื่อฟังบรีฟ บางเส้นทางในเมืองต้องจองล่วงหน้า (ข้อมูล Time Out ก.พ. 2026) วิ่งเสร็จนั่งกาแฟต่อในตึกเดียวกันได้เลย ได้รู้จักคนในย่านเร็วมาก
 
 ## ทำงานที่ทองหล่อ-เอกมัย
-UnionSPACE WorkPod มีสาขาทั้งเอกมัยและทองหล่อ เริ่มต้น 250 บาทต่อ 24 ชั่วโมง (ข้อมูล ก.ย. 2026) คนทำงานรีโมตหลายคนเลือกอยู่ย่านนี้เพราะทำงานเสร็จแล้วมีที่ให้ไปต่อเยอะ อ่านเพิ่มใน[กรุงเทพฯ สำหรับดิจิทัลโนแมด](/blog/digital-nomads-bangkok/)
+UnionSPACE WorkPod มีสาขาทั้งเอกมัยและทองหล่อ เริ่มต้น 250 บาทต่อ 24 ชั่วโมง (ข้อมูล ก.ย. 2026) คนทำงานรีโมตหลายคนเลือกอยู่ย่านนี้เพราะเลิกงานแล้วมีอะไรให้ทำต่อเยอะ อ่านเพิ่มใน[กรุงเทพฯ สำหรับดิจิทัลโนแมด](/blog/digital-nomads-bangkok/)
 
 ## เดินย่านนี้ให้สนุก
 - ซอยทองหล่อยาวและแดดแรง ใช้มอเตอร์ไซค์รับจ้างปากซอยหรือแอปเรียกรถช่วงกลางวัน แล้วเดินในซอยย่อยแทน
@@ -170,6 +170,12 @@ UnionSPACE WorkPod มีสาขาทั้งเอกมัยและท�
 - ใช้โคเวิร์กกิ้งสเปซที่เดิมเป็นประจำ ย่านนี้มีคนทำงานรีโมตเยอะ
 - นัดเพื่อนใหม่จากแอปที่ theCOMMONS ในช่วงกลางวัน ปลอดภัยและสบายใจทั้งสองฝ่าย
 - ชวนกันไปสวนเบญจกิติหรือสวนเบญจสิริที่อยู่ไม่ไกล ดู[สุขุมวิท-เบญจกิติ](/blog/sukhumvit-benjakitti/)
+
+## ถ้าอยู่ถึงดึก
+ทองหล่อ-เอกมัยคึกคักที่สุดตอนกลางคืน ถ้าอยู่ถึงดึกกับเพื่อนใหม่
+- เลือกที่ที่คนเยอะและไฟสว่าง ไม่ต้องตามใครไปต่อที่ที่ไม่รู้จัก
+- เครื่องดื่มของตัวเอง ดูแลเอง อย่าวางทิ้งไว้แล้วกลับมาดื่มต่อ
+- กลับด้วยแอปเรียกรถที่เห็นชื่อคนขับและเส้นทาง แล้วแชร์ตำแหน่งให้เพื่อนสักคน
 
 ## วันอาทิตย์สบาย ๆ ในย่านนี้
 - **08:00** กาแฟเช้าที่ theCOMMONS ตอนคนยังน้อย
@@ -190,9 +196,9 @@ theCOMMONS มีหลังคาและหลายชั้น นั่�
        ('มีรันคลับที่ทองหล่อไหม', 'มี เช่น Meep Meep Run Club ที่จัดวิ่งเช้าเดือนละสองครั้งร่วมกับ theCOMMONS เช็กสาขาในไอจีของคลับก่อน')],
  ),
  en=dict(
-  title='Thonglor & Ekkamai 2027: Where to Hang Out',
-  desc='Thonglor and Ekkamai in 2027: theCOMMONS, morning run clubs, co-working and how to explore Bangkok\'s liveliest Sukhumvit sois and make friends there.',
-  h1='Thonglor and Ekkamai 2027: Where to Hang Out and Make Friends',
+  title='Things to Do in Thonglor & Ekkamai (Not Just Nightlife)',
+  desc='Thonglor and Ekkamai beyond late nights: theCOMMONS, morning run clubs, co-working, side-soi walks and how to make friends in Bangkok\'s liveliest sois.',
+  h1='Thonglor and Ekkamai: Where to Hang Out and Make Friends',
   lead='Thonglor and Ekkamai are among the liveliest areas on Sukhumvit, good for hanging out with friends at weekends and after work. The easiest starting point is theCOMMONS on Thong Lo Soi 17, open 8am to 1am, before exploring the side sois around it.',
   card='theCOMMONS, morning run clubs, co-working and exploring the sois.',
   body='''
@@ -222,6 +228,12 @@ UnionSPACE WorkPod has branches in both Ekkamai and Thong Lo, from 250 baht per 
 - Make first plans with app friends at theCOMMONS in daytime: safe and comfortable for both of you.
 - Suggest a walk in Benjakitti or Benchasiri Park nearby. See [Sukhumvit and Benjakitti](/en/blog/sukhumvit-benjakitti/).
 
+## If you stay out late
+Thonglor and Ekkamai are busiest at night. If you stay late with people you have just met:
+- Stick to busy, well-lit places, and do not follow anyone on to somewhere you do not know.
+- Keep your own drink with you; do not leave it and come back to it.
+- Get home with a ride-hailing app that shows the driver and route, and share your location with a friend.
+
 ## An easy Sunday here
 - **08:00** morning coffee at theCOMMONS before the crowds.
 - **10:00** wander the side sois between Thonglor and Ekkamai for design shops and handsome houses.
@@ -245,9 +257,9 @@ dict(slug='talat-noi-charoen-krung', group='areas', img='river', areas=['talat-n
  related=['things-to-do-alone-bangkok', 'free-things-bangkok', 'sunset-spots-bangkok'],
  sources=[S_TALATNOI, S_TCDC, S_W30],
  th=dict(
-  title='ตลาดน้อย-เจริญกรุง 2027: เดินเล่นย่านเก่าริมน้ำกับเพื่อน',
-  desc='ตลาดน้อยและเจริญกรุงไปไหนดีปี 2027 สตรีทอาร์ต บ้านโซวเฮงไถ่ ห้องสมุด TCDC และ Warehouse 30 วิธีเดินทางด้วย MRT และเรือ พร้อมเส้นทางเดินครึ่งวัน',
-  h1='ตลาดน้อย-เจริญกรุง 2027: เดินเล่นย่านเก่าริมน้ำกับเพื่อน',
+  title='ตลาดน้อย เจริญกรุง: เส้นทางเดินครึ่งวัน สตรีทอาร์ต โซวเฮงไถ่',
+  desc='ตลาดน้อยและเจริญกรุงไปไหนดี สตรีทอาร์ต บ้านโซวเฮงไถ่ ห้องสมุด TCDC และ Warehouse 30 วิธีเดินทางด้วย MRT และเรือ พร้อมเส้นทางเดินครึ่งวัน',
+  h1='ตลาดน้อย-เจริญกรุง: เดินเล่นย่านเก่าริมน้ำกับเพื่อน',
   lead='ตลาดน้อยกับเจริญกรุงคือย่านเก่าริมเจ้าพระยาที่เดินกับเพื่อนสนุกที่สุดย่านหนึ่ง ทั้งสตรีทอาร์ต บ้านจีนเก่าอายุกว่า 200 ปี และพื้นที่สร้างสรรค์อย่าง TCDC มาได้ด้วย MRT หัวลำโพงหรือเรือลงท่าสี่พระยา แล้วเดินต่อเลย',
   card='สตรีทอาร์ต โซวเฮงไถ่ TCDC และเส้นทางเดินครึ่งวัน',
   body='''
@@ -282,6 +294,9 @@ dict(slug='talat-noi-charoen-krung', group='areas', img='river', areas=['talat-n
 ## ทำไมเหมาะกับนัดเพื่อนใหม่
 มีอะไรให้ดูตลอดทาง บทสนทนาเกิดขึ้นเองจากสิ่งที่เห็น และเดินได้ช้า ๆ ไม่มีเสียงเพลงดัง เหมาะชวนแก๊งเพื่อนใหม่จากแอปหรือจากกลุ่มวิ่งมาเดินเล่นด้วยกัน และถ่ายรูปสวยแทบทุกมุม
 
+## หลังค่ำในตรอกเก่า
+ตรอกเล็กบางช่วงในตลาดน้อยมืดและเงียบหลังค่ำ เดินเป็นกลุ่ม ใช้ไฟฉายจากโทรศัพท์ตรงพื้นที่ไม่เรียบ แล้วออกมาทางถนนเจริญกรุงที่มีไฟสว่างก่อนเรียกรถกลับ
+
 ## ถ้าฝนตก
 ตรอกในตลาดน้อยแคบและลื่นเวลาฝนตก ให้หลบเข้า TCDC ซึ่งเป็นอาคารใหญ่ในร่ม นั่งห้องสมุดหรือดูนิทรรศการระหว่างรอ หรือเข้าไปเดินใน Warehouse 30 ที่มีหลังคา พอฝนหยุด ตรอกเก่าหลังฝนกลับถ่ายรูปสวยกว่าเดิม
 
@@ -298,9 +313,9 @@ dict(slug='talat-noi-charoen-krung', group='areas', img='river', areas=['talat-n
        ('เดินตลาดน้อยใช้เวลานานเท่าไหร่', 'สองถึงสามชั่วโมงสำหรับตลาดน้อย ถ้าต่อเจริญกรุงด้วยให้เผื่อครึ่งวัน')],
  ),
  en=dict(
-  title='Talat Noi & Charoen Krung 2027: Old Riverside Bangkok',
-  desc='Talat Noi and Charoen Krung in 2027: street art, the So Heng Tai mansion, the TCDC library and Warehouse 30. How to get there and a half-day walking route.',
-  h1='Talat Noi and Charoen Krung 2027: Old Riverside Bangkok With Friends',
+  title='Talat Noi & Charoen Krung: A Half-Day Walk in Old Bangkok',
+  desc='Talat Noi and Charoen Krung: street art, the So Heng Tai mansion, the TCDC library and Warehouse 30. How to get there and a half-day walking route.',
+  h1='Talat Noi and Charoen Krung: Old Riverside Bangkok With Friends',
   lead='Talat Noi and Charoen Krung form one of the best old riverside areas to explore with friends: street art, a Chinese mansion more than 200 years old and creative spaces such as TCDC. Take the MRT to Hua Lamphong or a river boat to Si Phraya Pier and walk from there.',
   card='Street art, So Heng Tai, TCDC and a half-day walking route.',
   body='''
@@ -335,6 +350,9 @@ Talat Noi borders Yaowarat, a few minutes' walk away, where the neon comes on be
 ## Why it works for a group of new friends
 There is something to look at every few steps, so conversation comes naturally, and it is slow and quiet with no loud music. It is a great plan for a few new friends from an app or your run club, and almost every corner makes a good photo.
 
+## After dark in the old lanes
+Some of Talat Noi's narrow lanes are dark and quiet after nightfall. Walk as a group, use your phone torch on uneven ground, and come out onto well-lit Charoen Krung Road before booking a ride home.
+
 ## If it rains
 Talat Noi's lanes are narrow and slippery in the rain. Shelter in TCDC, a big indoor building with the library and exhibitions, or under the roofs of Warehouse 30. When it stops, the old lanes look even better in photos.
 
@@ -355,14 +373,23 @@ dict(slug='silom-lumphini', group='areas', img='twilight', areas=['siam', 'hub']
  related=['run-clubs-bangkok', 'sukhumvit-benjakitti', 'thai-friends-etiquette'],
  sources=[S_LUMPHINI, S_BENJA, S_RUN, S_LANG],
  th=dict(
-  title='สีลม-สวนลุมพินี 2027: แฮงก์เอาต์กับเพื่อนกลางเมือง',
-  desc='สีลมและสวนลุมพินีไปไหนดีปี 2027 วิ่งรอบสวน พายเรือ เดินสะพานเขียวไปเบญจกิติ กลุ่มแลกเปลี่ยนภาษา และนัดเพื่อนหลังเลิกงานใกล้ BTS ศาลาแดง',
-  h1='สีลม-สวนลุมพินี 2027: แฮงก์เอาต์กับเพื่อนกลางเมือง',
+  title='สวนลุมพินี สีลม: เวลาเปิด วิ่งรอบสวน พายเรือ สะพานเขียว',
+  desc='สวนลุมพินีเปิดกี่โมง ลงสถานีไหน วิ่งรอบสวนกี่กิโล พายเรือ เดินสะพานเขียวไปเบญจกิติ และแผนหลังเลิกงานใกล้ BTS ศาลาแดงกับเพื่อนใหม่',
+  h1='สีลม-สวนลุมพินี: แฮงก์เอาต์กับเพื่อนกลางเมือง',
   lead='สีลมกับสวนลุมพินีคือที่นัดเพื่อนกลางเมืองที่ง่ายที่สุด เพราะ BTS ศาลาแดงกับ MRT สีลมอยู่ติดกัน สวนเปิด 04:30-21:00 น. ทุกวัน มีทางวิ่ง เรือถีบ และสะพานเขียวที่เดินต่อไปสวนเบญจกิติได้ เลิกงานแล้วมาเดินคุยกันในสวนดีกว่านั่งในห้าง',
   card='วิ่งรอบสวน เรือถีบ สะพานเขียว แลกภาษา และนัดหลังเลิกงาน',
   body='''
 ## ทำไมสีลมเหมาะกับการนัดเพื่อน
 สีลมเป็นย่านออฟฟิศ คนทำงานเยอะ เดินทางสะดวกจากทุกทิศ ลง BTS ศาลาแดง หรือ MRT สีลม ก็ถึงประตูสวนลุมพินี ส่วน MRT ลุมพินีอยู่อีกฝั่งของสวนตรงแยกวิทยุ นัดเพื่อนที่ทำงานคนละย่านมาเจอกันตรงกลางได้ง่าย
+
+## สวนลุมพินีแบบสรุป
+| เรื่อง | ข้อมูล |
+|---|---|
+| เวลาเปิด | ทุกวัน 04:30–21:00 น. |
+| ทางวิ่งรอบสวน | ราว 2.5 กม. |
+| สถานีใกล้สุด | BTS ศาลาแดง · MRT สีลม · MRT ลุมพินี |
+| ปั่นจักรยาน | ได้เฉพาะ 10:00–15:00 น. |
+| แผนที่ | [เปิดใน Google Maps](https://www.google.com/maps/search/?api=1&query=Lumphini+Park) |
 
 ## สวนลุมพินี: มากกว่าที่วิ่ง
 - **ทางวิ่งและเดินรอบสวน** ราว 2.5 กม. คนวิ่งเยอะทั้งเช้าและเย็น
@@ -408,14 +435,23 @@ dict(slug='silom-lumphini', group='areas', img='twilight', areas=['siam', 'hub']
        ('ปั่นจักรยานในสวนลุมพินีได้ไหม', 'ได้เฉพาะช่วง 10:00-15:00 น. ตามกติกาของสวน')],
  ),
  en=dict(
-  title='Silom & Lumphini Park 2027: Hang Out in Central Bangkok',
-  desc='Silom and Lumphini Park in 2027: running the loop, pedal boats, the Green Bridge to Benjakitti, language exchanges and after-work plans by BTS Sala Daeng.',
-  h1='Silom and Lumphini Park 2027: Hanging Out in Central Bangkok',
+  title='Lumphini Park & Silom: Hours, Running Loop, Green Bridge',
+  desc='Lumphini Park hours, nearest stations, the 2.5 km running loop, pedal boats, the Green Bridge to Benjakitti and easy after-work plans by BTS Sala Daeng.',
+  h1='Silom and Lumphini Park: Hanging Out in Central Bangkok',
   lead='Silom and Lumphini Park are the easiest central spot to hang out with friends: BTS Sala Daeng and MRT Si Lom sit side by side, and the park is open daily 04:30–21:00 with a running loop, pedal boats and the Green Bridge to Benjakitti. After work, a walk in the park beats another mall.',
   card='The park loop, pedal boats, the Green Bridge, language swaps and after-work plans.',
   body='''
 ## Why Silom works for hanging out
 Silom is an office district, easy to reach from anywhere. BTS Sala Daeng and MRT Si Lom bring you to the park's corner, and MRT Lumphini serves the far side at the Witthayu intersection. It is a natural halfway point for friends who work in different parts of town.
+
+## Lumphini Park at a glance
+| | |
+|---|---|
+| Hours | Daily 04:30–21:00 |
+| Loop path | About 2.5 km |
+| Nearest stations | BTS Sala Daeng · MRT Si Lom · MRT Lumphini |
+| Cycling | Only 10:00–15:00 |
+| Map | [Open in Google Maps](https://www.google.com/maps/search/?api=1&query=Lumphini+Park) |
 
 ## Lumphini Park: more than a running track
 - **The loop path**: about 2.5 km, busy with runners morning and evening.
@@ -462,9 +498,9 @@ dict(slug='sukhumvit-benjakitti', group='areas', img='twilight', areas=['thonglo
  related=['silom-lumphini', 'thonglor-ekkamai', 'free-things-bangkok'],
  sources=[S_BENJA, S_BENCHASIRI, S_RUN, S_COWORK],
  th=dict(
-  title='สุขุมวิท อโศก-พร้อมพงษ์ 2027: สวนเบญจกิติและที่แฮงก์เอาต์',
-  desc='สุขุมวิทช่วงอโศก-พร้อมพงษ์ไปไหนดีปี 2027 สวนป่าเบญจกิติ ทางเดินลอยฟ้า สวนเบญจสิริ รันคลับยามเช้า และวิธีหนีห้างไปเจอเพื่อนในที่โล่ง',
-  h1='สุขุมวิท อโศก-พร้อมพงษ์ 2027: สวนเบญจกิติ และที่แฮงก์เอาต์กับเพื่อน',
+  title='สวนเบญจกิติ อโศก-พร้อมพงษ์: ทางเดินลอยฟ้า สวนเบญจสิริ',
+  desc='สุขุมวิทช่วงอโศก-พร้อมพงษ์ไปไหนดี สวนป่าเบญจกิติ ทางเดินลอยฟ้า สวนเบญจสิริ รันคลับยามเช้า และวิธีหนีห้างไปเจอเพื่อนในที่โล่ง',
+  h1='สุขุมวิท อโศก-พร้อมพงษ์: สวนเบญจกิติและที่แฮงก์เอาต์',
   lead='ถ้านัดเพื่อนแถวอโศกหรือพร้อมพงษ์ ไม่จำเป็นต้องจบที่ห้าง สวนป่าเบญจกิติพื้นที่กว่า 450 ไร่อยู่ใกล้ BTS อโศกและ MRT ศูนย์การประชุมแห่งชาติสิริกิติ์ ส่วนสวนเบญจสิริอยู่ติด BTS พร้อมพงษ์ เปิด 05:00-21:00 น. และเข้าฟรี',
   card='สวนเบญจกิติ ทางเดินลอยฟ้า สวนเบญจสิริ และรันคลับยามเช้า',
   body='''
@@ -508,6 +544,8 @@ UnionSPACE WorkPod มีสาขาพร้อมพงษ์ เริ่ม
 - พกน้ำ ทางเดินบางช่วงไม่มีร่ม
 - ฝนตกแล้วทางเดินลื่น เดินช้า ๆ
 - ถ้าจะไปต่อทองหล่อหรือเอกมัย นั่ง BTS ไปอีกแค่หนึ่งสองสถานี ดู[ทองหล่อ-เอกมัย](/blog/thonglor-ekkamai/)
+- สวนเบญจกิติกว้างมาก บางช่วงเงียบตอนค่ำ เดินทางเดินหลักที่มีไฟ และออกจากสวนไปทางประตูที่ใกล้รถไฟฟ้า
+
 ''',
   cta=('หาเพื่อนในย่านสุขุมวิท', 'โพสต์ Reel จากสวนเบญจกิติหรือมุมที่ชอบในย่านลงกริ๊ง! แล้วดูว่าใครอยู่ใกล้และชอบที่เดียวกัน ใช้ฟรี แชตแปลไทย-อังกฤษให้ อายุ 20 ปีขึ้นไป'),
   faq=[('สวนเบญจกิติไปลงสถานีอะไร', 'ใกล้ BTS อโศก MRT สุขุมวิท และ MRT ศูนย์การประชุมแห่งชาติสิริกิติ์'),
@@ -516,9 +554,9 @@ UnionSPACE WorkPod มีสาขาพร้อมพงษ์ เริ่ม
        ('มีรันคลับแถวอโศกไหม', 'มี เช่น URT ที่วิ่งเกือบทุกเช้าราว 6:30 น. ที่ประตู 3 สวนเบญจกิติ')],
  ),
  en=dict(
-  title='Sukhumvit (Asok–Phrom Phong) 2027: Parks & Hangouts',
-  desc='Asok and Phrom Phong in 2027: Benjakitti Forest Park, its skywalks, Benchasiri Park, morning run clubs and how to hang out with friends beyond the malls.',
-  h1='Sukhumvit, Asok to Phrom Phong 2027: Parks and Places to Hang Out',
+  title='Benjakitti Park & Asok–Phrom Phong: Skywalks, Parks, Runs',
+  desc='Asok and Phrom Phong: Benjakitti Forest Park, its skywalks, Benchasiri Park, morning run clubs and how to hang out with friends beyond the malls.',
+  h1='Sukhumvit, Asok to Phrom Phong: Parks and Places to Hang Out',
   lead='Hanging out around Asok or Phrom Phong does not have to end in a mall. The 72-hectare Benjakitti Forest Park is near BTS Asok and MRT Queen Sirikit National Convention Centre, and Benchasiri Park sits right by BTS Phrom Phong, open 05:00–21:00 and free.',
   card='Benjakitti Forest Park, skywalks, Benchasiri Park and morning runs.',
   body='''
@@ -562,6 +600,8 @@ In a mall, people drift towards shop windows and conversation stalls. In a park,
 - Bring water; some walkways have no shade.
 - Paths get slippery after rain, so slow down.
 - To continue to Thonglor or Ekkamai, it is just one or two BTS stops. See [Thonglor and Ekkamai](/en/blog/thonglor-ekkamai/).
+- Benjakitti is big and some stretches are quiet in the evening; keep to the main lit paths and leave by the gate nearest the train.
+
 ''',
   cta=('Make friends around Sukhumvit', 'Post a Reel from Benjakitti or your favourite corner of the area on Kring and see who lives nearby and loves the same spots. Free, with Thai–English chat translation, ages 20+.'),
   faq=[('Which station is closest to Benjakitti Park?', 'BTS Asok, MRT Sukhumvit and MRT Queen Sirikit National Convention Centre are all close.'),

@@ -21,11 +21,12 @@ ARTS = [
 # ---------------------------------------------------------------- 16
 dict(slug='chatuchak-weekend', group='areas', img='tuktuk', areas=['ari', 'hub'],
  related=['ari-hang-out', 'run-clubs-bangkok', 'night-markets-friends'],
+ recheck='monthly',
  sources=[S_JJ, S_JJHOURS, S_ROTFAIPARK, S_RUN],
  th=dict(
-  title='จตุจักรกับเพื่อน 2027: ตลาดนัด สวน และเส้นทางวันเสาร์',
-  desc='เที่ยวจตุจักรกับเพื่อนปี 2027 ตลาดนัดเปิดเสาร์อาทิตย์ 9:00-18:00 น. ลงสถานีไหน เดินยังไงไม่หลง และสวนรถไฟกับสวนจตุจักรที่อยู่ติดกัน',
-  h1='จตุจักรกับเพื่อน 2027: ตลาดนัด สวน และแผนวันเสาร์ที่ลงตัว',
+  title='จตุจักรเปิดกี่โมง ลงสถานีไหน + แผนวันเสาร์กับเพื่อน',
+  desc='ตลาดนัดจตุจักรเปิดเสาร์อาทิตย์ 9:00-18:00 น. ลง MRT กำแพงเพชรทางออก 2 หรือ BTS หมอชิต เดินยังไงไม่หลง หนีร้อนตอนไหน และสวนรถไฟที่อยู่ติดกัน',
+  h1='จตุจักรกับเพื่อน: ตลาดนัด สวน และเส้นทางวันเสาร์',
   lead='ตลาดนัดจตุจักรเปิดเต็มรูปแบบวันเสาร์และอาทิตย์ 9:00-18:00 น. มาได้ทั้ง MRT กำแพงเพชร MRT สวนจตุจักร และ BTS หมอชิต แผนที่ดีที่สุดกับเพื่อนคือเดินตลาดช่วงเช้า หลบร้อนตอนบ่าย แล้วไปนั่งเล่นหรือปั่นจักรยานในสวนรถไฟที่อยู่ติดกันตอนเย็น',
   card='เวลาเปิด สถานี วิธีเดินไม่หลง และสวนข้าง ๆ',
   body='''
@@ -79,6 +80,9 @@ dict(slug='chatuchak-weekend', group='areas', img='tuktuk', areas=['ari', 'hub']
 - ใส่รองเท้าเดินสบาย และเสื้อที่ระบายอากาศ
 - ต่อราคาอย่างสุภาพได้ในบางร้าน แต่อย่ากดราคาจนเกินไป
 - อยากเห็นจตุจักรในมุมกลางคืน ดู[ตลาดกลางคืนในกรุงเทพฯ](/blog/night-markets-friends/)
+- ช่วงคนแน่น สะพายกระเป๋าไว้ด้านหน้า และเก็บโทรศัพท์ไว้กับตัว
+- ถ้าเวียนหัวจากความร้อน หยุดพักในที่ร่มหรือห้องแอร์ทันที แล้วดื่มน้ำ
+
 ''',
   cta=('ลงคลิปของเด็ดที่เจอในจตุจักร', 'ถ่าย Reel สั้น ๆ จากร้านหรือมุมที่ชอบในจตุจักรลงกริ๊ง! แล้วดูว่าใครชอบแนวเดียวกัน ชวนกันมาเดินเสาร์หน้าได้ ใช้ฟรี อายุ 20 ปีขึ้นไป'),
   faq=[('ตลาดนัดจตุจักรเปิดกี่โมง', 'เปิดทั้งตลาดวันเสาร์และอาทิตย์ 9:00-18:00 น. วันพุธและพฤหัสเปิดเฉพาะโซนต้นไม้ 7:00-18:00 น.'),
@@ -87,9 +91,9 @@ dict(slug='chatuchak-weekend', group='areas', img='tuktuk', areas=['ari', 'hub']
        ('ใกล้จตุจักรมีสวนให้นั่งพักไหม', 'มี สวนจตุจักรอยู่ติดตลาด และสวนรถไฟที่มีที่เช่าจักรยานอยู่ไม่ไกล')],
  ),
  en=dict(
-  title='Chatuchak Weekend 2027: Market, Parks & a Saturday Plan',
-  desc='Chatuchak with friends in 2027: the market opens Sat–Sun 9:00–18:00. Which station to use, how not to get lost, and the parks right next door.',
-  h1='Chatuchak with Friends 2027: The Market, the Parks and a Saturday Plan',
+  title='Chatuchak Weekend Market: Hours, Stations & a Saturday Plan',
+  desc='Chatuchak opens Sat–Sun 9:00–18:00. Which station and exit to use, how not to get lost or overheat, and the parks right next door for after the market.',
+  h1='Chatuchak with Friends: The Market, the Parks and a Saturday Plan',
   lead='Chatuchak Weekend Market is fully open on Saturdays and Sundays from 9:00 to 18:00, reached via MRT Kamphaeng Phet, MRT Chatuchak Park or BTS Mo Chit. The best plan with friends is the market in the morning, a break from the midday heat, then the neighbouring parks in the late afternoon.',
   card='Opening hours, stations, not getting lost and the parks next door.',
   body='''
@@ -143,6 +147,9 @@ On Wednesdays and Thursdays only the plant section opens, from 7am. It is quiet 
 - Wear comfortable shoes and breathable clothes.
 - Polite bargaining is fine at some stalls, but do not push too hard.
 - For Bangkok's after-dark markets, see [night markets to go to with friends](/en/blog/night-markets-friends/).
+- In the thickest crowds, wear your bag in front and keep your phone on you.
+- Feeling dizzy from the heat? Stop in shade or air-con straight away and drink water.
+
 ''',
   cta=('Show what you found at Chatuchak', 'Post a short Reel from your favourite Chatuchak stall or corner on Kring and see who shares your taste. Plan next Saturday together. Free, ages 20+.'),
   faq=[('What are Chatuchak Weekend Market\'s opening hours?', 'The whole market opens Saturday and Sunday, 9:00–18:00. On Wednesday and Thursday only the plant section opens, 7:00–18:00.'),
@@ -153,16 +160,24 @@ On Wednesdays and Thursdays only the plant section opens, from 7am. It is quiet 
 # ---------------------------------------------------------------- 17
 dict(slug='night-markets-friends', group='do', img='tuktuk', areas=['yaowarat', 'thonburi', 'hub'],
  related=['chatuchak-weekend', 'sunset-spots-bangkok', 'solo-travel-bangkok'],
+ recheck='monthly',
  sources=[S_JODD, S_ROTFAI, S_YL, S_ASIATIQUE],
  th=dict(
-  title='ตลาดกลางคืนกรุงเทพ 2027: ไปกับเพื่อนที่ไหนดี',
-  desc='ตลาดกลางคืนในกรุงเทพฯ ที่ไปกับเพื่อนสนุกที่สุดปี 2027 จ๊อดแฟร์ รัชดา ตลาดนัดรถไฟศรีนครินทร์ และเอเชียทีค พร้อมวันเวลาเปิดและวิธีเดินทาง',
-  h1='ตลาดกลางคืนในกรุงเทพฯ 2027: ไปกับเพื่อนที่ไหนดี',
+  title='ตลาดกลางคืนกรุงเทพฯ 2569: 3 ที่ไปกับเพื่อน เปิดกี่โมง',
+  desc='ตลาดกลางคืนที่ไปกับเพื่อนสนุกที่สุดตอนนี้ จ๊อดแฟร์ รัชดา ตลาดนัดรถไฟศรีนครินทร์ และเอเชียทีค เทียบวันเปิด เวลา สถานีใกล้สุด และวิธีกลับบ้านให้ปลอดภัย',
+  h1='ตลาดกลางคืนกรุงเทพฯ: ไปกับเพื่อนที่ไหนดี',
   lead='ตลาดกลางคืนที่ไปกับเพื่อนสนุกที่สุดในกรุงเทพฯ ตอนนี้คือจ๊อดแฟร์ รัชดา ที่เปิดทุกวันราว 17:00 น. ถึงตีหนึ่ง ใกล้ MRT ศูนย์วัฒนธรรมแห่งประเทศไทย ตลาดนัดรถไฟศรีนครินทร์ที่เปิดพฤหัสถึงอาทิตย์ และเอเชียทีคริมแม่น้ำที่มีชิงช้าสวรรค์และเรือรับส่งฟรี',
   card='จ๊อดแฟร์ รัชดา ตลาดนัดรถไฟศรีนครินทร์ และเอเชียทีค',
   body='''
 ## ทำไมตลาดกลางคืนเหมาะกับการไปเป็นกลุ่ม
 ตลาดกลางคืนคือที่ที่คนกรุงเทพฯ ออกมาเดินเล่นหลังเลิกงาน อากาศเย็นลง มีของให้ดู มีเพลง มีโต๊ะยาวให้นั่งรวมกัน ไปกันสามสี่คนสนุกที่สุด แบ่งกันเดินแล้วกลับมาเจอกันที่โต๊ะ เหมาะกับแก๊งเพื่อนใหม่ด้วย เพราะมีอะไรให้ดูและให้คุยกันตลอดทาง
+
+## สรุปวัน เวลา และการเดินทาง
+| ตลาด | เปิด | ไปยังไง |
+|---|---|---|
+| จ๊อดแฟร์ รัชดา · [แผนที่](https://www.google.com/maps/search/?api=1&query=Jodd+Fairs+Ratchada) | ทุกวัน ราว 17:00–01:00 | MRT ศูนย์วัฒนธรรมฯ ทางออก 4 เดินราว 3 นาที |
+| ตลาดนัดรถไฟศรีนครินทร์ · [แผนที่](https://www.google.com/maps/search/?api=1&query=Train+Night+Market+Srinakarin) | พฤ.–อา. ราว 17:00–01:00 | MRT สายสีเหลือง สถานีสวนหลวง ร.9 |
+| เอเชียทีค · [แผนที่](https://www.google.com/maps/search/?api=1&query=Asiatique+The+Riverfront) | ทุกวัน 16:00–24:00 | เรือรับส่งฟรีจากท่าสาทร ราว 10–15 นาที |
 
 ## จ๊อดแฟร์ รัชดา
 - **เปิด** ทุกวัน ราว 17:00 น. ถึงตีหนึ่ง
@@ -217,14 +232,21 @@ dict(slug='night-markets-friends', group='do', img='tuktuk', areas=['yaowarat', 
        ('ตลาดกลางคืนไหนใกล้รถไฟฟ้าที่สุด', 'จ๊อดแฟร์ รัชดา เดินจาก MRT ศูนย์วัฒนธรรมแห่งประเทศไทย ทางออก 4 ราวสามนาที')],
  ),
  en=dict(
-  title='Bangkok Night Markets 2027: Where to Go With Friends',
-  desc='Bangkok night markets to enjoy with friends in 2027: Jodd Fairs Ratchada, the Srinakarin Train Night Market and Asiatique, with days, hours and transport.',
-  h1='Bangkok Night Markets 2027: Where to Go With Friends',
+  title='Bangkok Night Markets (2026): 3 Best for Groups, With Hours',
+  desc='Jodd Fairs Ratchada, the Srinakarin Train Night Market and Asiatique compared: open days, hours, nearest station and getting home safely with friends.',
+  h1='Bangkok Night Markets: Where to Go With Friends',
   lead='The most fun night markets for a group in Bangkok right now are Jodd Fairs Ratchada, open daily from about 17:00 to 01:00 near MRT Thailand Cultural Centre; the Srinakarin Train Night Market, Thursday to Sunday; and riverside Asiatique, with its Ferris wheel and free shuttle boat.',
   card='Jodd Fairs Ratchada, the Srinakarin Train Night Market and Asiatique.',
   body='''
 ## Why night markets are made for groups
 Night markets are where Bangkok unwinds after work: the air cools, there is music, things to browse and long shared tables. Three or four people is perfect: split up to explore, then regroup at a table. It is also a great plan with a new group of friends, because there is always something to look at and talk about.
+
+## Days, hours and transport at a glance
+| Market | Open | Getting there |
+|---|---|---|
+| Jodd Fairs Ratchada · [map](https://www.google.com/maps/search/?api=1&query=Jodd+Fairs+Ratchada) | Daily, about 17:00–01:00 | MRT Thailand Cultural Centre Exit 4, about 3 min on foot |
+| Srinakarin Train Night Market · [map](https://www.google.com/maps/search/?api=1&query=Train+Night+Market+Srinakarin) | Thu–Sun, about 17:00–01:00 | MRT Yellow Line, Suan Luang Rama IX |
+| Asiatique · [map](https://www.google.com/maps/search/?api=1&query=Asiatique+The+Riverfront) | Daily, 16:00–24:00 | Free shuttle boat from Sathorn Pier, 10–15 min |
 
 ## Jodd Fairs Ratchada
 - **Open**: daily, roughly 17:00 to 01:00.
@@ -281,16 +303,26 @@ To start with a sunset, stop at Chao Phraya Sky Park first, then take a boat dow
 # ---------------------------------------------------------------- 18
 dict(slug='free-things-bangkok', group='do', img='river', areas=['siam', 'talat-noi', 'thonburi'],
  related=['things-to-do-alone-bangkok', 'sunset-spots-bangkok', 'run-clubs-bangkok'],
+ recheck='monthly',
  sources=[S_BACC, S_SKY, S_LUMPHINI, S_BENCHASIRI],
  th=dict(
-  title='เที่ยวกรุงเทพฟรี 2027: 12 ที่ไม่เสียค่าเข้า ไปกับเพื่อนได้',
-  desc='12 ที่เที่ยวฟรีในกรุงเทพฯ ปี 2027 ไปกับเพื่อนได้ทั้งวัน หอศิลป์ สวนลอยฟ้า สวนสาธารณะ สตรีทอาร์ต สวนดาดฟ้า TCDC และรันคลับที่ไม่เก็บเงิน',
-  h1='เที่ยวกรุงเทพฯ ฟรี 2027: 12 ที่ไม่เสียค่าเข้า ไปกับเพื่อนได้',
+  title='ที่เที่ยวฟรีในกรุงเทพฯ 2569: 12 ที่ไม่เสียค่าเข้า',
+  desc='12 ที่เที่ยวฟรีในกรุงเทพฯ ไปกับเพื่อนได้ทั้งวัน หอศิลป์ สวนลอยฟ้า สวนสาธารณะ สตรีทอาร์ต สวนดาดฟ้า TCDC และรันคลับที่ไม่เก็บเงิน',
+  h1='เที่ยวกรุงเทพฯ ฟรี: 12 ที่ไม่เสียค่าเข้า ไปกับเพื่อนได้ทั้งวัน',
   lead='กรุงเทพฯ มีที่เที่ยวดี ๆ ที่ไม่เสียค่าเข้าเยอะกว่าที่คิด ตั้งแต่หอศิลปวัฒนธรรมแห่งกรุงเทพมหานคร สวนลอยฟ้าเจ้าพระยา สวนลุมพินี สวนเบญจกิติ ไปจนถึงสตรีทอาร์ตในตลาดน้อย จ่ายแค่ค่าเดินทาง ก็เที่ยวกับเพื่อนได้ทั้งวัน',
   card='หอศิลป์ สวนลอยฟ้า สวนสาธารณะ สตรีทอาร์ต และกิจกรรมฟรี',
   body='''
 ## ทำไมต้องรู้ไว้
 เที่ยวกับเพื่อนบ่อย ๆ ค่าใช้จ่ายบานเร็ว โดยเฉพาะตอนสิ้นเดือน ลิสต์นี้คือที่ที่ไม่เสียค่าเข้า ให้ได้เจอเพื่อนบ่อยขึ้นโดยไม่ต้องคิดเรื่องเงินมาก ค่าเดินทางและของกินแยกต่างหาก
+
+## สรุปเวลาเปิดแบบเร็ว
+| ที่ (เข้าฟรี) | เปิด | สถานีใกล้สุด |
+|---|---|---|
+| หอศิลป์ BACC · [แผนที่](https://www.google.com/maps/search/?api=1&query=Bangkok+Art+and+Culture+Centre) | อ.–อา. 10:00–20:00 | BTS สนามกีฬาแห่งชาติ |
+| สวนลุมพินี · [แผนที่](https://www.google.com/maps/search/?api=1&query=Lumphini+Park) | ทุกวัน 04:30–21:00 | BTS ศาลาแดง / MRT สีลม |
+| สวนเบญจสิริ · [แผนที่](https://www.google.com/maps/search/?api=1&query=Benchasiri+Park) | ทุกวัน 05:00–21:00 | BTS พร้อมพงษ์ |
+| สวนลอยฟ้าเจ้าพระยา · [แผนที่](https://www.google.com/maps/search/?api=1&query=Chao+Phraya+Sky+Park) | ทุกวัน 05:00–20:00 | MRT สนามไชย |
+| ตลาดนัดจตุจักร · [แผนที่](https://www.google.com/maps/search/?api=1&query=Chatuchak+Weekend+Market) | ส.–อา. 9:00–18:00 | MRT กำแพงเพชร ทางออก 2 |
 
 ## ศิลปะและความรู้
 1. **หอศิลปวัฒนธรรมแห่งกรุงเทพมหานคร (BACC)** ที่[สยาม](/bangkok/siam/) นิทรรศการเข้าฟรี ยกเว้นงานพิเศษ เปิดอังคาร-อาทิตย์ 10:00-20:00 น. เชื่อมกับ BTS สนามกีฬาแห่งชาติ
@@ -335,6 +367,8 @@ dict(slug='free-things-bangkok', group='do', img='river', areas=['siam', 'talat-
 - เลือกวันธรรมดาถ้าทำได้ คนน้อยกว่าและไม่ต้องรอคิว
 - ชวนเพื่อนแบบหารค่าเดินทาง ถ้าต้องนั่งรถไปที่ไกลจากรถไฟฟ้า
 - ตามเพจของหอศิลป์และพื้นที่สร้างสรรค์ งานเปิดนิทรรศการและทอล์กหลายงานเข้าฟรี และเป็นที่ที่ได้คุยกับคนใหม่ง่ายมาก
+- ถ้ามีคนแปลกหน้าเข้ามาบอกว่าที่ที่จะไปปิดวันนี้ แล้วเสนอพาไปที่อื่น ให้ปฏิเสธสุภาพแล้วเช็กเอง
+
 ''',
   cta=('เที่ยวฟรี แต่ได้เพื่อนใหม่', 'โพสต์ Reel จากที่เที่ยวฟรีที่ชอบลงกริ๊ง! แล้วดูว่าใครชอบเที่ยวแบบเดียวกัน ตัวแอปเองก็ใช้ฟรี สำหรับอายุ 20 ปีขึ้นไป'),
   faq=[('ที่เที่ยวฟรีในกรุงเทพฯ มีที่ไหนบ้าง', 'หอศิลปวัฒนธรรมแห่งกรุงเทพมหานคร สวนลอยฟ้าเจ้าพระยา สวนลุมพินี สวนเบญจกิติ สวนเบญจสิริ สวนดาดฟ้า TCDC และสตรีทอาร์ตในตลาดน้อย'),
@@ -343,14 +377,23 @@ dict(slug='free-things-bangkok', group='do', img='river', areas=['siam', 'talat-
        ('มีกิจกรรมฟรีที่ได้เพื่อนใหม่ไหม', 'มี รันคลับหลายกลุ่มวิ่งฟรี และกลุ่มแลกเปลี่ยนภาษาบางกลุ่มไม่เก็บเงิน')],
  ),
  en=dict(
-  title='Free Things to Do in Bangkok 2027: 12 Places, No Entry Fee',
-  desc='12 free things to do in Bangkok in 2027 with friends: a free art centre, sky parks, big city parks, street art, the TCDC rooftop garden and free run clubs.',
-  h1='Free Things to Do in Bangkok 2027: 12 Places With No Entry Fee',
+  title='12 Free Things to Do in Bangkok (2026): No Entry Fee',
+  desc='12 free things to do in Bangkok with friends: a free art centre, sky parks, city parks, street art, the TCDC rooftop and free run clubs, with hours.',
+  h1='Free Things to Do in Bangkok: 12 Places With No Entry Fee',
   lead='Bangkok has more great free places than most people expect: the Bangkok Art and Culture Centre, Chao Phraya Sky Park, Lumphini and Benjakitti parks and the street art of Talat Noi, among others. Pay only for transport and food, and you can spend a whole day out with friends.',
   card='A free art centre, sky parks, big parks, street art and free activities.',
   body='''
 ## Why this list matters
 Going out with friends often gets expensive fast. Everything here has no entry fee according to the latest information we checked, so you can see friends more often without worrying about money. Transport and food are extra.
+
+## Opening hours at a glance
+| Place (free entry) | Open | Nearest station |
+|---|---|---|
+| BACC · [map](https://www.google.com/maps/search/?api=1&query=Bangkok+Art+and+Culture+Centre) | Tue–Sun 10:00–20:00 | BTS National Stadium |
+| Lumphini Park · [map](https://www.google.com/maps/search/?api=1&query=Lumphini+Park) | Daily 04:30–21:00 | BTS Sala Daeng / MRT Si Lom |
+| Benchasiri Park · [map](https://www.google.com/maps/search/?api=1&query=Benchasiri+Park) | Daily 05:00–21:00 | BTS Phrom Phong |
+| Chao Phraya Sky Park · [map](https://www.google.com/maps/search/?api=1&query=Chao+Phraya+Sky+Park) | Daily 05:00–20:00 | MRT Sanam Chai |
+| Chatuchak Weekend Market · [map](https://www.google.com/maps/search/?api=1&query=Chatuchak+Weekend+Market) | Sat–Sun 9:00–18:00 | MRT Kamphaeng Phet Exit 2 |
 
 ## Art and ideas
 1. **Bangkok Art and Culture Centre (BACC)** at [Siam](/en/bangkok/siam/): free exhibitions except some special events, open Tuesday to Sunday 10:00–20:00, linked to BTS National Stadium.
@@ -395,6 +438,8 @@ Many free places stay that way because everyone looks after them. Take your rubb
 - Go on weekdays if you can: fewer people and no queues.
 - Share a ride if you are heading somewhere far from the rail lines.
 - Follow BACC and other creative spaces online: many exhibition openings and talks are free, and they are easy places to start chatting with new people.
+- If a friendly stranger says the place you are heading to is closed today and offers to take you somewhere else, decline politely and check for yourself.
+
 ''',
   cta=('Free days out, new friends', 'Post a Reel from your favourite free spot on Kring and see who explores the same way. The app is free too, for ages 20+.'),
   faq=[('What are the best free things to do in Bangkok?', 'The Bangkok Art and Culture Centre, Chao Phraya Sky Park, Lumphini, Benjakitti and Benchasiri parks, the TCDC rooftop garden and Talat Noi\'s street art.'),
@@ -407,9 +452,9 @@ dict(slug='rainy-season-bangkok', group='do', img='tuktuk', areas=['siam', 'hub'
  related=['board-game-cafes-bangkok', 'free-things-bangkok', 'things-to-do-alone-bangkok'],
  sources=[S_RAIN, S_BACC, S_BOARD, S_TCDC],
  th=dict(
-  title='หน้าฝนกรุงเทพ 2027 ทำอะไรดี: แผนในร่มกับเพื่อน',
-  desc='หน้าฝนกรุงเทพฯ ปี 2027 ทำอะไรดีกับเพื่อน หอศิลป์ ห้องสมุด TCDC บอร์ดเกมคาเฟ่ และพื้นที่ในร่ม พร้อมวิธีเดินทางช่วงฝนตกไม่ให้ติดอยู่กลางทาง',
-  h1='หน้าฝนในกรุงเทพฯ 2027 ทำอะไรดี: แผนในร่มกับเพื่อน',
+  title='หน้าฝนกรุงเทพฯ ทำอะไรดี: แผนในร่มกับเพื่อน ใกล้รถไฟฟ้า',
+  desc='หน้าฝนกรุงเทพฯ ราวกลาง พ.ค. ถึงกลาง ต.ค. ทำอะไรดีกับเพื่อน หอศิลป์ ห้องสมุด TCDC บอร์ดเกมคาเฟ่ ที่ในร่มใกล้รถไฟฟ้า และวิธีเดินทางตอนฝนตกหนักให้ปลอดภัย',
+  h1='หน้าฝนในกรุงเทพฯ ทำอะไรดี: แผนในร่มกับเพื่อน',
   lead='หน้าฝนกรุงเทพฯ มักเริ่มราวกลางเดือนพฤษภาคมและหมดราวกลางเดือนตุลาคม ฝนมักตกหนักช่วงบ่ายถึงเย็น แผนที่ดีคือออกเช้า อยู่ในร่มช่วงบ่าย และเลือกที่ที่ใกล้รถไฟฟ้า เช่น หอศิลป์ที่สยาม ห้องสมุด TCDC และบอร์ดเกมคาเฟ่',
   card='หอศิลป์ ห้องสมุด บอร์ดเกม และการเดินทางช่วงฝนตก',
   body='''
@@ -444,6 +489,11 @@ dict(slug='rainy-season-bangkok', group='do', img='tuktuk', areas=['siam', 'hub'
 ## ฝนตกแล้วรอที่ไหนดี
 ถ้าฝนเทลงมาตอนอยู่ข้างนอก มองหาทางเดินลอยฟ้าหรือห้างที่ใกล้ที่สุด ไม่ต้องรีบวิ่งไปป้ายรถ ส่วนใหญ่ฝนหนักจะซาในครึ่งถึงหนึ่งชั่วโมง นั่งร้านกาแฟรอพร้อมกับเพื่อนก็กลายเป็นเวลาคุยกันที่ดีที่สุดของวัน
 
+## ฝนฟ้าคะนองหนัก ๆ
+- ถ้าฟ้าผ่าถี่ เข้าอาคารทันที อย่ายืนกลางสนามโล่งหรือหลบใต้ต้นไม้ต้นเดียว
+- เลี่ยงวินมอเตอร์ไซค์ช่วงถนนลื่นและน้ำขัง รอให้ฝนซาแล้วค่อยไปต่อ
+- อย่าเดินใกล้เสาไฟหรือสายไฟที่จมน้ำ
+
 ## ข้อดีของหน้าฝน
 อากาศเย็นลงกว่าหน้าร้อน ต้นไม้ในสวนเขียวสด ท้องฟ้าหลังฝนใสจนเห็นวิวไกล พระอาทิตย์ตกหลังพายุมักสวยที่สุดของปี ถ้าฝนหยุดก่อนเย็น ลองไปสวนลอยฟ้าเจ้าพระยาหรือทางเดินลอยฟ้าเบญจกิติ ดู[จุดชมพระอาทิตย์ตก](/blog/sunset-spots-bangkok/)
 
@@ -467,9 +517,9 @@ dict(slug='rainy-season-bangkok', group='do', img='tuktuk', areas=['siam', 'hub'
        ('ฝนตกหนักควรเดินทางยังไง', 'ใช้รถไฟฟ้าเป็นหลัก รอให้ฝนซาก่อนเรียกรถ และเลี่ยงเดินลุยน้ำท่วมขัง')],
  ),
  en=dict(
-  title='Rainy Season in Bangkok 2027: Indoor Plans With Friends',
-  desc='Bangkok\'s rainy season in 2027: when it runs, what to do indoors with friends (art, libraries, board games) and how to get around when it pours.',
-  h1='Rainy Season in Bangkok 2027: Plans That Still Work',
+  title='Bangkok Rainy Season: Indoor Plans Near the BTS and MRT',
+  desc='Bangkok\'s rainy season runs about mid-May to mid-October. Indoor plans with friends (art, libraries, board games) and getting around safely in a downpour.',
+  h1='Rainy Season in Bangkok: Plans That Still Work',
   lead='Bangkok\'s rainy season usually starts around mid-May and ends around mid-October, with the heaviest rain in the afternoon and evening. The best plan is to go out in the morning, stay indoors in the afternoon and pick places near the rail lines, such as BACC at Siam, the TCDC library and board-game cafés.',
   card='Art, libraries, board games and getting around in the rain.',
   body='''
@@ -501,6 +551,11 @@ Thailand's Meteorological Department says the rainy season begins around the end
 - Carry a small folding umbrella and a waterproof pouch for your phone.
 - Wear sandals or shoes that can get wet if you will walk a lot.
 
+## In a real thunderstorm
+- If lightning is frequent, get inside a building. Do not stand in open fields or shelter under a lone tree.
+- Skip motorbike taxis on wet, flooded roads; wait for the rain to ease.
+- Keep clear of lamp posts and cables standing in floodwater.
+
 ## The upside of the rains
 It is cooler than the hot season, the parks are lush and green, and after a storm the air is clear enough for long views. Sunsets after rain are often the best of the year. If it stops before evening, head to Chao Phraya Sky Park or the Benjakitti skywalk. See [sunset spots in Bangkok](/en/blog/sunset-spots-bangkok/).
 
@@ -522,16 +577,25 @@ People stay in more, but indoor activities are at their busiest: workshops, boar
 # ---------------------------------------------------------------- 20
 dict(slug='sunset-spots-bangkok', group='do', img='river', areas=['thonburi', 'talat-noi', 'hub'],
  related=['free-things-bangkok', 'night-markets-friends', 'talat-noi-charoen-krung'],
+ recheck='monthly',
  sources=[S_SKY, S_SKYBP, S_BENJA, S_ASIATIQUE],
  th=dict(
-  title='จุดชมพระอาทิตย์ตกในกรุงเทพ 2027 ไปกับเพื่อนที่ไหนดี',
-  desc='จุดชมพระอาทิตย์ตกในกรุงเทพฯ ปี 2027 ที่ไปกับเพื่อนได้ สวนลอยฟ้าเจ้าพระยา ริมน้ำฝั่งธนฯ ทางเดินลอยฟ้าเบญจกิติ และชิงช้าสวรรค์เอเชียทีค ส่วนใหญ่ฟรี',
-  h1='จุดชมพระอาทิตย์ตกในกรุงเทพฯ 2027: ไปกับเพื่อนที่ไหนดี',
+  title='จุดชมพระอาทิตย์ตกในกรุงเทพฯ: 5 ที่ไปกับเพื่อน ส่วนใหญ่ฟรี',
+  desc='จุดชมพระอาทิตย์ตกในกรุงเทพฯ ที่ไปกับเพื่อนได้ สวนลอยฟ้าเจ้าพระยา ริมน้ำฝั่งธนฯ ทางเดินลอยฟ้าเบญจกิติ และชิงช้าสวรรค์เอเชียทีค ส่วนใหญ่ฟรี',
+  h1='จุดชมพระอาทิตย์ตกในกรุงเทพฯ: ไปกับเพื่อนที่ไหนดี',
   lead='จุดชมพระอาทิตย์ตกที่ดีที่สุดในกรุงเทพฯ ส่วนใหญ่อยู่ริมแม่น้ำเจ้าพระยา โดยเฉพาะสวนลอยฟ้าเจ้าพระยาบนสะพานพระปกเกล้าที่เข้าฟรีและเปิดถึงสองทุ่ม ถ้าอยู่ฝั่งสุขุมวิท ทางเดินลอยฟ้าในสวนเบญจกิติก็ให้วิวตึกยามเย็นที่สวยไม่แพ้กัน',
   card='สวนลอยฟ้าเจ้าพระยา ริมน้ำฝั่งธนฯ เบญจกิติ และเอเชียทีค',
   body='''
 ## ทำไมพระอาทิตย์ตกคือนัดที่ดีที่สุด
-นัดดูพระอาทิตย์ตกมีเวลาเริ่มชัดเจน ใช้เวลาไม่นาน ไม่ต้องใช้เงินมาก และมีเรื่องให้คุยเอง ทั้งวิว ท้องฟ้า และรูปที่ถ่ายกัน หลังจากนั้นจะไปต่อหรือแยกย้ายก็ได้ เหมาะกับเพื่อนใหม่มาก
+นัดดูพระอาทิตย์ตกมีเวลาเริ่มชัดเจน ใช้เวลาไม่นาน ไม่ต้องใช้เงินมาก และมีเรื่องให้คุยเอง ทั้งวิว ท้องฟ้า และรูปที่ถ่ายกัน จบแล้วจะไปตลาดกลางคืนกันต่อเป็นกลุ่มหรือแยกย้ายกลับบ้านก็ง่าย เหมาะกับเพื่อนใหม่มาก
+
+## สรุปจุดชมพระอาทิตย์ตก
+| จุด | เปิด / ค่าเข้า | ไปยังไง |
+|---|---|---|
+| สวนลอยฟ้าเจ้าพระยา · [แผนที่](https://www.google.com/maps/search/?api=1&query=Chao+Phraya+Sky+Park) | 05:00–20:00 ฟรี | MRT สนามไชย |
+| ลานริมน้ำฝั่งธนฯ | ฟรี | เดินข้ามจากสวนลอยฟ้า หรือเรือข้ามฟาก |
+| ทางเดินลอยฟ้าเบญจกิติ · [แผนที่](https://www.google.com/maps/search/?api=1&query=Benjakitti+Forest+Park) | ฟรี | BTS อโศก / MRT ศูนย์ฯ สิริกิติ์ |
+| ชิงช้าสวรรค์เอเชียทีค · [แผนที่](https://www.google.com/maps/search/?api=1&query=Asiatique+Sky) | ตลาด 16:00–24:00 ชิงช้าเสียเงิน | เรือฟรีจากท่าสาทร |
 
 ## สวนลอยฟ้าเจ้าพระยา
 - อยู่บนสะพานพระปกเกล้า สร้างบนโครงสร้างเดิมของโครงการรถไฟฟ้าลาวาลินที่สร้างไม่เสร็จ ยาว 280 เมตร เชื่อมสวนฝั่งพระนครกับสวนเฉลิมพระเกียรติฝั่งธนบุรี
@@ -568,6 +632,11 @@ dict(slug='sunset-spots-bangkok', group='do', img='river', areas=['thonburi', 't
 ## นัดดูพระอาทิตย์ตกกับเพื่อนใหม่
 ตกลงเวลาให้เผื่อเดินทาง เพราะพระอาทิตย์ไม่รอใคร เจอกันที่จุดที่หาง่ายอย่างทางขึ้นสวนลอยฟ้าเจ้าพระยา ถ้าใครมาสายจะได้ยังทัน ผลัดกันถ่ายรูปให้เพื่อนในกลุ่ม แล้วค่อยชวนกันไปเดินตลาดกลางคืนต่อ บรรยากาศสบาย ๆ แบบนี้ทำให้ไม่อึดอัดทั้งสองฝ่าย
 
+## หลังฟ้ามืด
+- สวนลอยฟ้าปิด 20:00 น. ออกก่อนเวลาแล้วเดินกลับทางถนนใหญ่ที่มีไฟสว่าง
+- ถ้าจะนั่งเรือต่อ เช็กเวลาเรือเที่ยวสุดท้ายก่อน ไม่อย่างนั้นอาจต้องรอนาน
+- มากับเพื่อนที่เพิ่งรู้จัก แยกกันกลับเอง และส่งข้อความบอกกันเมื่อถึงบ้าน
+
 ## จบเย็นแล้วไปไหนต่อ
 จากริมน้ำ ต่อไปตลาดกลางคืนได้ง่าย ดู[ตลาดกลางคืนในกรุงเทพฯ](/blog/night-markets-friends/)
 ''',
@@ -578,14 +647,22 @@ dict(slug='sunset-spots-bangkok', group='do', img='river', areas=['thonburi', 't
        ('มีจุดชมวิวจากที่สูงที่ไม่ต้องขึ้นตึกไหม', 'มี ชิงช้าสวรรค์เอเชียทีคสูง 60 เมตร นั่งหนึ่งรอบตั๋วราว 15-20 นาที')],
  ),
  en=dict(
-  title='Best Sunset Spots in Bangkok 2027 (Mostly Free)',
-  desc='Bangkok sunset spots for 2027 to share with friends: Chao Phraya Sky Park, the Thonburi riverside, the Benjakitti skywalk and the Asiatique Ferris wheel.',
-  h1='Best Sunset Spots in Bangkok 2027, Mostly Free',
+  title='Best Sunset Spots in Bangkok: 5 Places, Mostly Free',
+  desc='5 Bangkok sunset spots for friends, mostly free: Chao Phraya Sky Park, the Thonburi riverside, Talat Noi, the Benjakitti skywalk and the Asiatique wheel.',
+  h1='Best Sunset Spots in Bangkok, Mostly Free',
   lead='Most of Bangkok\'s best sunset spots are along the Chao Phraya, above all Chao Phraya Sky Park on the Phra Pok Klao Bridge, free and open until 8pm. On the Sukhumvit side, the skywalks of Benjakitti Forest Park give an equally lovely evening view of the towers.',
   card='Chao Phraya Sky Park, the Thonburi riverside, Benjakitti and Asiatique.',
   body='''
 ## Why sunset makes the best plan
 A sunset plan has a clear start time, does not take long, costs little and gives you plenty to talk about: the view, the sky, the photos. Afterwards you can carry on or head home easily, which makes it ideal with new friends.
+
+## Sunset spots at a glance
+| Spot | Hours / cost | Getting there |
+|---|---|---|
+| Chao Phraya Sky Park · [map](https://www.google.com/maps/search/?api=1&query=Chao+Phraya+Sky+Park) | 05:00–20:00, free | MRT Sanam Chai |
+| Thonburi riverside decks | Free | Walk over from Sky Park or take a cross-river ferry |
+| Benjakitti skywalk · [map](https://www.google.com/maps/search/?api=1&query=Benjakitti+Forest+Park) | Free | BTS Asok / MRT Queen Sirikit NCC |
+| Asiatique Sky wheel · [map](https://www.google.com/maps/search/?api=1&query=Asiatique+Sky) | Market 16:00–24:00, wheel is paid | Free boat from Sathorn Pier |
 
 ## Chao Phraya Sky Park
 - Built on the Phra Pok Klao Bridge over the abandoned structure of the unfinished Lavalin Skytrain, 280 metres long, linking a park on the old-town side with Chaloem Phrakiat Park on the Thonburi side.
@@ -617,6 +694,11 @@ Bangkok has several paid observation decks on tall towers. The views are spectac
 ## A sunset plan with new friends
 Allow for travel time, because the sun will not wait. Gather somewhere easy to find, such as the entrance to Chao Phraya Sky Park, so latecomers still make it. Take turns taking photos of the group, then wander on to a night market together. That low-pressure rhythm keeps things comfortable for everyone.
 
+## After dark
+- Sky Park closes at 20:00. Leave before then and walk back along the main, well-lit roads.
+- Taking a boat on? Check the last departure first, or you may wait a long time.
+- With people you have just met, make your own way home and message each other when you are back.
+
 ## After sunset
 From the river, it is easy to carry on to a night market. See [Bangkok night markets with friends](/en/blog/night-markets-friends/).
 ''',
@@ -624,6 +706,6 @@ From the river, it is easy to carry on to a night market. See [Bangkok night mar
   faq=[('Where can I watch the sunset in Bangkok for free?', 'Chao Phraya Sky Park, the riverside decks on the Thonburi side and the skywalks in Benjakitti Forest Park are all free.'),
        ('What time does Chao Phraya Sky Park close?', 'The latest listing says it is open daily from 05:00 to 20:00.'),
        ('What time is sunset in Bangkok?', 'Around 6pm for most of the year. Check the exact time in a weather app.'),
-       ('Is there a high viewpoint without going up a tower?', 'Yes, the Asiatique Sky Ferris Wheel is 60 metres tall, with a ride of about 20 minutes.')],
+       ('Is there a high viewpoint without going up a tower?', 'Yes, the Asiatique Sky Ferris Wheel is 60 metres tall, and a ride lasts about 15–20 minutes.')],
  )),
 ]
