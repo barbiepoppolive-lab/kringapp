@@ -418,7 +418,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
               <li>{L('Your face is sensitive personal data under Thailand’s PDPA. We use it only to confirm you are a real person and that your profile photo is you.')}</li>
               <li>{L('The check runs on your phone and the result comes right away. To keep Kring one person, one account, we keep a face code made from your selfie and from your card photo (numbers, not a photo) and compare it with other members’ face codes. Only the Kring team can see it.')}</li>
               <li>{L('We delete the face code with your account. If you received a prize, we keep it for one year so the same prize can’t be claimed twice.')}</li>
-              <li>{L('We keep one selfie photo, which only the Kring team can see, and delete it 30 days after the review.')}</li>
+              <li><b>{L('Your face photo never leaves your phone. Kring keeps only a face code (numbers, not a picture).')}</b></li>
               <li>{L('Questions or deletion: ops@kringapp.com')}</li>
             </ul>
           </details>

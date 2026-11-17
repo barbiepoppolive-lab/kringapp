@@ -1,5 +1,10 @@
 /* V5_L ja: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    'Tap again to confirm': 'もう一度タップして確認',
+    'Verify your face in 5 seconds to post and chat. One person, one account.': '投稿とチャットには5秒の顔認証が必要です。1人1アカウント。',
+    'Your face photo never leaves your phone. Kring keeps only a face code (numbers, not a picture).': '顔写真はスマホから外に出ません。Kringが保存するのは顔コード（数字、写真ではありません）だけです。',
+    'Delete my face data': '顔データを削除',
+    'Face data deleted. Your ✓ is off until you verify again.': '顔データを削除しました。再認証するまで ✓ は外れます。',
     'For everyone’s safety, links can’t be sent in chat. Swap Instagram once you trust each other.': 'みんなの安全のため、チャットではリンクを送れません。仲良くなったらInstagramを交換しましょう。',
     'Show my Instagram & TikTok on my card': 'カードにInstagramとTikTokを表示する',
     'Off: only you can see them.': 'オフ：自分だけが見られます。',

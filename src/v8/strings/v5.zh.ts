@@ -1,5 +1,10 @@
 /* V5_L zh: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    'Tap again to confirm': '再点一次确认',
+    'Verify your face in 5 seconds to post and chat. One person, one account.': '验证面部 5 秒即可发布和聊天。一人一个账号。',
+    'Your face photo never leaves your phone. Kring keeps only a face code (numbers, not a picture).': '你的面部照片不会离开你的手机。Kring 只保存面部代码（数字，不是照片）。',
+    'Delete my face data': '删除我的面部数据',
+    'Face data deleted. Your ✓ is off until you verify again.': '面部数据已删除。重新验证前你的 ✓ 会消失。',
     'For everyone’s safety, links can’t be sent in chat. Swap Instagram once you trust each other.': '为了大家的安全，聊天中不能发送链接。彼此信任后再交换 Instagram 吧。',
     'Show my Instagram & TikTok on my card': '在我的卡片上显示 Instagram 和 TikTok',
     'Off: only you can see them.': '关闭时：只有你能看到。',

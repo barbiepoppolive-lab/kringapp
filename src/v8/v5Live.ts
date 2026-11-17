@@ -76,6 +76,8 @@ export class V5Error extends Error {
   constructor(code: string) {
     super(code);
     this.code = code;
+    // 0093: a new member tried to post / chat before the face check → the app opens the 5-second check
+    if (code === 'VERIFY_FIRST' && typeof window !== 'undefined') { try { window.dispatchEvent(new CustomEvent('kr8-verify-first')); } catch { /* ignore */ } }
   }
 }
 function codeOf(e: unknown): string {

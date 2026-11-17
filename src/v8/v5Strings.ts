@@ -1,6 +1,11 @@
 /** V5 strings. English is the key; TH / ZH / HI / JA / KO below. Looked up by L() / Lf() in KringAppV8. */
 export const V5_L: Record<string, Record<string, string>> = {
   th: {
+    'Tap again to confirm': 'แตะอีกครั้งเพื่อยืนยัน',
+    'Verify your face in 5 seconds to post and chat. One person, one account.': 'ยืนยันใบหน้า 5 วินาทีก่อนโพสต์และแชตนะ หนึ่งคน หนึ่งบัญชี',
+    'Your face photo never leaves your phone. Kring keeps only a face code (numbers, not a picture).': 'รูปหน้าของคุณไม่ออกจากมือถือ Kring เก็บแค่รหัสใบหน้าที่เป็นตัวเลข ไม่ใช่รูป',
+    'Delete my face data': 'ลบข้อมูลใบหน้าของฉัน',
+    'Face data deleted. Your ✓ is off until you verify again.': 'ลบข้อมูลใบหน้าแล้ว เครื่องหมาย ✓ จะหายไปจนกว่าคุณจะยืนยันใหม่',
     // 17 Nov: chat link block + Instagram/TikTok switch (Otop's advice)
     'For everyone’s safety, links can’t be sent in chat. Swap Instagram once you trust each other.': 'เพื่อความปลอดภัยของทุกคน ส่งลิงก์ในแชทไม่ได้นะ สนิทกันแล้วค่อยแลกไอจีกัน',
     'Show my Instagram & TikTok on my card': 'โชว์ไอจีและติ๊กต็อกบนการ์ดของฉัน',
@@ -645,6 +650,7 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
     case 'NETWORK': return ['Couldn’t reach Kring. Check your connection and try again.'];
     case 'BAD_CODE': return ['That code is wrong or has expired. Send a new code below.'];
     case 'BAD_HANDLE': return ['That Instagram name doesn’t look right.'];
+    case 'VERIFY_FIRST': return ['Verify your face in 5 seconds to post and chat. One person, one account.'];
     case 'NO_LINKS': return ['For everyone’s safety, links can’t be sent in chat. Swap Instagram once you trust each other.'];
     case 'OWN_REEL': return ['That’s your own Reel.'];
     case 'NO_REEL': case 'NO_POST': return ['This Reel isn’t available any more.'];

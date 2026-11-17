@@ -58,6 +58,7 @@ import {
   v5Report,
   v5SendMessage,
   v5LinkTry,
+  v5ForgetMyFace,
   v5Session,
   v5SignOut,
   v5AdminViewOk,
@@ -1196,6 +1197,14 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const verifySeenRef = useRef(false);
   /** 17 Nov: the face check opened straight after a new card was minted */
   const afterVerifyRef = useRef(false);
+  /** 0092: two taps to delete face data (the page can't show confirm dialogs) */
+  const [forgetArm, setForgetArm] = useState(false);
+  // 0093: a new member tried to post / chat before the face check → open it (once the card exists)
+  useEffect(() => {
+    const on = () => { if (sheetRef.current !== 'verify') setTimeout(() => setSheet('verify'), 80); };
+    window.addEventListener('kr8-verify-first', on);
+    return () => window.removeEventListener('kr8-verify-first', on);
+  }, []);
   useEffect(() => {
     if (sheet === 'verify') { verifySeenRef.current = true; holdReels(true); }
     else if (verifySeenRef.current) holdReels(false);
@@ -6722,6 +6731,16 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   <a className="srow" id="setPartnerTerms" href="/partner-terms.html" target="_blank" rel="noopener"><span>{L('Partner terms')}</span><em>↗</em></a>
                 </>
               )}
+              {live && v5Card ? (
+                <div className="srow" role="button" tabIndex={0} id="setForgetFace" onClick={() => {
+                  if (!forgetArm) { setForgetArm(true); setTimeout(() => setForgetArm(false), 5000); return; }
+                  setForgetArm(false);
+                  void v5ForgetMyFace().then(() => { showToast(L('Face data deleted. Your ✓ is off until you verify again.')); void loadMe(); })
+                    .catch((e) => showToast(v5Msg(e)));
+                }}>
+                  <span>{L('Delete my face data')}{forgetArm ? <small className="kpa-sub">{L('Tap again to confirm')}</small> : null}</span>
+                </div>
+              ) : null}
               <div className="srow bad" role="button" tabIndex={0} id="setSignOut" onClick={() => {
                 void pushDisable().catch(() => undefined).finally(() => v5SignOut());   // this phone stops dinging for the member signing out
                 setSignedIn(false);
