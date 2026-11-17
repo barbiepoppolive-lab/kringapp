@@ -531,6 +531,7 @@ export function loadV5Lang(lang: string): Promise<void> {
 export function v5ErrText(code: string, name = ''): [string, string?] {
   switch (code) {
     case 'SIGN_IN': return ['Sign in to continue'];
+    case 'ADMIN_VIEW': return ['Admin view · read-only'];
     case 'NO_CARD': return ['Make your Kring card first.'];
     case 'AGE_CONFIRM': return ['Please confirm you are 20 or older.'];
     case 'BAD_NAME': return ['Add your first name.'];

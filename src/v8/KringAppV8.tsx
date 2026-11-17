@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import './fonts-v8.css';
 import './v8.css';
 import { KDock } from './KDock';
@@ -59,6 +59,8 @@ import {
   v5SendMessage,
   v5Session,
   v5SignOut,
+  v5AdminViewOk,
+  v5AdminPendingReels,
   v5Subscribe,
   v5TakeOAuthError,
   v5Treats,
@@ -147,6 +149,9 @@ import { applyTrim, checkReel, createReel, makeAudio, prepareReel, ReelError, up
 import { GoTrim, WindowVideo } from './V5Trim';
 import { clock } from './reelTrim';
 import { isMemberId } from './deepLink';
+import { ADMIN_VIEW_NO_SHEETS, adminPanelHref, adminViewWanted, setAdminViewActive } from './adminView';
+const appBasePath = () => ((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.BASE_URL) || '/app/';
+import { AdminViewMe, AdminViewPill } from './V5AdminView';
 
 const V9_L: Record<string, Record<string, string>> = {
   th: {
@@ -1162,8 +1167,21 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // 17 Nov: a refresh keeps the tab (deep links still win; see tabMemory.ts)
   const [tab, setTab] = useState<V8Tab>(() => initialTab || (typeof window !== 'undefined' ? restoredTab(window.location.search) : null) || 'feed');
   useEffect(() => { rememberTab(tab); }, [tab]);
-  const [sheet, setSheet] = useState<SheetId>(null);
+  const [sheet, setSheetRaw] = useState<SheetId>(null);
   const sheetRef = useRef<SheetId>(null);
+  // 17 Nov admin view (?admin=1, adminView.ts): an admin sign-in sees every tab, read-only. Sheets that would make a card,
+  // post, say hi, claim or log something never open while it is on (one toast instead).
+  const adminWantedRef = useRef<boolean>(adminViewWanted());
+  const [adminView, setAdminViewState] = useState(false);
+  const adminViewRef = useRef(false);
+  const adminNoRef = useRef<() => void>(() => undefined);
+  const setSheet = useCallback((v: SheetId | ((cur: SheetId) => SheetId)) => {
+    if (adminViewRef.current && typeof v !== 'function' && v && ADMIN_VIEW_NO_SHEETS.has(v)) { adminNoRef.current(); return; }
+    setSheetRaw((cur) => {
+      const next = typeof v === 'function' ? v(cur) : v;
+      return adminViewRef.current && next && ADMIN_VIEW_NO_SHEETS.has(next) ? cur : next;
+    });
+  }, []);
   // T-301 (T301-005): an open sheet used to push TWO history steps (this block and the A-11 block below), so one Back closed the
   // sheet but left a stale step behind (the next Back did nothing visible). Only the A-11 block keeps history now.
   useEffect(() => { sheetRef.current = sheet; }, [sheet]);
@@ -1425,6 +1443,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   };
   const v5ApplySession = async (uid: string | null) => {
     if (!uid) {
+      if (adminViewRef.current) { adminViewRef.current = false; setAdminViewActive(false); setAdminViewState(false); adminWantedRef.current = true; }
       setV5Uid('');
       setV5Card(null);
       setSignedIn(false);
@@ -1437,6 +1456,18 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     try {
       const me = await v5Me();
       v5ApplyMe(me);
+      // 17 Nov admin view: ?admin=1 on this phone + the server says admin → every tab, read-only, never "Make your card"
+      if (adminWantedRef.current) {
+        if (await v5AdminViewOk()) {
+          setAdminView(true);
+          setSignedIn(true);
+          if (!me.card) setUser((prev) => ({ ...prev, id: uid, name: 'Admin' }));
+          if (sheetRef.current === 'signin' || sheetRef.current === 'v5card') setSheetRaw(null);
+          return;
+        }
+        adminWantedRef.current = false;   // not an admin: nothing extra, the app goes on exactly as before
+        setAdminView(false);
+      }
       if (me.card) void v5SyncAttribution();   // signed in on a phone that opened a ?ref= / ?src= link
       if (!me.card) {
         if (installAskRef.current) cardAfterInstallRef.current = true;   // after the install step, never before it
@@ -1506,6 +1537,19 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
+  };
+  adminNoRef.current = () => showToast(L('Admin view · read-only'));
+  /** 17 Nov admin view: on after the server says this sign-in is an admin (kr8_admin_view_ok); off for everyone else. */
+  const setAdminView = (on: boolean) => {
+    adminViewRef.current = on;
+    setAdminViewActive(on);
+    setAdminViewState(on);
+  };
+  /** Exit: forget the admin view on this phone and sign out (the admin sign-in has no card; a member signs in again as usual). */
+  const exitAdminView = () => {
+    adminWantedRef.current = false;
+    setAdminView(false);
+    void v5SignOut().finally(() => { try { location.replace(appBasePath()); } catch { /* ignore */ } });
   };
 
   useEffect(() => {
@@ -1587,7 +1631,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       const feedP = v5Feed().then((f) => { if (f.length || !shown) setFeedItems(f); }, () => { if (!shown) setFeedItems([]); }).finally(() => setFeedSettled(true));
       const after = <T,>(f: () => Promise<T>) => Promise.race([feedP, new Promise((r) => setTimeout(r, 2500))]).then(f);
       const [p, d] = await Promise.all([
-        v5Card ? after(() => v5People()).catch(() => [] as V8Person[]) : Promise.resolve([] as V8Person[]),
+        v5Card || adminViewRef.current ? after(() => v5People()).catch(() => [] as V8Person[]) : Promise.resolve([] as V8Person[]),
         after(() => v5Treats()).catch(() => [] as V8Deal[]),
       ]);
       setPeople(p);
@@ -1609,7 +1653,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
   useEffect(() => {
     loadLiveData();
-  }, [isDemo, v5Uid, v5Card]);
+  }, [isDemo, v5Uid, v5Card, adminView]);
 
   // V5: real session (Google redirect or email code) → member card → signed in.
   useEffect(() => {
@@ -1645,7 +1689,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       // Recruiter / invite link (?ref=… or ?join=1) and not signed in: open the join sheet straight away, LINE first (13 Nov funnel fix)
       try {
         const q0 = new URLSearchParams(window.location.search);
-        if (!s0?.user?.id && (q0.get('ref') || v5JoinAsked.current) && !sheetRef.current && !installAskRef.current) setSheet('signin');
+        if (!s0?.user?.id && adminWantedRef.current && !sheetRef.current) { setV5SignInNotice(L('Admin view · sign in with your admin email')); setSheet('signin'); }
+        else if (!s0?.user?.id && (q0.get('ref') || v5JoinAsked.current) && !sheetRef.current && !installAskRef.current) setSheet('signin');
         // audit P3-14: ?open=rewards while signed out → sign-in first; the rewards page opens right after (pushOpenRef effect)
         else if (!s0?.user?.id && q0.get('open') === 'rewards' && !sheetRef.current) { setV5SignInNotice(L('Sign in to see your rewards')); setSheet('signin'); }
       } catch { /* ignore */ }
@@ -1721,10 +1766,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     const now = Date.now();
     if (now - (v5TabFetchedAt.current[tab] || 0) < 20000) return;
     v5TabFetchedAt.current[tab] = now;
-    if (tab === 'people' && v5Card) v5People().then(setPeople).catch(() => undefined);
+    if (tab === 'people' && (v5Card || adminViewRef.current)) v5People().then(setPeople).catch(() => undefined);
     if (tab === 'feed') v5Feed().then(setFeedItems).catch(() => undefined);
     if (tab === 'deals') v5Treats().then(setDeals).catch(() => undefined);
-  }, [live, tab, Boolean(v5Card)]);
+  }, [live, tab, Boolean(v5Card), adminView]);
 
   // audit P2-8: back online → People (and the feed) load again by themselves (they stayed empty until a manual refresh)
   const wasOffline = useRef(false);
@@ -1733,7 +1778,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     if (!wasOffline.current || !live) return;
     wasOffline.current = false;
     v5TabFetchedAt.current = {};
-    if (v5Card) v5People().then(setPeople).catch(() => undefined);
+    if (v5Card || adminViewRef.current) v5People().then(setPeople).catch(() => undefined);
     v5Feed().then(setFeedItems).catch(() => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOnline, live]);
@@ -1819,6 +1864,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
   // Sign-in gate helper: only prompt sign-in when performing an action
   const requireSignInForAction = (action: () => void) => {
+    if (adminViewRef.current) { adminNoRef.current(); return; }   // admin view: read-only
     if (signedIn) {
       action();
     } else {
@@ -1952,6 +1998,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
   // audit P2-9: friendly first lines, never a meet-up ask (founder: "make new friends", no meet wording)
   const openSayHi = (name: string, img: string, context: string, id?: string, fromReel = false) => {
+    if (adminViewRef.current) { adminNoRef.current(); return; }
     // T301-022: one hello per person. If we already have a chat with them, open it instead of a second hello (the server says no with a 400).
     const had = live && id ? threads.find((t) => t.personId === id) : undefined;
     if (had) {
@@ -2162,6 +2209,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     }
   };
   const handleToggleSave = (id: string) => {
+    if (adminViewRef.current) { adminNoRef.current(); return; }
     const on = !savedIds[id];
     storeSaved({ ...savedIds, [id]: on });
     showToast(on ? L('Saved to Me') : L('Removed from Saved'));
@@ -2590,8 +2638,20 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       setGoPlayer((cur) => (cur && cur.reels === reels ? { ...cur, reels: reels.map((r) => ({ ...r, people: m.get(r.id) || r.people })) } : cur));
     }).catch(() => undefined);
   };
+  /** Admin view: the Reels waiting for review, in the same full-screen player, each marked "in review" (like / save / share off). */
+  const openPendingReels = async () => {
+    try {
+      const rows = await v5AdminPendingReels();
+      if (!rows.length) { showToast(L('No Reels waiting for review')); return; }
+      goOpenPlayer(rows.map((r) => ({ id: r.id, video_path: r.video_path, poster_path: r.poster_path, body: r.body, status: 'pending',
+        author: { id: r.author_id, name: r.author_name, photo: null } })), 0, { title: L('Waiting for review') });
+    } catch (e) {
+      showToast(v5Msg(e));
+    }
+  };
   const goIsMine = (id: string) => !!goPlayer?.reels.find((r) => r.id === id)?.mine;
   const goLike = (id: string): Promise<{ liked: boolean; likes: number } | null> => new Promise((done) => {
+    if (adminViewRef.current) { adminNoRef.current(); done(null); return; }
     if (goIsMine(id)) { showToast(L('That’s your own Reel.')); done(null); return; }
     let ran = false;
     requireSignInForAction(() => {
@@ -2601,6 +2661,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     if (!ran) { setGoPlayer(null); done(null); }
   });
   const goSave = (id: string): Promise<boolean | null> => new Promise((done) => {
+    if (adminViewRef.current) { adminNoRef.current(); done(null); return; }
     let ran = false;
     requireSignInForAction(() => {
       ran = true;
@@ -2737,15 +2798,15 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // 16 Nov prize banner: the week is fetched once signed in, again when the app comes back to the front or the Feed is opened
   // (at most once a minute), and every 5 minutes while the app is on screen, so the Rings on the banner stay current.
   useEffect(() => {
-    if (!live || !v5Uid || !v5Card) { setKxWeek(null); kxWeekAt.current = 0; return; }
+    if (!live || !v5Uid || !(v5Card || adminView)) { setKxWeek(null); kxWeekAt.current = 0; return; }
     kxLoadWeek(true);
     const vis = () => { if (document.visibilityState === 'visible') kxLoadWeek(); };
     document.addEventListener('visibilitychange', vis);
     const id = window.setInterval(() => { if (document.visibilityState === 'visible') kxLoadWeek(); }, 300000);
     return () => { document.removeEventListener('visibilitychange', vis); window.clearInterval(id); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [live, v5Uid, !!v5Card]);
-  useEffect(() => { if (live && v5Uid && v5Card && tab === 'feed') kxLoadWeek(); }, [tab]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [live, v5Uid, !!v5Card, adminView]);
+  useEffect(() => { if (live && v5Uid && (v5Card || adminView) && tab === 'feed') kxLoadWeek(); }, [tab]);   // eslint-disable-line react-hooks/exhaustive-deps
   // "Online" = opened the app in the last 5 minutes
   // 0061: the admin's own ghost card shows one line on Me (the database already hides it from everyone else)
   const [v5Ghost, setV5Ghost] = useState(false);
@@ -3660,10 +3721,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
   return (
     <div
-      className={`v8-app-root ${calmMode ? 'calm' : ''}`}
+      className={`v8-app-root ${calmMode ? 'calm' : ''}${adminView ? ' kr-admin-view' : ''}`}
       data-demo={isDemo ? '1' : undefined}
       data-testid="kring-v8-root"
     >
+      {live && adminView && <AdminViewPill L={L} panelHref={adminPanelHref(appBasePath())} onExit={exitAdminView} />}
       {/* Official #kr dual-ring SVG symbol from kringapp.com */}
       <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
         <defs>
@@ -3927,7 +3989,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     {p.video ? (
                       <V5ReelVideo src={p.video} poster={p.poster} first={idx === 0} label={`Reel · ${p.name || ''} · ${p.area || ''}`} soundHint={L('Tap for sound')}
                         pending={p.reelPending ? L('Waiting for a quick check · only you see this') : undefined}
-                        onViewed={live && p.id && !p.reelPending && !(p as V5FeedItem).mine ? () => void v5LogView(p.id as string) : undefined} />
+                        onViewed={live && !adminView && p.id && !p.reelPending && !(p as V5FeedItem).mine ? () => void v5LogView(p.id as string) : undefined} />
                     ) : (
                     <div
                       className="bg"
@@ -4521,7 +4583,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           id="s-me"
           aria-label={L('Me')}
         >
-          {live && signedIn && v5Card && meProfile ? (
+          {live && adminView && !v5Card ? (
+            <AdminViewMe L={L} panelHref={adminPanelHref(appBasePath())} onRanking={() => setSheet('ranking')}
+              onRewards={() => { setKxReady(false); setSheet('rewards'); void kxLoadRewards(); }}
+              onPending={() => void openPendingReels()} onExit={exitAdminView} />
+          ) : live && signedIn && v5Card && meProfile ? (
             <MeView
               L={L}
               Lf={Lf}

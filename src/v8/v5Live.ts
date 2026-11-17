@@ -8,6 +8,7 @@ import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { initialAvatar, NEUTRAL_IMG } from './v8Data';
 import { demoPostAvatar } from './v5DemoAvatars';
 import { appBase, lineChannel } from './lineEnv';
+import { adminViewActive, adminViewBlocks, guardClient } from './adminView';
 import type { V8ChatMessage, V8ChatThread, V8Deal, V8FeedItem, V8HelloRequest, V8Person } from './v8Data';
 
 const ENV = ((import.meta as unknown as { env?: Record<string, string | undefined> }).env || {}) as Record<string, string | undefined>;
@@ -21,6 +22,7 @@ const SUPA_KEY = ENV.VITE_SUPABASE_ANON_KEY || 'sb_publishable_SaAf7mILfPPpCeAEv
  * posts the same RPC straight to PostgREST with keepalive: true (the browser finishes it even after the tab is gone).
  */
 export async function v5RpcKeepalive(fn: string, args: Record<string, unknown>): Promise<void> {
+  if (adminViewBlocks(fn)) return;
   const c = await v5Client();
   const tok = (await c.auth.getSession()).data.session?.access_token;
   await fetch(`${SUPA_URL.replace(/\/$/, '')}/rest/v1/rpc/${fn}`, {
@@ -52,9 +54,10 @@ export function v5Client(): Promise<SupabaseClient> {
     const p = import('@supabase/supabase-js').then((m) => {
       const mod = (typeof m?.createClient === 'function' ? m : (m as unknown as { default?: typeof m })?.default) as typeof m | undefined;
       if (!mod || typeof mod.createClient !== 'function') throw new V5Error('NETWORK');
-      return mod.createClient(SUPA_URL, SUPA_KEY, {
+      // 17 Nov admin view: the client refuses every write / log call while the admin view is on (adminView.ts)
+      return guardClient(mod.createClient(SUPA_URL, SUPA_KEY, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce', storageKey: 'kr8-v5-auth' },
-      });
+      }));
     });
     clientP = p;
     p.catch(() => { if (clientP === p) clientP = null; });
@@ -325,6 +328,12 @@ export async function v5HandoffBoot(f: typeof fetch = fetch): Promise<'signed-in
     return 'failed';
   }
 }
+
+/** 0077 admin view: true only when the signed-in account is an admin (decided on the server). Never throws. */
+export const v5AdminViewOk = () => rpc<boolean>('kr8_admin_view_ok').then((v) => v === true).catch(() => false);
+export interface V5PendingReel { id: string; author_id: string; author_name: string; body: string | null; video_path: string; poster_path: string; created_at: string }
+/** Admin view: Reels waiting for review (kr8_admin_reels, admin-only on the server). */
+export const v5AdminPendingReels = async () => (await rpc<V5PendingReel[]>('kr8_admin_reels', { p_status: 'pending', p_limit: 100 })) || [];
 
 export async function v5SignOut(): Promise<void> {
   const c = await v5Client();
@@ -675,6 +684,7 @@ export const v5MyVerification = async () => ((await rpc<V5Verification[]>('kr8_m
 /** Uploads the one selfie frame (private bucket, team-only) and sends the check results. */
 export async function v5RequestVerification(selfie: Blob, check: { straight: boolean; left: boolean; right: boolean; blink: boolean; blink_fallback?: boolean; match: number | null; device: string }, consent: string): Promise<string> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new V5Error('OFFLINE');
+  if (adminViewActive()) throw new V5Error('ADMIN_VIEW');
   const c = await v5Client();
   const { data } = await c.auth.getSession();
   const uid = data.session?.user?.id;
@@ -690,7 +700,7 @@ export async function v5RequestVerification(selfie: Blob, check: { straight: boo
  *  (the claim still goes ahead and simply waits for the founder). Never throws. */
 export async function v5UploadClaimPhoto(photo: Blob | null | undefined): Promise<string | null> {
   try {
-    if (!photo || !photo.size || photo.size > 5_000_000) return null;
+    if (!photo || !photo.size || photo.size > 5_000_000 || adminViewActive()) return null;
     const c = await v5Client();
     const { data } = await c.auth.getSession();
     const uid = data.session?.user?.id;

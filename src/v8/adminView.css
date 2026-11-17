@@ -1,0 +1,29 @@
+/* 17 Nov admin view: one small pill at the top; read-only controls are hidden */
+.kav-wrap { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 6px); left: 50%; transform: translateX(-50%); z-index: 400; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+.kav-pill { pointer-events: auto; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px; border-radius: 999px;
+  border: 1px solid rgba(255, 247, 236, 0.22); background: rgba(11, 10, 18, 0.72); color: #FFF7EC; font: 600 0.6875rem/1 inherit;
+  letter-spacing: 0.02em; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); cursor: pointer; min-width: 44px; }
+.kav-dot { width: 7px; height: 7px; border-radius: 50%; background: #FF5A8A; box-shadow: 0 0 0 3px rgba(255, 90, 138, 0.25); }
+.kav-menu { pointer-events: auto; margin-top: 8px; width: min(280px, calc(100vw - 32px)); padding: 6px; border-radius: 16px;
+  background: rgba(21, 19, 31, 0.97); border: 1px solid rgba(255, 247, 236, 0.14); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5); }
+.kav-item { display: flex; align-items: center; width: 100%; min-height: 44px; padding: 0 14px; border: 0; border-radius: 11px; background: none;
+  color: #FFF7EC; font: 600 0.875rem/1.2 inherit; text-decoration: none; text-align: left; cursor: pointer; box-sizing: border-box; }
+.kav-item:hover, .kav-item:focus-visible { background: rgba(255, 247, 236, 0.08); }
+.kav-item.exit { color: #FF8FA8; }
+.kav-note { margin: 4px 14px 8px; color: rgba(255, 247, 236, 0.6); font-size: 0.75rem; line-height: 1.35; }
+
+.kav-me { padding: calc(env(safe-area-inset-top, 0px) + 52px) 16px 120px; color: #FFF7EC; }
+.kav-me-h { text-align: center; margin-bottom: 18px; }
+.kav-me-h h1 { margin: 10px 0 6px; font-size: 1.375rem; }
+.kav-me-h p { margin: 0 auto; max-width: 300px; color: rgba(255, 247, 236, 0.68); font-size: 0.8125rem; line-height: 1.45; }
+.kav-rings { display: inline-flex; }
+.kav-rings i { width: 30px; height: 30px; border-radius: 50%; border: 3px solid #5B6CFF; display: block; }
+.kav-rings i + i { border-color: #FF5A8A; margin-left: -10px; }
+.kav-row { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 52px; margin-top: 8px; padding: 0 16px;
+  border: 1px solid rgba(255, 247, 236, 0.12); border-radius: 14px; background: rgba(255, 247, 236, 0.05); color: #FFF7EC;
+  font: 600 0.9375rem/1.2 inherit; text-decoration: none; cursor: pointer; box-sizing: border-box; text-align: left; }
+.kav-row em { font-style: normal; color: rgba(255, 247, 236, 0.5); }
+.kav-row.exit { justify-content: center; color: #FF8FA8; margin-top: 18px; }
+
+/* read-only: no "say hi", post or compose buttons while the admin view is on (taps elsewhere show "Admin view · read-only") */
+.kr-admin-view .hibtn, .kr-admin-view .kp-plus, .kr-admin-view .kp-empty-btn.pink, .kr-admin-view .kp-blurjoin { display: none !important; }
