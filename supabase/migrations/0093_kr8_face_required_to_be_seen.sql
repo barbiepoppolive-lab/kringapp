@@ -34,8 +34,8 @@ create trigger kr8_face_gate_answers before insert on public.kr8_answers for eac
 drop trigger if exists kr8_face_gate_ask_answers on public.kr8_ask_answers;
 create trigger kr8_face_gate_ask_answers before insert on public.kr8_ask_answers for each row execute function public.kr8_face_gate_trg();
 
--- People: a new member shows up only after the face check
-create or replace function public.kr8_people(p_limit integer)
+-- People: a new member shows up only after the face check (same signature, default kept)
+create or replace function public.kr8_people(p_limit integer default 60)
 returns table(user_id uuid, first_name text, photo text, langs text[], bio text, area text, who text, here boolean, verified boolean)
 language sql stable security definer set search_path = public, pg_temp as $$
   select m.user_id, m.first_name, m.photo, m.langs, m.bio, m.area, m.who, coalesce(m.here_until > now(), false), m.verified
@@ -47,3 +47,5 @@ language sql stable security definer set search_path = public, pg_temp as $$
   order by (m.here_until > now()) desc nulls last, m.updated_at desc
   limit least(greatest(coalesce(p_limit, 60), 1), 200)
 $$;
+revoke all on function public.kr8_people(integer) from public, anon;
+grant execute on function public.kr8_people(integer) to authenticated;
