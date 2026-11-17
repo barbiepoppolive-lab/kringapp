@@ -282,3 +282,5 @@
 .v8-app-root .kterms-yes { display: block; width: 100%; min-height: 48px; border: 0; border-radius: 99px; background: linear-gradient(90deg, #ff4fd8, #8b5cff); color: #fff; font-weight: 800; font-size: 1rem; }
 .v8-app-root .kterms-no { display: block; width: 100%; min-height: 42px; margin-top: 6px; border: 0; background: none; color: rgba(255,247,236,.66); font-weight: 700; font-size: 0.875rem; }
 .v8-app-root .kterms button:disabled { opacity: .6; }
+/* 0079: a long label (e.g. "Kring may feature my posts in promotion") must never squeeze the switch */
+.v8-app-root .kme-sheet .srow .sw-ctrl { flex-shrink: 0; }
