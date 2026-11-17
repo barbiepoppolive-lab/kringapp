@@ -13,10 +13,10 @@ import {
   type Claim, type DupAuto, type FaceCheck, type InboxItem, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot, type Trust,
 } from './adminV2Logic';
 import {
-  capStatus, computeVoucherRunway, fallbackAutopilotState, fallbackHealthWatch, formatRobotLogLine, heartbeatSummary,
-  isAutopilotState, isHealthWatchReport, isMorningBriefData,
+  capStatus, computeVoucherRunway, DEFAULT_VOUCHER_BUY_URL, fallbackAutopilotState, fallbackHealthWatch, fallbackSelfFixStatus,
+  formatRobotLogLine, heartbeatSummary, isAutopilotState, isHealthWatchReport, isMorningBriefData, isSelfFixStatus,
   modeLabel, modeTone, scheduleWords, severityMeta, sortRobotAlerts, synthesizeMorningBrief,
-  type AutopilotState, type HealthWatchReport, type MorningBriefData, type RobotAlert, type RobotLogRow, type RobotMode, type RobotRow,
+  type AutopilotState, type HealthWatchReport, type MorningBriefData, type RobotAlert, type RobotLogRow, type RobotMode, type RobotRow, type SelfFixStatus,
 } from './autopilotLogic';
 import './adminV2.css';
 
@@ -237,6 +237,12 @@ function renderAlertCentre(s: Snapshot, inboxItems: InboxItem[]): HTMLElement {
         await rpc('kr8_admin_alert_dismiss', { p_id: a.id });
       });
     }
+    const buyUrl = typeof a.detail?.buy_url === 'string' && a.detail.buy_url.startsWith('https://')
+      ? a.detail.buy_url
+      : (a.dedupe_key === 'selffix:voucher_restock' || a.dedupe_key === 'sys:voucher_stock_low' ? DEFAULT_VOUCHER_BUY_URL : '');
+    const buyLink = buyUrl
+      ? el('a', { class: 'ap-mini-btn ap-buy-link', href: buyUrl, target: '_blank', rel: 'noopener noreferrer' }, 'Buy codes ↗')
+      : null;
     return el('div', { class: `ac-row sev-${a.severity}`, 'data-alert': a.dedupe_key },
       el('span', { class: `ac-dot sev-${a.severity}` }),
       el('div', { class: 'grow' },
@@ -247,6 +253,7 @@ function renderAlertCentre(s: Snapshot, inboxItems: InboxItem[]): HTMLElement {
         el('b', {}, a.title),
         a.body ? el('small', {}, a.body) : null),
       el('div', { class: 'ac-acts' },
+        buyLink,
         el('a', { class: 'ap-mini-btn', href: a.href }, 'Open →'),
         dismissBtn));
   };
@@ -797,6 +804,48 @@ export async function facesView() {
 }
 
 // ───────── Autopilot (0098 M1: More -> Autopilot) ─────────
+async function flushQueuedStorageDeletions(): Promise<{ verifyRemoved: number; otherRemoved: number }> {
+  let verifyRemoved = 0;
+  let otherRemoved = 0;
+  const cli = await v5Client();
+
+  try {
+    const due = await rpc<{ id: string; selfie_path: string }[]>('kr8_admin_verify_files_due');
+    if (Array.isArray(due) && due.length > 0) {
+      const paths = due.map((d) => d.selfie_path).filter(Boolean);
+      const { error } = paths.length ? await cli.storage.from('kr8-verify').remove(paths) : { error: null };
+      if (!error) {
+        const n = await rpc<number>('kr8_admin_mark_selfies_deleted', { p_ids: due.map((d) => d.id) });
+        verifyRemoved = typeof n === 'number' ? n : due.length;
+      }
+    }
+  } catch { /* verify queue optional in offline unit tests */ }
+
+  try {
+    const trash = await rpc<{ id: string; bucket: string; name: string }[]>('kr8_admin_storage_trash');
+    if (Array.isArray(trash) && trash.length > 0) {
+      const byBucket = new Map<string, { id: string; name: string }[]>();
+      for (const t of trash) {
+        if (!t.bucket || !t.name) continue;
+        const arr = byBucket.get(t.bucket) || [];
+        arr.push({ id: t.id, name: t.name });
+        byBucket.set(t.bucket, arr);
+      }
+      const doneIds: string[] = [];
+      for (const [bucket, items] of byBucket) {
+        const { error } = await cli.storage.from(bucket).remove(items.map((x) => x.name));
+        if (!error) doneIds.push(...items.map((x) => x.id));
+      }
+      if (doneIds.length > 0) {
+        const n = await rpc<number>('kr8_admin_storage_trash_done', { p_ids: doneIds });
+        otherRemoved = typeof n === 'number' ? n : doneIds.length;
+      }
+    }
+  } catch { /* general trash queue optional in offline unit tests */ }
+
+  return { verifyRemoved, otherRemoved };
+}
+
 let apLogFilter = 'all';
 export async function autopilotView() {
   const body = el('div', {}, loadingCard());
@@ -804,20 +853,24 @@ export async function autopilotView() {
   stopV2();
   let st: AutopilotState = fallbackAutopilotState(snap);
   let hw: HealthWatchReport = fallbackHealthWatch(snap, st);
+  let sf: SelfFixStatus = fallbackSelfFixStatus(snap, st);
 
   const load = async () => {
     const t0 = Date.now();
     try {
-      const [raw, rawHw] = await Promise.all([
+      const [raw, rawHw, rawSf] = await Promise.all([
         rpc<unknown>('kr8_admin_autopilot_state', { p_limit: 120 }),
         rpc<unknown>('kr8_admin_health_watch', { p_run: false }).catch(() => null),
+        rpc<unknown>('kr8_admin_self_fix_status').catch(() => null),
       ]);
       const elapsed = Date.now() - t0;
       st = isAutopilotState(raw) ? raw : fallbackAutopilotState(snap);
       hw = isHealthWatchReport(rawHw) ? rawHw : fallbackHealthWatch(snap, st, elapsed);
+      sf = isSelfFixStatus(rawSf) ? rawSf : fallbackSelfFixStatus(snap, st);
     } catch {
       st = fallbackAutopilotState(snap);
       hw = fallbackHealthWatch(snap, st);
+      sf = fallbackSelfFixStatus(snap, st);
     }
     snapAt = Date.now();
     const freshEl = document.getElementById('v2Fresh');
@@ -1043,6 +1096,119 @@ export async function autopilotView() {
             c.ms != null ? el('small', { class: 'ap-hms' }, `${c.ms} ms`) : null),
           el('small', { class: 'ap-hsum' }, c.summary)))));
 
+    const totalTrashQueued = sf.pdpa_queued + sf.other_trash_queued;
+    const stuckTotal = sf.stuck_geo + sf.stuck_push;
+    const lowStock = sf.available_vouchers <= sf.restock_warn_at;
+    const buyUrl = sf.voucher_buy_url || DEFAULT_VOUCHER_BUY_URL;
+
+    const flushBtn = el('button', {
+      type: 'button',
+      id: 'apFlushTrashBtn',
+      class: `ap-mini-btn ${sf.pdpa_late > 0 ? 'bad' : ''}`,
+      disabled: st.paused,
+    }, totalTrashQueued > 0 ? `Flush queued deletions (${totalTrashQueued})` : 'Flush queued deletions');
+    flushBtn.onclick = async () => {
+      flushBtn.disabled = true;
+      flushBtn.textContent = 'Flushing…';
+      try {
+        const { verifyRemoved, otherRemoved } = await flushQueuedStorageDeletions();
+        await rpc('kr8_admin_robot_run_now', { p_name: 'self_fix' }).catch(() => null);
+        toast(`Flushed ${verifyRemoved + otherRemoved} queued storage deletion(s)`);
+        await load();
+      } catch (e) {
+        flushBtn.disabled = false;
+        flushBtn.textContent = 'Flush queued deletions';
+        toast(`Storage flush failed: ${(e as Error).message}`);
+      }
+    };
+
+    const sfRunBtn = el('button', {
+      type: 'button',
+      id: 'apSelfFixRunBtn',
+      class: 'ap-mini-btn',
+      disabled: st.paused || !!st.fallback,
+    }, sf.mode === 'on' ? 'Run self-fix now' : 'Preview self-fix (DRY-RUN)');
+    sfRunBtn.onclick = async () => {
+      sfRunBtn.disabled = true;
+      sfRunBtn.textContent = 'Running…';
+      try {
+        await rpc('kr8_admin_robot_run_now', { p_name: 'self_fix' });
+        toast(sf.mode === 'on' ? 'Self-fix applied safe tasks' : 'Self-fix DRY-RUN logged what it would fix');
+        await load();
+      } catch (e) {
+        sfRunBtn.disabled = false;
+        sfRunBtn.textContent = sf.mode === 'on' ? 'Run self-fix now' : 'Preview self-fix (DRY-RUN)';
+        toast(`Self-fix check failed: ${(e as Error).message}`);
+      }
+    };
+
+    const sfStat = (id: string, val: string, title: string, sub: string, tone: '' | 'hot' | 'warn' = '') =>
+      el('div', { class: `ap-sf-stat ${tone}`, id },
+        el('b', {}, val),
+        el('span', {}, title),
+        el('small', {}, sub));
+
+    const selfFixCard = el('section', { class: `v2card ap-selffix ${sf.pdpa_late > 0 ? 'late' : ''}`, id: 'apSelfFixCard' },
+      el('div', { class: 'ap-health-hd' },
+        ic('robot'),
+        el('div', { class: 'grow' },
+          el('b', {}, `Self-fix & PDPA queue · ${modeLabel(sf.mode)}`),
+          el('small', {}, `Every 30 min · safe fixes only · PDPA SLA ${sf.pdpa_sla_hours}h · restock alert <= ${sf.restock_warn_at} vouchers`)),
+        chip(sf.pdpa_late > 0 ? `${sf.pdpa_late} PDPA LATE` : 'PDPA on time', sf.pdpa_late > 0 ? 'r' : 'g')),
+      el('div', { class: 'ap-sf-grid' },
+        sfStat(
+          'sfPdpa',
+          sf.pdpa_late > 0 ? `${sf.pdpa_late} late` : `${sf.pdpa_queued} due`,
+          'PDPA deletions',
+          sf.pdpa_late > 0 ? `Oldest ${sf.oldest_queued_hours}h (> ${sf.pdpa_sla_hours}h SLA)` : `0 overdue · ${sf.other_trash_queued} media trash`,
+          sf.pdpa_late > 0 ? 'hot' : '',
+        ),
+        sfStat(
+          'sfOrphans',
+          String(sf.orphan_candidates),
+          'Orphan files',
+          'Uploads >24h with no DB row',
+          sf.orphan_candidates > 0 ? 'warn' : '',
+        ),
+        sfStat(
+          'sfThreads',
+          String(sf.stale_threads),
+          'Stale threads',
+          `Pending >14d · ${sf.stale_holds} held >24h`,
+          sf.stale_threads > 0 ? 'warn' : '',
+        ),
+        sfStat(
+          'sfStuck',
+          String(stuckTotal),
+          'Stuck jobs',
+          `${sf.stuck_geo} geocode · ${sf.stuck_push} push`,
+          stuckTotal > 0 ? 'warn' : '',
+        ),
+        sfStat(
+          'sfStock',
+          String(sf.available_vouchers),
+          'Vouchers left',
+          lowStock ? `LOW (<= ${sf.restock_warn_at}) · restock now` : `Healthy (> ${sf.restock_warn_at})`,
+          sf.available_vouchers <= 2 ? 'hot' : lowStock ? 'warn' : '',
+        ),
+        sfStat(
+          'sfSafety',
+          '0 auto-bans',
+          'Money & bans',
+          'Held claims stay founder-only',
+        )),
+      el('div', { class: 'ap-sf-acts' },
+        sfRunBtn,
+        flushBtn,
+        el('a', {
+          class: `ap-mini-btn ap-buy-link ${lowStock ? 'on' : ''}`,
+          id: 'apBuyVouchersLink',
+          href: buyUrl,
+          target: '_blank',
+          rel: 'noopener noreferrer',
+        }, lowStock ? `Restock vouchers (${sf.available_vouchers} left) ↗` : 'Buy vouchers link ↗'),
+        el('a', { class: 'ap-mini-btn', href: '#codes' }, 'Paste codes →')));
+
     const filterOpts: [string, string][] = [
       ['all', `All (${st.logs.length})`],
       ['applied', `Applied (${st.logs.filter((l) => !l.dry_run).length})`],
@@ -1060,6 +1226,7 @@ export async function autopilotView() {
       killCard,
       hbCard,
       healthCard,
+      selfFixCard,
       el('div', { class: 'v2sec' }, `Robots · ${st.robots.length}`),
       el('div', { id: 'apRobots' }, ...st.robots.map(renderRobot)),
       el('div', { class: 'v2sec' }, 'Robot action log'),

@@ -250,6 +250,7 @@ export interface RobotAlert {
   body: string;
   href: string;
   at: string;
+  detail?: Record<string, unknown>;
   synthetic?: boolean;
 }
 
@@ -349,9 +350,10 @@ export function synthesizeMorningBrief(
       robot: 'self_fix',
       severity: m.available <= 2 ? 'red' : 'amber',
       title: `Voucher stock low: ${m.available} code${m.available === 1 ? '' : 's'} left${runway.days_left !== null ? ` (~${runway.days_left}d left)` : ''}`,
-      body: 'Top up TrueMoney / Grab codes before winners claim.',
+      body: `Buy codes (${DEFAULT_VOUCHER_BUY_URL}) and paste into Codes before winners claim.`,
       href: '#codes',
       at: s.at,
+      detail: { available: m.available, buy_url: DEFAULT_VOUCHER_BUY_URL, paste_hash: '#codes' },
       synthetic: true,
     });
   }
@@ -659,3 +661,222 @@ export function fallbackHealthWatch(snap?: Snapshot | null, st?: AutopilotState 
     checks,
   };
 }
+
+// ───────── M4 (0101): Self-Fix Robot (safe only, logged, undoable, default DRY-RUN) ─────────
+export const DEFAULT_VOUCHER_BUY_URL = 'https://www.seagm.com/truemoney-wallet-thailand';
+
+export interface SelfFixStatus {
+  at: string;
+  mode: RobotMode;
+  pdpa_sla_hours: number;
+  pdpa_queued: number;
+  other_trash_queued: number;
+  pdpa_late: number;
+  oldest_queued_hours: number;
+  orphan_candidates: number;
+  stale_threads: number;
+  stale_holds: number;
+  stuck_geo: number;
+  stuck_push: number;
+  available_vouchers: number;
+  restock_warn_at: number;
+  voucher_buy_url: string;
+  fallback?: boolean;
+}
+
+export interface PlannedSelfFixAction {
+  action: string;
+  target: string;
+  dry_run: boolean;
+  undo_kind: 'reopen_thread' | 'unqueue_trash' | 'restore_place_geo' | 'restore_push_claim' | null;
+  count: number;
+  note: string;
+}
+
+export function isSelfFixStatus(v: unknown): v is SelfFixStatus {
+  const x = v as SelfFixStatus | null;
+  return (
+    !!x &&
+    typeof x === 'object' &&
+    typeof x.pdpa_late === 'number' &&
+    typeof x.available_vouchers === 'number' &&
+    typeof x.voucher_buy_url === 'string'
+  );
+}
+
+/**
+ * Pure M4 alert reconciliation:
+ * - PDPA deletion requests MUST finish on time; raises RED 'selffix:pdpa_late' whenever pdpa_late > 0, auto-clears at 0.
+ * - Restock warning at <= restock_warn_at (default 5) with supplier buy link + #codes, auto-clears when > restock_warn_at.
+ * - Stale held claims (>24h) get an amber reminder ONLY — NEVER auto-pays or auto-refuses.
+ */
+export function reconcileSelfFixAlerts(
+  existing: RobotAlert[],
+  status: SelfFixStatus,
+  nowIso = new Date().toISOString(),
+): {
+  alerts: RobotAlert[];
+  raised: string[];
+  cleared: string[];
+} {
+  const byKey = new Map(existing.map((a) => [a.dedupe_key, a]));
+  const raised: string[] = [];
+  const cleared: string[] = [];
+
+  const upsert = (dkey: string, next: Omit<RobotAlert, 'id' | 'dedupe_key' | 'at'>) => {
+    const prev = byKey.get(dkey);
+    if (!prev) raised.push(dkey);
+    byKey.set(dkey, {
+      id: prev?.id || `sf-${dkey.replace(/[^a-z0-9]/gi, '-')}`,
+      dedupe_key: dkey,
+      at: nowIso,
+      ...next,
+    });
+  };
+  const clear = (dkey: string) => {
+    if (byKey.has(dkey)) {
+      byKey.delete(dkey);
+      cleared.push(dkey);
+    }
+  };
+
+  if (status.pdpa_late > 0) {
+    upsert('selffix:pdpa_late', {
+      robot: 'self_fix',
+      severity: 'red',
+      title: `PDPA file deletion overdue · ${status.pdpa_late} file(s) waiting`,
+      body: `Queued selfie / account-deletion file(s) older than ${status.pdpa_sla_hours}h SLA (oldest ${status.oldest_queued_hours}h). Open Autopilot and tap Flush queued deletions.`,
+      href: '#autopilot',
+      detail: {
+        overdue: status.pdpa_late,
+        verify_queued: status.pdpa_queued,
+        oldest_hours: status.oldest_queued_hours,
+        sla_hours: status.pdpa_sla_hours,
+      },
+    });
+  } else {
+    clear('selffix:pdpa_late');
+  }
+
+  const buyUrl = status.voucher_buy_url || DEFAULT_VOUCHER_BUY_URL;
+  if (status.available_vouchers <= status.restock_warn_at) {
+    upsert('selffix:voucher_restock', {
+      robot: 'self_fix',
+      severity: status.available_vouchers <= 2 ? 'red' : 'amber',
+      title: `Restock vouchers · ${status.available_vouchers} left (threshold <= ${status.restock_warn_at})`,
+      body: `Buy TrueMoney / Grab codes (${buyUrl}) and paste them into Codes before rewards pause.`,
+      href: '#codes',
+      detail: {
+        available: status.available_vouchers,
+        threshold: status.restock_warn_at,
+        buy_url: buyUrl,
+        paste_hash: '#codes',
+      },
+    });
+  } else {
+    clear('selffix:voucher_restock');
+  }
+
+  if (status.stale_holds > 0) {
+    upsert('selffix:stale_holds', {
+      robot: 'self_fix',
+      severity: 'amber',
+      title: `${status.stale_holds} held payout(s) waiting > 24h for your tap`,
+      body: 'Robots never auto-pay or auto-refuse held claims. Review robot verdict in Needs you.',
+      href: '#inbox',
+      detail: { stale_holds: status.stale_holds },
+    });
+  } else {
+    clear('selffix:stale_holds');
+  }
+
+  return { alerts: sortRobotAlerts([...byKey.values()]), raised, cleared };
+}
+
+/**
+ * Pure M4 safe-action planner:
+ * - Respects OFF, DRY-RUN, and ON + daily_cap.
+ * - NEVER touches held payouts or bans.
+ * - Every applied action carries a lossless undo_kind.
+ */
+export function planSelfFixRun(
+  status: SelfFixStatus,
+  mode: RobotMode = status.mode,
+  dailyCap = 100,
+  usedToday = 0,
+): {
+  skipped: boolean;
+  actions: PlannedSelfFixAction[];
+  capReached: boolean;
+} {
+  if (mode === 'off') {
+    return { skipped: true, actions: [], capReached: false };
+  }
+
+  let budget = mode === 'on' ? Math.max(0, dailyCap - usedToday) : Number.POSITIVE_INFINITY;
+  let capReached = mode === 'on' && budget === 0;
+  const isDry = mode === 'dry_run';
+  const actions: PlannedSelfFixAction[] = [];
+
+  const take = (
+    available: number,
+    onAction: string,
+    dryAction: string,
+    target: string,
+    undoKind: PlannedSelfFixAction['undo_kind'],
+    noteBase: string,
+  ) => {
+    if (available <= 0) return;
+    if (!isDry && budget <= 0) {
+      capReached = true;
+      return;
+    }
+    const count = isDry ? available : Math.min(available, budget);
+    if (!isDry) {
+      budget -= count;
+      if (available > count) capReached = true;
+    }
+    actions.push({
+      action: isDry ? dryAction : onAction,
+      target,
+      dry_run: isDry,
+      undo_kind: isDry ? null : undoKind,
+      count,
+      note: isDry ? `Would handle ${count} ${noteBase}` : `Handled ${count} ${noteBase}`,
+    });
+  };
+
+  take(status.stale_threads, 'expire_stale_thread', 'would_expire_stale_thread', 'kr8_threads', 'reopen_thread', 'stale pending thread(s) >14d');
+  take(status.orphan_candidates, 'queue_orphan_file', 'would_queue_orphan_file', 'storage.objects', 'unqueue_trash', 'orphan upload(s) >24h');
+  take(status.stuck_geo, 'retry_stuck_place_geo', 'would_retry_stuck_place_geo', 'kr8_place_geo', 'restore_place_geo', 'stuck place geocode job(s) >30m');
+  take(status.stuck_push, 'retry_stuck_push_outbox', 'would_retry_stuck_push_outbox', 'kr8_push_outbox', 'restore_push_claim', 'stuck push outbox claim(s) >15m');
+
+  return { skipped: false, actions, capReached };
+}
+
+export function fallbackSelfFixStatus(snap?: Snapshot | null, st?: AutopilotState | null): SelfFixStatus {
+  const avail = snap ? money(snap).available : 12;
+  const nowMs = snap ? Date.parse(snap.at) || Date.now() : Date.now();
+  const staleHolds = snap
+    ? snap.claims.filter((c) => !c.is_test && c.held && c.status === 'pending' && !c.decided && nowMs - Date.parse(c.created_at) > 24 * 3600_000).length
+    : 0;
+  return {
+    at: new Date().toISOString(),
+    mode: st?.robots.find((r) => r.name === 'self_fix')?.mode || 'dry_run',
+    pdpa_sla_hours: 12,
+    pdpa_queued: 0,
+    other_trash_queued: 0,
+    pdpa_late: 0,
+    oldest_queued_hours: 0,
+    orphan_candidates: 0,
+    stale_threads: 0,
+    stale_holds: staleHolds,
+    stuck_geo: 0,
+    stuck_push: 0,
+    available_vouchers: avail,
+    restock_warn_at: 5,
+    voucher_buy_url: DEFAULT_VOUCHER_BUY_URL,
+    fallback: true,
+  };
+}
+
