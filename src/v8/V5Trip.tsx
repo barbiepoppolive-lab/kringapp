@@ -58,14 +58,15 @@ export function TripPerks(props: { L: Tx }) {
       <div className="ktrip-grid">
         {TRIP_PARTNERS.map((p) => (
           <a key={p.id} className={`ktrip-card ${p.tone}`} data-partner={p.id} href={p.url} target="_blank" rel="noopener noreferrer sponsored">
-            {/* Kring's own Bangkok scene for the need (17 Nov AI photos), then one icon badge, the name, one value line, one button */}
+            {/* Kring's own Bangkok scene for the need (17 Nov AI photos) fills the card; icon badge, the name, one value line on the bottom gradient */}
             <span className="ktrip-photo" aria-hidden="true" style={{ backgroundImage: `url('${base}media/trip/${p.photo}.webp')` }} />
             <span className="ktrip-badge" role="img" aria-label={L(p.need)}>
               <svg viewBox="0 0 24 24" aria-hidden="true">{ICONS[p.icon]}</svg>
             </span>
             <b className="ktrip-name">{p.name}</b>
             <TwoLine L={L} en={p.sub} className="ktrip-sub" />
-            <span className="ktrip-cta">{L(p.cta)} <i aria-hidden="true">↗</i></span>
+            {/* Kring Light 3a: the whole photo card is the link; a tiny corner arrow replaces the big button */}
+            <span className="ktrip-go" aria-hidden="true">↗</span>
           </a>
         ))}
       </div>

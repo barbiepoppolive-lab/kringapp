@@ -284,3 +284,22 @@
 .v8-app-root .kterms button:disabled { opacity: .6; }
 /* 0079: a long label (e.g. "Kring may feature my posts in promotion") must never squeeze the switch */
 .v8-app-root .kme-sheet .srow .sw-ctrl { flex-shrink: 0; }
+
+/* ===== Kring Light 4a + 5a (founder-approved 18 Nov) ===== */
+/* Settings sheet = the same light glass as every sheet (v8.css); the full-screen pages (.kme-full) stay as they are */
+.v8-app-root .kme-sheet:not(.kme-full) {
+  background: linear-gradient(rgba(255,255,255,.07), rgba(255,255,255,.07)), rgba(16,14,27,.8) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(140%); backdrop-filter: blur(20px) saturate(140%);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .v8-app-root .kme-sheet:not(.kme-full) { background: linear-gradient(rgba(255,255,255,.07), rgba(255,255,255,.07)), rgba(14,12,22,.84) !important; }
+}
+.v8-app-root.kr-lowend .kme-sheet:not(.kme-full) {
+  background: linear-gradient(rgba(255,255,255,.07), rgba(255,255,255,.07)), rgba(14,12,22,.84) !important;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+/* Settings groups: no box; rows straight on the sheet with thin 9% white lines, 24px between groups */
+.v8-app-root .kme-grp { background: transparent; border: 0; border-radius: 0; margin-bottom: 24px; overflow: visible; }
+.v8-app-root .kme-grp .srow { border-top: 1px solid rgba(255,255,255,.09); border-bottom: 0; padding: 14px 4px; }
+.v8-app-root .kme-grp .srow:first-child { border-top: 0; }
+.v8-app-root .kme-grp .sub { padding: 2px 4px 12px; }
