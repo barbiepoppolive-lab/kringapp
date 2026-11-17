@@ -3989,7 +3989,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     {p.video ? (
                       <V5ReelVideo src={p.video} poster={p.poster} first={idx === 0} label={`Reel · ${p.name || ''} · ${p.area || ''}`} soundHint={L('Tap for sound')}
                         pending={p.reelPending ? L('Waiting for a quick check · only you see this') : undefined}
-                        onViewed={live && !adminView && p.id && !p.reelPending && !(p as V5FeedItem).mine ? () => void v5LogView(p.id as string) : undefined} />
+                        onViewed={live && !adminView && !adminWantedRef.current && p.id && !p.reelPending && !(p as V5FeedItem).mine ? () => void v5LogView(p.id as string) : undefined} />
                     ) : (
                     <div
                       className="bg"

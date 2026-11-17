@@ -415,7 +415,7 @@ export const v5SetHere = (on: boolean) => rpc<void>('kr8_set_here', { p_on: on }
 // ─────────────── people / feed / treats ───────────────
 interface PersonRow { user_id: string; first_name: string; photo: string | null; langs: string[]; bio: string; area: string; who: 'local' | 'traveller'; here: boolean; verified: boolean }
 export async function v5People(): Promise<V8Person[]> {
-  const rows = await rpcLite<PersonRow>('kr8_people', { p_limit: 60 }, ['user_id', 'first_name', 'photo', 'langs', 'bio', 'area', 'who', 'here', 'verified'], [{ id: 'user_id', photo: 'photo' }]);
+  const rows = await rpcLite<PersonRow>('kr8_people', { p_limit: adminViewActive() ? 200 : 60 }, ['user_id', 'first_name', 'photo', 'langs', 'bio', 'area', 'who', 'here', 'verified'], [{ id: 'user_id', photo: 'photo' }]);
   return (rows || []).map((r) => ({
     id: r.user_id,
     name: r.first_name,
