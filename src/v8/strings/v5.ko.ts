@@ -1,5 +1,8 @@
 /* V5_L ko: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    'For everyone’s safety, links can’t be sent in chat. Swap Instagram once you trust each other.': '모두의 안전을 위해 채팅에서는 링크를 보낼 수 없어요. 서로 믿을 수 있게 되면 인스타그램을 교환하세요.',
+    'Show my Instagram & TikTok on my card': '내 카드에 인스타그램과 틱톡 표시',
+    'Off: only you can see them.': '끄면 나만 볼 수 있어요.',
     'Rank #{0}': '{0}위',
     'Views': '조회수',
     'Bangkok local': '방콕 현지인',

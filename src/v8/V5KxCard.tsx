@@ -11,7 +11,7 @@ import { GenderChip, GenderRow, genderPayload, isGender, type Gender } from './V
 import { kxNotePhotoCheck, kxSetGender } from './v5Kx';
 import { LEVEL_KEY, levelFor, memberNo, parseHandle, socialUrl, type Social } from './kxLogic';
 import { kxSetTiktok } from './v5Kx';
-import { v5AcceptTerms, v5CompressImage, v5ErrCode, v5SaveCard, v5SetIgHandle, v5TakeLinePrefill, V5_AREAS, V5_LANGS, V5_TERMS_VERSION } from './v5Live';
+import { v5AcceptTerms, v5CompressImage, v5ErrCode, v5SaveCard, v5SetIgHandle, v5SetSocialsShown, v5TakeLinePrefill, V5_AREAS, V5_LANGS, V5_TERMS_VERSION } from './v5Live';
 import type { V5Card, V5Me } from './v5Live';
 import { v5ErrText } from './v5Strings';
 import { TermsAgreeText } from './V5Sheets';
@@ -179,8 +179,11 @@ export function V5MintSheet(props: {
   const [name, setName] = useState(card?.first_name || '');
   const [langs, setLangs] = useState<string[]>(card?.langs?.length ? card.langs : [defaultLang]);
   const [bio, setBio] = useState(card?.bio || '');
-  const [ig, setIg] = useState<string | null>(card?.ig_handle || null);
-  const [tt, setTt] = useState<string | null>(card?.tiktok_handle || null);
+  // 0090: while "show on my card" is off the handles live in *_hidden; the owner still sees and edits them
+  const [ig, setIg] = useState<string | null>(card?.ig_handle || card?.ig_handle_hidden || null);
+  const [tt, setTt] = useState<string | null>(card?.tiktok_handle || card?.tiktok_handle_hidden || null);
+  const socialsWas = card?.show_socials !== false;
+  const [showSocials, setShowSocials] = useState<boolean>(socialsWas);
   const [area, setArea] = useState(card?.area || 'Bangkok');
   // optional, never pre-filled: a new card starts with nothing chosen and "show" off
   const [gender, setGender] = useState<Gender | null>(isGender(card?.gender) ? card.gender : null);
@@ -265,9 +268,14 @@ export function V5MintSheet(props: {
         if (ig) { try { const h = await v5SetIgHandle(ig); if (me.card) me.card = { ...me.card, ig_handle: h }; } catch (e) { linkErr = errText(e); setIg(null); } }
         if (tt) { try { const h = await kxSetTiktok(tt); if (me.card) me.card = { ...me.card, tiktok_handle: h } as V5Card; } catch (e) { linkErr = errText(e); setTt(null); } }
         if (linkErr) props.toast(linkErr);
+        if (!showSocials && (ig || tt)) { try { const r = await v5SetSocialsShown(false); if (me.card) me.card = { ...me.card, ...r } as V5Card; } catch { /* stays shown; the switch is in Edit profile */ } }
         props.onSaved(me);
         setMinted({ no: (me.card as (V5Card & { member_no?: number }) | null)?.member_no ?? null });
       } else {
+        if (showSocials !== socialsWas) {
+          try { const r = await v5SetSocialsShown(showSocials); if (me.card) me.card = { ...me.card, ...r } as V5Card; }
+          catch (e) { props.toast(errText(e)); }
+        }
         props.toast(L('Card saved · กริ๊ง!'));
         props.onSaved(me);
         props.onAfter('close', card?.member_no ?? null);
@@ -353,6 +361,13 @@ export function V5MintSheet(props: {
             </button>
           );
         })}
+        {ig || tt ? (
+          <label className="kx-gshow kx-sshow" id="kxSocialsShow">
+            <input type="checkbox" id="kxSocialsShowBox" checked={showSocials} disabled={busy} onChange={(e) => setShowSocials(e.target.checked)} />
+            <i aria-hidden="true" /><span>{L('Show my Instagram & TikTok on my card')}</span>
+          </label>
+        ) : null}
+        {(ig || tt) && !showSocials ? <p className="kx-gnote" id="kxSocialsNote">{L('Off: only you can see them.')}</p> : null}
         <GenderRow L={L} value={gender} show={showGender} disabled={busy} onChange={(g, sh) => { setGender(g); setShowGender(sh); }} />
         {!more && (
           <button type="button" className="kx-more" id="v5More" onClick={() => setMore(true)}>{L('More about you (optional) ›')}</button>

@@ -1,6 +1,10 @@
 /** V5 strings. English is the key; TH / ZH / HI / JA / KO below. Looked up by L() / Lf() in KringAppV8. */
 export const V5_L: Record<string, Record<string, string>> = {
   th: {
+    // 17 Nov: chat link block + Instagram/TikTok switch (Otop's advice)
+    'For everyone’s safety, links can’t be sent in chat. Swap Instagram once you trust each other.': 'เพื่อความปลอดภัยของทุกคน ส่งลิงก์ในแชทไม่ได้นะ สนิทกันแล้วค่อยแลกไอจีกัน',
+    'Show my Instagram & TikTok on my card': 'โชว์ไอจีและติ๊กต็อกบนการ์ดของฉัน',
+    'Off: only you can see them.': 'ปิดไว้: เห็นได้แค่คุณคนเดียว',
     'Tap for sound': 'แตะเพื่อเปิดเสียง',
     'Rank #{0}': 'อันดับ {0}',
     'Views': 'ยอดดู',
@@ -590,6 +594,7 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
     case 'NETWORK': return ['Couldn’t reach Kring. Check your connection and try again.'];
     case 'BAD_CODE': return ['That code is wrong or has expired. Send a new code below.'];
     case 'BAD_HANDLE': return ['That Instagram name doesn’t look right.'];
+    case 'NO_LINKS': return ['For everyone’s safety, links can’t be sent in chat. Swap Instagram once you trust each other.'];
     case 'OWN_REEL': return ['That’s your own Reel.'];
     case 'NO_REEL': case 'NO_POST': return ['This Reel isn’t available any more.'];
     case 'NO_VENUE': return ['That place isn’t on Kring any more.'];

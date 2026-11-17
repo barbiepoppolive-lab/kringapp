@@ -358,6 +358,10 @@ export interface V5Card {
   /** optional, the member's own choice; show_gender = on their card for others */
   gender?: string | null;
   show_gender?: boolean | null;
+  /** 0090: Instagram / TikTok on my card for others (default on); while off the handles are kept in *_hidden */
+  show_socials?: boolean | null;
+  ig_handle_hidden?: string | null;
+  tiktok_handle_hidden?: string | null;
 }
 export interface V5Me {
   card: V5Card | null;
@@ -568,6 +572,10 @@ export const v5Answer = (postId: string, body: string) => rpc<string>('kr8_answe
 // ─────────────── hellos + chat ───────────────
 export const v5Hello = (to: string, body: string) => rpc<string>('kr8_send_hello', { p_to: to, p_body: body });
 export const v5SendMessage = (thread: string, body: string) => rpc<number>('kr8_send_message', { p_thread: thread, p_body: body });
+/** 0090: a refused chat link is logged for the trust score (the refusal itself rolls back, so the app reports it). */
+export const v5LinkTry = () => rpc<null>('kr8_link_try', { p_place: 'chat' }).catch(() => null);
+/** 0090: show or hide my Instagram / TikTok on my card for everyone else. */
+export const v5SetSocialsShown = (show: boolean) => rpc<{ show_socials: boolean; ig_handle: string | null; tiktok_handle: string | null }>('kr8_set_socials_shown', { p_show: show });
 export type V5Thread = V8ChatThread & { v5Status: 'pending' | 'open'; v5OpenedByMe: boolean; area?: string };
 interface InboxRow { thread_id: string; status: 'pending' | 'open'; opened_by_me: boolean; other_id: string; other_name: string; other_photo: string | null; other_langs: string[];
   other_verified: boolean; other_area: string; last_body: string; last_sender_me: boolean; last_at: string; unread: number }

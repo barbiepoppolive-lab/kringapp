@@ -1,5 +1,8 @@
 /* V5_L zh: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    'For everyone’s safety, links can’t be sent in chat. Swap Instagram once you trust each other.': '为了大家的安全，聊天中不能发送链接。彼此信任后再交换 Instagram 吧。',
+    'Show my Instagram & TikTok on my card': '在我的卡片上显示 Instagram 和 TikTok',
+    'Off: only you can see them.': '关闭时：只有你能看到。',
     'Rank #{0}': '第 {0} 名',
     'Views': '播放',
     'Bangkok local': '曼谷本地人',

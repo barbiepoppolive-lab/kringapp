@@ -1,5 +1,8 @@
 /* V5_L hi: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    'For everyone’s safety, links can’t be sent in chat. Swap Instagram once you trust each other.': 'सबकी सुरक्षा के लिए चैट में लिंक नहीं भेजे जा सकते। भरोसा होने के बाद Instagram शेयर करें।',
+    'Show my Instagram & TikTok on my card': 'मेरे कार्ड पर Instagram और TikTok दिखाएँ',
+    'Off: only you can see them.': 'बंद होने पर: सिर्फ़ आप देख सकते हैं।',
     'Rank #{0}': 'रैंक #{0}',
     'Views': 'व्यूज़',
     'Bangkok local': 'बैंकॉक लोकल',

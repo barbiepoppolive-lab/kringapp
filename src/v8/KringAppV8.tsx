@@ -57,6 +57,7 @@ import {
   v5People,
   v5Report,
   v5SendMessage,
+  v5LinkTry,
   v5Session,
   v5SignOut,
   v5AdminViewOk,
@@ -3558,6 +3559,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           setThreads((prev) => prev.map((t) => (t.id === th.id ? { ...t, messages: t.messages.filter((m) => m.id !== tmpId) } : t)));
           if (!customText) setChatInput(txt);
           const code = v5ErrCode(e);
+          if (code === 'NO_LINKS') void v5LinkTry();
           showToast(code === 'NETWORK' || code === 'UNKNOWN' ? L('Message not sent. Tap send to try again.') : v5Msg(e, th.name));
           return;
         }
