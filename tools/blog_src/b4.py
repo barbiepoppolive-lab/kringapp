@@ -179,7 +179,7 @@ dict(slug='night-markets-friends', group='do', img='tuktuk', areas=['yaowarat', 
 ## เอเชียทีค เดอะ ริเวอร์ฟร้อนท์
 - **เปิด** ทุกวัน 16:00 น. ถึงเที่ยงคืน
 - **ไปยังไง** นั่งเรือรับส่งฟรีจากท่าสาทร ใช้เวลาราว 10-15 นาทีตามลำน้ำเจ้าพระยา
-- **ไฮไลต์** ชิงช้าสวรรค์สูง 60 เมตร หมุนหนึ่งรอบราว 20 นาที เห็นกรุงเทพฯ ยามค่ำรอบด้าน
+- **ไฮไลต์** ชิงช้าสวรรค์สูง 60 เมตร นั่งหนึ่งรอบตั๋วราว 15-20 นาที เห็นกรุงเทพฯ ยามค่ำรอบด้าน
 - **เหมาะกับ** คนที่อยากได้ทั้งตลาด ริมน้ำ และวิวในคืนเดียว ทางเดินกว้าง เดินสบาย
 
 ## เทียบกันแบบเร็ว ๆ
@@ -241,7 +241,7 @@ Night markets are where Bangkok unwinds after work: the air cools, there is musi
 ## Asiatique The Riverfront
 - **Open**: daily, 16:00 to midnight.
 - **Getting there**: the free shuttle boat from Sathorn Pier, about 10–15 minutes along the Chao Phraya.
-- **Highlight**: the 60-metre Asiatique Sky Ferris Wheel; one rotation takes about 20 minutes, with 360-degree night views.
+- **Highlight**: the 60-metre Asiatique Sky Ferris Wheel; a ride lasts about 15–20 minutes, with 360-degree night views.
 - **Best for**: a market, the river and a view in one evening, with wide, easy walkways.
 
 ## Quick comparison
@@ -549,7 +549,7 @@ dict(slug='sunset-spots-bangkok', group='do', img='river', areas=['thonburi', 't
 สำหรับคนอยู่ฝั่งสุขุมวิท สวนเบญจกิติมีทางเดินลอยฟ้าเหนือพื้นที่ชุ่มน้ำ และสะพานเขียวยาว 1.3 กม. ที่เชื่อมไปสวนลุมพินี ช่วงเย็นแสงส้มสะท้อนตึกสูงรอบสวนสวยมาก ใกล้ BTS อโศกและ MRT ศูนย์การประชุมแห่งชาติสิริกิติ์
 
 ## ชิงช้าสวรรค์เอเชียทีค
-ถ้าอยากได้วิวจากที่สูงแบบไม่ต้องขึ้นตึก ชิงช้าสวรรค์ของเอเชียทีคสูง 60 เมตร หมุนหนึ่งรอบราว 20 นาที เห็นแม่น้ำและเมืองรอบด้าน เอเชียทีคเปิด 16:00 น. ถึงเที่ยงคืน นั่งเรือรับส่งฟรีจากท่าสาทร ชิงช้าสวรรค์มีค่าบริการ เช็กราคาหน้างาน
+ถ้าอยากได้วิวจากที่สูงแบบไม่ต้องขึ้นตึก ชิงช้าสวรรค์ของเอเชียทีคสูง 60 เมตร นั่งหนึ่งรอบตั๋วราว 15-20 นาที เห็นแม่น้ำและเมืองรอบด้าน เอเชียทีคเปิด 16:00 น. ถึงเที่ยงคืน นั่งเรือรับส่งฟรีจากท่าสาทร ชิงช้าสวรรค์มีค่าบริการ เช็กราคาหน้างาน
 
 ## จุดชมวิวบนตึกสูง
 กรุงเทพฯ มีจุดชมวิวบนตึกสูงแบบเสียเงินหลายแห่ง วิวสวยแน่นอน แต่ราคาค่อนข้างสูงและเปลี่ยนบ่อย ถ้าจะไป เช็กราคาและเงื่อนไขการแต่งกายจากเว็บไซต์ทางการก่อน สำหรับนัดกับเพื่อนใหม่ ที่ฟรีริมน้ำมักสบายใจกว่า
@@ -575,7 +575,7 @@ dict(slug='sunset-spots-bangkok', group='do', img='river', areas=['thonburi', 't
   faq=[('ดูพระอาทิตย์ตกในกรุงเทพฯ ที่ไหนฟรี', 'สวนลอยฟ้าเจ้าพระยา ลานริมน้ำฝั่งธนบุรี และทางเดินลอยฟ้าในสวนเบญจกิติ เข้าฟรีทั้งหมด'),
        ('สวนลอยฟ้าเจ้าพระยาเปิดถึงกี่โมง', 'ข้อมูลล่าสุดระบุเปิดทุกวัน 05:00-20:00 น.'),
        ('พระอาทิตย์ตกในกรุงเทพฯ กี่โมง', 'ราว 6 โมงเย็นเกือบทั้งปี เช็กเวลาที่แน่นอนในแอปพยากรณ์อากาศ'),
-       ('มีจุดชมวิวจากที่สูงที่ไม่ต้องขึ้นตึกไหม', 'มี ชิงช้าสวรรค์เอเชียทีคสูง 60 เมตร หมุนหนึ่งรอบราว 20 นาที')],
+       ('มีจุดชมวิวจากที่สูงที่ไม่ต้องขึ้นตึกไหม', 'มี ชิงช้าสวรรค์เอเชียทีคสูง 60 เมตร นั่งหนึ่งรอบตั๋วราว 15-20 นาที')],
  ),
  en=dict(
   title='Best Sunset Spots in Bangkok 2027 (Mostly Free)',
@@ -603,7 +603,7 @@ Explore [Talat Noi](/en/bangkok/talat-noi/) in the late afternoon, find a rivers
 If you are on the Sukhumvit side, Benjakitti Forest Park has elevated walkways over its wetlands, plus the 1.3 km Green Bridge to Lumphini Park. In the evening, orange light bounces off the towers around the park. Close to BTS Asok and MRT Queen Sirikit National Convention Centre.
 
 ## The Asiatique Ferris wheel
-For a high view without a skyscraper, the Asiatique Sky Ferris Wheel is 60 metres tall and one rotation takes about 20 minutes, with the river and city all around. Asiatique opens 16:00 to midnight, with a free shuttle boat from Sathorn Pier. The wheel itself is paid; check the price on site.
+For a high view without a skyscraper, the Asiatique Sky Ferris Wheel is 60 metres tall and a ride lasts about 15–20 minutes, with the river and city all around. Asiatique opens 16:00 to midnight, with a free shuttle boat from Sathorn Pier. The wheel itself is paid; check the price on site.
 
 ## Rooftop viewpoints
 Bangkok has several paid observation decks on tall towers. The views are spectacular, but prices are high and change often, so check prices and dress codes on the official websites before going. For a first hangout with new friends, the free riverside spots are usually more relaxed.

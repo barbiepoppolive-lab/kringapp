@@ -9,7 +9,7 @@ S_W30 = ('BK Magazine – Warehouse 30', 'https://www.bkmagazine.com/shop/wareho
 S_LUMPHINI = ('Wikipedia – Lumphini Park', 'https://en.wikipedia.org/wiki/Lumphini_Park')
 S_BENJA = ('Wikipedia – Benjakitti Park', 'https://en.wikipedia.org/wiki/Benjakitti_Park')
 S_BENCHASIRI = ('Wikipedia – Benchasiri Park', 'https://en.wikipedia.org/wiki/Benchasiri_Park')
-S_LANG = ('Bangkok Cultural Exchange – free Thai–English exchange listing, Lumphini Park', 'https://www.meetup.com/Bangkok-Cultural-Exchange-Meetup/events/297475226')
+S_LANG = ('Bangkok Cultural Exchange – Thai–English exchange in Lumphini Park (2023 listing)', 'https://www.meetup.com/Bangkok-Cultural-Exchange-Meetup/events/297475226')
 
 ARTS = [
 # ---------------------------------------------------------------- 11
@@ -29,7 +29,7 @@ dict(slug='ari-hang-out', group='areas', img='cafe', areas=['ari', 'siam', 'hub'
 ## ที่ที่น่าแวะ
 ร้านในอารีย์เปิด-ปิดและย้ายได้ เช็กเพจของแต่ละที่ก่อนไป
 - **Gump's Ari** ศูนย์รวมร้านเล็ก บูทีก และป๊อปอัปที่เปลี่ยนไปเรื่อย ๆ เดินดูได้ทั้งบ่าย
-- **Somewhere** พื้นที่จัดนิทรรศการและเวิร์กช็อป เหมาะกับคนที่อยากเจอคนชอบงานสร้างสรรค์
+- **Somewhere** พื้นที่จัดนิทรรศการและเวิร์กช็อปในซอยประดิพัทธ์ 17 (นั่งรถต่อสั้น ๆ ทางสะพานควาย) เหมาะกับคนที่ชอบงานสร้างสรรค์
 - **KICHgallery** แกลเลอรีศิลปะร่วมสมัย
 - **La Villa** ใกล้สถานี มีร้านอาหาร ซูเปอร์มาร์เก็ต และพื้นที่นั่งเล่นกลางแจ้ง เป็นจุดนัดที่ทุกคนหาเจอ
 - **คาเฟ่ที่มีคาแรกเตอร์** เช่น Thongyoy ที่ตกแต่งด้วยดอกไม้
@@ -88,7 +88,7 @@ Ari sits on Phahonyothin Road at BTS Ari on the Sukhumvit line, two stops from C
 ## Places worth a stop
 From Time Out (May 2026). Shops open, close and move, so check each place's page before going.
 - **Gump's Ari**: a cluster of small shops, boutiques and rotating pop-ups, good for a whole afternoon.
-- **Somewhere**: an exhibition and workshop space, ideal for making friends with creative people.
+- **Somewhere**: an exhibition and workshop space on Soi Pradipat 17, a short ride towards Saphan Khwai, ideal for making friends with creative people.
 - **KICHgallery**: contemporary art.
 - **La Villa**: near the station, with restaurants, a supermarket and open-air seating. An easy landmark for a first hangout.
 - **Cafés with character**, such as flower-filled Thongyoy.
@@ -154,7 +154,7 @@ theCOMMONS อยู่ที่ 335 ซอยทองหล่อ 17 เปิ
 จาก BTS ทองหล่อ ทางออก 3 นั่งแท็กซี่หรือแอปเรียกรถราว 5-10 นาที หรือเดิน 15-20 นาที
 
 ## วิ่งเช้าที่ทองหล่อ
-Meep Meep Run Club จัดวิ่งเช้าเดือนละสองครั้งที่ theCOMMONS เริ่มประมาณ 7 โมง ให้ไปก่อน 15 นาทีเพื่อฟังบรีฟ บางเส้นทางในเมืองต้องจองล่วงหน้า (ข้อมูล Time Out ก.พ. 2026) วิ่งเสร็จนั่งกาแฟต่อในตึกเดียวกันได้เลย เป็นวิธีที่ดีมากในการรู้จักคนในย่าน
+Meep Meep Run Club จัดวิ่งเช้าเดือนละสองครั้งร่วมกับ theCOMMONS (บางรอบอยู่สาขาอื่น เช็กไอจีของคลับก่อน) เริ่มประมาณ 7 โมง ให้ไปก่อน 15 นาทีเพื่อฟังบรีฟ บางเส้นทางในเมืองต้องจองล่วงหน้า (ข้อมูล Time Out ก.พ. 2026) วิ่งเสร็จนั่งกาแฟต่อในตึกเดียวกันได้เลย เป็นวิธีที่ดีมากในการรู้จักคนในย่าน
 
 ## ทำงานที่ทองหล่อ-เอกมัย
 UnionSPACE WorkPod มีสาขาทั้งเอกมัยและทองหล่อ เริ่มต้น 250 บาทต่อ 24 ชั่วโมง (ข้อมูล ก.ย. 2026) คนทำงานรีโมตหลายคนเลือกอยู่ย่านนี้เพราะทำงานเสร็จแล้วมีที่ให้ไปต่อเยอะ อ่านเพิ่มใน[กรุงเทพฯ สำหรับดิจิทัลโนแมด](/blog/digital-nomads-bangkok/)
@@ -187,7 +187,7 @@ theCOMMONS มีหลังคาและหลายชั้น นั่�
   faq=[('theCOMMONS ทองหล่อเปิดกี่โมง', 'ตามข้อมูลของ theCOMMONS เปิด 8:00-01:00 น. แต่ละร้านมีเวลาของตัวเอง'),
        ('ไปทองหล่อลงสถานีอะไร', 'ลง BTS ทองหล่อ หรือ BTS เอกมัย สายสุขุมวิท theCOMMONS อยู่ซอยทองหล่อ 17 ห่างจากทางออก 3 ของ BTS ทองหล่อ ราว 5-10 นาทีโดยรถ'),
        ('ทองหล่อกับเอกมัยต่างกันยังไง', 'ทองหล่อคือสุขุมวิท 55 มีร้านดีไซน์และบรรยากาศหรูกว่า เอกมัยคือสุขุมวิท 63 สบาย ๆ กว่า สองซอยเชื่อมกันได้หลายจุด'),
-       ('มีรันคลับที่ทองหล่อไหม', 'มี เช่น Meep Meep Run Club ที่วิ่งเช้าเดือนละสองครั้งที่ theCOMMONS')],
+       ('มีรันคลับที่ทองหล่อไหม', 'มี เช่น Meep Meep Run Club ที่จัดวิ่งเช้าเดือนละสองครั้งร่วมกับ theCOMMONS เช็กสาขาในไอจีของคลับก่อน')],
  ),
  en=dict(
   title='Thonglor & Ekkamai 2027: Where to Hang Out',
@@ -205,7 +205,7 @@ theCOMMONS is at 335 Thong Lo Soi 17, open 8am–1am, with each vendor setting i
 From BTS Thong Lo Exit 3 it is a 5–10 minute taxi or ride-hailing trip, or a 15–20 minute walk.
 
 ## Morning runs in Thonglor
-Meep Meep Run Club holds twice-monthly morning sessions at theCOMMONS, starting around 7am; arrive 15 minutes early for the briefing, and note that some city routes need pre-booking (per Time Out, February 2026). Afterwards, coffee is in the same building. It is a great way to get to know people who live nearby.
+Meep Meep Run Club holds twice-monthly morning sessions with theCOMMONS (some are at other branches, so check the club's Instagram), starting around 7am; arrive 15 minutes early for the briefing, and note that some city routes need pre-booking (per Time Out, February 2026). Afterwards, coffee is in the same building. It is a great way to get to know people who live nearby.
 
 ## Working in Thonglor and Ekkamai
 UnionSPACE WorkPod has branches in both Ekkamai and Thong Lo, from 250 baht per 24 hours (September 2026). Many remote workers live here because there is so much to do after work. More in [Bangkok for digital nomads](/en/blog/digital-nomads-bangkok/).
@@ -238,7 +238,7 @@ Traffic here is heavy on Friday evenings. For after-work plans, choose somewhere
   faq=[('What are theCOMMONS Thonglor opening hours?', 'According to theCOMMONS, 8am to 1am, with each vendor setting its own hours.'),
        ('Which BTS station is Thonglor?', 'BTS Thong Lo or BTS Ekkamai on the Sukhumvit line. theCOMMONS is on Thong Lo Soi 17, about 5–10 minutes by car from BTS Thong Lo Exit 3.'),
        ('What is the difference between Thonglor and Ekkamai?', 'Thonglor (Sukhumvit 55) is more polished and design-led; Ekkamai (Sukhumvit 63) is more relaxed. Side sois connect them.'),
-       ('Is there a run club in Thonglor?', 'Yes, Meep Meep Run Club runs twice a month from theCOMMONS, per Time Out (February 2026).')],
+       ('Is there a run club in Thonglor?', 'Meep Meep Run Club runs twice a month with theCOMMONS, per Time Out (February 2026); check its Instagram for which branch.')],
  )),
 # ---------------------------------------------------------------- 13
 dict(slug='talat-noi-charoen-krung', group='areas', img='river', areas=['talat-noi', 'yaowarat', 'thonburi'],
@@ -273,8 +273,8 @@ dict(slug='talat-noi-charoen-krung', group='areas', img='river', areas=['talat-n
 ## เส้นทางเดินครึ่งวัน
 - **14:00** MRT หัวลำโพง เดินเข้าตลาดน้อย ดูสตรีทอาร์ต
 - **15:00** บ้านโซวเฮงไถ่และตรอกริมน้ำ
-- **16:30** เดินหรือนั่งรถสั้น ๆ ลงไปทาง TCDC ขึ้นสวนดาดฟ้า
-- **18:00** แวะ Warehouse 30 ก่อนกลับ หรือลงเรือที่ท่าใกล้ ๆ ดูแม่น้ำยามค่ำ
+- **16:00** เดินหรือนั่งรถสั้น ๆ ไป Warehouse 30 ช่วงที่ร้านในโกดังยังเปิด
+- **17:15** ต่อไป TCDC ขึ้นสวนดาดฟ้า แล้วลงเรือที่ท่าใกล้ ๆ ดูแม่น้ำยามค่ำ
 
 ## ต่อไปเยาวราชหรือข้ามฝั่ง
 ตลาดน้อยติดกับเยาวราช เดินต่อได้ไม่กี่นาที ช่วงค่ำไฟนีออนเปิดสวยมาก หรือถ้าอยากเปลี่ยนบรรยากาศ นั่งเรือข้ามฟากไปฝั่ง[ธนบุรี](/bangkok/thonburi/) นั่งริมน้ำมองกลับมาฝั่งนี้ตอนพระอาทิตย์ตก เป็นมุมที่คนส่วนใหญ่ไม่เคยเห็น
@@ -326,8 +326,8 @@ This is a living neighbourhood. Walk quietly, do not lean on walls, do not photo
 ## A half-day route
 - **14:00** MRT Hua Lamphong, walk into Talat Noi for the street art.
 - **15:00** So Heng Tai and the riverside lanes.
-- **16:30** walk or take a short ride down to TCDC and up to the rooftop.
-- **18:00** Warehouse 30, then a boat from a nearby pier to see the river at dusk.
+- **16:00** walk or take a short ride to Warehouse 30 while its shops are still open.
+- **17:15** on to TCDC and up to the rooftop, then a boat from a nearby pier to see the river at dusk.
 
 ## On to Yaowarat or across the river
 Talat Noi borders Yaowarat, a few minutes' walk away, where the neon comes on beautifully after dark. For a change of scene, take a cross-river ferry to the [Thonburi side](/en/bangkok/thonburi/) and sit by the water looking back at this bank at sunset, a view most visitors never see.
@@ -376,7 +376,7 @@ dict(slug='silom-lumphini', group='areas', img='twilight', areas=['siam', 'hub']
 
 ## กิจกรรมประจำในสวน
 - **รันคลับ** หลายกลุ่มใช้สวนลุมพินีเป็นจุดวิ่ง เช่น SarDine Run Club ที่สลับมาวิ่งที่นี่บางสัปดาห์ ดู[วิ่งที่ไหนดีในกรุงเทพฯ](/blog/run-clubs-bangkok/)
-- **กลุ่มแลกเปลี่ยนภาษา** มีกลุ่มที่เคยนั่งแลกเปลี่ยนภาษาไทย-อังกฤษฟรีในสวนบ่ายวันอาทิตย์ นัดกันที่ MRT สีลม ทางออก 1 เช็กประกาศล่าสุดก่อนไป
+- **กลุ่มแลกเปลี่ยนภาษา** บางกลุ่มเคยนัดแลกเปลี่ยนภาษาไทย-อังกฤษฟรีในสวนลุมฯ กลุ่มเปิด-ปิดบ่อย หากลุ่มที่ยังจัดอยู่ใน Facebook หรือ LINE OpenChat ก่อนไป
 - **ออกกำลังกายกลุ่ม** ช่วงเย็นมักมีคนเต้นแอโรบิกและรำไทเก๊ก ยืนดูหรือขอเข้าร่วมได้
 
 ## หลังเลิกงานในสีลม
@@ -429,7 +429,7 @@ The Green Bridge is a 1.3 km elevated walking and cycling path from Sarasin junc
 
 ## Regular things happening in the park
 - **Run clubs**: several use Lumphini, including SarDine Run Club on some Saturdays (Time Out, February 2026). See [running in Bangkok](/en/blog/run-clubs-bangkok/).
-- **Language exchange**: one group has held free Thai–English exchanges in the park on Sunday afternoons, gathering at MRT Si Lom Exit 1. Check its latest listing first.
+- **Language exchange**: free Thai–English exchanges have been held in the park before. Groups come and go, so find an active one on Facebook or LINE OpenChat first.
 - **Group exercise**: in the evenings you will see aerobics and tai chi groups. Watch, or ask to join in.
 
 ## After work in Silom
@@ -489,7 +489,7 @@ dict(slug='sukhumvit-benjakitti', group='areas', img='twilight', areas=['thonglo
 URT (Ugly Running Training Club) วิ่งเกือบทุกเช้าราว 6:30 น. ที่ประตู 3 สวนเบญจกิติ ข้างโซนยืดเหยียด และ SarDine Run Club สลับมาวิ่งที่เบญจกิติบางวันเสาร์ ถ้าอยู่แถวนี้ นี่คือวิธีมีเพื่อนในย่านที่เร็วที่สุด อ่านต่อใน[วิ่งที่ไหนดีในกรุงเทพฯ](/blog/run-clubs-bangkok/)
 
 ## ทำงานแถวนี้
-True Digital Park ที่สุขุมวิท 101 มีบัตรรายวันโปรโมชัน 300 บาท (ราคาปกติ 500 บาท) และ UnionSPACE WorkPod มีสาขาพร้อมพงษ์ เริ่มต้น 250 บาทต่อ 24 ชั่วโมง (ข้อมูล ก.ย. 2026) ทำงานเสร็จเดินไปสวนต่อได้
+UnionSPACE WorkPod มีสาขาพร้อมพงษ์ เริ่มต้น 250 บาทต่อ 24 ชั่วโมง (ข้อมูล ก.ย. 2026) ทำงานเสร็จเดินไปสวนต่อได้
 
 ## ถ้าฝนตก
 ย่านนี้มีที่หลบฝนเยอะที่สุดย่านหนึ่ง ทางเดินลอยฟ้าเชื่อมสถานี BTS กับห้างหลายแห่ง เดินต่อกันได้โดยไม่เปียก พอฝนหยุด สวนเบญจกิติหลังฝนเขียวสดและอากาศเย็นที่สุด เป็นเวลาเดินที่ดีมาก
@@ -543,7 +543,7 @@ Right beside the Emporium, at the street-level exit of BTS Phrom Phong. Open 05:
 Ugly Running Training Club (URT) runs most mornings around 6:30am at Gate 3 of Benjakitti Park by the stretching zone, and SarDine Run Club comes to Benjakitti on some Saturdays (Time Out, February 2026). If you live nearby, this is the fastest way to make local friends. More in [running in Bangkok](/en/blog/run-clubs-bangkok/).
 
 ## Working nearby
-True Digital Park on Sukhumvit 101 offers a promotional 300-baht day pass (list price 500 baht), and UnionSPACE WorkPod has a Phrom Phong branch from 250 baht per 24 hours (September 2026). Finish work, then walk to the park.
+UnionSPACE WorkPod has a Phrom Phong branch from 250 baht per 24 hours (September 2026). Finish work, then walk to the park.
 
 ## If it rains
 This is one of the easiest areas to sit out the rain: covered walkways link BTS stations with several malls, so you can keep moving without getting soaked. Right after the rain, Benjakitti is at its greenest and coolest, a perfect time to walk.

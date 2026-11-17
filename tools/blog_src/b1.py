@@ -10,7 +10,7 @@ S_ZAFIGO = ('Zafigo – Making new friends in Bangkok (InterNations, Couchsurfin
 S_LUMPHINI = ('Wikipedia – Lumphini Park', 'https://en.wikipedia.org/wiki/Lumphini_Park')
 S_TCDC = ('Time Out Bangkok – TCDC', 'https://www.timeout.com/bangkok/attractions/thailand-creative-design-center-tcdc')
 S_SOS = ('Scholars of Sustenance – Rescue Kitchen, Bangkok', 'https://www.scholarsofsustenance.org/post/join-sos-s-efforts-to-combat-food-waste-and-support-low-income-communities-in-bangkok-noi-district')
-S_LANG = ('Bangkok Cultural Exchange – free Thai–English exchange listing, Lumphini Park', 'https://www.meetup.com/Bangkok-Cultural-Exchange-Meetup/events/297475226')
+S_LANG = ('Bangkok Cultural Exchange – Thai–English exchange in Lumphini Park (2023 listing)', 'https://www.meetup.com/Bangkok-Cultural-Exchange-Meetup/events/297475226')
 S_ROTFAI = ('Bangkok for Visitors – Wachirabenchathat Park (Suan Rot Fai)', 'https://bangkokforvisitors.com/districts/chatuchak/wachira-benchathat-park/')
 
 KRING_TH = 'กริ๊ง!'
@@ -502,7 +502,7 @@ dict(slug='weekend-activities-friends', group='friends', img='twilight', areas=[
 เกมช่วยให้คนแปลกหน้าคุยกันได้ทันที ร้านที่เดินทางง่าย เช่น The Stronghold ในสยามสแควร์ ซอย 9, Quest ชั้น 7 MBK (ราว 60 บาทต่อคนต่อชั่วโมง) และ Turn The Tables แถวอนุสาวรีย์ชัยฯ ดูรายละเอียดใน[บอร์ดเกมคาเฟ่ในกรุงเทพฯ](/blog/board-game-cafes-bangkok/)
 
 ## บ่ายวันอาทิตย์: แลกเปลี่ยนภาษา
-กลุ่มแลกเปลี่ยนภาษาไทย-อังกฤษในกรุงเทพฯ มีมานาน บางกลุ่มเคยนั่งกันในสวนลุมพินีบ่ายวันอาทิตย์ แบ่งเวลาพูดไทยครึ่ง อังกฤษครึ่ง และไม่เก็บเงิน คนไทยได้ฝึกภาษา ต่างชาติได้ฝึกไทย ทุกคนได้เพื่อนต่างวัฒนธรรม ตารางเปลี่ยนบ่อย ให้เช็กประกาศล่าสุดของกลุ่มก่อนไป
+กลุ่มแลกเปลี่ยนภาษาไทย-อังกฤษในกรุงเทพฯ มีมานาน หลายกลุ่มนัดกันตามคาเฟ่หรือสวนกลางเมือง ไม่เก็บเงิน คนไทยได้ฝึกภาษา ต่างชาติได้ฝึกไทย ทุกคนได้เพื่อนต่างวัฒนธรรม กลุ่มเปิด-ปิดบ่อย หากลุ่มที่ยังจัดอยู่จริงใน Facebook หรือ LINE OpenChat ก่อนไป
 
 ## เวิร์กช็อปและคลาส
 คลาสเซรามิก ทำเทียน ทำอาหาร หรือมวยไทยแบบเป็นคอร์ส จะเจอเพื่อนร่วมคลาสเดิมหลายสัปดาห์ ย่าน[อารีย์](/bangkok/ari/) และเจริญกรุงมีสตูดิโอเล็ก ๆ หลายแห่ง ลองค้นในอินสตาแกรมด้วยชื่อย่านตามด้วยคำว่า workshop
@@ -554,7 +554,7 @@ Wachirabenchathat Park (Suan Rot Fai), near Chatuchak, has bike rental, shaded c
 Games get strangers talking immediately. The Thaiger's October 2025 picks include The Stronghold in Siam Square Soi 9, Quest on the 7th floor of MBK Center (about 60 baht per person per hour) and Turn The Tables near Victory Monument. Details in [board-game cafés in Bangkok](/en/blog/board-game-cafes-bangkok/).
 
 ## Sunday afternoon: language exchange
-Thai–English language exchanges have a long history in Bangkok. One group has run free Sunday-afternoon sessions in Lumphini Park, splitting time evenly between Thai and English. Thais practise English, visitors practise Thai, and everyone leaves with cross-cultural friends. Schedules change often, so check the group's latest listing first.
+Thai–English language exchanges have a long history in Bangkok. Many gather in cafés or central parks, often free, splitting time between Thai and English. Groups come and go, so find one that is still active on Facebook or LINE OpenChat first. Thais practise English, visitors practise Thai, and everyone leaves with cross-cultural friends. Schedules change often, so check the group's latest listing first.
 
 ## Workshops and courses
 Pottery, candle-making, cooking or a Muay Thai course puts you with the same classmates for several weeks. [Ari](/en/bangkok/ari/) and Charoen Krung both have small studios; search Instagram for the area name plus "workshop".

@@ -8,7 +8,7 @@ S_LUMPHINI = ('Wikipedia – Lumphini Park', 'https://en.wikipedia.org/wiki/Lump
 S_BENJA = ('Wikipedia – Benjakitti Park', 'https://en.wikipedia.org/wiki/Benjakitti_Park')
 S_BOARD = ('The Thaiger – Board game cafés in Bangkok (19 Oct 2025)', 'https://thethaiger.com/guides/board-game-cafes-in-bangkok-to-unleash-your-competitive-streak')
 S_ZAFIGO = ('Zafigo – Making new friends in Bangkok (InterNations, Couchsurfing)', 'https://zafigo.com/travel/zafigo-stories/how-to-meet-new-people-in-bangkok/')
-S_LANG = ('Bangkok Cultural Exchange – free Thai–English exchange listing, Lumphini Park', 'https://www.meetup.com/Bangkok-Cultural-Exchange-Meetup/events/297475226')
+S_LANG = ('Bangkok Cultural Exchange – Thai–English exchange in Lumphini Park (2023 listing)', 'https://www.meetup.com/Bangkok-Cultural-Exchange-Meetup/events/297475226')
 S_COMMONS = ('theCOMMONS Thonglor – FAQs (address, hours)', 'https://thecommonsbkk.com/thonglor/faqs')
 
 ARTS = [
@@ -276,7 +276,7 @@ dict(slug='thai-friends-etiquette', group='friends', img='cafe', areas=['ari', '
 เพื่อนต่างชาติส่วนใหญ่อยากรู้ภาษาไทยสักสองสามคำ ลองสอน "สวัสดีครับ/ค่ะ" "ขอบคุณ" "ไม่เป็นไร" และ "อร่อย" เป็นวิธีสนิทกันที่เร็วมาก และอธิบายให้เขาฟังด้วยว่าการไหว้ใช้ตอนไหน ห้ามจับหัว และไม่ชี้เท้าใส่คนหรือสิ่งของที่เคารพ
 
 ## ไปเจอเพื่อนต่างชาติได้ที่ไหน
-- **กลุ่มแลกเปลี่ยนภาษา** บางกลุ่มเคยจัดฟรีในสวนลุมพินีบ่ายวันอาทิตย์ แบ่งเวลาพูดไทยครึ่งอังกฤษครึ่ง เช็กตารางล่าสุดก่อนไป
+- **กลุ่มแลกเปลี่ยนภาษา** หลายกลุ่มนัดกันฟรีตามคาเฟ่และสวนกลางเมือง แบ่งเวลาพูดไทยครึ่งอังกฤษครึ่ง หากลุ่มที่ยังจัดอยู่ใน Facebook หรือ LINE OpenChat ก่อนไป
 - **รันคลับ** มีทั้งคนไทยและต่างชาติ หลายกลุ่มวิ่งฟรี ดู[วิ่งที่ไหนดีในกรุงเทพฯ](/blog/run-clubs-bangkok/)
 - **บอร์ดเกมคาเฟ่** เกมช่วยข้ามกำแพงภาษา
 - **ย่านที่คนต่างชาติชอบเดิน** เช่น[อารีย์](/bangkok/ari/) และ[ตลาดน้อย](/bangkok/talat-noi/)
@@ -328,7 +328,7 @@ Add "khrap" (ครับ) at the end if you are male. Women add "kha": a fallin
 Thai is tonal, so expect to be misunderstood at first. Laugh about it; Thais usually love that you are trying.
 
 ## Where to find Thai friends
-- **Language exchanges**: one Thai–English group has run free Sunday-afternoon sessions in Lumphini Park, with time split between the two languages. Check its latest listing before going.
+- **Language exchanges**: many Thai–English groups gather for free in cafés and central parks, splitting time between the two languages. Groups come and go, so find an active one on Facebook or LINE OpenChat first.
 - **Run clubs**: popular with young Thais, many free. See [running in Bangkok](/en/blog/run-clubs-bangkok/).
 - **Classes**: Muay Thai, cooking or ceramics bring Thais and foreigners together.
 - **Neighbourhood spots**: be a regular in [Ari](/en/bangkok/ari/) or [Talat Noi](/en/bangkok/talat-noi/), where many young Thais spend weekends.
@@ -373,8 +373,8 @@ dict(slug='run-clubs-bangkok', group='do', img='twilight', areas=['ari', 'thongl
 - **SarDine Run Club** วิ่งเช้าวันเสาร์ ฟรี ไม่ต้องสมัคร สลับสถานที่ระหว่างสวนรถไฟ สวนลุมพินี และสวนเบญจกิติ มีงานป๊อปอัปในเมืองบ้าง
 - **URT (Ugly Running Training Club)** วิ่งเกือบทุกเช้าราว 6:30 น. ที่ประตู 3 สวนเบญจกิติ ข้างโซนยืดเหยียด ไม่มีระบบสมาชิก
 - **Sabai Run Club** มีรอบเช้าวันอาทิตย์ และรอบคืนวันศุกร์ที่คนมาร่วมเกินพันคน
-- **Meep Meep Run Club** วิ่งเช้าเดือนละสองครั้งที่ theCOMMONS ทองหล่อ ประมาณ 7 โมง ให้มาก่อน 15 นาทีเพื่อฟังบรีฟ
-- **Cruise Control Run Club** และ **CNX-BKK Brotherhood** ติดตามตารางทางอินสตาแกรม
+- **Meep Meep Run Club** จัดวิ่งเช้าเดือนละสองครั้งร่วมกับ theCOMMONS (เช็กสาขาและเส้นทางในไอจีของคลับ) ประมาณ 7 โมง ให้มาก่อน 15 นาทีเพื่อฟังบรีฟ
+- **Cruise Control Run Club** ติดตามตารางทางอินสตาแกรม
 
 ## วิ่งในอากาศกรุงเทพฯ
 - วิ่งก่อน 7 โมงเช้าหรือหลัง 6 โมงเย็น เลี่ยงแดดกลางวัน
@@ -429,8 +429,8 @@ Per Time Out (February 2026). Check each club's Instagram before going, because 
 - **SarDine Run Club**: Saturday runs, free with no sign-up, rotating between Suan Rot Fai, Lumphini and Benjakitti, plus pop-up city runs.
 - **Ugly Running Training Club (URT)**: most mornings around 6:30am at Gate 3 of Benjakitti Park, by the stretching zone. No membership tiers.
 - **Sabai Run Club**: Sunday mornings, plus Friday-night runs with more than a thousand people.
-- **Meep Meep Run Club**: twice-monthly morning sessions at theCOMMONS in Thonglor, starting around 7am; arrive 15 minutes early for the briefing.
-- **Cruise Control Run Club** and **CNX-BKK Brotherhood**: follow their Instagram for schedules.
+- **Meep Meep Run Club**: twice-monthly morning sessions with theCOMMONS (check the club's Instagram for which branch and route), starting around 7am; arrive 15 minutes early for the briefing.
+- **Cruise Control Run Club**: follow its Instagram for schedules.
 
 ## Running in Bangkok weather
 - Run before 7am or after 6pm and skip the midday sun.
