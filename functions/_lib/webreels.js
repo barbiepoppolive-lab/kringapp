@@ -152,6 +152,9 @@ export function injectIntoMain(html, block, headExtra = '') {
 export const SEC_HEADERS = {
   'X-Content-Type-Options': 'nosniff', 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
   'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'DENY',
+  // _headers does not reach Function responses, so the site-wide ones are repeated here
+  'Content-Security-Policy': "frame-ancestors 'none'; base-uri 'self'; object-src 'none'",
+  'Permissions-Policy': 'camera=(self), microphone=(self), geolocation=(self)',
 };
 export const htmlResponse = (html, status = 200, extra = {}) => new Response(html, {
   status, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300, s-maxage=600', ...SEC_HEADERS, ...extra },
