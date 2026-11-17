@@ -11,29 +11,19 @@
 --
 -- ADDITIVE + RE-RUNNABLE. Written for kring-test (pgvector in schema "extensions"; live converts extensions.vector -> public.vector).
 --
--- UNDO (order matters):
---   update public.kr8_rings_config set value = 0 where key in ('dup_robot_on', 'rings_guard_on');
---   -- un-ghost everyone the robot hid (restores their Reels/Rings and marks the pair "different people"):
---   --   select public.kr8_admin_dup_auto_undo((detail->>'dup')::uuid) from (select distinct on (detail->>'dup') detail from public.kr8_admin_actions_log
---   --     where action = 'dup_auto_ghost' order by detail->>'dup', at desc) g;   -- run as an admin session (kr8_is_admin)
---   -- FIRST re-run the pre-0095 bodies of kr8_reel_scores (0074), kr8_admin_v2_snapshot / _member (0082),
---   -- kr8_admin_v2_activity (0086) and kr8_verify_instant (0092) — they call the functions dropped below — THEN:
---   drop trigger if exists kr8_dup_robot_claim on public.kr8_reward_claims;
---   drop function if exists public.kr8_dup_robot_claim_trg();
---   drop function if exists public.kr8_admin_dup_auto_undo(uuid, text);
---   drop function if exists public.kr8_admin_dups_auto(integer);
---   drop function if exists public.kr8_dup_robot_ghost(uuid, uuid, text, numeric);
---   drop function if exists public.kr8_board_ignored_rings(timestamptz, boolean, uuid);
---   drop function if exists public.kr8_liker_guard_ok(uuid);
---   drop function if exists public.kr8_trust(uuid);
---   drop function if exists public.kr8_is_admin_uid(uuid);
+-- UNDO: run supabase/undo/0095_kr8_autopilot1_UNDO.sql (re-runnable; test copy uses extensions.vector, live copy public.vector).
+--   It switches the robots off, un-hides everyone the Duplicate Robot hid (restoring their Reels/Rings), clears the preview list,
+--   puts back the pre-0095 bodies of kr8_reel_scores, kr8_verify_instant, kr8_admin_v2_snapshot/_member/_activity,
+--   then drops the 0095 functions and trigger.
+--
+-- 18 Nov changes (founder): Rings guard removed (likes/saves from new or low-trust accounts earn normal Rings);
+--   shared Wi-Fi is −10 and only next to another warning sign; the sweep of past data is a DRY RUN until dup_sweep_on = 1.
 
 begin;
 
 insert into public.kr8_rings_config (key, value, note) values
   ('dup_robot_on', 1, '1 = duplicate robot ghosts newer account when dup_sim >= 0.60 to an older account or same claim device (0095)'),
-  ('rings_guard_on', 1, '1 = likes/saves from members with trust < 30 or accounts < 24 h old count 0 Rings in kr8_reel_scores (0095)'),
-  ('rings_guard_min_trust', 30, 'minimum kr8_trust score for a member''s likes/saves to count when rings_guard_on = 1 (0095)')
+  ('dup_sweep_on', 0, '0 = the duplicate robot''s sweep of PAST data only previews who it would hide; 1 = it hides them (run select public.kr8_dup_robot_sweep(); after switching) (0095)')
 on conflict (key) do nothing;
 
 -- ───────────────────────── internal admin check for any user_id ─────────────────────────
@@ -62,6 +52,7 @@ declare
   dev_no int;
   shared_wifi boolean := false;
   first_claim timestamptz;
+  fast_claim boolean := false;
   total_lk int := 0;
   young_lk int := 0;
   link_tries int := 0;
@@ -167,10 +158,7 @@ begin
         where c1.member_id = p_user and not c1.is_test and not c2.is_test
       )
     ) into shared_wifi;
-    if shared_wifi then
-      score := score - 25;
-      items := items || jsonb_build_array(jsonb_build_object('w', 25, 't', '−25 same Wi-Fi as a claimer'));
-    end if;
+    -- founder 18 Nov: shared Wi-Fi alone counts 0 (cafés, condos); it is applied further down only next to another warning sign
   end if;
 
   -- -20 claimed within 15 min of joining
@@ -178,6 +166,7 @@ begin
   from public.kr8_reward_claims c
   where c.member_id = p_user and not c.is_test;
   if first_claim is not null and first_claim <= joined + interval '15 minutes' then
+    fast_claim := true;
     score := score - 20;
     items := items || jsonb_build_array(jsonb_build_object('w', 20, 't', '−20 claimed within 15 min of joining'));
   end if;
@@ -204,6 +193,12 @@ begin
     end if;
   end if;
 
+  -- -10 same Wi-Fi as a claimer: ONLY with another warning sign (same face / look-alike, link tries, or claim within 15 min); alone it counts 0
+  if shared_wifi and (same_no is not null or alike_no is not null or link_tries >= 2 or fast_claim) then
+    score := score - 10;
+    items := items || jsonb_build_array(jsonb_build_object('w', 10, 't', '−10 same Wi-Fi as a claimer'));
+  end if;
+
   score := least(100, greatest(0, score));
   return jsonb_build_object(
     'score', score,
@@ -216,7 +211,9 @@ end $$;
 revoke all on function public.kr8_trust(uuid) from public, anon, authenticated;
 
 -- ───────────────────────── 3. DUPLICATE ROBOT (automatic, silent, undoable) ─────────────────────────
-create or replace function public.kr8_dup_robot_ghost(p_a uuid, p_b uuid, p_why text, p_sim numeric default null)
+-- p_dry = true: change nothing, only log 'dup_auto_preview' ("would hide") for the founder to look at
+drop function if exists public.kr8_dup_robot_ghost(uuid, uuid, text, numeric);
+create or replace function public.kr8_dup_robot_ghost(p_a uuid, p_b uuid, p_why text, p_sim numeric default null, p_dry boolean default false)
 returns boolean language plpgsql security definer set search_path = public, pg_temp as $$
 declare
   keep_id uuid;
@@ -261,6 +258,17 @@ begin
   -- Never ghost team, admin, or test accounts, or an account already ghosted
   if dm.ghost or public.kr8_is_team(dup_id) or public.kr8_is_test_member(dup_id) or public.kr8_is_admin_uid(dup_id) then
     return false;
+  end if;
+
+  if p_dry then
+    if not exists (select 1 from public.kr8_admin_actions_log g where g.action = 'dup_auto_preview' and g.detail ->> 'dup' = dup_id::text) then
+      insert into public.kr8_admin_actions_log (action, detail)
+      values ('dup_auto_preview', jsonb_build_object(
+        'keep', keep_id, 'keep_no', km.member_no, 'keep_name', km.first_name,
+        'dup', dup_id, 'dup_no', dm.member_no, 'dup_name', dm.first_name,
+        'why', p_why, 'dup_sim', p_sim, 'posts', '[]'::jsonb, 'ledger_void', 0, 'week', w0::date::text));
+    end if;
+    return true;
   end if;
 
   -- Record the account link so Rings between them are also ignored
@@ -310,7 +318,7 @@ begin
 
   return true;
 end $$;
-revoke all on function public.kr8_dup_robot_ghost(uuid, uuid, text, numeric) from public, anon, authenticated;
+revoke all on function public.kr8_dup_robot_ghost(uuid, uuid, text, numeric, boolean) from public, anon, authenticated;
 
 -- Trigger on reward claims: same device as another claimer -> keep oldest, ghost newer
 create or replace function public.kr8_dup_robot_claim_trg()
@@ -480,6 +488,7 @@ begin
           'keep_no', coalesce(km.member_no, (g.detail ->> 'keep_no')::int),
           'keep_name', coalesce(km.first_name, g.detail ->> 'keep_name'),
           'why', g.detail ->> 'why',
+          'preview', g.action = 'dup_auto_preview',
           'dup_sim', (g.detail ->> 'dup_sim')::numeric,
           'voided_reels', jsonb_array_length(coalesce(g.detail -> 'posts', '[]'::jsonb)),
           'ledger_void', coalesce((g.detail ->> 'ledger_void')::int, 0),
@@ -492,9 +501,9 @@ begin
       from public.kr8_admin_actions_log g
       left join public.kr8_members dm on dm.user_id::text = g.detail ->> 'dup'
       left join public.kr8_members km on km.user_id::text = g.detail ->> 'keep'
-      where g.action = 'dup_auto_ghost'
-        and g.at > now() - make_interval(days => least(greatest(coalesce(p_days, 14), 1), 60))
-      order by g.detail ->> 'dup', g.at desc
+      where (g.action = 'dup_auto_ghost' and g.at > now() - make_interval(days => least(greatest(coalesce(p_days, 14), 1), 60)))
+         or g.action = 'dup_auto_preview'   -- dry-run "would hide" rows (no age limit; replaced on each sweep)
+      order by g.detail ->> 'dup', (g.action = 'dup_auto_ghost') desc, g.at desc
     ) latest
     limit 200
   ), '[]'::jsonb);
@@ -565,55 +574,37 @@ end $$;
 revoke all on function public.kr8_admin_dup_auto_undo(uuid, text) from public, anon;
 grant execute on function public.kr8_admin_dup_auto_undo(uuid, text) to authenticated;
 
--- ───────────────────────── 5. RINGS GUARD (kr8_rcfg('rings_guard_on', 1)) ─────────────────────────
-create or replace function public.kr8_liker_guard_ok(p_user uuid)
-returns boolean language sql stable security definer set search_path = public, pg_temp as $$
-  select exists (
-    select 1 from public.kr8_members m
-    where m.user_id = p_user
-      and not m.ghost
-      and m.created_at <= now() - interval '24 hours'
-  ) and coalesce((public.kr8_trust(p_user) ->> 'score')::int, 0) >= public.kr8_rcfg('rings_guard_min_trust', 30)
-$$;
-revoke all on function public.kr8_liker_guard_ok(uuid) from public, anon, authenticated;
+-- ───────────────────────── 5. RINGS GUARD — REMOVED (founder, 18 Nov: every member is new right now) ─────────────────────────
+-- Likes and saves from new or low-trust accounts earn normal Rings. kr8_reel_scores = the 0074 body plus ONE Duplicate-Robot rule:
+-- Reels by ghosted (hidden duplicate) authors, and likes/saves BY ghosted accounts, earn no Rings. No trust or account-age guard.
+drop function if exists public.kr8_board_ignored_rings(timestamptz, boolean, uuid);
+drop function if exists public.kr8_liker_guard_ok(uuid);
+delete from public.kr8_rings_config where key in ('rings_guard_on', 'rings_guard_min_trust');
 
--- Minimal, reversible update to kr8_reel_scores (0074 + Rings guard on likers/savers + exclude ghosted authors)
 create or replace function public.kr8_reel_scores(p_from timestamptz, p_to timestamptz, p_until timestamptz, p_test boolean, p_author uuid default null)
 returns table (post_id uuid, author uuid, posted_at timestamptz, l_local int, l_trav int, s_local int, s_trav int, opens int, score int)
 language sql stable security definer set search_path = public, pg_temp as $$
-  with cfg as (
-    select public.kr8_rcfg('like', 1) w_like, public.kr8_rcfg('save', 3) w_save, public.kr8_rcfg('open', 5) w_open,
-           public.kr8_rcfg('traveller_mult', 2) mult, public.kr8_rcfg('opens_day_cap', 30) cap,
-           public.kr8_rcfg('rings_guard_on', 1) guard_on
-  ),
-  reels as materialized (
+  with cfg as (select public.kr8_rcfg('like', 1) w_like, public.kr8_rcfg('save', 3) w_save, public.kr8_rcfg('open', 5) w_open,
+                      public.kr8_rcfg('traveller_mult', 2) mult, public.kr8_rcfg('opens_day_cap', 30) cap),
+  reels as (
     select p.id, p.author, p.created_at
     from public.kr8_posts p
     where p.kind = 'reel' and p.status = 'approved' and not p.hidden
       and p.created_at >= p_from and p.created_at < p_to
       and (p_author is null or p.author = p_author)
-      and not p.board_off
-      and exists (select 1 from public.kr8_post_places pp join public.kr8_places pl on pl.id = pp.place_id
+      and not p.board_off   -- 0074: admin "Feed only" (AI-made, not own footage, repost): stays in the feed, never on the board
+      and exists (select 1 from public.kr8_post_places pp join public.kr8_places pl on pl.id = pp.place_id   -- 0072: at least one Bangkok place
                   where pp.post_id = p.id and not pl.outside_bkk)
-      and exists (select 1 from public.kr8_members am where am.user_id = p.author and not am.ghost)
+      and exists (select 1 from public.kr8_members am where am.user_id = p.author and not am.ghost)   -- 0095: hidden duplicates earn nothing
       and public.kr8_is_test_member(p.author) = p_test
       and not public.kr8_is_team(p.author)
   ),
-  actors as materialized (
-    select distinct l.user_id from reels r join public.kr8_post_likes l on l.post_id = r.id and l.user_id <> r.author and l.created_at < p_until
-    union
-    select distinct s.user_id from reels r join public.kr8_post_saves s on s.post_id = r.id and s.user_id <> r.author and s.created_at < p_until
-  ),
-  ppl as materialized (
+  ppl as (   -- members whose likes and saves count
     select m.user_id, (m.who = 'traveller' and (m.verified or public.kr8_rcfg('traveller_mult_needs_verified', 1) = 0)) as trav
-    from actors ac
-    join public.kr8_members m on m.user_id = ac.user_id
-    cross join cfg
-    where coalesce(m.photo, '') <> '' and btrim(coalesce(m.first_name, '')) <> ''
-      and not m.ghost
-      and public.kr8_is_test_member(m.user_id) = p_test and not public.kr8_is_team(m.user_id)
+    from public.kr8_members m
+    where coalesce(m.photo, '') <> '' and btrim(coalesce(m.first_name, '')) <> '' and public.kr8_is_test_member(m.user_id) = p_test and not public.kr8_is_team(m.user_id)
+      and not m.ghost   -- 0095: a hidden duplicate's likes/saves earn nothing
       and (m.verified or m.created_at < now() - make_interval(hours => public.kr8_rcfg('liker_min_age_hours', 72)))
-      and (cfg.guard_on <> 1 or public.kr8_liker_guard_ok(m.user_id))
   ),
   lk as (
     select r.id, count(*) filter (where not c.trav)::int a, count(*) filter (where c.trav)::int b
@@ -646,53 +637,6 @@ language sql stable security definer set search_path = public, pg_temp as $$
   from reels r cross join cfg left join lk on lk.id = r.id left join sv on sv.id = r.id left join op on op.id = r.id
 $$;
 revoke all on function public.kr8_reel_scores(timestamptz, timestamptz, timestamptz, boolean, uuid) from public, anon, authenticated;
-
--- How many Rings were ignored specifically by Rings guard on a board row's Reels this week
-create or replace function public.kr8_board_ignored_rings(p_w0 timestamptz, p_test boolean, p_author uuid)
-returns integer language sql stable security definer set search_path = public, pg_temp as $$
-  with cfg as (
-    select public.kr8_rcfg('like', 1) w_like, public.kr8_rcfg('save', 3) w_save,
-           public.kr8_rcfg('traveller_mult', 2) mult, public.kr8_rcfg('rings_guard_on', 1) guard_on
-  ),
-  reels as materialized (
-    select p.id, p.author
-    from public.kr8_posts p
-    where p.author = p_author and p.kind = 'reel' and p.status = 'approved' and not p.hidden and not p.board_off
-      and p.created_at >= p_w0 and p.created_at < p_w0 + interval '7 days'
-      and exists (select 1 from public.kr8_post_places pp join public.kr8_places pl on pl.id = pp.place_id
-                  where pp.post_id = p.id and not pl.outside_bkk)
-  ),
-  ev as (
-    select l.user_id, 'like'::text kind
-    from reels r join public.kr8_post_likes l on l.post_id = r.id and l.user_id <> r.author and l.created_at < p_w0 + interval '7 days'
-    where not public.kr8_linked(l.user_id, r.author)
-    union all
-    select s.user_id, 'save'::text kind
-    from reels r join public.kr8_post_saves s on s.post_id = r.id and s.user_id <> r.author and s.created_at < p_w0 + interval '7 days'
-    where not public.kr8_linked(s.user_id, r.author)
-  ),
-  blocked_actors as (
-    select distinct e.user_id,
-           (m.who = 'traveller' and (m.verified or public.kr8_rcfg('traveller_mult_needs_verified', 1) = 0)) as trav
-    from ev e
-    join public.kr8_members m on m.user_id = e.user_id
-    cross join cfg
-    where cfg.guard_on = 1
-      and coalesce(m.photo, '') <> '' and btrim(coalesce(m.first_name, '')) <> ''
-      and not m.ghost
-      and public.kr8_is_test_member(m.user_id) = p_test and not public.kr8_is_team(m.user_id)
-      and (m.verified or m.created_at < now() - make_interval(hours => public.kr8_rcfg('liker_min_age_hours', 72)))
-      and not public.kr8_liker_guard_ok(m.user_id)
-  )
-  select coalesce(sum(
-    (case when e.kind = 'like' then cfg.w_like else cfg.w_save end)
-    * (case when b.trav then cfg.mult else 1 end)
-  ), 0)::int
-  from ev e
-  join blocked_actors b on b.user_id = e.user_id
-  cross join cfg
-$$;
-revoke all on function public.kr8_board_ignored_rings(timestamptz, boolean, uuid) from public, anon, authenticated;
 
 -- ───────────────────────── Admin v2 Snapshot + Member 360 + Activity Log (additive fields only) ─────────────────────────
 create or replace function public.kr8_admin_v2_snapshot(p_include_test boolean default false)
@@ -789,10 +733,8 @@ begin
                      count(*) filter (where status not in ('available', 'assigned'))::int used
               from public.kr8_reward_codes where p_include_test or not is_test group by 1, 2) k), '[]'::jsonb),
     'board', jsonb_build_object('week_start', w0, 'paid_ranks', public.kr8_paid_ranks(), 'floor', public.kr8_rcfg('min_rings_for_paid_seat', 25),
-        'guard_on', public.kr8_rcfg('rings_guard_on', 1) = 1,
         'rows', coalesce((select jsonb_agg(jsonb_build_object('rank', b.rk, 'user_id', b.member_id, 'rings', b.rings, 'prize', public.kr8_prize_for(b.rk),
-                     'likes', s.likes, 'saves', s.saves, 'opens', s.opens, 'is_new', m.created_at >= w0, 'no', m.member_no, 'name', m.first_name,
-                     'ignored_rings', public.kr8_board_ignored_rings(w0, false, b.member_id)) order by b.rk)
+                     'likes', s.likes, 'saves', s.saves, 'opens', s.opens, 'is_new', m.created_at >= w0, 'no', m.member_no, 'name', m.first_name) order by b.rk)
                    from board b left join sc s on s.author = b.member_id left join public.kr8_members m on m.user_id = b.member_id where b.rk <= 20), '[]'::jsonb)),
     'pending', jsonb_build_object(
         'reels', coalesce((select jsonb_agg(jsonb_build_object('id', x.id, 'user_id', x.author, 'at', x.created_at, 'poster_path', x.poster_path, 'video_path', x.video_path, 'body', left(x.body, 140)) order by x.created_at)
@@ -903,31 +845,39 @@ end $$;
 revoke all on function public.kr8_admin_v2_activity(integer, boolean) from public, anon;
 grant execute on function public.kr8_admin_v2_activity(integer, boolean) to authenticated;
 
--- One-time catch-up sweep on existing same-device claimers or blocked dup_sim >= 0.60 face decisions
-do $$
-declare r record;
+-- Sweep of PAST data (same-face blocks >= 0.60 to an older account, same claim phone). Re-runnable.
+-- dup_sweep_on = 0 (default): DRY RUN — nobody is hidden; "would hide" rows show under "Handled automatically: preview".
+-- dup_sweep_on = 1: hides them for real (each one undoable). To switch on:
+--   update public.kr8_rings_config set value = 1 where key = 'dup_sweep_on'; select public.kr8_dup_robot_sweep();
+create or replace function public.kr8_dup_robot_sweep()
+returns integer language plpgsql security definer set search_path = public, pg_temp as $$
+declare r record; n int := 0; dry boolean := public.kr8_rcfg('dup_sweep_on', 0) <> 1;
 begin
-  if public.kr8_rcfg('dup_robot_on', 1) = 1 then
-    for r in
-      select distinct d.dup_user as keep_id, d.user_id as dup_id, d.dup_sim
-      from public.kr8_face_decisions d
-      join auth.users u_keep on u_keep.id = d.dup_user
-      join auth.users u_dup on u_dup.id = d.user_id
-      where d.decision = 'block' and d.dup_user is not null and d.dup_sim >= 0.60 and u_keep.created_at < u_dup.created_at
-    loop
-      perform public.kr8_dup_robot_ghost(r.keep_id, r.dup_id, 'same_face', r.dup_sim);
-    end loop;
-
-    for r in
-      select distinct c1.member_id as a_id, c2.member_id as b_id
-      from public.kr8_reward_claims c1
-      join public.kr8_reward_claims c2 on c2.device = c1.device and c2.member_id <> c1.member_id
-      where c1.device is not null and not c1.is_test and not c2.is_test
-        and c1.status <> 'cancelled' and c2.status <> 'cancelled'
-    loop
-      perform public.kr8_dup_robot_ghost(r.a_id, r.b_id, 'same_device', null);
-    end loop;
-  end if;
+  if public.kr8_rcfg('dup_robot_on', 1) <> 1 then return 0; end if;
+  -- a fresh preview each run; once it runs for real the preview list is no longer needed
+  delete from public.kr8_admin_actions_log where action = 'dup_auto_preview';
+  for r in
+    select distinct d.dup_user as keep_id, d.user_id as dup_id, d.dup_sim
+    from public.kr8_face_decisions d
+    join auth.users u_keep on u_keep.id = d.dup_user
+    join auth.users u_dup on u_dup.id = d.user_id
+    where d.decision = 'block' and d.dup_user is not null and d.dup_sim >= 0.60 and u_keep.created_at < u_dup.created_at
+  loop
+    if public.kr8_dup_robot_ghost(r.keep_id, r.dup_id, 'same_face', r.dup_sim, dry) then n := n + 1; end if;
+  end loop;
+  for r in
+    select distinct c1.member_id as a_id, c2.member_id as b_id
+    from public.kr8_reward_claims c1
+    join public.kr8_reward_claims c2 on c2.device = c1.device and c2.member_id <> c1.member_id
+    where c1.device is not null and not c1.is_test and not c2.is_test
+      and c1.status <> 'cancelled' and c2.status <> 'cancelled'
+  loop
+    if public.kr8_dup_robot_ghost(r.a_id, r.b_id, 'same_device', null, dry) then n := n + 1; end if;
+  end loop;
+  return n;
 end $$;
+revoke all on function public.kr8_dup_robot_sweep() from public, anon, authenticated;
+
+select public.kr8_dup_robot_sweep();
 
 commit;

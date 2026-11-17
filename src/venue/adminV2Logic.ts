@@ -33,20 +33,20 @@ export interface CodeStock { brand: string; amount: number; available: number; a
 export interface BoardRow {
   rank: number; user_id: string; rings: number; prize: number; likes: number | null; saves: number | null; opens: number | null;
   is_new: boolean; no: number | null; name: string | null;
-  /** 0095 Rings guard: Rings from low-trust (<30) or <24h accounts ignored on this row */
-  ignored_rings?: number | null;
 }
 export interface DupAuto {
   at: string; dup: string; dup_no: number | null; dup_name: string | null;
   keep: string | null; keep_no: number | null; keep_name: string | null;
   why: 'same_face' | 'same_device' | string | null; dup_sim: number | null;
   voided_reels: number; ledger_void: number; ghost: boolean; undone: boolean;
+  /** dry run of the sweep of past data: the robot WOULD hide this account; nothing was changed */
+  preview?: boolean;
 }
 export interface Snapshot {
   at: string; day_start: string; week_start: string; include_test: boolean;
   counts: { real: number; real_today: number; test: number; team: number; ghost: number; admin: number; nocard: number };
   people: Person[]; claims: Claim[]; codes: CodeStock[];
-  board: { week_start: string; paid_ranks: number; floor: number; guard_on?: boolean; rows: BoardRow[] };
+  board: { week_start: string; paid_ranks: number; floor: number; rows: BoardRow[] };
   pending: { reels: { id: string; user_id: string; at: string; poster_path: string | null; video_path: string | null; body: string | null }[];
     checks: { id: string; user_id: string; at: string; auto: string | null; review: string[] | null; selfie_path: string | null }[]; reports: number; places: number };
   alerts: { kind: string; subject: string; at: string; sent: boolean; error: boolean | string | null }[];
@@ -136,11 +136,12 @@ export function personTrust(p: Person, s?: Snapshot): Trust {
   const sameDev = p.links.find((l) => l.reason === 'device');
   const sameNet = p.links.some((l) => l.reason === 'network') || p.shared_net > 0;
   if (sameDev) { score -= 35; items.push({ w: 35, t: `−35 same phone as #${sameDev.no ?? '?'}` }); }
-  else if (sameNet) { score -= 25; items.push({ w: 25, t: '−25 same Wi-Fi as a claimer' }); }
 
   const firstAt = p.claims?.first_at || s?.claims.filter((c) => c.user_id === p.user_id && !c.is_test).map((c) => c.created_at).sort()[0] || null;
   const mins = firstAt ? minutesBetween(p.joined_at, firstAt) : null;
   if (mins != null && mins <= 15) { score -= 20; items.push({ w: 20, t: '−20 claimed within 15 min of joining' }); }
+  // shared Wi-Fi alone counts 0; −10 only next to another warning sign (same as kr8_trust)
+  if (!sameDev && sameNet && (sameFace || alikeFace || (mins != null && mins <= 15))) { score -= 10; items.push({ w: 10, t: '−10 same Wi-Fi as a claimer' }); }
 
   items.sort((a, b) => b.w - a.w);
   return { score: Math.max(0, Math.min(100, score)), reasons: items.map((x) => x.t) };
@@ -201,6 +202,11 @@ export function moneyRobotVerdict(c: Claim, p: Person | undefined, s: Snapshot):
 }
 
 export function dupAutoText(d: DupAuto): string {
+  if (d.preview) {
+    const keepP = d.keep_no != null ? `#${d.keep_no}${d.keep_name ? ` ${d.keep_name}` : ''}` : 'older account';
+    const whyP = d.why === 'same_device' ? `same phone as ${keepP}` : `same face as ${keepP}`;
+    return `Would hide ${d.dup_name || 'member'}${d.dup_no != null ? ` #${d.dup_no}` : ''} (${whyP}) · nothing changed yet`;
+  }
   const dupWho = `${d.dup_name || 'member'}${d.dup_no != null ? ` #${d.dup_no}` : ''}`;
   const keepWho = d.keep_no != null ? `#${d.keep_no}${d.keep_name ? ` ${d.keep_name}` : ''}` : 'older account';
   const why = d.why === 'same_device'
@@ -259,7 +265,7 @@ export function linkGroups(people: Person[]): Person[][] {
   return [...groups.values()].filter((g) => g.length > 1).map((g) => g.sort((x, y) => Date.parse(x.joined_at) - Date.parse(y.joined_at)));
 }
 
-export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[] } {
+export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[]; preview: Handled[] } {
   const people = s.people;
   const byId = new Map(people.map((p) => [p.user_id, p]));
   const items: InboxItem[] = [];
@@ -322,7 +328,9 @@ export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[
 
   // auto-decided things the founder never needs to touch, for the "Handled automatically" log
   const dupLogged = new Set<string>();
+  const preview: Handled[] = [];
   for (const d of s.dups_auto || []) {
+    if (d.preview) { preview.push({ key: `dupp:${d.dup}`, at: d.at, text: dupAutoText(d) }); continue; }
     dupLogged.add(d.dup);
     handled.push({ key: `dup:${d.dup}`, at: d.at, text: dupAutoText(d), undoDup: d.dup, undone: d.undone || !d.ghost });
   }
@@ -338,7 +346,8 @@ export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[
     return b.rank - a.rank || Date.parse(a.at) - Date.parse(b.at);
   });
   handled.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
-  return { items, handled };
+  preview.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+  return { items, handled, preview };
 }
 
 // ───────── Robot Report card on Today (0095) ─────────
@@ -347,15 +356,14 @@ export interface RobotReport {
   lines: string[];
   needsCount: number;
 }
-export function buildRobotReport(s: Snapshot, inbox = buildInbox(s)): RobotReport {
+export function buildRobotReport(s: Snapshot, inbox: { items: InboxItem[]; handled: Handled[] } = buildInbox(s)): RobotReport {
   const d0 = Date.parse(s.day_start);
-  const dupsToday = (s.dups_auto || []).filter((d) => !d.undone && d.ghost && Date.parse(d.at) >= d0).length;
-  const dupsActive = (s.dups_auto || []).filter((d) => !d.undone && d.ghost).length;
+  const dupsToday = (s.dups_auto || []).filter((d) => !d.preview && !d.undone && d.ghost && Date.parse(d.at) >= d0).length;
+  const dupsActive = (s.dups_auto || []).filter((d) => !d.preview && !d.undone && d.ghost).length;
   const facesToday = s.people.filter((p) => p.check && p.check.status !== 'pending' && p.check.auto && Date.parse(p.check.at) >= d0).length;
   const placesToday = (s.places_auto || []).filter((a) => Date.parse(a.at) >= d0).length;
   const paidToday = s.claims.filter((c) => c.status === 'assigned' && !c.held && !c.decided && !c.is_test && Date.parse(c.assigned_at || c.created_at) >= d0).length;
-  const ignoredRings = s.board.rows.reduce((n, r) => n + (r.ignored_rings || 0), 0);
-  const ignoredRows = s.board.rows.filter((r) => (r.ignored_rings || 0) > 0).length;
+  const previewN = (s.dups_auto || []).filter((d) => d.preview).length;
   const heldItems = inbox.items.filter((i) => i.kind === 'held');
 
   const lines: string[] = [];
@@ -363,8 +371,7 @@ export function buildRobotReport(s: Snapshot, inbox = buildInbox(s)): RobotRepor
   else if (dupsActive > 0) lines.push(`Duplicate robot is holding ${dupsActive} duplicate account${dupsActive === 1 ? '' : 's'} in ghost mode (0 new today).`);
   else lines.push('Duplicate robot: 0 duplicate accounts caught today.');
 
-  if (ignoredRings > 0) lines.push(`Rings guard ignored ${ignoredRings} Ring${ignoredRings === 1 ? '' : 's'} from low-trust (<30) or <24h accounts across ${ignoredRows} board row${ignoredRows === 1 ? '' : 's'}.`);
-  else if (s.board.guard_on !== false) lines.push('Rings guard is on: 0 suspicious Rings needed blocking on this week’s board.');
+  if (previewN > 0) lines.push(`Duplicate robot preview: ${previewN} older case${previewN === 1 ? '' : 's'} it would hide — nobody hidden until you switch the sweep on.`);
 
   const autoParts: string[] = [];
   if (facesToday) autoParts.push(`${facesToday} face check${facesToday === 1 ? '' : 's'} decided`);
@@ -499,7 +506,7 @@ export function filterPeople(s: Snapshot, f: PeopleFilter, q = '', ref = '', inc
 export const referrers = (s: Snapshot) => [...new Set(s.people.filter((p) => p.kind === 'real').map((p) => p.ref || p.src).filter((x): x is string => !!x))].sort();
 
 // ───────── plain-English summary for the top of Today ─────────
-export function summary(s: Snapshot, inbox = buildInbox(s)): string[] {
+export function summary(s: Snapshot, inbox: { items: InboxItem[]; handled: Handled[] } = buildInbox(s)): string[] {
   const d0 = Date.parse(s.day_start);
   const today = s.people.filter((p) => p.kind === 'real' && Date.parse(p.joined_at) >= d0);
   const refs = [...new Set(today.map((p) => p.ref || 'no referrer'))];

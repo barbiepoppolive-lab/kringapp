@@ -56,7 +56,7 @@ const mockSnapshot: Snapshot = {
       photo_check: 'ok',
       email_hint: null,
       line: false,
-      trust: { score: 18, reasons: ['−40 same face as #24', '−25 same Wi-Fi as a claimer', '−20 claimed within 15 min of joining'] },
+      trust: { score: 18, reasons: ['−40 same face as #24', '−10 same Wi-Fi as a claimer', '−20 claimed within 15 min of joining'] },
       check: { id: 'chk-2', status: 'rejected', at: '2026-11-17T10:02:00Z', auto: 'block', reason: 'same face' },
       reels: { live: 0, waiting: 0, hidden: 0, board_off: 0, board_off_reason: null },
       claims: { n: 1, paid: 0, held: 1, thb: 0, first_at: '2026-11-17T10:06:00Z' },
@@ -116,9 +116,8 @@ const mockSnapshot: Snapshot = {
     week_start: '2026-11-16T17:00:00Z',
     paid_ranks: 8,
     floor: 25,
-    guard_on: true,
     rows: [
-      { rank: 1, user_id: 'u-good', rings: 45, prize: 1500, likes: 10, saves: 5, opens: 4, is_new: false, no: 24, name: 'Somchai', ignored_rings: 9 },
+      { rank: 1, user_id: 'u-good', rings: 45, prize: 1500, likes: 10, saves: 5, opens: 4, is_new: false, no: 24, name: 'Somchai' },
     ],
   },
   pending: { reels: [], checks: [], reports: 0, places: 0 },
@@ -193,7 +192,7 @@ describe('T-370 Autopilot Step 1 DOM views', () => {
     document.body.innerHTML = '<div id="app"></div>';
   });
 
-  it('renders Robot report on Today, Money Robot verdicts + Undo toast in Needs you, Undo on Handled automatically, trust on People + Member, and Rings guard on Board', async () => {
+  it('renders Robot report on Today, Money Robot verdicts + Undo toast in Needs you, Undo on Handled automatically, trust on People + Member, and no Rings guard on Board', async () => {
     const v2 = await import('./adminV2');
     await v2.loadSnapshot(true);
 
@@ -204,7 +203,7 @@ describe('T-370 Autopilot Step 1 DOM views', () => {
     expect(robotCard).toBeTruthy();
     expect(robotCard.getAttribute('href')).toBe('#inbox');
     expect(robotCard.textContent).toContain('Duplicate robot ghosted 1 duplicate account today');
-    expect(robotCard.textContent).toContain('Rings guard ignored 9 Rings');
+    expect(robotCard.textContent).not.toContain('Rings guard');
     expect(robotCard.textContent).toContain('1 PAY · 1 REFUSE');
 
     // 2. Needs you -> Money Robot verdicts, clearest first, Pay / Refuse keep Undo toast
@@ -244,10 +243,10 @@ describe('T-370 Autopilot Step 1 DOM views', () => {
     expect(document.getElementById('app')!.textContent).toContain('82 / 100');
     expect(document.getElementById('v2MemberTrust')?.textContent).toContain('+30 face verified');
 
-    // 5. Board -> "9 Rings ignored by Rings guard" per row
+    // 5. Board -> Rings guard removed (18 Nov): no "Rings ignored" line
     v2.boardView();
     await new Promise((r) => setTimeout(r, 30));
-    expect(document.getElementById('v2Board')?.textContent).toContain('9 Rings ignored by Rings guard');
+    expect(document.getElementById('v2Board')?.textContent).not.toContain('Rings ignored');
 
     v2.stopV2();
   });

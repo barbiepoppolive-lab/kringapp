@@ -77,7 +77,7 @@ function mkSnapshot(over: Partial<Snapshot> = {}): Snapshot {
     people: [],
     claims: [],
     codes: [{ brand: 'truemoney', amount: 100, available: 10, assigned: 2, used: 0 }],
-    board: { week_start: '2026-11-16T17:00:00Z', paid_ranks: 8, floor: 25, guard_on: true, rows: [] },
+    board: { week_start: '2026-11-16T17:00:00Z', paid_ranks: 8, floor: 25, rows: [] },
     pending: { reels: [], checks: [], reports: 0, places: 0 },
     alerts: [],
     places_auto: [],
@@ -108,7 +108,7 @@ describe('T-370 Autopilot Step 1', () => {
     const tShady = personTrust(shady);
     expect(tShady.score).toBe(0);
     expect(tShady.reasons).toContain('−40 same face as #24');
-    expect(tShady.reasons).toContain('−25 same Wi-Fi as a claimer');
+    expect(tShady.reasons).toContain('−10 same Wi-Fi as a claimer');
     expect(tShady.reasons).toContain('−20 claimed within 15 min of joining');
     expect(trustChip(tShady)).toEqual({ text: 'trust 0', tone: 'r' });
 
@@ -127,7 +127,7 @@ describe('T-370 Autopilot Step 1', () => {
       user_id: 'u-refuse',
       no: 13,
       verified: false,
-      trust: { score: 15, reasons: ['−40 same face as #24', '−25 same Wi-Fi as a claimer', '−20 claimed within 15 min of joining', '+10 real photo'] },
+      trust: { score: 15, reasons: ['−40 same face as #24', '−10 same Wi-Fi as a claimer', '−20 claimed within 15 min of joining', '+10 real photo'] },
     });
 
     const cWait = mkClaim({ id: 'c-wait', user_id: 'u-wait', hold_reason: 'review', created_at: '2026-11-17T08:00:00Z' });
@@ -154,7 +154,7 @@ describe('T-370 Autopilot Step 1', () => {
 
     expect(vRefuse.call).toBe('REFUSE');
     expect(vRefuse.headline).toBe('Robot says: REFUSE · trust 15');
-    expect(vRefuse.reasons).toEqual(['−40 same face as #24', '−25 same Wi-Fi as a claimer', '−20 claimed within 15 min of joining']);
+    expect(vRefuse.reasons).toEqual(['−40 same face as #24', '−10 same Wi-Fi as a claimer', '−20 claimed within 15 min of joining']);
 
     // Clearest cases (REFUSE + PAY) sort ahead of grey-zone WAIT even though WAIT arrived earliest!
     const inbox = buildInbox(snap);
@@ -208,7 +208,7 @@ describe('T-370 Autopilot Step 1', () => {
     expect(dupAutoText(snap.dups_auto![0])).toContain('Duplicate robot ghosted Joob2 #99 (same face as #24 Joob · 0.89) · voided this week’s Rings');
   });
 
-  it('builds Today Robot Report including duplicates ghosted, Rings guard ignored count, and held claim verdicts', () => {
+  it('builds Today Robot Report including duplicates ghosted and held claim verdicts (no Rings guard)', () => {
     const p = mkPerson({ user_id: 'u-1', no: 24, trust: { score: 88, reasons: ['+30 face verified', '+10 real photo', '+10 approved Reel'] } });
     const c = mkClaim({ id: 'c-1', user_id: 'u-1' });
     const snap = mkSnapshot({
@@ -218,8 +218,7 @@ describe('T-370 Autopilot Step 1', () => {
         week_start: '2026-11-16T17:00:00Z',
         paid_ranks: 8,
         floor: 25,
-        guard_on: true,
-        rows: [{ rank: 1, user_id: 'u-1', rings: 40, prize: 1500, likes: 10, saves: 5, opens: 3, is_new: false, no: 24, name: 'Somchai', ignored_rings: 12 }],
+        rows: [{ rank: 1, user_id: 'u-1', rings: 40, prize: 1500, likes: 10, saves: 5, opens: 3, is_new: false, no: 24, name: 'Somchai' }],
       },
       dups_auto: [{
         at: '2026-11-17T06:00:00Z',
@@ -239,7 +238,31 @@ describe('T-370 Autopilot Step 1', () => {
     });
     const rep = buildRobotReport(snap);
     expect(rep.lines.join(' ')).toContain('Duplicate robot ghosted 1 duplicate account today');
-    expect(rep.lines.join(' ')).toContain('Rings guard ignored 12 Rings');
+    expect(rep.lines.join(' ')).not.toContain('Rings guard');
     expect(rep.lines.join(' ')).toContain('Money robot scored 1 held claim for your tap (1 PAY)');
+  });
+
+  it('shared Wi-Fi alone counts 0; −10 only next to another warning sign', () => {
+    const wifiOnly = mkPerson({ user_id: 'u-w1', no: 70, verified: true, shared_net: 1, links: [],
+      joined_at: '2026-11-17T10:00:00Z', claims: { n: 1, paid: 0, held: 1, thb: 0, first_at: '2026-11-17T12:00:00Z' } });
+    const t1 = personTrust(wifiOnly);
+    expect(t1.reasons.join(' ')).not.toContain('Wi-Fi');
+    const wifiFast = mkPerson({ user_id: 'u-w2', no: 71, verified: true, shared_net: 1, links: [],
+      joined_at: '2026-11-17T10:00:00Z', claims: { n: 1, paid: 0, held: 1, thb: 0, first_at: '2026-11-17T10:05:00Z' } });
+    const t2 = personTrust(wifiFast);
+    expect(t2.reasons).toContain('−10 same Wi-Fi as a claimer');
+    expect(t2.score).toBe(t1.score - 30);
+  });
+
+  it('dry-run sweep rows go to the preview list, not to Handled, and hide nobody from Needs you', () => {
+    const keep = mkPerson({ user_id: 'u-k', no: 24 });
+    const dup = mkPerson({ user_id: 'u-d', no: 99, verified: false, links: [{ user_id: 'u-k', no: 24, name: 'K', reason: 'face', dist: null, sface_sim: 0.7, at: '2026-11-17T10:05:00Z' }] });
+    const snap = mkSnapshot({ people: [keep, dup], claims: [], dups_auto: [{ at: '2026-11-17T06:00:00Z', dup: 'u-d', dup_no: 99, dup_name: 'Dup', keep: 'u-k', keep_no: 24,
+      keep_name: 'K', why: 'same_face', dup_sim: 0.7, voided_reels: 0, ledger_void: 0, ghost: false, undone: false, preview: true }] });
+    const inbox = buildInbox(snap);
+    expect(inbox.preview).toHaveLength(1);
+    expect(inbox.preview[0].text).toContain('Would hide Dup #99');
+    expect(inbox.handled.some((h) => h.undoDup === 'u-d')).toBe(false);
+    expect(buildRobotReport(snap).lines.join(' ')).toContain('Duplicate robot preview: 1');
   });
 });

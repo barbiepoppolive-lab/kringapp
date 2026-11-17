@@ -323,8 +323,12 @@ function actions(i: InboxItem): HTMLElement {
 }
 export function autoView() {
   void withSnap('inbox', (s) => {
-    const { handled } = buildInbox(s);
+    const { handled, preview } = buildInbox(s);
     screen('inbox', header('Handled automatically', `${handled.length} things you did not have to touch`, '#inbox'),
+      preview.length ? el('div', { class: 'v2sec', id: 'v2PreviewHd' }, `Handled automatically: preview · ${preview.length}`) : null,
+      preview.length ? el('div', { class: 'v2sub', style: 'margin:-4px 2px 8px' }, 'Dry run of past data: the duplicate robot WOULD hide these accounts. Nobody is hidden until the sweep switch is on.') : null,
+      preview.length ? el('div', { class: 'v2card v2list', id: 'v2Preview' }, ...preview.map((h) => el('div', { class: 'v2li' }, ic('robot'),
+        el('div', { class: 'grow' }, el('b', {}, h.text), el('small', {}, `${ago(h.at)} · ${both(h.at, true)}`)), chip('preview', 'a')))) : null,
       el('div', { class: 'v2card v2list' }, ...handled.map((h) => {
         const undoBtn = h.undoDup && !h.undone
           ? el('button', { type: 'button', class: 'v2btn ok', id: 'dupUndo-' + h.undoDup, style: 'flex:0 0 auto;min-height:36px;padding:0 12px' }, 'Undo')
@@ -531,7 +535,6 @@ export function boardView() {
         const p = byId.get(r.user_id);
         const fl = [r.is_new ? chip('new this week', '') : null, r.opens && !(r.likes || 0) && !(r.saves || 0) ? chip('opens only', 'a') : null,
           p?.reels?.board_off ? chip('board off', 'a') : null, p && p.links.length ? chip('look-alike', 'r') : null,
-          (r.ignored_rings || 0) > 0 ? chip(`${r.ignored_rings} Rings ignored by Rings guard`, 'a') : null,
           r.rings < s.board.floor && r.rank <= s.board.paid_ranks ? chip(`${s.board.floor - r.rings} to qualify`, '') : null];
         return el('a', { class: 'v2li v2brow', href: `#m/${r.user_id}`, 'data-uid': r.user_id }, el('span', { class: `v2rank ${r.rank <= 3 ? 'top' : ''}` }, String(r.rank)), avatar({ user_id: r.user_id, name: r.name }, 40),
           el('div', { class: 'grow' }, el('b', {}, `${r.name} #${r.no}`), el('small', {}, `♥${r.likes ?? 0} · 🔖${r.saves ?? 0} · opens ${r.opens ?? 0}${r.prize ? ` · prize ฿${r.prize}` : ''}`), el('span', { class: 'v2flags' }, ...fl)),
