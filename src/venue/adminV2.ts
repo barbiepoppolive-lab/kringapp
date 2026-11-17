@@ -8,7 +8,7 @@ import { el, rpc, v5Client } from './shared';
 import { signReelPaths } from '../v8/v5Reel';
 import {
   ago, both, buildInbox, claimChip, clock, filterPeople, groupPeople, isSnapshot, lookalikeWords, money, noCard, peopleCounts, peopleHeadline, personFlags, placeFlags,
-  referrers, stepChip, summary, who, withAdminLogins, faceChip, faceStatusWords, liveSteps, type FaceCheck,
+  realPhoto, referrers, stepChip, summary, who, withAdminLogins, faceChip, faceStatusWords, liveSteps, type FaceCheck,
   type Claim, type InboxItem, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot,
 } from './adminV2Logic';
 import './adminV2.css';
@@ -28,6 +28,9 @@ const P: Record<string, string> = {
   trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H4.5a3 3 0 0 0 3.5 4M16 6h3.5a3 3 0 0 1-3.5 4M12 13v4M8 20h8M9.5 17h5"/>',
   log: '<path d="M3.5 12a8.5 8.5 0 1 0 2.5-6M3.5 4v4.5H8"/><path d="M12 8v4l3 2"/>', check: '<path d="M4.5 12.5l5 5 10-11"/>',
   shield: '<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/>', robot: '<rect x="5" y="8" width="14" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01"/>',
+  face: '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M9 10h.01M15 10h.01M9 15c1.7 1.3 4.3 1.3 6 0"/>',
+  link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  send: '<path d="M21 3L3 10.5l7 2.5 2.5 7z"/><path d="M10 13l5-5"/>',
 };
 function ic(name: string): SVGSVGElement {
   const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -103,13 +106,14 @@ function toast(text: string, undo?: () => void) {
 }
 
 // ───────── shell ─────────
-export type V2Tab = 'today' | 'inbox' | 'people' | 'money' | 'more';
+export type V2Tab = 'today' | 'inbox' | 'people' | 'board' | 'money' | 'more';
 export function v2Tabbar(active: V2Tab): HTMLElement {
   const n = snap ? buildInbox(snap).items.filter((i) => !hiddenKeys.has(i.key)).length : 0;
   const items: [V2Tab, string, string, string][] = [['today', 'today', 'Today', '#today'], ['inbox', 'inbox', 'Needs you', '#inbox'], ['people', 'people', 'People', '#people'],
-    ['money', 'money', 'Money', '#money'], ['more', 'more', 'More', '#more']];
+    ['board', 'trophy', 'Board', '#board'], ['more', 'more', 'More', '#more']];
+  const on = active === 'money' ? 'more' : active;
   return el('div', { class: 'tabbar v2bar' }, el('nav', {}, ...items.map(([k, i, label, href]) =>
-    el('a', { href, class: k === active ? 'on' : '', id: 'tab-' + k, 'aria-current': k === active ? 'page' : undefined },
+    el('a', { href, class: k === on ? 'on' : '', id: 'tab-' + k, 'aria-current': k === on ? 'page' : undefined },
       ic(i), label, k === 'inbox' && n ? el('span', { class: 'bdg', id: 'inboxBadge' }, String(n)) : null))));
 }
 function screen(active: V2Tab, ...kids: Kid[]): HTMLElement {
@@ -147,6 +151,17 @@ async function withSnap(active: V2Tab, render: (s: Snapshot) => void, head: HTML
 }
 
 // ───────── Today ─────────
+/** "2 days 4 h" until Sunday 23:59 Bangkok (the board week ends then). */
+function weekLeft(s: Snapshot): string {
+  const end = Date.parse(s.board.week_start) + 7 * 864e5 - 60e3;
+  const h = Math.max(0, Math.round((end - Date.now()) / 36e5));
+  return h >= 24 ? `in ${Math.floor(h / 24)} d ${h % 24} h` : `in ${h} h`;
+}
+/** The four steps a member takes: photo → Reel → face → prize. */
+function steps(p: Person, s: Snapshot): HTMLElement {
+  const st: [string, boolean][] = [['Photo', realPhoto(p, s)], ['Reel', (p.reels?.live || 0) + (p.reels?.waiting || 0) > 0], ['Face', p.verified === true], ['Prize', (p.claims?.paid || 0) > 0]];
+  return el('span', { class: 'v2steps' }, ...st.map(([t, ok]) => el('i', { class: ok ? 'ok' : '' }, (ok ? '✓ ' : '') + t)));
+}
 export function todayView() {
   const date = new Date().toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'short' });
   void withSnap('today', (s) => {
@@ -154,33 +169,53 @@ export function todayView() {
     const items = inbox.items.filter((i) => !hiddenKeys.has(i.key));
     const m = money(s);
     const d0 = Date.parse(s.day_start);
-    const fresh = s.people.filter((p) => p.kind === 'real' && Date.parse(p.joined_at) >= d0);
+    const real = s.people.filter((p) => p.kind === 'real');
+    let fresh = real.filter((p) => Date.parse(p.joined_at) >= d0);
+    const freshLabel = fresh.length ? `New today · ${fresh.length}` : 'Newest members';
+    if (!fresh.length) fresh = [...real].sort((x, y) => Date.parse(y.joined_at) - Date.parse(x.joined_at)).slice(0, 4);
     const pc = peopleCounts(s);
-    const leader = s.board.rows[0];
-    void loadPhotos([...fresh.map((p) => p.user_id), ...s.board.rows.slice(0, 3).map((r) => r.user_id), ...items.slice(0, 2).flatMap((i) => i.people.map((p) => p.user_id))]).then(paintPhotos);
+    const top = s.board.rows.slice(0, 3);
+    void loadPhotos([...fresh.map((p) => p.user_id), ...top.map((r) => r.user_id), ...items.slice(0, 2).flatMap((i) => i.people.map((p) => p.user_id))]).then(paintPhotos);
+    // funnel over every real member with a card
+    const fun: [string, number][] = [['Joined', real.length], ['Photo', real.filter((p) => realPhoto(p, s)).length],
+      ['Posted a Reel', real.filter((p) => (p.reels?.live || 0) + (p.reels?.waiting || 0) > 0).length], ['Face verified', real.filter((p) => p.verified).length],
+      ['Got a prize', real.filter((p) => (p.claims?.paid || 0) > 0).length]];
     const kpi = (id: string, n: string, label: string, sub: string, href: string, tone = '') =>
       el('a', { class: `v2kpi ${tone}`, href, id }, el('b', {}, n), el('span', {}, label), el('small', {}, sub));
     screen('today', header('Today', `${date} · India time`),
-      el('section', { class: 'v2brief', id: 'v2Brief' }, el('div', { class: 'v2brief-k' }, ic('robot'), 'In plain words'),
-        ...summary(s, { items, handled: inbox.handled }).map((t) => el('p', {}, t))),
-      el('div', { class: 'v2kpis' },
-        kpi('kpiMembers', String(pc.members), 'Members', `${pc.withPhoto} with photo · ${pc.noCard} without a card · +${pc.today} today`, '#people'),
-        kpi('kpiInbox', String(items.length), 'Needs you', items.length ? `${items.filter((i) => i.kind === 'held').length} money · ${items.filter((i) => i.kind === 'lookalike').length} look-alike` : 'All clear', '#inbox', items.length ? 'hot' : 'ok'),
-        kpi('kpiCodes', String(m.available), 'Codes left', `${m.assigned} given out`, '#money', m.available < 5 ? 'hot' : ''),
-        kpi('kpiPaid', `฿${m.paidWeekThb.toLocaleString('en-US')}`, 'Paid this week', m.heldN ? `฿${m.heldThb} held` : `${m.paidWeekN} claims`, '#money')),
-      el('div', { class: 'v2sec' }, `New today · ${fresh.length}`),
-      fresh.length ? el('div', { class: 'v2strip', id: 'v2NewToday' }, ...fresh.map((p) => el('a', { class: 'v2mini', href: personLink(p), 'data-uid': p.user_id },
-        avatar(p, 52), el('b', {}, p.name || '—'), el('small', {}, `#${p.no ?? '–'} · ${ago(p.joined_at)}`), el('small', { class: 'dim' }, p.ref ? `via ${p.ref}` : 'no referrer'))))
-        : el('div', { class: 'v2card v2sub' }, 'Nobody yet today.'),
-      leader ? el('a', { class: 'v2card v2row', href: '#board', id: 'v2Leader', 'data-uid': leader.user_id }, el('span', { class: 'v2rank' }, '1'), avatar({ user_id: leader.user_id, name: leader.name }, 40),
-        el('div', { class: 'grow' }, el('b', {}, `${leader.name} #${leader.no} leads the board`), el('div', { class: 'v2sub' }, `${leader.rings} Rings · ${s.board.rows.length} on the board this week`)), ic('chev'))
-        : el('a', { class: 'v2card v2row', href: '#board' }, el('div', { class: 'grow' }, el('b', {}, 'Board is empty this week')), ic('chev')),
-      items.length ? el('div', { class: 'v2sec' }, 'Top of your list') : null,
+      // 1. what needs a decision
+      items.length ? el('div', { class: 'v2sec' }, `Needs you · ${items.length}`) : el('a', { class: 'v2card v2row v2allclear', href: '#auto', id: 'v2Clear' }, ic('check'),
+        el('div', { class: 'grow' }, el('b', {}, 'Nothing needs you'), el('div', { class: 'v2sub' }, `${inbox.handled.length} things were handled automatically`)), ic('chev')),
       ...items.slice(0, 2).map((i) => inboxCard(i, s)),
       items.length > 2 ? el('a', { class: 'v2more', href: '#inbox' }, `See all ${items.length} →`) : null,
-      el('div', { class: 'v2links' },
-        el('a', { href: '#board', class: 'v2link' }, ic('trophy'), 'Board'), el('a', { href: '#log', class: 'v2link' }, ic('log'), 'Activity log'),
-        el('a', { href: '#auto', class: 'v2link' }, ic('robot'), `Handled automatically · ${inbox.handled.length}`)),
+      // 2. who joined, and how far they got
+      el('div', { class: 'v2sec' }, freshLabel),
+      el('div', { class: 'v2card v2list', id: 'v2NewToday' }, ...fresh.map((p) => el('a', { class: 'v2li', href: personLink(p), 'data-uid': p.user_id },
+        avatar(p, 44), el('div', { class: 'grow' }, el('b', {}, `${p.name || '—'} #${p.no ?? '–'}`),
+          el('small', {}, `${ago(p.joined_at)} · ${p.ref ? `via ${p.ref}` : 'no referrer'}`), steps(p, s)), ic('chev')))),
+      // 3. where members stop
+      el('div', { class: 'v2sec' }, 'Where members stop'),
+      el('a', { class: 'v2card v2funnel', href: '#people', id: 'v2Funnel' }, ...fun.map(([t, n], k) => el('div', { class: 'v2fun' },
+        el('span', {}, t), el('i', {}, el('u', { style: `width:${Math.round((n / Math.max(1, fun[0][1])) * 100)}%` })), el('b', {}, String(n)),
+        el('small', { class: k && n === Math.min(...fun.slice(1).map((f) => f[1])) ? 'low' : '' }, k ? `${Math.round((n / Math.max(1, fun[0][1])) * 100)}%` : '')))),
+      // 4. the race this week
+      el('div', { class: 'v2sec' }, `Board · ends ${weekLeft(s)}`),
+      top.length ? el('a', { class: 'v2card v2list', href: '#board', id: 'v2Top3' }, ...top.map((r) => el('div', { class: 'v2li', 'data-uid': r.user_id },
+        el('span', { class: 'v2rank top' }, String(r.rank)), avatar({ user_id: r.user_id, name: r.name }, 36),
+        el('div', { class: 'grow' }, el('b', {}, `${r.name} #${r.no}`), el('small', {}, r.rings < s.board.floor ? `${s.board.floor - r.rings} more Rings to qualify` : r.prize ? `prize ฿${r.prize}` : '')),
+        el('b', { class: 'v2rings' }, String(r.rings)))))
+        : el('a', { class: 'v2card v2row', href: '#board' }, el('div', { class: 'grow' }, el('b', {}, 'Board is empty this week')), ic('chev')),
+      // 5. numbers
+      el('div', { class: 'v2kpis three' },
+        kpi('kpiMembers', String(pc.members), 'Members', `+${pc.today} today`, '#people'),
+        kpi('kpiCodes', String(m.available), 'Codes left', m.available < 5 ? 'Add more soon' : `${m.assigned} given out`, '#money', m.available < 5 ? 'hot' : ''),
+        kpi('kpiPaid', `฿${m.paidWeekThb.toLocaleString('en-US')}`, 'Paid this week', m.heldN ? `฿${m.heldThb} held` : `${m.paidWeekN} claims`, '#money')),
+      // 6. shortcuts he uses
+      el('div', { class: 'v2links grid2' },
+        el('a', { href: '#faces', class: 'v2link' }, ic('face'), 'Face checks'), el('a', { href: '#recruiters', class: 'v2link' }, ic('link'), 'Recruiters'),
+        el('a', { href: '#push', class: 'v2link' }, ic('send'), 'Send a ding'), el('a', { href: '#log', class: 'v2link' }, ic('log'), 'Activity log')),
+      el('details', { class: 'v2brief', id: 'v2Brief' }, el('summary', { class: 'v2brief-k' }, ic('robot'), 'In plain words'),
+        ...summary(s, { items, handled: inbox.handled }).map((t) => el('p', {}, t))),
       testToggle());
   }, header('Today', `${date} · India time`));
 }
@@ -414,7 +449,7 @@ export function moneyView() {
   void withSnap('money', (s) => {
     const m = money(s);
     const claims = s.claims.filter((c) => includeTest || !c.is_test);
-    screen('money', header('Money', 'TrueMoney / Grab codes and every claim'),
+    screen('money', header('Money', 'TrueMoney / Grab codes and every claim', '#more'),
       el('div', { class: 'v2kpis' },
         el('div', { class: `v2kpi ${m.available < 5 ? 'hot' : ''}`, id: 'mAvail' }, el('b', {}, String(m.available)), el('span', {}, 'Codes left'), el('small', {}, `${m.assigned} given out`)),
         el('div', { class: 'v2kpi', id: 'mWeek' }, el('b', {}, `฿${m.paidWeekThb}`), el('span', {}, 'Paid this week'), el('small', {}, `${m.paidWeekN} claims · since Mon (BKK)`)),
@@ -432,16 +467,16 @@ export function moneyView() {
         return el('a', { class: 'v2li', href: c.user_id ? `#m/${c.user_id}` : '#money', 'data-claim': c.id },
           el('div', { class: 'grow' }, el('b', {}, `${who(c)} · ฿${c.amount}`), el('small', {}, `${clock(c.created_at)} IST${mins != null ? ` · ${mins} min after joining` : ''}${c.prize?.kind ? ` · ${c.prize.kind}` : ''}`)), chip(ch.text, ch.tone)); })),
       testToggle());
-  }, header('Money'));
+  }, header('Money', undefined, '#more'));
 }
 
 // ───────── Board ─────────
 export function boardView() {
-  void withSnap('more', (s) => {
+  void withSnap('board', (s) => {
     const byId = new Map(s.people.map((p) => [p.user_id, p]));
     void loadPhotos(s.board.rows.map((r) => r.user_id)).then(paintPhotos);
     const wk = new Date(s.board.week_start).toLocaleDateString('en-GB', { timeZone: 'Asia/Bangkok', day: 'numeric', month: 'short' });
-    screen('more', header('Board', `Week from Mon ${wk} (BKK) · top ${s.board.paid_ranks} win · ${s.board.floor} Rings to qualify`, '#more'),
+    screen('board', header('Board', `Week from Mon ${wk} (BKK) · ends ${weekLeft(s)} · top ${s.board.paid_ranks} win · ${s.board.floor} Rings to qualify`),
       el('div', { class: 'v2card v2list', id: 'v2Board' }, ...s.board.rows.map((r) => {
         const p = byId.get(r.user_id);
         const fl = [r.is_new ? chip('new this week', '') : null, r.opens && !(r.likes || 0) && !(r.saves || 0) ? chip('opens only', 'a') : null,
@@ -452,7 +487,7 @@ export function boardView() {
           el('b', { class: 'v2rings' }, String(r.rings)));
       })),
       el('a', { class: 'v2card v2row', href: '#week' }, el('div', { class: 'grow' }, el('b', {}, 'Approve last week'), el('div', { class: 'v2sub' }, 'Top 8 with flags · opens the weekly prizes')), ic('chev')));
-  }, header('Board', undefined, '#more'));
+  }, header('Board'));
 }
 
 // ───────── Activity log ─────────
