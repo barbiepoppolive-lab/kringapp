@@ -13,6 +13,7 @@ import { mentionsKring } from './socialAdmin';
 import { lineMessage, splitTreat, standLink, uploadPhotos } from './adminHelpers';
 import { IG_TOP, type IgDm } from './igData';
 import { pushSendArgs } from './pushAdmin';
+import { bannedIn, fileSize, PLATFORMS, REEL_CAPTION, REEL_CAPTION_EN, shareReel, type Platform } from './postReel';
 import { agentsByLabel, cleanRef, codeMeaning, funnelLine, funnelRate, isProblemLog, isRecruiters, kindName, uaInfo,
   type ProblemLog, type RecruitMember, type Recruiters } from './problemsAdmin';
 import { buildClusters, faceWords, flagText, isLookalikeMap, isLookCardMap, joinDate, lookalikeBlock, ownPhotoLabel, type LookCard, type FaceLookalikes, istWhen, weekRange, type WeekRow, HOLD_LABEL, isDupOverview, isLinkReason, isWeekReview, linkText, prizeName, REASON_LABEL, weekFlags,
@@ -1699,6 +1700,7 @@ function moreView() {
   const cleaned = cleanedNote || LS('kr8-admin-cleaned');
   screen('more', head('Kring admin', 'More'),
     el('div', { class: 'sec', style: 'margin-top:0' }, 'Every day'),
+    li('#post', 'reel', 'Post a Reel', 'One tap each: Instagram · YouTube · X', 'morePost'),
     li('#money', 'party', 'Money', 'Codes left · paid this week · every claim', 'moreMoney'),
     li('#faces', 'face', 'Face checks', 'Selfie next to the card photo · 1-tap reject (with undo)', 'moreFaces'),
     li('#recruiters', 'link', 'Recruiters', 'Sign-ups per ref code (Pich, Otop…) · credit members who joined without one', 'moreRecruiters'),
@@ -1873,6 +1875,60 @@ async function codesView() {
         save));
   };
   await draw();
+}
+
+// ───────────────────────────── Post a Reel (17 Nov): one tap per platform via the phone's share sheet ─────────────────────────────
+// Kept for this session only (in memory): the picked video, the caption, and which platforms he already tapped.
+const post: { file: File | null; url: string; caption: string; done: Set<Platform> } = { file: null, url: '', caption: REEL_CAPTION, done: new Set() };
+const PLAT_ICON: Record<Platform, string> = {
+  instagram: '<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r=".6" fill="currentColor"/>',
+  youtube: '<rect x="2.5" y="5.5" width="19" height="13" rx="4"/><path d="M10 9v6l5-3z" fill="currentColor"/>',
+  x: '<path d="M4 4l16 16M20 4L4 20"/>',
+};
+function postView() {
+  const fileIn = el('input', { type: 'file', accept: 'video/*', id: 'postFile', style: 'display:none' }) as HTMLInputElement;
+  const pick = el('label', { class: 'btn ghost big full', for: 'postFile', id: 'postPick' }, ic('plus'), post.file ? 'Pick another video' : 'Pick video');
+  const prev = el('div', { id: 'postPrev' });
+  const caption = el('textarea', { id: 'postCaption', rows: '6' }) as HTMLTextAreaElement; caption.value = post.caption;
+  const warn = el('p', { class: 'err', id: 'postWarn' });
+  const hint = el('p', { class: 'okc sm', id: 'postHint', style: 'margin:10px 2px 0;min-height:1em' });
+  const paintPrev = () => {
+    prev.replaceChildren(...(post.file ? [el('div', { class: 'post-prev' },
+      el('video', { src: post.url, muted: true, playsinline: true, controls: true, preload: 'metadata' }),
+      el('div', { class: 'grow' }, el('b', {}, post.file.name), el('div', { class: 'faint sm', id: 'postSize' }, fileSize(post.file.size))))] : []));
+    pick.replaceChildren(ic('plus'), post.file ? 'Pick another video' : 'Pick video');
+  };
+  const checkWords = () => { const bad = bannedIn(caption.value); warn.textContent = bad.length ? `Take out: ${bad.join(', ')}` : ''; };
+  caption.oninput = () => { post.caption = caption.value; checkWords(); };
+  fileIn.onchange = () => {
+    const f = fileIn.files?.[0]; if (!f) return;
+    if (post.url) URL.revokeObjectURL(post.url);
+    post.file = f; post.url = URL.createObjectURL(f); post.done.clear();
+    paintPrev(); paintBtns();
+  };
+  const btns = el('div', { class: 'post-btns', id: 'postBtns' });
+  const paintBtns = () => btns.replaceChildren(...PLATFORMS.map((p) => {
+    const done = post.done.has(p.id);
+    const svg = ic(''); svg.innerHTML = PLAT_ICON[p.id];
+    const b = btn(`big full post-${p.id}${done ? ' done' : ''}`, [svg, el('span', { class: 'grow' }, p.name), done ? el('span', { class: 'post-ok' }, '✓ posted') : null], () => {
+      if (!post.file) { toast('Pick a video first'); return; }
+      // no await before shareReel: the share sheet / new tab need this tap
+      void shareReel(p.id, post.file, caption.value, { copy: copyText, canShare: navigator.canShare?.bind(navigator), share: navigator.share?.bind(navigator), open: (u) => window.open(u, '_blank', 'noopener') })
+        .then((r) => {
+          if (r === 'cancelled') { hint.textContent = 'Share closed · caption is still copied'; return; }
+          hint.textContent = r === 'opened' ? 'Caption copied — paste it after the video loads' : `Caption copied — paste it in ${p.name} after the video loads`;
+          post.done.add(p.id); paintBtns();
+        });
+    }, { id: 'post-' + p.id });
+    return b;
+  }));
+  paintPrev(); paintBtns(); checkWords();
+  screen('more', el('div', { class: 'row', style: 'margin:6px 0 16px' }, el('a', { class: 'icb', href: '#more', 'aria-label': 'Back' }, ic('back')), el('h1', { style: 'font-size:26px' }, 'Post a Reel')),
+    el('div', { class: 'card stack' }, el('b', {}, '1 · Video'), fileIn, pick, prev),
+    el('div', { class: 'card stack' }, el('b', {}, '2 · Caption'), caption, el('p', { class: 'faint xs' }, REEL_CAPTION_EN), warn),
+    el('div', { class: 'sec' }, '3 · Post'),
+    btns, hint,
+    el('p', { class: 'faint xs', style: 'margin:22px 2px 0;text-align:center' }, 'Fully automatic posting comes with Autopilot.'));
 }
 
 // ───────────────────────────── Send notification (16 Nov dings, 0059) ─────────────────────────────
@@ -2293,6 +2349,7 @@ function route() {
   if (a === 'more') return moreView();
   if (a === 'rules') return rulesView();
   if (a === 'codes') return void codesView();
+  if (a === 'post') return postView();
   if (a === 'push') return void pushView();
   if (a === 'ghost') return void ghostView();
   if (a === 'problems') return void problemsView();

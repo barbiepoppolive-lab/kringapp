@@ -391,3 +391,16 @@ button.tile.wide { font: inherit; cursor: pointer; }
 .sheet.rsheet { padding-bottom: 0; }
 .sheet .stack.rs .rs-go { position: sticky; bottom: 0; z-index: 2; margin-top: 4px; box-shadow: 0 -14px 18px var(--s2), 0 calc(18px + var(--bot)) 0 var(--s2); }
 .sheet.rsheet .stack.rs { padding-bottom: calc(18px + var(--bot)); }
+
+/* 17 Nov: Post a Reel — one big button per platform, ✓ posted once tapped this session */
+.post-prev { display: flex; gap: 12px; align-items: center; }
+.post-prev video { width: 84px; height: 150px; object-fit: cover; border-radius: 14px; background: #000; flex: none; }
+.post-prev b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.post-btns { display: grid; gap: 12px; }
+.post-btns .btn { justify-content: flex-start; padding: 0 20px; min-height: 68px; font-size: 18px; gap: 14px; }
+.post-btns .btn svg { width: 26px; height: 26px; }
+.post-btns .post-instagram { background: linear-gradient(115deg, #f9a03f, #e1306c 45%, #833ab4); color: #fff; }
+.post-btns .post-youtube { background: #ff0033; color: #fff; }
+.post-btns .post-x { background: #000; color: #fff; border: 1px solid var(--line2); }
+.post-btns .btn.done { box-shadow: inset 0 0 0 3px var(--go2); }
+.post-ok { background: rgba(0, 0, 0, 0.35); color: var(--go2); font-size: 14px; font-weight: 700; padding: 6px 10px; border-radius: 10px; }

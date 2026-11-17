@@ -30,6 +30,7 @@ const P: Record<string, string> = {
   shield: '<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/>', robot: '<rect x="5" y="8" width="14" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01"/>',
   face: '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M9 10h.01M15 10h.01M9 15c1.7 1.3 4.3 1.3 6 0"/>',
   link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  reel: '<rect x="5" y="3" width="14" height="18" rx="3"/><path d="M10 9.5v5l4-2.5z"/>',
   send: '<path d="M21 3L3 10.5l7 2.5 2.5 7z"/><path d="M10 13l5-5"/>',
 };
 function ic(name: string): SVGSVGElement {
@@ -212,6 +213,7 @@ export function todayView() {
         kpi('kpiPaid', `฿${m.paidWeekThb.toLocaleString('en-US')}`, 'Paid this week', m.heldN ? `฿${m.heldThb} held` : `${m.paidWeekN} claims`, '#money')),
       // 6. shortcuts he uses
       el('div', { class: 'v2links grid2' },
+        el('a', { href: '#post', class: 'v2link', id: 'v2Post', style: 'grid-column:1 / -1' }, ic('reel'), 'Post a Reel · Instagram · YouTube · X'),
         el('a', { href: '#faces', class: 'v2link' }, ic('face'), 'Face checks'), el('a', { href: '#recruiters', class: 'v2link' }, ic('link'), 'Recruiters'),
         el('a', { href: '#push', class: 'v2link' }, ic('send'), 'Send a ding'), el('a', { href: '#log', class: 'v2link' }, ic('log'), 'Activity log')),
       el('details', { class: 'v2brief', id: 'v2Brief' }, el('summary', { class: 'v2brief-k' }, ic('robot'), 'In plain words'),
