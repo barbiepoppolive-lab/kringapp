@@ -6,6 +6,7 @@
         python3 tools/build_blog.py --check    (build + word counts, banned words, title/meta lengths)
         python3 tools/build_blog.py --review N (write a plain-text review file for batch N to stdout)"""
 import os, re, sys, json, html, glob, importlib.util
+sys.dont_write_bytecode = True
 R = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = 'https://kringapp.com'
 DATE = '2026-11-17'

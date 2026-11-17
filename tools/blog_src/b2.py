@@ -17,19 +17,19 @@ dict(slug='digital-nomads-bangkok', group='live', img='twilight', areas=['ari', 
  related=['expat-first-month-bangkok', 'make-friends-bangkok', 'rainy-season-bangkok'],
  sources=[S_DTV, S_COWORK, S_TCDC, S_MRT],
  th=dict(
-  title='กรุงเทพฯ สำหรับดิจิทัลนอแมด 2027: วีซ่า DTV ย่าน และที่ทำงาน',
-  desc='กรุงเทพฯ ยังน่าอยู่สำหรับคนทำงานรีโมตปี 2027 ไหม? สรุปวีซ่า DTV ย่านที่น่าอยู่ ราคาพื้นที่ทำงานร่วมรายวัน การเดินทาง และวิธีมีเพื่อนในเมือง',
-  h1='กรุงเทพฯ สำหรับดิจิทัลนอแมด 2027: วีซ่า ย่าน ที่ทำงาน และเพื่อน',
-  lead='กรุงเทพฯ ยังเป็นหนึ่งในเมืองที่คนทำงานรีโมตเลือกมากที่สุด เพราะมีวีซ่า DTV ที่ให้อยู่ได้ครั้งละ 180 วัน พื้นที่ทำงานร่วมราคาไม่แรง และรถไฟฟ้าที่ครอบคลุมย่านน่าอยู่ บทความนี้สรุปสิ่งที่ต้องรู้ก่อนมาปี 2027 และวิธีไม่ให้ต้องทำงานคนเดียวทุกวัน',
-  card='วีซ่า DTV ย่านน่าอยู่ พื้นที่ทำงานร่วม การเดินทาง และการมีเพื่อน',
+  title='กรุงเทพฯ สำหรับดิจิทัลโนแมด 2027: วีซ่า DTV ย่าน และที่ทำงาน',
+  desc='กรุงเทพฯ ยังน่าอยู่สำหรับคนทำงานรีโมตปี 2027 ไหม? สรุปวีซ่า DTV ย่านที่น่าอยู่ ราคาโคเวิร์กกิ้งสเปซรายวัน การเดินทาง และวิธีมีเพื่อนในเมือง',
+  h1='กรุงเทพฯ สำหรับดิจิทัลโนแมด 2027: วีซ่า ย่าน ที่ทำงาน และเพื่อน',
+  lead='กรุงเทพฯ ยังเป็นหนึ่งในเมืองที่คนทำงานรีโมตเลือกมากที่สุด เพราะมีวีซ่า DTV ที่ให้อยู่ได้ครั้งละ 180 วัน โคเวิร์กกิ้งสเปซราคาไม่แรง และรถไฟฟ้าที่ครอบคลุมย่านน่าอยู่ บทความนี้สรุปสิ่งที่ต้องรู้ก่อนมาปี 2027 และวิธีไม่ให้ต้องทำงานคนเดียวทุกวัน',
+  card='วีซ่า DTV ย่านน่าอยู่ โคเวิร์กกิ้งสเปซ การเดินทาง และการมีเพื่อน',
   body='''
 ## ทำไมคนไทยควรรู้เรื่องนี้
-ถ้าคุณเป็นคนกรุงเทพฯ ที่ทำงานรีโมต หรืออยากมีเพื่อนต่างชาติที่อยู่ยาว คนกลุ่มนี้คือเพื่อนร่วมโต๊ะในพื้นที่ทำงานร่วมของคุณ บทความนี้เขียนให้ใช้ได้ทั้งสองฝั่ง ทั้งคนไทยที่ทำงานแบบเดียวกัน และเพื่อนต่างชาติที่คุณอยากส่งลิงก์ให้อ่าน
+ถ้าคุณเป็นคนกรุงเทพฯ ที่ทำงานรีโมต หรืออยากมีเพื่อนต่างชาติที่อยู่ยาว คนกลุ่มนี้คือเพื่อนร่วมโต๊ะในโคเวิร์กกิ้งสเปซของคุณ บทความนี้เขียนให้ใช้ได้ทั้งสองฝั่ง ทั้งคนไทยที่ทำงานแบบเดียวกัน และเพื่อนต่างชาติที่คุณอยากส่งลิงก์ให้อ่าน
 
 ## วีซ่า DTV แบบสั้น ๆ
 Destination Thailand Visa (DTV) เป็นวีซ่าสำหรับคนทำงานทางไกล ฟรีแลนซ์ และคนที่มาเรียนกิจกรรมอย่างมวยไทยหรือทำอาหารไทย ตามข้อมูลของสถานทูตไทยในบูดาเปสต์
 
-- อายุวีซ่า 5 ปี อยู่ได้ครั้งละไม่เกิน 180 วัน
+- อายุวีซ่า 5 ปี อยู่ได้ครั้งละไม่เกิน 180 วัน และยื่นขยายเวลาพำนักที่ตรวจคนเข้าเมืองในไทยได้ (เช็กกติกาและค่าธรรมเนียมล่าสุด)
 - ต้องแสดงเงินหรือทรัพย์สินอย่างน้อย 500,000 บาท
 - ทำงานให้บริษัทไทยหรือรับงานลูกค้าไทยไม่ได้ และไม่ได้ใบอนุญาตทำงาน
 - ค่าธรรมเนียมขึ้นกับสถานทูตที่ยื่น
@@ -39,10 +39,10 @@ Destination Thailand Visa (DTV) เป็นวีซ่าสำหรับค
 ## ย่านที่คนทำงานรีโมตชอบ
 - **[อารีย์](/bangkok/ari/)** ซอยร่มรื่น คาเฟ่เยอะ ตึกไม่สูง จังหวะชีวิตช้ากว่าใจกลางเมือง อยู่บน BTS สายสุขุมวิท
 - **[ทองหล่อ](/bangkok/thonglor/) และเอกมัย** คึกคัก ร้านเยอะ มีคอมมูนิตี้มอลล์อย่าง theCOMMONS ในซอยทองหล่อ 17 ที่เปิด 8 โมงเช้าถึงตีหนึ่ง (แต่ละร้านมีเวลาของตัวเอง)
-- **[สยาม](/bangkok/siam/) และชิดลม** สะดวกที่สุดเรื่องเดินทาง เพราะ BTS สองสายมาเจอกัน มีพื้นที่ทำงานร่วมหลายที่
+- **[สยาม](/bangkok/siam/) และชิดลม** สะดวกที่สุดเรื่องเดินทาง เพราะ BTS สองสายมาเจอกัน มีโคเวิร์กกิ้งสเปซหลายที่
 - **เจริญกรุง** ใกล้ห้องสมุด TCDC และย่านเก่าริมน้ำ เหมาะกับสายครีเอทีฟ
 
-## พื้นที่ทำงานร่วม ราคาต่อวัน
+## โคเวิร์กกิ้งสเปซ ราคาต่อวัน
 ตัวอย่างราคาจากบทความ Digital Nomads World (ก.ย. 2026)
 - **JustCo Gaysorn Amarin** ถนนเพลินจิต ใกล้ BTS ชิดลม ราว 750 บาทต่อวัน
 - **True Digital Park** สุขุมวิท 101 บัตรรายวันโปรโมชัน 300 บาท (ราคาปกติ 500 บาท)
@@ -55,16 +55,16 @@ MRT สายสีน้ำเงินและสีม่วงรับบ�
 
 ## ทำงานคนเดียวแต่ไม่โดดเดี่ยว
 ปัญหาใหญ่ที่สุดของคนทำงานรีโมตไม่ใช่วีซ่าหรืออินเทอร์เน็ต แต่คือความเหงา วิธีที่ได้ผล
-- เลือกพื้นที่ทำงานร่วมที่เดียวแล้วไปเวลาเดิม คนหน้าเดิมจะเริ่มทักกันเอง
-- หากิจกรรมประจำหนึ่งอย่าง เช่น รันคลับวันเสาร์ ดู [วิ่งที่ไหนดีในกรุงเทพฯ](/blog/run-clubs-bangkok/)
+- เลือกโคเวิร์กกิ้งสเปซที่เดียวแล้วไปเวลาเดิม คนหน้าเดิมจะเริ่มทักกันเอง
+- หากิจกรรมประจำหนึ่งอย่าง เช่น รันคลับวันเสาร์ ดู[วิ่งที่ไหนดีในกรุงเทพฯ](/blog/run-clubs-bangkok/)
 - กันเย็นวันธรรมดาหนึ่งวันไว้สำหรับนัดคนอื่นโดยเฉพาะ ไม่งั้นงานจะกินเวลาทั้งหมด
 - ลองกลุ่มแลกเปลี่ยนภาษา ได้ทั้งเพื่อนไทยและฝึกภาษาไปด้วย
 
 ## ฤดูฝนกับการทำงาน
-ฝนกรุงเทพฯ มักตกหนักช่วงบ่ายถึงเย็นในหน้าฝน วางแผนประชุมออนไลน์สำคัญไว้ในที่ที่ไฟไม่ดับง่ายและเน็ตสำรองได้ อ่านต่อใน [ทำอะไรดีหน้าฝนในกรุงเทพฯ](/blog/rainy-season-bangkok/)
+ฝนกรุงเทพฯ มักตกหนักช่วงบ่ายถึงเย็นในหน้าฝน วางแผนประชุมออนไลน์สำคัญไว้ในที่ที่ไฟไม่ดับง่ายและเน็ตสำรองได้ อ่านต่อใน[ทำอะไรดีหน้าฝนในกรุงเทพฯ](/blog/rainy-season-bangkok/)
 
 ## หนึ่งสัปดาห์ที่ลงตัว
-- **จันทร์-พุธ** ทำงานที่พื้นที่ทำงานร่วมที่เดิม เวลาเดิม
+- **จันทร์-พุธ** ทำงานที่โคเวิร์กกิ้งสเปซที่เดิม เวลาเดิม
 - **พฤหัส** ทำงานจากคาเฟ่ในย่านใหม่ ถือโอกาสสำรวจเมือง
 - **ศุกร์** ปิดงานเร็ว แล้วไปบอร์ดเกมคาเฟ่หรือรันคลับรอบเย็น
 - **เสาร์** วิ่งเช้ากับรันคลับ บ่ายเดินตลาดหรือหอศิลป์
@@ -72,7 +72,7 @@ MRT สายสีน้ำเงินและสีม่วงรับบ�
 ''',
   cta=('มีเพื่อนใหม่นอกเวลางาน', 'ในกริ๊ง! คุณโพสต์ Reel จากคาเฟ่หรือที่ทำงานที่ชอบ แล้วเจอคนที่ทำงานแถวเดียวกัน ทั้งคนไทยและต่างชาติ แชตแปลไทย-อังกฤษให้ ใช้ฟรี อายุ 20 ปีขึ้นไป'),
   faq=[('วีซ่า DTV อยู่ไทยได้นานแค่ไหน', 'วีซ่ามีอายุ 5 ปี อยู่ได้ครั้งละไม่เกิน 180 วัน ต้องแสดงเงินอย่างน้อย 500,000 บาท และทำงานให้บริษัทหรือลูกค้าไทยไม่ได้ ตามข้อมูลสถานทูตไทย'),
-       ('พื้นที่ทำงานร่วมในกรุงเทพฯ ราคาเท่าไหร่', 'ตัวอย่างจากเดือนกันยายน 2026 อยู่ราว 250-750 บาทต่อวัน ขึ้นกับที่และโปรโมชัน'),
+       ('โคเวิร์กกิ้งสเปซในกรุงเทพฯ ราคาเท่าไหร่', 'ตัวอย่างจากเดือนกันยายน 2026 อยู่ราว 250-750 บาทต่อวัน ขึ้นกับที่และโปรโมชัน'),
        ('ย่านไหนในกรุงเทพฯ เหมาะกับคนทำงานรีโมต', 'อารีย์สำหรับคนชอบความสงบ ทองหล่อ-เอกมัยสำหรับคนชอบความคึกคัก สยาม-ชิดลมสำหรับความสะดวก และเจริญกรุงสำหรับสายครีเอทีฟ'),
        ('ขึ้น MRT ด้วยบัตรธนาคารได้ไหม', 'ได้ MRT สายสีน้ำเงินและสีม่วงรับบัตร Visa และ Mastercard แบบแตะจ่าย รวมถึงบัตรเดบิตบางประเภท')],
  ),
@@ -86,7 +86,7 @@ MRT สายสีน้ำเงินและสีม่วงรับบ�
 ## The DTV visa in brief
 The Destination Thailand Visa (DTV) is aimed at remote workers, freelancers and people coming for activities such as Muay Thai or Thai cooking courses. According to the Royal Thai Embassy in Budapest:
 
-- The visa is valid for 5 years, with stays of up to 180 days per entry.
+- The visa is valid for 5 years, with stays of up to 180 days per entry; a stay can be extended at immigration inside Thailand (check the current rules and fee).
 - You need to show at least 500,000 baht in funds or assets.
 - It does not allow a Thai work permit, employment with Thai companies or freelance work for Thai clients.
 - Fees depend on the embassy where you apply.
@@ -128,7 +128,7 @@ In the rainy season, Bangkok downpours usually hit in the afternoon or evening. 
 - **Sun**: real rest, or an afternoon language exchange.
 ''',
   cta=('New friends outside work hours', 'On Kring you post a Reel from your favourite café or workspace and find people working nearby, Thai and foreign. Chats translate between Thai and English. Free, ages 20+.'),
-  faq=[('How long can I stay on the DTV visa?', 'The visa is valid for 5 years, with stays of up to 180 days per entry. You must show at least 500,000 baht and cannot work for Thai companies or Thai clients, according to the Thai embassy.'),
+  faq=[('How long can I stay on the DTV visa?', 'The visa is valid for 5 years, with stays of up to 180 days per entry; a stay can be extended at immigration inside Thailand (check the current rules and fee). You must show at least 500,000 baht and cannot work for Thai companies or Thai clients, according to the Thai embassy.'),
        ('How much is co-working in Bangkok?', 'Examples from September 2026 range from about 250 to 750 baht per day, depending on the space and promotions.'),
        ('Which Bangkok area is best for digital nomads?', 'Ari for calm, Thonglor–Ekkamai for energy, Siam–Chit Lom for convenience and Charoen Krung for creative types.'),
        ('Can I ride the MRT with a bank card?', 'Yes. The MRT Blue and Purple lines accept contactless Visa and Mastercard cards and certain debit and prepaid cards.')],
@@ -138,7 +138,7 @@ dict(slug='expat-first-month-bangkok', group='live', img='tuktuk', areas=['ari',
  related=['digital-nomads-bangkok', 'thai-friends-etiquette', 'make-friends-bangkok'],
  sources=[S_MRT, S_ZAFIGO, S_LUMPHINI, S_RUN],
  th=dict(
-  title='เดือนแรกในกรุงเทพฯ ของเพื่อนต่างชาติ: เช็กลิสต์ 2027',
+  title='ย้ายมากรุงเทพฯ เดือนแรก: เช็กลิสต์ซิม ที่พัก และเพื่อน 2027',
   desc='มีเพื่อนต่างชาติเพิ่งย้ายมากรุงเทพฯ หรือคุณย้ายมาเอง? เช็กลิสต์เดือนแรก ทั้งซิม การเดินทาง แอปที่ต้องมี หาที่อยู่ และหาเพื่อนใหม่ อัปเดต 2027',
   h1='เดือนแรกในกรุงเทพฯ: เช็กลิสต์สำหรับคนย้ายมาใหม่ (2027)',
   lead='เดือนแรกในกรุงเทพฯ ให้ทำสามอย่างก่อน คือ มีเบอร์มือถือไทยกับแอปที่คนไทยใช้ เรียนรู้รถไฟฟ้าสายที่ผ่านบ้าน และสร้างกิจวัตรที่ได้เจอคนเดิมทุกสัปดาห์ ที่เหลือค่อย ๆ ตามมา บทความนี้ใช้ได้ทั้งคนไทยที่ย้ายเข้าเมือง และเพื่อนต่างชาติที่คุณอยากช่วย',
@@ -153,19 +153,19 @@ dict(slug='expat-first-month-bangkok', group='live', img='tuktuk', areas=['ari',
 ## สัปดาห์ที่ 2: ที่อยู่
 - เลือกที่อยู่ใกล้สถานี BTS หรือ MRT ก่อน แล้วค่อยดูขนาดห้อง รถติดกินเวลามากกว่าที่คิด
 - สัญญาเช่าส่วนใหญ่มีเงินประกันและค่าเช่าล่วงหน้า อ่านสัญญาให้ครบ ถ่ายรูปห้องก่อนเข้าอยู่ทุกมุม
-- ถามเรื่องค่าไฟและค่าน้ำให้ชัด บางที่คิดเรตของตัวเอง
+- ถามเรื่องค่าไฟและค่าน้ำให้ชัด บางตึกคิดค่าน้ำค่าไฟในอัตราของตึกเอง
 - ชาวต่างชาติต้องแจ้งที่พักกับตรวจคนเข้าเมือง (ที่เรียกกันว่า ตม.30) ปกติเจ้าของที่พักเป็นผู้แจ้ง ถามให้แน่ใจว่าเรียบร้อย
 
 ## สัปดาห์ที่ 3: ชีวิตประจำวัน
-- หาร้านประจำใกล้บ้านหนึ่งร้าน เช่น ร้านกาแฟ ร้านซักผ้า หรือร้านข้าว ความคุ้นหน้าช่วยให้รู้สึกเป็นส่วนหนึ่งของย่านเร็วขึ้น
+- หาร้านประจำใกล้บ้านหนึ่งร้าน เช่น ร้านกาแฟ ร้านสะดวกซัก หรือร้านข้าว ความคุ้นหน้าช่วยให้รู้สึกเป็นส่วนหนึ่งของย่านเร็วขึ้น
 - ลองเดินสวนสาธารณะใกล้บ้านตอนเช้า เช่น สวนลุมพินีที่เปิด 04:30 น. จะเห็นอีกด้านของเมืองที่คนส่วนใหญ่ไม่เคยเห็น
-- เรียนประโยคภาษาไทยพื้นฐาน หรือถ้าคุณเป็นคนไทย ลองช่วยเพื่อนต่างชาติฝึก ดู [เคล็ดลับคุยกับเพื่อนต่างชาติ](/blog/thai-friends-etiquette/)
+- เรียนประโยคภาษาไทยพื้นฐาน หรือถ้าคุณเป็นคนไทย ลองช่วยเพื่อนต่างชาติฝึก ดู[เคล็ดลับคุยกับเพื่อนต่างชาติ](/blog/thai-friends-etiquette/)
 
 ## สัปดาห์ที่ 4: หาเพื่อนจริงจัง
 เดือนแรกคือช่วงที่เหงาที่สุด และเป็นช่วงที่ควรวางกิจวัตรสังคมไว้ตั้งแต่ต้น
-- เลือกกิจกรรมประจำหนึ่งอย่าง เช่น รันคลับวันเสาร์ บอร์ดเกม หรือกลุ่มแลกเปลี่ยนภาษา ดู [กิจกรรมวันหยุดหาเพื่อนใหม่](/blog/weekend-activities-friends/)
+- เลือกกิจกรรมประจำหนึ่งอย่าง เช่น รันคลับวันเสาร์ บอร์ดเกม หรือกลุ่มแลกเปลี่ยนภาษา ดู[กิจกรรมวันหยุดหาเพื่อนใหม่](/blog/weekend-activities-friends/)
 - ลองชุมชนชาวต่างชาติอย่าง InterNations สำหรับคนที่ย้ายมาจากต่างประเทศ
-- ใช้แอปหาเพื่อนอย่างน้อยหนึ่งตัว ดู [แอปหาเพื่อนในกรุงเทพฯ 2027](/blog/friend-apps-bangkok/)
+- ใช้แอปหาเพื่อนอย่างน้อยหนึ่งตัว ดู[แอปหาเพื่อนในกรุงเทพฯ 2027](/blog/friend-apps-bangkok/)
 
 ## เรื่องที่คนมาใหม่มักพลาด
 - ประเมินเวลาเดินทางต่ำเกินไป โดยเฉพาะช่วงเย็นวันศุกร์และวันที่ฝนตก
@@ -174,7 +174,7 @@ dict(slug='expat-first-month-bangkok', group='live', img='tuktuk', areas=['ari',
 - ไม่เผื่อใจว่าการปรับตัวใช้เวลาเป็นเดือน ไม่ใช่เป็นวัน
 
 ## เลือกย่านแรกให้ถูก
-ถ้ายังไม่แน่ใจ ย่านที่เริ่มต้นง่ายคือ [อารีย์](/bangkok/ari/) ที่เดินเล่นสบายและมีชุมชนคนในย่านจริง ๆ หรือรอบ [สยาม](/bangkok/siam/) ที่เดินทางสะดวกที่สุดในเมือง
+ถ้ายังไม่แน่ใจ ย่านที่เริ่มต้นง่ายคือ[อารีย์](/bangkok/ari/) ที่เดินเล่นสบายและมีชุมชนคนในย่านจริง ๆ หรือรอบ[สยาม](/bangkok/siam/) ที่เดินทางสะดวกที่สุดในเมือง
 
 ## เบอร์ฉุกเฉินที่ควรเซฟไว้
 บอกเพื่อนต่างชาติให้เซฟตั้งแต่วันแรก ตำรวจท่องเที่ยว 1155 มีเจ้าหน้าที่พูดภาษาอังกฤษ แจ้งเหตุตำรวจ 191 และเรียกรถพยาบาล 1669 รวมถึงเบอร์สถานทูตของประเทศตัวเอง ส่วนคนไทยที่เพิ่งย้ายเข้าเมือง ก็ควรรู้ว่าโรงพยาบาลรัฐและเอกชนที่ใกล้ที่พักที่สุดอยู่ตรงไหน
@@ -182,7 +182,7 @@ dict(slug='expat-first-month-bangkok', group='live', img='tuktuk', areas=['ari',
 ## ช่วยเพื่อนต่างชาติที่เพิ่งมา
 ถ้าคุณเป็นคนไทยที่มีเพื่อนต่างชาติเพิ่งย้ายมา ความช่วยเหลือเล็ก ๆ มีค่ามาก เช่น พาไปซื้อซิม ช่วยอ่านสัญญาเช่า สอนสั่งอาหารเป็นภาษาไทย หรือชวนไปกิจกรรมที่คุณไปประจำ มิตรภาพแบบนี้มักอยู่ได้นานกว่าที่คิด
 ''',
-  cta=('ถามคนกรุงเทพฯ ได้ทุกเรื่อง', 'ห้อง "ถามคนไทย" ในกริ๊ง! มีไว้ถามเรื่องชีวิตในกรุงเทพฯ ตั้งแต่ย่านไหนน่าอยู่ ถึงร้านซักผ้าที่ไหนดี แล้วค่อย ๆ มีเพื่อนจากคำตอบเหล่านั้น ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  cta=('ถามคนกรุงเทพฯ ได้ทุกเรื่อง', 'ห้อง "ถามคนไทย" ในกริ๊ง! มีไว้ถามเรื่องชีวิตในกรุงเทพฯ ตั้งแต่ย่านไหนน่าอยู่ ถึงร้านสะดวกซักที่ไหนดี แล้วค่อย ๆ มีเพื่อนจากคำตอบเหล่านั้น ใช้ฟรี อายุ 20 ปีขึ้นไป'),
   faq=[('ย้ายมากรุงเทพฯ ต้องเตรียมอะไรในเดือนแรก', 'เบอร์มือถือไทย แอป LINE และแอปเรียกรถ ที่อยู่ใกล้รถไฟฟ้า และกิจกรรมประจำหนึ่งอย่างที่ได้เจอคนเดิมทุกสัปดาห์'),
        ('ชาวต่างชาติซื้อซิมไทยต้องใช้อะไร', 'ใช้พาสปอร์ตลงทะเบียน ซื้อได้ที่สนามบินหรือร้านของค่ายมือถือ'),
        ('ตม.30 คืออะไร', 'คือการแจ้งที่พักของชาวต่างชาติกับตรวจคนเข้าเมือง ปกติเจ้าของที่พักเป็นผู้แจ้ง ผู้เช่าควรถามให้แน่ใจว่าแจ้งแล้ว'),
@@ -228,7 +228,7 @@ The first month is usually the loneliest, which is exactly why to set up a socia
 If you are unsure, two easy places to start are [Ari](/en/bangkok/ari/), which is walkable with a real neighbourhood feel, and around [Siam](/en/bangkok/siam/), the best-connected part of the city.
 
 ## When something goes wrong
-For emergencies, Thailand's Tourist Police hotline is 1155 and has English-speaking staff, and general emergency numbers are 191 for police and 1669 for ambulance. Save them in your phone on day one, along with your embassy's number.
+For emergencies, Thailand's 1155 police helpline for visitors has English-speaking staff, and general emergency numbers are 191 for police and 1669 for ambulance. Save them in your phone on day one, along with your embassy's number.
 
 ## Let people help you
 Bangkok people are generally very willing to help a newcomer who asks politely. Your condo office probably has a LINE group for residents; join it, because that is where water cuts, deliveries and building news are announced. When you are stuck on something small, such as where to get keys cut or how to pay a bill, asking a local beats an hour of searching online.
@@ -265,7 +265,7 @@ dict(slug='thai-friends-etiquette', group='friends', img='cafe', areas=['ari', '
 - "Hi! Is this your first time in Bangkok?" สวัสดี มากรุงเทพฯ ครั้งแรกเหรอ
 - "How long are you staying?" จะอยู่นานแค่ไหน
 - "Have you tried anything you really liked here?" ลองอะไรที่นี่แล้วชอบบ้าง
-- "If you want, I can tell you some places locals like." ถ้าอยาก เดี๋ยวบอกที่ที่คนกรุงเทพฯ ชอบไปให้
+- "If you want, I can tell you some places locals like." ถ้าสนใจ เดี๋ยวแนะนำร้านที่คนกรุงเทพฯ ชอบไปให้นะ
 - "Can I add you on LINE or Instagram?" ขอแอด LINE หรือไอจีได้ไหม
 
 ถ้าฟังไม่ทัน พูดว่า "Sorry, could you say that again more slowly?" ได้เสมอ ไม่มีใครถือ
@@ -275,9 +275,9 @@ dict(slug='thai-friends-etiquette', group='friends', img='cafe', areas=['ari', '
 
 ## ไปเจอเพื่อนต่างชาติได้ที่ไหน
 - **กลุ่มแลกเปลี่ยนภาษา** บางกลุ่มเคยจัดฟรีในสวนลุมพินีบ่ายวันอาทิตย์ แบ่งเวลาพูดไทยครึ่งอังกฤษครึ่ง เช็กตารางล่าสุดก่อนไป
-- **รันคลับ** มีทั้งคนไทยและต่างชาติ หลายกลุ่มวิ่งฟรี ดู [วิ่งที่ไหนดีในกรุงเทพฯ](/blog/run-clubs-bangkok/)
+- **รันคลับ** มีทั้งคนไทยและต่างชาติ หลายกลุ่มวิ่งฟรี ดู[วิ่งที่ไหนดีในกรุงเทพฯ](/blog/run-clubs-bangkok/)
 - **บอร์ดเกมคาเฟ่** เกมช่วยข้ามกำแพงภาษา
-- **ย่านที่คนต่างชาติชอบเดิน** เช่น [อารีย์](/bangkok/ari/) และ [ตลาดน้อย](/bangkok/talat-noi/)
+- **ย่านที่คนต่างชาติชอบเดิน** เช่น[อารีย์](/bangkok/ari/) และ[ตลาดน้อย](/bangkok/talat-noi/)
 
 ## เวลาเพื่อนต่างชาติถามเรื่องเมืองไทย
 คำถามที่เจอบ่อยคือ "ไปไหนดี" "กินอะไรดี" และ "อันนี้ทำยังไง" ตอบจากประสบการณ์จริงของเราดีกว่าตอบตามลิสต์ในอินเทอร์เน็ต เล่าว่าเราชอบที่ไหนเพราะอะไร ไปช่วงไหนคนน้อย และนั่งอะไรไปถึง ถ้าไม่รู้ก็บอกตรง ๆ ว่าไม่รู้ แล้วช่วยถามต่อให้ เพื่อนต่างชาติจะจำคนที่ช่วยเขาจริง ๆ ได้เสมอ
@@ -314,11 +314,11 @@ dict(slug='thai-friends-etiquette', group='friends', img='cafe', areas=['ari', '
 - **Paying**: in Thai groups the older or higher-earning person sometimes pays. Offer to split, but accept graciously if someone treats you, and return the favour next time.
 
 ## Thai phrases to start with
-Add "khrap" (ครับ) at the end if you are male and "kha" (ค่ะ) if you are female; it makes everything polite.
-- **Sawasdee khrap / kha** (สวัสดีครับ/ค่ะ): hello.
+Add "khrap" (ครับ) at the end if you are male. Women add "kha": a falling-tone ค่ะ after statements (sawasdee kha) and a high-tone คะ after questions (sabai dee mai kha?). It makes everything polite.
+- **Sawasdee khrap / kha** (สวัสดีครับ/ค่ะ, said roughly "sa-wat-dee"): hello.
 - **Khop khun khrap / kha** (ขอบคุณครับ/ค่ะ): thank you.
 - **Sabai dee mai?** (สบายดีไหม): how are you?
-- **Khun chue arai?** (คุณชื่ออะไร): what is your name?
+- **Chue arai khrap / kha?** (ชื่ออะไรครับ/คะ): what's your name? Friendlier than the textbook "khun chue arai".
 - **Chue len arai?** (ชื่อเล่นอะไร): what is your nickname?
 - **Mai pen rai** (ไม่เป็นไร): no problem, never mind.
 - **Gin khao rue yang?** (กินข้าวหรือยัง): "have you eaten yet?", a friendly everyday greeting.
@@ -362,7 +362,7 @@ dict(slug='run-clubs-bangkok', group='do', img='twilight', areas=['ari', 'thongl
 
 ## สวนที่วิ่งได้ดี
 - **สวนลุมพินี** เปิด 04:30-21:00 น. ทางวิ่งรอบสวนราว 2.5 กม. ใกล้ BTS ศาลาแดง MRT สีลม และ MRT ลุมพินี คนวิ่งเยอะทั้งเช้าและเย็น จักรยานเข้าได้เฉพาะ 10:00-15:00 น.
-- **สวนเบญจกิติ** สวนป่ากลางเมือง 72 เฮกตาร์ ที่เปิดเต็มรูปแบบปี 2022 ใกล้ MRT ศูนย์การประชุมแห่งชาติสิริกิติ์ มีทางเดินลอยฟ้า "สะพานเขียว" ยาว 1.3 กม. เชื่อมไปสวนลุมพินี วิ่งต่อกันได้ยาว ๆ
+- **สวนเบญจกิติ** สวนป่ากลางเมือง กว่า 450 ไร่ ที่เปิดเต็มรูปแบบปี 2022 ใกล้ MRT ศูนย์การประชุมแห่งชาติสิริกิติ์ มีทางเดินลอยฟ้า "สะพานเขียว" ยาว 1.3 กม. เชื่อมไปสวนลุมพินี วิ่งต่อกันได้ยาว ๆ
 - **สวนรถไฟ (สวนวชิรเบญจทัศ)** แถวจตุจักร ร่มรื่น ทางกว้าง มีที่เช่าจักรยาน เหมาะกับวันที่อยากวิ่งไกล
 - **สวนจตุจักรและสวนสมเด็จพระนางเจ้าสิริกิติ์** อยู่ติดกัน วิ่งต่อจากสวนรถไฟได้
 
@@ -398,7 +398,7 @@ dict(slug='run-clubs-bangkok', group='do', img='twilight', areas=['ari', 'thongl
 ถ้ายังวิ่งไม่ไหว เริ่มจากเดินเร็วรอบสวนลุมพินีหรือปั่นจักรยานในสวนรถไฟก่อนได้ บางรันคลับมีกลุ่มเดินหรือกลุ่มเพซช้ามาก และหลายคนในกลุ่มก็เริ่มจากศูนย์เหมือนกัน สิ่งที่สำคัญกว่าความเร็วคือมาซ้ำทุกสัปดาห์
 
 ## วิ่งเสร็จแล้วไปไหนต่อ
-วิ่งที่สวนรถไฟแล้วเดินต่อไป [ตลาดนัดจตุจักร](/blog/chatuchak-weekend/) ได้ในวันเสาร์อาทิตย์ หรือวิ่งกับกลุ่มที่ theCOMMONS แล้วนั่งคาเฟ่ใน [ทองหล่อ](/bangkok/thonglor/) ต่อ
+วิ่งที่สวนรถไฟแล้วเดินต่อไป[ตลาดนัดจตุจักร](/blog/chatuchak-weekend/) ได้ในวันเสาร์อาทิตย์ หรือวิ่งกับกลุ่มที่ theCOMMONS แล้วนั่งคาเฟ่ใน[ทองหล่อ](/bangkok/thonglor/) ต่อ
 ''',
   cta=('หาเพื่อนวิ่งในย่านเดียวกัน', 'โพสต์ Reel จากสวนที่วิ่งประจำลงกริ๊ง! แล้วดูว่าใครวิ่งที่เดียวกัน ชวนกันไปรันคลับสัปดาห์หน้าได้เลย ใช้ฟรี อายุ 20 ปีขึ้นไป'),
   faq=[('วิ่งที่ไหนในกรุงเทพฯ ดีที่สุด', 'สวนลุมพินี (ทางวิ่งราว 2.5 กม.) สวนเบญจกิติที่ต่อกับสวนลุมพินีด้วยสะพานเขียว 1.3 กม. และสวนรถไฟที่ร่มรื่นและกว้าง'),
@@ -480,11 +480,10 @@ dict(slug='board-game-cafes-bangkok', group='do', img='cafe', areas=['siam'],
 รายชื่อจาก The Thaiger (ต.ค. 2025) ก่อนไปให้เช็กเวลาเปิด-ปิดและราคาล่าสุดทางเพจของร้าน
 - **The Stronghold Siam** ในสยามสแควร์ ซอย 9 เดินจาก BTS สยามได้ เหมาะกับนัดหลังเลิกงานหรือหลังเรียน
 - **Quest Board Game Café** ชั้น 7 MBK เซ็นเตอร์ ราว 60 บาทต่อคนต่อชั่วโมง ใกล้ BTS สนามกีฬาแห่งชาติ
-- **Dice Cup Board Game Café** ที่สวนหลวงสแควร์ ถนนพระราม 1 ย่านจุฬาฯ
 - **Turn The Tables Board Game Café** ซอยราชวิถี 3 ใกล้ BTS อนุสาวรีย์ชัยสมรภูมิ
 - **More Than a Game Café** อาคารริมธาร ถนนพระราม 3
 
-สามร้านแรกอยู่ใกล้กันในย่าน [สยาม](/bangkok/siam/) ถ้ามาครั้งแรกเลือกแถวนี้สะดวกที่สุด
+สองร้านแรกอยู่ใกล้กันในย่าน[สยาม](/bangkok/siam/) ถ้ามาครั้งแรกเลือกแถวนี้สะดวกที่สุด
 
 ## เกมที่เหมาะกับคนเพิ่งรู้จักกัน
 - **เกมทายคำแบบทีม** เช่น Codenames เล่นได้หลายคน ต้องคุยกันในทีมตลอด
@@ -522,7 +521,7 @@ dict(slug='board-game-cafes-bangkok', group='do', img='cafe', areas=['siam'],
 บอร์ดเกมคาเฟ่ส่วนใหญ่คิดเป็นรายชั่วโมงต่อคน หรือเหมาจ่ายทั้งวัน บางร้านต้องสั่งเครื่องดื่มขั้นต่ำ ถามราคาให้ชัดก่อนเริ่มเล่น นั่งสามชั่วโมงกับเพื่อนสี่คนมักถูกกว่าไปดูหนังและกินข้าวในห้าง และได้คุยกันมากกว่าเยอะ
 
 ## ต่อจากบอร์ดเกม
-เล่นเสร็จแถวสยาม เดินต่อไปหอศิลปวัฒนธรรมแห่งกรุงเทพมหานครที่เปิดถึงสองทุ่ม หรือวันฝนตกก็อยู่ในร่มต่อได้ทั้งวัน ดู [ทำอะไรดีหน้าฝน](/blog/rainy-season-bangkok/)
+เล่นเสร็จแถวสยาม เดินต่อไปหอศิลปวัฒนธรรมแห่งกรุงเทพมหานครที่เปิดถึงสองทุ่ม หรือวันฝนตกก็อยู่ในร่มต่อได้ทั้งวัน ดู[ทำอะไรดีหน้าฝน](/blog/rainy-season-bangkok/)
 ''',
   cta=('หาเพื่อนเล่นเกมโต๊ะต่อไป', 'โพสต์ Reel จากร้านบอร์ดเกมที่ชอบลงกริ๊ง! แล้วชวนคนที่ชอบเกมแนวเดียวกันมาเล่นครั้งหน้า ใช้ฟรี อายุ 20 ปีขึ้นไป'),
   faq=[('บอร์ดเกมคาเฟ่ในกรุงเทพฯ ราคาเท่าไหร่', 'ขึ้นกับร้าน ตัวอย่างเช่น Quest ที่ MBK คิดราว 60 บาทต่อคนต่อชั่วโมง ตามข้อมูล ต.ค. 2025 เช็กราคาล่าสุดกับร้าน'),
@@ -544,11 +543,10 @@ The hardest part of sitting with strangers is finding something to talk about. A
 From The Thaiger's October 2025 round-up. Check opening hours and current prices on each café's page before you go.
 - **The Stronghold Siam**, Siam Square Soi 9, walkable from BTS Siam. Good for after work or class.
 - **Quest Board Game Café**, 7th floor of MBK Center, about 60 baht per person per hour, near BTS National Stadium.
-- **Dice Cup Board Game Café**, Suan Luang Square on Rama I Road, near Chulalongkorn University.
 - **Turn The Tables Board Game Café**, Soi Ratchawithi 3, near BTS Victory Monument.
 - **More Than a Game Café**, Rimtara Building, Rama 3 Road.
 
-The first three are close together around [Siam](/en/bangkok/siam/), the easiest area for a first visit.
+The first two are close together around [Siam](/en/bangkok/siam/), the easiest area for a first visit. Board-game cafés open and close fairly often in Bangkok, so treat any list, including this one, as a starting point and confirm on the café's own page that it is still running before you travel across town.
 
 ## Games that work with new people
 - **Team word games** such as Codenames: lots of players, constant talking within teams.
