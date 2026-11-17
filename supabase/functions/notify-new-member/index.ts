@@ -1,4 +1,5 @@
-// notify-new-member: instant founder alert on new kr8_members / kr6_venue_applications rows.
+// notify-new-member: instant founder alert on new kr8_members / kr6_venue_applications rows, face look-alikes (0076)
+// and Help messages to the Kring Team (0105, table "kr8_help_message").
 // Ref: the app writes kr8_members.ref_code via kr8_set_ref() a moment AFTER the insert, so the trigger
 // payload usually has ref_code = null. We re-read the saved row (waiting briefly for the ref) and use
 // kr8_members.ref_code first, then src_code (visit attribution), then "direct".
@@ -115,6 +116,14 @@ Deno.serve(async (req) => {
       ["From", `${rec.what} · ${rec.sources}`],
       ["What happens", same ? "Linked: no Rings between them, prize claims wait for you" : "Flag only: nothing is held"],
     ], "Check the face check before approving (Face checks), or More → Same person?:\nhttps://kringapp.com/app/admin.html#q/faces", same);
+  } else if (p.table === "kr8_help_message") {
+    // 0105 kr8_help_email_alert: a member wrote to the Kring Team from Help; the app promises a reply within 1 hour
+    const due = new Date(Date.parse(rec.waiting_since ?? rec.created_at ?? new Date().toISOString()) + 3600_000).toISOString();
+    out = await send(`🆘 Help · ${rec.first_name ?? "Member"} #${rec.member_no ?? "?"}: ${String(rec.body ?? "").slice(0, 60)}`, [
+      ["Member", `${rec.first_name ?? "Member"} #${rec.member_no ?? "?"}${rec.verified ? " (verified)" : ""}`],
+      ["Message", rec.body], ["Waiting", `${rec.unanswered ?? 1} message${Number(rec.unanswered) === 1 ? "" : "s"} since ${ist(rec.waiting_since)}`],
+      ["Reply by", `${ist(due)} (the app promises 1 hour)`], ["New chat?", rec.first ? "Yes, from Kring Helper" : "Follow-up in the same chat"],
+    ], "Reply as Kring Team (Needs you → Help):\nhttps://kringapp.com/app/admin.html#inbox", true);
   } else return new Response("ignored", { status: 200 });
   console.log(JSON.stringify({ table: p.table, brevo: out }));
   return json(out, out.status < 300 ? 200 : 502);

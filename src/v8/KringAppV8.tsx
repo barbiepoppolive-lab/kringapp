@@ -162,7 +162,7 @@ import { isMemberId } from './deepLink';
 import { ADMIN_VIEW_NO_SHEETS, adminPanelHref, adminViewActive, adminViewWanted, setAdminViewActive } from './adminView';
 const appBasePath = () => ((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.BASE_URL) || '/app/';
 import { AdminViewMe, AdminViewPill } from './V5AdminView';
-import { HelpMeRow, HelpSheet } from './V5Help';
+import { HELP_UI, HelpMeRow, HelpSheet } from './V5Help';
 import { v5HelpEvent, v5HelpOpen } from './v5Live';
 
 const V9_L: Record<string, Record<string, string>> = {
@@ -6755,7 +6755,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               {/* 18 Nov (0097): Help opens Kring Helper (the email is a small line inside it) */}
               <div className="srow" role="button" tabIndex={0} id="setContact" onClick={() => setSheet('help')}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSheet('help'); } }}>
-                <span>{L('Help and contact')}</span><em>Kring Helper ›</em>
+                <span>{L('Help and contact')}</span><em>{lang === 'th' ? HELP_UI.title[0] : HELP_UI.title[1]} ›</em>
               </div>
               <div className="srow" role="button" tabIndex={0} id="setLegal" onClick={() => setLegalOpen((v) => !v)}>
                 <span>{L('Legal & privacy')}</span><em>{legalOpen ? '⌄' : '›'}</em>

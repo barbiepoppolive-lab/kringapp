@@ -2,7 +2,7 @@
  * Kring Helper (18 Nov 2026, founder approved Help design "B · Chat-first").
  * Me tab row → full-screen helper chat: greeting, 6 quick-reply chips, typed question → instant FAQ answer card
  * (👍 / Not quite), similar questions, "Talk to the team" (opens the member's thread with the Kring Team, 0097).
- * Thai mode: Thai main + English small under (like the rest of v5). Other languages: English.
+ * ONE language at a time (founder rule, 18 Nov): Thai mode shows Thai only; every other language shows English only.
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { HELP_CHIPS, HELP_EMAIL, HELP_TEAM_PROMISE, faqById, matchHelp, type HelpFaq } from './helpFaq';
@@ -12,7 +12,7 @@ import './help.css';
 export const HELP_UI = {
   rowMain: ['มีคำถาม? ถามผู้ช่วยกริ๊ง!', 'Questions? Ask Kring Helper'],
   instant: ['ตอบทันที', 'instant'],
-  title: ['Kring Helper', 'Kring Helper'],
+  title: ['ผู้ช่วยกริ๊ง!', 'Kring Helper'],
   sub: ['ตอบทันที', 'replies instantly'],
   today: ['วันนี้', 'Today'],
   greet: ['สวัสดีครับ {0} 👋 ผมคือผู้ช่วยกริ๊ง! เลือกคำถามด้านล่าง หรือพิมพ์ถามได้เลยครับ', 'Hi {0} 👋 I’m Kring Helper. Pick a question below or type your own.'],
@@ -35,12 +35,12 @@ export const HELP_UI = {
 type UiKey = keyof typeof HELP_UI;
 
 const fill = (s: string, name: string) => s.replace('{0}', name).replace(/\s+👋/, name ? ' 👋' : '👋');
-/** Thai main + English small (Thai mode) or English only */
+/** ONE language: Thai only in Thai mode, English only otherwise (never Thai with an English line under it) */
 function Bi({ k, th, en, thai, name = '', cls }: { k?: UiKey; th?: string; en?: string; thai: boolean; name?: string; cls?: string }) {
   const t = k ? fill(HELP_UI[k][0], name) : th || '';
   const e = k ? fill(HELP_UI[k][1], name) : en || '';
   return thai
-    ? <span className={`hp-bi ${cls || ''}`}><span lang="th" className="th">{t}</span><small lang="en" className="en">{e}</small></span>
+    ? <span className={`hp-bi ${cls || ''}`}><span lang="th" className="th">{t}</span></span>
     : <span className={`hp-bi ${cls || ''}`}><span lang="en">{e}</span></span>;
 }
 
@@ -58,10 +58,10 @@ export function HelpMeRow({ lang, onOpen }: { lang: string; onOpen: () => void }
   const thai = lang === 'th';
   return (
     <button type="button" className="hp-row" id="meHelpRow" onClick={onOpen}
-      aria-label={thai ? `${HELP_UI.rowMain[0]} · ${HELP_UI.rowMain[1]}` : HELP_UI.rowMain[1]}>
+      aria-label={thai ? HELP_UI.rowMain[0] : HELP_UI.rowMain[1]}>
       <span className="hp-av" aria-hidden="true"><RingsMark /></span>
       <Bi k="rowMain" thai={thai} cls="grow" />
-      <span className="hp-live" aria-hidden="true"><i>●</i> {thai ? <><span className="th">{HELP_UI.instant[0]}</span><br />{HELP_UI.instant[1]}</> : HELP_UI.instant[1]}</span>
+      <span className="hp-live" aria-hidden="true"><i>●</i> {thai ? <span className="th">{HELP_UI.instant[0]}</span> : HELP_UI.instant[1]}</span>
       <svg className="hp-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 5.5 6.5 6.5-6.5 6.5" /></svg>
     </button>
   );
@@ -153,13 +153,13 @@ export function HelpSheet({ lang, name, onClose, onTeam, onEvent }: HelpSheetPro
   );
 
   return (
-    <div className="v8-sheet full hp-sheet" id="sh-help" role="dialog" aria-label="Kring Helper">
+    <div className="v8-sheet full hp-sheet" id="sh-help" role="dialog" aria-label={thai ? HELP_UI.title[0] : HELP_UI.title[1]}>
       <div className="hp-head">
         <button type="button" className="hp-back" id="helpBack" aria-label={thai ? HELP_UI.back[0] : HELP_UI.back[1]} onClick={onClose}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" /></svg>
         </button>
         <span className="hp-av" aria-hidden="true"><RingsMark /></span>
-        <span className="hp-who"><b>Kring Helper</b><small><i>●</i> {thai ? <><span className="th">{HELP_UI.sub[0]}</span> · {HELP_UI.sub[1]}</> : HELP_UI.sub[1]}</small></span>
+        <span className="hp-who"><b>{thai ? HELP_UI.title[0] : HELP_UI.title[1]}</b><small><i>●</i> {thai ? <span className="th">{HELP_UI.sub[0]}</span> : HELP_UI.sub[1]}</small></span>
       </div>
       <div className="hp-body" ref={body} id="helpBody" aria-live="polite">
         <span className="hp-day">{thai ? HELP_UI.today[0] : HELP_UI.today[1]}</span>
@@ -211,7 +211,7 @@ export function HelpSheet({ lang, name, onClose, onTeam, onEvent }: HelpSheetPro
       </div>
       <form className="hp-in" onSubmit={(e) => { e.preventDefault(); send(); }}>
         <input id="helpInput" value={text} maxLength={300} onChange={(e) => setText(e.target.value)} enterKeyHint="send"
-          placeholder={thai ? `${HELP_UI.placeholder[0]}  ${HELP_UI.placeholder[1]}` : HELP_UI.placeholder[1]} aria-label={HELP_UI.placeholder[1]} />
+          placeholder={thai ? HELP_UI.placeholder[0] : HELP_UI.placeholder[1]} aria-label={thai ? HELP_UI.placeholder[0] : HELP_UI.placeholder[1]} />
         <button type="submit" className="hp-send" id="helpSend" aria-label={thai ? HELP_UI.send[0] : HELP_UI.send[1]} disabled={!text.trim()}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h12M12 6l6 6-6 6" /></svg>
         </button>
