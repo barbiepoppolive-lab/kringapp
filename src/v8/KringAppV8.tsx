@@ -162,6 +162,8 @@ import { isMemberId } from './deepLink';
 import { ADMIN_VIEW_NO_SHEETS, adminPanelHref, adminViewActive, adminViewWanted, setAdminViewActive } from './adminView';
 const appBasePath = () => ((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.BASE_URL) || '/app/';
 import { AdminViewMe, AdminViewPill } from './V5AdminView';
+import { HelpMeRow, HelpSheet } from './V5Help';
+import { v5HelpEvent, v5HelpOpen } from './v5Live';
 
 const V9_L: Record<string, Record<string, string>> = {
   th: {
@@ -948,6 +950,7 @@ type SheetId =
   | 'reelmore'
   | 'blocked'
   | 'official'
+  | 'help'
   | 'follow'
   | 'activity'
   | 'interests'
@@ -4807,6 +4810,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onReel={openReelFromProfile}
               onPost={() => kxPostAt()}
               onVerify={() => setSheet('verify')}
+              helpSlot={<HelpMeRow lang={lang} onOpen={() => setSheet('help')} />}
               nextSlot={nextStep ? <div className="nx-cardwrap"><NextStepCard step={nextStep} variant="card" lang={lang} L={L} Lf={Lf} onGo={() => nextGo('me')} onHide={nextHide} /></div> : null}
               gender={shownGender(v5Card)}
               onReplay={() => { void coachReplay(coachRef.current, true).then(() => { setTab('feed'); showToast(L('Intro is on again')); }); }}
@@ -6748,9 +6752,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               </div>
             </div>
             <div className="kme-grp">
-              <a className="srow" id="setContact" href="mailto:ops@kringapp.com">
-                <span>{L('Help and contact')}</span><em>ops@kringapp.com ›</em>
-              </a>
+              {/* 18 Nov (0097): Help opens Kring Helper (the email is a small line inside it) */}
+              <div className="srow" role="button" tabIndex={0} id="setContact" onClick={() => setSheet('help')}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSheet('help'); } }}>
+                <span>{L('Help and contact')}</span><em>Kring Helper ›</em>
+              </div>
               <div className="srow" role="button" tabIndex={0} id="setLegal" onClick={() => setLegalOpen((v) => !v)}>
                 <span>{L('Legal & privacy')}</span><em>{legalOpen ? '⌄' : '›'}</em>
               </div>
@@ -6897,10 +6903,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   <a className="srow sub-row" id="setPartnerTerms" href="/partner-terms.html" target="_blank" rel="noopener" style={{ color: 'inherit', textDecoration: 'none' }}><span>{L('Partner terms')}</span><span>↗</span></a>
                 </>
               )}
-              <a className="srow" id="setContact" href="mailto:ops@kringapp.com" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <span>{L('Contact us')} · ops@kringapp.com</span>
-                <span>✉</span>
-              </a>
+              <div className="srow" role="button" tabIndex={0} id="setContact" onClick={() => setSheet('help')}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSheet('help'); } }}>
+                <span>{L('Help and contact')}</span>
+                <span>›</span>
+              </div>
 
 {signedIn && (
               <div
@@ -7238,6 +7245,23 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <PlacePage key={kxPlaceId} L={L} Lf={Lf} lang={lang} id={kxPlaceId} toast={showToast} onBack={() => setSheet(null)} half={kxPlaceHalf.half} preview={kxPlaceHalf.preview}
             shareUrl={(id) => `${location.origin}${import.meta.env.BASE_URL}?place=${encodeURIComponent(id)}`}
             onPost={(p) => requireSignInForAction(() => kxPostAt(p))} />
+        )}
+        {sheet === 'help' && (
+          // 18 Nov (0097): Kring Helper. "Talk to the team" opens the member's Kring Team chat (works before the face check)
+          <HelpSheet lang={lang} name={v5Card?.first_name || user.name || ''} onClose={() => setSheet(null)}
+            onEvent={(k, faq, q) => { if (live && signedIn) void v5HelpEvent(k, faq, q, lang); }}
+            onTeam={async (q) => {
+              if (!live) { window.location.href = 'mailto:ops@kringapp.com?subject=Kring%20help'; return; }
+              if (!signedIn || !v5Card) { requireSignInForAction(() => setSheet('help')); return; }
+              try {
+                const tid = await v5HelpOpen(q);
+                await v5RefreshInbox();
+                activeThreadIdRef.current = tid;
+                setActiveThreadId(tid);
+                setSheet('thread');
+                if (tid) void v5LoadMessages(tid);
+              } catch (e) { showToast(v5Msg(e)); }
+            }} />
         )}
         {sheet === 'official' && (
           // 0073: minimal official card for the Kring Team account (no Say hi, no Follow, no Report-a-member flow)

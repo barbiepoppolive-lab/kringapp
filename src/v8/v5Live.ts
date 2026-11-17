@@ -574,6 +574,11 @@ export const v5Answer = (postId: string, body: string) => rpc<string>('kr8_answe
 // ─────────────── hellos + chat ───────────────
 export const v5Hello = (to: string, body: string) => rpc<string>('kr8_send_hello', { p_to: to, p_body: body });
 export const v5SendMessage = (thread: string, body: string) => rpc<number>('kr8_send_message', { p_thread: thread, p_body: body });
+/** 0097 Kring Helper: open (or reopen) my chat with the Kring Team; the first message is "[Help] <question>". Works before the face check. */
+export const v5HelpOpen = (question: string) => rpc<string>('kr8_help_open', { p_question: (question || '').slice(0, 480) });
+/** 0097: FAQ usage (shown / 👍 / not quite / talk to the team / no match); never blocks the UI */
+export const v5HelpEvent = (kind: string, faq: string | null, query: string | null, lang: string) =>
+  rpc<null>('kr8_help_event', { p_kind: kind, p_faq: faq, p_query: query ? query.slice(0, 200) : null, p_lang: lang.slice(0, 2) }).catch(() => null);
 /** 0090: a refused chat link is logged for the trust score (the refusal itself rolls back, so the app reports it). */
 export const v5LinkTry = () => rpc<null>('kr8_link_try', { p_place: 'chat' }).catch(() => null);
 /** 0090: show or hide my Instagram / TikTok on my card for everyone else. */

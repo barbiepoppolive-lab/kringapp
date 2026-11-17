@@ -1,0 +1,69 @@
+/* Kring Helper (18 Nov 2026, design B · Chat-first). Same look as the member chat: dark bubbles, pink send. */
+.v8-app-root .hp-bi { display: flex; flex-direction: column; min-width: 0; text-align: left; }
+.v8-app-root .hp-bi .th { font-family: var(--kr-thai-body), 'Anuphan', 'Bricolage Grotesque', sans-serif; line-height: 1.5; }
+.v8-app-root .hp-bi .en { font: 500 0.6875rem/1.3 'Bricolage Grotesque', sans-serif; color: var(--coco45); margin-top: 1px; }
+.v8-app-root .hp-bi.grow { flex: 1; }
+
+/* Me tab row */
+.v8-app-root .hp-row.hp-row.hp-row { display: flex; align-items: center; gap: 10px; width: calc(100% - 44px); margin: 10px 22px 4px; padding: 11px 12px 11px 11px;
+  border-radius: 20px; border: 1.5px solid rgba(255, 79, 163, .5); color: #fff; cursor: pointer; text-align: left; font-family: inherit;
+  background: linear-gradient(135deg, rgba(255, 79, 163, .16), rgba(122, 92, 255, .16)); box-shadow: 0 8px 26px rgba(255, 79, 163, .16); }
+.v8-app-root .hp-row .hp-bi .th { font-size: 0.84375rem; font-weight: 700; white-space: nowrap; }
+.v8-app-root .hp-row .hp-bi > span[lang='en']:first-child { font-size: 0.875rem; font-weight: 700; }
+.v8-app-root .hp-av { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: #0B0A12; box-shadow: 0 0 0 2px rgba(255, 79, 163, .6); }
+.v8-app-root .hp-live { flex: none; font: 600 0.625rem/1.35 'Bricolage Grotesque', sans-serif; color: var(--pandan); text-align: right; }
+.v8-app-root .hp-live i { font-style: normal; font-size: 0.5rem; vertical-align: 2px; }
+.v8-app-root .hp-chev { flex: none; width: 18px; height: 18px; fill: none; stroke: var(--coco70); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* sheet */
+.v8-app-root .v8-sheet.full.hp-sheet { height: 100%; max-height: 100%; border-radius: 0; padding: 0; background: #12101a; z-index: 85; overflow: hidden; }
+.v8-app-root .hp-head { display: flex; align-items: center; gap: 10px; padding: calc(env(safe-area-inset-top, 0px) + 12px) 14px 12px; border-bottom: 1px solid rgba(255, 255, 255, .08); background: #16131f; }
+.v8-app-root .hp-head .hp-av { width: 42px; height: 42px; }
+.v8-app-root .hp-back { width: 36px; height: 36px; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; }
+.v8-app-root .hp-back svg { width: 24px; height: 24px; fill: none; stroke: var(--coco); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.v8-app-root .hp-who { display: flex; flex-direction: column; min-width: 0; }
+.v8-app-root .hp-who b { font: 700 1.0625rem 'Bricolage Grotesque', sans-serif; }
+.v8-app-root .hp-who small { font-size: 0.75rem; color: var(--coco70); }
+.v8-app-root .hp-who small i { font-style: normal; color: var(--pandan); font-size: 0.5625rem; vertical-align: 1px; }
+.v8-app-root .hp-body { flex: 1; overflow-y: auto; padding: 12px 14px 18px; display: flex; flex-direction: column; gap: 10px; }
+.v8-app-root .hp-day { align-self: center; font-size: 0.6875rem; color: var(--coco45); background: rgba(255, 255, 255, .06); padding: 3px 10px; border-radius: 999px; }
+.v8-app-root .hp-bub { max-width: 86%; padding: 10px 13px; border-radius: 20px; font-size: 0.875rem; line-height: 1.5; }
+.v8-app-root .hp-bub .th { font-size: 0.875rem; }
+.v8-app-root .hp-bub.bot { align-self: flex-start; background: #262333; border-bottom-left-radius: 6px; }
+.v8-app-root .hp-bub.sm .th, .v8-app-root .hp-bub.sm > .hp-bi > span[lang='en'] { font-size: 0.8125rem; }
+.v8-app-root .hp-bub.me { align-self: flex-end; background: linear-gradient(135deg, #FF4FA3, #A04FE0); color: #fff; border-bottom-right-radius: 6px; font-weight: 600; }
+.v8-app-root .hp-bub.card { align-self: flex-start; max-width: 94%; border: 1px solid rgba(91, 108, 255, .45); background: linear-gradient(160deg, rgba(91, 108, 255, .22), #262333 60%); border-bottom-left-radius: 6px; }
+.v8-app-root .hp-tag { display: block; font-size: 0.71875rem; color: #AAB5FF; font-weight: 700; margin-bottom: 4px; }
+.v8-app-root .hp-aq .th, .v8-app-root .hp-aq > .hp-bi > span[lang='en'] { font-size: 0.9375rem; font-weight: 800; }
+.v8-app-root .hp-ans { margin: 6px 0 0; }
+.v8-app-root .hp-ans .en { font-size: 0.75rem; line-height: 1.4; margin-top: 4px; }
+.v8-app-root .hp-yn { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.v8-app-root .hp-yn button { display: flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 999px; border: 0; background: rgba(255, 255, 255, .08); color: var(--coco); cursor: pointer; font-family: inherit; }
+.v8-app-root .hp-yn button .th { font-size: 0.78125rem; } .v8-app-root .hp-yn button .en { font-size: 0.59375rem; }
+.v8-app-root .hp-yn .up { background: rgba(110, 231, 168, .14); } .v8-app-root .hp-yn .up .th { color: var(--pandan); }
+.v8-app-root .hp-yn button.on { box-shadow: inset 0 0 0 1.5px currentColor; }
+.v8-app-root .hp-yn button:disabled:not(.on) { opacity: .45; }
+.v8-app-root .hp-chips { display: flex; flex-wrap: wrap; gap: 8px; max-width: 94%; }
+.v8-app-root .hp-chip { padding: 6px 12px; border-radius: 14px; border: 1px solid rgba(255, 79, 163, .55); background: rgba(255, 79, 163, .08); color: var(--coco); cursor: pointer; font-family: inherit; }
+.v8-app-root .hp-chip .th { font-size: 0.84375rem; font-weight: 700; color: #FFB3D9; } .v8-app-root .hp-chip .en { font-size: 0.625rem; }
+.v8-app-root .hp-chip > .hp-bi > span[lang='en'] { font-size: 0.8125rem; font-weight: 700; color: #FFB3D9; }
+.v8-app-root .hp-also { margin: 4px 0 -2px; }
+.v8-app-root .hp-also .th { font-size: 0.75rem; color: var(--coco45); letter-spacing: .06em; } .v8-app-root .hp-also .en { font-size: 0.625rem; }
+.v8-app-root .hp-also > .hp-bi > span[lang='en'] { font-size: 0.75rem; color: var(--coco45); }
+.v8-app-root .hp-teamwrap { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.v8-app-root .hp-team { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 10px 14px; border-radius: 18px; border: 1.5px solid var(--pink); background: rgba(255, 79, 163, .06); color: #fff; cursor: pointer; font-family: inherit; }
+.v8-app-root .hp-team svg { width: 22px; height: 22px; fill: none; stroke: var(--pink); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.v8-app-root .hp-team .hp-bi { align-items: center; text-align: center; } .v8-app-root .hp-team .th { font-size: 0.9375rem; font-weight: 800; }
+.v8-app-root .hp-team > .hp-bi > span[lang='en'] { font-size: 0.9375rem; font-weight: 800; }
+.v8-app-root .hp-team:disabled { opacity: .6; }
+.v8-app-root .hp-note { margin: 0; align-self: center; }
+.v8-app-root .hp-note .hp-bi { align-items: center; text-align: center; } .v8-app-root .hp-note .th { font-size: 0.75rem; color: var(--coco70); } .v8-app-root .hp-note .en { font-size: 0.625rem; }
+.v8-app-root .hp-note > .hp-bi > span[lang='en'] { font-size: 0.75rem; color: var(--coco70); }
+.v8-app-root .hp-mail { margin: 8px 0 0; align-self: center; font-size: 0.6875rem; color: var(--coco45); }
+.v8-app-root .hp-mail a { color: var(--coco70); }
+.v8-app-root .hp-in { display: flex; gap: 10px; align-items: center; padding: 10px 14px calc(env(safe-area-inset-bottom, 0px) + 12px); border-top: 1px solid rgba(255, 255, 255, .08); background: #16131f; }
+.v8-app-root .hp-in input { flex: 1; min-width: 0; padding: 13px 16px; border-radius: 999px; background: #0d0b14; border: 1px solid rgba(255, 255, 255, .12); color: var(--coco); font: 500 1rem inherit; font-family: inherit; outline: 0; }
+.v8-app-root .hp-in input::placeholder { color: var(--coco45); }
+.v8-app-root .hp-send { flex: none; width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--pink); display: grid; place-items: center; cursor: pointer; }
+.v8-app-root .hp-send svg { width: 22px; height: 22px; fill: none; stroke: #fff; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.v8-app-root .hp-send:disabled { opacity: .55; }

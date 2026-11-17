@@ -22,6 +22,7 @@ import {
   type ProtectOverview, type RobotAlert, type RobotLogRow, type RobotMode, type RobotRow, type SelfFixStatus,
 } from './autopilotLogic';
 import './adminV2.css';
+import { helpSection } from './adminHelp';   // 0097: Help cases (self-contained)
 
 type Kid = Node | string | null | undefined | false;
 const app = () => document.getElementById('app')!;
@@ -129,8 +130,20 @@ function toast(text: string, undo?: () => void) {
 
 // ───────── shell ─────────
 export type V2Tab = 'today' | 'inbox' | 'people' | 'board' | 'money' | 'more';
+/** 0097: members waiting in Help also count in the Needs you badge (last known count, refreshed by helpSection) */
+let helpWaiting = 0;
+function decisionsCount(): number { return snap ? buildInbox(snap).items.filter((i) => !hiddenKeys.has(i.key)).length : 0; }
+function setHelpWaiting(n: number) {
+  helpWaiting = n;
+  const total = decisionsCount() + helpWaiting;
+  const tab = document.getElementById('tab-inbox');
+  let b = document.getElementById('inboxBadge');
+  if (!total) { b?.remove(); return; }
+  if (!b && tab) { b = el('span', { class: 'bdg', id: 'inboxBadge' }); tab.append(b); }
+  if (b) b.textContent = String(total);
+}
 export function v2Tabbar(active: V2Tab): HTMLElement {
-  const n = snap ? buildInbox(snap).items.filter((i) => !hiddenKeys.has(i.key)).length : 0;
+  const n = decisionsCount() + helpWaiting;
   const items: [V2Tab, string, string, string][] = [['today', 'today', 'Today', '#today'], ['inbox', 'inbox', 'Needs you', '#inbox'], ['people', 'people', 'People', '#people'],
     ['board', 'trophy', 'Board', '#board'], ['more', 'more', 'More', '#more']];
   const on = active === 'money' ? 'more' : active;
@@ -276,6 +289,7 @@ function renderAlertCentre(s: Snapshot, inboxItems: InboxItem[]): HTMLElement {
 }
 
 export function todayView() {
+  const help = helpSection(setHelpWaiting);   // 0097: members waiting for the team, at the very top
   const date = new Date().toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'short' });
   void withSnap('today', (s) => {
     const inbox = buildInbox(s);
@@ -297,6 +311,7 @@ export function todayView() {
       el('a', { class: `v2kpi ${tone}`, href, id }, el('b', {}, n), el('span', {}, label), el('small', {}, sub));
     const rr = buildRobotReport(s, { items, handled: inbox.handled });
     screen('today', header('Today', `${date} · India time`),
+      help,
       renderMorningBrief(s, items),
       // 1. what needs a decision
       items.length ? el('div', { class: 'v2sec' }, `Needs you · ${items.length}`) : el('a', { class: 'v2card v2row v2allclear', href: '#auto', id: 'v2Clear' }, ic('check'),
@@ -354,6 +369,7 @@ function paintPhotos() {
 // ───────── Needs you: one case per card ─────────
 let inboxFilter: 'all' | InboxItem['kind'] = (LS('kr8-v2-if') as 'all' | InboxItem['kind']) || 'all';
 export function inboxView() {
+  const help = helpSection(setHelpWaiting);   // 0097: created once per visit, so a half-typed reply survives the 30 s refresh
   void withSnap('inbox', (s) => {
     const { items, handled, preview } = buildInbox(s);
     const open = items.filter((i) => !hiddenKeys.has(i.key));
@@ -370,6 +386,7 @@ export function inboxView() {
     }));
     screen('inbox', header('Needs you', open.length ? `${open.length} decision${open.length === 1 ? '' : 's'}` : 'Inbox zero'),
       renderAlertCentre(s, open),
+      help,
       open.length ? chips : null,
       open.length ? null : el('div', { class: 'v2zero', id: 'v2Zero' }, ic('check'), el('b', {}, 'Nothing needs you'), el('span', {}, 'Everything else was handled automatically.')),
       el('div', { id: 'v2Inbox' }, ...shown.map((i) => inboxCard(i, open))),

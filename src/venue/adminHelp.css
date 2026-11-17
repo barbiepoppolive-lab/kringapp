@@ -1,0 +1,22 @@
+/* Admin Help cases (0097) */
+.hpa-case.u-risk, .hpa-case.u-late { border-color: rgba(255, 90, 107, 0.6); box-shadow: 0 0 22px rgba(255, 90, 107, 0.14); }
+.hpa-wait { font-weight: 700; color: var(--faint); }
+.hpa-wait.risk, .hpa-wait.late { color: #ff8a97; }
+.hpa-who { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.hpa-who b { display: block; font-size: 16px; }
+.hpa-who small { color: var(--faint); font-size: 12px; }
+.hpa-av { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: none; }
+.hpa-av.none { display: grid; place-items: center; background: var(--s2); font-weight: 800; }
+.hpa-q { margin-top: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(255, 79, 216, 0.08); border: 1px solid rgba(255, 79, 216, 0.3); }
+.hpa-q p { margin: 0; font-size: 15px; line-height: 1.45; color: var(--text); }
+.hpa-q p + p { margin-top: 6px; }
+.hpa-risk { margin: 10px 2px 0; color: #ff8a97; font-weight: 800; font-size: 14px; }
+.hpa-hist { margin-top: 10px; font-size: 13px; }
+.hpa-hist summary { cursor: pointer; color: var(--faint); font-weight: 700; }
+.hpa-line { display: grid; grid-template-columns: auto 1fr auto; gap: 6px; padding: 4px 0; border-bottom: 1px solid var(--line); }
+.hpa-line.team b { color: var(--v2cy); }
+.hpa-line small { color: var(--faint); }
+.hpa-ta { width: 100%; box-sizing: border-box; margin-top: 10px; padding: 10px 12px; border-radius: 14px; background: var(--s2); border: 1px solid var(--line2); color: var(--text); font: 15px/1.4 inherit; font-family: inherit; resize: vertical; }
+.hpa-status { display: block; margin-top: 6px; color: var(--faint); }
+.hpa-done { opacity: 0.7; }
+.hpa-done .hpa-status { color: #6ee7a8; font-weight: 700; }
