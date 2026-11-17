@@ -73,7 +73,7 @@ export function StayDo(props: { L: Tx; Lf: Txf; thai: boolean; signedIn: boolean
           const blurb = thai ? l.blurb_th || l.blurb_en : l.blurb_en || l.blurb_th;
           const unit = thai ? l.price_unit_th || l.price_unit_en : l.price_unit_en || l.price_unit_th;
           return (
-            <article className="kstay-card" key={l.id} data-listing={l.id}>
+            <article className={`kstay-card${l.photos[0] ? ' has-photo' : ''}`} key={l.id} data-listing={l.id}>
               <div className="kstay-photo" style={l.photos[0] ? { backgroundImage: `url('${cssUrl(l.photos[0])}')` } : undefined}>
                 <span className="kstay-kind">{l.kind === 'stay' ? L('Stay') : L('Do')}</span>
                 <span className="kstay-area">📍 {L(l.area)}</span>

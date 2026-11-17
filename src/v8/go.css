@@ -303,3 +303,27 @@
 .v8-app-root .go-stat span { font-size: 0.7812rem; opacity: .75; overflow-wrap: anywhere; }
 .v8-app-root .go-stats-note { margin: 12px 2px 0; font-size: 0.7812rem; opacity: .7; line-height: 1.45; }
 .v8-app-root .go-stat:first-child { grid-column: 1 / -1; }
+
+/* ===== Kring Light (founder-approved 18 Nov), rule 1: icons on the full-screen Reel video keep a soft
+   drop shadow only, no dark filled circle (like / save / share / stats, back, "tap for sound"). ===== */
+.v8-app-root .go-rbi, .v8-app-root .go-rb.like.act .go-rbi, .v8-app-root .go-rb.save.act .go-rbi {
+  background: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,.7));
+}
+.v8-app-root .go-vtop .go-bk {
+  background: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,.7));
+}
+.v8-app-root .go-snd.has-hint { background: transparent; filter: drop-shadow(0 1px 3px rgba(0,0,0,.7)); }
+.v8-app-root .go-snd.has-hint b { text-shadow: 0 1px 3px rgba(0,0,0,.8); }
+
+/* ===== Kring Light 5a (founder-approved 18 Nov): bottom sheets = light glass (see v8.css) ===== */
+.v8-app-root .go-sheet {
+  background: linear-gradient(rgba(255,255,255,.07), rgba(255,255,255,.07)), rgba(16,14,27,.8);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.13);
+  -webkit-backdrop-filter: blur(20px) saturate(140%); backdrop-filter: blur(20px) saturate(140%);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .v8-app-root .go-sheet { background: linear-gradient(rgba(255,255,255,.07), rgba(255,255,255,.07)), rgba(14,12,22,.84); }
+}
+.v8-app-root.kr-lowend .go-sheet { background: linear-gradient(rgba(255,255,255,.07), rgba(255,255,255,.07)), rgba(14,12,22,.84); -webkit-backdrop-filter: none; backdrop-filter: none; }

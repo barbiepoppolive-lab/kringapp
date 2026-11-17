@@ -37,3 +37,17 @@
 @keyframes ktripIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .ktrip-card { animation: none; transition: none; } }
 @media (max-width: 330px) { .ktrip-grid { grid-template-columns: 1fr; } }
+
+/* ===== Kring Light 3a (founder-approved 18 Nov): photo-first. The photo fills the whole card (same corners),
+   the icon badge sits in the top-left, the name and value line sit on the soft bottom gradient, the whole card
+   is the link, and a tiny ↗ in the bottom-right corner says it opens. Grid, order and partner links unchanged. ===== */
+.ktrip-card { justify-content: flex-end; aspect-ratio: 3 / 4; padding: 12px; }
+.ktrip-photo { position: absolute; inset: 0; margin: 0; height: auto; z-index: 0; }
+.ktrip-photo::after { content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(14,12,22,.88) 0%, rgba(14,12,22,.82) 20%, rgba(14,12,22,.6) 34%, rgba(14,12,22,.22) 44%, rgba(14,12,22,0) 52%); }
+.ktrip-badge { position: absolute; top: 10px; left: 10px; margin: 0; width: 34px; height: 34px; box-shadow: 0 4px 12px rgba(0,0,0,.35); }
+.ktrip-badge svg { width: 18px; height: 18px; }
+.ktrip-name, .ktrip-sub { position: relative; z-index: 1; padding-right: 16px; text-shadow: 0 1px 2px rgba(0,0,0,.55); }
+.ktrip-sub { flex: none; }
+.ktrip-go { position: absolute; right: 12px; bottom: 13px; z-index: 1; font-size: 0.9375rem; font-weight: 800; line-height: 1; color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,.8); }

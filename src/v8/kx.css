@@ -1076,3 +1076,13 @@
 .v8-app-root .lowfx .rw-sheet.glass { -webkit-backdrop-filter: none; backdrop-filter: none; background: linear-gradient(180deg, rgba(92,72,170,.97), rgba(40,28,98,.98) 45%); }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .v8-app-root .rw-sheet.glass { background: linear-gradient(180deg, rgba(92,72,170,.97), rgba(40,28,98,.98) 45%); } }
 .v8-app-root .rw-sheet.glass .rw-card { background: rgba(255,255,255,.1); }
+/* ===== Kring Light 5a (founder-approved 18 Nov): bottom sheets = light glass (see v8.css) ===== */
+.v8-app-root .kx-sh {
+  background: linear-gradient(rgba(255,255,255,.07), rgba(255,255,255,.07)), rgba(16,14,27,.8);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.13);
+  -webkit-backdrop-filter: blur(20px) saturate(140%); backdrop-filter: blur(20px) saturate(140%);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .v8-app-root .kx-sh { background: linear-gradient(rgba(255,255,255,.07), rgba(255,255,255,.07)), rgba(14,12,22,.84); }
+}
+.v8-app-root.kr-lowend .kx-sh { background: linear-gradient(rgba(255,255,255,.07), rgba(255,255,255,.07)), rgba(14,12,22,.84); -webkit-backdrop-filter: none; backdrop-filter: none; }

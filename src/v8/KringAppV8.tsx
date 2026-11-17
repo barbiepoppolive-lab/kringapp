@@ -102,6 +102,9 @@ import { inAppOf, isLiffOpen, openEscape } from './escape';
 import { TripPerks } from './V5Trip';
 // founder 17 Nov: hide café treats / stays; Deals = trip partners + "more deals coming soon"
 const DEALS_TRIP_ONLY = true;
+// Kring Light (18 Nov): low-end Android phones get a plain dark tint on sheets instead of a costly blur.
+const KR_LOWEND = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent || '') &&
+  (((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8) <= 2 || (navigator.hardwareConcurrency ?? 8) <= 4);
 /** 0093 (supabase/migrations/0093_kr8_face_required_to_be_seen.sql): members above this number must pass the face check before
  *  they post, answer, say hi or chat; members ≤ 68 are exempt. Mirrors kr8_rcfg('face_gate_after_no', 68); the server is the real guard. */
 const FACE_GATE_AFTER_NO = 68;
@@ -3910,7 +3913,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
   return (
     <div
-      className={`v8-app-root ${calmMode ? 'calm' : ''}${adminView ? ' kr-admin-view' : ''}`}
+      className={`v8-app-root ${calmMode ? 'calm' : ''}${adminView ? ' kr-admin-view' : ''}${KR_LOWEND ? ' kr-lowend' : ''}`}
       data-demo={isDemo ? '1' : undefined}
       data-testid="kring-v8-root"
     >
@@ -4237,7 +4240,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                         style={
                           isSaved
                             ? {
-                                borderColor: 'rgba(110,231,168,0.75)',
+                                // Kring Light: no ring on video icons; the green icon shows it is saved
                                 color: '#6EE7A8',
                               }
                             : undefined
