@@ -321,7 +321,7 @@ export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[
       const facts = [newer.reels?.live ? `${newer.reels.live} live Reel${newer.reels.live === 1 ? '' : 's'}` : '', newer.claims?.paid ? `paid ฿${newer.claims.thb}` : '',
         newer.check?.status === 'rejected' ? 'face check refused' : ''].filter(Boolean);
       push({ key: `l:${older.user_id},${newer.user_id}`, kind: 'lookalike', tone: 'a', rank: 80 + (strong ? 5 : 0), at: l.at || newer.joined_at,
-        question: `#${older.no ?? '?'} and #${newer.no ?? '?'} look alike. Same person?`,
+        question: l.reason === 'device' ? `#${older.no ?? '?'} and #${newer.no ?? '?'} use the same phone. Same person?` : `#${older.no ?? '?'} and #${newer.no ?? '?'} look alike. Same person?`,
         what: [`${l.reason === 'device' ? 'Same phone' : `Faces: ${alikeWord(l.dist, l.reason, l.sface_sim)}`}${strong ? ' — very likely one person' : ''}`,
           `#${newer.no ?? '?'} joined ${ago(newer.joined_at)}${facts.length ? ' · ' + facts.join(' · ') : ''}`],
         people: [older, newer], links: [{ a: l.a, b: l.b, reason: l.reason, dist: l.dist, sface_sim: l.sface_sim }] });

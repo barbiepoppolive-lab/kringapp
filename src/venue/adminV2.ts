@@ -276,7 +276,7 @@ function personRow(p: Person): HTMLElement {
 function inboxCard(i: InboxItem, open?: InboxItem[]): HTMLElement {
   const [kl, kt] = KIND_LABEL[i.kind];
   const card = el('article', { class: `v2card v2item v2case t-${i.tone} k-${i.kind}`, 'data-item': i.key, id: 'case-' + i.key.replace(/[^a-zA-Z0-9_-]/g, '_') },
-    el('div', { class: 'v2item-top' }, chip(kl, kt), el('small', { class: 'v2wait', title: `${both(i.at, true)}` }, waitShort(i.at))),
+    el('div', { class: 'v2item-top' }, chip(kl, kt), el('small', { class: 'v2wait', title: `${both(i.at, true)}` }, i.kind === 'reports' ? 'open' : waitShort(i.at))),
     el('h3', { class: 'v2q' }, i.question));
   if (i.people.length) card.append(el('div', { class: 'v2whos' }, ...i.people.map(personRow)));
   card.append(el('div', { class: 'v2what' }, el('span', { class: 'k' }, 'What happened'), ...i.what.slice(0, 2).map((t) => el('div', {}, t))));
