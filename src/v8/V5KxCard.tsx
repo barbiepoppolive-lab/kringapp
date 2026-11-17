@@ -14,7 +14,7 @@ import { kxSetTiktok } from './v5Kx';
 import { v5AcceptTerms, v5CompressImage, v5ErrCode, v5SaveCard, v5SetIgHandle, v5TakeLinePrefill, V5_AREAS, V5_LANGS, V5_TERMS_VERSION } from './v5Live';
 import type { V5Card, V5Me } from './v5Live';
 import { v5ErrText } from './v5Strings';
-import { TermsLine } from './V5Sheets';
+import { TermsAgreeText } from './V5Sheets';
 
 type Tx = (en: string) => string;
 type Txf = (en: string, a: string, b?: string) => string;
@@ -192,6 +192,8 @@ export function V5MintSheet(props: {
   const [checking, setChecking] = useState(false);
   const [photoMsg, setPhotoMsg] = useState(props.photoFix ? 'Kring is for real people. Add a photo where your face is clearly visible.' : '');
   const [ageOk, setAgeOk] = useState(false);
+  /** 0079: explicit agreement to the Terms (incl. promotion use) on a new card, like other apps */
+  const [termsOk, setTermsOk] = useState(false);
   const [more, setMore] = useState(!isNew);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
@@ -240,14 +242,16 @@ export function V5MintSheet(props: {
     if (!name.trim()) return setNotice(L('Add your first name.'));
     if (!langs.length) return setNotice(L('Pick at least one language.'));
     if (isNew && !ageOk) return setNotice(L('Please confirm you are 20 or older.'));
+    if (isNew && !termsOk) return setNotice(L('Please agree to the Terms to continue.'));
     busyRef.current = true;
     setBusy(true);
     try {
       const me = await v5SaveCard({ first_name: name.trim(), langs, bio: bio.trim(), area, who, photo, age_ok: ageOk });
       // audit P1-1: tell the server whether the face check really ran on this photo (never blocks the save)
       if (photo && photoVerdict) void kxNotePhotoCheck(photoVerdict === 'ok').catch(() => undefined);
-      if (card?.terms_version !== V5_TERMS_VERSION) {
-        const at = await v5AcceptTerms().catch(() => null);
+      // 0079: only the new-card checkbox counts as agreeing here; existing members agree in the "We updated our Terms" dialog
+      if (isNew && termsOk) {
+        const at = await v5AcceptTerms('signup').catch(() => null);
         if (at && me.card) me.card = { ...me.card, terms_accepted_at: at, terms_version: V5_TERMS_VERSION };
       }
       // gender is its own small call so the card is saved even if this one fails; only sent when something changed
@@ -379,7 +383,12 @@ export function V5MintSheet(props: {
             <span>{L('I confirm I am 20 or older')}</span>
           </label>
         )}
-        {card?.terms_version !== V5_TERMS_VERSION && <TermsLine L={L} id="v5CardTerms" style={{ margin: '6px 2px 0', fontSize: 12 }} />}
+        {isNew && (
+          <label className="kx-age kx-terms">
+            <input type="checkbox" id="v5TermsOk" checked={termsOk} onChange={(e) => setTermsOk(e.target.checked)} />
+            <span id="v5CardTerms"><TermsAgreeText L={L} /></span>
+          </label>
+        )}
         {notice && <p id="v5CardNotice" className="kx-err" role="status" aria-live="polite">{notice}</p>}
       </div>
       <div className="kx-cta">

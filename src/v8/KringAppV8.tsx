@@ -102,6 +102,8 @@ import { TripPerks } from './V5Trip';
 const DEALS_TRIP_ONLY = true;
 import { StayDo } from './V5StayDo';
 import { v5CardPrintOk, v5HandoffBoot, v5LogClient, v5MyVerification, v5SaveCardPrint, V5_AREAS } from './v5Live';
+import { v5AcceptTerms, v5PromoGet, v5SetPromo, V5_TERMS_VERSION, type V5Promo } from './v5Live';
+import { TermsAgreeText } from './V5Sheets';
 import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
 import type { V5Blocked, V5Card, V5FeedItem, V5Me, V5ReportReason, V5TagPlace, V5Thread } from './v5Live';
 import { V5_L, KX_L, kxArea, v5ErrText, loadV5Lang, v5LangReady } from './v5Strings';
@@ -3224,6 +3226,56 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       setWebReels((w) => ({ has_reel: w?.has_reel ?? false, on, asked: true }));
       showToast(on ? L('Your Reels can now show on kringapp.com') : L('Your Reels stay in the app only'));
     } catch { showToast(L('Could not save. Try again.')); } finally { setWebBusy(false); }
+  };
+  // 0079 (17 Nov): Terms §4 now lets Kring feature members' posts in its own promotion (founder decision). Existing members see a
+  // one-time "We updated our Terms" dialog (Agree / Not now; Not now asks again after 3 days, never locks anyone out). Agreeing is
+  // stored server-side (kr8_terms_log) and turns on "Kring may feature my posts in promotion", which stays switchable in Settings
+  // (Thai PDPA: consent must be clear and withdrawable). Members who never agree: nothing of theirs is used.
+  const [promo, setPromo] = useState<V5Promo | null>(null);
+  const [promoBusy, setPromoBusy] = useState(false);
+  const [termsDlg, setTermsDlg] = useState(false);
+  const termsAgreed = !!v5Card && v5Card.terms_version === V5_TERMS_VERSION;
+  const termsSnoozeKey = `kr8_terms_later_${V5_TERMS_VERSION}`;
+  useEffect(() => {
+    if (!live || !signedIn || !v5Card || adminView || termsAgreed) return;
+    let later = 0;
+    try { later = Number(localStorage.getItem(termsSnoozeKey) || 0); } catch { /* private window: ask */ }
+    if (later && Date.now() - later < 3 * 86400_000) return;
+    const id = window.setTimeout(() => setTermsDlg(true), 1200);   // after the first screen has drawn
+    return () => window.clearTimeout(id);
+  }, [live, signedIn, !!v5Card, adminView, termsAgreed]);
+  useEffect(() => {
+    if (!live || !signedIn || !v5Card || adminView || sheet !== 'settings') return;
+    let dead = false;
+    v5PromoGet().then((r) => { if (!dead && r) setPromo(r); }).catch(() => undefined);
+    return () => { dead = true; };
+  }, [live, signedIn, !!v5Card, adminView, sheet === 'settings']);
+  const agreeTerms = async (source: 'update' | 'settings') => {
+    if (promoBusy) return;
+    setPromoBusy(true);
+    try {
+      const at = await v5AcceptTerms(source);
+      setV5Card((c) => (c ? { ...c, terms_accepted_at: at, terms_version: V5_TERMS_VERSION } : c));
+      const r = await v5PromoGet().catch(() => null);
+      setPromo(r || { on: true, terms_version: V5_TERMS_VERSION });
+      setTermsDlg(false);
+      showToast(L('Thanks, you’re all set'));
+    } catch { showToast(L('Could not save. Try again.')); } finally { setPromoBusy(false); }
+  };
+  const termsLater = () => {
+    try { localStorage.setItem(termsSnoozeKey, String(Date.now())); } catch { /* ignore */ }
+    setTermsDlg(false);
+  };
+  const togglePromo = async () => {
+    if (promoBusy) return;
+    if (promo?.on !== true && !termsAgreed) { setSheet(null); setTermsDlg(true); return; }   // turning on = agreeing to the new Terms
+    const on = promo?.on !== true;
+    setPromoBusy(true);
+    try {
+      await v5SetPromo(on);
+      setPromo((p) => ({ terms_version: p?.terms_version ?? V5_TERMS_VERSION, on }));
+      showToast(on ? L('Kring may feature your posts') : L('Kring won’t use your posts in promotion'));
+    } catch { showToast(L('Could not save. Try again.')); } finally { setPromoBusy(false); }
   };
   const togglePush = async () => {
     if (pushBusy) return;
@@ -6488,6 +6540,21 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           </div>
         )}
 
+        {termsDlg && live && signedIn && v5Card && !termsAgreed && !adminView && (
+          <div className="kterms-dim" id="termsDlg" role="dialog" aria-modal="true" aria-labelledby="termsDlgH">
+            <div className="kterms">
+              <h3 id="termsDlgH">{L('We updated our Terms')}</h3>
+              <ul>
+                <li>{L('Kring may feature your posts and Reels on its own Instagram, TikTok, YouTube, LINE, website and ads, with your first name and area.')}</li>
+                <li>{L('Never your surname, contact details or exact location.')}</li>
+                <li>{L('Turn it off any time in Settings, or ask us to take down one post at ops@kringapp.com.')}</li>
+              </ul>
+              <p className="kterms-agree"><TermsAgreeText L={L} /></p>
+              <button type="button" className="kterms-yes" id="termsAgree" disabled={promoBusy} onClick={() => void agreeTerms('update')}>{promoBusy ? L('Saving…') : L('Agree')}</button>
+              <button type="button" className="kterms-no" id="termsLater" disabled={promoBusy} onClick={termsLater}>{L('Not now')}</button>
+            </div>
+          </div>
+        )}
         {sheet === 'settings' && live && signedIn && v5Card && (
           <div className="v8-sheet kme-sheet" id="sh-settings" data-v="me-locked">
             <div className="grab" />
@@ -6537,6 +6604,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               )}
               <div className="srow" role="button" tabIndex={0} id="setCalm" onClick={() => setCalmMode((v) => !v)}>
                 <span>{t.calmColours}</span><span className={`sw-ctrl ${calmMode ? 'on' : ''}`} />
+              </div>
+              <div className="srow" role="switch" tabIndex={0} id="setPromo" aria-checked={promo?.on === true} aria-busy={promoBusy}
+                onClick={() => void togglePromo()}>
+                <span>{L('Kring may feature my posts in promotion')}<small className="kpa-sub" id="setPromoSub">{L('On Kring’s own Instagram, TikTok, YouTube, LINE, website and ads. First name and area only. Turn off any time.')}</small></span>
+                <span className={`sw-ctrl ${promo?.on === true ? 'on' : ''}`} />
               </div>
               <div className="srow" role="switch" tabIndex={0} id="setWebReels" aria-checked={webReels?.on === true} aria-busy={webBusy}
                 onClick={() => void setWeb(!(webReels?.on === true))}>

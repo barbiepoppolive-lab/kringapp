@@ -97,7 +97,7 @@ describe('optional gender: making and editing the card', () => {
   const fillNew = async () => {   // 16 Nov: a new card needs a face photo first (picked through the big + on the card)
     fireEvent.change(document.querySelector('#kxAddPhoto input')!, { target: { files: [new File(['x'], 'me.jpg', { type: 'image/jpeg' })] } });
     await vi.waitFor(() => { expect(document.getElementById('kxAddPhoto')).toBeNull(); expect(document.getElementById('kxPhotoNeed')).toBeNull(); }, { timeout: 4000 });
-    fireEvent.change(document.getElementById('v5Name')!, { target: { value: 'TEST-Mali' } }); fireEvent.click(document.getElementById('v5Age')!); };
+    fireEvent.change(document.getElementById('v5Name')!, { target: { value: 'TEST-Mali' } }); fireEvent.click(document.getElementById('v5Age')!); fireEvent.click(document.getElementById('v5TermsOk')!); };
   it('a new card can be made without touching the row: nothing is sent for gender', async () => {
     sheet(null); await fillNew();
     expect(document.getElementById('kxGender')).toBeTruthy();

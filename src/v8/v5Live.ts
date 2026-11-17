@@ -734,9 +734,22 @@ export function v5LogClient(kind: string, code?: string, detail?: string): void 
     void rpc<void>('kr8_log_client', { p_kind: kind, p_code: code || null, p_detail: detail || null, p_ua: ua }).catch(() => undefined);
   } catch { /* never block the member */ }
 }
-/** Terms + Privacy notice version the member agreed to (sign-in sheet line). Bump when terms.html / privacy.html change. */
-export const V5_TERMS_VERSION = 'member-2026-11-10';
-export const v5AcceptTerms = () => rpc<string>('kr8_accept_terms', { p_version: V5_TERMS_VERSION });
+/** Terms + Privacy notice version the member agreed to. Bump when terms.html / privacy.html change.
+ *  0079 (17 Nov): Terms §4 now lets Kring feature members' posts in its own promotion, so existing members agree again. */
+export const V5_TERMS_VERSION = 'member-2026-11-17';
+/** 0079: records the agreement (member, version, time, where) in kr8_terms_log and turns "Kring may feature my posts" on unless the
+ *  member already turned it off. Falls back to the older kr8_accept_terms while 0079 is not on the database yet. */
+export async function v5AcceptTerms(source: 'signup' | 'update' | 'settings' = 'signup'): Promise<string> {
+  try { return await rpc<string>('kr8_agree_terms', { p_version: V5_TERMS_VERSION, p_source: source }); }
+  catch (e) {
+    if (e instanceof V5Error && (e.code === 'SIGN_IN' || e.code === 'NO_CARD' || e.code === 'OFFLINE')) throw e;
+    return rpc<string>('kr8_accept_terms', { p_version: V5_TERMS_VERSION });
+  }
+}
+/** 0079: "Kring may feature my posts in promotion" (Settings). on: null = never agreed (= off). */
+export interface V5Promo { on: boolean | null; terms_version: string | null }
+export const v5PromoGet = () => rpc<V5Promo | null>('kr8_promo_get');
+export const v5SetPromo = (on: boolean) => rpc<boolean>('kr8_set_promo', { p_on: on });
 export interface V5Blocked { user_id: string; first_name: string; photo: string | null; blocked_at: string }
 export const v5MyBlocks = () => rpc<V5Blocked[]>('kr8_my_blocks');
 export const v5Unblock = (user: string) => rpc<void>('kr8_unblock', { p_user: user });

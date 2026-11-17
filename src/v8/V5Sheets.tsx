@@ -29,6 +29,18 @@ export function TermsLine(props: { L: Tx; id?: string; style?: React.CSSProperti
   );
 }
 
+/** 0079 (17 Nov): "I agree to the {0} and {1}, including Kring using my posts to promote Kring." with real links. The text with
+ *  {0}/{1} split out, so the same line is used on the new-card checkbox and in the "We updated our Terms" dialog. */
+export function TermsAgreeText(props: { L: Tx }) {
+  const { L } = props;
+  const parts = L('I agree to the {0} and {1}, including Kring using my posts to promote Kring.').split(/(\{0\}|\{1\})/);
+  const link = (href: string, label: string) => (
+    <a href={href} target="_blank" rel="noopener" onClick={(e) => e.stopPropagation()} style={{ color: '#FF8CC4', fontWeight: 800 }}>{label}</a>
+  );
+  return (<>{parts.map((x, i) => (x === '{0}' ? <React.Fragment key={i}>{link('/terms.html', L('Terms'))}</React.Fragment>
+    : x === '{1}' ? <React.Fragment key={i}>{link('/privacy.html', L('Privacy Policy'))}</React.Fragment> : <React.Fragment key={i}>{x}</React.Fragment>))}</>);
+}
+
 function useErr(L: Tx, Lf: Txf) {
   return (e: unknown, name = '') => {
     const [k, a] = v5ErrText(typeof e === 'string' ? e : v5ErrCode(e), name);
