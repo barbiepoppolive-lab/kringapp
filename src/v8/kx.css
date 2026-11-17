@@ -913,7 +913,7 @@
 /* below the 25-Ring prize floor, every rank: soft grey + small eligibility line (look A, 17 Nov) */
 .v8-app-root .rka-elig { font: 500 0.6562rem/1.3 var(--kx-j); color: #a19bb8; font-style: normal; }
 .v8-app-root .rka-sc .rka-elig::before { content: '· '; }
-.v8-app-root .rka-pc .rka-elig { display: block; flex-basis: 100%; max-width: 112px; margin: 2px auto 0; text-align: center; }
+.v8-app-root .rka-pc .rka-elig { display: block; flex-basis: 100%; max-width: 104px; margin: 3px auto 0; text-align: center; white-space: normal; line-height: 1.25; }
 .v8-app-root .rka-pc.low .rka-img { opacity: .5; filter: saturate(.3); box-shadow: none; }
 .v8-app-root .rka-pc.low .rka-nm { color: #b4aecb; }
 .v8-app-root .rka-pc.low .rka-r { color: #9d97b4; }
