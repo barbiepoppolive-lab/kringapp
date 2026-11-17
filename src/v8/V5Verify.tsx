@@ -18,6 +18,8 @@ import type { V5FaceDecision } from './v5Live';
 import './verify.css';
 
 type Tx = (en: string) => string;
+// TEST COPY only: no card photo needed, the scan stands in for it (lets the founder test the scan in one tap)
+const TESTCOPY = String(import.meta.env.VITE_SUPABASE_URL || '').includes('wulfcffljfuhrvjzrvuv');
 type Stage = 'needphoto' | 'intro' | 'loading' | 'camera' | 'checking' | 'pass' | 'review' | 'fail' | 'block' | 'limit' | 'error';
 
 const CONSENT_KEY = 'kr8_face_consent';
@@ -42,7 +44,7 @@ const device = () => (navigator.userAgent.match(/iPhone|iPad|Android|Mac|Windows
 export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: boolean; onClose: () => void; onSent: () => void; onVerified?: () => void;
   onAddPhoto: () => void; errText: (e: unknown) => string }) {
   const { L } = props;
-  const [stage, setStage] = useState<Stage>(!props.photo ? 'needphoto' : consentSaved() && !props.nudge ? 'loading' : 'intro');
+  const [stage, setStage] = useState<Stage>(!props.photo && !TESTCOPY ? 'needphoto' : consentSaved() && !props.nudge ? 'loading' : 'intro');
   const [agree, setAgree] = useState(false);
   const [live, setLive] = useState<LiveState>(() => liveStart());
   const [why, setWhy] = useState<FailWhy>('timeout');
@@ -173,7 +175,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
       const selfie = await read(bestRef.current);
       const mid = await read(midRef.current || firstRef.current);
       const end = await read(endRef.current);
-      const card = cardRef.current ? await cardRef.current : null;
+      const card = cardRef.current ? await cardRef.current : (TESTCOPY ? selfie : null);
       const r3 = (x: number) => Math.round(x * 1000) / 1000;
       const match = selfie?.emb && card?.emb ? r3(cosine(selfie.emb, card.emb)) : null;
       const others = [mid, end].filter((x): x is FaceRead => !!x);

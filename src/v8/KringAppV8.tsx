@@ -2817,6 +2817,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       });
     };
     t = window.setTimeout(ask, 6000);
+    try { if (new URLSearchParams(location.search).get('open') === 'verify') window.setTimeout(() => { if (!busy()) setSheet('verify'); }, 1500); } catch { /* ignore */ }
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [live, v5Uid, !!v5Card?.photo]);
