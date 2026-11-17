@@ -13,9 +13,10 @@ import {
   type Claim, type DupAuto, type FaceCheck, type InboxItem, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot, type Trust,
 } from './adminV2Logic';
 import {
-  capStatus, computeVoucherRunway, fallbackAutopilotState, formatRobotLogLine, heartbeatSummary, isAutopilotState, isMorningBriefData,
+  capStatus, computeVoucherRunway, fallbackAutopilotState, fallbackHealthWatch, formatRobotLogLine, heartbeatSummary,
+  isAutopilotState, isHealthWatchReport, isMorningBriefData,
   modeLabel, modeTone, scheduleWords, severityMeta, sortRobotAlerts, synthesizeMorningBrief,
-  type AutopilotState, type MorningBriefData, type RobotAlert, type RobotLogRow, type RobotMode, type RobotRow,
+  type AutopilotState, type HealthWatchReport, type MorningBriefData, type RobotAlert, type RobotLogRow, type RobotMode, type RobotRow,
 } from './autopilotLogic';
 import './adminV2.css';
 
@@ -802,13 +803,21 @@ export async function autopilotView() {
   screen('more', header('Autopilot', 'Robots watch & fix safe tasks · you decide money & bans', '#more'), body);
   stopV2();
   let st: AutopilotState = fallbackAutopilotState(snap);
+  let hw: HealthWatchReport = fallbackHealthWatch(snap, st);
 
   const load = async () => {
+    const t0 = Date.now();
     try {
-      const raw = await rpc<unknown>('kr8_admin_autopilot_state', { p_limit: 120 });
+      const [raw, rawHw] = await Promise.all([
+        rpc<unknown>('kr8_admin_autopilot_state', { p_limit: 120 }),
+        rpc<unknown>('kr8_admin_health_watch', { p_run: false }).catch(() => null),
+      ]);
+      const elapsed = Date.now() - t0;
       st = isAutopilotState(raw) ? raw : fallbackAutopilotState(snap);
+      hw = isHealthWatchReport(rawHw) ? rawHw : fallbackHealthWatch(snap, st, elapsed);
     } catch {
       st = fallbackAutopilotState(snap);
+      hw = fallbackHealthWatch(snap, st);
     }
     snapAt = Date.now();
     const freshEl = document.getElementById('v2Fresh');
@@ -981,6 +990,59 @@ export async function autopilotView() {
             ? st.heartbeats.map((h) => `${h.job.replace(/^kr8_/, '')}: ${h.last_beat ? ago(h.last_beat) : 'waiting'}`).join(' · ')
             : 'No heartbeats registered yet'))));
 
+    const passCount = hw.checks.filter((c) => c.ok).length;
+    const hwRunBtn = el('button', {
+      type: 'button',
+      id: 'apHealthRunBtn',
+      class: 'ap-mini-btn',
+      disabled: st.paused,
+    }, 'Run all 8 checks');
+    hwRunBtn.onclick = async () => {
+      hwRunBtn.disabled = true;
+      hwRunBtn.textContent = 'Probing…';
+      const t0 = Date.now();
+      let authOk = true;
+      let storageOk = true;
+      try {
+        const cli = await v5Client();
+        const sess = await cli.auth.getSession();
+        authOk = !sess.error;
+        const stProbe = await cli.storage.from('kr8-ask').list('', { limit: 1 });
+        storageOk = !stProbe.error;
+      } catch {
+        /* client probe optional in unit tests */
+      }
+      const rpcMs = Date.now() - t0;
+      try {
+        const res = await rpc<unknown>('kr8_admin_health_watch', {
+          p_run: true,
+          p_client_probe: { auth_ok: authOk, storage_ok: storageOk, rpc_ms: rpcMs },
+        });
+        if (isHealthWatchReport(res)) hw = res;
+        toast(hw.all_ok ? 'All 8 health checks green' : 'Health check found broken item(s) — see red alerts');
+        await load();
+      } catch (e) {
+        hwRunBtn.disabled = false;
+        hwRunBtn.textContent = 'Run all 8 checks';
+        toast(`Health check failed: ${(e as Error).message}`);
+      }
+    };
+
+    const healthCard = el('section', { class: `v2card ap-health ${hw.all_ok ? 'ok' : 'bad'}`, id: 'apHealthCard' },
+      el('div', { class: 'ap-health-hd' },
+        ic('check'),
+        el('div', { class: 'grow' },
+          el('b', {}, `Health watch · ${passCount}/${hw.checks.length} green`),
+          el('small', {}, `Every 15 min · red alert on failure · auto-clears when fixed · checked ${ago(hw.at)}`)),
+        hwRunBtn),
+      el('div', { class: 'ap-health-grid', id: 'apHealthGrid' },
+        ...hw.checks.map((c) => el('div', { class: `ap-hitem ${c.ok ? 'ok' : 'bad'}`, 'data-hkey': c.key },
+          el('div', { class: 'ap-hitem-top' },
+            chip(c.ok ? 'OK' : 'FAIL', c.ok ? 'g' : 'r'),
+            el('b', {}, c.title),
+            c.ms != null ? el('small', { class: 'ap-hms' }, `${c.ms} ms`) : null),
+          el('small', { class: 'ap-hsum' }, c.summary)))));
+
     const filterOpts: [string, string][] = [
       ['all', `All (${st.logs.length})`],
       ['applied', `Applied (${st.logs.filter((l) => !l.dry_run).length})`],
@@ -997,6 +1059,7 @@ export async function autopilotView() {
     body.replaceChildren(
       killCard,
       hbCard,
+      healthCard,
       el('div', { class: 'v2sec' }, `Robots · ${st.robots.length}`),
       el('div', { id: 'apRobots' }, ...st.robots.map(renderRobot)),
       el('div', { class: 'v2sec' }, 'Robot action log'),

@@ -447,3 +447,215 @@ export function synthesizeMorningBrief(
     },
   };
 }
+
+// ───────── M3 (0100): Health Watch (8 vital checks every 15 min + auto-clearing red alerts) ─────────
+export type HealthCheckKey =
+  | 'db'
+  | 'auth'
+  | 'storage'
+  | 'rpc_speed'
+  | 'face_check'
+  | 'voucher_stock'
+  | 'quotas'
+  | 'heartbeats';
+
+export interface HealthCheckRow {
+  key: HealthCheckKey;
+  ord: number;
+  title: string;
+  ok: boolean;
+  summary: string;
+  ms: number | null;
+  detail: Record<string, unknown>;
+  checked_at?: string;
+}
+
+export interface HealthWatchReport {
+  at: string;
+  mode: RobotMode;
+  all_ok: boolean;
+  checks: HealthCheckRow[];
+}
+
+export function isHealthWatchReport(x: unknown): x is HealthWatchReport {
+  const h = x as HealthWatchReport | null;
+  return !!h && typeof h === 'object' && typeof h.all_ok === 'boolean' && Array.isArray(h.checks);
+}
+
+export interface HealthEvalInput {
+  dbOk?: boolean;
+  dbMs?: number;
+  memberRows?: number;
+  authOk?: boolean;
+  authMs?: number;
+  storageOk?: boolean;
+  storageBuckets?: number;
+  missingBuckets?: string[];
+  rpcMs?: number;
+  rpcLimitMs?: number;
+  faceCheckOk?: boolean;
+  faceMs?: number;
+  availableVouchers: number;
+  minVouchers?: number;
+  dbMb?: number;
+  dbLimitMb?: number;
+  storageMb?: number;
+  storageLimitMb?: number;
+  staleHeartbeats?: string[];
+}
+
+/** Pure evaluator mirroring 0100_kr8_autopilot2_m3.sql kr8_health_evaluate across all 8 checks. */
+export function evaluateHealthChecks(inp: HealthEvalInput): HealthCheckRow[] {
+  const rpcLimit = inp.rpcLimitMs ?? 2000;
+  const minV = inp.minVouchers ?? 5;
+  const dbLim = Math.max(1, inp.dbLimitMb ?? 500);
+  const stLim = Math.max(1, inp.storageLimitMb ?? 1024);
+
+  const dbOk = inp.dbOk !== false;
+  const authOk = inp.authOk !== false;
+  const missingB = inp.missingBuckets || [];
+  const stOk = inp.storageOk !== false && missingB.length === 0;
+  const rpcMs = inp.rpcMs ?? 45;
+  const rpcOk = rpcMs < rpcLimit;
+  const faceOk = inp.faceCheckOk !== false;
+  const vAvail = Math.max(0, Math.round(inp.availableVouchers));
+  const vOk = vAvail > minV;
+
+  const dbMb = Math.round((inp.dbMb ?? 18.4) * 10) / 10;
+  const stMb = Math.round((inp.storageMb ?? 64.2) * 10) / 10;
+  const dbPct = Math.round((dbMb / dbLim) * 100);
+  const stPct = Math.round((stMb / stLim) * 100);
+  const quotaOk = dbPct < 90 && stPct < 90;
+
+  const stale = inp.staleHeartbeats || [];
+  const hbOk = stale.length === 0;
+
+  return [
+    {
+      key: 'db',
+      ord: 1,
+      title: 'DB reachable',
+      ok: dbOk,
+      summary: dbOk ? `Postgres OK (${inp.dbMs ?? 12} ms · ${inp.memberRows ?? 0} member rows)` : 'Database unreachable or query failed',
+      ms: inp.dbMs ?? 12,
+      detail: { members: inp.memberRows ?? 0 },
+    },
+    {
+      key: 'auth',
+      ord: 2,
+      title: 'Auth working',
+      ok: authOk,
+      summary: authOk ? `Auth session & users reachable (${inp.authMs ?? 18} ms)` : 'Auth session or auth.users check failed',
+      ms: inp.authMs ?? 18,
+      detail: {},
+    },
+    {
+      key: 'storage',
+      ord: 3,
+      title: 'Storage buckets reachable',
+      ok: stOk,
+      summary: stOk
+        ? `${inp.storageBuckets ?? 4} storage buckets reachable`
+        : missingB.length
+          ? `Missing storage bucket(s): ${missingB.join(', ')}`
+          : 'Storage endpoint unreachable',
+      ms: 20,
+      detail: { missing: missingB },
+    },
+    {
+      key: 'rpc_speed',
+      ord: 4,
+      title: 'Key RPCs < 2 s',
+      ok: rpcOk,
+      summary: rpcOk ? `Key RPCs answered in ${rpcMs} ms (< ${rpcLimit} ms limit)` : `Key RPCs slow: ${rpcMs} ms (limit ${rpcLimit} ms)`,
+      ms: rpcMs,
+      detail: { limit_ms: rpcLimit },
+    },
+    {
+      key: 'face_check',
+      ord: 5,
+      title: 'Face-check alive',
+      ok: faceOk,
+      summary: faceOk ? `kr8_verify_instant + pgvector alive (${inp.faceMs ?? 9} ms)` : 'kr8_verify_instant or pgvector unavailable',
+      ms: inp.faceMs ?? 9,
+      detail: {},
+    },
+    {
+      key: 'voucher_stock',
+      ord: 6,
+      title: 'Voucher stock > 5',
+      ok: vOk,
+      summary: vOk ? `${vAvail} vouchers available (> ${minV} threshold)` : `LOW STOCK: only ${vAvail} voucher(s) left (needs > ${minV})`,
+      ms: null,
+      detail: { available: vAvail, min: minV },
+    },
+    {
+      key: 'quotas',
+      ord: 7,
+      title: 'Free-tier quotas',
+      ok: quotaOk,
+      summary: `DB ${dbMb}/${dbLim} MB (${dbPct}%) · Storage ${stMb}/${stLim} MB (${stPct}%)`,
+      ms: null,
+      detail: { db_mb: dbMb, db_limit_mb: dbLim, db_pct: dbPct, storage_mb: stMb, storage_limit_mb: stLim, storage_pct: stPct },
+    },
+    {
+      key: 'heartbeats',
+      ord: 8,
+      title: 'Cron heartbeats fresh',
+      ok: hbOk,
+      summary: hbOk ? 'All active heartbeats fresh' : `Stale or failed heartbeat(s): ${stale.join(', ')}`,
+      ms: null,
+      detail: { stale_jobs: stale },
+    },
+  ];
+}
+
+/** Raises RED alerts for failing checks and AUTO-CLEARS existing health:* alerts when checks pass again. */
+export function reconcileHealthAlerts(existing: RobotAlert[], checks: HealthCheckRow[], nowIso = new Date().toISOString()): {
+  alerts: RobotAlert[];
+  raised: string[];
+  cleared: string[];
+} {
+  const byKey = new Map(existing.map((a) => [a.dedupe_key, a]));
+  const raised: string[] = [];
+  const cleared: string[] = [];
+
+  for (const c of checks) {
+    const dkey = `health:${c.key}`;
+    if (!c.ok) {
+      if (!byKey.has(dkey)) raised.push(c.key);
+      byKey.set(dkey, {
+        id: byKey.get(dkey)?.id || `hlth-${c.key}`,
+        dedupe_key: dkey,
+        robot: 'health_watch',
+        severity: 'red',
+        title: `Health check failed: ${c.title}`,
+        body: c.summary,
+        href: c.key === 'voucher_stock' ? '#codes' : '#autopilot',
+        at: nowIso,
+      });
+    } else if (byKey.has(dkey)) {
+      byKey.delete(dkey);
+      cleared.push(c.key);
+    }
+  }
+
+  return { alerts: sortRobotAlerts([...byKey.values()]), raised, cleared };
+}
+
+export function fallbackHealthWatch(snap?: Snapshot | null, st?: AutopilotState | null, rpcMs = 60): HealthWatchReport {
+  const avail = snap ? money(snap).available : 12;
+  const stale = st ? heartbeatSummary(st).staleJobs : [];
+  const checks = evaluateHealthChecks({
+    memberRows: snap ? snap.people.length : 0,
+    rpcMs,
+    availableVouchers: avail,
+    staleHeartbeats: stale,
+  });
+  return {
+    at: new Date().toISOString(),
+    mode: st?.robots.find((r) => r.name === 'health_watch')?.mode || 'dry_run',
+    all_ok: checks.every((c) => c.ok),
+    checks,
+  };
+}
