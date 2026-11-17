@@ -7,9 +7,9 @@
 import { el, rpc, v5Client } from './shared';
 import { signReelPaths } from '../v8/v5Reel';
 import {
-  ago, both, buildInbox, claimChip, clock, filterPeople, groupPeople, isSnapshot, lookalikeWords, money, noCard, peopleCounts, peopleHeadline, personFlags, placeFlags,
-  realPhoto, referrers, stepChip, summary, who, withAdminLogins, faceChip, faceStatusWords, liveSteps, type FaceCheck,
-  type Claim, type InboxItem, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot,
+  ago, both, buildInbox, buildRobotReport, claimChip, clock, filterPeople, groupPeople, isSnapshot, lookalikeWords, money, noCard, peopleCounts, peopleHeadline,
+  personFlags, personTrust, placeFlags, realPhoto, referrers, stepChip, summary, trustChip, who, withAdminLogins, faceChip, faceStatusWords, liveSteps,
+  type Claim, type DupAuto, type FaceCheck, type InboxItem, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot, type Trust,
 } from './adminV2Logic';
 import './adminV2.css';
 
@@ -57,11 +57,14 @@ export async function loadSnapshot(force = false): Promise<Snapshot | null> {
   const auto = rpc<PlaceAuto[]>('kr8_admin_places_auto', { p_days: 7 }).catch(() => [] as PlaceAuto[]);
   // 0087: real-photo flag, step inputs, Removed list and the one set of counts (null before 0087: the panel falls back)
   const extra = rpc<PeopleExtra>('kr8_admin_v2_people_extra').catch(() => null);
-  loadingSnap = Promise.all([rpc<unknown>('kr8_admin_v2_snapshot', { p_include_test: includeTest }), auto, extra])
-    .then(([s, pa, ex]) => {
+  // 0095: duplicate robot actions (embedded in 0095 snapshot, or fetched alongside if needed)
+  const dups = rpc<DupAuto[]>('kr8_admin_dups_auto', { p_days: 14 }).catch(() => null);
+  loadingSnap = Promise.all([rpc<unknown>('kr8_admin_v2_snapshot', { p_include_test: includeTest }), auto, extra, dups])
+    .then(([s, pa, ex, da]) => {
       if (!isSnapshot(s)) throw new Error('Admin v2 needs database update 0082');
       s.places_auto = Array.isArray(pa) ? pa : [];
       if (ex && ex.counts && ex.rows) s.extra = ex;
+      if (!Array.isArray(s.dups_auto) && Array.isArray(da)) s.dups_auto = da;
       snap = withAdminLogins(s); snapAt = Date.now(); return snap;
     })
     .finally(() => { loadingSnap = null; });
@@ -183,12 +186,19 @@ export function todayView() {
       ['Got a prize', real.filter((p) => (p.claims?.paid || 0) > 0).length]];
     const kpi = (id: string, n: string, label: string, sub: string, href: string, tone = '') =>
       el('a', { class: `v2kpi ${tone}`, href, id }, el('b', {}, n), el('span', {}, label), el('small', {}, sub));
+    const rr = buildRobotReport(s, { items, handled: inbox.handled });
     screen('today', header('Today', `${date} · India time`),
       // 1. what needs a decision
       items.length ? el('div', { class: 'v2sec' }, `Needs you · ${items.length}`) : el('a', { class: 'v2card v2row v2allclear', href: '#auto', id: 'v2Clear' }, ic('check'),
         el('div', { class: 'grow' }, el('b', {}, 'Nothing needs you'), el('div', { class: 'v2sub' }, `${inbox.handled.length} things were handled automatically`)), ic('chev')),
       ...items.slice(0, 2).map((i) => inboxCard(i, s)),
       items.length > 2 ? el('a', { class: 'v2more', href: '#inbox' }, `See all ${items.length} →`) : null,
+      // 1b. Robot report: what the robots did today, plain English, links to Needs you
+      el('div', { class: 'v2sec' }, 'Robot report'),
+      el('a', { class: 'v2card v2robot', href: '#inbox', id: 'v2RobotReport' },
+        el('div', { class: 'v2robot-hd' }, ic('robot'), el('b', { class: 'grow' }, 'Robot report · today'),
+          el('span', { class: 'v2robot-go' }, items.length ? `Needs you (${items.length}) →` : 'Needs you →')),
+        el('ul', { class: 'v2robot-ul' }, ...rr.lines.map((ln) => el('li', {}, ln)))),
       // 2. who joined, and how far they got
       el('div', { class: 'v2sec' }, freshLabel),
       el('div', { class: 'v2card v2list', id: 'v2NewToday' }, ...fresh.map((p) => el('a', { class: 'v2li', href: personLink(p), 'data-uid': p.user_id },
@@ -258,6 +268,11 @@ function inboxCard(i: InboxItem, s: Snapshot): HTMLElement {
       el('small', {}, [p.verified ? '✓ verified' : p.check?.status === 'rejected' ? '✕ face check refused' : 'not verified', p.ref ? `via ${p.ref}` : ''].filter(Boolean).join(' · ')),
       el('small', {}, `${p.reels?.live || 0} live Reel${p.reels?.live === 1 ? '' : 's'} · ${p.claims?.paid || 0} paid`)))));
   }
+  if (i.verdict) {
+    card.append(el('div', { class: `v2verdict ${i.verdict.tone}`, 'data-call': i.verdict.call },
+      el('div', { class: 'v2verdict-hd' }, ic('robot'), el('b', {}, i.verdict.headline)),
+      el('ul', { class: 'v2verdict-ul' }, ...i.verdict.reasons.map((r) => el('li', {}, r)))));
+  }
   card.append(el('p', { class: 'v2why' }, i.why));
   const flags = [...new Set(i.people.flatMap((p) => personFlags(p, s.people, s.claims).filter((f) => f.key !== 'lookalike').map((f) => `#${p.no} ${f.text}`)))];
   if (flags.length) card.append(el('div', { class: 'v2flags' }, ...flags.slice(0, 4).map((f) => chip(f, 'a'))));
@@ -270,19 +285,28 @@ function act(label: string, cls: string, id: string, fn: () => void): HTMLButton
 function actions(i: InboxItem): HTMLElement {
   const box = el('div', { class: 'v2acts' });
   const [keep, ...others] = i.people;
-  if ((i.kind === 'lookalike' || i.kind === 'held') && i.people.length > 1) {
+  if (i.kind === 'held' && i.claims.length) {
+    const c = i.claims[0];
+    if (i.people.length > 1) {
+      const otherIds = others.map((p) => p.user_id);
+      box.append(
+        act(`Pay ฿${c.amount}`, 'ok', 'v2Pay-' + c.id, () => later(i.key, `Marked different people · paying ฿${c.amount} to ${who(c)}`, async () => {
+          await rpc('kr8_admin_dup_resolve', { p_keep: keep.user_id, p_others: otherIds, p_action: 'not_same' });
+          for (const cl of i.claims) await rpc('kr8_admin_release_claim', { p_claim: cl.id });
+        })),
+        act(`Refuse · keep #${keep.no}`, 'bad', 'v2Refuse-' + c.id, () => later(i.key, `Claim refused (member is not told why) · kept #${keep.no}`,
+          () => rpc('kr8_admin_dup_resolve', { p_keep: keep.user_id, p_others: otherIds, p_action: 'hide' }))));
+    } else {
+      box.append(act(`Pay ฿${c.amount}`, 'ok', 'v2Pay-' + c.id, () => later(i.key, `Paying ฿${c.amount} to ${who(c)}`, () => rpc('kr8_admin_release_claim', { p_claim: c.id }))),
+        act('Refuse', 'bad', 'v2Refuse-' + c.id, () => later(i.key, 'Claim refused (member is not told why)', () => rpc('kr8_admin_refuse_claim', { p_claim: c.id, p_reason: 'One person, one account', p_return: false }))));
+    }
+  } else if (i.kind === 'lookalike' && i.people.length > 1) {
     const otherIds = others.map((p) => p.user_id);
     box.append(
-      act(`Same person · keep #${keep.no}`, 'bad', 'v2Same-' + keep.user_id, () => later(i.key, `Kept #${keep.no}; ${others.map((p) => '#' + p.no).join(', ')} hidden${i.claims.length ? ', claim refused' : ''}`,
+      act(`Same person · keep #${keep.no}`, 'bad', 'v2Same-' + keep.user_id, () => later(i.key, `Kept #${keep.no}; ${others.map((p) => '#' + p.no).join(', ')} hidden`,
         () => rpc('kr8_admin_dup_resolve', { p_keep: keep.user_id, p_others: otherIds, p_action: 'hide' }))),
-      act(i.claims.length ? 'Different people · pay' : 'Different people', 'ok', 'v2Diff-' + keep.user_id, () => later(i.key, 'Marked as different people' + (i.claims.length ? ' · claim paid' : ''), async () => {
-        await rpc('kr8_admin_dup_resolve', { p_keep: keep.user_id, p_others: otherIds, p_action: 'not_same' });
-        for (const c of i.claims) await rpc('kr8_admin_release_claim', { p_claim: c.id });
-      })));
-  } else if (i.kind === 'held') {
-    const c = i.claims[0];
-    box.append(act(`Pay ฿${c.amount}`, 'ok', 'v2Pay-' + c.id, () => later(i.key, `Paying ฿${c.amount} to ${who(c)}`, () => rpc('kr8_admin_release_claim', { p_claim: c.id }))),
-      act('Refuse', 'bad', 'v2Refuse-' + c.id, () => later(i.key, 'Claim refused (member is not told why)', () => rpc('kr8_admin_refuse_claim', { p_claim: c.id, p_reason: 'One person, one account', p_return: false }))));
+      act('Different people', 'ok', 'v2Diff-' + keep.user_id, () => later(i.key, 'Marked as different people',
+        () => rpc('kr8_admin_dup_resolve', { p_keep: keep.user_id, p_others: otherIds, p_action: 'not_same' }))));
   } else if (i.kind === 'check') {
     box.append(act('Approve', 'ok', 'v2Approve-' + i.checkIds[0], () => later(i.key, `${who(i.people[0])} verified`, () => rpc('kr8_admin_review_verification', { p_id: i.checkIds[0], p_approve: true }))),
       el('a', { class: 'v2btn', href: '#q/faces' }, 'Compare & reject…'));
@@ -297,7 +321,19 @@ export function autoView() {
   void withSnap('inbox', (s) => {
     const { handled } = buildInbox(s);
     screen('inbox', header('Handled automatically', `${handled.length} things you did not have to touch`, '#inbox'),
-      el('div', { class: 'v2card v2list' }, ...handled.map((h) => el('div', { class: 'v2li' }, ic('robot'), el('div', { class: 'grow' }, el('b', {}, h.text), el('small', {}, `${ago(h.at)} · ${both(h.at, true)}`))))));
+      el('div', { class: 'v2card v2list' }, ...handled.map((h) => {
+        const undoBtn = h.undoDup && !h.undone
+          ? el('button', { type: 'button', class: 'v2btn ok', id: 'dupUndo-' + h.undoDup, style: 'flex:0 0 auto;min-height:36px;padding:0 12px' }, 'Undo')
+          : null;
+        if (undoBtn && h.undoDup) {
+          const dupId = h.undoDup;
+          undoBtn.onclick = () => later(h.key, 'Duplicate restored · ghost mode off', () => rpc('kr8_admin_dup_auto_undo', { p_dup: dupId, p_action: 'undo' }));
+        }
+        return el('div', { class: 'v2li', style: hiddenKeys.has(h.key) ? 'opacity:.4' : undefined },
+          ic('robot'),
+          el('div', { class: 'grow' }, el('b', {}, h.text), el('small', {}, `${ago(h.at)} · ${both(h.at, true)}`)),
+          undoBtn || (h.undone ? chip('undone', 'k') : null));
+      })));
   }, header('Handled automatically', undefined, '#inbox'));
 }
 
@@ -352,11 +388,12 @@ function pcard(p: Person, s: Snapshot): HTMLElement {
   const flags = personFlags(p, s.people, s.claims);
   const kindChip = p.kind === 'real' || noCard(p) ? null : chip(p.kind, 'k');
   const step = stepChip(p, s);
+  const tr = !noCard(p) ? trustChip(personTrust(p, s)) : null;
   return el('a', { class: `v2pc ${p.who === 'traveller' ? 'trav' : ''} ${flags.some((f) => f.tone === 'r') ? 'red' : ''}`, href: personLink(p), 'data-uid': p.user_id, 'data-who': p.who || 'local' },
     el('span', { class: `v2pc-img ${src ? '' : 'none'}`, style: src ? `background-image:url("${src}")` : '' }, src ? '' : (p.name || p.email_hint || '?').slice(0, 1)),
     el('span', { class: 'v2pc-scrim' }),
     el('span', { class: 'v2pc-tl' }, el('b', {}, p.no != null ? `#${p.no}` : 'no card'), kindChip),
-    el('span', { class: 'v2pc-tr' }, ((f) => (f ? chip(f.text, f.tone) : null))(faceChip(p))),
+    el('span', { class: 'v2pc-tr' }, tr ? chip(tr.text, tr.tone) : null, ((f) => (f ? chip(f.text, f.tone) : null))(faceChip(p))),
     el('span', { class: 'v2pc-info' },
       step ? el('span', { class: `v2step ${step.tone}`, 'data-step': step.key }, step.text) : null,
       el('b', { class: 'nm' }, p.name || p.email_hint || 'No name'),
@@ -370,7 +407,7 @@ function pcard(p: Person, s: Snapshot): HTMLElement {
 
 // ───────── Member 360 ─────────
 interface M360 {
-  user_id: string; kind: string; card: null | { no: number; name: string; photo: string | null; who: string; area: string; bio: string | null; langs: string[] | null; interests: string[] | null;
+  user_id: string; kind: string; trust?: Trust | null; card: null | { no: number; name: string; photo: string | null; who: string; area: string; bio: string | null; langs: string[] | null; interests: string[] | null;
     gender: string | null; ig: string | null; tt: string | null; verified: boolean; photo_check: string | null; ref: string | null; src: string | null; joined_at: string; last_active_at: string | null; age_ok_at: string | null; ghost: boolean };
   email_hint: string | null; signed_up_at: string | null; last_sign_in_at: string | null; line: boolean;
   consents: { terms_version: string | null; terms_at: string | null; promo_ok: boolean | null; promo_at: string | null; web_reels: boolean | null; web_reels_at: string | null; log: { at: string; version: string; kind: string; promo: boolean | null; source: string | null }[] };
@@ -392,6 +429,8 @@ export async function memberView(uid: string) {
   const c = m.card;
   const snapP = snap?.people.find((p) => p.user_id === uid);
   const flags = snapP && snap ? personFlags(snapP, snap.people, snap.claims) : [];
+  const tr: Trust | null = m.trust || (snapP && snap ? personTrust(snapP, snap) : null);
+  const trChip = tr ? trustChip(tr) : null;
   const [urls, faces] = await Promise.all([
     signReelPaths(m.reels.map((r) => r.poster_path || '').filter(Boolean)).catch(() => ({} as Record<string, string>)),
     rpc<FaceCheck[]>('kr8_admin_v2_face_checks', { p_user: uid, p_auto_only: false, p_limit: 10 }).catch(() => [] as FaceCheck[]),
@@ -413,7 +452,8 @@ export async function memberView(uid: string) {
     el('section', { class: 'v2hero' },
       c?.photo ? el('img', { class: 'v2hero-img', src: c.photo, alt: '' }) : el('div', { class: 'v2hero-img none' }, (c?.name || '?').slice(0, 1)),
       el('div', { class: 'v2hero-info' },
-        el('div', { class: 'v2flags' }, chip(c ? `#${c.no}` : 'no card', 'k'), m.kind !== 'real' ? chip(m.kind, 'a') : null, c?.verified ? chip('✓ verified', 'g') : chip('not verified', '')),
+        el('div', { class: 'v2flags' }, chip(c ? `#${c.no}` : 'no card', 'k'), m.kind !== 'real' ? chip(m.kind, 'a') : null,
+          c?.verified ? chip('✓ verified', 'g') : chip('not verified', ''), trChip ? chip(trChip.text, trChip.tone) : null),
         el('h2', {}, c?.name || m.email_hint || 'Account without a card'),
         el('div', { class: 'v2sub' }, c ? `${c.who === 'traveller' ? 'Visiting' : 'Local'} · ${c.area || '–'}` : `Signed up ${ago(m.signed_up_at)}`),
         el('div', { class: 'v2sub' }, `Joined ${both(c?.joined_at || m.signed_up_at, true)}`),
@@ -424,6 +464,10 @@ export async function memberView(uid: string) {
       el('div', {}, el('b', {}, m.board ? `#${m.board.rank}` : '–'), el('span', {}, `board · ${m.board?.rings ?? 0} Rings`)),
       el('div', {}, el('b', {}, `฿${m.claims.filter((x) => x.status === 'assigned').reduce((n, x) => n + x.amount, 0)}`), el('span', {}, `${m.claims.length} claims`)),
       el('div', {}, el('b', {}, String(m.referrals.length)), el('span', {}, 'brought in'))),
+    tr ? sec('Trust score', `${tr.score} / 100`,
+      tr.reasons.length
+        ? el('div', { class: 'v2kvs', id: 'v2MemberTrust' }, ...tr.reasons.map((r) => el('div', { class: 'v2kv' }, el('b', { style: 'text-align:left' }, r))))
+        : el('div', { class: 'v2sub', id: 'v2MemberTrust' }, 'Neutral baseline (50) — no positive or negative signals yet.')) : '',
     sec('Reels', m.reels.length, m.reels.length ? el('div', { class: 'v2reels' }, ...m.reels.map((r) => el('div', { class: 'v2reel' },
       r.poster_path && urls[r.poster_path] ? el('img', { src: urls[r.poster_path], alt: '' }) : el('span', { class: 'none' }),
       el('small', {}, r.hidden || r.status === 'hidden' ? '🙈 hidden' : r.status === 'pending' ? '⏳ waiting' : r.board_off ? '⛔ off board' : '✓ live'),
@@ -483,6 +527,7 @@ export function boardView() {
         const p = byId.get(r.user_id);
         const fl = [r.is_new ? chip('new this week', '') : null, r.opens && !(r.likes || 0) && !(r.saves || 0) ? chip('opens only', 'a') : null,
           p?.reels?.board_off ? chip('board off', 'a') : null, p && p.links.length ? chip('look-alike', 'r') : null,
+          (r.ignored_rings || 0) > 0 ? chip(`${r.ignored_rings} Rings ignored by Rings guard`, 'a') : null,
           r.rings < s.board.floor && r.rank <= s.board.paid_ranks ? chip(`${s.board.floor - r.rings} to qualify`, '') : null];
         return el('a', { class: 'v2li v2brow', href: `#m/${r.user_id}`, 'data-uid': r.user_id }, el('span', { class: `v2rank ${r.rank <= 3 ? 'top' : ''}` }, String(r.rank)), avatar({ user_id: r.user_id, name: r.name }, 40),
           el('div', { class: 'grow' }, el('b', {}, `${r.name} #${r.no}`), el('small', {}, `♥${r.likes ?? 0} · 🔖${r.saves ?? 0} · opens ${r.opens ?? 0}${r.prize ? ` · prize ฿${r.prize}` : ''}`), el('span', { class: 'v2flags' }, ...fl)),
