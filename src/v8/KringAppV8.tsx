@@ -6133,7 +6133,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     <div className="m">
                       <div className="nm">
                         {th.name}{' '}
-                        {th.official && <span className="kt-official" data-official="1">Official · ทางการ</span>}
+                        {th.official && <span className="kt-official" data-official="1">{lang === 'th' ? 'ทางการ' : 'Official'}</span>}
                         {th.verified && !th.official && (
                           <span style={{ color: '#6EE7A8', fontSize: 11 }}>✓</span>
                         )}
@@ -6247,7 +6247,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               <div className="who">
                 <div className="nm">
                   {activeThread.name}{' '}
-                  {activeThread.official && <span className="kt-official" data-official="1">Official · ทางการ</span>}
+                  {activeThread.official && <span className="kt-official" data-official="1">{lang === 'th' ? 'ทางการ' : 'Official'}</span>}
                   {activeThread.verified === true && !activeThread.official && (
                   <button
                     type="button"
@@ -7278,7 +7278,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <div className="kt-card">
               <img src={kringTeamLogo()} alt="" className="kt-logo big" />
               <div>
-                <b>Kring Team</b> <span className="kt-official" data-official="1">Official · ทางการ</span>
+                <b>Kring Team</b> <span className="kt-official" data-official="1">{lang === 'th' ? 'ทางการ' : 'Official'}</span>
                 <p lang="th">บัญชีทางการของ กริ๊ง! สำหรับส่งข่าวและตอบแชท</p>
                 <p lang="en" className="en">Kring’s official account for news and chat replies.</p>
               </div>

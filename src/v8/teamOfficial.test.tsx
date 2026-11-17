@@ -58,7 +58,7 @@ describe('Kring Team: app', () => {
     expect(live).toContain("other_area: 'Official · ทางการ'");
     expect(app).toContain("(await v5TeamIds().catch(() => [] as string[])).includes(id)) { setSheet('official'); return; }");
     const sheet = app.slice(app.indexOf("{sheet === 'official' && ("), app.indexOf("{sheet === 'blocked' && ("));
-    expect(sheet).toContain('Official · ทางการ');
+    expect(sheet).toContain("{lang === 'th' ? 'ทางการ' : 'Official'}");   // T-390 P2-01: one language at a time
     expect(sheet.replace(/\/\/.*$/gm, '')).not.toMatch(/sayHi|openSayHi|Follow/);
   });
 });

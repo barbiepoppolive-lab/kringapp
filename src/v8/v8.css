@@ -3721,3 +3721,9 @@
 .v8-app-root .safe-list > .srow:last-child { border-bottom: 0; }
 /* AA on glass: grey fine print (chat times) at least 60% white, as the style card says */
 .v8-app-root .crow .tm { color: rgba(255,247,236,.6); }
+
+/* T-390 P1-01 (Argon, 18 Nov): Android GPU draws an unclipped square blur box around these round buttons.
+   They are solid circles anyway — no blur needed. */
+.v8-app-root .rails .rail.hi, .v8-app-root .pcard .hibtn, .v8-app-root .chat-fab {
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
