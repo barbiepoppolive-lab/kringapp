@@ -166,8 +166,8 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   useEffect(() => {
     if (!rv) return;
     let dead = false;
-    kxRules().then((c) => { if (!dead) setCfg(c); }).catch(() => undefined);
-    if (props.myId) kxBreakdown(props.myId).then((b) => { if (!dead) setBestReel(b?.reels?.[0]?.post_id || null); }).catch(() => undefined);
+    Promise.resolve(kxRules()).then((c) => { if (!dead) setCfg(c); }).catch(() => undefined);
+    if (props.myId) Promise.resolve(kxBreakdown(props.myId)).then((b) => { if (!dead) setBestReel(b?.reels?.[0]?.post_id || null); }).catch(() => undefined);
     return () => { dead = true; };
   }, [rv, props.myId]);
   useEffect(() => {

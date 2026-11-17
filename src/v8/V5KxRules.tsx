@@ -16,8 +16,9 @@ export function rulesVariant(): RulesVariant | null {
   try {
     const q = new URLSearchParams(location.search).get('rules');
     const v = (q || localStorage.getItem('kr8_rules_ui') || '').toUpperCase();
-    if (q) localStorage.setItem('kr8_rules_ui', v === 'OFF' ? '' : v);
-    return v === 'A' || v === 'B' || v === 'C' ? v : null;
+    if (q) localStorage.setItem('kr8_rules_ui', v);
+    if (v === 'OFF') return null;
+    return v === 'A' || v === 'B' || v === 'C' ? v : 'C';   // founder picked C (17 Nov)
   } catch { return null; }
 }
 
@@ -76,7 +77,6 @@ function fineRows(r: WinRules) {
     { k: 'best', ic: '⭐', th: r.best <= 1 ? 'นับเฉพาะรีลที่ดีที่สุดของคุณ 1 รีล' : `นับ ${r.best} รีลที่ดีที่สุดของคุณ`, en: r.best <= 1 ? 'Only your best Reel counts' : `Your best ${r.best} Reels count` },
     { k: 'end', ic: '⏰', th: 'ปิดรอบทุกวันอาทิตย์ 23:59 น. (เวลากรุงเทพฯ)', en: 'Week ends Sunday 23:59, Bangkok time' },
     { k: 'pay', ic: '💸', th: 'รับรางวัลเป็นโค้ด TrueMoney ในแอป', en: 'Paid as TrueMoney codes in the app' },
-    { k: 'fair', ic: '🛡️', th: 'หนึ่งคน หนึ่งบัญชี บัญชีซ้ำจะถูกลบออก', en: 'One person, one account. Duplicates are removed.' },
   ];
 }
 
@@ -134,7 +134,7 @@ export function WinSheet({ v, lang, r, onClose }: SheetProps) {
     const steps = [
       { n: 1, art: '🎬', th: 'โพสต์รีลที่สถานที่ในกรุงเทพฯ', en: 'Post a Reel at a Bangkok place',
         chips: [{ th: r.best <= 1 ? 'นับรีลที่ดีที่สุด 1 รีล' : `นับ ${r.best} รีลที่ดีที่สุด`, en: r.best <= 1 ? 'Your best Reel counts' : `Best ${r.best} Reels count` }] },
-      { n: 2, art: '💍', th: 'เก็บริงจากคนที่ชอบรีลคุณ', en: 'Collect Rings on your Reel',
+      { n: 2, art: <RingGlyph />, th: 'เก็บริงจากคนที่ชอบรีลคุณ', en: 'Collect Rings on your Reel',
         chips: earnRows(r).map((x) => ({ th: `${x.ic} ${x.pts}`, en: `${x.ic} ${x.pts}` })) },
       { n: 3, art: '🏆', th: `ติด ${r.prizes.length} อันดับแรก รับรางวัลทุกสัปดาห์`, en: `Make the top ${r.prizes.length}, win every week`,
         chips: [{ th: `อันดับ 1 ${B(r.prizes[0])}`, en: `#1 ${B(r.prizes[0])}` }, { th: `ขั้นต่ำ ${r.floor} ริง`, en: `${r.floor} Rings to qualify` }] },
