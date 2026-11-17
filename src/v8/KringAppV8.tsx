@@ -113,6 +113,7 @@ import { coachDue, coachMark, coachPick, coachReplay, coachSync, newCoachState, 
 import { shownGender } from './V5Gender';
 import { useChatTranslate } from './v5Translate';
 import { kxBreakdown, kxGenderShown, kxMemberReels, kxReelPeople, kxTagPeople, type KxGridReel, type KxMemberReels, type KxTagPerson } from './v5Kx';
+import { kxSetWebReels, kxWebReelsGet, type KxWebReels } from './v5Kx';
 import { PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, SavedReelsPage, type PickedPlace } from './V5KxPlaces';
 import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRanking, kxRefName, kxSavedReels, kxShareLink, kxShareLinkCached, kxShareOpenSeen,
   type KxCardExtras, type KxClaimResult, type KxFeedExtra, type KxPrize, type KxRanking, type KxRewards, type KxSavedReel, type KxWeekResult } from './v5Kx';
@@ -3204,6 +3205,26 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         : st === 'ios-install' ? 'Add Kring to your home screen first'
           : st === 'inapp' ? 'Open Kring in your phone’s browser'
             : st === 'unsupported' ? 'This browser can’t show dings' : PUSH_ASK_LINE;
+  // 0078 (17 Nov): "Show my Reels on the web". Off until the member says yes (Thai PDPA): one ask card on Me (members with an approved
+  // Reel who were never asked) and a switch in Settings. Public pages: kringapp.com/reel/<short> and /bangkok/<area>/.
+  const [webReels, setWebReels] = useState<KxWebReels | null>(null);
+  const [webBusy, setWebBusy] = useState(false);
+  useEffect(() => {
+    if (!live || !signedIn || !v5Card || adminView) return;
+    if (tab !== 'me' && sheet !== 'settings') return;
+    let dead = false;
+    kxWebReelsGet().then((r) => { if (!dead && r) setWebReels(r); }).catch(() => undefined);
+    return () => { dead = true; };
+  }, [live, signedIn, !!v5Card, adminView, tab, sheet === 'settings']);
+  const setWeb = async (on: boolean) => {
+    if (webBusy) return;
+    setWebBusy(true);
+    try {
+      await kxSetWebReels(on);
+      setWebReels((w) => ({ has_reel: w?.has_reel ?? false, on, asked: true }));
+      showToast(on ? L('Your Reels can now show on kringapp.com') : L('Your Reels stay in the app only'));
+    } catch { showToast(L('Could not save. Try again.')); } finally { setWebBusy(false); }
+  };
   const togglePush = async () => {
     if (pushBusy) return;
     if (pushSt === 'ios-install') { setSheet(null); openInstallSheet(); return; }
@@ -4637,6 +4658,16 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               rankLine={kxRankLine}
               saved={kxSaved ? { count: kxSaved.length, thumbs: kxSaved.slice(0, 3).map((x) => mePosters[x.poster_path] || '').filter(Boolean) } : null}
               onSavedReels={() => { setSheet('savedreels'); void kxLoadSaved(); }}
+              webAskSlot={webReels && webReels.has_reel && !webReels.asked && !v5Ghost ? (
+                <div className="kme-webask" id="meWebAsk" role="group" aria-label={L('Show my Reels on the web')}>
+                  <b>{L('Let your Reels show up on Google?')}</b>
+                  <small>{L('Each approved Reel gets its own page on kringapp.com. First name and area only. Change it any time in Settings.')}</small>
+                  <span className="kme-webask-b">
+                    <button type="button" id="meWebYes" className="on" disabled={webBusy} onClick={() => void setWeb(true)}>{L('Yes, show them')}</button>
+                    <button type="button" id="meWebNo" disabled={webBusy} onClick={() => void setWeb(false)}>{L('No thanks')}</button>
+                  </span>
+                </div>
+              ) : null}
             />
           ) : (<>
           <div className="kp-me-head">
@@ -6506,6 +6537,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               )}
               <div className="srow" role="button" tabIndex={0} id="setCalm" onClick={() => setCalmMode((v) => !v)}>
                 <span>{t.calmColours}</span><span className={`sw-ctrl ${calmMode ? 'on' : ''}`} />
+              </div>
+              <div className="srow" role="switch" tabIndex={0} id="setWebReels" aria-checked={webReels?.on === true} aria-busy={webBusy}
+                onClick={() => void setWeb(!(webReels?.on === true))}>
+                <span>{L('Show my Reels on the web')}<small className="kpa-sub" id="setWebReelsSub">{L('Approved Reels get a public page on kringapp.com. First name and area only.')}</small></span>
+                <span className={`sw-ctrl ${webReels?.on === true ? 'on' : ''}`} />
               </div>
             </div>
             <div className="kme-grp">

@@ -12,6 +12,11 @@ async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T
   return res.data as T;
 }
 
+// ───────────── 0078: "Show my Reels on the web" (off until the member says yes; public pages on kringapp.com) ─────────────
+export interface KxWebReels { on: boolean | null; asked: boolean; has_reel: boolean }
+export const kxWebReelsGet = () => rpc<KxWebReels | null>('kr8_web_reels_get');
+export const kxSetWebReels = (on: boolean) => rpc<boolean>('kr8_set_web_reels', { p_on: on });
+
 // ───────────── card ─────────────
 export interface KxCardExtras { member_no: number | null; ig_handle: string | null; tiktok_handle: string | null; lifetime: number; level: number; week: number;
   week_rank?: number | null; founding_no?: number | null; founding_left?: number | null; founding_thb?: number; has_reel?: boolean | null; prizes?: number | null }

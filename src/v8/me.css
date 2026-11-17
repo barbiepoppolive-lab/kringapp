@@ -265,3 +265,11 @@
 .v8-app-root .kme-pencil::after, .v8-app-root #activityBtn::after, .v8-app-root #meGear::after, .v8-app-root #meShare::after, .v8-app-root #goReplay::after,
 .v8-app-root .go-bk::after, .v8-app-root .go-score::after, .v8-app-root #meStats button::after { content: ''; position: absolute; inset: -7px; }
 .v8-app-root #meStats button::after { inset: -8px 0; }   /* side by side: grow up/down only, never into the neighbour */
+/* 0078: one-time "Show my Reels on the web" ask on Me */
+.v8-app-root .kme-webask { display: block; margin: 12px 16px 0; padding: 14px 16px; border-radius: 20px; background: linear-gradient(135deg, rgba(63,240,255,.10), rgba(255,79,216,.10)); border: 1px solid rgba(255,247,236,.14); }
+.v8-app-root .kme-webask b { display: block; font-size: 0.9375rem; }
+.v8-app-root .kme-webask small { display: block; font-size: 0.75rem; color: var(--k-muted); margin-top: 3px; line-height: 1.45; }
+.v8-app-root .kme-webask-b { display: flex; gap: 8px; margin-top: 10px; }
+.v8-app-root .kme-webask-b button { flex: 1; min-height: 40px; border-radius: 99px; border: 1px solid rgba(255,247,236,.25); background: transparent; color: inherit; font-weight: 700; font-size: 0.8125rem; }
+.v8-app-root .kme-webask-b button.on { border: 0; background: linear-gradient(90deg, #ff4fd8, #8b5cff); color: #fff; }
+.v8-app-root .kme-webask-b button:disabled { opacity: .6; }

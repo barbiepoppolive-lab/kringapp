@@ -148,6 +148,8 @@ export function MeView(props: {
   ghost?: boolean;
   /** 16 Nov: the weekly-prize race card, right under "This week" (hidden while the Founding "Next step" card shows: one next step at a time) */
   prizeSlot?: React.ReactNode;
+  /** 0078: the one-time "Show my Reels on the web" ask (members with an approved Reel who were never asked) */
+  webAskSlot?: React.ReactNode;
 }) {
   const { L, Lf, p } = props;
   const lv = p.level;
@@ -189,6 +191,7 @@ export function MeView(props: {
         </div>
       </div>
       {/* founder 17 Nov: the big ฿ prize card is gone from Me (the prize lives in the Feed ticker + Rewards) */}
+      {props.webAskSlot || null}
       <FoundingChecklist L={L} Lf={Lf} kx={props.kx} hasSocial={!!(props.kx?.ig_handle || props.kx?.tiktok_handle || p.ig_handle)} onLink={props.onLink || props.onEdit} onPost={props.onPost} />
       {props.reelsSlot ? null : (
       <button type="button" className="kx-savedrow" id="kxSavedRow" onClick={props.onSavedReels || props.onSaved}>
