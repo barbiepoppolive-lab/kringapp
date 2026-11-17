@@ -672,6 +672,8 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
  */
 export const KX_L: Record<string, Record<string, string>> = {
   th: {
+    'Show my Instagram & TikTok on my card': 'โชว์ไอจีและติ๊กต็อกบนการ์ดของฉัน',
+    'Off: only you can see them.': 'ปิดไว้: เห็นได้แค่คุณคนเดียว',
     // card + linking
     'Mint my card': 'สร้างการ์ดเลย',
     'Save my card': 'บันทึกการ์ด',
