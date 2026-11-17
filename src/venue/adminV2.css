@@ -397,3 +397,7 @@ details.v2brief:not([open]) { padding-bottom: 12px; }
 .ap-gcopy { margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.03); border: 1px dashed var(--line); display: flex; flex-direction: column; gap: 5px; }
 .ap-gcopy-line { font-size: 12px; line-height: 1.4; color: var(--text); }
 .ap-gcopy-tag { font: 700 10px var(--b); letter-spacing: 0.06em; text-transform: uppercase; color: var(--v2gd); margin-right: 6px; }
+
+/* 0104 Autopilot M7: AI Helper Slot (Built, OFF) */
+.ap-ai { padding: 14px; border-color: rgba(160, 150, 195, 0.35); }
+.ap-ai-out { margin-top: 10px; padding: 9px 11px; border-radius: 11px; background: rgba(11, 10, 18, 0.7); border: 1px solid var(--line); font-size: 12px; line-height: 1.4; color: var(--text); }

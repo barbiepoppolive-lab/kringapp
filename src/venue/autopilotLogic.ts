@@ -1274,3 +1274,176 @@ export function fallbackGrowthNudgesPreview(snap?: Snapshot | null, st?: Autopil
   };
 }
 
+
+
+// ───────── M7 (0104): AI Slot (BUILT, OFF · xiaomi/mimo-v2-flash:free · Rules Fallback · PII Firewall) ─────────
+export const AI_SLOT_MODEL = 'xiaomi/mimo-v2-flash:free';
+export const AI_SLOT_ALLOWED_TASKS = ['morning_brief', 'error_explain', 'caption_draft'] as const;
+export type AiSlotTask = (typeof AI_SLOT_ALLOWED_TASKS)[number];
+
+export interface AiSlotStatus {
+  at: string;
+  mode: RobotMode;
+  model: string;
+  secret_name: string;
+  secret_configured: boolean;
+  fallback_active: boolean;
+  allowed_tasks: string[];
+  blocked_fields: string[];
+  fallback?: boolean;
+}
+
+export function isAiSlotStatus(v: unknown): v is AiSlotStatus {
+  const x = v as AiSlotStatus | null;
+  return !!x && typeof x === 'object' && typeof x.model === 'string' && typeof x.secret_configured === 'boolean';
+}
+
+const AI_FORBIDDEN_KEYS = new Set([
+  'name', 'first_name', 'last_name', 'display_name', 'member_name', 'full_name', 'username',
+  'email', 'phone', 'ig_handle', 'tiktok_handle', 'line_to', 'line_sub',
+  'chat', 'chats', 'message', 'messages', 'thread', 'threads', 'dm', 'chat_body',
+  'photo', 'photos', 'selfie', 'selfie_path', 'face_photo', 'poster_path', 'video_path', 'media_path', 'avatar', 'image', 'image_url',
+  'face', 'emb', 'card_emb', 'descriptor', 'descriptors', 'face_vectors', 'face_prints', 'biometric', 'embedding',
+  'user_id', 'member_id', 'author_id',
+]);
+
+/**
+ * Strict recursive privacy & task firewall mirroring SQL kr8_ai_guard_input(task, input).
+ * NEVER allows member names, chats, photos, or face embeddings through — throws immediately.
+ */
+export function guardAiPayload<T extends Record<string, unknown>>(task: string, input: T): T {
+  const cleanTask = (task || '').trim().toLowerCase();
+  if (!(AI_SLOT_ALLOWED_TASKS as readonly string[]).includes(cleanTask)) {
+    throw new Error(`KR8_AI_TASK_FORBIDDEN: ${task}`);
+  }
+
+  const walk = (node: unknown, pathKey = 'root'): void => {
+    if (node == null) return;
+    if (typeof node === 'string') {
+      if (
+        /^data:(image|video)\//i.test(node) ||
+        /\/storage\/v1\/object\//i.test(node) ||
+        /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/[0-9a-f-]+\.(jpg|jpeg|png|webp|mp4|gif)/i.test(node) ||
+        /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/.test(node)
+      ) {
+        throw new Error(`KR8_AI_PRIVACY_BLOCKED: forbidden media/email/storage value in "${pathKey}"`);
+      }
+      return;
+    }
+    if (Array.isArray(node)) {
+      if (node.length >= 64 && node.filter((x) => typeof x === 'number').length >= 64) {
+        throw new Error(`KR8_AI_PRIVACY_BLOCKED: numeric embedding vector blocked (len=${node.length})`);
+      }
+      for (const item of node) walk(item, pathKey);
+      return;
+    }
+    if (typeof node === 'object') {
+      for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
+        if (AI_FORBIDDEN_KEYS.has(k.toLowerCase())) {
+          throw new Error(`KR8_AI_PRIVACY_BLOCKED: forbidden field "${k}"`);
+        }
+        walk(v, k);
+      }
+    }
+  };
+
+  walk(input);
+  return input;
+}
+
+/** Deterministic rules fallback matching SQL kr8_ai_rules_fallback(task, input). */
+export function aiRulesFallback(task: AiSlotTask, input: Record<string, unknown> = {}): Record<string, string> {
+  if (task === 'morning_brief') {
+    const newM = Number(input.new_members_today ?? 0);
+    const heldN = Number(input.held_count ?? 0);
+    const heldB = Number(input.held_thb ?? 0);
+    const avail = Number(input.available_vouchers ?? 10);
+    const errs = Number(input.errors_24h ?? 0);
+    return {
+      headline: `+${newM} real member(s) today · ${heldN} held payout(s) (THB ${heldB}) · ${avail} voucher(s) left · ${errs} error(s) in 24h.`,
+      next_step: avail <= 5
+        ? 'Top up voucher codes in Codes first.'
+        : heldN > 0
+          ? 'Review held payouts in Needs you.'
+          : errs > 0
+            ? 'Inspect recent errors in Problems.'
+            : 'All quiet — no urgent founder actions needed.',
+    };
+  }
+  if (task === 'error_explain') {
+    const code = String(input.error_code || 'UNKNOWN_ERROR');
+    const subsys = String(input.subsystem || 'app');
+    return {
+      plain_english: /timeout|network/i.test(code)
+        ? `A temporary connection timeout occurred in ${subsys}. Safe retries handle transient spikes automatically.`
+        : `Error "${code}" was logged in ${subsys}. Check Health Watch and recent client events if count rises.`,
+      recommended_action: 'Watch 24h count; no manual DB intervention required unless Health Watch turns red.',
+    };
+  }
+  const area = String(input.area || 'Bangkok');
+  const vibe = String(input.vibe || 'local street cafe');
+  return {
+    caption_th: `มุมดีๆ ย่าน ${area} วันนี้ บรรยากาศสบายๆ แวะมาลองกันได้นะ ปักหมุดไว้ให้ในคลิปแล้ว!`,
+    caption_en: `Good vibes around ${area} today (${vibe}) — place pin attached on this Reel!`,
+  };
+}
+
+export async function executeAiSlotSafe(
+  task: string,
+  input: Record<string, unknown>,
+  opts: {
+    mode: RobotMode;
+    hasSecret: boolean;
+    paused?: boolean;
+    providerCall?: (cleanInput: Record<string, unknown>) => Promise<Record<string, string>>;
+  },
+): Promise<{
+  ok: true;
+  task: AiSlotTask;
+  model: string;
+  used_ai: boolean;
+  fallback_reason: string | null;
+  output: Record<string, string>;
+}> {
+  // Always guard privacy & task allowlist BEFORE checking mode/secret!
+  const clean = guardAiPayload(task, input);
+  const t = task.trim().toLowerCase() as AiSlotTask;
+  const fb = aiRulesFallback(t, clean);
+
+  if (opts.paused) {
+    return { ok: true, task: t, model: AI_SLOT_MODEL, used_ai: false, fallback_reason: 'autopilot_paused', output: fb };
+  }
+  if (opts.mode !== 'on') {
+    return { ok: true, task: t, model: AI_SLOT_MODEL, used_ai: false, fallback_reason: `robot_${opts.mode}`, output: fb };
+  }
+  if (!opts.hasSecret || !opts.providerCall) {
+    return { ok: true, task: t, model: AI_SLOT_MODEL, used_ai: false, fallback_reason: 'missing_secret', output: fb };
+  }
+
+  try {
+    const out = await opts.providerCall(clean);
+    if (t === 'caption_draft') {
+      if (findBannedMemberWords(out.caption_th || '').length > 0 || findBannedMemberWords(out.caption_en || '').length > 0) {
+        throw new Error('KR8_AI_BANNED_WORD_IN_OUTPUT');
+      }
+    }
+    return { ok: true, task: t, model: AI_SLOT_MODEL, used_ai: true, fallback_reason: null, output: out };
+  } catch {
+    return { ok: true, task: t, model: AI_SLOT_MODEL, used_ai: false, fallback_reason: 'provider_error_fallback', output: fb };
+  }
+}
+
+export function fallbackAiSlotStatus(st?: AutopilotState | null): AiSlotStatus {
+  const mode = st?.robots.find((r) => r.name === 'ai_helper')?.mode || 'off';
+  return {
+    at: new Date().toISOString(),
+    mode,
+    model: AI_SLOT_MODEL,
+    secret_name: 'openrouter_api_key',
+    secret_configured: false,
+    fallback_active: true,
+    allowed_tasks: [...AI_SLOT_ALLOWED_TASKS],
+    blocked_fields: ['names', 'chats', 'photos', 'face_data'],
+    fallback: true,
+  };
+}

@@ -13,12 +13,12 @@ import {
   type Claim, type DupAuto, type FaceCheck, type InboxItem, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot, type Trust,
 } from './adminV2Logic';
 import {
-  capStatus, computeVoucherRunway, DEFAULT_VOUCHER_BUY_URL, fallbackAutopilotState, fallbackGrowthNudgesPreview,
-  fallbackHealthWatch, fallbackProtectOverview, fallbackSelfFixStatus, flagKeyLabel, formatRobotLogLine,
-  heartbeatSummary, isAutopilotState, isGrowthNudgesPreview, isHealthWatchReport, isMorningBriefData,
-  isProtectOverview, isSelfFixStatus, modeLabel, modeTone, scheduleWords, severityMeta, sortRobotAlerts,
-  synthesizeMorningBrief,
-  type AutopilotState, type GrowthNudgesPreview, type HealthWatchReport, type MorningBriefData,
+  aiRulesFallback, capStatus, computeVoucherRunway, DEFAULT_VOUCHER_BUY_URL, fallbackAiSlotStatus, fallbackAutopilotState,
+  fallbackGrowthNudgesPreview, fallbackHealthWatch, fallbackProtectOverview, fallbackSelfFixStatus, flagKeyLabel,
+  formatRobotLogLine, guardAiPayload, heartbeatSummary, isAiSlotStatus, isAutopilotState, isGrowthNudgesPreview,
+  isHealthWatchReport, isMorningBriefData, isProtectOverview, isSelfFixStatus, modeLabel, modeTone, scheduleWords,
+  severityMeta, sortRobotAlerts, synthesizeMorningBrief,
+  type AiSlotStatus, type AutopilotState, type GrowthNudgesPreview, type HealthWatchReport, type MorningBriefData,
   type ProtectOverview, type RobotAlert, type RobotLogRow, type RobotMode, type RobotRow, type SelfFixStatus,
 } from './autopilotLogic';
 import './adminV2.css';
@@ -861,16 +861,19 @@ export async function autopilotView() {
   let sf: SelfFixStatus = fallbackSelfFixStatus(snap, st);
   let pr: ProtectOverview = fallbackProtectOverview(snap, st);
   let gn: GrowthNudgesPreview = fallbackGrowthNudgesPreview(snap, st);
+  let ai: AiSlotStatus = fallbackAiSlotStatus(st);
+  let aiTestLine = '';
 
   const load = async () => {
     const t0 = Date.now();
     try {
-      const [raw, rawHw, rawSf, rawPr, rawGn] = await Promise.all([
+      const [raw, rawHw, rawSf, rawPr, rawGn, rawAi] = await Promise.all([
         rpc<unknown>('kr8_admin_autopilot_state', { p_limit: 120 }),
         rpc<unknown>('kr8_admin_health_watch', { p_run: false }).catch(() => null),
         rpc<unknown>('kr8_admin_self_fix_status').catch(() => null),
         rpc<unknown>('kr8_admin_protect_overview').catch(() => null),
         rpc<unknown>('kr8_admin_growth_nudges_preview').catch(() => null),
+        rpc<unknown>('kr8_admin_ai_slot_status').catch(() => null),
       ]);
       const elapsed = Date.now() - t0;
       st = isAutopilotState(raw) ? raw : fallbackAutopilotState(snap);
@@ -878,12 +881,14 @@ export async function autopilotView() {
       sf = isSelfFixStatus(rawSf) ? rawSf : fallbackSelfFixStatus(snap, st);
       pr = isProtectOverview(rawPr) ? rawPr : fallbackProtectOverview(snap, st);
       gn = isGrowthNudgesPreview(rawGn) ? rawGn : fallbackGrowthNudgesPreview(snap, st);
+      ai = isAiSlotStatus(rawAi) ? rawAi : fallbackAiSlotStatus(st);
     } catch {
       st = fallbackAutopilotState(snap);
       hw = fallbackHealthWatch(snap, st);
       sf = fallbackSelfFixStatus(snap, st);
       pr = fallbackProtectOverview(snap, st);
       gn = fallbackGrowthNudgesPreview(snap, st);
+      ai = fallbackAiSlotStatus(st);
     }
     snapAt = Date.now();
     const freshEl = document.getElementById('v2Fresh');
@@ -1385,6 +1390,48 @@ export async function autopilotView() {
         toggleCopyBtn,
         gnRunBtn));
 
+    const aiTestBtn = el('button', {
+      type: 'button',
+      id: 'apAiTestFallbackBtn',
+      class: 'ap-mini-btn',
+    }, 'Test rules fallback');
+    aiTestBtn.onclick = async () => {
+      aiTestBtn.disabled = true;
+      const safeAgg = guardAiPayload('morning_brief', {
+        new_members_today: snap ? snap.counts.real_today : 0,
+        held_count: snap ? money(snap).heldN : 0,
+        held_thb: snap ? money(snap).heldThb : 0,
+        available_vouchers: sf.available_vouchers,
+        errors_24h: 0,
+      });
+      try {
+        const res = await rpc<{ used_ai?: boolean; fallback_reason?: string; output?: { headline?: string } }>('kr8_ai_call', {
+          p_task: 'morning_brief',
+          p_input: safeAgg,
+        });
+        aiTestLine = res?.output?.headline
+          ? `${res.used_ai ? 'OpenRouter Mimo v2' : `Rules fallback (${res.fallback_reason || 'robot_off'})`}: ${res.output.headline}`
+          : `Rules fallback (robot_${ai.mode}): ${aiRulesFallback('morning_brief', safeAgg).headline}`;
+      } catch {
+        aiTestLine = `Rules fallback (robot_${ai.mode}): ${aiRulesFallback('morning_brief', safeAgg).headline}`;
+      }
+      paint();
+    };
+
+    const aiCard = el('section', { class: 'v2card ap-ai', id: 'apAiCard' },
+      el('div', { class: 'ap-health-hd' },
+        ic('robot'),
+        el('div', { class: 'grow' },
+          el('b', {}, `AI helper slot · ${modeLabel(ai.mode)}`),
+          el('small', {}, `Model: ${ai.model} · Vault key "${ai.secret_name}": ${ai.secret_configured ? 'present' : 'not set (add tomorrow)'}`)),
+        chip(ai.mode === 'on' && ai.secret_configured ? 'AI ON' : 'OFF · RULES FALLBACK', ai.mode === 'on' && ai.secret_configured ? 'g' : 'k')),
+      el('div', { class: 'ap-sf-grid' },
+        sfStat('aiMode', modeLabel(ai.mode), 'Slot status', ai.secret_configured ? 'Vault key ready' : 'No key in code / DB'),
+        sfStat('aiTasks', '3 tasks', 'Allowlist only', 'Brief · errors · captions'),
+        sfStat('aiPrivacy', 'Blocked', 'PII firewall', '0 names · chats · photos · faces')),
+      aiTestLine ? el('div', { class: 'ap-ai-out', id: 'apAiOut' }, aiTestLine) : null,
+      el('div', { class: 'ap-sf-acts' }, aiTestBtn));
+
     const filterOpts: [string, string][] = [
       ['all', `All (${st.logs.length})`],
       ['applied', `Applied (${st.logs.filter((l) => !l.dry_run).length})`],
@@ -1405,6 +1452,7 @@ export async function autopilotView() {
       selfFixCard,
       protectCard,
       growthCard,
+      aiCard,
       el('div', { class: 'v2sec' }, `Robots · ${st.robots.length}`),
       el('div', { id: 'apRobots' }, ...st.robots.map(renderRobot)),
       el('div', { class: 'v2sec' }, 'Robot action log'),
