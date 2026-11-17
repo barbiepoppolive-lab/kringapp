@@ -138,11 +138,15 @@ export function reelsSection(reels, lang, title) {
   return `<section id="reels"><h2>${esc(title)}</h2><p class="wr-note">${esc(note)}</p>${cardsHtml(reels, lang)}</section>`;
 }
 
-/** insert a block into a static page: before the closing CTA of <main> (else before </main>) */
+/** insert a block into a static page: after the first section of <main> (else before its closing CTA, else before </main>) */
 export function injectIntoMain(html, block, headExtra = '') {
   let out = html;
   if (headExtra) out = out.replace('</head>', `${headExtra}</head>`);
   if (!block) return out;
+  // high on the page: right after the area's first section (what it's like), else before the closing button
+  const m = out.indexOf('<main>');
+  const first = m > -1 ? out.indexOf('</section>', m) : -1;
+  if (first > -1) return out.slice(0, first + 10) + block + out.slice(first + 10);
   const i = out.indexOf('<div class="end">');
   if (i > -1) return out.slice(0, i) + block + out.slice(i);
   const j = out.indexOf('</main>');
