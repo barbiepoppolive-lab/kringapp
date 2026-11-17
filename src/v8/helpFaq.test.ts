@@ -55,8 +55,8 @@ describe('Kring Helper FAQ matcher', () => {
     expect(normHelp('  Why  DIDN’T it…  ')).toBe("why didn't it");
   });
   it('the team line promises no reply time (T-392), and every Thai team line ends politely (ครับ, never ค่ะ)', () => {
-    expect(HELP_TEAM_PROMISE.th).toBe('ทีมงานจะตอบกลับในแชทนี้โดยเร็วครับ');
-    expect(HELP_TEAM_PROMISE.en).toBe('The team replies in this chat as soon as they can');
+    expect(HELP_TEAM_PROMISE.th).toBe('ทีมงานตอบกลับในแชทนี้ภายใน 1 ชั่วโมงครับ');
+    expect(HELP_TEAM_PROMISE.en).toBe('The team replies in this chat within 1 hour');
     expect(`${HELP_TEAM_PROMISE.th} ${HELP_TEAM_PROMISE.en}`).not.toMatch(/ชั่วโมง|hour/);
     const all = [...HELP_FAQS.flatMap((f) => [f.aTh, f.qTh]), ...Object.values(HELP_UI).map((v) => v[0])].join(' ');
     expect(all).not.toMatch(/ค่ะ|คะ(\s|$)/);

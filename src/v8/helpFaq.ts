@@ -17,7 +17,7 @@ export interface HelpFaq {
 }
 
 // T-392: no reply-time promise (nothing in the app guarantees one); the reply comes in the member's Kring Team chat
-export const HELP_TEAM_PROMISE = { th: 'ทีมงานจะตอบกลับในแชทนี้โดยเร็วครับ', en: 'The team replies in this chat as soon as they can' };
+export const HELP_TEAM_PROMISE = { th: 'ทีมงานตอบกลับในแชทนี้ภายใน 1 ชั่วโมงครับ', en: 'The team replies in this chat within 1 hour' };
 export const HELP_EMAIL = 'ops@kringapp.com';
 
 export const HELP_FAQS: HelpFaq[] = [
