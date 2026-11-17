@@ -13,8 +13,9 @@ import {
   type Claim, type DupAuto, type FaceCheck, type InboxItem, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot, type Trust,
 } from './adminV2Logic';
 import {
-  capStatus, fallbackAutopilotState, formatRobotLogLine, heartbeatSummary, isAutopilotState, modeLabel, modeTone, scheduleWords,
-  type AutopilotState, type RobotLogRow, type RobotMode, type RobotRow,
+  capStatus, computeVoucherRunway, fallbackAutopilotState, formatRobotLogLine, heartbeatSummary, isAutopilotState, isMorningBriefData,
+  modeLabel, modeTone, scheduleWords, severityMeta, sortRobotAlerts, synthesizeMorningBrief,
+  type AutopilotState, type MorningBriefData, type RobotAlert, type RobotLogRow, type RobotMode, type RobotRow,
 } from './autopilotLogic';
 import './adminV2.css';
 
@@ -46,6 +47,7 @@ const chip = (text: string, tone = '') => el('span', { class: `v2chip ${tone}` }
 
 // ───────── data: one snapshot, polled ─────────
 let snap: Snapshot | null = null;
+let morningCache: MorningBriefData | null = null;
 let snapAt = 0;
 let loadingSnap: Promise<Snapshot | null> | null = null;
 let includeTest = LS('kr8-v2-test') === '1';
@@ -64,13 +66,18 @@ export async function loadSnapshot(force = false): Promise<Snapshot | null> {
   const extra = rpc<PeopleExtra>('kr8_admin_v2_people_extra').catch(() => null);
   // 0095: duplicate robot actions (embedded in 0095 snapshot, or fetched alongside if needed)
   const dups = rpc<DupAuto[]>('kr8_admin_dups_auto', { p_days: 14 }).catch(() => null);
-  loadingSnap = Promise.all([rpc<unknown>('kr8_admin_v2_snapshot', { p_include_test: includeTest }), auto, extra, dups])
-    .then(([s, pa, ex, da]) => {
+  // 0099 M2: Morning Brief + unified Alert Centre (falls back to client synthesis before 0099 is applied)
+  const mb = rpc<unknown>('kr8_admin_morning_brief', { p_include_test: includeTest }).catch(() => null);
+  loadingSnap = Promise.all([rpc<unknown>('kr8_admin_v2_snapshot', { p_include_test: includeTest }), auto, extra, dups, mb])
+    .then(([s, pa, ex, da, mbRaw]) => {
       if (!isSnapshot(s)) throw new Error('Admin v2 needs database update 0082');
       s.places_auto = Array.isArray(pa) ? pa : [];
       if (ex && ex.counts && ex.rows) s.extra = ex;
       if (!Array.isArray(s.dups_auto) && Array.isArray(da)) s.dups_auto = da;
-      snap = withAdminLogins(s); snapAt = Date.now(); return snap;
+      snap = withAdminLogins(s);
+      morningCache = isMorningBriefData(mbRaw) ? mbRaw : synthesizeMorningBrief(snap);
+      snapAt = Date.now();
+      return snap;
     })
     .finally(() => { loadingSnap = null; });
   return loadingSnap;
@@ -173,6 +180,90 @@ function steps(p: Person, s: Snapshot): HTMLElement {
   const st: [string, boolean][] = [['Photo', realPhoto(p, s)], ['Reel', (p.reels?.live || 0) + (p.reels?.waiting || 0) > 0], ['Face', p.verified === true], ['Prize', (p.claims?.paid || 0) > 0]];
   return el('span', { class: 'v2steps' }, ...st.map(([t, ok]) => el('i', { class: ok ? 'ok' : '' }, (ok ? '✓ ' : '') + t)));
 }
+function renderMorningBrief(s: Snapshot, inboxItems: InboxItem[]): HTMLElement {
+  const mb = morningCache || synthesizeMorningBrief(s, { items: inboxItems });
+  const b = mb.brief;
+  const runway = computeVoucherRunway(b.voucher_stock.available, b.voucher_stock.burn_7d);
+  const daysStr = b.voucher_stock.days_left === null ? 'Steady' : `${b.voucher_stock.days_left}d left`;
+
+  const stat = (id: string, val: string, label: string, sub: string, href: string, hot = false) =>
+    el('a', { class: `mb-stat ${hot ? 'hot' : ''}`, href, id },
+      el('b', {}, val),
+      el('span', {}, label),
+      el('small', {}, sub));
+
+  const top3 = b.top3_needs_you.slice(0, 3);
+
+  return el('section', { class: 'v2card mb-card', id: 'v2MorningBrief' },
+    el('div', { class: 'mb-hd' },
+      ic('robot'),
+      el('div', { class: 'grow' },
+        el('b', {}, 'Morning brief'),
+        el('small', {}, 'Real counts · 7-day voucher burn · 24h health')),
+      el('a', { class: 'v2robot-go', href: '#autopilot' }, 'Autopilot →')),
+    el('div', { class: 'mb-grid' },
+      stat('mbMembers', `+${b.new_members.today}`, 'New members', `${b.new_members.total} real total`, '#people'),
+      stat('mbFaces', String(b.face_checks.today), 'Face checks', `${b.face_checks.pass} pass · ${b.face_checks.waiting} waiting`, '#faces', b.face_checks.waiting > 0),
+      stat('mbPosts', String(b.posts.reels_today + b.posts.asks_today), 'Posts today', `${b.posts.reels_live} live · ${b.posts.reels_waiting} waiting`, '#inbox', b.posts.reels_waiting > 0),
+      stat('mbHeld', `฿${b.held_payouts.thb.toLocaleString('en-US')}`, 'Held payouts', `${b.held_payouts.count} waiting for you`, '#inbox', b.held_payouts.count > 0),
+      stat('mbStock', daysStr, 'Voucher stock', runway.sub, '#money', runway.hot),
+      stat('mbErrors', String(b.errors.total), 'Errors (24h)', `${b.errors.client_24h} phone · ${b.errors.outbox_failed_24h + b.errors.robot_failed_24h} sys`, '#problems', b.errors.total > 0)),
+    el('div', { class: 'mb-top3', id: 'v2BriefTop3' },
+      el('div', { class: 'mb-top3-hd' }, top3.length ? `${top3.length} thing${top3.length === 1 ? '' : 's'} that need you` : '3 things that need you · all clear'),
+      ...(top3.length
+        ? top3.map((t, idx) => el('a', { class: `mb-need sev-${t.severity}`, href: t.href },
+            el('span', { class: 'mb-num' }, String(idx + 1)),
+            el('div', { class: 'grow' }, el('b', {}, t.title), t.sub ? el('small', {}, t.sub) : null),
+            ic('chev')))
+        : [el('div', { class: 'mb-clear' }, '0 urgent decisions — robots are watching everything.')])));
+}
+
+function renderAlertCentre(s: Snapshot, inboxItems: InboxItem[]): HTMLElement {
+  const mb = morningCache || synthesizeMorningBrief(s, { items: inboxItems });
+  const visible = sortRobotAlerts(mb.alerts).filter((a) => !hiddenKeys.has('alert:' + a.id));
+  const redN = visible.filter((a) => a.severity === 'red').length;
+  const ambN = visible.filter((a) => a.severity === 'amber').length;
+  const gryN = visible.filter((a) => a.severity === 'grey').length;
+
+  const row = (a: RobotAlert): HTMLElement => {
+    const meta = severityMeta(a.severity);
+    const key = 'alert:' + a.id;
+    const dismissBtn = !a.synthetic
+      ? el('button', { type: 'button', class: 'ap-mini-btn', id: 'alertDismiss-' + a.id }, 'Dismiss')
+      : null;
+    if (dismissBtn) {
+      dismissBtn.onclick = () => later(key, `Alert dismissed: ${a.title}`, async () => {
+        await rpc('kr8_admin_alert_dismiss', { p_id: a.id });
+      });
+    }
+    return el('div', { class: `ac-row sev-${a.severity}`, 'data-alert': a.dedupe_key },
+      el('span', { class: `ac-dot sev-${a.severity}` }),
+      el('div', { class: 'grow' },
+        el('div', { class: 'ac-tags' },
+          chip(meta.label, meta.tone),
+          chip(a.robot, ''),
+          el('small', { class: 'dim' }, ago(a.at))),
+        el('b', {}, a.title),
+        a.body ? el('small', {}, a.body) : null),
+      el('div', { class: 'ac-acts' },
+        el('a', { class: 'ap-mini-btn', href: a.href }, 'Open →'),
+        dismissBtn));
+  };
+
+  return el('section', { class: 'v2card ac-card', id: 'v2AlertCentre' },
+    el('div', { class: 'ac-hd' },
+      ic('shield'),
+      el('div', { class: 'grow' },
+        el('b', {}, 'Alert centre'),
+        el('small', {}, visible.length
+          ? `${redN} broken · ${ambN} needs decision · ${gryN} FYI`
+          : '0 alerts — all robots report green')),
+      el('a', { class: 'v2robot-go', href: '#autopilot' }, 'Switches →')),
+    visible.length
+      ? el('div', { class: 'ac-list' }, ...visible.map(row))
+      : el('div', { class: 'v2sub', style: 'margin-top:6px' }, 'No broken checks, held alarms, or robot notices right now.'));
+}
+
 export function todayView() {
   const date = new Date().toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'short' });
   void withSnap('today', (s) => {
@@ -195,6 +286,7 @@ export function todayView() {
       el('a', { class: `v2kpi ${tone}`, href, id }, el('b', {}, n), el('span', {}, label), el('small', {}, sub));
     const rr = buildRobotReport(s, { items, handled: inbox.handled });
     screen('today', header('Today', `${date} · India time`),
+      renderMorningBrief(s, items),
       // 1. what needs a decision
       items.length ? el('div', { class: 'v2sec' }, `Needs you · ${items.length}`) : el('a', { class: 'v2card v2row v2allclear', href: '#auto', id: 'v2Clear' }, ic('check'),
         el('div', { class: 'grow' }, el('b', {}, 'Nothing needs you'), el('div', { class: 'v2sub' }, `${inbox.handled.length} things were handled automatically`)), ic('chev')),
@@ -266,6 +358,7 @@ export function inboxView() {
       return b;
     }));
     screen('inbox', header('Needs you', open.length ? `${open.length} decision${open.length === 1 ? '' : 's'}` : 'Inbox zero'),
+      renderAlertCentre(s, open),
       open.length ? chips : null,
       open.length ? null : el('div', { class: 'v2zero', id: 'v2Zero' }, ic('check'), el('b', {}, 'Nothing needs you'), el('span', {}, 'Everything else was handled automatically.')),
       el('div', { id: 'v2Inbox' }, ...shown.map((i) => inboxCard(i, open))),
