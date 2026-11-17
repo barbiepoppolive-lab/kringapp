@@ -13,12 +13,13 @@ import {
   type Claim, type DupAuto, type FaceCheck, type InboxItem, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot, type Trust,
 } from './adminV2Logic';
 import {
-  capStatus, computeVoucherRunway, DEFAULT_VOUCHER_BUY_URL, fallbackAutopilotState, fallbackHealthWatch, fallbackProtectOverview,
-  fallbackSelfFixStatus, flagKeyLabel, formatRobotLogLine, heartbeatSummary, isAutopilotState, isHealthWatchReport,
-  isMorningBriefData, isProtectOverview, isSelfFixStatus, modeLabel, modeTone, scheduleWords, severityMeta,
-  sortRobotAlerts, synthesizeMorningBrief,
-  type AutopilotState, type HealthWatchReport, type MorningBriefData, type ProtectOverview, type RobotAlert,
-  type RobotLogRow, type RobotMode, type RobotRow, type SelfFixStatus,
+  capStatus, computeVoucherRunway, DEFAULT_VOUCHER_BUY_URL, fallbackAutopilotState, fallbackGrowthNudgesPreview,
+  fallbackHealthWatch, fallbackProtectOverview, fallbackSelfFixStatus, flagKeyLabel, formatRobotLogLine,
+  heartbeatSummary, isAutopilotState, isGrowthNudgesPreview, isHealthWatchReport, isMorningBriefData,
+  isProtectOverview, isSelfFixStatus, modeLabel, modeTone, scheduleWords, severityMeta, sortRobotAlerts,
+  synthesizeMorningBrief,
+  type AutopilotState, type GrowthNudgesPreview, type HealthWatchReport, type MorningBriefData,
+  type ProtectOverview, type RobotAlert, type RobotLogRow, type RobotMode, type RobotRow, type SelfFixStatus,
 } from './autopilotLogic';
 import './adminV2.css';
 
@@ -849,7 +850,9 @@ async function flushQueuedStorageDeletions(): Promise<{ verifyRemoved: number; o
 }
 
 let apLogFilter = 'all';
+let apShowMemberCopy = false;
 export async function autopilotView() {
+  apShowMemberCopy = false;
   const body = el('div', {}, loadingCard());
   screen('more', header('Autopilot', 'Robots watch & fix safe tasks · you decide money & bans', '#more'), body);
   stopV2();
@@ -857,26 +860,30 @@ export async function autopilotView() {
   let hw: HealthWatchReport = fallbackHealthWatch(snap, st);
   let sf: SelfFixStatus = fallbackSelfFixStatus(snap, st);
   let pr: ProtectOverview = fallbackProtectOverview(snap, st);
+  let gn: GrowthNudgesPreview = fallbackGrowthNudgesPreview(snap, st);
 
   const load = async () => {
     const t0 = Date.now();
     try {
-      const [raw, rawHw, rawSf, rawPr] = await Promise.all([
+      const [raw, rawHw, rawSf, rawPr, rawGn] = await Promise.all([
         rpc<unknown>('kr8_admin_autopilot_state', { p_limit: 120 }),
         rpc<unknown>('kr8_admin_health_watch', { p_run: false }).catch(() => null),
         rpc<unknown>('kr8_admin_self_fix_status').catch(() => null),
         rpc<unknown>('kr8_admin_protect_overview').catch(() => null),
+        rpc<unknown>('kr8_admin_growth_nudges_preview').catch(() => null),
       ]);
       const elapsed = Date.now() - t0;
       st = isAutopilotState(raw) ? raw : fallbackAutopilotState(snap);
       hw = isHealthWatchReport(rawHw) ? rawHw : fallbackHealthWatch(snap, st, elapsed);
       sf = isSelfFixStatus(rawSf) ? rawSf : fallbackSelfFixStatus(snap, st);
       pr = isProtectOverview(rawPr) ? rawPr : fallbackProtectOverview(snap, st);
+      gn = isGrowthNudgesPreview(rawGn) ? rawGn : fallbackGrowthNudgesPreview(snap, st);
     } catch {
       st = fallbackAutopilotState(snap);
       hw = fallbackHealthWatch(snap, st);
       sf = fallbackSelfFixStatus(snap, st);
       pr = fallbackProtectOverview(snap, st);
+      gn = fallbackGrowthNudgesPreview(snap, st);
     }
     snapAt = Date.now();
     const freshEl = document.getElementById('v2Fresh');
@@ -1290,6 +1297,94 @@ export async function autopilotView() {
         prRunBtn,
         el('a', { class: 'ap-mini-btn', href: '#inbox' }, 'Open Needs you →')));
 
+    const totalWouldReach = gn.cohorts.reduce((n, c) => n + c.would_send_count, 0);
+    const toggleCopyBtn = el('button', {
+      type: 'button',
+      id: 'apGrowthToggleCopyBtn',
+      class: 'ap-mini-btn',
+    }, apShowMemberCopy ? 'Hide TH + EN member copy' : 'Show TH + EN copy for approval');
+    toggleCopyBtn.onclick = () => {
+      apShowMemberCopy = !apShowMemberCopy;
+      paint();
+    };
+
+    const gnRunBtn = el('button', {
+      type: 'button',
+      id: 'apGrowthRunBtn',
+      class: 'ap-mini-btn',
+      disabled: st.paused || !!st.fallback,
+    }, 'Log DRY-RUN preview');
+    gnRunBtn.onclick = async () => {
+      gnRunBtn.disabled = true;
+      gnRunBtn.textContent = 'Previewing…';
+      try {
+        await rpc('kr8_admin_robot_run_now', { p_name: 'growth_nudges' });
+        toast('Growth nudges DRY-RUN logged (0 messages sent to members)');
+        await load();
+      } catch (e) {
+        gnRunBtn.disabled = false;
+        gnRunBtn.textContent = 'Log DRY-RUN preview';
+        toast(`Preview failed: ${(e as Error).message}`);
+      }
+    };
+
+    const growthCard = el('section', { class: 'v2card ap-growth', id: 'apGrowthCard' },
+      el('div', { class: 'ap-health-hd' },
+        ic('robot'),
+        el('div', { class: 'grow' },
+          el('b', {}, 'Growth nudges · DRY-RUN ONLY'),
+          el('small', {}, `0 messages sent · would reach ${totalWouldReach} across 4 cohorts · locked until founder approves`)),
+        chip('0 SENT (DRY-RUN)', 'a')),
+      el('div', { class: 'ap-glist', id: 'apGrowthCohorts' },
+        ...gn.cohorts.map((c) => {
+          const sampleTxt = c.sample_nos.length > 0
+            ? `Sample: ${c.sample_nos.map((n) => `#${n}`).join(', ')}`
+            : '0 matching members right now';
+          const approveBtn = el('button', {
+            type: 'button',
+            class: `ap-mini-btn ${c.approved_by_founder ? 'on' : ''}`,
+            id: `gnApprove-${c.key}`,
+            disabled: !!gn.fallback,
+          }, c.approved_by_founder ? 'Copy approved ✓' : 'Approve copy');
+          approveBtn.onclick = async () => {
+            approveBtn.disabled = true;
+            try {
+              const nextVal = !c.approved_by_founder;
+              await rpc('kr8_admin_growth_nudge_approve', { p_cohort_key: c.key, p_approved: nextVal });
+              c.approved_by_founder = nextVal;
+              toast(nextVal ? `Approved copy for "${c.label}" (still DRY-RUN)` : `Unmarked "${c.label}"`);
+              paint();
+            } catch (e) {
+              approveBtn.disabled = false;
+              toast(`Could not update copy approval: ${(e as Error).message}`);
+            }
+          };
+
+          return el('div', { class: 'ap-gitem', 'data-cohort': c.key },
+            el('div', { class: 'ap-gitem-hd' },
+              el('div', { class: 'grow' },
+                el('div', { class: 'ac-tags' },
+                  chip(c.key === 'weekly_winners_post' ? '1 draft post' : `Would nudge ${c.would_send_count}`, c.would_send_count > 0 ? 'a' : 'k'),
+                  c.approved_by_founder ? chip('Founder approved', 'g') : null),
+                el('b', {}, c.label),
+                el('small', {}, `${c.title_en} · ${sampleTxt}`)),
+              approveBtn),
+            apShowMemberCopy
+              ? el('div', { class: 'ap-gcopy', 'data-member-copy': '1' },
+                  el('div', { class: 'ap-gcopy-line' },
+                    el('span', { class: 'ap-gcopy-tag' }, 'TH'),
+                    el('strong', {}, `${c.title_th} — `),
+                    c.body_th),
+                  el('div', { class: 'ap-gcopy-line' },
+                    el('span', { class: 'ap-gcopy-tag' }, 'EN'),
+                    el('strong', {}, `${c.title_en} — `),
+                    c.body_en))
+              : null);
+        })),
+      el('div', { class: 'ap-sf-acts' },
+        toggleCopyBtn,
+        gnRunBtn));
+
     const filterOpts: [string, string][] = [
       ['all', `All (${st.logs.length})`],
       ['applied', `Applied (${st.logs.filter((l) => !l.dry_run).length})`],
@@ -1309,6 +1404,7 @@ export async function autopilotView() {
       healthCard,
       selfFixCard,
       protectCard,
+      growthCard,
       el('div', { class: 'v2sec' }, `Robots · ${st.robots.length}`),
       el('div', { id: 'apRobots' }, ...st.robots.map(renderRobot)),
       el('div', { class: 'v2sec' }, 'Robot action log'),

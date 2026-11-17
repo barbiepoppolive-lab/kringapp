@@ -1119,3 +1119,158 @@ export function fallbackProtectOverview(snap?: Snapshot | null, st?: AutopilotSt
   };
 }
 
+// ───────── M6 (0103): Growth Nudges (DRY-RUN ONLY, TH+EN copy for founder approval) ─────────
+export type GrowthCohortKey =
+  | 'card_incomplete_24h'
+  | 'face_unverified_24h'
+  | 'dormant_7d'
+  | 'weekly_winners_post';
+
+export interface GrowthNudgeCohort {
+  key: GrowthCohortKey;
+  label: string;
+  would_send_count: number;
+  sample_nos: number[];
+  title_th: string;
+  title_en: string;
+  body_th: string;
+  body_en: string;
+  approved_by_founder?: boolean;
+}
+
+export interface GrowthNudgesPreview {
+  at: string;
+  mode: RobotMode;
+  dry_run_locked: boolean;
+  sent_count: 0;
+  cohorts: GrowthNudgeCohort[];
+  fallback?: boolean;
+}
+
+export function isGrowthNudgesPreview(v: unknown): v is GrowthNudgesPreview {
+  const x = v as GrowthNudgesPreview | null;
+  return !!x && typeof x === 'object' && x.dry_run_locked === true && x.sent_count === 0 && Array.isArray(x.cohorts);
+}
+
+const BANNED_EN_WORDS = [
+  'meet', 'meets', 'meeting', 'meetup',
+  'guide', 'guides', 'guided',
+  'tour', 'tours',
+  'host', 'hosts', 'hosted', 'hosting',
+  'creator', 'creators',
+  'review', 'reviews',
+  'alcohol',
+  'gift', 'gifts',
+  'wallet', 'wallets',
+  'credit', 'credits',
+  'lucky',
+  'draw', 'draws',
+  'temple', 'temples',
+  'coin', 'coins',
+  'launch',
+  'truemoney',
+];
+
+const BANNED_TH_WORDS = [
+  'ลุ้น', 'ไกด์', 'ทัวร์', 'รีวิว', 'เหล้า', 'เบียร์', 'แอลกอฮอล์',
+  'วัด', 'นัดเจอ', 'เดท', 'ไปด้วยกัน', 'เหรียญ', 'กระเป๋าเงิน', 'ของขวัญ',
+];
+
+/** Returns any banned words found in member-facing text (empty array = 100% clean). */
+export function findBannedMemberWords(text: string): string[] {
+  const raw = text || '';
+  const lo = raw.toLowerCase();
+  const hits: string[] = [];
+
+  if (raw.includes('%')) hits.push('%');
+  if (/hidden\s+gems?/.test(lo)) hits.push('hidden gem');
+
+  for (const w of BANNED_EN_WORDS) {
+    if (new RegExp(`\\b${w}\\b`, 'i').test(lo)) hits.push(w);
+  }
+  for (const th of BANNED_TH_WORDS) {
+    if (raw.includes(th)) hits.push(th);
+  }
+  return hits;
+}
+
+export const DEFAULT_GROWTH_COHORTS: Omit<GrowthNudgeCohort, 'would_send_count' | 'sample_nos'>[] = [
+  {
+    key: 'card_incomplete_24h',
+    label: 'Card incomplete after 24 h',
+    title_th: 'เติมการ์ดโปรไฟล์ให้ครบใน 30 วินาที',
+    title_en: 'Finish your profile card in 30 seconds',
+    body_th: 'เพิ่มรูปจริงกับแนะนำตัวสั้นๆ เพื่อให้เพื่อนสมาชิกในกรุงเทพฯ เห็นโพสต์และคลิปของคุณบนฟีดได้เต็มที่',
+    body_en: 'Add a real photo and a short bio line so people in Bangkok can see your posts and Reels on the feed.',
+    approved_by_founder: false,
+  },
+  {
+    key: 'face_unverified_24h',
+    label: 'New member not face-checked after 24 h',
+    title_th: 'ยืนยันใบหน้า 3 วินาที เปิดการมองเห็นบนฟีด',
+    title_en: '3-second face check to appear on the feed',
+    body_th: 'แตะตรวจใบหน้าจากกล้องมือถือเพียงครั้งเดียว ระบบเช็กเฉพาะรหัสตัวเลขบนเครื่อง เพื่อให้โปรไฟล์และรีลของคุณแสดงบนกระดานประจำสัปดาห์',
+    body_en: 'Complete a quick 3-second camera check once (your selfie stays on your phone) so your card and Reels appear on the feed and weekly board.',
+    approved_by_founder: false,
+  },
+  {
+    key: 'dormant_7d',
+    label: 'Dormant 7 days',
+    title_th: 'สัปดาห์นี้เพื่อนๆ แชร์มุมอร่อยเพียบเลย',
+    title_en: 'Fresh Bangkok spots on the feed this week',
+    body_th: 'แวะดูรีลใหม่จากคนในย่านอารีย์ ทองหล่อ และตลาดน้อย หรือลงคลิปสั้นปักหมุดร้านโปรดของคุณเพื่อสะสมแต้ม Rings ประจำสัปดาห์',
+    body_en: 'See new Reels from locals around Ari, Thonglor, and Talad Noi — or drop a short clip with a place pin to earn weekly Rings.',
+    approved_by_founder: false,
+  },
+  {
+    key: 'weekly_winners_post',
+    label: 'Weekly board winners post draft',
+    title_th: 'ประกาศผลอันดับกระดานประจำสัปดาห์ Kring!',
+    title_en: "This week's Kring board leaders are in!",
+    body_th: 'ยินดีกับอันดับบนกระดานประจำสัปดาห์นี้ ({leaders}) ที่แบ่งปันคลิปมุมดีๆ ในไทย! สัปดาห์ใหม่เริ่มนับแต้ม Rings แล้ว ลงรีลพร้อมปักหมุดสถานที่ได้เลย',
+    body_en: "Big shout-out to this week's top board spots ({leaders}) for sharing authentic clips across Thailand! The new week's Rings board is open — post a Reel with a place tag to climb.",
+    approved_by_founder: false,
+  },
+];
+
+export function fallbackGrowthNudgesPreview(snap?: Snapshot | null, st?: AutopilotState | null): GrowthNudgesPreview {
+  const nowMs = snap ? Date.parse(snap.at) || Date.now() : Date.now();
+  const real = snap ? snap.people.filter((p) => p.kind === 'real' || p.kind === 'nocard') : [];
+
+  const inc = real.filter((p) => nowMs - Date.parse(p.joined_at) > 24 * 3600_000 && (p.kind === 'nocard' || !p.has_photo || !p.area));
+  const unv = real.filter((p) => p.kind === 'real' && nowMs - Date.parse(p.joined_at) > 24 * 3600_000 && !p.verified && p.check?.status !== 'pending');
+  const dorm = real.filter((p) => p.kind === 'real' && (!p.last_active_at || nowMs - Date.parse(p.last_active_at) > 7 * 86400_000));
+  const top3 = snap ? snap.board.rows.slice(0, 3) : [];
+  const leadersTxt = top3.length
+    ? top3.map((r) => `#${r.rank} (${r.rings} Rings)`).join(' · ')
+    : "#1–#3 on this week's board";
+
+  const pickNos = (arr: { no: number | null }[]) => arr.map((x) => x.no).filter((n): n is number => typeof n === 'number').slice(0, 6);
+
+  return {
+    at: new Date().toISOString(),
+    mode: st?.robots.find((r) => r.name === 'growth_nudges')?.mode || 'dry_run',
+    dry_run_locked: true,
+    sent_count: 0,
+    cohorts: DEFAULT_GROWTH_COHORTS.map((tpl) => {
+      if (tpl.key === 'card_incomplete_24h') {
+        return { ...tpl, would_send_count: inc.length, sample_nos: pickNos(inc) };
+      }
+      if (tpl.key === 'face_unverified_24h') {
+        return { ...tpl, would_send_count: unv.length, sample_nos: pickNos(unv) };
+      }
+      if (tpl.key === 'dormant_7d') {
+        return { ...tpl, would_send_count: dorm.length, sample_nos: pickNos(dorm) };
+      }
+      return {
+        ...tpl,
+        would_send_count: 1,
+        sample_nos: top3.map((r) => r.no).filter((n): n is number => typeof n === 'number'),
+        body_th: tpl.body_th.replace('{leaders}', leadersTxt),
+        body_en: tpl.body_en.replace('{leaders}', leadersTxt),
+      };
+    }),
+    fallback: true,
+  };
+}
+
