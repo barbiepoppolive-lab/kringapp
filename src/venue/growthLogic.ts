@@ -86,11 +86,11 @@ export function groupSources(rows: GrowthSourceRow[]): SourceLine[] {
 
 /** Step-to-step percent: "—" when the step before is 0. */
 export const stepPct = (n: number, of: number): string => (of > 0 ? `${Math.round((n / of) * 100)}%` : '—');
-/** "+25% vs last 7 days" / "−10% …" / "" when there is nothing to compare. */
-export function trendWords(now: number, before: number, days: GrowthDays): string {
+/** "+25% vs last 7 days" / "−10% …" / "" when there is nothing to compare. A past single day (Day view) compares with "the day before". */
+export function trendWords(now: number, before: number, days: GrowthDays, pastDay = false): string {
   if (!before) return '';
   const p = Math.round(((now - before) / before) * 100);
-  const span = days === 1 ? 'same time yesterday' : `previous ${days} days`;
+  const span = days === 1 ? (pastDay ? 'the day before' : 'same time yesterday') : `previous ${days} days`;
   return p === 0 ? `same as ${span}` : `${p > 0 ? '+' : '−'}${Math.abs(p)}% vs ${span}`;
 }
 
@@ -132,3 +132,29 @@ export function seriesEnds(s: Growth['series'], days: GrowthDays): [string, stri
     : new Date(String(t) + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
   return [f(s[0].t), f(s[s.length - 1].t)];
 }
+
+// ───────── 0114: Day view + Day by day table ─────────
+export type GrowthDay = Growth & { day: string; is_today: boolean };
+export type GrowthDailyRow = { day: string; visitors: number; visits: number; returning: number; signins: number; cards: number; first_reels: number };
+export const isGrowthDay = (x: unknown): x is GrowthDay => isGrowth(x) && typeof (x as GrowthDay).day === 'string';
+export const isGrowthDaily = (x: unknown): x is GrowthDailyRow[] =>
+  Array.isArray(x) && x.every((r) => r && typeof r.day === 'string' && typeof r.visitors === 'number' && typeof r.signins === 'number');
+const ISO = /^\d{4}-\d{2}-\d{2}$/;
+export const isIsoDay = (d: string | null | undefined): d is string => {
+  if (!d || !ISO.test(d)) return false;
+  const t = Date.parse(d + 'T00:00:00Z');
+  return !Number.isNaN(t) && new Date(t).toISOString().slice(0, 10) === d;   // 2026-02-31 is not a day
+};
+/** Today's Bangkok date, "2026-11-18" (Bangkok is UTC+7 all year). */
+export const bkkToday = (now = Date.now()) => new Date(now + 7 * 3600_000).toISOString().slice(0, 10);
+/** "2026-11-18" ± n days. */
+export const addDays = (d: string, n: number) => new Date(Date.parse(d + 'T00:00:00Z') + n * 864e5).toISOString().slice(0, 10);
+/** "Tue 18 Nov" (the Day view title and the table rows). */
+export const dayName = (d: string) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+/** Keep a picked day inside [first, today]; anything else (bad text, future) becomes today. */
+export function clampDay(d: string | null | undefined, today: string, first = '2026-11-12'): string {
+  if (!isIsoDay(d) || d > today) return today;
+  return d < first ? first : d;
+}
+/** Range for the Day by day table of a 7 / 30 day view, ending today. */
+export const dailyRange = (days: 7 | 30, today: string): [string, string] => [addDays(today, -(days - 1)), today];

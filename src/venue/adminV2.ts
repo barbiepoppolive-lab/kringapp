@@ -22,7 +22,8 @@ import {
   type AiSlotStatus, type AutopilotState, type GrowthNudgesPreview, type HealthWatchReport, type MorningBriefData,
   type ProtectOverview, type RobotAlert, type RobotLogRow, type RobotMode, type RobotRow, type SelfFixStatus,
 } from './autopilotLogic';
-import { countryName, flag, groupSources, isGrowth, refLabel, seriesEnds, sparkPath, stepPct, trendWords, visibleRefs, type Growth, type GrowthDays } from './growthLogic';
+import { addDays, bkkToday, clampDay, countryName, dailyRange, dayName, flag, groupSources, isGrowth, isGrowthDaily, isGrowthDay, refLabel, seriesEnds, sparkPath, stepPct, trendWords, visibleRefs,
+  type Growth, type GrowthDailyRow, type GrowthDay, type GrowthDays } from './growthLogic';
 import './adminV2.css';
 import { helpSection } from './adminHelp';   // 0097: Help cases (self-contained)
 import { bugSection, viewAsLeave, viewAsView } from './viewAs';   // 0110: View as member + Spot a bug cases
@@ -35,6 +36,7 @@ const LS = (k: string, v?: string): string | null => { try { if (v === undefined
 const P: Record<string, string> = {
   today: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   growth: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  cal: '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
   inbox: '<path d="M3 13l3-8h12l3 8v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M3 13h5l1.5 3h5L16 13h5"/>',
   people: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M17 14.5c2.4.2 4 1.8 4.5 4.5"/>',
   money: '<rect x="3" y="6" width="18" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 9.5v5M17.5 9.5v5"/>',
@@ -352,34 +354,60 @@ function paintPhotos() {
   });
 }
 
-// ───────── Growth (0113): the page admin opens on ─────────
-/** founder 18 Nov: "growth status should be the default page in admin" — visitors, where from, who comes back, which links bring members */
-const growthCache = new Map<GrowthDays, { at: number; g: Growth }>();
+// ───────── Growth (0113): the page admin opens on · 0114: Day view + Day by day table ─────────
+/** founder 18 Nov: "growth status should be the default page in admin" — visitors, where from, who comes back, which links bring members.
+ *  Later 18 Nov: "see Growth day by day" — a Day option (‹ › + calendar, compared with the day before) and a Day by day table under 7 / 30 days.
+ *  Every number comes from the same database definitions (kr8_admin_growth_core, 0114), so the views never disagree. */
+type GrowthMode = GrowthDays | 'day';
+const growthCache = new Map<string, { at: number; g: unknown }>();
 let growthDays: GrowthDays = (Number(LS('kr8-v2-gp')) as GrowthDays) || 7;
 if (![1, 7, 30].includes(growthDays)) growthDays = 7;
+let growthDay = '';   // the day the Day view last showed ("2026-11-17")
 const fmt = (n: number) => n.toLocaleString('en-US');
-async function loadGrowth(days: GrowthDays, force = false): Promise<Growth> {
-  const c = growthCache.get(days);
-  if (!force && c && Date.now() - c.at < 60_000) return c.g;
-  const g = await rpc<unknown>('kr8_admin_growth', { p_days: days });
-  if (!isGrowth(g)) throw new Error('Growth needs database update 0113');
-  growthCache.set(days, { at: Date.now(), g });
+const onGrowth = () => location.hash === '' || location.hash === '#growth' || location.hash.startsWith('#growth/');
+async function cached<T>(key: string, force: boolean, get: () => Promise<unknown>, ok: (x: unknown) => x is T, need: string): Promise<T> {
+  const c = growthCache.get(key);
+  if (!force && c && Date.now() - c.at < 60_000 && ok(c.g)) return c.g;
+  const g = await get();
+  if (!ok(g)) throw new Error(`Growth needs database update ${need}`);
+  growthCache.set(key, { at: Date.now(), g });
   return g;
+}
+const loadGrowth = (days: GrowthDays, force = false) => cached<Growth>(`p${days}`, force, () => rpc<unknown>('kr8_admin_growth', { p_days: days }), isGrowth, '0113');
+const loadGrowthDay = (day: string, force = false) => cached<GrowthDay>(`d${day}`, force, () => rpc<unknown>('kr8_admin_growth_day', { p_day: day }), isGrowthDay, '0114');
+const loadDaily = (days: 7 | 30, force = false) => {
+  const [from, to] = dailyRange(days, bkkToday());
+  return cached<GrowthDailyRow[]>(`t${from}_${to}`, force, () => rpc<unknown>('kr8_admin_growth_daily', { p_from: from, p_to: to }), isGrowthDaily, '0114');
+};
+/** Day by day: one thin row per Bangkok day, newest first; tap a row → that day in the Day view. 10 rows, the rest one tap away. */
+function dailyTable(rows: GrowthDailyRow[], today: string): HTMLElement {
+  const top = Math.max(1, ...rows.map((r) => r.visitors));
+  const cell = (n: number, cls = '') => el('span', { class: `gr-td ${n ? '' : 'zero'} ${cls}` }, fmt(n));
+  const row = (r: GrowthDailyRow) => el('a', { class: 'gr-tr', href: `#growth/${r.day}`, 'data-day': r.day, 'aria-label': `Open ${dayName(r.day)}` },
+    el('span', { class: 'gr-tdate' }, el('b', {}, dayName(r.day).replace(/^\S+ /, '')),
+      el('small', {}, r.day === today ? 'Today' : r.day === addDays(today, -1) ? 'Yesterday' : dayName(r.day).split(' ')[0])),
+    el('span', { class: 'gr-td gr-tv' }, el('i', { style: `width:${Math.round((r.visitors / top) * 100)}%` }), el('b', {}, fmt(r.visitors))),
+    cell(r.returning), cell(r.signins), cell(r.cards), cell(r.first_reels, 'pk'));
+  const head = el('div', { class: 'gr-tr gr-th' }, el('span', {}, 'Day'), el('span', {}, 'Visitors'), el('span', {}, 'Came back'),
+    el('span', {}, 'Sign-ins'), el('span', {}, 'Cards'), el('span', {}, 'First Reels'));
+  const first = rows.slice(0, 10), rest = rows.slice(10);
+  return el('div', { class: 'gr-table', id: 'grDaily', role: 'table' }, head, ...first.map(row),
+    rest.length ? fold('grDailyMore', foldHead(`${rest.length} earlier day${rest.length === 1 ? '' : 's'}`), rest.map(row)) : null);
 }
 function sparkline(g: Growth): HTMLElement {
   const vals = g.series.map((x) => x.visitors);
   const { line, area, max } = sparkPath(vals, 320, 64);
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 320 64'); svg.setAttribute('preserveAspectRatio', 'none'); svg.setAttribute('class', 'gr-spark');
-  svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', `Visitors ${g.days === 1 ? 'per hour today' : 'per day'}, highest ${max}`);
+  svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', `Visitors ${g.days === 1 ? 'per hour' : 'per day'}, highest ${max}`);
   svg.innerHTML = `<defs><linearGradient id="grFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff4fd8" stop-opacity=".32"/><stop offset="1" stop-color="#ff4fd8" stop-opacity="0"/></linearGradient></defs>`
     + `<path d="${area}" fill="url(#grFill)"/><path d="${line}" fill="none" stroke="#ff4fd8" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
   const [a, b] = seriesEnds(g.series, g.days);
   return el('div', { class: 'gr-sparkwrap', id: 'grSpark' }, svg, el('div', { class: 'gr-sparkx' }, el('span', {}, a), el('span', {}, `peak ${max}`), el('span', {}, b)));
 }
-function growthBody(g: Growth): HTMLElement[] {
+function growthBody(g: Growth, opt: { pastDay?: boolean; daily?: HTMLElement | null } = {}): HTMLElement[] {
   const retPct = g.visitors ? Math.round((g.returning / g.visitors) * 100) : 0;
-  const trend = trendWords(g.visitors, g.visitors_prev, g.days);
+  const trend = trendWords(g.visitors, g.visitors_prev, g.days, !!opt.pastDay);
   const up = g.visitors >= g.visitors_prev;
   const stat = (id: string, val: string, label: string) => el('div', { class: 'gr-stat', id }, el('b', {}, val), el('span', {}, label));
   const hero = el('section', { class: 'gr-hero', id: 'grHero' },
@@ -433,46 +461,74 @@ function growthBody(g: Growth): HTMLElement[] {
     : [el('div', { class: 'v2sub gr-none' }, 'No visitors in this period yet.')]));
 
   const sec = (t: string, note: string, id: string) => el('div', { class: 'v2sec gr-sec' }, t, info(note, id));
-  return [hero,
+  return [hero, ...(opt.daily ? [opt.daily] : []),
     sec('Visitor to Reel', 'Visitors = phones that opened the site or app. The next three steps follow ONE group: people who signed in during this period, how many of them made a card, and how many of them posted a Reel. The % is step to step; the weakest step is pink.', 'grFunnelInfo'), funnel,
     sec('Where visitors come from', 'Each visitor counts once, by the site that sent their first visit in this period. Direct / in-app = no site was passed on (typed link, home-screen app, many in-app browsers). Shared links = a ?ref= link with no site passed on. Test phones, robots, localhost and preview links are left out.', 'grSrcInfo'), sources,
     sec('Recruiter links', 'Visitors = phones that opened a ?ref= link. Joined = real members who made a card in this period with that code (or were credited to it). The code is saved on the card, so a sign-in without a card cannot be tied to a link. Test, demo and perf links are hidden.', 'grRefInfo'), recruit,
     sec('Countries', 'Top 8 countries of this period\'s visitors (from the visit counter; Unknown = not sent).', 'grCtyInfo'), countries,
-    el('p', { class: 'gr-foot' }, `Bangkok days · ${g.from === g.to ? g.to : `${g.from} → ${g.to}`} · came back = also visited on an earlier day`)];
+    el('p', { class: 'gr-foot' }, `Bangkok ${g.from === g.to ? `day · ${dayName(g.to)}` : `days · ${dayName(g.from)} → ${dayName(g.to)}`} · came back = also visited on an earlier day`)];
 }
-export function growthView() {
+export function growthView(dayArg?: string) {
   stopV2();
-  const periods: [GrowthDays, string][] = [[1, 'Today'], [7, '7 days'], [30, '30 days']];
-  const chips = el('div', { class: 'v2chips gr-period', role: 'tablist', id: 'grPeriod' });
+  const today = bkkToday();
+  const mode: GrowthMode = dayArg ? 'day' : growthDays;
+  if (dayArg) growthDay = clampDay(dayArg === 'day' ? growthDay || addDays(today, -1) : dayArg, today, '2026-10-01');
+  const periods: [GrowthMode, string][] = [[1, 'Today'], [7, '7 days'], [30, '30 days'], ['day', 'Day']];
+  const chips = el('div', { class: 'v2chips gr-period', role: 'tablist', id: 'grPeriod' }, ...periods.map(([d, t]) => {
+    const b = el('button', { type: 'button', role: 'tab', class: d === mode ? 'on' : '', 'aria-selected': String(d === mode), id: `grP${d}` }, d === 'day' ? ic('cal') : null, t);
+    b.onclick = () => {
+      if (d === mode) return;
+      if (d === 'day') { location.hash = `#growth/${growthDay || addDays(today, -1)}`; return; }
+      growthDays = d; LS('kr8-v2-gp', String(d));
+      if (location.hash.startsWith('#growth/')) location.hash = '#growth'; else growthView();
+    };
+    return b;
+  }));
+  // Day view: ‹ day › with a calendar under the day name (the phone's own date picker)
+  let dayNav: HTMLElement | null = null;
+  if (mode === 'day') {
+    const d = growthDay;
+    const go = (x: string) => { location.hash = `#growth/${clampDay(x, today, '2026-10-01')}`; };
+    const prev = el('button', { type: 'button', class: 'gr-step', id: 'grPrevDay', 'aria-label': 'Day before' }, ic('back'));
+    const next = el('button', { type: 'button', class: 'gr-step', id: 'grNextDay', 'aria-label': 'Next day', disabled: d >= today }, ic('chev'));
+    prev.onclick = () => go(addDays(d, -1)); next.onclick = () => go(addDays(d, 1));
+    const pick = el('input', { type: 'date', id: 'grPick', value: d, max: today, min: '2026-10-01', 'aria-label': 'Pick a day' }) as HTMLInputElement;
+    pick.onchange = () => { if (pick.value) go(pick.value); };
+    const label = el('label', { class: 'gr-dayname', for: 'grPick' },
+      el('b', {}, dayName(d)), el('small', {}, d === today ? 'Today so far' : d === addDays(today, -1) ? 'Yesterday' : 'Tap to pick a day'), ic('cal'), pick);
+    label.onclick = () => { try { pick.showPicker?.(); } catch { /* older phones open it on focus */ } };
+    dayNav = el('div', { class: 'gr-daynav', id: 'grDayNav' }, prev, label, next);
+  }
   const body = el('div', { id: 'grBody' }, loadingCard());
   const fresh = el('button', { type: 'button', class: 'v2fresh', id: 'grFresh', title: 'Tap to refresh now' }, 'Loading…');
   const hd = el('header', { class: 'v2hd' }, el('span', { class: 'v2dot' }),
-    el('div', { class: 'grow' }, el('h1', {}, 'Growth'), el('div', { class: 'v2sub', id: 'grSub' }, 'Visitors, sources and sign-ups')), fresh);
+    el('div', { class: 'grow' }, el('h1', {}, 'Growth'), el('div', { class: 'v2sub', id: 'grSub' }, mode === 'day' ? 'One day vs the day before' : 'Visitors, sources and sign-ups')), fresh);
   let gotAt = 0;
-  const paintChips = () => chips.replaceChildren(...periods.map(([d, t]) => {
-    const b = el('button', { type: 'button', role: 'tab', class: d === growthDays ? 'on' : '', 'aria-selected': String(d === growthDays), id: `grP${d}` }, t);
-    b.onclick = () => { if (growthDays === d) return; growthDays = d; LS('kr8-v2-gp', String(d)); paintChips(); void paint(false); };
-    return b;
-  }));
+  const key = location.hash;
   const paint = async (force: boolean) => {
-    const want = growthDays;
-    if (!growthCache.has(want) || force) body.querySelector('.gr-hero')?.classList.add('gr-dim');
+    body.querySelector('.gr-hero')?.classList.add('gr-dim');
     if (!body.querySelector('.gr-hero')) body.replaceChildren(loadingCard());
     try {
-      const g = await loadGrowth(want, force);
-      if (want !== growthDays || (location.hash !== '' && location.hash !== '#growth')) return;
-      gotAt = growthCache.get(want)?.at || Date.now();
+      let g: Growth; let daily: HTMLElement | null = null;
+      if (mode === 'day') g = await loadGrowthDay(growthDay, force);
+      else {
+        const t = mode === 1 ? null : loadDaily(mode, force).then((rows) => dailyTable(rows, today))
+          .catch((e) => el('div', { class: 'v2sub gr-none', id: 'grDaily' }, `Day by day: ${String((e as Error).message || e)}`));
+        g = await loadGrowth(mode, force);
+        if (t) daily = el('div', {}, el('div', { class: 'v2sec gr-sec' }, 'Day by day', info('Newest first. Tap a day to open it. Each day counts a phone once, so a phone that came on 3 days is 1 visitor in the 7-day total but shows on each of those 3 days here. Sign-ins, cards and first Reels add up to the total.', 'grDailyInfo')), await t);
+      }
+      if (location.hash !== key || !onGrowth()) return;
+      gotAt = Date.now();
       fresh.textContent = `Updated ${ago(new Date(gotAt).toISOString())}`;
-      body.replaceChildren(...growthBody(g));
+      body.replaceChildren(...growthBody(g, { pastDay: mode === 'day' && growthDay !== today, daily }));
     } catch (e) { body.replaceChildren(errorCard(e)); fresh.textContent = 'Tap to retry'; }
   };
   fresh.onclick = () => { fresh.textContent = 'Refreshing…'; void paint(true); };
-  paintChips();
-  screen('growth', hd, chips, body);
+  screen('growth', hd, chips, dayNav, body);
   void paint(false);
   // the Needs you badge on the dock still shows (it comes from the admin snapshot)
-  void loadSnapshot().then(() => { if (location.hash === '' || location.hash === '#growth') app().querySelector('.v2bar')?.replaceWith(v2Tabbar('growth')); }).catch(() => undefined);
-  pollTimer = window.setInterval(() => { if (document.visibilityState === 'visible' && (location.hash === '' || location.hash === '#growth')) void paint(true); }, 120_000);
+  void loadSnapshot().then(() => { if (location.hash === key) app().querySelector('.v2bar')?.replaceWith(v2Tabbar('growth')); }).catch(() => undefined);
+  pollTimer = window.setInterval(() => { if (document.visibilityState === 'visible' && location.hash === key && (mode !== 'day' || growthDay === bkkToday())) void paint(true); }, 120_000);
   tickTimer = window.setInterval(() => { if (gotAt && document.getElementById('grFresh') === fresh) fresh.textContent = `Updated ${ago(new Date(gotAt).toISOString())}`; }, 5000);
 }
 
@@ -1634,7 +1690,7 @@ export async function autopilotView() {
 export function v2Route(a: string, b?: string): boolean {
   viewAsLeave();
   if (a === 'viewas') { stopV2(); viewAsView((...kids) => screen('more', ...kids)); return true; }
-  if (a === 'growth' || a === '') { growthView(); return true; }
+  if (a === 'growth' || a === '') { growthView(b); return true; }   // #growth/2026-11-17 = that day (0114)
   if (a === 'today') { todayView(); return true; }
   if (a === 'inbox') { inboxView(); return true; }
   if (a === 'auto') { autoView(); return true; }
