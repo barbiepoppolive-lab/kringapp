@@ -161,6 +161,7 @@ const T: Record<string, string> = {
     'This video cannot be read · try another': 'यह वीडियो पढ़ा नहीं जा सका · कोई और आज़माएँ',
     'Add the area pin first': 'पहले इलाका चुनें',
     'Reel posted · กริ๊ง!': 'रील पोस्ट हो गई · กริ๊ง!',
+    'Reel posted · Kring!': 'रील पोस्ट हो गई · Kring!',
     'Reel sent · it shows in the feed after a quick check': 'रील भेज दी · जाँच के बाद फ़ीड में दिखेगी',
     'Post a Reel': 'रील पोस्ट करें',
     'Change Reel': 'रील बदलें',
@@ -613,5 +614,7 @@ const T: Record<string, string> = {
   '{0} more Rings for a prize seat': 'इनाम वाली सीट के लिए {0} और Rings',
   'Share my Reel': 'मेरी रील शेयर करें',
   'How to win': 'कैसे जीतें',
+  'Show my QR': 'मेरा QR दिखाएँ',
+  'Your Reel is live': 'आपकी रील लाइव है',
 };
 export default T;

@@ -33,6 +33,9 @@ export const V5_L: Record<string, Record<string, string>> = {
     '{0} more Rings for a prize seat': 'อีก {0} ริง ได้ที่นั่งรับรางวัล',
     'Share my Reel': 'แชร์คลิปของฉัน',
     'How to win': 'วิธีชนะ',
+    // founder 18 Nov: QR in my profile's ⋯ menu; "Your Reel is live · Share" after the team approves a Reel
+    'Show my QR': 'แสดง QR ของฉัน',
+    'Your Reel is live': 'รีลของคุณขึ้นฟีดแล้ว',
     '+ Add {0}': '+ เพิ่ม {0}',
     'Outside opens': 'เปิดจากลิงก์แชร์',
     '{0} of these from travellers (count double)': 'มาจากนักท่องเที่ยว {0} ครั้ง (นับ 2 เท่า)',
@@ -157,6 +160,7 @@ export const V5_L: Record<string, Record<string, string>> = {
     'This video cannot be read · try another': 'อ่านวิดีโอนี้ไม่ได้ · ลองไฟล์อื่น',
     'Add the area pin first': 'ปักหมุดย่านก่อนนะ',
     'Reel posted · กริ๊ง!': 'โพสต์รีลแล้ว · กริ๊ง!',
+    'Reel posted · Kring!': 'โพสต์รีลแล้ว · กริ๊ง!',   // audit 18 Nov: English mode showed Thai script in this toast
     'Reel sent · it shows in the feed after a quick check': 'ส่งรีลแล้ว · จะขึ้นฟีดหลังตรวจสั้น ๆ',
     'Post a Reel': 'โพสต์รีล',
     'Change Reel': 'เปลี่ยนรีล',
@@ -860,6 +864,7 @@ export const KX_L: Record<string, Record<string, string>> = {
     '{0} now': 'ตอนนี้ได้ {0}',
     '#{0} is {1} behind you': 'อันดับ {0} ตามมา {1} ริง',
     '{0} to #{1}': 'อีก {0} ถึงอันดับ {1}',
+    '{0} to pass #{1}': 'อีก {0} แซง #{1}',
     '{0} to take {1}': 'อีก {0} ก็ได้ {1}',
     '{0} to pass {1}': 'อีก {0} แซง {1}',
     'Seat #{0} is open': 'อันดับ {0} ยังว่าง',

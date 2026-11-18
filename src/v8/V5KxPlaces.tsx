@@ -291,6 +291,8 @@ export function SavedReelsPage(props: { L: Tx; Lf: Txf; rows: KxSavedReel[] | nu
 
 /** B4 place page */
 export function PlacePage(props: { L: Tx; Lf: Txf; lang: string; id: string; onBack: () => void; onPost: (p: PickedPlace) => void; toast: (m: string) => void; shareUrl: (id: string) => string;
+  /** audit 18 Nov: the app's one-tap share (LINE picker inside LINE, copy without a share sheet). Without it: the phone's share sheet. */
+  shareLink?: (url: string, name: string) => void;
   /** polish #3: opened from a Reel's 📍 pin: a half-sheet over the Reel, filled at once with what the pin already knows */
   half?: boolean; preview?: { name_en: string; name_th: string | null; area: string } | null }) {
   const { L, Lf } = props;
@@ -342,6 +344,7 @@ export function PlacePage(props: { L: Tx; Lf: Txf; lang: string; id: string; onB
   list.forEach((r, i) => cols[i % 2].push(r));
   const share = async () => {
     const url = props.shareUrl(p.id);
+    if (props.shareLink) { props.shareLink(url, props.lang === 'th' ? (p.name_th || p.name_en) : p.name_en); return; }
     try {
       if (navigator.share) { await navigator.share({ title: `${p.name_en} · Kring`, url }); return; }
       await navigator.clipboard.writeText(url);

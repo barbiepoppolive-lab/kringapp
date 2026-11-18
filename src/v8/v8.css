@@ -3727,3 +3727,13 @@
 .v8-app-root .rails .rail.hi, .v8-app-root .pcard .hibtn, .v8-app-root .chat-fab {
   -webkit-backdrop-filter: none; backdrop-filter: none;
 }
+
+/* invite-1: post-success one-tap share (light, no frame; sits where the toast sits, just under it) */
+.v8-app-root .v8-posted { position: absolute; top: calc(env(safe-area-inset-top) + 58px); left: 50%; transform: translateX(-50%); z-index: 96; display: flex; flex-direction: column; align-items: center; }
+.v8-app-root .v8-posted-btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 22px; border: 0; border-radius: 999px; color: #fff;
+  font-weight: 800; font-size: 0.95rem; line-height: 1; font-family: inherit; background: linear-gradient(90deg, #FF4FC0 0%, #F0239E 50%, #FF3FCF 100%); box-shadow: 0 6px 22px rgba(255,46,170,.45); }
+.v8-app-root #s-feed.posted-on .reel-sound { visibility: hidden; }   /* audit 18 Nov: it sat under the hint line */
+.v8-app-root .v8-posted .kx-ihint { color: rgba(255,255,255,.9); text-shadow: 0 1px 4px rgba(0,0,0,.55); white-space: nowrap; }
+/* founder 18 Nov: "Your Reel is live · Share" (same light pill, no box) */
+.v8-app-root .v8-posted[data-mode="live"] .v8-posted-btn { gap: 6px; padding: 0 20px; white-space: nowrap; max-width: calc(100vw - 32px); }
+.v8-app-root .v8-posted-dot { font-style: normal; opacity: .75; }

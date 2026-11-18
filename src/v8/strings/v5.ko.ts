@@ -161,6 +161,7 @@ const T: Record<string, string> = {
     'This video cannot be read · try another': '이 동영상을 읽을 수 없어요 · 다른 걸로',
     'Add the area pin first': '먼저 동네를 선택하세요',
     'Reel posted · กริ๊ง!': '릴을 올렸어요 · กริ๊ง!',
+    'Reel posted · Kring!': '릴을 올렸어요 · Kring!',
     'Reel sent · it shows in the feed after a quick check': '릴을 보냈어요 · 확인 후 피드에 나와요',
     'Post a Reel': '릴 올리기',
     'Change Reel': '릴 바꾸기',
@@ -613,5 +614,7 @@ const T: Record<string, string> = {
   '{0} more Rings for a prize seat': '상금 자리까지 {0} Rings 더',
   'Share my Reel': '내 릴 공유하기',
   'How to win': '이기는 방법',
+  'Show my QR': '내 QR 보기',
+  'Your Reel is live': '내 릴이 공개됐어요',
 };
 export default T;

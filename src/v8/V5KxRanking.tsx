@@ -10,6 +10,7 @@ import './kx.css';
 import { countdown, fmtN, mathLines, weekEnd } from './kxLogic';
 import { kxBreakdown, kxMemberReels, kxRanking, kxRules, kxSeatsLeft, type KxBreakdown, type KxGap, type KxRanking, type KxRankRow } from './v5Kx';
 import { RingGlyph } from './V5KxCard';
+import { InviteHint } from './V5Invite';
 import { signReelPaths } from './v5Reel';
 import { RingToast, rulesVariant, WinSheet, winRules } from './V5KxRules';
 import { BackIcon, Crown, Disc, InfoIcon, Medal, PlusIcon, ShareIcon, type Tone } from './BoardArt';
@@ -90,7 +91,7 @@ export function MathSheet(props: { L: Tx; Lf: Txf; lang: string; user: string; o
               );
             })}
             {d.reels.length ? (
-              <div className="kx-mtot" id="kxMathTotal"><span>{d.reels.map((r) => fmtN(r.score)).join(' + ')}</span><b>{fmtN(d.rings)} <RingGlyph /></b></div>
+              <div className="kx-mtot" id="kxMathTotal"><span>{[...d.reels.map((r) => fmtN(r.score)), ...(d.invites ? [`${fmtN(d.invites)} (${props.lang === 'th' ? 'เพื่อน' : 'friends'})`] : [])].join(' + ')}</span><b>{fmtN(d.rings)} <RingGlyph /></b></div>
             ) : null}
             {d.more > 0 ? <p className="kx-mnote">{d.more === 1 ? L('1 more Reel this week, not counted (only your best Reel counts)') : Lf('{0} more Reels this week, not counted (only your best Reel counts)', String(d.more))}</p> : null}
             <p className="kx-mfoot">{L('Same math for everyone. Tap any score on the board to see it.')}<br />{L('Same score? The Reel posted first is ahead.')}</p>
@@ -112,7 +113,7 @@ export interface OwnRow { n: string; l1: React.ReactNode; l2: string; btn: 'math
 export function ownRow(L: Tx, Lf: Txf, gap: KxGap | null | undefined, mine: KxRanking['mine'] | undefined | null): OwnRow {
   const rt = (n: number) => ringsText(L, Lf, n);
   const you = (g: KxGap) => `${L('You')} · ${rt(g.rings)}`;
-  const toRank = (t: NonNullable<KxGap['target']>) => `${Lf('{0} to #{1}', rt(t.need), String(t.rank))}${t.prize > 0 ? ` · ${baht(t.prize)}` : ''}`;
+  const toRank = (t: NonNullable<KxGap['target']>) => `${Lf('{0} to pass #{1}', rt(t.need), String(t.rank))}${t.prize > 0 ? ` · ${baht(t.prize)}` : ''}`;
   if (!gap) return { n: '–', l1: L('Not on the board yet'), l2: L('One Reel at a place puts you on it'), btn: 'post', key: 'none' };
   const g = gap, t = g.target;
   if (g.state === 'top') return { n: '1', l1: you(g), l2: `${Lf('{0} now', baht(g.prize_now))}${g.behind ? ` · ${Lf('#{0} is {1} behind you', String(g.behind.rank), fmtN(g.behind.diff))}` : ''}`, btn: 'math', key: 'top' };
@@ -196,6 +197,8 @@ const RING_CLS = ['c0', 'c1', 'c2', 'c3'];
  */
 export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: string | null; myPhoto: string | null; myName: string; myId: string | null;
   onBack: () => void; onPerson: (id: string) => void; onPost: () => void; onShare: (reel: string) => void;
+  /** audit 18 Nov: finger down on "Share my Reel" → fetch the /r/ link early, so the tap opens the share sheet at once */
+  onShareDown?: (reel: string) => void;
   /** 0066: not face-verified yet → a small nudge under my photo (everyone still shows on the board) */
   needsVerify?: boolean; onVerify?: () => void }) {
   const { L, Lf, lang } = props;
@@ -354,10 +357,12 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
           <div className="bx-you bx-you-wait" aria-hidden="true" />
         ) : null}
         <button type="button" className={`bx-cta${share ? ' share' : ' post'}`} id="kxBoardCta" data-act={share ? 'share' : 'post'} aria-busy={latest === undefined}
+          onPointerDown={() => { if (latest) props.onShareDown?.(latest); }}
           onClick={() => { if (latest) props.onShare(latest); else if (latest === null) props.onPost(); }}>
           <span className="ic">{share ? <ShareIcon /> : <PlusIcon />}</span>
           <span className="tx">{share ? L('Share my Reel') : postLabel}</span>
         </button>
+        {share ? <InviteHint lang={lang} x={cfg?.invite} /> : null}
       </div>
       {math ? <MathSheet L={L} Lf={Lf} lang={lang} user={math} onClose={() => setMath(null)} onHow={() => { setMath(null); setHow(true); }}
         onShare={(reel) => { setMath(null); if (reel) props.onShare(reel); else props.onPost(); }} /> : null}

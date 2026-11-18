@@ -161,6 +161,7 @@ const T: Record<string, string> = {
     'This video cannot be read · try another': 'この動画は読み込めません · 別の動画で',
     'Add the area pin first': '先にエリアを選んでください',
     'Reel posted · กริ๊ง!': 'リールを投稿しました · กริ๊ง!',
+    'Reel posted · Kring!': 'リールを投稿しました · Kring!',
     'Reel sent · it shows in the feed after a quick check': 'リールを送信しました · 確認後にフィードに表示されます',
     'Post a Reel': 'リールを投稿',
     'Change Reel': 'リールを変更',
@@ -613,5 +614,7 @@ const T: Record<string, string> = {
   '{0} more Rings for a prize seat': 'あと {0} Rings で賞金枠',
   'Share my Reel': '自分のリールをシェア',
   'How to win': '勝ち方',
+  'Show my QR': '自分のQRを表示',
+  'Your Reel is live': 'リールが公開されました',
 };
 export default T;

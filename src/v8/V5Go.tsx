@@ -144,6 +144,8 @@ export function GoReelPlayer(props: {
   viewProfile?: { id: string; name: string; photo: string | null } | null;
   onClose: () => void; onProfile: (user: string) => void; onPlace?: (place: string) => void; onMath?: (user: string) => void;
   onLike: (id: string) => Promise<{ liked: boolean; likes: number } | null>; onSave: (id: string) => Promise<boolean | null>; onShare: (id: string) => void;
+  /** invite-1: finger down on Share → fetch the share link early, so the tap opens the share sheet at once */
+  onShareDown?: (id: string) => void;
   onActive?: (reel: GoReel, el: HTMLElement) => void;
   /** 17 Nov: owner only, "My Reel stats" for one Reel (this week's numbers from the ranking math) */
   onStats?: (id: string) => Promise<GoReelStats | null>;
@@ -215,7 +217,7 @@ export function GoReelPlayer(props: {
                   <span className="go-rbi"><IcHeart on={r.liked} /></span><b>{fmtN(r.likes || 0)}</b></button>
                 <button type="button" className={`go-rb save${r.saved ? ' act' : ''}${pop === `s${r.id}` ? ' pop' : ''}`} data-go="save" aria-label={L('Save')} aria-pressed={!!r.saved} disabled={pending} onClick={() => void save(r)}>
                   <span className="go-rbi"><IcBook on={r.saved} /></span><b>{r.saves !== undefined ? fmtN(r.saves) : L('Save')}</b></button>
-                <button type="button" className="go-rb shr" data-go="share" aria-label={L('Share')} disabled={pending} onClick={() => props.onShare(r.id)}>
+                <button type="button" className="go-rb shr" data-go="share" aria-label={L('Share')} disabled={pending} onPointerDown={() => props.onShareDown?.(r.id)} onClick={() => props.onShare(r.id)}>
                   <span className="go-rbi"><IcShare /></span><b>{L('Share')}</b></button>
                 {r.mine && r.status === 'approved' && props.onStats ? (
                   <button type="button" className="go-rb sts" data-go="stats" aria-label={L('My Reel stats')} onClick={() => openStats(r)}>
@@ -349,6 +351,8 @@ export function GoProfilePage(props: {
   L: Tx; Lf: Txf; lang: string; p: V5Profile; kx: KxCardExtras | null | undefined; reels: KxMemberReels | null; busy: boolean;
   onBack: () => void; onFollow: () => void; onHi: () => void; onReport: () => void; onBlock: () => void; onShare: () => void;
   onList: (k: 'followers' | 'following') => void; onOpen: (i: number) => void; onMath: () => void; gender?: string | null;
+  /** founder 18 Nov: my own profile's ⋯ menu has "Show my QR" (the QR card was lost from the Me tab) */
+  onQr?: () => void;
 }) {
   const { L, p } = props;
   const [menu, setMenu] = useState(false);
@@ -364,6 +368,7 @@ export function GoProfilePage(props: {
       {menu && (
         <div className="kme-menu go-menu" role="menu">
           <button type="button" role="menuitem" id="profileShare" onClick={() => { setMenu(false); props.onShare(); }}>{L('Share profile')}</button>
+          {p.mine && props.onQr ? <button type="button" role="menuitem" id="profileQr" onClick={() => { setMenu(false); props.onQr?.(); }}>{L('Show my QR')}</button> : null}
           {!p.mine && <button type="button" role="menuitem" id="profileReport" onClick={() => { setMenu(false); props.onReport(); }}>{L('Report')}</button>}
           {!p.mine && <button type="button" role="menuitem" className="bad" id="profileBlock" onClick={() => { setMenu(false); props.onBlock(); }}>{L('Block')}</button>}
         </div>

@@ -232,8 +232,8 @@ describe('the pinned own row: next step in Rings and what it pays', () => {
   });
   const gap = (g: Partial<KxGap>): KxGap => ({ state: 'board', rank: 9, rings: 107, floor: 25, prize_now: 0, target: { rank: 8, need: 12, prize: 100, open: false }, above: null, behind: null, top10_need: null, ...g });
   it('six states of the row text', () => {
-    expect(ownRow(L, Lf, gap({}), null)).toMatchObject({ n: '9', l2: '12 Rings to #8 · ฿100', btn: 'math' });
-    expect(ownRow(L, Lf, gap({ state: 'paid', rank: 4, rings: 198, prize_now: 500, target: { rank: 3, need: 44, prize: 600, open: false } }), null).l2).toBe('฿500 now · 44 Rings to #3 · ฿600');
+    expect(ownRow(L, Lf, gap({}), null)).toMatchObject({ n: '9', l2: '12 Rings to pass #8 · ฿100', btn: 'math' });
+    expect(ownRow(L, Lf, gap({ state: 'paid', rank: 4, rings: 198, prize_now: 500, target: { rank: 3, need: 44, prize: 600, open: false } }), null).l2).toBe('฿500 now · 44 Rings to pass #3 · ฿600');
     expect(ownRow(L, Lf, gap({ state: 'paid', rank: 8, rings: 118, prize_now: 100, target: { rank: 7, need: 14, prize: 150, open: false }, behind: { rank: 9, diff: 11 } }), null).l2).toBe('฿100 now · #9 is 11 behind you');
     expect(ownRow(L, Lf, gap({ state: 'far', rank: 37, rings: 14, above: { rank: 36, name: 'Fern', need: 3 }, top10_need: 82 }), null)).toMatchObject({ l2: '3 Rings to pass Fern · 82 to top 10', btn: 'share' });
     expect(ownRow(L, Lf, gap({ state: 'off', rank: null, rings: 0 }), { pending: 1, live: 0, no_place: 0 })).toMatchObject({ l2: 'Usually under 2 hours', btn: null, key: 'review' });
@@ -269,7 +269,7 @@ describe('Ranking screen', () => {
     expect([...document.querySelectorAll('.kx-row .kx-pz')].map((e) => e.textContent)).toEqual(['฿500', '฿400', '฿250', '฿150', '฿100']);
     expect([...document.querySelectorAll('.kx-row .kx-tl')].map((e) => e.textContent)).toEqual(['12 to #8', '23 to #8']);
     expect(document.querySelectorAll('[data-rank]').length).toBe(10);
-    expect(document.querySelector('#kxMeNext')!.textContent).toBe('12 Rings to #8 · ฿100');
+    expect(document.querySelector('#kxMeNext')!.textContent).toBe('12 Rings to pass #8 · ฿100');
     expect(document.querySelector('.bx-tt h1')!.textContent).toBe('Weekly Ranking');
     // board V2: the closing time ("Closes Sun 23:59"), or a live countdown in the last 24 h
     expect(document.querySelector('#kxCountdown')!.textContent).toMatch(/^Closes (Sun 23:59|in \d\d:\d\d)$/);
@@ -338,7 +338,7 @@ describe('Rewards screen (simplified)', () => {
       onBack={() => undefined} onClaim={() => undefined} onCode={() => undefined} onHistory={() => undefined} onRanking={() => undefined} onMath={() => undefined} />);
     expect(document.querySelector('#kxWeekN')!.textContent).toBe('107');
     expect(document.querySelector('#kxWeekRank')!.textContent).toContain('#9');
-    expect(document.querySelector('#kxWeekNext')!.textContent).toBe('12 Rings to #8 · ฿100');
+    expect(document.querySelector('#kxWeekNext')!.textContent).toBe('12 Rings to pass #8 · ฿100');
     expect([...document.querySelectorAll('#kxLadder [data-rank]')].map((e) => e.getAttribute('data-amount'))).toEqual(['1500', '900', '600', '500', '400', '250', '150', '100', '0', '0']);
     expect(screen.getByText('Top 8 share ฿4,400 every week')).toBeTruthy();
     expect(document.querySelector('[data-claim-prize="pz1"]')!.textContent).toBe('Claim');
