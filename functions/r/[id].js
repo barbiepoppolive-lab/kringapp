@@ -17,8 +17,17 @@ export async function onRequestGet({ request, params, env }) {
   const short = String(params.id || '').toLowerCase();
   const home = `${url.origin}/app/`;
   // invite-1 (18 Nov): the sharer's invite code rides along (/r/<short>?ref=k00184 → /app/?reel=…&ref=k00184), so the friend who joins is credited.
-  const inv = (url.searchParams.get('ref') || '').toLowerCase();
-  const refQ = /^k[0-9]{5,7}$/.test(inv) ? `ref=${inv}` : '';
+  // r-ref-1 (18 Nov): also a name-style code (NAT44, proposal 0114) and the story-card tracking (utm_*, e.g. utm_content=share-help).
+  // Only safe, short values pass; anything else is dropped. Nothing else from the link reaches the app.
+  const rawInv = (url.searchParams.get('ref') || '').trim();
+  const inv = /^k[0-9]{5,7}$/i.test(rawInv) ? rawInv.toLowerCase() : /^[A-Za-z]{2,8}[0-9]{1,4}$/.test(rawInv) ? rawInv.toUpperCase() : '';
+  const keep = new URLSearchParams();
+  if (inv) keep.set('ref', inv);
+  for (const k of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']) {
+    const v = url.searchParams.get(k) || '';
+    if (/^[A-Za-z0-9._-]{1,40}$/.test(v)) keep.set(k, v);
+  }
+  const refQ = keep.toString();
   const SEC = { 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains', 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'X-Robots-Tag': 'noindex' };
   const go = (to, cookie) => new Response(null, { status: 302, headers: { Location: to, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', ...SEC, ...(cookie ? { 'Set-Cookie': cookie } : {}) } });
   if (!/^[a-z0-9]{6,10}$/.test(short)) return go(home);
