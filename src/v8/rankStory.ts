@@ -44,6 +44,9 @@ export interface ShareCard {
 
 const fmt = (n: number) => Math.max(0, Math.round(n)).toLocaleString('en-US');
 export const isThai = (lang: string) => lang === 'th';
+/** The code people read on a card: the name-style code (NAT44, proposal 0114) when the server has one, else K00037. Links always carry the
+ *  k-code (refCode), which every invite-credit rule understands today. */
+export const displayCode = (vanity: string | null | undefined, kcode: string): string => (vanity && /^[A-Z]{2,6}[0-9]{1,4}$/.test(vanity) ? vanity : (kcode || '').toUpperCase());
 
 /** Every word on a card, in one language. "\n" = a deliberate line break for the big type. */
 export function cardText(c: Pick<ShareCard, 'lang' | 'moment' | 'rank' | 'daysLeft' | 'won' | 'paidN' | 'pool' | 'code'>) {
@@ -210,7 +213,7 @@ function bottomZone(g: G, t: ReturnType<typeof cardText>, th: boolean, o: { ink:
   if (t.pool) { g.fillStyle = o.accent; g.font = `${th ? 700 : 800} 48px ${th ? TH : EN}`; g.fillText(t.pool, o.x, base - 150); }
   g.fillStyle = o.ink; g.font = `800 52px ${EN}`; g.fillText(t.site, o.x, base - 80);
   if (t.code) {   // the code big and clear: the label soft, the code itself bold with a little air between the letters
-    const m = /^(.*?)([A-Z]\d{5,7})$/.exec(t.code);
+    const m = /^(.*?)([A-Z]{1,6}\d{1,7})$/.exec(t.code);
     const lab = m ? m[1] : t.code, code = m ? m[2] : '';
     g.font = `${th ? 600 : 700} 44px ${th ? TH : EN}`;
     const lw = g.measureText(lab).width;
@@ -394,7 +397,7 @@ function poolLine(g: G, text: string, th: boolean, cx: number, y: number) {
 }
 /** kringapp.com · code, one clean line */
 function siteLine(g: G, t: ReturnType<typeof cardText>, th: boolean, cx: number, y: number) {
-  const m = /^(.*?)([A-Z]\d{5,7})$/.exec(t.code);
+  const m = /^(.*?)([A-Z]{1,6}\d{1,7})$/.exec(t.code);
   const lab = (m ? m[1] : t.code).replace(/\s*·\s*$/, ' '), code = m ? m[2] : '';
   const fs = `800 44px ${EN}`, fl = `${th ? 600 : 700} 38px ${th ? TH : EN}`, fc = `800 44px ${EN}`, dot = '  ·  ';
   g.font = fs; const w1 = g.measureText(t.site).width, wd = t.code ? g.measureText(dot).width : 0;

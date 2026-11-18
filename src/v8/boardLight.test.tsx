@@ -204,3 +204,17 @@ describe('board-1: one Share tap', () => {
     expect(await shareCard(blob, { name: 'k.png', caption: '', link: 'L', copy, toast, copied: 'c' })).toBe('saved');
   });
 });
+
+describe('board-1: name-style codes (proposal 0114, not live)', () => {
+  it('cards show NAT44 when the server has one, else K00037; links keep the k-code', async () => {
+    const { displayCode } = await import('./rankStory');
+    expect(displayCode('NAT44', 'k00037')).toBe('NAT44');
+    expect(displayCode(null, 'k00037')).toBe('K00037');
+    expect(displayCode('nat44', 'k00037')).toBe('K00037');            // only the server's uppercase format is trusted
+    expect(cardText({ lang: 'en', moment: 'help', rank: 7, daysLeft: 4, won: 0, paidN: 8, pool: 4400, code: 'NAT44' }).code).toBe('Search Kring · NAT44');
+    const sql = fs.readFileSync(path.join(__dirname, '../../supabase/proposals/0114_kr8_vanity_code.sql'), 'utf8');
+    expect(sql).toMatch(/vanity_code ~ '\^\[A-Z\]\{2,6\}\[0-9\]\{1,4\}\$'/);
+    expect(sql).toMatch(/before insert or update of ref_code on public\.kr8_members/);
+    expect(fs.existsSync(path.join(__dirname, '../../supabase/migrations/0114_kr8_vanity_code.sql'))).toBe(false);   // proposal only
+  });
+});

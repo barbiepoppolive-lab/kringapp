@@ -16,7 +16,7 @@ import { RingToast, rulesVariant, WinSheet, winRules } from './V5KxRules';
 import { BackIcon, Crown, InfoIcon, Medal, PlusIcon, ShareIcon, type Tone } from './BoardArt';
 import { rankDelta, seenRankAtStart } from './prizeRace';
 import { refCode } from './invite';
-import { boardMoment, cardBlob, cardCaption, cardLink, linkCopiedToast, shareCard, storyButtonLabel, storyFileName, type ShareCard } from './rankStory';
+import { boardMoment, displayCode, cardBlob, cardCaption, cardLink, linkCopiedToast, shareCard, storyButtonLabel, storyFileName, type ShareCard } from './rankStory';
 
 type Tx = (en: string) => string;
 type Txf = (en: string, a: string, b?: string) => string;
@@ -281,6 +281,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   /** board-1: the poster of my best (else newest) approved Reel and my invite code, for the "Share my rank" story card */
   const [posterPath, setPosterPath] = useState<string | null>(null);
   const [myNo, setMyNo] = useState<number | null>(null);
+  const [vanity, setVanity] = useState<string | null>(null);
   const [seatsLeft, setSeatsLeft] = useState<number | null>(null);
   useEffect(() => {
     let dead = false;
@@ -300,7 +301,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
       const ok = (m?.reels || []).filter((r) => r.status === 'approved' && r.poster_path);
       setPosterPath((ok.find((r) => r.id === m?.best) || ok.find((r) => r.id === id) || ok[0])?.poster_path || null);
     }).catch(() => { if (!dead) setLatest(null); });
-    Promise.resolve(kxCardExtras()).then((x) => { if (!dead) setMyNo(x?.member_no ?? null); }).catch(() => undefined);
+    Promise.resolve(kxCardExtras()).then((x) => { if (!dead) { setMyNo(x?.member_no ?? null); setVanity(x?.vanity_code ?? null); } }).catch(() => undefined);
     return () => { dead = true; };
   }, [props.myId]);
   const end = data?.ends_at ? Date.parse(data.ends_at) || weekEnd(now) : weekEnd(now);
@@ -361,7 +362,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   const moment = boardMoment(g?.rank, paidN || paid);
   const storyIn: ShareCard | null = canStory && g?.rank ? {
     lang: lang === 'th' ? 'th' : 'en', moment, look: 'B', rank: g.rank, daysLeft: Math.max(0, Math.floor((end - now) / 86_400_000)), won: 0,
-    paidN: paidN || paid, pool, code: refCode(myNo), hero: null,
+    paidN: paidN || paid, pool, code: displayCode(vanity, refCode(myNo)), hero: null,
   } : null;
   const storyLink = cardLink({ origin: location.origin, base: import.meta.env.BASE_URL || '/app/', reel: latest || null, code: refCode(myNo), moment });
   const storyKey = storyIn ? JSON.stringify([{ ...storyIn, daysLeft: 0 }, storyIn.daysLeft, posterPath, props.myPhoto]) : '';
