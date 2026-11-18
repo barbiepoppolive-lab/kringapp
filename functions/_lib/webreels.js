@@ -197,8 +197,8 @@ export const footerHtml = (lang) => (lang === 'th'
   ? '<footer><a href="/">หน้าแรก</a><a href="/bangkok/">ย่านในกรุงเทพฯ</a><a href="/locals/">Kring Locals</a><a href="/partners/">สำหรับร้าน</a><a href="/safety">ความปลอดภัย</a><a href="/terms">ข้อกำหนด</a><a href="/privacy">ความเป็นส่วนตัว</a></footer>'
   : '<footer><a href="/en/">Home</a><a href="/en/bangkok/">Bangkok areas</a><a href="/locals/">Kring Locals</a><a href="/partners/">For venues</a><a href="/safety">Safety</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a></footer>');
 export const endCta = (lang) => (lang === 'th'
-  ? '<div class="end"><a class="btn" href="/app/?join=1">เปิดกริ๊ง! →</a><span class="sub">ฟรี · LINE หรืออีเมล · 20+</span></div>'
-  : '<div class="end"><a class="btn" href="/app/?join=1">Open Kring →</a><span class="sub">Free · LINE or email · 20+</span></div>');
+  ? '<div class="end"><a class="btn" href="/app/?join=1">เปิดกริ๊ง! →</a><span class="sub">ฟรี · LINE หรืออีเมล · 18+</span></div>'
+  : '<div class="end"><a class="btn" href="/app/?join=1">Open Kring →</a><span class="sub">Free · LINE or email · 18+</span></div>');
 
 // ── one Reel ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
 export function reelPage(r, more, lang) {
@@ -269,7 +269,7 @@ export function reelPage(r, more, lang) {
 <p class="who">${th ? 'รีลโดย' : 'Reel by'} <b>${esc(r.name)}</b> · ${esc(area)}${date ? ` · <time datetime="${esc(new Date(r.at).toISOString())}">${esc(date)}</time>` : ''}</p>
 ${caption ? `<p class="cap">${esc(caption)}</p>` : ''}
 <a class="btn" href="/r/${r.short}" rel="nofollow">${th ? 'ดูในกริ๊ง! →' : 'Watch in Kring →'}</a>
-<span class="sub">${th ? 'ฟรี · LINE หรืออีเมล · 20+' : 'Free · LINE or email · 20+'}</span>
+<span class="sub">${th ? 'ฟรี · LINE หรืออีเมล · 18+' : 'Free · LINE or email · 18+'}</span>
 </div>
 </article>
 ${others.length ? `<section><h2>${esc(moreTitle)}</h2>${cardsHtml(others, lang)}</section>` : ''}
@@ -320,7 +320,7 @@ ${reels.length ? '' : '<meta content="noindex" name="robots"/>\n'}<link href="${
 </head>
 <body>
 <div class="top"><a class="logo" href="${th ? '/' : '/en/'}">${th ? 'กริ๊ง<i>!</i>' : 'Kring<i>!</i>'}</a><a class="lg" href="${areaPath(slug, th ? 'en' : 'th')}" hreflang="${th ? 'en' : 'th'}">${th ? 'EN' : 'ไทย'}</a></div>
-<header class="hero"><img alt="${esc(th ? `ย่าน${name} กรุงเทพฯ` : `${name}, Bangkok`)}" fetchpriority="high" src="${hero}"/><div class="in"><p class="bc"><a href="${th ? '/' : '/en/'}">${th ? 'หน้าแรก' : 'Home'}</a> › <a href="${th ? '/bangkok/' : '/en/bangkok/'}">${th ? 'ย่านในกรุงเทพฯ' : 'Bangkok areas'}</a></p><h1>${th ? `หาเพื่อนใหม่ย่าน<em>${esc(name)}</em>` : `Make new friends in <em>${esc(name)}</em>`}</h1><p class="lead">${esc(intro)}</p><a class="btn" href="/app/?join=1">${th ? 'เปิดกริ๊ง! →' : 'Open Kring →'}</a><span class="sub">${th ? 'ฟรี · LINE หรืออีเมล · 20+' : 'Free · LINE or email · 20+'}</span></div></header>
+<header class="hero"><img alt="${esc(th ? `ย่าน${name} กรุงเทพฯ` : `${name}, Bangkok`)}" fetchpriority="high" src="${hero}"/><div class="in"><p class="bc"><a href="${th ? '/' : '/en/'}">${th ? 'หน้าแรก' : 'Home'}</a> › <a href="${th ? '/bangkok/' : '/en/bangkok/'}">${th ? 'ย่านในกรุงเทพฯ' : 'Bangkok areas'}</a></p><h1>${th ? `หาเพื่อนใหม่ย่าน<em>${esc(name)}</em>` : `Make new friends in <em>${esc(name)}</em>`}</h1><p class="lead">${esc(intro)}</p><a class="btn" href="/app/?join=1">${th ? 'เปิดกริ๊ง! →' : 'Open Kring →'}</a><span class="sub">${th ? 'ฟรี · LINE หรืออีเมล · 18+' : 'Free · LINE or email · 18+'}</span></div></header>
 <main>
 ${reels.length ? reelsSection(reels, lang, th ? `รีลล่าสุดจากย่าน${name}` : `Latest Reels from ${name}`)
     : `<section><p>${th ? `ยังไม่มีรีลจากย่าน${esc(name)}บนเว็บ เปิดกริ๊ง! แล้วโพสต์รีลแรกของย่านนี้` : `No Reels from ${esc(name)} on the web yet. Open Kring and post the first one.`}</p></section>`}
