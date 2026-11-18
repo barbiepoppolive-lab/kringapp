@@ -1718,6 +1718,7 @@ function moreView() {
   ];
   screen('more', head('Kring admin', 'More'),
     el('div', { class: 'lt-group' },
+      li('#board', 'trophy', 'Board', 'moreBoard'),   // 18 Nov: moved here from the dock (Growth took its seat)
       li('#viewas', 'eye', 'View as member', 'moreViewAs'),
       li('#autopilot', 'spark', 'Autopilot', 'moreAutopilot'),
       li('#post', 'reel', 'Post a Reel', 'morePost'),
@@ -2358,7 +2359,7 @@ function route() {
   toastEl?.remove(); toastEl = null;
   document.querySelectorAll('.scrim').forEach((n) => n.remove());
   v2Flush();
-  const h = decodeURIComponent(location.hash.replace(/^#/, '')) || 'today';
+  const h = decodeURIComponent(location.hash.replace(/^#/, '')) || 'growth';   // 18 Nov: admin opens on Growth
   const [a, b, c] = h.split('/');
   if (v2Route(a, b)) return;   // admin v2 screens (adminV2.ts)
   if (a === 'q') {

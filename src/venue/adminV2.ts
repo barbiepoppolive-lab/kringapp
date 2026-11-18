@@ -1,5 +1,6 @@
 /**
  * Kring admin v2 (17 Nov): Today · Needs you · People · Money · More (Board, Activity log, all old tools).
+ * 18 Nov (0113): Growth is the first tab and the page admin opens on; Board moved into More (dock stays at 5).
  * One snapshot (0082 kr8_admin_v2_snapshot) feeds every screen, refreshed every 30 s ("updated 12s ago").
  * Real members only by default; "Show test rows" includes test / demo / Kring Team / ghost / admin sign-ins.
  * Reads only through 0082. Writes only through the existing admin RPCs, sent 5 s later so every tap has Undo.
@@ -21,6 +22,7 @@ import {
   type AiSlotStatus, type AutopilotState, type GrowthNudgesPreview, type HealthWatchReport, type MorningBriefData,
   type ProtectOverview, type RobotAlert, type RobotLogRow, type RobotMode, type RobotRow, type SelfFixStatus,
 } from './autopilotLogic';
+import { countryName, flag, groupSources, isGrowth, refLabel, seriesEnds, sparkPath, stepPct, trendWords, visibleRefs, type Growth, type GrowthDays } from './growthLogic';
 import './adminV2.css';
 import { helpSection } from './adminHelp';   // 0097: Help cases (self-contained)
 import { bugSection, viewAsLeave, viewAsView } from './viewAs';   // 0110: View as member + Spot a bug cases
@@ -32,6 +34,7 @@ const LS = (k: string, v?: string): string | null => { try { if (v === undefined
 // ───────── icons ─────────
 const P: Record<string, string> = {
   today: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  growth: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
   inbox: '<path d="M3 13l3-8h12l3 8v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M3 13h5l1.5 3h5L16 13h5"/>',
   people: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M17 14.5c2.4.2 4 1.8 4.5 4.5"/>',
   money: '<rect x="3" y="6" width="18" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 9.5v5M17.5 9.5v5"/>',
@@ -141,7 +144,7 @@ function toast(text: string, undo?: () => void) {
 }
 
 // ───────── shell ─────────
-export type V2Tab = 'today' | 'inbox' | 'people' | 'board' | 'money' | 'more';
+export type V2Tab = 'growth' | 'today' | 'inbox' | 'people' | 'board' | 'money' | 'more';
 /** 0097: members waiting in Help also count in the Needs you badge (last known count, refreshed by helpSection) */
 let helpWaiting = 0;
 let bugsWaiting = 0;   // 0110: open "Spot a bug" cases also count in the Needs you badge
@@ -158,9 +161,10 @@ function setHelpWaiting(n: number) {
 }
 export function v2Tabbar(active: V2Tab): HTMLElement {
   const n = decisionsCount() + helpWaiting + bugsWaiting;
-  const items: [V2Tab, string, string, string][] = [['today', 'today', 'Today', '#today'], ['inbox', 'inbox', 'Needs you', '#inbox'], ['people', 'people', 'People', '#people'],
-    ['board', 'trophy', 'Board', '#board'], ['more', 'more', 'More', '#more']];
-  const on = active === 'money' ? 'more' : active;
+  // 18 Nov (0113): Growth first (the page admin opens on); Board lives in More so the dock stays at 5
+  const items: [V2Tab, string, string, string][] = [['growth', 'growth', 'Growth', '#growth'], ['today', 'today', 'Today', '#today'], ['inbox', 'inbox', 'Needs you', '#inbox'],
+    ['people', 'people', 'People', '#people'], ['more', 'more', 'More', '#more']];
+  const on = active === 'money' || active === 'board' ? 'more' : active;
   return el('div', { class: 'tabbar v2bar' }, el('nav', {}, ...items.map(([k, i, label, href]) =>
     el('a', { href, class: k === on ? 'on' : '', id: 'tab-' + k, 'aria-current': k === on ? 'page' : undefined },
       ic(i), label, k === 'inbox' && n ? el('span', { class: 'bdg', id: 'inboxBadge' }, String(n)) : null))));
@@ -346,6 +350,130 @@ function paintPhotos() {
     if (ph.classList.contains('v2pc-img')) { (ph as HTMLElement).style.backgroundImage = `url("${src}")`; ph.classList.remove('none'); ph.textContent = ''; }
     else { const img = el('img', { class: 'v2av', src, alt: '', style: (ph as HTMLElement).getAttribute('style') || '' }); ph.replaceWith(img); }
   });
+}
+
+// ───────── Growth (0113): the page admin opens on ─────────
+/** founder 18 Nov: "growth status should be the default page in admin" — visitors, where from, who comes back, which links bring members */
+const growthCache = new Map<GrowthDays, { at: number; g: Growth }>();
+let growthDays: GrowthDays = (Number(LS('kr8-v2-gp')) as GrowthDays) || 7;
+if (![1, 7, 30].includes(growthDays)) growthDays = 7;
+const fmt = (n: number) => n.toLocaleString('en-US');
+async function loadGrowth(days: GrowthDays, force = false): Promise<Growth> {
+  const c = growthCache.get(days);
+  if (!force && c && Date.now() - c.at < 60_000) return c.g;
+  const g = await rpc<unknown>('kr8_admin_growth', { p_days: days });
+  if (!isGrowth(g)) throw new Error('Growth needs database update 0113');
+  growthCache.set(days, { at: Date.now(), g });
+  return g;
+}
+function sparkline(g: Growth): HTMLElement {
+  const vals = g.series.map((x) => x.visitors);
+  const { line, area, max } = sparkPath(vals, 320, 64);
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 320 64'); svg.setAttribute('preserveAspectRatio', 'none'); svg.setAttribute('class', 'gr-spark');
+  svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', `Visitors ${g.days === 1 ? 'per hour today' : 'per day'}, highest ${max}`);
+  svg.innerHTML = `<defs><linearGradient id="grFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff4fd8" stop-opacity=".32"/><stop offset="1" stop-color="#ff4fd8" stop-opacity="0"/></linearGradient></defs>`
+    + `<path d="${area}" fill="url(#grFill)"/><path d="${line}" fill="none" stroke="#ff4fd8" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
+  const [a, b] = seriesEnds(g.series, g.days);
+  return el('div', { class: 'gr-sparkwrap', id: 'grSpark' }, svg, el('div', { class: 'gr-sparkx' }, el('span', {}, a), el('span', {}, `peak ${max}`), el('span', {}, b)));
+}
+function growthBody(g: Growth): HTMLElement[] {
+  const retPct = g.visitors ? Math.round((g.returning / g.visitors) * 100) : 0;
+  const trend = trendWords(g.visitors, g.visitors_prev, g.days);
+  const up = g.visitors >= g.visitors_prev;
+  const stat = (id: string, val: string, label: string) => el('div', { class: 'gr-stat', id }, el('b', {}, val), el('span', {}, label));
+  const hero = el('section', { class: 'gr-hero', id: 'grHero' },
+    el('div', { class: 'gr-big' },
+      el('div', {}, el('b', { id: 'grVisitors' }, fmt(g.visitors)), el('span', {}, 'visitors')),
+      trend ? el('small', { class: `gr-trend ${up ? 'up' : 'down'}` }, trend) : null),
+    sparkline(g),
+    el('div', { class: 'gr-grid' },
+      stat('grVisits', fmt(g.visits), 'Visits'),
+      stat('grReturning', `${fmt(g.returning)}`, `Came back · ${retPct}%`),
+      stat('grSignins', fmt(g.signins), 'New sign-ins'),
+      stat('grCards', fmt(g.cards), 'New cards'),
+      stat('grReels', fmt(g.first_reels), 'First Reels'),
+      stat('grInstalls', fmt(g.app_installs), 'App installs')));
+
+  // funnel: visitors, then ONE group of people (signed in this period → made a card → posted a Reel)
+  const f: [string, number, number][] = [['Visitors', g.visitors, 0], ['Signed in', g.funnel.signed_in, g.visitors], ['Card made', g.funnel.card, g.funnel.signed_in], ['First Reel', g.funnel.reel, g.funnel.card]];
+  const pcts = f.slice(1).map(([, n, of]) => (of ? n / of : 1));
+  const low = Math.min(...pcts);
+  const funnel = el('div', { class: 'v2funnel gr-funnel', id: 'grFunnel' }, ...f.map(([t, n, of], k) => el('div', { class: 'v2fun' },
+    el('span', {}, t), el('i', {}, el('u', { style: `width:${Math.max(n ? 3 : 0, Math.round((n / Math.max(1, g.visitors)) * 100))}%` })), el('b', {}, fmt(n)),
+    el('small', { class: k && of && n / of === low ? 'low' : '' }, k ? stepPct(n, of) : ''))));
+
+  const src = groupSources(g.sources);
+  const sources = el('div', { class: 'lt-list', id: 'grSources' }, ...(src.length ? src.map((x) => el('div', { class: 'v2li gr-row', 'data-src': x.key, title: x.hosts.join(', ') || undefined },
+    el('span', { class: `gr-dot s-${x.key}` }),
+    el('div', { class: 'grow' }, el('b', {}, x.label), el('i', { class: 'gr-bar' }, el('u', { style: `width:${Math.max(2, x.share)}%` })),
+      x.key === 'other' && x.hosts.length ? el('small', {}, x.hosts.join(' · ')) : null),
+    el('div', { class: 'gr-n' }, el('b', {}, fmt(x.visitors)), el('small', {}, `${x.share}%`))))
+    : [el('div', { class: 'v2sub gr-none' }, 'No visitors in this period yet.')]));
+
+  const refs = visibleRefs(g.refs);
+  const refRow = (r: (typeof refs)[number]) => el('div', { class: 'v2li gr-row', 'data-ref': r.ref },
+    el('span', { class: 'gr-ic' }, ic('link')),
+    el('div', { class: 'grow' }, el('b', {}, refLabel(r)),
+      el('small', {}, `${fmt(r.visitors)} visitor${r.visitors === 1 ? '' : 's'} · ${r.reels} posted a Reel`)),
+    el('div', { class: 'gr-n' }, el('b', { class: r.joined ? 'hot' : '' }, fmt(r.joined)), el('small', {}, 'joined')));
+  const head = refs.slice(0, 6); const rest = refs.slice(6);
+  const recruit = el('div', { class: 'lt-list', id: 'grRefs' },
+    ...(refs.length ? head.map(refRow) : [el('div', { class: 'v2sub gr-none' }, 'No recruiter or invite link was used in this period.')]),
+    rest.length ? fold('grRefsMore', foldHead(`${rest.length} more link${rest.length === 1 ? '' : 's'}`), rest.map(refRow)) : null,
+    el('a', { class: 'v2li gr-row', href: '#recruiters', id: 'grInstallsRow' }, el('span', { class: 'gr-ic' }, ic('reel')),
+      el('div', { class: 'grow' }, el('b', {}, 'App installs opened'), el('small', {}, g.share_opens === null ? 'Kring added to a home screen' : `Shared Reel links opened: ${fmt(g.share_opens)}`)),
+      el('div', { class: 'gr-n' }, el('b', {}, fmt(g.app_installs)), el('small', {}, 'installs'))));
+
+  const cMax = Math.max(1, ...g.countries.map((c) => c.visitors));
+  const countries = el('div', { class: 'lt-list', id: 'grCountries' }, ...(g.countries.length ? g.countries.map((c) => el('div', { class: 'v2li gr-row' },
+    el('span', { class: 'gr-flag' }, flag(c.country) || '🌐'),
+    el('div', { class: 'grow' }, el('b', {}, countryName(c.country)), el('i', { class: 'gr-bar c' }, el('u', { style: `width:${Math.max(2, Math.round((c.visitors / cMax) * 100))}%` }))),
+    el('div', { class: 'gr-n' }, el('b', {}, fmt(c.visitors)))))
+    : [el('div', { class: 'v2sub gr-none' }, 'No visitors in this period yet.')]));
+
+  const sec = (t: string, note: string, id: string) => el('div', { class: 'v2sec gr-sec' }, t, info(note, id));
+  return [hero,
+    sec('Visitor to Reel', 'Visitors = phones that opened the site or app. The next three steps follow ONE group: people who signed in during this period, how many of them made a card, and how many of them posted a Reel. The % is step to step; the weakest step is pink.', 'grFunnelInfo'), funnel,
+    sec('Where visitors come from', 'Each visitor counts once, by the site that sent their first visit in this period. Direct / in-app = no site was passed on (typed link, home-screen app, many in-app browsers). Shared links = a ?ref= link with no site passed on. Test phones, robots, localhost and preview links are left out.', 'grSrcInfo'), sources,
+    sec('Recruiter links', 'Visitors = phones that opened a ?ref= link. Joined = real members who made a card in this period with that code (or were credited to it). The code is saved on the card, so a sign-in without a card cannot be tied to a link. Test, demo and perf links are hidden.', 'grRefInfo'), recruit,
+    sec('Countries', 'Top 8 countries of this period\'s visitors (from the visit counter; Unknown = not sent).', 'grCtyInfo'), countries,
+    el('p', { class: 'gr-foot' }, `Bangkok days · ${g.from === g.to ? g.to : `${g.from} → ${g.to}`} · came back = also visited on an earlier day`)];
+}
+export function growthView() {
+  stopV2();
+  const periods: [GrowthDays, string][] = [[1, 'Today'], [7, '7 days'], [30, '30 days']];
+  const chips = el('div', { class: 'v2chips gr-period', role: 'tablist', id: 'grPeriod' });
+  const body = el('div', { id: 'grBody' }, loadingCard());
+  const fresh = el('button', { type: 'button', class: 'v2fresh', id: 'grFresh', title: 'Tap to refresh now' }, 'Loading…');
+  const hd = el('header', { class: 'v2hd' }, el('span', { class: 'v2dot' }),
+    el('div', { class: 'grow' }, el('h1', {}, 'Growth'), el('div', { class: 'v2sub', id: 'grSub' }, 'Visitors, sources and sign-ups')), fresh);
+  let gotAt = 0;
+  const paintChips = () => chips.replaceChildren(...periods.map(([d, t]) => {
+    const b = el('button', { type: 'button', role: 'tab', class: d === growthDays ? 'on' : '', 'aria-selected': String(d === growthDays), id: `grP${d}` }, t);
+    b.onclick = () => { if (growthDays === d) return; growthDays = d; LS('kr8-v2-gp', String(d)); paintChips(); void paint(false); };
+    return b;
+  }));
+  const paint = async (force: boolean) => {
+    const want = growthDays;
+    if (!growthCache.has(want) || force) body.querySelector('.gr-hero')?.classList.add('gr-dim');
+    if (!body.querySelector('.gr-hero')) body.replaceChildren(loadingCard());
+    try {
+      const g = await loadGrowth(want, force);
+      if (want !== growthDays || (location.hash !== '' && location.hash !== '#growth')) return;
+      gotAt = growthCache.get(want)?.at || Date.now();
+      fresh.textContent = `Updated ${ago(new Date(gotAt).toISOString())}`;
+      body.replaceChildren(...growthBody(g));
+    } catch (e) { body.replaceChildren(errorCard(e)); fresh.textContent = 'Tap to retry'; }
+  };
+  fresh.onclick = () => { fresh.textContent = 'Refreshing…'; void paint(true); };
+  paintChips();
+  screen('growth', hd, chips, body);
+  void paint(false);
+  // the Needs you badge on the dock still shows (it comes from the admin snapshot)
+  void loadSnapshot().then(() => { if (location.hash === '' || location.hash === '#growth') app().querySelector('.v2bar')?.replaceWith(v2Tabbar('growth')); }).catch(() => undefined);
+  pollTimer = window.setInterval(() => { if (document.visibilityState === 'visible' && (location.hash === '' || location.hash === '#growth')) void paint(true); }, 120_000);
+  tickTimer = window.setInterval(() => { if (gotAt && document.getElementById('grFresh') === fresh) fresh.textContent = `Updated ${ago(new Date(gotAt).toISOString())}`; }, 5000);
 }
 
 // ───────── Needs you: one case per card ─────────
@@ -687,7 +815,7 @@ export function boardView() {
     void loadPhotos(s.board.rows.map((r) => r.user_id)).then(paintPhotos);
     const wk = new Date(s.board.week_start).toLocaleDateString('en-GB', { timeZone: 'Asia/Bangkok', day: 'numeric', month: 'short' });
     // the rules (week start, how many win, Rings to qualify) live behind ⓘ; each row: rank, face, name, Rings, one small line, only odd flags
-    screen('board', header('Board', el('span', {}, `Ends ${weekLeft(s)}`, info(`Week from Mon ${wk} (Bangkok). Top ${s.board.paid_ranks} win a prize. ${s.board.floor} Rings to qualify. Tap a row for likes, saves and opens.`, 'v2BoardInfo'))),
+    screen('board', header('Board', el('span', {}, `Ends ${weekLeft(s)}`, info(`Week from Mon ${wk} (Bangkok). Top ${s.board.paid_ranks} win a prize. ${s.board.floor} Rings to qualify. Tap a row for likes, saves and opens.`, 'v2BoardInfo')), '#more'),
       el('div', { class: 'lt-list', id: 'v2Board' }, ...s.board.rows.map((r) => {
         const p = byId.get(r.user_id);
         const fl = [r.opens && !(r.likes || 0) && !(r.saves || 0) ? chip('opens only', 'a') : null,
@@ -699,7 +827,7 @@ export function boardView() {
           el('b', { class: 'v2rings' }, String(r.rings)));
       })),
       el('a', { class: 'v2pri', href: '#week', id: 'v2WeekGo' }, 'Approve last week', ic('chev')));
-  }, header('Board'));
+  }, header('Board', undefined, '#more'));
 }
 
 // ───────── Activity log ─────────
@@ -1506,7 +1634,8 @@ export async function autopilotView() {
 export function v2Route(a: string, b?: string): boolean {
   viewAsLeave();
   if (a === 'viewas') { stopV2(); viewAsView((...kids) => screen('more', ...kids)); return true; }
-  if (a === 'today' || a === '') { todayView(); return true; }
+  if (a === 'growth' || a === '') { growthView(); return true; }
+  if (a === 'today') { todayView(); return true; }
   if (a === 'inbox') { inboxView(); return true; }
   if (a === 'auto') { autoView(); return true; }
   if (a === 'people') { peopleView(); return true; }
