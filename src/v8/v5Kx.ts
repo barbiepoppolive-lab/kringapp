@@ -82,8 +82,10 @@ export const kxRanking = (scope: KxScope) => rpc<KxRanking>('kr8_weekly_ranking'
 export const kxSeatsLeft = () => rpc<number | null>('kr8_seats_left');
 export interface KxMathReel { post_id: string; posted_at: string; poster_path: string | null; place: string | null; place_th: string | null;
   l_local: number; l_trav: number; s_local: number; s_trav: number; opens: number; score: number }
-export interface KxBreakdown { user_id: string; first_name: string; is_me: boolean; rings: number; rank: number | null; more: number;
+export interface KxBreakdown { user_id: string; first_name: string; is_me: boolean; rings: number; rank: number | null; more: number; invites?: number;
   weights: { like: number; save: number; open: number; mult: number; cap: number; best: number }; reels: KxMathReel[] }
+/** 0109: friends who joined with my link and passed the face check (Me line). null when signed out or the server is older. */
+export const kxMyInvites = () => rpc<{ friends: number; rings: number; x: number } | null>('kr8_my_invites');
 export const kxBreakdown = (user: string) => rpc<KxBreakdown>('kr8_score_breakdown', { p_user: user });
 
 // ───────────── share link (/r/<short>) ─────────────

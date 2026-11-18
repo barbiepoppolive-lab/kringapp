@@ -1,0 +1,184 @@
+// invite-1 (18 Nov): one-tap invite sharing — share URL, LINE fallback, hint text, and the 0109 credit rules.
+import { describe, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { friendsLine, inviteHint, lineShareUrl, oneTapShare, pickChannel, refCode, shareText, withRef } from './invite';
+
+const UA = {
+  iphone: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+  line: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari Line/14.3.0',
+  android: 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36',
+  desktop: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
+};
+const BANNED = /\b(meet|guide|tour|host|creator|reviews|hidden gem|alcohol|gift|wallet|credit|lucky|draw|temples)\b|ลุ้น/i;
+
+describe('share URL carries my invite code once', () => {
+  it('member number → k00184', () => {
+    expect(refCode(184)).toBe('k00184');
+    expect(refCode('562')).toBe('k00562');
+    expect(refCode(null)).toBe('');
+    expect(refCode(0)).toBe('');
+  });
+  it('appends ?ref= to a plain link and & to a link with a query', () => {
+    expect(withRef('https://kringapp.com/r/abc2345', 'k00184')).toBe('https://kringapp.com/r/abc2345?ref=k00184');
+    expect(withRef('https://kringapp.com/app/?reel=1f', 'k00184')).toBe('https://kringapp.com/app/?reel=1f&ref=k00184');
+  });
+  it('never duplicates: sharing a link twice, or a link that already has a ref, gives exactly one ref', () => {
+    const once = withRef('https://kringapp.com/app/?u=9', 'k00184');
+    const twice = withRef(once, 'k00184');
+    expect(twice).toBe(once);
+    expect(twice.match(/ref=/g)).toHaveLength(1);
+    const other = withRef('https://kringapp.com/app/?ref=pich&place=x#top', 'k00184');
+    expect(other.match(/ref=/g)).toHaveLength(1);
+    expect(other).toBe('https://kringapp.com/app/?place=x&ref=k00184#top');
+  });
+  it('no code (signed out / no card) or a bad code → the link is unchanged', () => {
+    expect(withRef('https://kringapp.com/app/?reel=1', '')).toBe('https://kringapp.com/app/?reel=1');
+    expect(withRef('https://kringapp.com/app/?reel=1', 'pich')).toBe('https://kringapp.com/app/?reel=1');
+    expect(withRef('https://kringapp.com/app/?reel=1', '<x>')).toBe('https://kringapp.com/app/?reel=1');
+  });
+});
+
+describe('one tap', () => {
+  const deps = (over: Partial<Parameters<typeof oneTapShare>[1]> = {}) => ({
+    ua: UA.iphone, lang: 'en', open: vi.fn(), copy: vi.fn(async () => true), toast: vi.fn(), share: vi.fn(async () => undefined), ...over,
+  });
+  const P = { title: 'Kring · กริ๊ง!', text: shareText('th', 'my_reel'), url: 'https://kringapp.com/r/abc2345?ref=k00184' };
+
+  it('LINE fallback URL is LINE’s official share picker with the text and link', () => {
+    expect(lineShareUrl('สวัสดี', 'https://kringapp.com/r/x?ref=k00184'))
+      .toBe(`https://line.me/R/share?text=${encodeURIComponent('สวัสดี\nhttps://kringapp.com/r/x?ref=k00184')}`);
+  });
+  it('picks the channel: LINE browser → LINE picker; share sheet → native; phone without it → LINE; computer → copy', () => {
+    expect(pickChannel(UA.line, true)).toBe('line');
+    expect(pickChannel(UA.iphone, true)).toBe('native');
+    expect(pickChannel(UA.android, false)).toBe('line');
+    expect(pickChannel(UA.desktop, false)).toBe('copy');
+  });
+  it('phone: opens the share sheet straight away with title, one line and the link (nothing else)', async () => {
+    const d = deps();
+    expect(await oneTapShare(P, d)).toBe('native');
+    expect(d.share).toHaveBeenCalledTimes(1);
+    expect(d.share).toHaveBeenCalledWith({ title: P.title, text: P.text, url: P.url });
+    expect(d.open).not.toHaveBeenCalled();
+    expect(d.toast).not.toHaveBeenCalled();
+  });
+  it('inside LINE: one tap opens line.me/R/share, never the share sheet', async () => {
+    const d = deps({ ua: UA.line });
+    expect(await oneTapShare(P, d)).toBe('line');
+    expect(d.open).toHaveBeenCalledWith(lineShareUrl(P.text, P.url));
+    expect(d.share).not.toHaveBeenCalled();
+  });
+  it('closing the share sheet is not a share (no copy, no toast)', async () => {
+    const d = deps({ share: vi.fn(async () => { throw Object.assign(new Error('x'), { name: 'AbortError' }); }) });
+    expect(await oneTapShare(P, d)).toBe('cancelled');
+    expect(d.copy).not.toHaveBeenCalled();
+  });
+  it('anything else: copy the link + a small "Link copied" toast', async () => {
+    const d = deps({ ua: UA.desktop, share: null });
+    expect(await oneTapShare(P, d)).toBe('copy');
+    expect(d.copy).toHaveBeenCalledWith(P.url);
+    expect(d.toast).toHaveBeenCalledWith('Link copied');
+    const t = deps({ ua: UA.desktop, share: null, lang: 'th' });
+    await oneTapShare(P, t);
+    expect(t.toast).toHaveBeenCalledWith('คัดลอกลิงก์แล้ว');
+    const refused = deps({ share: vi.fn(async () => { throw Object.assign(new Error('x'), { name: 'NotAllowedError' }); }) });
+    expect(await oneTapShare(P, refused)).toBe('copy');
+  });
+});
+
+describe('copy: one language at a time, founder wording, no banned words', () => {
+  it('reward hint, Thai mode = Thai only, English mode = English only, X from config', () => {
+    expect(inviteHint('th')).toBe('เพื่อนไลก์ = ขึ้นอันดับ · +10 ริง');
+    expect(inviteHint('en')).toBe('Friends’ likes = you climb · +10 Rings');
+    expect(inviteHint('th', 25)).toBe('เพื่อนไลก์ = ขึ้นอันดับ · +25 ริง');
+    expect(inviteHint('en', 0)).toContain('+10');   // 0 / missing → default
+    expect(inviteHint('th')).not.toMatch(/[A-Za-z]/);
+    expect(inviteHint('en')).not.toMatch(/[฀-๿]/);
+  });
+  it('share text: a short challenge, one line, one language', () => {
+    expect(shareText('th', 'my_reel')).toBe('ช่วยกดไลก์คลิปนี้หน่อย! ยิ่งไลก์ยิ่งได้ขึ้นอันดับบนกริ๊ง! 🔥');
+    expect(shareText('en', 'my_reel')).toBe('Help me climb! Every like and save on Kring pushes me up the board 🔥');
+    for (const lang of ['th', 'en']) for (const k of ['my_reel', 'reel', 'my_profile', 'profile', 'place'] as const) {
+      const t = shareText(lang, k, lang === 'th' ? 'มิ้นท์' : 'Mint');
+      expect(t).not.toMatch(/\n/);
+      expect(t.length).toBeLessThan(90);
+      expect(t).not.toMatch(BANNED);
+      if (lang === 'th') expect(t.replace(/Kring/g, '')).not.toMatch(/[A-Za-z]/); else expect(t).not.toMatch(/[฀-๿]/);
+    }
+  });
+  it('Me line', () => {
+    expect(friendsLine('en', 2, 20)).toBe('Friends joined: 2 · +20 Rings');
+    expect(friendsLine('th', 2, 20)).toBe('เพื่อนที่ชวนมา: 2 · +20 ริง');
+    expect(`${inviteHint('en')} ${friendsLine('en', 1, 10)}`).not.toMatch(BANNED);
+  });
+  it('the app never draws Rings as 💍 next to share', () => {
+    for (const f of ['src/v8/invite.ts', 'src/v8/V5Invite.tsx']) expect(readFileSync(f, 'utf8')).not.toContain('💍');
+  });
+});
+
+describe('app wiring: every share goes through the one tap with my code', () => {
+  const app = readFileSync('src/v8/KringAppV8.tsx', 'utf8');
+  it('no intermediate Reel share sheet; the feed Share opens the share at once', () => {
+    expect(app).not.toContain('id="sh-reelshare"');
+    expect(app).not.toContain("openReelSheet(p, 'reelshare')");
+    expect(app).toContain('onClick={() => void shareReel(p)}');
+  });
+  it('profile, invite, Reel and place links all add my ref', () => {
+    expect(app).toMatch(/const tapShare = [\s\S]{0,120}withRef\(url, getMyRef\(\)\)/);
+    expect(app).toContain("shareUrl={(id) => withRef(");
+    for (const fn of ['const shareProfile', 'const kxShareInvite', 'const kxShareReelId', 'const shareReel']) {
+      const body = app.slice(app.indexOf(fn), app.indexOf(fn) + 700);
+      expect(body).toContain('tapShare(');
+      expect(body).not.toContain('navigator.share(');
+    }
+  });
+  it('hint only next to existing share buttons (Board + post-success)', () => {
+    expect(readFileSync('src/v8/V5KxRanking.tsx', 'utf8')).toContain('{share ? <InviteHint lang={lang} x={cfg?.invite} /> : null}');
+    expect(app.match(/<InviteHint /g)).toHaveLength(1);   // post-success only (the Board has its own)
+  });
+});
+
+describe('0109 credit rules (SQL)', () => {
+  const sql = readFileSync('supabase/migrations/0109_kr8_invite_rings.sql', 'utf8');
+  const fn = (name: string) => { const i = sql.indexOf(`function public.${name}(`); return sql.slice(i, sql.indexOf('$$;', i)); };
+  it('is one transaction, re-runnable, with an UNDO block', () => {
+    expect(sql).toMatch(/^begin;$/m);
+    expect(sql).toMatch(/^commit;$/m);
+    expect(sql).toContain('-- UNDO');
+    expect(sql).toContain("on conflict (key) do nothing");
+    expect(sql).not.toMatch(/create function /);   // always create or replace
+  });
+  it('X and the daily cap live in kr8_rings_config (default 10 / 20)', () => {
+    expect(sql).toContain("('invite', 10,");
+    expect(sql).toContain("('invite_day_cap', 20,");
+    expect(fn('kr8_invite_try')).toContain("public.kr8_rcfg('invite', 10)");
+    expect(fn('kr8_invite_try')).toContain("public.kr8_rcfg('invite_day_cap', 20)");
+  });
+  it('only after the face check, once per pair, both people, daily cap', () => {
+    const t = fn('kr8_invite_try');
+    expect(t).toContain('not coalesce(f.verified, false)');
+    expect(t).toContain("reason = 'invite' and ref_id = p_friend::text");
+    expect(t).toContain("'invite', p_friend::text) on conflict do nothing");
+    expect(t).toContain("'invite_welcome', inv::text) on conflict do nothing");
+    expect(t).toContain('kr8_bkk_day_start(now())');
+    expect(t).toContain('pg_advisory_xact_lock');
+  });
+  it('no self-invite, no test, no ghost, no duplicate / look-alike accounts (network flags never block)', () => {
+    const ok = fn('kr8_invite_pair_ok');
+    expect(ok).toContain('p_inviter <> p_friend');
+    expect(ok).toContain('kr8_is_test_member(p_inviter)');
+    expect(ok).toContain('kr8_is_test_member(p_friend)');
+    expect(ok).toContain('coalesce(f.ghost, false)');
+    expect(ok).toContain('coalesce(i.ghost, false)');
+    expect(ok).toContain("l.reason in ('face', 'face_maybe', 'device')");
+    expect(ok).not.toContain("'network'");
+  });
+  it('counts on the board through the ledger, re-checked when read', () => {
+    expect(fn('kr8_week_board')).toContain('kr8_invite_rings(m.author, p_w0, p_w0 + interval');
+    expect(fn('kr8_invite_rings')).toContain('kr8_invite_pair_ok');
+    expect(fn('kr8_score_breakdown')).toContain("'invites', inv");
+    expect(sql).toContain("'invite', 'invite_welcome'));");
+    expect(sql).toContain('grant execute on function public.kr8_my_invites() to authenticated');
+    expect(sql).toMatch(/revoke all on function public\.kr8_invite_try\(uuid\) from public, anon, authenticated/);
+  });
+});
