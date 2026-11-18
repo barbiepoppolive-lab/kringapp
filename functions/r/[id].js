@@ -16,6 +16,9 @@ export async function onRequestGet({ request, params, env }) {
   const url = new URL(request.url);
   const short = String(params.id || '').toLowerCase();
   const home = `${url.origin}/app/`;
+  // invite-1 (18 Nov): the sharer's invite code rides along (/r/<short>?ref=k00184 → /app/?reel=…&ref=k00184), so the friend who joins is credited.
+  const inv = (url.searchParams.get('ref') || '').toLowerCase();
+  const refQ = /^k[0-9]{5,7}$/.test(inv) ? `ref=${inv}` : '';
   const SEC = { 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains', 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'X-Robots-Tag': 'noindex' };
   const go = (to, cookie) => new Response(null, { status: 302, headers: { Location: to, 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', ...SEC, ...(cookie ? { 'Set-Cookie': cookie } : {}) } });
   if (!/^[a-z0-9]{6,10}$/.test(short)) return go(home);
@@ -50,8 +53,8 @@ export async function onRequestGet({ request, params, env }) {
   // When the Reel could not be looked up (no SHARE_OPEN_KEY, database slow), it is a generic Kring card that still opens the app.
   const found = !!(out && out.post_id);
   if (!found) out = {};
-  const to = found ? `${home}?reel=${encodeURIComponent(out.post_id)}${out.open_id ? `&so=${encodeURIComponent(out.open_id)}` : ''}` : home;
-  if (!found && !ROBOT.test(ua)) return go(home, cookie);
+  const to = found ? `${home}?reel=${encodeURIComponent(out.post_id)}${out.open_id ? `&so=${encodeURIComponent(out.open_id)}` : ''}${refQ ? `&${refQ}` : ''}` : (refQ ? `${home}?${refQ}` : home);
+  if (!found && !ROBOT.test(ua)) return go(to, cookie);
   if (ROBOT.test(ua)) {   // link-preview robots get a small card instead of the app
     const title = found ? `${out.name || 'Kring'} · ${out.area || 'Bangkok'} · Kring · กริ๊ง!` : 'A Bangkok Reel on Kring · กริ๊ง!';
     const desc = out.body || 'Share your Bangkok. Make new friends.';
