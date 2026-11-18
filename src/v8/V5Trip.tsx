@@ -19,6 +19,15 @@ export const TRIP_PARTNERS: TripPartner[] = [
   { id: 'radicalstorage', need: 'Leave your bags', icon: 'bag', name: 'Radical Storage', sub: 'Short-term bag storage in Bangkok', cta: 'Find a spot', url: 'https://radicalstorage.tpk.mx/RsPrWtrl', tone: 'tea', photo: 'radicalstorage' },
 ];
 
+/** deals-1 (18 Nov, founder approved; T-397): one full-width TAGTHAi Bangkok Pass card on top of "For your trip".
+ *  Public price only ("From ฿2,590", never a member price or discount), whole card opens TAGTHAi in a new tab, rel="sponsored".
+ *  No TAGTHAi logo is stored: the brand is spelled out (TAGTHAi, lowercase i). Photo: Kring's own One Bangkok skyline place photo (no yellow-lit royal bridge). */
+export const TRIP_FEATURE = {
+  id: 'tagthai_bkk', need: 'Bangkok sightseeing pass', name: 'TAGTHAi', pass: 'Bangkok Pass', trust: 'Official Thailand pass', price: 'From ฿2,590',
+  sub: 'Pick 5 spots in 3 days · Mahanakhon SkyWalk, river boat, Museum Siam & more', photo: 'media/places/one-bangkok.jpg',
+  url: 'https://www.tagthai.com/pass/bangkok-day-pass?affid=kringbkk&utm_campaign=kringbkk&utm_medium=affiliate&utm_source=kringbkk&utmid=54&utm_content=Kring-deals',
+};
+
 /** One clean line icon per need (no brand logos are kept in the repo). */
 const ICONS: Record<string, ReactNode> = {
   esim: <><path d="M8 3h6l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" /><path d="M9.5 17v-2.5M12 17v-4.5M14.5 17v-6.5" /></>,
@@ -55,6 +64,19 @@ export function TripPerks(props: { L: Tx }) {
       {info ? (
         <p className="ktrip-infop" id="tripInfo">{L('Trusted travel partners')}</p>
       ) : null}
+      <a className="ktrip-feat" data-partner={TRIP_FEATURE.id} href={TRIP_FEATURE.url} target="_blank" rel="noopener noreferrer sponsored">
+        <span className="ktrip-photo" aria-hidden="true" style={{ backgroundImage: `url('${base}${TRIP_FEATURE.photo}')` }} />
+        <span className="ktrip-feat-top">
+          <span className="ktrip-badge" role="img" aria-label={L(TRIP_FEATURE.need)}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">{ICONS.ticket}</svg>
+          </span>
+          <TwoLine L={L} en={TRIP_FEATURE.trust} className="ktrip-pill" />
+          <TwoLine L={L} en={TRIP_FEATURE.price} className="ktrip-pill ktrip-price" />
+        </span>
+        <b className="ktrip-name">{TRIP_FEATURE.name} · <TwoLine L={L} en={TRIP_FEATURE.pass} className="ktrip-pass" /></b>
+        <TwoLine L={L} en={TRIP_FEATURE.sub} className="ktrip-sub" />
+        <span className="ktrip-go" aria-hidden="true">↗</span>
+      </a>
       <div className="ktrip-grid">
         {TRIP_PARTNERS.map((p) => (
           <a key={p.id} className={`ktrip-card ${p.tone}`} data-partner={p.id} href={p.url} target="_blank" rel="noopener noreferrer sponsored">

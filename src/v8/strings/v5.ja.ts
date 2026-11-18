@@ -460,6 +460,12 @@ const T: Record<string, string> = {
     'See ideas': 'アイデアを見る',
     'Find a spot': '場所を探す',
     'Kring may earn a small commission. It never changes your price.': 'Kring は少額の手数料を受け取る場合がありますが、お支払い額は変わりません。',
+    // deals-1 (18 Nov): TAGTHAi Bangkok Pass card on top of For your trip
+    'Official Thailand pass': 'タイ公式の観光パス',
+    'From ฿2,590': '฿2,590〜',
+    'Bangkok Pass': 'バンコクパス',
+    'Pick 5 spots in 3 days · Mahanakhon SkyWalk, river boat, Museum Siam & more': '3日間で5か所を選べる · マハナコン・スカイウォーク、チャオプラヤー川の船、ミュージアム・サイアムなど',
+    'Bangkok sightseeing pass': 'バンコク観光パス',
     // Reel trim step (16 Nov)
     'Trim your clip': 'クリップをカット',
     'Use this part': 'この部分を使う',

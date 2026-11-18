@@ -460,6 +460,12 @@ const T: Record<string, string> = {
     'See ideas': '아이디어 보기',
     'Find a spot': '장소 찾기',
     'Kring may earn a small commission. It never changes your price.': 'Kring이 소액의 수수료를 받을 수 있지만 가격은 절대 바뀌지 않아요.',
+    // deals-1 (18 Nov): TAGTHAi Bangkok Pass card on top of For your trip
+    'Official Thailand pass': '태국 공식 여행 패스',
+    'From ฿2,590': '฿2,590부터',
+    'Bangkok Pass': '방콕 패스',
+    'Pick 5 spots in 3 days · Mahanakhon SkyWalk, river boat, Museum Siam & more': '3일 동안 5곳 선택 · 마하나콘 스카이워크, 짜오프라야 보트, 뮤지엄 시암 등',
+    'Bangkok sightseeing pass': '방콕 관광 패스',
     // Reel trim step (16 Nov)
     'Trim your clip': '클립 자르기',
     'Use this part': '이 구간 사용',
