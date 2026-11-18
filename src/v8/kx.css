@@ -1100,6 +1100,9 @@
 .v8-app-root .bx .bx-row { border-top-color: rgba(255,255,255,.1); }
 .v8-app-root .bx .bx-row .t, .v8-app-root .bx-row .bx-sc { text-shadow: 0 1px 4px rgba(20,8,60,.45); }
 .v8-app-root .bx .bx-row.mer .rka-elig { color: #FFD3F1; }
+.v8-app-root .bx-toast { align-self: center; max-width: 100%; margin: 0; padding: 9px 16px; border-radius: 999px; text-align: center; color: #fff;
+  font: 700 0.8125rem/1.35 var(--kx-j); background: rgba(255,255,255,.16); box-shadow: inset 0 0 0 1px rgba(255,255,255,.4); }
+.v8-app-root .bx-toast[lang="th"] { font-family: var(--kx-j), var(--bx-th); }
 /* the two buttons: Share my Reel (main) + Share my rank (story picture, light glass) */
 .v8-app-root .bx-ctas { display: flex; gap: 10px; }
 .v8-app-root .bx-ctas .bx-cta { flex: 1; min-width: 0; }

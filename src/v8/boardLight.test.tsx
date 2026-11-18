@@ -6,7 +6,7 @@ import { render, waitFor } from '@testing-library/react';
 import { RankingPage } from './V5KxRanking';
 import { KX_L, V5_L } from './v5Strings';
 import { prizeFor, prizeLadder } from './kxLogic';
-import { SAFE_BOTTOM, SAFE_TOP, STORY_H, STORY_W, storyButton, storyButtonLabel, storyText } from './rankStory';
+import { boardMoment, cardCaption, cardLink, cardText, linkCopiedToast, MOMENTS, SAFE_BOTTOM, SAFE_TOP, STORY_H, STORY_W, storyButton, storyButtonLabel } from './rankStory';
 import type { KxGap, KxRanking, KxRankRow } from './v5Kx';
 
 const kx = vi.hoisted(() => ({ kxRanking: vi.fn(), kxSeatsLeft: vi.fn(), kxRules: vi.fn(), kxMemberReels: vi.fn(), kxBreakdown: vi.fn(), kxCardExtras: vi.fn() }));
@@ -108,17 +108,33 @@ describe('board-1: Share my rank (story card)', () => {
     await waitFor(() => expect(document.querySelector('#kxMeRow')).toBeTruthy());
     expect(document.querySelector('#kxShareRank')).toBeNull();
   });
-  it('card words: one language, the prize only when I qualify, my invite code', () => {
-    const t = storyText({ lang: 'th', rank: 1, rings: 85, prize: 1500, code: 'k00037' });
-    const thWords = Object.entries(t).filter(([k]) => k !== 'site').map(([, v]) => v.replace(/k\d{5}/, '')).join(' ');
-    expect(thWords).not.toMatch(LATIN_WORD);
-    expect(t).toMatchObject({ rank: '#1', rings: '85 ริง', prize: 'รางวัล ฿1,500', code: 'โค้ดชวนเพื่อน k00037', site: 'kringapp.com' });
-    const e = storyText({ lang: 'en', rank: 3, rings: 1, prize: 0, code: 'k00037' });
-    expect(Object.values(e).join(' ')).not.toMatch(THAI);
-    expect(e).toMatchObject({ rank: '#3', week: 'this week', rings: '1 Ring', prize: '', code: 'Invite code k00037' });
-    expect(storyText({ lang: 'zh', rank: 2, rings: 40, prize: 900, code: '' }).prize).toBe('฿900 prize');   // other languages: English only
+  it('card words: one language per card, every moment; pool line from the config; the code big and readable', () => {
+    for (const moment of MOMENTS) {
+      const t = cardText({ lang: 'th', moment, rank: 3, daysLeft: 4, won: 1500, paidN: 8, pool: 4400, code: 'k00037' });
+      const words = [t.headline, t.chip, t.brand, t.pool, t.code, cardCaption('th', moment), linkCopiedToast('th').replace('IG', '')].join(' ').replace(/K\d{5}/, '');
+      expect(words, moment).not.toMatch(LATIN_WORD);
+      const e = cardText({ lang: 'en', moment, rank: 3, daysLeft: 4, won: 1500, paidN: 8, pool: 4400, code: 'k00037' });
+      expect([...Object.values(e), cardCaption('en', moment), linkCopiedToast('en')].join(' '), moment).not.toMatch(THAI);
+      expect(t.pool).toBe('8 อันดับแรกแบ่ง ฿4,400 ทุกสัปดาห์');
+      expect(e.pool).toBe('Top 8 share ฿4,400 weekly');
+      expect(e.code).toBe('Search Kring · K00037');
+      // no Ring counts on any card
+      expect(Object.values(e).join(' ')).not.toMatch(/Ring/);
+    }
+    expect(cardText({ lang: 'en', moment: 'help', rank: 7, daysLeft: 4, won: 0, paidN: 8, pool: 4400, code: '' }).chip).toBe('#7 this week · 4 days left');
+    expect(cardText({ lang: 'th', moment: 'challenge', rank: 3, daysLeft: 2, won: 0, paidN: 8, pool: 4400, code: '' }).headline).toBe('อันดับ 3 ของกรุงเทพฯ\nสัปดาห์นี้\nใครจะแซงฉันได้?');
+    expect(cardText({ lang: 'en', moment: 'proof', rank: 1, daysLeft: 0, won: 1500, paidN: 8, pool: 4400, code: '' }).amount).toBe('฿1,500');
+    expect(cardText({ lang: 'en', moment: 'help', rank: 9, daysLeft: 1, won: 0, paidN: 6, pool: 3000, code: '' }).pool).toBe('Top 6 share ฿3,000 weekly');
     expect([storyButton('th'), storyButtonLabel('th')].join(' ')).not.toMatch(LATIN_WORD);
     expect([storyButton('en'), storyButtonLabel('en')].join(' ')).not.toMatch(THAI);
+  });
+  it('the link: the Reel with no sign-in, my invite code and the card type (utm_content)', () => {
+    const u = new URL(cardLink({ origin: 'https://kringapp.com', base: '/app/', reel: 'r1', code: 'k00037', moment: 'challenge' }));
+    expect(u.pathname).toBe('/app/');
+    expect(Object.fromEntries(u.searchParams)).toMatchObject({ reel: 'r1', ref: 'k00037', utm_content: 'share-challenge' });
+    expect(new URL(cardLink({ origin: 'https://kringapp.com', short: 'abc2345', code: 'k00037', moment: 'help' })).pathname).toBe('/r/abc2345');
+    expect(boardMoment(3, 8)).toBe('challenge');
+    expect(boardMoment(9, 8)).toBe('help');
   });
   it('1080×1920 with story safe areas; draws only me (no other member names or photos reach the card)', () => {
     expect([STORY_W, STORY_H]).toEqual([1080, 1920]);
@@ -126,8 +142,28 @@ describe('board-1: Share my rank (story card)', () => {
     expect(SAFE_BOTTOM).toBeGreaterThanOrEqual(250);
     const src = fs.readFileSync(path.join(__dirname, 'V5KxRanking.tsx'), 'utf8');
     const built = src.slice(src.indexOf('const storyIn'), src.indexOf('const storyKey'));
-    expect(built).toMatch(/name: props\.myName, photo: props\.myPhoto/);
-    expect(built).not.toMatch(/rows|first_name|r\.photo/);
+    expect(built).not.toMatch(/rows|first_name|r\.photo|name:/);
     expect(built).toMatch(/refCode\(myNo\)/);
+  });
+});
+
+describe('board-1: one Share tap', () => {
+  it('copies the link + toast, then the share sheet gets the picture, the caption and the link; no sheet → download', async () => {
+    const { shareCard } = await import('./rankStory');
+    const share = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { share, canShare: () => true });
+    const copy = vi.fn().mockResolvedValue(true), toast = vi.fn();
+    const blob = new Blob(['x'], { type: 'image/png' });
+    expect(await shareCard(blob, { name: 'k.png', caption: 'Come heart my clip 💜', link: 'https://kringapp.com/app/?reel=r1&ref=k00037', copy, toast, copied: 'Link copied' })).toBe('shared');
+    expect(copy).toHaveBeenCalledWith('https://kringapp.com/app/?reel=r1&ref=k00037');
+    expect(toast).toHaveBeenCalledWith('Link copied');
+    const d = share.mock.calls[0][0];
+    expect(d.files[0].name).toBe('k.png');
+    expect(d.url).toBe('https://kringapp.com/app/?reel=r1&ref=k00037');
+    expect(d.text).toContain('Come heart my clip 💜');
+    Object.assign(navigator, { share: undefined, canShare: undefined });
+    (URL as unknown as { createObjectURL: () => string }).createObjectURL = () => 'blob:x';
+    (URL as unknown as { revokeObjectURL: () => void }).revokeObjectURL = () => undefined;
+    expect(await shareCard(blob, { name: 'k.png', caption: '', link: 'L', copy, toast, copied: 'c' })).toBe('saved');
   });
 });

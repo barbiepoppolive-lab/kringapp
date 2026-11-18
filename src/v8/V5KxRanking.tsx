@@ -15,7 +15,7 @@ import { signReelPaths } from './v5Reel';
 import { RingToast, rulesVariant, WinSheet, winRules } from './V5KxRules';
 import { BackIcon, Crown, Disc, InfoIcon, Medal, PlusIcon, ShareIcon, type Tone } from './BoardArt';
 import { refCode } from './invite';
-import { rankStoryBlob, shareRankStory, storyButton, storyButtonLabel, type RankStory } from './rankStory';
+import { boardMoment, cardBlob, cardCaption, cardLink, linkCopiedToast, shareCard, storyButton, storyButtonLabel, storyFileName, type ShareCard } from './rankStory';
 
 type Tx = (en: string) => string;
 type Txf = (en: string, a: string, b?: string) => string;
@@ -28,6 +28,14 @@ const StoryIcon = () => (
   <svg viewBox="0 0 24 24" focusable="false"><rect x="6" y="2.8" width="12" height="18.4" rx="3.2" fill="none" stroke="currentColor" strokeWidth="2" />
     <path d="M12 8.2l1.15 2.35 2.6.38-1.88 1.83.44 2.58L12 14.12l-2.31 1.22.44-2.58-1.88-1.83 2.6-.38z" fill="currentColor" /></svg>
 );
+/** copy a link (clipboard API, else the old textarea way); true when it worked */
+export async function copyLink(s: string): Promise<boolean> {
+  try { if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(s); return true; } } catch { /* fall back */ }
+  try {
+    const t = document.createElement('textarea'); t.value = s; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+    document.body.appendChild(t); t.select(); const ok = document.execCommand('copy'); t.remove(); return ok;
+  } catch { return false; }
+}
 export const baht = (n: number) => `฿${fmtN(n)}`;
 export const ringsText = (L: Tx, Lf: Txf, n: number) => (n === 1 ? L('1 Ring') : Lf('{0} Rings', fmtN(n)));
 
@@ -296,22 +304,31 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   // so the phone's share sheet opens at once (iOS only allows it straight from a tap).
   const g = data?.gap;
   const canStory = !!props.myId && !!g?.rank && (g?.rings ?? 0) > 0;
-  const storyIn: RankStory | null = canStory && g?.rank ? {
-    lang: lang === 'th' ? 'th' : 'en', rank: g.rank, rings: g.rings, prize: g.prize_now > 0 ? g.prize_now : 0, name: props.myName, photo: props.myPhoto, poster: null,
-    code: refCode(myNo), link: `${location.origin}${import.meta.env.BASE_URL || '/'}${refCode(myNo) ? `?ref=${refCode(myNo)}` : ''}`,
+  // board-1 v2 (founder brief): the card is about ME only. Top N (paid seats) = "challenge", otherwise "help". Look A until the founder picks.
+  const paidN = (data?.prizes || prizes).slice(0, paid).filter((p) => p > 0).length;
+  const pool = (data?.prizes || prizes).slice(0, paid).reduce((a, p) => a + (p > 0 ? p : 0), 0);   // from the live config, never hard-coded
+  const moment = boardMoment(g?.rank, paidN || paid);
+  const storyIn: ShareCard | null = canStory && g?.rank ? {
+    lang: lang === 'th' ? 'th' : 'en', moment, look: 'B', rank: g.rank, daysLeft: Math.max(0, Math.floor((end - now) / 86_400_000)), won: 0,
+    paidN: paidN || paid, pool, code: refCode(myNo), hero: null,
   } : null;
-  const storyKey = storyIn ? JSON.stringify([storyIn, posterPath]) : '';
+  const storyLink = cardLink({ origin: location.origin, base: import.meta.env.BASE_URL || '/app/', reel: latest || null, code: refCode(myNo), moment });
+  const storyKey = storyIn ? JSON.stringify([{ ...storyIn, daysLeft: 0 }, storyIn.daysLeft, posterPath, props.myPhoto]) : '';
   const story = useRef<{ key: string; blob: Promise<Blob | null> } | null>(null);
   const makeStory = (): Promise<Blob | null> | null => {
     if (!storyIn) return null;
     if (story.current?.key === storyKey) return story.current.blob;
     const s = storyIn;
     const blob = (posterPath ? signReelPaths([posterPath]).then((m) => m[posterPath] || null).catch(() => null) : Promise.resolve(null))
-      .then((poster) => rankStoryBlob({ ...s, poster }));
+      .then((poster) => cardBlob({ ...s, hero: poster || props.myPhoto }));
     story.current = { key: storyKey, blob };
     return blob;
   };
   const [storyBusy, setStoryBusy] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
+  const toastT = useRef<number>();
+  const flash = (m: string) => { setToastMsg(m); window.clearTimeout(toastT.current); toastT.current = window.setTimeout(() => setToastMsg(''), 4200); };
+  useEffect(() => () => window.clearTimeout(toastT.current), []);
   useEffect(() => {
     if (!storyKey || latest === undefined) return;
     const t = window.setTimeout(() => { void makeStory(); }, 900);   // after the board has painted
@@ -321,7 +338,10 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
     const p = makeStory();
     if (!p || !storyIn) return;
     setStoryBusy(true);
-    try { await shareRankStory(await p, storyIn.rank); } finally { setStoryBusy(false); }
+    try {
+      await shareCard(await p, { name: storyFileName(storyIn.moment, storyIn.rank), caption: cardCaption(lang, storyIn.moment), link: storyLink,
+        copy: copyLink, toast: flash, copied: linkCopiedToast(lang) });
+    } finally { setStoryBusy(false); }
   };
   const TONE: Record<number, Tone> = { 1: 'gold', 2: 'blue', 3: 'rose' };
   return (
@@ -379,6 +399,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
       <div className="bx-endpad" />
       <div className="bx-pin" id="kxPin">
         {toast && rv ? <RingToast v={rv} lang={lang} pts={wr?.save ?? 3} who="Mint" act="save" /> : null}
+        {toastMsg ? <p className="bx-toast" id="kxStoryToast" role="status" lang={lang === 'th' ? 'th' : 'en'}>{toastMsg}</p> : null}
         {props.myId && data ? (
           <div className="bx-you" id="kxMeRow" data-state={own.key} role="button" tabIndex={0}
             onClick={() => { if (own.btn !== 'post' && own.key !== 'review') setMath(props.myId); }}
