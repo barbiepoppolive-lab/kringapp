@@ -33,3 +33,4 @@ if (isApply) {
     </StrictMode>,
   )
 }
+;(window as unknown as { __KR8_BOOTED__?: boolean }).__KR8_BOOTED__ = true   // T-398 boot watchdog

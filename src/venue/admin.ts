@@ -11,3 +11,4 @@ export { lineMessage, splitTreat, standLink } from './adminHelpers';
 
 installChunkGuard();   // stale admin tab after a deploy: reload once (max 1 per 60 s); no-op if already installed
 start();
+;(window as unknown as { __KR8_BOOTED__?: boolean }).__KR8_BOOTED__ = true   // T-398 boot watchdog

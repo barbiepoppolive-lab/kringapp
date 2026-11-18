@@ -66,9 +66,38 @@ function kringFaceWasm(): Plugin {
   }
 }
 
+/** T-398: a build must point every page at /app/assets/... and every referenced chunk must exist (the 8-minute blank site). */
+function kringVerifyAppBase(): Plugin {
+  let base = '/'
+  let outDir = 'dist'
+  return {
+    name: 'kring-verify-app-base',
+    apply: 'build',
+    configResolved(c) { base = c.base; outDir = c.build.outDir },
+    async closeBundle() {
+      if (base !== '/app/') return
+      const fs = await import('node:fs')
+      const path = await import('node:path')
+      const dist = path.resolve(outDir)
+      for (const page of ['index.html', 'admin.html', 'line-callback.html', 'staff.html', 'stand.html', 'owner.html']) {
+        const f = path.join(dist, page)
+        if (!fs.existsSync(f)) continue
+        const html = fs.readFileSync(f, 'utf8')
+        const refs = [...html.matchAll(/(?:src|href)="([^"]+\.(?:js|mjs|css))"/g)].map((m) => m[1]).filter((r) => !/^https?:\/\//.test(r))
+        if (!refs.length) throw new Error(`[kring-verify-app-base] ${page} has no bundled script/style tags`)
+        for (const ref of refs) {
+          if (!ref.startsWith('/app/assets/')) throw new Error(`[kring-verify-app-base] ${page} points to "${ref}" instead of /app/assets/`)
+          const disk = path.join(dist, ref.replace(/^\/app\//, ''))
+          if (!fs.existsSync(disk) || fs.statSync(disk).size === 0) throw new Error(`[kring-verify-app-base] ${page} references a missing chunk ${ref}`)
+        }
+      }
+    },
+  }
+}
+
 export default defineConfig({
   define: { __KR8_RELEASE__: JSON.stringify(RELEASE) },
-  plugins: [react(), kringNoindex(), kringVersionFile(), kringFaceWasm()],
+  plugins: [react(), kringNoindex(), kringVersionFile(), kringFaceWasm(), kringVerifyAppBase()],
   server: {
     allowedHosts: ['localhost', '127.0.0.1', 'kringapp.com', 'www.kringapp.com'],
     watch: {
