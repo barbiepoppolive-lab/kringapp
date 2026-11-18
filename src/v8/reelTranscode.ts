@@ -109,3 +109,16 @@ export async function thumbsOf(file: Blob, timesMs: number[], w: number, h: numb
 export async function blobDurationMs(b: Blob): Promise<number> {
   try { return Math.round((await open(b).computeDuration()) * 1000); } catch { return 0; }
 }
+
+/** 18 Nov: length + upright picture size from the demuxer (any container it knows), for clips whose header our own
+ *  MP4 reader and the <video> element could not read. null = unknown. */
+export async function readMeta(b: Blob): Promise<{ durationMs: number; width: number; height: number } | null> {
+  try {
+    const input = open(b);
+    const v = await input.getPrimaryVideoTrack();
+    if (!v) return null;
+    const [d, w, h] = await Promise.all([input.computeDuration(), v.getDisplayWidth(), v.getDisplayHeight()]);
+    const durationMs = Math.round(d * 1000);
+    return durationMs > 0 && w > 0 && h > 0 ? { durationMs, width: w, height: h } : null;
+  } catch { return null; }
+}

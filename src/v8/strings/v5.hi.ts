@@ -158,6 +158,7 @@ const T: Record<string, string> = {
     'Pick a video file (MP4, MOV or WebM)': 'वीडियो फ़ाइल चुनें (MP4, MOV या WebM)',
     'Upload stopped · tap Retry': 'अपलोड रुक गया · दोबारा कोशिश करें दबाएँ',
     'Your phone lost the video file. Choose the video again, then tap Post.': 'आपके फ़ोन से वीडियो फ़ाइल खो गई। वीडियो दोबारा चुनें, फिर पोस्ट दबाएँ।',
+    'This video isn’t fully on your phone yet. Open it once in your Gallery or Google Photos (or download it), then pick it again.': 'यह वीडियो अभी आपके फ़ोन पर पूरा नहीं आया है। इसे गैलरी या Google Photos में एक बार खोलें (या डाउनलोड करें), फिर दोबारा चुनें।',
     'This video cannot be read · try another': 'यह वीडियो पढ़ा नहीं जा सका · कोई और आज़माएँ',
     'Add the area pin first': 'पहले इलाका चुनें',
     'Reel posted · กริ๊ง!': 'रील पोस्ट हो गई · กริ๊ง!',

@@ -47,6 +47,36 @@ export function looksLikeVideo(file: { name?: string; type?: string }): boolean 
   return t.startsWith('video/') || VIDEO_EXT.test(file.name || '') || t === '' || t === 'application/octet-stream' || t === 'application/mp4';
 }
 
+/**
+ * 18 Nov (member #74, Android 10 installed app, ~23 failed tries): the phone's picker hands over files whose bytes come and go
+ * (Google Photos / cloud-backed clips, content:// files). The same clip read fine one minute and failed the next: "UNREADABLE"
+ * on pick, "REPICK" on Post, and the shrink step failing on big clips (→ TOO_BIG). Fix: copy the clip into memory ONCE, right
+ * when it is picked (with a few retries while the phone finishes fetching it). From then on every step (header, preview,
+ * shrink, upload) reads the in-memory copy, which cannot disappear. Clips over MEM_COPY_MAX keep the old path.
+ */
+export const MEM_COPY_MAX = 120 * 1024 * 1024;
+const inMemory = new WeakSet<Blob>();
+export const isInMemory = (b: Blob) => inMemory.has(b);
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+export async function copyToMemory(file: File, tries = 4): Promise<{ file: File; copied: boolean; why?: string }> {
+  if (inMemory.has(file)) return { file, copied: true };
+  if (!file.size || file.size > MEM_COPY_MAX) return { file, copied: false, why: file.size ? 'big' : 'empty' };
+  let why = '';
+  for (let i = 0; i < tries; i++) {
+    try {
+      const buf = await file.arrayBuffer();
+      if (buf.byteLength === file.size) {
+        const f = new File([buf], file.name || 'clip.mp4', { type: file.type, lastModified: file.lastModified });
+        inMemory.add(f);
+        return { file: f, copied: true };
+      }
+      why = `short${buf.byteLength}`;
+    } catch (e) { why = String((e as Error)?.name || 'err').slice(0, 16); }
+    if (i < tries - 1) await sleep(500 * (i + 1));
+  }
+  return { file, copied: false, why };
+}
+
 function loadVideo(url: string, timeoutMs = META_TIMEOUT_MS): Promise<HTMLVideoElement> {
   return new Promise((ok, bad) => {
     const v = document.createElement('video');
@@ -82,6 +112,10 @@ export async function checkReel(file: File): Promise<ReelInfo> {
   if (!file.size) throw new ReelError('EMPTY');
   if (!looksLikeVideo(file)) throw new ReelError('NOT_VIDEO');
   if (file.size > RAW_MAX_BYTES) throw new ReelError('TOO_BIG');
+  const mem = await copyToMemory(file);
+  // the bytes could not be read at all (cloud-only / lost file): say so plainly instead of a generic "can't open"
+  if (!mem.copied && mem.why && mem.why !== 'big') throw new ReelError('UNREADABLE', undefined, `read:${mem.why}`);
+  file = mem.file;
   const head = await probeMp4(file);
   const t = (file.type || '').toLowerCase();
   if (!head && !t.startsWith('video/') && !VIDEO_EXT.test(file.name || '')) throw new ReelError('NOT_VIDEO');
@@ -96,6 +130,11 @@ export async function checkReel(file: File): Promise<ReelInfo> {
   if (!width || !height) { width = head?.width || 0; height = head?.height || 0; }
   // 16 Nov: an HEVC clip that <video> cannot open is fine when WebCodecs can decode it (it is shrunk to H.264 before upload)
   if (!decodable && head && isHevc(head.codec) && !(await import('./reelTranscode').then((m) => m.canDecodeReel(file)).catch(() => false))) fail('HEVC');
+  // 18 Nov: header and <video> both silent (unusual MP4 layout, moov > 16 MB, MKV/3GP…): ask the WebCodecs demuxer before giving up
+  if (!width || !height || !durationMs) {
+    const m = await import('./reelTranscode').then((x) => x.readMeta(file)).catch(() => null);
+    if (m) { if (!durationMs) durationMs = m.durationMs; if (!width || !height) { width = m.width; height = m.height; } }
+  }
   if (!width || !height || !durationMs) fail('UNREADABLE');
   if (durationMs < REEL_MIN_MS - 300) fail('TOO_SHORT');
   // 16 Nov: over 60 s (up to ~10 min) is no longer refused: the member trims it to one 5–60 s part first
@@ -211,7 +250,7 @@ export async function prepareReel(info: ReelInfo, ac: AudioContext | null, onPro
   const poster = await makePoster(info, vv);
   const original = (): ReelReady => {
     if (cut) throw new ReelError('TRIM_FAIL', undefined, why.join('|').slice(0, 52) || 'none');
-    if (info.file.size > REEL_MAX_BYTES) throw new ReelError('TOO_BIG');   // message: trim it shorter or film at 1080p
+    if (info.file.size > REEL_MAX_BYTES) throw new ReelError('TOO_BIG', undefined, why.join('|').slice(0, 52) || 'none');   // message: trim it shorter or film at 1080p
     const { ext, mime } = uploadType(info.file);
     return { blob: info.file, mime, ext, poster, durationMs: info.durationMs, width: info.width, height: info.height, shrunk: false };
   };
@@ -376,7 +415,7 @@ async function putObject(base: string, key: string, token: string, path: string,
  * gives a clear "choose the video again" instead of endless failures.
  */
 export async function readable(b: Blob): Promise<Blob> {
-  if (!(typeof File !== 'undefined' && b instanceof File)) return b;
+  if (!(typeof File !== 'undefined' && b instanceof File) || inMemory.has(b)) return b;
   let buf: ArrayBuffer;
   try { buf = await b.arrayBuffer(); } catch { throw new ReelError('REPICK'); }
   // errfix-1 (18 Nov, #68): a lost file can also read back EMPTY or cut short instead of failing; sending that gave storage 400s

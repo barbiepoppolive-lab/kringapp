@@ -158,6 +158,7 @@ const T: Record<string, string> = {
     'Pick a video file (MP4, MOV or WebM)': '请选择视频文件 (MP4、MOV 或 WebM)',
     'Upload stopped · tap Retry': '上传中断 · 点“重试”',
     'Your phone lost the video file. Choose the video again, then tap Post.': '手机无法再读取这个视频文件。请重新选择视频，然后点“发布”。',
+    'This video isn’t fully on your phone yet. Open it once in your Gallery or Google Photos (or download it), then pick it again.': '这个视频还没有完整保存在手机上。先在相册或 Google 相册里打开一次（或下载），然后再选一次。',
     'This video cannot be read · try another': '无法读取此视频 · 换一个试试',
     'Add the area pin first': '请先标记街区',
     'Reel posted · กริ๊ง!': '短视频已发布 · กริ๊ง!',

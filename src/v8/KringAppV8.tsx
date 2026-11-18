@@ -3185,8 +3185,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
   const [reelPreviewPoster, setReelPreviewPoster] = useState('');
   const reelProblemText = (code: string): string => {
-    // fix-it messages: Thai first, English under (members often forward these to a friend who helps)
-    const both = (en: string) => (lang === 'th' && L(en) !== en ? `${L(en)}\n${en}` : L(en));
+    // 18 Nov (founder rule): one language at a time on member screens — Thai mode shows only Thai
+    const both = (en: string) => L(en);
     switch (code) {
       case 'TOO_SHORT': return L('Reel is too short · 5–60 seconds');
       case 'TOO_LONG': return both('Clip is over 10 minutes · pick a shorter one');
@@ -3201,6 +3201,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       case 'NOT_VIDEO': return L('Pick a video file (MP4, MOV or WebM)');
       case 'UPLOAD': return L('Upload stopped · tap Retry');
       case 'REPICK': return both('Your phone lost the video file. Choose the video again, then tap Post.');
+      // 18 Nov (#74): the clip's bytes could not be read even after retries (still downloading from Google Photos / cloud)
+      case 'NOT_LOCAL': return both('This video isn’t fully on your phone yet. Open it once in your Gallery or Google Photos (or download it), then pick it again.');
       // audit P3-12: a damaged file is not fixed by "save it to your phone first"
       default: return both('This browser can’t open this clip. The file may be damaged, or still only in the cloud. Try another clip, or send it to yourself in LINE and pick that copy.');
     }
@@ -3250,8 +3252,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     try {
       acceptReel(await checkReel(file));
     } catch (e) {
-      setReelProblem(reelProblemText(e instanceof ReelError ? e.code : 'UNREADABLE'));
-      v5LogClient('reel_pick_fail', e instanceof ReelError ? e.code : 'UNREADABLE', `${file.type || '?'} ${Math.round(file.size / 1e5) / 10}MB`);
+      const re = e instanceof ReelError ? e : null;
+      const code = re ? (re.code === 'UNREADABLE' && re.why?.startsWith('read:') ? 'NOT_LOCAL' : re.code) : 'UNREADABLE';
+      setReelProblem(reelProblemText(code));
+      v5LogClient('reel_pick_fail', code, `${file.type || '?'} ${Math.round(file.size / 1e5) / 10}MB${re?.why ? ' ' + re.why : ''} ${/; wv\)/.test(navigator.userAgent) ? 'inapp' : ''}`.trim());
     }
   };
   const publishReel = async (cap: string) => {

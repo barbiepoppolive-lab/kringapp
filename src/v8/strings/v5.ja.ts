@@ -158,6 +158,7 @@ const T: Record<string, string> = {
     'Pick a video file (MP4, MOV or WebM)': '動画ファイルを選んでください (MP4・MOV・WebM)',
     'Upload stopped · tap Retry': 'アップロードが止まりました · 再試行をタップ',
     'Your phone lost the video file. Choose the video again, then tap Post.': '動画ファイルが読めなくなりました。もう一度動画を選んで、投稿をタップしてください。',
+    'This video isn’t fully on your phone yet. Open it once in your Gallery or Google Photos (or download it), then pick it again.': 'この動画はまだ端末に完全に保存されていません。ギャラリーか Google フォトで一度開く（またはダウンロードする）と、もう一度選べます。',
     'This video cannot be read · try another': 'この動画は読み込めません · 別の動画で',
     'Add the area pin first': '先にエリアを選んでください',
     'Reel posted · กริ๊ง!': 'リールを投稿しました · กริ๊ง!',

@@ -49,6 +49,7 @@ const PICK: Record<string, string> = {
   TOO_LONG: 'clip over 10 min', TOO_SHORT: 'clip under 5 seconds', NOT_VERTICAL: 'clip is sideways (landscape), not vertical',
   TOO_BIG: 'file over 300 MB', HEVC: 'HEVC ("High efficiency") clip this browser can’t open',
   UNREADABLE: 'the browser couldn’t read the clip (often a cloud-only file or an in-app browser)',
+  NOT_LOCAL: 'the phone couldn’t hand over the clip’s bytes even after 4 tries (cloud / Google Photos clip not downloaded)',
   EMPTY: 'file is 0 KB (a cloud file that was never downloaded)', NOT_VIDEO: 'not a video file',
 };
 const PUBLISH: Record<string, string> = {

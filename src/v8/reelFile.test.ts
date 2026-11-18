@@ -9,7 +9,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { probeMp4 } from './mp4Probe';
-import { checkReel, looksLikeVideo, REEL_MAX_MS, ReelError, uploadType } from './v5Reel';
+import { checkReel, copyToMemory, isInMemory, looksLikeVideo, readable, REEL_MAX_MS, ReelError, uploadType } from './v5Reel';
 
 const DIR = join(__dirname, '__fixtures__', 'reels');
 const fx = (name: string, type = 'video/mp4', as = name) => new File([readFileSync(join(DIR, name))], as, { type });
@@ -99,8 +99,45 @@ describe('checkReel never blocks a valid clip', () => {
     expect(await code(new File([], 'clip.mp4', { type: 'video/mp4' }))).toBe('EMPTY');
     expect(await code(new File([new Uint8Array(100)], 'a.jpg', { type: 'image/jpeg' }))).toBe('NOT_VIDEO');
   });
-  it('a WebM the browser cannot open has no header length → UNREADABLE (clear fix text)', async () => {
-    expect(await code(fx('vp9_25s.webm', 'video/webm'))).toBe('UNREADABLE');
+  it('18 Nov: a WebM the browser cannot open is now read by the demuxer and accepted; a damaged file is still UNREADABLE', async () => {
+    const r = await checkReel(fx('vp9_25s.webm', 'video/webm'));
+    expect(r).toMatchObject({ width: 180, height: 320 });
+    expect(Math.abs(r.durationMs - 25000)).toBeLessThan(600);
+    expect(await code(new File([new Uint8Array(5000).fill(3)], 'broken.mp4', { type: 'video/mp4' }))).toBe('UNREADABLE');
+  });
+  // 18 Nov (#74, Android 10 installed app): a cloud-backed clip whose bytes fail to read on the first tries, then arrive
+  const flaky = (f: File, failFirst: number) => {
+    let n = 0;
+    const real = f.arrayBuffer.bind(f);
+    Object.defineProperty(f, 'arrayBuffer', { value: () => (n++ < failFirst ? Promise.reject(new DOMException('x', 'NotReadableError')) : real()) });
+    return f;
+  };
+  it('a clip whose bytes arrive after a retry is copied into memory and accepted', async () => {
+    const r = await checkReel(flaky(fx('h264_25s.mp4'), 2));
+    expect(isInMemory(r.file)).toBe(true);
+    expect(r).toMatchObject({ width: 180, height: 320 });
+  });
+  it('a clip that never hands over its bytes says "not on your phone yet" (read:…), not a generic error', async () => {
+    try { await checkReel(flaky(fx('h264_25s.mp4'), 99)); throw new Error('accepted'); }
+    catch (e) { expect(e).toBeInstanceOf(ReelError); expect((e as ReelError).code).toBe('UNREADABLE'); expect((e as ReelError).why).toMatch(/^read:/); }
+  }, 15000);
+});
+
+describe('in-memory copy (18 Nov, REPICK at Post)', () => {
+  it('copyToMemory returns a detached copy; upload never re-reads the phone file', async () => {
+    const f = fx('h264_25s.mp4');
+    const { file, copied } = await copyToMemory(f);
+    expect(copied).toBe(true);
+    expect(file).not.toBe(f);
+    expect(file.size).toBe(f.size);
+    // the original handle dies after the pick (Android): the in-memory copy still uploads as it is
+    Object.defineProperty(f, 'arrayBuffer', { value: () => Promise.reject(new Error('gone')) });
+    expect(await readable(file)).toBe(file);
+  });
+  it('a phone file that is not in memory and cannot be read still asks to pick again', async () => {
+    const f = new File([new Uint8Array(10)], 'a.mp4', { type: 'video/mp4' });
+    Object.defineProperty(f, 'arrayBuffer', { value: () => Promise.reject(new Error('gone')) });
+    await expect(readable(f)).rejects.toMatchObject({ code: 'REPICK' });
   });
 });
 
