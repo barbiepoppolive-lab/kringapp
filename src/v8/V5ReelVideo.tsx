@@ -18,6 +18,32 @@ export function holdReels(on: boolean) {
 }
 export const reelsHeld = () => held;
 
+/** K-006 (18 Nov): no Reel video downloads before the first screen is painted. The first Reel shows its poster at once; its
+ *  MP4 (often 1+ MB) only starts after that poster has loaded (or 4 s at most), so on a slow phone the video no longer fights
+ *  the poster, the app code and the first data calls for the network. Every later Reel already waits for one to be playing. */
+let mediaOk = typeof window === 'undefined';
+const MEDIA_EVENT = 'kr8-reel-media-ok';
+function openMedia() {
+  if (mediaOk) return;
+  mediaOk = true;
+  try { window.dispatchEvent(new Event(MEDIA_EVENT)); } catch { /* ignore */ }
+}
+let mediaGateStarted = false;
+function startMediaGate(poster?: string) {
+  if (mediaOk || mediaGateStarted) return;
+  mediaGateStarted = true;
+  const fallback = window.setTimeout(openMedia, 4000);
+  const after = () => { window.clearTimeout(fallback); requestAnimationFrame(() => requestAnimationFrame(openMedia)); };
+  if (!poster || typeof Image === 'undefined') { after(); return; }
+  const img = new Image();
+  img.onload = after;
+  img.onerror = after;
+  img.src = poster;
+  if (img.complete && img.naturalWidth) after();
+}
+/** test helper */
+export function _resetReelMediaGate(open = false) { mediaOk = open; mediaGateStarted = false; }
+
 /** Tap anywhere on a Reel slide (except its buttons) toggles sound for this and every later Reel. */
 export function toggleReelSound(e: { target: EventTarget | null; currentTarget: EventTarget | null }) {
   const t = e.target as HTMLElement | null;
@@ -54,7 +80,17 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed, first, soun
     window.addEventListener(HOLD_EVENT, on);
     return () => window.removeEventListener(HOLD_EVENT, on);
   }, []);
-  const near = nearRaw && !hold;
+  const [media, setMedia] = useState(mediaOk);
+  useEffect(() => {
+    if (media) return;
+    const on = () => setMedia(true);
+    window.addEventListener(MEDIA_EVENT, on);
+    if (mediaOk) setMedia(true);
+    return () => window.removeEventListener(MEDIA_EVENT, on);
+  }, [media]);
+  const show = nearRaw && !hold;   // poster (and the stage background) as before
+  const near = show && media;      // the video itself only once the first screen is painted
+  useEffect(() => { if (show && !mediaOk) startMediaGate(poster); }, [show]);   // eslint-disable-line react-hooks/exhaustive-deps
   const [onScreen, setOnScreen] = useState(false);
   const [mayPrefetch, setMayPrefetch] = useState(somethingPlaying);
   useEffect(() => {
@@ -113,12 +149,12 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed, first, soun
   }, [src, near]);
   return (
     // 17 Nov (K-003): the poster is also the stage's background, so iPhone Safari never shows a blank dark Reel before the first frame
-    <div className="bg reel-bg" ref={boxRef} style={near && poster ? { backgroundImage: `url('${poster}')` } : undefined}>
+    <div className="bg reel-bg" ref={boxRef} style={show && poster ? { backgroundImage: `url('${poster}')` } : undefined}>
       <video
         ref={ref}
         className="reel-video"
         src={near ? src : undefined}
-        poster={near ? poster : undefined}
+        poster={show ? poster : undefined}
         muted
         loop
         playsInline

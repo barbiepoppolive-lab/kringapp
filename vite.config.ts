@@ -91,6 +91,10 @@ export default defineConfig({
           if (/node_modules\/(onnxruntime-web|onnxruntime-common)\//.test(id)) return 'ort'
           // print files (stand.html only): jsPDF and its optional helpers stay out of the app's vendor chunk
           if (/node_modules\/(jspdf|html2canvas|dompurify|canvg|fflate|fast-png|iobuffer|pako|core-js|raf|rgbcolor|stackblur-canvas|svg-pathdata|performance-now|@babel\/runtime)\//.test(id)) return 'pdf'
+          // K-006 (18 Nov): mediabunny (Reel trim/transcode, 8 MB source) is only used by the Reel composer (lazy reelTranscode.ts),
+          // and Sentry is loaded after the first screen (lib/sentryLazy.ts). Both were swept into the eager vendor chunk below.
+          if (id.includes('node_modules/mediabunny/')) return 'mediabunny'
+          if (id.includes('node_modules/@sentry/') || id.includes('node_modules/@sentry-internal/')) return 'sentry'
           if (id.includes('node_modules')) return 'vendor'
         },
       },

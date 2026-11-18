@@ -162,7 +162,8 @@ describe('face check screen', () => {
 describe('Reels behind the face check (T-310)', () => {
   it('holdReels drops the Reel video and its poster; letting go loads it again', async () => {
     vi.stubGlobal('IntersectionObserver', class { observe() { /* none */ } disconnect() { /* none */ } });
-    const { V5ReelVideo, holdReels } = await import('./V5ReelVideo');
+    const { V5ReelVideo, holdReels, _resetReelMediaGate } = await import('./V5ReelVideo');
+    _resetReelMediaGate(true);   // K-006: first screen already painted
     const { container } = render(<V5ReelVideo src="https://x/r.mp4" poster="https://x/p.jpg" label="Reel" first />);
     expect(container.querySelector('video')?.getAttribute('src')).toBe('https://x/r.mp4');
     act(() => holdReels(true));

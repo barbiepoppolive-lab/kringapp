@@ -1,9 +1,13 @@
 /** Live calls for Card + Rings + Ranking + Places (migration 0044). Every Ring is decided on the server. */
 import { v5Client, V5Error, v5ErrCode } from './v5Live';
+import { sharedRead } from './rpcShare';
 import { areaCentre, BKK_BBOX, inBangkok, type Brand, type GapState } from './kxLogic';
 import type { ReelReady, UploadedReel } from './v5Reel';
 
-async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
+function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
+  return sharedRead(fn, args, () => rpcRaw<T>(fn, args));   // K-006: identical reads a few seconds apart share one request
+}
+async function rpcRaw<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new V5Error('OFFLINE');
   const c = await v5Client();
   let res;

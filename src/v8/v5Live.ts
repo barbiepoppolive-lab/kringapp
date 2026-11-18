@@ -10,6 +10,7 @@ import { initialAvatar, NEUTRAL_IMG } from './v8Data';
 import { demoPostAvatar } from './v5DemoAvatars';
 import { appBase, lineChannel } from './lineEnv';
 import { adminViewActive, adminViewBlocks, guardClient } from './adminView';
+import { sharedRead } from './rpcShare';
 import type { V8ChatMessage, V8ChatThread, V8Deal, V8FeedItem, V8HelloRequest, V8Person } from './v8Data';
 
 const ENV = ((import.meta as unknown as { env?: Record<string, string | undefined> }).env || {}) as Record<string, string | undefined>;
@@ -88,7 +89,10 @@ function codeOf(e: unknown): string {
   if (/JWT|jwt expired|not authenticated|permission denied/i.test(msg)) return 'SIGN_IN';
   return 'UNKNOWN';
 }
-async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
+function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
+  return sharedRead(fn, args, () => rpcRaw<T>(fn, args));   // K-006: identical reads a few seconds apart share one request
+}
+async function rpcRaw<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new V5Error('OFFLINE');
   const c = await v5Client();
   let res;
@@ -121,7 +125,10 @@ type PhotoSpec = { id: string; photo: string };
 const photoCache = new Map<string, string | null>();
 const lastFull: Record<string, number> = {};
 const FULL_EVERY_MS = 15 * 60_000;
-async function rpcLite<T>(fn: string, args: Record<string, unknown>, cols: string[], specs: PhotoSpec[]): Promise<T[]> {
+function rpcLite<T>(fn: string, args: Record<string, unknown>, cols: string[], specs: PhotoSpec[]): Promise<T[]> {
+  return sharedRead(fn, args, () => rpcLiteRaw<T>(fn, args, cols, specs));   // K-006: one request for identical reads at once
+}
+async function rpcLiteRaw<T>(fn: string, args: Record<string, unknown>, cols: string[], specs: PhotoSpec[]): Promise<T[]> {
   const key = (sp: PhotoSpec, r: Record<string, unknown>) => `${fn}:${sp.photo}:${String(r[sp.id] ?? '')}`;
   if (Date.now() - (lastFull[fn] || 0) < FULL_EVERY_MS && !(typeof navigator !== 'undefined' && navigator.onLine === false)) {
     try {
@@ -133,7 +140,7 @@ async function rpcLite<T>(fn: string, args: Record<string, unknown>, cols: strin
       }
     } catch { /* fall back to the full call */ }
   }
-  const rows = await rpc<T[]>(fn, args);
+  const rows = await rpcRaw<T[]>(fn, args);
   lastFull[fn] = Date.now();
   for (const r of (rows || []) as Record<string, unknown>[]) for (const sp of specs) if (r[sp.id]) photoCache.set(key(sp, r), (r[sp.photo] as string | null) ?? null);
   return rows || [];

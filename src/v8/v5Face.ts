@@ -87,6 +87,17 @@ export function loadFaceApi(): Promise<FaceApi> {
   return apiP;
 }
 
+/** K-006 (18 Nov): on a screen that leads to the face check (its consent screen, a prize claim), download face-api's code in idle
+ *  time so the camera step starts faster. Only the code: the backend and models still load when the check starts (loadFaceApi). */
+let prefetched = false;
+export function prefetchFaceApi(): void {
+  if (prefetched || apiP || typeof window === 'undefined') return;
+  prefetched = true;
+  const w = window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
+  const go = () => { void import('@vladmandic/face-api').catch(() => { prefetched = false; }); };
+  if (w.requestIdleCallback) w.requestIdleCallback(go, { timeout: 2000 }); else window.setTimeout(go, 300);
+}
+
 export interface FaceSample {
   found: boolean;
   /** 0.5 = looking straight; > 0.5 = nose towards the image's right (the member's own left); < 0.5 = the other way */

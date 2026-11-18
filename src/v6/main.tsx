@@ -1,10 +1,13 @@
 /* Kring entry (since 10 Nov): the v8 app, or the one-screen partner sign-up. The retired v6 app ("Host mode", old café
  * form with raw string keys) is no longer reachable or bundled: every old partner link lands on #apply. */
-import '../lib/sentry'
+// K-006 (18 Nov): Sentry loads after the first screen (errors before that are kept and sent then), not in the eager bundle
+import { startSentryLater } from '../lib/sentryLazy'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import '../design/fonts.css'
 import { KringAppV8 } from '../v8/KringAppV8'
+
+startSentryLater()
 
 const base = import.meta.env.BASE_URL
 const q = new URLSearchParams(location.search)

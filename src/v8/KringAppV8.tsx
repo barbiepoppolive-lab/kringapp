@@ -116,8 +116,11 @@ import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
 import type { V5Blocked, V5Card, V5FeedItem, V5Me, V5ReportReason, V5TagPlace, V5Thread } from './v5Live';
 import { V5_L, KX_L, kxArea, v5ErrText, loadV5Lang, v5LangReady } from './v5Strings';
 import { V5MintSheet } from './V5KxCard';
-import { checkProfilePhoto, faceDescriptor, loadImage } from './v5Face';
+import { checkProfilePhoto, faceDescriptor, loadImage, prefetchFaceApi } from './v5Face';
 import { ensureCardPrint } from './cardPrint';
+import { afterStartIdle } from './idle';
+/** K-006: face work (card-photo check, card face code) starts this long after the page has loaded, when the phone is idle (once per photo per phone) */
+const FACE_IDLE_MS = 12000;
 import { GoCoach, GoCompose, GoMeReels, GoProfilePage, GoReelPlayer, gridToGo, ReelCaption, savedToGo, type CoachSpot, type GoReel } from './V5Go';
 import { coachDue, coachMark, coachPick, coachReplay, coachSync, newCoachState, type CoachKey, type CoachState } from './goCoach';
 import { shownGender } from './V5Gender';
@@ -2637,9 +2640,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     try { ok = !!src && localStorage.getItem(key) === '1'; } catch { /* ignore */ }
     // 0076: the card photo's face code (one person, one account), once per photo, in the background
     const cardPrint = () => { void ensureCardPrint(src, { describe: (u) => loadImage(u).then(faceDescriptor), save: v5SaveCardPrint, allowed: v5CardPrintOk }); };
-    if (ok) { setPhotoFix(false); cardPrint(); return; }
+    if (ok) { setPhotoFix(false); return afterStartIdle(cardPrint, FACE_IDLE_MS); }
     let gone = false;
-    (async () => {
+    // K-006 (18 Nov): the photo check downloads and runs face-api (1.3 MB + model). It waits until the first screen is loaded and
+    // the phone is idle, so the Feed / Board open fast; the result and the "add a clear face photo" screen are unchanged.
+    const stop = afterStartIdle(() => { void (async () => {
       const v = src ? await checkProfilePhoto(src) : 'none';
       if (gone) return;
       if (v === 'ok' || v === 'error') {
@@ -2652,9 +2657,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         photoAskedRef.current = true;
         setSheet((cur) => cur || 'v5card');
       }
-    })();
-    return () => { gone = true; };
+    })(); }, src ? FACE_IDLE_MS : 0);
+    return () => { gone = true; stop(); };
   }, [live, v5Card?.photo]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // K-006: the face check's consent screen or a prize claim is open → fetch face-api's code while the member reads
+  useEffect(() => { if (sheet === 'verify' || sheet === 'claim') prefetchFaceApi(); }, [sheet]);
   const kxPostAt = (p?: PickedPlace) => {
     if (faceGateRef.current) { verifyFirstRef.current(); return; }   // 0093: face check first, no composer, no upload
     if (p) { setPostPlaces((prev) => (prev.some((x) => x.id === p.id) ? prev : [p, ...prev].slice(0, 2))); setPostArea((a) => a || p.kr_area || 'Bangkok'); }
@@ -2909,6 +2916,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     void nextHideTick;
     return s && !nextStepHidden(v5Uid, s.kind) ? s : null;
   })();
+  // K-006 (18 Nov): on Me the next-step card (130 px) arrived after the card and pushed it down (CLS 0.15). While its data is
+  // still loading, an empty space of the same height is kept (for at most 8 s), so nothing jumps when it arrives.
+  const [nextWaitOver, setNextWaitOver] = useState(false);
+  useEffect(() => { setNextWaitOver(false); const t = window.setTimeout(() => setNextWaitOver(true), 8000); return () => window.clearTimeout(t); }, [v5Uid]);
+  const nextLoading = !nextStep && !nextWaitOver && live && signedIn && !!v5Uid && !adminView && !!v5Card && (goMine === null || kxRewards === null);
   const nextGo = (where: 'feed' | 'me') => {
     const s = nextStep;
     if (!s) return;
@@ -4814,7 +4826,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onPost={() => kxPostAt()}
               onVerify={() => setSheet('verify')}
               helpSlot={<HelpMeRow lang={lang} onOpen={() => setSheet('help')} />}
-              nextSlot={nextStep ? <div className="nx-cardwrap"><NextStepCard step={nextStep} variant="card" lang={lang} L={L} Lf={Lf} onGo={() => nextGo('me')} onHide={nextHide} /></div> : null}
+              nextSlot={nextStep ? <div className="nx-cardwrap"><NextStepCard step={nextStep} variant="card" lang={lang} L={L} Lf={Lf} onGo={() => nextGo('me')} onHide={nextHide} /></div>
+                : nextLoading ? <div className="nx-cardwrap nx-hold" id="nxHold" aria-hidden="true" /> : null}
               gender={shownGender(v5Card)}
               onReplay={() => { void coachReplay(coachRef.current, true).then(() => { setTab('feed'); showToast(L('Intro is on again')); }); }}
               reelsSlot={(

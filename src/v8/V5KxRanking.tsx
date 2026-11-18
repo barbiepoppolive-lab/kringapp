@@ -349,6 +349,9 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
                 role="progressbar" aria-valuemin={0} aria-valuemax={floor} aria-valuenow={Math.min(floor, data.gap?.rings ?? 0)}><i style={{ width: `${prog.pct}%` }} /></span>
             </span>
           </div>
+        ) : props.myId && !err ? (
+          // K-006 (18 Nov): keeps my row's place while the board loads, so the button does not jump up when it arrives (CLS)
+          <div className="bx-you bx-you-wait" aria-hidden="true" />
         ) : null}
         <button type="button" className={`bx-cta${share ? ' share' : ' post'}`} id="kxBoardCta" data-act={share ? 'share' : 'post'} aria-busy={latest === undefined}
           onClick={() => { if (latest) props.onShare(latest); else if (latest === null) props.onPost(); }}>

@@ -45,6 +45,7 @@
 
 /* ── Me card: at the top, under the header ── */
 .v8-app-root .nx-cardwrap { padding: 4px 18px 10px; }
+.v8-app-root .nx-cardwrap.nx-hold { height: 130px; }   /* K-006: the card's place while its data loads (no jump) */
 .v8-app-root .nx-card { border-radius: 20px; min-height: 76px;
   background: radial-gradient(120px 90px at 0% 0%, rgba(77,107,255,.28), transparent 70%), radial-gradient(140px 100px at 100% 100%, rgba(255,79,163,.22), transparent 70%), #120F1E;
   box-shadow: 0 16px 34px -20px rgba(255,79,163,.55); }

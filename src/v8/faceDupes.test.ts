@@ -53,7 +53,8 @@ describe('card photo face code (phone)', () => {
   it('the app runs it after the card photo check passes', () => {
     const app = readFileSync('src/v8/KringAppV8.tsx', 'utf8');
     expect(app).toMatch(/ensureCardPrint\(src, \{ describe: \(u\) => loadImage\(u\)\.then\(faceDescriptor\), save: v5SaveCardPrint, allowed: v5CardPrintOk \}\)/);
-    expect(app).toMatch(/if \(ok\) \{ setPhotoFix\(false\); cardPrint\(\); return; \}/);
+    // K-006: still run for an approved photo, but after the first screen has loaded and the phone is idle
+    expect(app).toMatch(/if \(ok\) \{ setPhotoFix\(false\); return afterStartIdle\(cardPrint, FACE_IDLE_MS\); \}/);
   });
 });
 
