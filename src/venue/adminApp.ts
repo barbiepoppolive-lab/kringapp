@@ -19,7 +19,7 @@ import { agentsByLabel, cleanRef, codeMeaning, funnelLine, funnelRate, isProblem
 import { buildClusters, faceWords, flagText, isLookalikeMap, isLookCardMap, joinDate, lookalikeBlock, ownPhotoLabel, type LookCard, type FaceLookalikes, istWhen, weekRange, type WeekRow, HOLD_LABEL, isDupOverview, isLinkReason, isWeekReview, linkText, prizeName, REASON_LABEL, weekFlags,
   type DupCluster, type DupFlagged, type DupHeld, type DupMember, type WeekReview, reviewText } from './dupAdmin';
 import './admin2.css';
-import { v2Flush, v2Route, v2TabFor, v2Tabbar } from './adminV2';
+import { info, v2Flush, v2Route, v2TabFor, v2Tabbar, v2TestToggle } from './adminV2';
 
 // ───────────────────────────── types (same rows as v1) ─────────────────────────────
 type Reel = { id: string; author_id: string; author_name: string; ref_code: string | null; area: string; body: string; created_at: string;
@@ -1694,47 +1694,47 @@ function igPauseRow(): HTMLElement {
     sw('igPause', 'Paused 48 h', on, (v) => { const u = igLoad(); u.pausedUntil = v ? new Date(Date.now() + 48 * 3600_000).toISOString() : null; igSave(u); counts = null; toast(v ? 'Instagram paused for 48 h' : 'Instagram back on', { ms: 2500 }); moreView(); }));
 }
 function moreView() {
-  const li = (href: string, icon: string, title: string, sub: string, id: string) => el('a', { class: 'li', href, id }, el('span', { class: 'ic' }, ic(icon)), el('span', { class: 'grow' }, el('b', {}, title), el('span', { class: 's' }, sub)), ic('chev'));
-  const out = el('button', { type: 'button', class: 'li red', id: 'signOut' }, el('span', { class: 'ic' }, ic('out')), el('span', { class: 'grow' }, el('b', {}, 'Sign out')));
+  // 18 Nov declutter: one grouped list, one line per tool; rarely used tools sit in one folded "More tools" row
+  const li = (href: string, icon: string, title: string, id: string) => el('a', { class: 'li', href, id }, el('span', { class: 'ic' }, ic(icon)), el('span', { class: 'grow' }, el('b', {}, title)), ic('chev'));
+  const out = el('button', { type: 'button', class: 'lt-out', id: 'signOut' }, 'Sign out');
   out.onclick = async () => { flushWrite(); (await v5Client()).auth.signOut().catch(() => undefined); location.hash = ''; void boot(); };
   const cleaned = cleanedNote || LS('kr8-admin-cleaned');
+  const inst = installAdminRow();
+  const tools = [
+    li('#problems', 'warn', 'Problems', 'moreProblems'),
+    li('#places', 'store', 'Places', 'morePlaces'),
+    li('#ghost', 'eye', 'Ghost mode', 'moreGhost'),
+    el('a', { class: 'li', href: ghostAppUrl(), id: 'moreGhostOpen', target: '_blank', rel: 'noopener' }, el('span', { class: 'ic' }, ic('open')), el('span', { class: 'grow' }, el('b', {}, 'Open app as ghost')), ic('chev')),
+    li('#history/reels', 'reel', 'All Reels', 'histReels'),
+    li('#history/faces', 'face', 'Past face checks', 'histFaces'),
+    li('#facelog', 'face', 'Face auto-decisions', 'faceLog'),
+    li('#history/reports', 'flag', 'Closed reports', 'histReports'),
+    li('#top5', 'trophy', 'Old manual awards', 'moreOldAwards'),
+    li('#rules', 'book', 'House rules', 'rulesLink'),
+    li('#todo', 'check', 'Old queues', 'moreTodo'),
+    li('#listings', 'store', 'Listings', 'moreListings'),
+    li('#reddit', 'msg', 'Reddit plan', 'moreReddit'),
+    li('#history/replies', 'send', 'Sent and skipped replies', 'histReplies'),
+  ];
   screen('more', head('Kring admin', 'More'),
-    el('div', { class: 'sec', style: 'margin-top:0' }, 'Every day'),
-    li('#autopilot', 'spark', 'Autopilot', 'Every robot · ON / DRY-RUN / OFF · daily caps · Undo · Pause all', 'moreAutopilot'),
-    li('#post', 'reel', 'Post a Reel', 'One tap each: Instagram · YouTube · X', 'morePost'),
-    li('#money', 'party', 'Money', 'Codes left · paid this week · every claim', 'moreMoney'),
-    li('#faces', 'face', 'Face checks', 'Selfie next to the card photo · 1-tap reject (with undo)', 'moreFaces'),
-    li('#recruiters', 'link', 'Recruiters', 'Sign-ups per ref code (Pich, Otop…) · credit members who joined without one', 'moreRecruiters'),
-    li('#push', 'send', 'Send a ding', 'A notification to one member (by member no) or to everyone', 'morePush'),
-    li('#log', 'hist', 'Activity log', 'Everything, newest first · sign-ups, money, face checks, your actions', 'moreLog'),
-    el('div', { class: 'sec' }, 'Every week'),
-    li('#week', 'trophy', 'Approve week', 'Top 8 with flags · open the weekly prizes', 'moreWeek'),
-    li('#codes', 'party', 'Add reward codes', 'Paste Grab / TrueMoney codes · stock per prize amount', 'moreCodes'),
-    li('#dups', 'users', 'Same person?', 'Linked accounts · held claims: Pay or Refuse', 'moreDups'),
-    el('div', { class: 'sec' }, 'When something looks wrong'),
-    li('#problems', 'warn', 'Problems', 'Reel and face-check failures on members’ phones', 'moreProblems'),
-    li('#places', 'store', 'Places', 'Places members added · decided automatically · hide or restore', 'morePlaces'),
-    li('#ghost', 'eye', 'Ghost mode', 'Use the app as a member without anyone seeing you', 'moreGhost'),
-    el('a', { class: 'li', href: ghostAppUrl(), id: 'moreGhostOpen', target: '_blank', rel: 'noopener' }, el('span', { class: 'ic' }, ic('open')),
-      el('span', { class: 'grow' }, el('b', {}, 'Open app as ghost'), el('span', { class: 's' }, 'Same sign-in · switch Ghost mode on first')), ic('chev')),
-    el('div', { class: 'sec' }, 'History'),
-    li('#history/reels', 'reel', 'All Reels', 'Waiting, approved and hidden', 'histReels'),
-    li('#history/faces', 'face', 'Past face checks', 'Approved and rejected', 'histFaces'),
-    li('#facelog', 'face', 'Face auto-decisions', 'Every instant check: verified, blocked, sent to you, retry', 'faceLog'),
-    li('#history/reports', 'flag', 'Closed reports', 'Kept, removed and closed', 'histReports'),
-    li('#top5', 'trophy', 'Old manual awards', 'The Top 5 awards given by hand before 17 Nov', 'moreOldAwards'),
-    el('div', { class: 'sec' }, 'Rarely needed'),
-    li('#rules', 'book', 'House rules', 'Reels, reports, faces, payouts, venues', 'rulesLink'),
-    li('#todo', 'check', 'Old queues', 'Reels, face checks, reports one at a time (Needs you does this now)', 'moreTodo'),
-    li('#listings', 'store', 'Listings', 'Stay / Do and venues', 'moreListings'),
-    li('#reddit', 'msg', 'Reddit plan', 'Pacing, start date, checklist and history', 'moreReddit'),
-    li('#history/replies', 'send', 'Sent and skipped replies', 'Reddit queue history', 'histReplies'),
-    igPauseRow(),
-    installAdminRow(),
-    el('div', { class: 'sec' }, 'Account'),
-    el('div', { class: 'li' }, el('span', { class: 'ic' }, ic('users')), el('span', { class: 'grow' }, el('b', {}, me || 'Admin'), el('span', { class: 's' }, 'Signed in as admin'))),
-    cleaned ? el('p', { class: 'faint xs', id: 'verifyCleaned', style: 'margin:10px 4px' }, cleaned) : el('p', { class: 'faint xs', style: 'margin:10px 4px' }, 'Selfies are deleted 30 days after review (runs when Face checks open).'),
-    el('div', { style: 'margin-top:10px' }, out));
+    el('div', { class: 'lt-group' },
+      li('#autopilot', 'spark', 'Autopilot', 'moreAutopilot'),
+      li('#post', 'reel', 'Post a Reel', 'morePost'),
+      li('#money', 'party', 'Money', 'moreMoney'),
+      li('#codes', 'party', 'Reward codes', 'moreCodes'),
+      li('#week', 'trophy', 'Approve week', 'moreWeek')),
+    el('div', { class: 'lt-group' },
+      li('#faces', 'face', 'Face checks', 'moreFaces'),
+      li('#dups', 'users', 'Same person?', 'moreDups'),
+      li('#push', 'send', 'Send a ding', 'morePush'),
+      li('#recruiters', 'link', 'Recruiters', 'moreRecruiters'),
+      li('#log', 'hist', 'Activity log', 'moreLog')),
+    el('details', { class: 'lt-group lt-fold', id: 'moreTools' },
+      el('summary', { class: 'li' }, el('span', { class: 'ic' }, ic('more')), el('span', { class: 'grow' }, el('b', {}, 'More tools')), el('span', { class: 'lt-n' }, String(tools.length + (inst ? 3 : 2)))),
+      ...tools, igPauseRow(), inst, v2TestToggle(),
+      el('p', { class: 'faint xs', id: cleaned ? 'verifyCleaned' : undefined, style: 'margin:8px 14px' }, cleaned || 'Selfies are deleted 30 days after review (runs when Face checks open).')),
+    el('div', { class: 'lt-group' },
+      el('div', { class: 'li' }, el('span', { class: 'ic' }, ic('users')), el('span', { class: 'grow' }, el('b', {}, me || 'Admin')), out)));
 }
 function rulesView() {
   const r = (t: string, b: string) => el('p', {}, el('b', {}, t), b);
@@ -1831,13 +1831,22 @@ async function codesView() {
     // audit P2-6: TrueMoney rows are named by the CODE value you load (live is 100%: a ฿500 prize = a ฿500 code), from the live rules
     const pct = await rpc<Record<string, number>>('kr8_rings_rules').then((r) => Number(r?.truemoney_payout_pct) || 100).catch(() => 100);
     const codeVal = (b: string, a: number) => (b === 'truemoney' ? Math.floor((a * Math.min(100, Math.max(1, pct))) / 100) : a);
-    const rowName = (b: string, a: number) => (b === 'truemoney' && codeVal(b, a) !== a ? `TrueMoney ฿${codeVal(b, a).toLocaleString('en-US')} code · for the ฿${a.toLocaleString('en-US')} prize` : `${BRANDN[b]} ฿${a.toLocaleString('en-US')}`);
     const held = rows.reduce((n, r) => n + r.held, 0);
-    const stock = el('div', { class: 'card', id: 'codesStock' },
-      el('b', {}, 'Stock now'), el('p', { class: 'faint xs', style: 'margin:4px 0 10px' }, `Codes left · held claims waiting · given in the last 7 days. One row per prize. ${pct >= 100 ? 'TrueMoney pays the full prize value' : `TrueMoney pays ${pct} in every 100 baht of a prize`}, so each TrueMoney row says the code value to load.`),
-      ...rows.map((r) => el('div', { class: 'row', style: 'justify-content:space-between;padding:6px 0;border-top:1px solid var(--line)', 'data-stock': `${r.brand}_${r.amount_thb}` },
-        el('span', {}, rowName(r.brand, r.amount_thb)),
-        el('span', {}, pill(`${r.available} left`, r.available ? '' : 'bad'), ' ', r.held ? pill(`${r.held} held`, 'warn') : null, ' ', el('span', { class: 'faint xs' }, `${r.given_7d} / 7d`)))));
+    // 18 Nov declutter: ONE line per prize amount (Grab and TrueMoney side by side), tap a line to paste for that amount
+    const amts = [...new Set(rows.map((r) => r.amount_thb))].sort((x, y) => y - x);
+    const brandsIn = [...new Set(rows.map((r) => r.brand))];
+    const cell = (r: StockRow | undefined) => r ? el('span', { class: `lt-cell ${r.available ? '' : 'zero'}`, 'data-stock': `${r.brand}_${r.amount_thb}` },
+      el('b', {}, String(r.available)), r.held ? el('i', { class: 'lt-held' }, `${r.held} held`) : null,
+      r.brand === 'truemoney' && codeVal(r.brand, r.amount_thb) !== r.amount_thb ? el('small', {}, `฿${codeVal(r.brand, r.amount_thb)} code`) : null) : el('span', { class: 'lt-cell none' });
+    const stock = el('div', { class: 'lt-list', id: 'codesStock' },
+      el('div', { class: 'lt-hd' }, el('b', { class: 'grow' }, 'Codes left'), ...brandsIn.map((b) => el('span', { class: 'lt-col' }, BRANDN[b])),
+        info(`One line per prize amount, codes left per brand. “held” = a winner is waiting for that exact code. Tap a line to paste for that amount. ${pct >= 100 ? 'TrueMoney pays the full prize value.' : `TrueMoney pays ${pct} in every 100 baht of a prize.`}`, 'codesInfo')),
+      ...amts.map((a) => {
+        const row = el('button', { type: 'button', class: 'v2li lt-stock', 'data-amount': String(a) }, el('b', { class: 'grow' }, `฿${a.toLocaleString('en-US')}`),
+          ...brandsIn.map((b) => cell(rows.find((r) => r.brand === b && r.amount_thb === a))));
+        row.onclick = () => { (amount as HTMLSelectElement).value = String(a); area.focus(); };
+        return row;
+      }));
     const brands = [...new Set(rows.map((r) => r.brand))];
     const amounts = [...new Set(rows.map((r) => r.amount_thb))].sort((a, b) => b - a);
     const brand = el('select', { id: 'codeBrand' }, ...(brands.length ? brands : ['grab', 'truemoney']).map((b) => el('option', { value: b }, BRANDN[b])));
@@ -1846,7 +1855,7 @@ async function codesView() {
     const amount = el('select', { id: 'codeAmount' }, ...amountOpts(brands[0] || 'grab'));
     brand.onchange = () => { const v = (amount as HTMLSelectElement).value; amount.replaceChildren(...amountOpts((brand as HTMLSelectElement).value)); (amount as HTMLSelectElement).value = v; };
     const url = el('input', { id: 'codeUrl', placeholder: 'Activation link (optional, https://…)' });
-    const area = el('textarea', { id: 'codeList', rows: '6', placeholder: 'Paste codes OR redeem links (https://…), one per line' }) as HTMLTextAreaElement;
+    const area = el('textarea', { id: 'codeList', rows: '4', placeholder: 'Paste codes or redeem links, one per line' }) as HTMLTextAreaElement;
     const test = el('input', { type: 'checkbox', id: 'codeTest' }) as HTMLInputElement;
     const count = el('p', { class: 'faint xs', id: 'codeCount' }, '0 codes');
     area.oninput = () => { count.textContent = `${parseCodes(area.value).length} codes`; };
@@ -1864,16 +1873,18 @@ async function codesView() {
       } catch (e) { toast(errText(e), { ms: 6000 }); } finally { save.disabled = false; }
     }, { id: 'codeSave' });
     body.replaceChildren(
-      held ? el('div', { class: 'card', style: 'border-color:var(--warn,#ffc44d);margin-bottom:12px' }, el('b', {}, `${held} member${held === 1 ? ' is' : 's are'} waiting for a code`), el('p', { class: 'faint xs' }, 'They won a prize and tapped Claim. Add a code of the same brand and amount below and it goes out by itself.')) : '',
+      held ? el('div', { class: 'lt-alert', id: 'codesHeld' }, el('span', { class: 'v2dot2 a' }), el('b', { class: 'grow' }, `${held} member${held === 1 ? ' is' : 's are'} waiting for a code`),
+        info('They won a prize and tapped Claim. Add a code of the same brand and amount below and it goes out by itself.')) : '',
       stock,
-      el('div', { class: 'card stack', id: 'codesForm' },
-        el('b', {}, 'Add codes'),
-        el('div', { class: 'row', style: 'gap:8px' }, el('label', { class: 'f grow' }, 'Brand', brand), el('label', { class: 'f grow' }, 'Amount', amount)),
-        el('label', { class: 'f' }, 'Codes or redeem links', area), count,
-        el('p', { class: 'faint xs' }, 'TrueMoney vouchers that arrive as a link: paste the link itself, one per line. The member gets a “Redeem into TrueMoney” button.'),
-        el('label', { class: 'f' }, 'Activation link', url),
-        el('label', { class: 'row', style: 'gap:8px' }, test, el('span', {}, 'Test codes (only test members get them)')),
-        save));
+      el('div', { class: 'lt-paste', id: 'codesForm' },
+        el('div', { class: 'row', style: 'gap:8px' }, brand, amount),
+        area, count,
+        save,
+        el('details', { class: 'v2fold', id: 'codesMore' }, el('summary', {}, el('b', { class: 'grow' }, 'Link or test codes'), el('span', { class: 'v2fold-x' })),
+          el('div', { class: 'v2fold-in stack' },
+            el('p', { class: 'faint xs' }, 'TrueMoney vouchers that arrive as a link: paste the link itself, one per line. The member gets a “Redeem into TrueMoney” button.'),
+            el('label', { class: 'f' }, 'Activation link', url),
+            el('label', { class: 'row', style: 'gap:8px' }, test, el('span', {}, 'Test codes (only test members get them)'))))));
   };
   await draw();
 }
@@ -1887,19 +1898,21 @@ const PLAT_ICON: Record<Platform, string> = {
   x: '<path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L2 3h6.4l4.4 5.8zm-1.1 16.2h1.7L7.4 4.7H5.6z" fill="currentColor" stroke="none"/>',
 };
 function postView() {
+  // 18 Nov declutter: the video is the page; the caption is ready (one tap to edit); ONE strong button = the next platform to post to
   const fileIn = el('input', { type: 'file', accept: 'video/*', id: 'postFile', style: 'display:none' }) as HTMLInputElement;
-  const pick = el('label', { class: 'btn ghost big full', for: 'postFile', id: 'postPick' }, ic('plus'), post.file ? 'Pick another video' : 'Pick video');
+  const pick = el('label', { class: 'lt-pick', for: 'postFile', id: 'postPick' });
   const prev = el('div', { id: 'postPrev' });
   const caption = el('textarea', { id: 'postCaption', rows: '6' }) as HTMLTextAreaElement; caption.value = post.caption;
   const warn = el('p', { class: 'err', id: 'postWarn' });
-  const hint = el('p', { class: 'okc sm', id: 'postHint', style: 'margin:10px 2px 0;min-height:1em' });
+  const hint = el('p', { class: 'okc sm', id: 'postHint', style: 'margin:10px 2px 0;min-height:1em;text-align:center' });
   const paintPrev = () => {
     prev.replaceChildren(...(post.file ? [el('div', { class: 'post-prev' },
       el('video', { src: post.url, muted: true, playsinline: true, controls: true, preload: 'metadata' }),
       el('div', { class: 'grow' }, el('b', {}, post.file.name), el('div', { class: 'faint sm', id: 'postSize' }, fileSize(post.file.size))))] : []));
-    pick.replaceChildren(ic('plus'), post.file ? 'Pick another video' : 'Pick video');
+    pick.replaceChildren(ic(post.file ? 'reel' : 'plus'), el('b', {}, post.file ? 'Pick another video' : 'Pick the video'));
+    pick.classList.toggle('has', !!post.file);
   };
-  const checkWords = () => { const bad = bannedIn(caption.value); warn.textContent = bad.length ? `Take out: ${bad.join(', ')}` : ''; };
+  const checkWords = () => { const bad = bannedIn(caption.value); warn.textContent = bad.length ? `Take out: ${bad.join(', ')}` : ''; if (bad.length) capBox.open = true; };
   caption.oninput = () => { post.caption = caption.value; checkWords(); };
   fileIn.onchange = () => {
     const f = fileIn.files?.[0]; if (!f) return;
@@ -1907,29 +1920,33 @@ function postView() {
     post.file = f; post.url = URL.createObjectURL(f); post.done.clear();
     paintPrev(); paintBtns();
   };
-  const btns = el('div', { class: 'post-btns', id: 'postBtns' });
-  const paintBtns = () => btns.replaceChildren(...PLATFORMS.map((p) => {
-    const done = post.done.has(p.id);
-    const svg = ic(''); svg.innerHTML = PLAT_ICON[p.id];
-    const b = btn(`big full post-${p.id}${done ? ' done' : ''}`, [svg, el('span', { class: 'grow' }, p.name), done ? el('span', { class: 'post-ok' }, '✓ posted') : null], () => {
-      if (!post.file) { toast('Pick a video first'); return; }
-      // no await before shareReel: the share sheet / new tab need this tap
-      void shareReel(p.id, post.file, caption.value, { copy: copyText, canShare: navigator.canShare?.bind(navigator), share: navigator.share?.bind(navigator), open: (u) => window.open(u, '_blank', 'noopener') })
-        .then((r) => {
-          if (r === 'cancelled') { hint.textContent = 'Share closed · caption is still copied'; return; }
-          hint.textContent = r === 'opened' ? 'Caption copied — paste it after the video loads' : `Caption copied — paste it in ${p.name} after the video loads`;
-          post.done.add(p.id); paintBtns();
-        });
-    }, { id: 'post-' + p.id });
-    return b;
-  }));
+  const capBox = el('details', { class: 'v2fold', id: 'postCapBox' },
+    el('summary', {}, ic('edit'), el('span', { class: 'grow lt-cap1' }, el('b', {}, 'Caption ready'), el('small', {}, REEL_CAPTION_EN.replace(/^Thai line says: /, ''))), el('span', { class: 'v2fold-x' })),
+    el('div', { class: 'v2fold-in stack' }, caption, el('p', { class: 'faint xs' }, REEL_CAPTION_EN)));
+  const btns = el('div', { class: 'post-btns lt-post', id: 'postBtns' });
+  const paintBtns = () => {
+    const next = PLATFORMS.find((p) => !post.done.has(p.id))?.id;
+    btns.replaceChildren(...PLATFORMS.map((p) => {
+      const done = post.done.has(p.id);
+      const svg = ic(''); svg.innerHTML = PLAT_ICON[p.id];
+      const b = btn(`full post-${p.id}${done ? ' done' : ''}${p.id === next ? ' lt-next' : ' lt-soft'}`, [svg, el('span', { class: 'grow' }, p.id === next ? `Post to ${p.name}` : p.name), done ? el('span', { class: 'post-ok' }, '✓ posted') : null], () => {
+        if (!post.file) { toast('Pick a video first'); return; }
+        // no await before shareReel: the share sheet / new tab need this tap
+        void shareReel(p.id, post.file, caption.value, { copy: copyText, canShare: navigator.canShare?.bind(navigator), share: navigator.share?.bind(navigator), open: (u) => window.open(u, '_blank', 'noopener') })
+          .then((r) => {
+            if (r === 'cancelled') { hint.textContent = 'Share closed · caption is still copied'; return; }
+            hint.textContent = r === 'opened' ? 'Caption copied — paste it after the video loads' : `Caption copied — paste it in ${p.name} after the video loads`;
+            post.done.add(p.id); paintBtns();
+          });
+      }, { id: 'post-' + p.id });
+      return b;
+    }));
+  };
   paintPrev(); paintBtns(); checkWords();
   screen('more', el('div', { class: 'row', style: 'margin:6px 0 16px' }, el('a', { class: 'icb', href: '#more', 'aria-label': 'Back' }, ic('back')), el('h1', { style: 'font-size:26px' }, 'Post a Reel')),
-    el('div', { class: 'card stack' }, el('b', {}, '1 · Video'), fileIn, pick, prev),
-    el('div', { class: 'card stack' }, el('b', {}, '2 · Caption'), caption, el('p', { class: 'faint xs' }, REEL_CAPTION_EN), warn),
-    el('div', { class: 'sec' }, '3 · Post'),
-    btns, hint,
-    el('p', { class: 'faint xs', style: 'margin:22px 2px 0;text-align:center' }, 'Fully automatic posting comes with Autopilot.'));
+    fileIn, pick, prev,
+    capBox, warn,
+    btns, hint);
 }
 
 // ───────────────────────────── Send notification (16 Nov dings, 0059) ─────────────────────────────
@@ -2295,29 +2312,34 @@ async function dupsView() {
 
 // ───────────────────────────── Approve week (0066 kr8_admin_week_review / approve_week) ─────────────────────────────
 export function weekBlock(r: WeekReview, onApprove: (() => void) | null, now = Date.now()): HTMLElement {
-  if (!r.week) return el('div', { class: 'card empty', id: 'weekEmpty' }, el('b', {}, 'No week closed yet'), 'The first week closes Monday 24 Nov, 00:00 Bangkok.');
+  if (!r.week) return el('div', { class: 'lt-empty', id: 'weekEmpty' }, el('b', {}, 'No week closed yet'), el('small', {}, 'The first week closes Monday 24 Nov, 00:00 Bangkok.'));
   const opens = r.opens_at ? Date.parse(r.opens_at) : 0;
   const state = r.approved_at ? `Approved ${istWhen(r.approved_at)} · prizes are open` : opens > now ? `Prizes open by themselves ${istWhen(r.opens_at!)} (24 h after the close) unless you approve first` : `Opened by itself ${istWhen(r.opens_at!)}`;
+  const flagged = r.rows.filter((x) => weekFlags(x, now).length).length;
+  // 18 Nov declutter: one state line (the rule behind ⓘ), ONE button, then the Top 8 as a list; each row's flags open on tap
   return el('div', { id: 'weekReview' },
-    el('div', { class: 'card', id: 'weekState' }, el('div', { class: 'row' }, el('b', { class: 'grow' }, `Week ${weekRange(r.week)}`), r.approved_at || opens <= now ? pill('open', 'g') : pill('checking', 'warn')),
-      el('p', { class: 'sm', style: 'margin:6px 0 0' }, state),
-      onApprove && !r.approved_at && opens > now ? btn('go big full', [ic('check'), 'Approve week · open the prizes'], onApprove, { id: 'weekApprove', style: 'margin-top:12px' }) : null),
-    el('div', { class: 'card', id: 'weekRows' }, el('b', {}, 'Top 8'),
+    el('div', { class: 'lt-statusline', id: 'weekState' }, el('span', { class: `v2dot2 ${r.approved_at || opens <= now ? 'g' : 'a'}` }),
+      el('div', { class: 'grow' }, el('b', {}, `Week ${weekRange(r.week)}`), el('small', {}, r.approved_at || opens <= now ? 'Prizes are open' : `${flagged} of ${r.rows.length} with a flag · checking`)),
+      info(state)),
+    onApprove && !r.approved_at && opens > now ? btn('pri big full', [ic('check'), 'Approve · open the prizes'], onApprove, { id: 'weekApprove', style: 'margin:4px 0 14px' }) : null,
+    el('div', { class: 'lt-list', id: 'weekRows' },
       ...r.rows.map((x: WeekRow) => {
         const flags = weekFlags(x, now);
-        return el('div', { class: 'nrow wk-r', 'data-rank': String(x.rank) },
-          el('div', { class: 'row', style: 'gap:10px' }, el('span', { class: 'wk-rk' }, `#${x.rank}`),
-            x.photo ? el('img', { class: 'wk-av', src: x.photo, alt: '' }) : el('span', { class: 'wk-av' }),
-            el('span', { class: 'grow' }, el('b', {}, `${x.first_name}${x.member_no != null ? ` #${x.member_no}` : ''}`),
-              el('div', { class: 'faint xs' }, `${x.rings} Rings${x.prize ? ` · ฿${x.prize.amount.toLocaleString('en-US')} ${x.prize.status === 'claimed' ? 'claimed' : 'not claimed'}` : ' · no prize'}`)),
-            flags.length ? pill(`${flags.length} flag${flags.length === 1 ? '' : 's'}`, flags.some((f) => /^Same (face|phone)/.test(f)) ? 'r' : 'warn') : pill('ok', 'g')),
-          flags.length ? el('ul', { class: 'wk-flags' }, ...flags.map((f) => el('li', { class: /^Same (face|phone)/.test(f) ? 'bad' : '' }, f))) : null);
-      }),
-      el('p', { class: 'faint xs', style: 'margin:10px 0 0' }, 'Linked accounts: More → Same person?')));
+        const bad = flags.some((f) => /^Same (face|phone)/.test(f));
+        const head = el('div', { class: 'row', style: 'gap:10px' }, el('span', { class: 'wk-rk' }, `#${x.rank}`),
+          x.photo ? el('img', { class: 'wk-av', src: x.photo, alt: '' }) : el('span', { class: 'wk-av' }),
+          el('span', { class: 'grow' }, el('b', {}, `${x.first_name}${x.member_no != null ? ` #${x.member_no}` : ''}`),
+            el('div', { class: 'faint xs' }, `${x.rings} Rings${x.prize ? ` · ฿${x.prize.amount.toLocaleString('en-US')} ${x.prize.status === 'claimed' ? 'claimed' : 'unclaimed'}` : ' · no prize'}`)),
+          flags.length ? pill(`${flags.length} flag${flags.length === 1 ? '' : 's'}`, bad ? 'r' : 'a') : pill('ok', 'g'));
+        return flags.length
+          ? el('details', { class: 'nrow wk-r v2fold', 'data-rank': String(x.rank) }, el('summary', {}, head), el('ul', { class: 'wk-flags' }, ...flags.map((f) => el('li', { class: /^Same (face|phone)/.test(f) ? 'bad' : '' }, f))))
+          : el('div', { class: 'nrow wk-r', 'data-rank': String(x.rank) }, head);
+      })));
 }
 async function weekView() {
   const body = el('div', {}, loading());
-  screen('more', backHead('Approve week', '#more'), el('p', { class: 'dim sm', style: 'margin:-6px 0 14px' }, 'Weekly prizes open for claiming when you approve, or by themselves 24 h after the week closes.'), body);
+  screen('more', el('div', { class: 'row', style: 'margin:6px 0 16px' }, el('a', { class: 'icb', href: '#more', 'aria-label': 'Back' }, ic('back')), el('h1', { style: 'font-size:26px' }, 'Approve week'),
+    info('Weekly prizes open for claiming when you approve, or by themselves 24 h after the week closes. Linked accounts: More → Same person?')), body);
   let r: unknown;
   try { r = await rpc<unknown>('kr8_admin_week_review', { p_week: null }); } catch (e) { body.replaceChildren(errP(e)); return; }
   if (!isWeekReview(r)) { body.replaceChildren(el('p', { class: 'err' }, 'Approve week needs database update 0066.')); return; }

@@ -8,7 +8,7 @@ import { el, rpc, v5Client } from './shared';
 import { signReelPaths } from '../v8/v5Reel';
 import {
   ago, both, buildInbox, buildRobotReport, claimChip, clock, filterPeople, groupPeople, isSnapshot, lookalikeWords, money, noCard, peopleCounts, peopleHeadline,
-  personFlags, personTrust, placeFlags, realPhoto, referrers, stepChip, summary, trustChip, who, withAdminLogins, faceChip, faceStatusWords, liveSteps,
+  personFlags, personTrust, placeFlags, realPhoto, referrers, stepChip, trustChip, who, withAdminLogins, faceStatusWords, liveSteps,
   INBOX_FILTERS, waitShort, type Handled,
   type Claim, type DupAuto, type FaceCheck, type InboxItem, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot, type Trust,
 } from './adminV2Logic';
@@ -49,6 +49,17 @@ function ic(name: string): SVGSVGElement {
   s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true'); s.innerHTML = P[name] || ''; return s;
 }
 const chip = (text: string, tone = '') => el('span', { class: `v2chip ${tone}` }, text);
+
+// ───────── Kring Light declutter (18 Nov): fold rows, ⓘ notes, one primary button ─────────
+/** One WhatsApp-style row that opens to show the detail. The detail stays in the page (closed), so every action still works. */
+function fold(id: string | undefined, head: Kid[], kids: Kid[], tone = ''): HTMLDetailsElement {
+  return el('details', { class: `v2fold ${tone}`, id }, el('summary', {}, ...head, el('span', { class: 'v2fold-x', 'aria-hidden': 'true' })), el('div', { class: 'v2fold-in' }, ...kids));
+}
+const foldHead = (title: string, sub?: string, dot = ''): Kid[] => [dot ? el('span', { class: `v2dot2 ${dot}` }) : null, el('b', { class: 'grow' }, title), sub ? el('small', {}, sub) : null];
+/** ⓘ: rules, dates and technical notes live behind this, in small grey text */
+export function info(text: Kid, id?: string): HTMLElement {
+  return el('details', { class: 'v2i', id }, el('summary', { 'aria-label': 'More info' }, 'i'), el('div', { class: 'v2i-tip' }, text));
+}
 
 // ───────── data: one snapshot, polled ─────────
 let snap: Snapshot | null = null;
@@ -192,12 +203,14 @@ function weekLeft(s: Snapshot): string {
   const h = Math.max(0, Math.round((end - Date.now()) / 36e5));
   return h >= 24 ? `in ${Math.floor(h / 24)} d ${h % 24} h` : `in ${h} h`;
 }
-/** The four steps a member takes: photo → Reel → face → prize. */
-function steps(p: Person, s: Snapshot): HTMLElement {
-  const st: [string, boolean][] = [['Photo', realPhoto(p, s)], ['Reel', (p.reels?.live || 0) + (p.reels?.waiting || 0) > 0], ['Face', p.verified === true], ['Prize', (p.claims?.paid || 0) > 0]];
-  return el('span', { class: 'v2steps' }, ...st.map(([t, ok]) => el('i', { class: ok ? 'ok' : '' }, (ok ? '✓ ' : '') + t)));
+/** The next step a member has not done yet: photo → Reel → face → prize. */
+function nextStep(p: Person, s: Snapshot): string {
+  const st: [string, boolean][] = [['photo', realPhoto(p, s)], ['Reel', (p.reels?.live || 0) + (p.reels?.waiting || 0) > 0], ['face check', p.verified === true], ['prize', (p.claims?.paid || 0) > 0]];
+  const n = st.find(([, ok]) => !ok);
+  return n ? `next: ${n[0]}` : 'all 4 steps done';
 }
-function renderMorningBrief(s: Snapshot, inboxItems: InboxItem[]): HTMLElement {
+/** ONE brief (18 Nov declutter): 3 numbers + "3 things need you". The other numbers, the funnel and the robot notes sit one tap away. */
+function renderMorningBrief(s: Snapshot, inboxItems: InboxItem[], extra: Kid[] = []): HTMLElement {
   const mb = morningCache || synthesizeMorningBrief(s, { items: inboxItems });
   const b = mb.brief;
   const runway = computeVoucherRunway(b.voucher_stock.available, b.voucher_stock.burn_7d);
@@ -210,29 +223,27 @@ function renderMorningBrief(s: Snapshot, inboxItems: InboxItem[]): HTMLElement {
       el('small', {}, sub));
 
   const top3 = b.top3_needs_you.slice(0, 3);
+  const errN = b.errors.total;
 
-  return el('section', { class: 'v2card mb-card', id: 'v2MorningBrief' },
-    el('div', { class: 'mb-hd' },
-      ic('robot'),
-      el('div', { class: 'grow' },
-        el('b', {}, 'Morning brief'),
-        el('small', {}, 'Real counts · 7-day voucher burn · 24h health')),
-      el('a', { class: 'v2robot-go', href: '#autopilot' }, 'Autopilot →')),
+  return el('section', { class: 'mb-card lt-brief', id: 'v2MorningBrief' },
     el('div', { class: 'mb-grid' },
-      stat('mbMembers', `+${b.new_members.today}`, 'New members', `${b.new_members.total} real total`, '#people'),
-      stat('mbFaces', String(b.face_checks.today), 'Face checks', `${b.face_checks.pass} pass · ${b.face_checks.waiting} waiting`, '#faces', b.face_checks.waiting > 0),
-      stat('mbPosts', String(b.posts.reels_today + b.posts.asks_today), 'Posts today', `${b.posts.reels_live} live · ${b.posts.reels_waiting} waiting`, '#inbox', b.posts.reels_waiting > 0),
-      stat('mbHeld', `฿${b.held_payouts.thb.toLocaleString('en-US')}`, 'Held payouts', `${b.held_payouts.count} waiting for you`, '#inbox', b.held_payouts.count > 0),
-      stat('mbStock', daysStr, 'Voucher stock', runway.sub, '#money', runway.hot),
-      stat('mbErrors', String(b.errors.total), 'Errors (24h)', `${b.errors.client_24h} phone · ${b.errors.outbox_failed_24h + b.errors.robot_failed_24h} sys`, '#problems', b.errors.total > 0)),
+      stat('mbMembers', `+${b.new_members.today}`, 'New today', `${b.new_members.total} real total`, '#people'),
+      stat('mbHeld', `฿${b.held_payouts.thb.toLocaleString('en-US')}`, 'Held', `${b.held_payouts.count} waiting`, '#inbox', b.held_payouts.count > 0),
+      stat('mbStock', daysStr, 'Codes', `${b.voucher_stock.available} left`, '#codes', runway.hot)),
     el('div', { class: 'mb-top3', id: 'v2BriefTop3' },
-      el('div', { class: 'mb-top3-hd' }, top3.length ? `${top3.length} thing${top3.length === 1 ? '' : 's'} that need you` : '3 things that need you · all clear'),
+      el('div', { class: 'mb-top3-hd' }, top3.length ? `${top3.length} thing${top3.length === 1 ? '' : 's'} need${top3.length === 1 ? 's' : ''} you` : 'Nothing urgent'),
       ...(top3.length
-        ? top3.map((t, idx) => el('a', { class: `mb-need sev-${t.severity}`, href: t.href },
+        ? top3.map((t, idx) => el('a', { class: `mb-need sev-${t.severity}`, href: t.href, title: t.sub || undefined },
             el('span', { class: 'mb-num' }, String(idx + 1)),
-            el('div', { class: 'grow' }, el('b', {}, t.title), t.sub ? el('small', {}, t.sub) : null),
+            el('b', { class: 'grow' }, t.title),
             ic('chev')))
-        : [el('div', { class: 'mb-clear' }, '0 urgent decisions — robots are watching everything.')])));
+        : [el('div', { class: 'mb-clear' }, 'Robots are watching everything.')])),
+    fold('v2MoreNums', foldHead('More numbers'), [
+      el('div', { class: 'mb-grid' },
+        stat('mbFaces', String(b.face_checks.today), 'Face checks', `${b.face_checks.pass} pass · ${b.face_checks.waiting} waiting`, '#faces', b.face_checks.waiting > 0),
+        stat('mbPosts', String(b.posts.reels_today + b.posts.asks_today), 'Posts today', `${b.posts.reels_live} live · ${b.posts.reels_waiting} waiting`, '#inbox', b.posts.reels_waiting > 0),
+        stat('mbErrors', String(errN), 'Errors (24h)', `${b.errors.client_24h} phone · ${b.errors.outbox_failed_24h + b.errors.robot_failed_24h} sys`, '#problems', errN > 0)),
+      ...extra]));
 }
 
 function renderAlertCentre(s: Snapshot, inboxItems: InboxItem[]): HTMLElement {
@@ -290,72 +301,40 @@ function renderAlertCentre(s: Snapshot, inboxItems: InboxItem[]): HTMLElement {
 
 export function todayView() {
   const help = helpSection(setHelpWaiting);   // 0097: members waiting for the team, at the very top
-  const date = new Date().toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'short' });
+  const date = new Date().toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short' });
   void withSnap('today', (s) => {
     const inbox = buildInbox(s);
     const items = inbox.items.filter((i) => !hiddenKeys.has(i.key));
-    const m = money(s);
     const d0 = Date.parse(s.day_start);
     const real = s.people.filter((p) => p.kind === 'real');
     let fresh = real.filter((p) => Date.parse(p.joined_at) >= d0);
-    const freshLabel = fresh.length ? `New today · ${fresh.length}` : 'Newest members';
-    if (!fresh.length) fresh = [...real].sort((x, y) => Date.parse(y.joined_at) - Date.parse(x.joined_at)).slice(0, 4);
-    const pc = peopleCounts(s);
-    const top = s.board.rows.slice(0, 3);
-    void loadPhotos([...fresh.map((p) => p.user_id), ...top.map((r) => r.user_id), ...items.slice(0, 2).flatMap((i) => i.people.map((p) => p.user_id))]).then(paintPhotos);
-    // funnel over every real member with a card
+    const freshN = fresh.length;
+    if (!fresh.length) fresh = [...real].sort((x, y) => Date.parse(y.joined_at) - Date.parse(x.joined_at));
+    fresh = fresh.slice(0, 3);
+    void loadPhotos(fresh.map((p) => p.user_id)).then(paintPhotos);
+    // funnel over every real member with a card (one tap away, inside "More numbers")
     const fun: [string, number][] = [['Joined', real.length], ['Photo', real.filter((p) => realPhoto(p, s)).length],
       ['Posted a Reel', real.filter((p) => (p.reels?.live || 0) + (p.reels?.waiting || 0) > 0).length], ['Face verified', real.filter((p) => p.verified).length],
       ['Got a prize', real.filter((p) => (p.claims?.paid || 0) > 0).length]];
-    const kpi = (id: string, n: string, label: string, sub: string, href: string, tone = '') =>
-      el('a', { class: `v2kpi ${tone}`, href, id }, el('b', {}, n), el('span', {}, label), el('small', {}, sub));
+    const funnel = el('a', { class: 'v2funnel', href: '#people', id: 'v2Funnel' }, ...fun.map(([t, n], k) => el('div', { class: 'v2fun' },
+      el('span', {}, t), el('i', {}, el('u', { style: `width:${Math.round((n / Math.max(1, fun[0][1])) * 100)}%` })), el('b', {}, String(n)),
+      el('small', { class: k && n === Math.min(...fun.slice(1).map((f) => f[1])) ? 'low' : '' }, k ? `${Math.round((n / Math.max(1, fun[0][1])) * 100)}%` : ''))));
     const rr = buildRobotReport(s, { items, handled: inbox.handled });
-    screen('today', header('Today', `${date} · India time`),
+    screen('today', header('Today', date),
       help,
-      renderMorningBrief(s, items),
-      // 1. what needs a decision
-      items.length ? el('div', { class: 'v2sec' }, `Needs you · ${items.length}`) : el('a', { class: 'v2card v2row v2allclear', href: '#auto', id: 'v2Clear' }, ic('check'),
-        el('div', { class: 'grow' }, el('b', {}, 'Nothing needs you'), el('div', { class: 'v2sub' }, `${inbox.handled.length} things were handled automatically`)), ic('chev')),
-      ...items.slice(0, 2).map((i) => inboxCard(i, items)),
-      items.length > 2 ? el('a', { class: 'v2more', href: '#inbox' }, `See all ${items.length} →`) : null,
-      // 1b. Robot report: what the robots did today, plain English, links to Needs you
-      el('div', { class: 'v2sec' }, 'Robot report'),
-      el('a', { class: 'v2card v2robot', href: '#inbox', id: 'v2RobotReport' },
-        el('div', { class: 'v2robot-hd' }, ic('robot'), el('b', { class: 'grow' }, 'Robot report · today'),
-          el('span', { class: 'v2robot-go' }, items.length ? `Needs you (${items.length}) →` : 'Needs you →')),
-        el('ul', { class: 'v2robot-ul' }, ...rr.lines.map((ln) => el('li', {}, ln)))),
-      // 2. who joined, and how far they got
-      el('div', { class: 'v2sec' }, freshLabel),
-      el('div', { class: 'v2card v2list', id: 'v2NewToday' }, ...fresh.map((p) => el('a', { class: 'v2li', href: personLink(p), 'data-uid': p.user_id },
-        avatar(p, 44), el('div', { class: 'grow' }, el('b', {}, `${p.name || '—'} #${p.no ?? '–'}`),
-          el('small', {}, `${ago(p.joined_at)} · ${p.ref ? `via ${p.ref}` : 'no referrer'}`), steps(p, s)), ic('chev')))),
-      // 3. where members stop
-      el('div', { class: 'v2sec' }, 'Where members stop'),
-      el('a', { class: 'v2card v2funnel', href: '#people', id: 'v2Funnel' }, ...fun.map(([t, n], k) => el('div', { class: 'v2fun' },
-        el('span', {}, t), el('i', {}, el('u', { style: `width:${Math.round((n / Math.max(1, fun[0][1])) * 100)}%` })), el('b', {}, String(n)),
-        el('small', { class: k && n === Math.min(...fun.slice(1).map((f) => f[1])) ? 'low' : '' }, k ? `${Math.round((n / Math.max(1, fun[0][1])) * 100)}%` : '')))),
-      // 4. the race this week
-      el('div', { class: 'v2sec' }, `Board · ends ${weekLeft(s)}`),
-      top.length ? el('a', { class: 'v2card v2list', href: '#board', id: 'v2Top3' }, ...top.map((r) => el('div', { class: 'v2li', 'data-uid': r.user_id },
-        el('span', { class: 'v2rank top' }, String(r.rank)), avatar({ user_id: r.user_id, name: r.name }, 36),
-        el('div', { class: 'grow' }, el('b', {}, `${r.name} #${r.no}`), el('small', {}, r.rings < s.board.floor ? `${s.board.floor - r.rings} more Rings to qualify` : r.prize ? `prize ฿${r.prize}` : '')),
-        el('b', { class: 'v2rings' }, String(r.rings)))))
-        : el('a', { class: 'v2card v2row', href: '#board' }, el('div', { class: 'grow' }, el('b', {}, 'Board is empty this week')), ic('chev')),
-      // 5. numbers
-      el('div', { class: 'v2kpis three' },
-        kpi('kpiMembers', String(pc.members), 'Members', `+${pc.today} today`, '#people'),
-        kpi('kpiCodes', String(m.available), 'Codes left', m.available < 5 ? 'Add more soon' : `${m.assigned} given out`, '#money', m.available < 5 ? 'hot' : ''),
-        kpi('kpiPaid', `฿${m.paidWeekThb.toLocaleString('en-US')}`, 'Paid this week', m.heldN ? `฿${m.heldThb} held` : `${m.paidWeekN} claims`, '#money')),
-      // 6. shortcuts he uses
-      el('div', { class: 'v2links grid2' },
-        el('a', { href: '#post', class: 'v2link', id: 'v2Post', style: 'grid-column:1 / -1' }, ic('reel'), 'Post a Reel · Instagram · YouTube · X'),
-        el('a', { href: '#autopilot', class: 'v2link', id: 'todayAutopilot', style: 'grid-column:1 / -1' }, ic('robot'), 'Autopilot · switches, caps & Undo'),
-        el('a', { href: '#faces', class: 'v2link' }, ic('face'), 'Face checks'), el('a', { href: '#recruiters', class: 'v2link' }, ic('link'), 'Recruiters'),
-        el('a', { href: '#push', class: 'v2link' }, ic('send'), 'Send a ding'), el('a', { href: '#log', class: 'v2link' }, ic('log'), 'Activity log')),
-      el('details', { class: 'v2brief', id: 'v2Brief' }, el('summary', { class: 'v2brief-k' }, ic('robot'), 'In plain words'),
-        ...summary(s, { items, handled: inbox.handled }).map((t) => el('p', {}, t))),
-      testToggle());
-  }, header('Today', `${date} · India time`));
+      renderMorningBrief(s, items, [el('div', { class: 'v2sec' }, 'Where members stop'), funnel]),
+      // the ONE primary button on Today
+      items.length ? el('a', { class: 'v2pri', href: '#inbox', id: 'v2Decide' }, `Decide ${items.length} case${items.length === 1 ? '' : 's'}`, ic('chev'))
+        : el('a', { class: 'v2li v2allclear', href: '#auto', id: 'v2Clear' }, ic('check'),
+          el('div', { class: 'grow' }, el('b', {}, 'Nothing needs you'), el('small', {}, `${inbox.handled.length} handled automatically`)), ic('chev')),
+      el('div', { class: 'v2sec' }, freshN ? `New today · ${freshN}` : 'Newest members'),
+      el('div', { class: 'lt-list', id: 'v2NewToday' }, ...fresh.map((p) => el('a', { class: 'v2li', href: personLink(p), 'data-uid': p.user_id },
+        avatar(p, 40), el('div', { class: 'grow' }, el('b', {}, `${p.name || '—'} #${p.no ?? '–'}`),
+          el('small', {}, `${ago(p.joined_at)} · ${nextStep(p, s)}`)), ic('chev')))),
+      el('div', { class: 'lt-list' },
+        fold('v2RobotFold', [ic('robot'), el('b', { class: 'grow' }, 'Robot report'), el('small', {}, `${rr.lines.length} note${rr.lines.length === 1 ? '' : 's'} today`)], [
+          el('a', { class: 'v2robot', href: '#inbox', id: 'v2RobotReport' }, el('ul', { class: 'v2robot-ul' }, ...rr.lines.map((ln) => el('li', {}, ln))))])));
+  }, header('Today', date));
 }
 function paintPhotos() {
   document.querySelectorAll<HTMLElement>('[data-uid]').forEach((n) => {
@@ -384,14 +363,19 @@ export function inboxView() {
       b.onclick = () => { inboxFilter = f.key; LS('kr8-v2-if', f.key); rerender?.(); };
       return b;
     }));
+    const mb = morningCache || synthesizeMorningBrief(s, { items: open });
+    const alerts = mb.alerts.filter((a) => !hiddenKeys.has('alert:' + a.id));
+    const redN = alerts.filter((a) => a.severity === 'red').length;
+    const filterName = INBOX_FILTERS.find((f) => f.key === inboxFilter)?.label || 'All';
     screen('inbox', header('Needs you', open.length ? `${open.length} decision${open.length === 1 ? '' : 's'}` : 'Inbox zero'),
-      renderAlertCentre(s, open),
+      // 6 alert boxes → one status line (opens to the same Alert centre)
+      fold('v2AlertFold', foldHead(alerts.length ? `${alerts.length} robot alert${alerts.length === 1 ? '' : 's'}` : 'All robots OK', redN ? `${redN} broken` : alerts.length ? 'none broken' : '0 alerts', redN ? 'r' : alerts.length ? 'a' : 'g'),
+        [renderAlertCentre(s, open)], 'lt-status'),
       help,
-      open.length ? chips : null,
+      open.length ? fold('v2FilterFold', foldHead(`Showing ${filterName.toLowerCase()} · ${shown.length}`, 'Filter'), [chips], 'lt-filter') : null,
       open.length ? null : el('div', { class: 'v2zero', id: 'v2Zero' }, ic('check'), el('b', {}, 'Nothing needs you'), el('span', {}, 'Everything else was handled automatically.')),
       el('div', { id: 'v2Inbox' }, ...shown.map((i) => inboxCard(i, open))),
-      handledBox(handled, preview),
-      testToggle());
+      handledBox(handled, preview));
   }, header('Needs you'));
 }
 const KIND_LABEL: Record<InboxItem['kind'], [string, string]> = { held: ['Money', 'r'], lookalike: ['Look-alike', 'a'], check: ['Face check', 'b'], reel: ['Reel', 'p'], reports: ['Reports', 'a'] };
@@ -405,17 +389,16 @@ function inboxCard(i: InboxItem, open?: InboxItem[]): HTMLElement {
     el('div', { class: 'v2item-top' }, chip(kl, kt), el('small', { class: 'v2wait', title: `${both(i.at, true)}` }, i.kind === 'reports' ? 'open' : waitShort(i.at))),
     el('h3', { class: 'v2q' }, i.question));
   if (i.people.length) card.append(el('div', { class: 'v2whos' }, ...i.people.map(personRow)));
-  card.append(el('div', { class: 'v2what' }, el('span', { class: 'k' }, 'What happened'), ...i.what.slice(0, 2).map((t) => el('div', {}, t))));
+  if (i.what[0]) card.append(el('div', { class: 'v2what' }, i.what[0]));
   if (i.verdict) {
     const v = i.verdict;
-    const rest = v.reasons.slice(2);
-    const more = rest.length ? el('button', { type: 'button', class: 'v2chip k v2more-r' }, `+${rest.length}`) : null;
-    const restBox = el('div', { class: 'v2rest', hidden: true }, ...rest.map((r) => chip(r, '')));
-    const pill = el('button', { type: 'button', class: `v2pill ${v.tone}`, 'data-call': v.call }, ic('robot'), `Robot: ${v.call} · trust ${v.score}`);
-    const toggle = () => { restBox.hidden = !restBox.hidden; };
-    pill.onclick = toggle; if (more) more.onclick = toggle;
-    card.append(el('div', { class: 'v2verdict2' }, pill, el('div', { class: 'v2flags' }, ...v.reasons.slice(0, 2).map((r) => chip(r, r.startsWith('+') ? 'g' : 'a')), more), restBox));
-  }
+    // the robot's reasons (and the second "what happened" line) sit behind the pill: one tap
+    const restBox = el('div', { class: 'v2rest', hidden: true }, el('div', { class: 'v2flags' }, ...v.reasons.map((r) => chip(r, r.startsWith('+') ? 'g' : 'a'))),
+      i.what[1] ? el('small', { class: 'v2sub' }, i.what[1]) : null);
+    const pill = el('button', { type: 'button', class: `v2pill ${v.tone}`, 'data-call': v.call, 'aria-expanded': 'false' }, ic('robot'), `Robot: ${v.call} · trust ${v.score}`);
+    pill.onclick = () => { restBox.hidden = !restBox.hidden; pill.setAttribute('aria-expanded', String(!restBox.hidden)); };
+    card.append(el('div', { class: 'v2verdict2' }, pill, restBox));
+  } else if (i.what[1]) card.append(el('small', { class: 'v2sub v2what2' }, i.what[1]));
   card.append(actions(i));
   const rel = (i.related || []).filter((k) => !hiddenKeys.has(k) && (!open || open.some((o) => o.key === k)));
   if (rel.length) {
@@ -438,8 +421,9 @@ function actions(i: InboxItem): HTMLElement {
   const box = el('div', { class: 'v2acts v2acts2' });
   if (i.kind === 'held' && i.claims.length) {
     const c = i.claims[0];
-    box.append(act(`Pay ฿${c.amount}`, 'ok', 'v2Pay-' + c.id, () => later(i.key, `Paying ฿${c.amount} to ${who(c)}`, () => rpc('kr8_admin_release_claim', { p_claim: c.id }))),
-      act('Refuse', 'bad', 'v2Refuse-' + c.id, () => later(i.key, 'Claim refused (member is not told why)', () => rpc('kr8_admin_refuse_claim', { p_claim: c.id, p_reason: 'One person, one account', p_return: false }))));
+    const refuseFirst = i.verdict?.call === 'REFUSE';
+    box.append(act(`Pay ฿${c.amount}`, refuseFirst ? 'ok soft' : 'ok', 'v2Pay-' + c.id, () => later(i.key, `Paying ฿${c.amount} to ${who(c)}`, () => rpc('kr8_admin_release_claim', { p_claim: c.id }))),
+      act('Refuse', refuseFirst ? 'bad solid' : 'bad', 'v2Refuse-' + c.id, () => later(i.key, 'Claim refused (member is not told why)', () => rpc('kr8_admin_refuse_claim', { p_claim: c.id, p_reason: 'One person, one account', p_return: false }))));
   } else if (i.kind === 'lookalike' && i.people.length > 1) {
     const [keep, ...others] = i.people;
     const otherIds = others.map((p) => p.user_id);
@@ -505,6 +489,7 @@ export function autoView() {
 let pFilter: PeopleFilter = (LS('kr8-v2-pf') as PeopleFilter) || 'all';
 let pQuery = ''; let pRef = '';
 let showRemoved = false;
+let peopleFiltOpen = false;
 export function peopleView() {
   void withSnap('people', (s) => {
     const list = filterPeople(s, pFilter, pQuery, pRef, false);
@@ -518,11 +503,17 @@ export function peopleView() {
     const d0 = Date.parse(s.day_start);
     const rm = el('input', { type: 'checkbox', id: 'v2RemovedToggle', checked: showRemoved });
     rm.onchange = () => { showRemoved = rm.checked; peopleView(); };
-    screen('people', header('People', peopleHeadline(pc)),
-      el('label', { class: 'v2search' }, ic('search'), q),
+    // filters, referrer and "Removed" are one tap away (⋯), not on screen all the time
+    const active = pFilter !== 'all' || !!pRef || showRemoved;
+    const panel = el('div', { class: 'v2filt', id: 'v2Filt', hidden: !peopleFiltOpen },
       el('div', { class: 'v2chips', role: 'tablist' }, fb('all', 'All'), fb('today', `New today · ${s.people.filter((p) => p.kind === 'real' && Date.parse(p.joined_at) >= d0).length}`),
         fb('unverified', 'Not verified'), fb('flagged', 'Flagged'), fb('claims', 'Has claims'), fb('nocard', 'No card')),
-      el('div', { class: 'v2row2' }, refSel, el('label', { class: 'v2toggle' }, el('span', {}, `Removed (${pc.removed})`), rm, el('i', {}))),
+      el('div', { class: 'v2row2' }, refSel, el('label', { class: 'v2toggle' }, el('span', {}, `Removed (${pc.removed})`), rm, el('i', {}))));
+    const fbtn = el('button', { type: 'button', class: `v2fbtn ${active ? 'on' : ''}`, id: 'v2FiltBtn', 'aria-label': 'Filters', 'aria-expanded': String(peopleFiltOpen) }, ic('more'));
+    fbtn.onclick = () => { peopleFiltOpen = !peopleFiltOpen; panel.hidden = !peopleFiltOpen; fbtn.setAttribute('aria-expanded', String(peopleFiltOpen)); };
+    screen('people', header('People', peopleHeadline(pc)),
+      el('div', { class: 'v2srow' }, el('label', { class: 'v2search' }, ic('search'), q), fbtn),
+      panel,
       grid(s));
   }, header('People'));
 }
@@ -553,20 +544,19 @@ function pcard(p: Person, s: Snapshot): HTMLElement {
   const kindChip = p.kind === 'real' || noCard(p) ? null : chip(p.kind, 'k');
   const step = stepChip(p, s);
   const tr = !noCard(p) ? trustChip(personTrust(p, s)) : null;
-  return el('a', { class: `v2pc ${p.who === 'traveller' ? 'trav' : ''} ${flags.some((f) => f.tone === 'r') ? 'red' : ''}`, href: personLink(p), 'data-uid': p.user_id, 'data-who': p.who || 'local' },
+  return el('a', { class: `v2pc ${p.who === 'traveller' ? 'trav' : ''} ${flags.some((f) => f.tone === 'r') ? 'red' : ''}`, href: personLink(p), 'data-uid': p.user_id, 'data-who': p.who || 'local',
+    title: `joined ${both(p.joined_at, true)} · ${p.ref ? `via ${p.ref}` : p.src ? `no referrer · came from ${p.src}` : 'no referrer'}` },
     el('span', { class: `v2pc-img ${src ? '' : 'none'}`, style: src ? `background-image:url("${src}")` : '' }, src ? '' : (p.name || p.email_hint || '?').slice(0, 1)),
     el('span', { class: 'v2pc-scrim' }),
     el('span', { class: 'v2pc-tl' }, el('b', {}, p.no != null ? `#${p.no}` : 'no card'), kindChip),
-    el('span', { class: 'v2pc-tr' }, tr ? chip(tr.text, tr.tone) : null, ((f) => (f ? chip(f.text, f.tone) : null))(faceChip(p))),
+    el('span', { class: 'v2pc-tr' }, tr ? chip(tr.text, tr.tone) : null),
     el('span', { class: 'v2pc-info' },
       step ? el('span', { class: `v2step ${step.tone}`, 'data-step': step.key }, step.text) : null,
       el('b', { class: 'nm' }, p.name || p.email_hint || 'No name'),
-      el('small', {}, p.kind === 'nocard' ? 'Signed in · no card yet' : `${p.who === 'traveller' ? 'Visiting' : 'Local'}${p.area ? ' · ' + p.area : ''}`),
-      el('small', {}, `joined ${ago(p.joined_at)} · ${clock(p.joined_at, 'Asia/Kolkata', false)} IST`),
-      el('small', {}, p.ref ? `via ${p.ref}` : p.src ? `no referrer · came from ${p.src}` : 'no referrer'),
+      el('small', {}, p.kind === 'nocard' ? 'Signed in · no card yet' : `${p.who === 'traveller' ? 'Visiting' : 'Local'}${p.area ? ' · ' + p.area : ''} · ${ago(p.joined_at)}`),
       el('span', { class: 'v2pc-flags' },
         ...flags.filter((f) => ['lookalike', 'shared', 'board_off'].includes(f.key)).map((f) => chip(f.key === 'lookalike' ? '👥 ' + f.text.replace('Looks like ', '') : f.key === 'shared' ? '📶 shared' : '⛔ board off', f.tone)),
-        p.claims?.n ? chip(`฿ ${p.claims.n} claim${p.claims.n === 1 ? '' : 's'}${p.claims.held ? ' · held' : ''}`, p.claims.held ? 'a' : 'g') : null)));
+        p.claims?.held ? chip(`${p.claims.held} held claim${p.claims.held === 1 ? "" : "s"}`, "a") : null)));
 }
 
 // ───────── Member 360 ─────────
@@ -600,7 +590,8 @@ export async function memberView(uid: string) {
     rpc<FaceCheck[]>('kr8_admin_v2_face_checks', { p_user: uid, p_auto_only: false, p_limit: 10 }).catch(() => [] as FaceCheck[]),
   ]);
   const selfies = await signSelfies(faces);
-  const sec = (title: string, n: number | string, ...kids: Kid[]) => el('section', { class: 'v2card v2m' }, el('h2', {}, title, el('small', {}, String(n))), ...kids);
+  // 18 Nov declutter: every section is one list row that opens; empty sections are not shown at all
+  const sec = (title: string, n: number | string, ...kids: Kid[]) => fold(undefined, foldHead(title, String(n)), kids, 'v2m');
   const kv = (k: string, v: Kid) => el('div', { class: 'v2kv' }, el('span', {}, k), el('b', {}, v ?? '–'));
   const yes = (b: boolean | null | undefined) => (b ? 'Yes' : b === false ? 'No' : '–');
   const timeline = [
@@ -612,46 +603,50 @@ export async function memberView(uid: string) {
     ...m.admin_log.map((a) => ({ at: a.at, t: `Admin: ${a.action.replace(/_/g, ' ')}` })),
     ...m.claims.filter((x) => x.decided_at).map((x) => ({ at: x.decided_at!, t: `You decided the held claim: ${x.decided}` })),
   ].sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+  const liveReels = m.reels.filter((r) => r.status === 'approved' && !r.hidden).length;
+  const paidThb = m.claims.filter((x) => x.status === 'assigned').reduce((n, x) => n + x.amount, 0);
   body.replaceChildren(
-    el('section', { class: 'v2hero' },
+    // photo-first: the card photo full width with a soft fade, the name sits on the picture
+    el('section', { class: 'v2hero lt-hero' },
       c?.photo ? el('img', { class: 'v2hero-img', src: c.photo, alt: '' }) : el('div', { class: 'v2hero-img none' }, (c?.name || '?').slice(0, 1)),
       el('div', { class: 'v2hero-info' },
         el('div', { class: 'v2flags' }, chip(c ? `#${c.no}` : 'no card', 'k'), m.kind !== 'real' ? chip(m.kind, 'a') : null,
           c?.verified ? chip('✓ verified', 'g') : chip('not verified', ''), trChip ? chip(trChip.text, trChip.tone) : null),
         el('h2', {}, c?.name || m.email_hint || 'Account without a card'),
-        el('div', { class: 'v2sub' }, c ? `${c.who === 'traveller' ? 'Visiting' : 'Local'} · ${c.area || '–'}` : `Signed up ${ago(m.signed_up_at)}`),
-        el('div', { class: 'v2sub' }, `Joined ${both(c?.joined_at || m.signed_up_at, true)}`),
-        c?.ig ? el('a', { class: 'v2sub', href: `https://instagram.com/${c.ig}`, target: '_blank', rel: 'noopener' }, `IG @${c.ig}`) : null)),
-    flags.length ? el('div', { class: 'v2flags v2m-flags' }, ...flags.map((f) => chip(f.text, f.tone))) : "",
-    el('div', { class: 'v2stats' },
-      el('div', {}, el('b', {}, String(m.reels.filter((r) => r.status === 'approved' && !r.hidden).length)), el('span', {}, 'live Reels')),
+        el('div', { class: 'v2sub' }, c ? `${c.who === 'traveller' ? 'Visiting' : 'Local'} · ${c.area || '–'} · joined ${ago(c.joined_at)}` : `Signed up ${ago(m.signed_up_at)}`,
+          c?.ig ? el('a', { href: `https://instagram.com/${c.ig}`, target: '_blank', rel: 'noopener' }, ` · IG @${c.ig}`) : null))),
+    flags.length ? el('div', { class: 'v2flags v2m-flags' }, ...flags.map((f) => chip(f.text, f.tone))) : '',
+    el('div', { class: 'v2stats lt-stats' },
+      el('div', {}, el('b', {}, String(liveReels)), el('span', {}, 'live Reels')),
       el('div', {}, el('b', {}, m.board ? `#${m.board.rank}` : '–'), el('span', {}, `board · ${m.board?.rings ?? 0} Rings`)),
-      el('div', {}, el('b', {}, `฿${m.claims.filter((x) => x.status === 'assigned').reduce((n, x) => n + x.amount, 0)}`), el('span', {}, `${m.claims.length} claims`)),
-      el('div', {}, el('b', {}, String(m.referrals.length)), el('span', {}, 'brought in'))),
-    tr ? sec('Trust score', `${tr.score} / 100`,
-      tr.reasons.length
-        ? el('div', { class: 'v2kvs', id: 'v2MemberTrust' }, ...tr.reasons.map((r) => el('div', { class: 'v2kv' }, el('b', { style: 'text-align:left' }, r))))
-        : el('div', { class: 'v2sub', id: 'v2MemberTrust' }, 'Neutral baseline (50) — no positive or negative signals yet.')) : '',
-    sec('Reels', m.reels.length, m.reels.length ? el('div', { class: 'v2reels' }, ...m.reels.map((r) => el('div', { class: 'v2reel' },
+      el('div', {}, el('b', {}, `฿${paidThb}`), el('span', {}, `${m.claims.length} claims`))),
+    m.reels.length ? el('div', { class: 'v2reels' }, ...m.reels.map((r) => el('div', { class: 'v2reel' },
       r.poster_path && urls[r.poster_path] ? el('img', { src: urls[r.poster_path], alt: '' }) : el('span', { class: 'none' }),
       el('small', {}, r.hidden || r.status === 'hidden' ? '🙈 hidden' : r.status === 'pending' ? '⏳ waiting' : r.board_off ? '⛔ off board' : '✓ live'),
-      el('small', {}, `♥${r.likes} 🔖${r.saves} ↗${r.shares} 👁${r.views}`)))) : el('div', { class: 'v2sub' }, 'No Reels yet.')),
-    sec('Rings this week', m.rings_week?.score ?? 0, el('div', { class: 'v2kvs' }, kv('Likes', String(m.rings_week?.likes ?? 0)), kv('Saves', String(m.rings_week?.saves ?? 0)),
-      kv('Link opens', String(m.rings_week?.opens ?? 0)), kv('Past weeks', m.results.map((r) => `#${r.rank}`).join(', ') || '–'))),
-    sec('Claims', m.claims.length, ...m.claims.map((x) => { const ch = claimChip({ ...x, user_id: uid } as unknown as Claim); return el('div', { class: 'v2li' },
-      el('div', { class: 'grow' }, el('b', {}, `฿${x.amount} ${x.brand}`), el('small', {}, `${both(x.created_at, true)}${c ? ` · ${Math.round((Date.parse(x.created_at) - Date.parse(c.joined_at)) / 60000)} min after joining` : ''}`)), chip(ch.text, ch.tone)); })),
-    sec('Look-alikes & links', m.links.length, ...m.links.map((l) => { const w = lookalikeWords(l.dist, l.reason); return el('a', { class: 'v2li', href: `#m/${l.user_id}` },
-      el('div', { class: 'grow' }, el('b', {}, `#${l.no} ${l.name || ''}`), el('small', {}, `${w.text}${l.dismissed ? ' · you said different people' : ''}`)), chip(l.dismissed ? 'settled' : 'open', l.dismissed ? '' : w.tone)); })),
-    sec('Brought in', m.referrals.length, ...m.referrals.map((r) => el('a', { class: 'v2li', href: `#m/${r.user_id}` }, el('div', { class: 'grow' }, el('b', {}, `#${r.no} ${r.name}`), el('small', {}, ago(r.joined_at)))))),
-    sec('Consents', m.consents.terms_version || '–', el('div', { class: 'v2kvs' },
-      kv('Terms', m.consents.terms_version ? `${m.consents.terms_version} · ${clock(m.consents.terms_at)}` : 'Not accepted'),
-      kv('Promo use of content', yes(m.consents.promo_ok)), kv('Reels on the website', yes(m.consents.web_reels)), kv('20+ confirmed', c?.age_ok_at ? clock(c.age_ok_at) : '–'))),
-    faces.length ? sec('Face check', faceStatusWords(faces[0]), ...faces.map((f, i) => facePair(f, c?.photo || null, selfies, i === 0))) : "",
-    sec('Verification', m.checks.length ? m.checks[0].status : 'none', ...m.checks.map((v) => el('div', { class: 'v2li' },
-      el('div', { class: 'grow' }, el('b', {}, `${v.status}${v.auto ? ` · robot: ${v.auto}` : ''}`), el('small', {}, `${both(v.at, true)}${v.reason ? ' · ' + v.reason.split('\n').pop() : ''}`)),
-      chip(v.by_admin ? 'by you' : v.reviewed_at ? 'auto' : 'waiting', '')))),
-    sec('Timeline', timeline.length, ...timeline.slice(0, 40).map((t) => el('div', { class: 'v2li tl' }, el('i', {}), el('div', { class: 'grow' }, el('b', {}, t.t), el('small', {}, `${ago(t.at)} · ${both(t.at, true)}`))))),
-    el('div', { class: 'v2sub', style: 'margin:12px 4px' }, `Account: ${m.email_hint || '–'} · LINE ${m.line ? 'linked' : 'no'} · last sign-in ${ago(m.last_sign_in_at)}`));
+      el('small', {}, `♥${r.likes} 🔖${r.saves} ↗${r.shares} 👁${r.views}`)))) : '',
+    el('div', { class: 'lt-list' },
+      tr ? sec('Trust score', `${tr.score} / 100`,
+        tr.reasons.length
+          ? el('div', { class: 'v2kvs', id: 'v2MemberTrust' }, ...tr.reasons.map((r) => el('div', { class: 'v2kv' }, el('b', { style: 'text-align:left' }, r))))
+          : el('div', { class: 'v2sub', id: 'v2MemberTrust' }, 'Neutral baseline (50) — no positive or negative signals yet.')) : '',
+      sec('Rings this week', m.rings_week?.score ?? 0, el('div', { class: 'v2kvs' }, kv('Likes', String(m.rings_week?.likes ?? 0)), kv('Saves', String(m.rings_week?.saves ?? 0)),
+        kv('Link opens', String(m.rings_week?.opens ?? 0)), kv('Past weeks', m.results.map((r) => `#${r.rank}`).join(', ') || '–'))),
+      m.claims.length ? sec('Claims', m.claims.length, ...m.claims.map((x) => { const ch = claimChip({ ...x, user_id: uid } as unknown as Claim); return el('div', { class: 'v2li' },
+        el('div', { class: 'grow' }, el('b', {}, `฿${x.amount} ${x.brand}`), el('small', {}, `${both(x.created_at, true)}${c ? ` · ${Math.round((Date.parse(x.created_at) - Date.parse(c.joined_at)) / 60000)} min after joining` : ''}`)), chip(ch.text, ch.tone)); })) : '',
+      m.links.length ? sec('Look-alikes & links', m.links.length, ...m.links.map((l) => { const w = lookalikeWords(l.dist, l.reason); return el('a', { class: 'v2li', href: `#m/${l.user_id}` },
+        el('div', { class: 'grow' }, el('b', {}, `#${l.no} ${l.name || ''}`), el('small', {}, `${w.text}${l.dismissed ? ' · you said different people' : ''}`)), chip(l.dismissed ? 'settled' : 'open', l.dismissed ? '' : w.tone)); })) : '',
+      m.referrals.length ? sec('Brought in', m.referrals.length, ...m.referrals.map((r) => el('a', { class: 'v2li', href: `#m/${r.user_id}` }, el('div', { class: 'grow' }, el('b', {}, `#${r.no} ${r.name}`), el('small', {}, ago(r.joined_at)))))) : '',
+      faces.length || m.checks.length ? sec('Face check', faces.length ? faceStatusWords(faces[0]) : m.checks[0].status,
+        ...faces.map((f, i) => facePair(f, c?.photo || null, selfies, i === 0)),
+        ...m.checks.map((v) => el('div', { class: 'v2li' },
+          el('div', { class: 'grow' }, el('b', {}, `${v.status}${v.auto ? ` · robot: ${v.auto}` : ''}`), el('small', {}, `${both(v.at, true)}${v.reason ? ' · ' + v.reason.split('\n').pop() : ''}`)),
+          chip(v.by_admin ? 'by you' : v.reviewed_at ? 'auto' : 'waiting', '')))) : '',
+      sec('Timeline', timeline.length, ...timeline.slice(0, 40).map((t) => el('div', { class: 'v2li tl' }, el('i', {}), el('div', { class: 'grow' }, el('b', {}, t.t), el('small', {}, `${ago(t.at)} · ${both(t.at, true)}`))))),
+      sec('Account & consents', m.consents.terms_version || '–', el('div', { class: 'v2kvs' },
+        kv('Terms', m.consents.terms_version ? `${m.consents.terms_version} · ${clock(m.consents.terms_at)}` : 'Not accepted'),
+        kv('Promo use of content', yes(m.consents.promo_ok)), kv('Reels on the website', yes(m.consents.web_reels)), kv('20+ confirmed', c?.age_ok_at ? clock(c.age_ok_at) : '–'),
+        kv('Joined', both(c?.joined_at || m.signed_up_at, true)), kv('Brought in', String(m.referrals.length)),
+        kv('Sign-in', `${m.email_hint || '–'} · LINE ${m.line ? 'linked' : 'no'} · last ${ago(m.last_sign_in_at)}`)))));
 }
 
 // ───────── Money ─────────
@@ -686,17 +681,19 @@ export function boardView() {
     const byId = new Map(s.people.map((p) => [p.user_id, p]));
     void loadPhotos(s.board.rows.map((r) => r.user_id)).then(paintPhotos);
     const wk = new Date(s.board.week_start).toLocaleDateString('en-GB', { timeZone: 'Asia/Bangkok', day: 'numeric', month: 'short' });
-    screen('board', header('Board', `Week from Mon ${wk} (BKK) · ends ${weekLeft(s)} · top ${s.board.paid_ranks} win · ${s.board.floor} Rings to qualify`),
-      el('div', { class: 'v2card v2list', id: 'v2Board' }, ...s.board.rows.map((r) => {
+    // the rules (week start, how many win, Rings to qualify) live behind ⓘ; each row: rank, face, name, Rings, one small line, only odd flags
+    screen('board', header('Board', el('span', {}, `Ends ${weekLeft(s)}`, info(`Week from Mon ${wk} (Bangkok). Top ${s.board.paid_ranks} win a prize. ${s.board.floor} Rings to qualify. Tap a row for likes, saves and opens.`, 'v2BoardInfo'))),
+      el('div', { class: 'lt-list', id: 'v2Board' }, ...s.board.rows.map((r) => {
         const p = byId.get(r.user_id);
-        const fl = [r.is_new ? chip('new this week', '') : null, r.opens && !(r.likes || 0) && !(r.saves || 0) ? chip('opens only', 'a') : null,
-          p?.reels?.board_off ? chip('board off', 'a') : null, p && p.links.length ? chip('look-alike', 'r') : null,
-          r.rings < s.board.floor && r.rank <= s.board.paid_ranks ? chip(`${s.board.floor - r.rings} to qualify`, '') : null];
-        return el('a', { class: 'v2li v2brow', href: `#m/${r.user_id}`, 'data-uid': r.user_id }, el('span', { class: `v2rank ${r.rank <= 3 ? 'top' : ''}` }, String(r.rank)), avatar({ user_id: r.user_id, name: r.name }, 40),
-          el('div', { class: 'grow' }, el('b', {}, `${r.name} #${r.no}`), el('small', {}, `♥${r.likes ?? 0} · 🔖${r.saves ?? 0} · opens ${r.opens ?? 0}${r.prize ? ` · prize ฿${r.prize}` : ''}`), el('span', { class: 'v2flags' }, ...fl)),
+        const fl = [r.opens && !(r.likes || 0) && !(r.saves || 0) ? chip('opens only', 'a') : null,
+          p?.reels?.board_off ? chip('board off', 'a') : null, p && p.links.length ? chip('look-alike', 'r') : null];
+        const line = r.rings < s.board.floor && r.rank <= s.board.paid_ranks ? `${s.board.floor - r.rings} Rings to qualify` : r.prize ? `prize ฿${r.prize.toLocaleString('en-US')}` : `#${r.no}`;
+        return el('a', { class: 'v2li v2brow', href: `#m/${r.user_id}`, 'data-uid': r.user_id, title: `♥${r.likes ?? 0} · 🔖${r.saves ?? 0} · opens ${r.opens ?? 0}${r.is_new ? ' · new this week' : ''}` },
+          el('span', { class: `v2rank ${r.rank <= 3 ? 'top' : ''}` }, String(r.rank)), avatar({ user_id: r.user_id, name: r.name }, 40),
+          el('div', { class: 'grow' }, el('b', {}, r.name), el('small', {}, line), fl.some(Boolean) ? el('span', { class: 'v2flags' }, ...fl) : null),
           el('b', { class: 'v2rings' }, String(r.rings)));
       })),
-      el('a', { class: 'v2card v2row', href: '#week' }, el('div', { class: 'grow' }, el('b', {}, 'Approve last week'), el('div', { class: 'v2sub' }, 'Top 8 with flags · opens the weekly prizes')), ic('chev')));
+      el('a', { class: 'v2pri', href: '#week', id: 'v2WeekGo' }, 'Approve last week', ic('chev')));
   }, header('Board'));
 }
 
@@ -868,10 +865,11 @@ async function flushQueuedStorageDeletions(): Promise<{ verifyRemoved: number; o
 
 let apLogFilter = 'all';
 let apShowMemberCopy = false;
+const apOpen = new Set<string>();
 export async function autopilotView() {
   apShowMemberCopy = false;
   const body = el('div', {}, loadingCard());
-  screen('more', header('Autopilot', 'Robots watch & fix safe tasks · you decide money & bans', '#more'), body);
+  screen('more', header('Autopilot', undefined, '#more'), body);
   stopV2();
   let st: AutopilotState = fallbackAutopilotState(snap);
   let hw: HealthWatchReport = fallbackHealthWatch(snap, st);
@@ -1061,10 +1059,10 @@ export async function autopilotView() {
       }
     };
 
-    const killCard = el('section', { class: `v2card ap-kill ${st.paused ? 'is-paused' : ''}`, id: 'apKillSwitch' },
+    const killCard = el('section', { class: `ap-kill lt-kill ${st.paused ? 'is-paused' : ''}`, id: 'apKillSwitch' },
       el('div', { class: 'ap-kill-info' },
         el('b', {}, st.paused ? 'All robots are PAUSED' : 'Master kill switch'),
-        el('div', { class: 'v2sub' }, st.paused
+        info(st.paused
           ? 'Every scheduled check, self-fix, and automatic duplicate action is halted until you tap Resume.'
           : 'One tap halts every robot immediately. Money, bans, and claim refusals already require your tap.')),
       killBtn);
@@ -1462,25 +1460,37 @@ export async function autopilotView() {
       return true;
     });
 
+    // 18 Nov declutter: 7 stacked dashboard cards → one status line + a list of rows that open (same cards inside, every button kept)
+    const hbOk = hb.tone === 'g';
+    const issues = (hw.checks.length - passCount) + (hbOk ? 0 : 1) + (sf.pdpa_late > 0 ? 1 : 0) + visibleFlags.filter((f) => f.severity === 'red').length;
+    const statusTone = st.paused ? 'r' : issues ? 'a' : 'g';
+    const undoable = st.logs.filter((l) => l.can_undo && !l.undone_at).length;
     body.replaceChildren(
+      el('div', { class: `lt-statusline ${statusTone}`, id: 'apStatus' }, el('span', { class: `v2dot2 ${statusTone}` }),
+        el('div', { class: 'grow' }, el('b', {}, st.paused ? 'All robots paused' : issues ? `${issues} thing${issues === 1 ? '' : 's'} to look at` : `All ${st.robots.length} robots OK · 0 alerts`),
+          el('small', {}, `${passCount}/${hw.checks.length} checks green · checked ${ago(hw.at)}`))),
       killCard,
-      hbCard,
-      healthCard,
-      selfFixCard,
-      protectCard,
-      growthCard,
-      aiCard,
-      el('div', { class: 'v2sec' }, `Robots · ${st.robots.length}`),
-      el('div', { id: 'apRobots' }, ...st.robots.map(renderRobot)),
-      el('div', { class: 'v2sec' }, 'Robot action log'),
-      el('div', { class: 'v2chips' }, ...filterOpts.map(([k, label]) => {
-        const b = el('button', { type: 'button', class: apLogFilter === k ? 'on' : '', id: `aplf-${k}` }, label);
-        b.onclick = () => { apLogFilter = k; paint(); };
-        return b;
-      })),
-      filteredLogs.length
-        ? el('div', { class: 'v2card v2list', id: 'apLog' }, ...filteredLogs.map(renderLogRow))
-        : el('div', { class: 'v2card v2sub', id: 'apLogEmpty' }, 'No robot actions logged for this filter yet.'));
+      el('div', { class: 'lt-list', id: 'apList' },
+        fold('apHealthFold', foldHead('Health watch', `${passCount}/${hw.checks.length} green`, hw.all_ok ? 'g' : 'r'), [healthCard]),
+        fold('apHbFold', foldHead('Heartbeats', hbOk ? 'on time' : 'late', hbOk ? 'g' : hb.tone === 'a' ? 'a' : 'r'), [hbCard]),
+        fold('apSelfFixFold', foldHead('Self-fix & PDPA', sf.pdpa_late > 0 ? `${sf.pdpa_late} late` : 'on time', sf.pdpa_late > 0 ? 'r' : lowStock ? 'a' : 'g'), [selfFixCard]),
+        fold('apProtectFold', foldHead('Protect flags', `${visibleFlags.length} active`, visibleFlags.some((f) => f.severity === 'red') ? 'r' : visibleFlags.length ? 'a' : 'g'), [protectCard]),
+        fold('apGrowthFold', foldHead('Growth nudges', 'dry-run · 0 sent', 'k'), [growthCard]),
+        fold('apAiFold', foldHead('AI helper', ai.mode === 'on' && ai.secret_configured ? 'on' : 'off · rules', 'k'), [aiCard]),
+        fold('apRobotsFold', foldHead('Robots', `${st.robots.filter((r) => r.mode === 'on').length} on · ${st.robots.filter((r) => r.mode === 'dry_run').length} dry-run`, 'k'),
+          [el('div', { id: 'apRobots' }, ...st.robots.map(renderRobot))]),
+        fold('apLogFold', foldHead('Robot action log', `${st.logs.length}${undoable ? ` · ${undoable} undoable` : ''}`, 'k'), [
+          el('div', { class: 'v2chips' }, ...filterOpts.map(([k, label]) => {
+            const b = el('button', { type: 'button', class: apLogFilter === k ? 'on' : '', id: `aplf-${k}` }, label);
+            b.onclick = () => { apLogFilter = k; paint(); };
+            return b;
+          })),
+          filteredLogs.length
+            ? el('div', { class: 'v2list', id: 'apLog' }, ...filteredLogs.map(renderLogRow))
+            : el('div', { class: 'v2sub', id: 'apLogEmpty' }, 'No robot actions logged for this filter yet.')])));
+    // keep the rows the founder opened open across repaints (mode taps, cap saves, Undo)
+    for (const id of apOpen) { const d = document.getElementById(id) as HTMLDetailsElement | null; if (d) d.open = true; }
+    body.querySelectorAll<HTMLDetailsElement>('#apList > details').forEach((d) => d.addEventListener('toggle', () => { if (d.open) apOpen.add(d.id); else apOpen.delete(d.id); }));
   };
 
   rerender = () => paint();
@@ -1507,4 +1517,4 @@ export function v2Route(a: string, b?: string): boolean {
 export function v2TabFor(old: 'todo' | 'members' | 'listings' | 'more'): V2Tab {
   return old === 'todo' ? 'inbox' : old === 'members' ? 'people' : 'more';
 }
-export { flush as v2Flush };
+export { flush as v2Flush, testToggle as v2TestToggle };
