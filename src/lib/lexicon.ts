@@ -216,8 +216,8 @@ export const LEXICON = {
   // ── Onboarding (≤ 1 minute) ──────────────────────────────────────────────
   'ob.title': { en: 'One minute and you’re in', th: 'หนึ่งนาที แล้วไปกันเลย' },
   'ob.step': { en: 'Step {n} of {total}', th: 'ขั้นที่ {n} จาก {total}' },
-  'ob.age.title': { en: '20+ and our promise', th: 'อายุ 20+ และสัญญาของเรา' },
-  'ob.age.confirm': { en: 'I’m 20 or older', th: 'ฉันอายุ 20 ปีขึ้นไป' },
+  'ob.age.title': { en: '18+ and our promise', th: 'อายุ 18+ และสัญญาของเรา' },
+  'ob.age.confirm': { en: 'I’m 18 or older', th: 'ฉันอายุ 18 ปีขึ้นไป' },
   'ob.conduct.1': { en: 'Public venues only', th: 'เจอกันที่สาธารณะเท่านั้น' },
   'ob.conduct.2': { en: 'Respect, no pressure, no alcohol-led plans', th: 'ให้เกียรติกัน ไม่กดดัน ไม่มีแผนเน้นแอลกอฮอล์' },
   'ob.conduct.3': { en: 'Pay only in Kring, held until you meet', th: 'จ่ายผ่านกริ๊งเท่านั้น พักเงินไว้จนเจอกัน' },

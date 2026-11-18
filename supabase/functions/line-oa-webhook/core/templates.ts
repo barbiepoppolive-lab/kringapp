@@ -201,8 +201,8 @@ export function supPitch(lang: Lang): OutMessage[] {
   return [
     {
       text: pick(lang, {
-        th: 'ผู้ประสานงาน (Sup) ชวนคนที่รู้จักซึ่งมีงานอดิเรกจริง อายุ 20+ มาเปิดกิจกรรมบน Kring ค่ะ ✨\n฿300 เมื่อโฮสต์คนแรกของคุณยืนยันตัวตนและเปิดรอบแรก จากนั้น +฿100 ต่อโฮสต์ ไม่จำกัดจำนวน\n+฿200 เมื่อโฮสต์คนนั้นมีผู้จองเช็กอินจริงครั้งแรก · ครบ 10 โฮสต์ +฿1,000 · 25 โฮสต์ +฿3,000\nโอนพร้อมเพย์เข้าบัญชีชื่อตัวเองภายใน 48 ชม. หลังตรวจผล ไม่ใช่งานขายตรง ไม่มีค่าสมัคร',
-        en: 'Coordinators (Sup) invite people they know with a real hobby, 20+, to host on Kring ✨\n฿300 when your first host verifies and publishes a first slot, then +฿100 per host, no cap\n+฿200 when that host\'s first real guest checks in · 10 hosts +฿1,000 · 25 hosts +฿3,000\nPaid to an account in your own name within 48h of review. Not direct sales, no fees.',
+        th: 'ผู้ประสานงาน (Sup) ชวนคนที่รู้จักซึ่งมีงานอดิเรกจริง อายุ 18+ มาเปิดกิจกรรมบน Kring ค่ะ ✨\n฿300 เมื่อโฮสต์คนแรกของคุณยืนยันตัวตนและเปิดรอบแรก จากนั้น +฿100 ต่อโฮสต์ ไม่จำกัดจำนวน\n+฿200 เมื่อโฮสต์คนนั้นมีผู้จองเช็กอินจริงครั้งแรก · ครบ 10 โฮสต์ +฿1,000 · 25 โฮสต์ +฿3,000\nโอนพร้อมเพย์เข้าบัญชีชื่อตัวเองภายใน 48 ชม. หลังตรวจผล ไม่ใช่งานขายตรง ไม่มีค่าสมัคร',
+        en: 'Coordinators (Sup) invite people they know with a real hobby, 18+, to host on Kring ✨\n฿300 when your first host verifies and publishes a first slot, then +฿100 per host, no cap\n+฿200 when that host\'s first real guest checks in · 10 hosts +฿1,000 · 25 hosts +฿3,000\nPaid to an account in your own name within 48h of review. Not direct sales, no fees.',
       }),
     },
     {
@@ -270,8 +270,8 @@ export type ScoutStep = 'zone' | 'availability' | 'experience' | 'hobbies'
 export function scoutIntro(lang: Lang): OutMessage {
   return {
     text: pick(lang, {
-      th: 'ขอบคุณที่สนใจร่วมทีม Kring ค่ะ 🙏\nสำหรับผู้ที่อายุ 20+ ค่าตอบแทนตามผลงาน: ฿300 เมื่อโฮสต์คนแรกของคุณเปิดรอบแรก จากนั้น +฿100 ต่อโฮสต์ และ +฿200 เมื่อโฮสต์มีผู้จองเช็กอินจริงครั้งแรก\nไม่ใช่งานขายตรง ไม่มีค่าสมัคร และเราไม่ขอเลขบัญชีหรือบัตรทางแชตค่ะ\nขอถามทีละข้อนะคะ',
-      en: 'Thanks for wanting to join the Kring team 🙏\n20+ only, paid on results: ฿300 when your first host publishes a first slot, then +฿100 per host, +฿200 when that host\'s first real guest checks in.\nNot direct sales, no fees, and we never ask for bank or ID details in chat.\nOne question at a time:',
+      th: 'ขอบคุณที่สนใจร่วมทีม Kring ค่ะ 🙏\nสำหรับผู้ที่อายุ 18+ ค่าตอบแทนตามผลงาน: ฿300 เมื่อโฮสต์คนแรกของคุณเปิดรอบแรก จากนั้น +฿100 ต่อโฮสต์ และ +฿200 เมื่อโฮสต์มีผู้จองเช็กอินจริงครั้งแรก\nไม่ใช่งานขายตรง ไม่มีค่าสมัคร และเราไม่ขอเลขบัญชีหรือบัตรทางแชตค่ะ\nขอถามทีละข้อนะคะ',
+      en: 'Thanks for wanting to join the Kring team 🙏\n18+ only, paid on results: ฿300 when your first host publishes a first slot, then +฿100 per host, +฿200 when that host\'s first real guest checks in.\nNot direct sales, no fees, and we never ask for bank or ID details in chat.\nOne question at a time:',
     }),
   }
 }

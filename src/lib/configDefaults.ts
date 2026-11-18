@@ -155,7 +155,7 @@ export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
   payments_mode: 'psp',
   lucky_rng_vaulted: true,
   coins_per_thb: 100, // Unified rate across the entire app: 100 Chon! Coins / Points = 1 THB
-  min_age_years: 20,
+  min_age_years: 18,
   daily_micro_spend_cap_thb: 300,
   allow_offers_below_treat_goal: false, // D-016: Only at or above host's Outing Treat Goal
   min_raise_step_thb: 50,

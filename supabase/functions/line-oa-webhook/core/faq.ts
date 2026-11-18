@@ -263,8 +263,8 @@ export const FAQ_ANSWERS: Partial<Record<FaqIntent, Partial<Record<Group, Lines>
   },
   age: {
     scout: {
-      th: ['สเก๊าต์ต้องอายุ 20+ ค่ะ'],
-      en: ['Scouts must be 20+.'],
+      th: ['สเก๊าต์ต้องอายุ 18+ ค่ะ'],
+      en: ['Scouts must be 18+.'],
     },
   },
   no_show: {
@@ -282,8 +282,8 @@ export const FAQ_ANSWERS: Partial<Record<FaqIntent, Partial<Record<Group, Lines>
   sup_pay: { host: SUP_PAY, sup: SUP_PAY, scout: SUP_PAY },
   scout_pay: {
     host: {
-      th: ['ทีม Kring (20+) ค่าตอบแทนตามผลงาน: ฿300 เมื่อโฮสต์คนแรกเปิดรอบแรก แล้ว +฿100 ต่อโฮสต์', 'โอนเข้าบัญชีชื่อตัวเองภายใน 48 ชม. หลังตรวจผล', 'สมัครที่ LINE https://line.me/R/ti/p/@266jjwqh ค่ะ'],
-      en: ['Kring team members (20+) are paid on results: ฿300 for your first host, then +฿100 per host.', 'Paid to an account in your own name within 48h of review.', 'Apply via LINE: https://line.me/R/ti/p/@266jjwqh'],
+      th: ['ทีม Kring (18+) ค่าตอบแทนตามผลงาน: ฿300 เมื่อโฮสต์คนแรกเปิดรอบแรก แล้ว +฿100 ต่อโฮสต์', 'โอนเข้าบัญชีชื่อตัวเองภายใน 48 ชม. หลังตรวจผล', 'สมัครที่ LINE https://line.me/R/ti/p/@266jjwqh ค่ะ'],
+      en: ['Kring team members (18+) are paid on results: ฿300 for your first host, then +฿100 per host.', 'Paid to an account in your own name within 48h of review.', 'Apply via LINE: https://line.me/R/ti/p/@266jjwqh'],
     },
     scout: {
       th: ['ค่าตอบแทนตามผลงาน: ฿300 เมื่อโฮสต์คนแรกเปิดรอบแรก แล้ว +฿100 ต่อโฮสต์', 'โอนเข้าบัญชีชื่อตัวเองภายใน 48 ชม. หลังตรวจผลค่ะ'],

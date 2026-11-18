@@ -15,10 +15,10 @@ import {
 } from './configDefaults';
 
 describe('T-004: Level 2 Platform Config, Splits, Bands & Kring Partners Math (KRING_PAYOUT_LEAKS / KRING_AGENCY_PLAN)', () => {
-  it('enforces unified 100 coins = 1 THB rate and 20+ age gate', () => {
+  it('enforces unified 100 coins = 1 THB rate and 18+ age gate', () => {
     expect(DEFAULT_PLATFORM_CONFIG.coins_per_thb).toBe(100);
     expect(DEFAULT_PLATFORM_CONFIG.daily_micro_spend_cap_thb).toBe(300);
-    expect(DEFAULT_PLATFORM_CONFIG.min_age_years).toBe(20);
+    expect(DEFAULT_PLATFORM_CONFIG.min_age_years).toBe(18);
   });
 
   it('enforces D-016: no offers below host Outing Treat Goal and 50 THB raise steps', () => {
