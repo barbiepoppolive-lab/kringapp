@@ -19,6 +19,65 @@ export const TRIP_PARTNERS: TripPartner[] = [
   { id: 'radicalstorage', need: 'Leave your bags', icon: 'bag', name: 'Radical Storage', sub: 'Short-term bag storage in Bangkok', cta: 'Find a spot', url: 'https://radicalstorage.tpk.mx/RsPrWtrl', tone: 'tea', photo: 'radicalstorage' },
 ];
 
+/** deals-1 (18 Nov, founder approved; T-397): one full-width TAGTHAi Bangkok Pass hero on top of "For your trip".
+ *  Public price only ("from ฿2,590", never a member price or discount), whole card opens TAGTHAi in a new tab, rel="sponsored".
+ *  No TAGTHAi logo or TAGTHAi photo: the brand is spelled out (TAGTHAi, lowercase i). Photos are Kring's own AI Bangkok stills
+ *  (same 17 Nov set as the tiles): two friends on a Chao Phraya boat at golden hour; thumbs = SkyWalk-style rooftop, river boat, tuk-tuk.
+ *  Three looks for the founder to pick (TRIP_FEATURE_LOOK; ?tv=a|b|c previews one): a = cinematic, b = frosted strip, c = tall + thumbs. */
+export type TripFeatureLook = 'a' | 'b' | 'c';
+export const TRIP_FEATURE_LOOK: TripFeatureLook = 'a';
+export const TRIP_FEATURE = {
+  id: 'tagthai_bkk', label: 'TAGTHAi · Official pass', title: 'Bangkok Pass', sub: '5 top spots · 3 days', price: 'from ฿2,590', cta: 'See the pass',
+  photo: 'media/trip/tagthai-hero.webp',
+  thumbs: [
+    { photo: 'media/trip/tagthai-t-skywalk.webp', name: 'Mahanakhon SkyWalk' },
+    { photo: 'media/trip/tagthai-t-boat.webp', name: 'Chao Phraya boat' },
+    { photo: 'media/trip/tagthai-t-tuktuk.webp', name: 'Tuk-tuk ride' },
+  ],
+  url: 'https://www.tagthai.com/pass/bangkok-day-pass?affid=kringbkk&utm_campaign=kringbkk&utm_medium=affiliate&utm_source=kringbkk&utmid=54&utm_content=Kring-deals',
+};
+function featureLook(): TripFeatureLook {
+  try { const v = new URLSearchParams(window.location.search).get('tv'); if (v === 'a' || v === 'b' || v === 'c') return v; } catch { /* no window */ }
+  return TRIP_FEATURE_LOOK;
+}
+/** "from ฿2,590" / "เริ่มต้น ฿2,590": the amount stands out, the word stays quiet. */
+function Price(props: { text: string }) {
+  const m = props.text.match(/^(.*?)(฿[\d,]+)(.*)$/);
+  if (!m) return <span className="kf-price">{props.text}</span>;
+  return <span className="kf-price" lang={THAI.test(props.text) ? 'th' : undefined}>{m[1]}<b>{m[2]}</b>{m[3]}</span>;
+}
+
+function TripFeature(props: { L: Tx; base: string }) {
+  const { L, base } = props;
+  const look = featureLook();
+  const f = TRIP_FEATURE;
+  const t = (en: string) => { const v = L(en); return <span lang={THAI.test(v) ? 'th' : undefined}>{v}</span>; };
+  const row = (
+    <span className="kf-row">
+      <Price text={L(f.price)} />
+      <span className="kf-btn">{t(f.cta)}<i aria-hidden="true">↗</i></span>
+    </span>
+  );
+  return (
+    <a className={`ktrip-feat kf-${look}`} data-partner={f.id} data-look={look} href={f.url} target="_blank" rel="noopener noreferrer sponsored">
+      <span className="ktrip-photo" aria-hidden="true" style={{ backgroundImage: `url('${base}${f.photo}')` }} />
+      <span className="kf-label">{t(f.label)}</span>
+      <span className="kf-body">
+        {look === 'c' ? (
+          <span className="kf-thumbs">
+            {f.thumbs.map((x) => (
+              <span key={x.photo} className="kf-thumb" role="img" aria-label={L(x.name)} style={{ backgroundImage: `url('${base}${x.photo}')` }} />
+            ))}
+          </span>
+        ) : null}
+        <b className="kf-title">{t(f.title)}</b>
+        <span className="kf-sub">{t(f.sub)}</span>
+        {look === 'b' ? <span className="kf-glass">{row}</span> : row}
+      </span>
+    </a>
+  );
+}
+
 /** One clean line icon per need (no brand logos are kept in the repo). */
 const ICONS: Record<string, ReactNode> = {
   esim: <><path d="M8 3h6l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" /><path d="M9.5 17v-2.5M12 17v-4.5M14.5 17v-6.5" /></>,
@@ -55,6 +114,7 @@ export function TripPerks(props: { L: Tx }) {
       {info ? (
         <p className="ktrip-infop" id="tripInfo">{L('Trusted travel partners')}</p>
       ) : null}
+      <TripFeature L={L} base={base} />
       <div className="ktrip-grid">
         {TRIP_PARTNERS.map((p) => (
           <a key={p.id} className={`ktrip-card ${p.tone}`} data-partner={p.id} href={p.url} target="_blank" rel="noopener noreferrer sponsored">
