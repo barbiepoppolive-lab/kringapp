@@ -361,7 +361,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   const pool = (data?.prizes || prizes).slice(0, paid).reduce((a, p) => a + (p > 0 ? p : 0), 0);   // from the live config, never hard-coded
   const moment = boardMoment(g?.rank, paidN || paid);
   const storyIn: ShareCard | null = canStory && g?.rank ? {
-    lang: lang === 'th' ? 'th' : 'en', moment, look: 'B', rank: g.rank, daysLeft: Math.max(0, Math.floor((end - now) / 86_400_000)), won: 0,
+    lang: lang === 'th' ? 'th' : 'en', moment, look: 'B3', rank: g.rank, daysLeft: Math.max(0, Math.floor((end - now) / 86_400_000)), won: 0,
     paidN: paidN || paid, pool, code: displayCode(vanity, refCode(myNo)), hero: null,
   } : null;
   const storyLink = cardLink({ origin: location.origin, base: import.meta.env.BASE_URL || '/app/', reel: latest || null, code: refCode(myNo), moment });

@@ -19,7 +19,7 @@ export const SAFE_BOTTOM = 300;
 export type Moment = 'help' | 'challenge' | 'proof';
 export type Look = 'A' | 'B' | 'B2' | 'B3' | 'C';
 export const MOMENTS: Moment[] = ['help', 'challenge', 'proof'];
-export const LOOKS: Look[] = ['B', 'B2'];   // founder picked B (18 Nov): B1 tilted + tape, B2 straight + pin
+export const LOOKS: Look[] = ['B3'];   // founder approved B3 (refined polaroid) 18 Nov 17:52
 
 export interface ShareCard {
   lang: string;
@@ -491,7 +491,11 @@ function lookB3(g: G, img: Img | null, c: ShareCard, t: ReturnType<typeof cardTe
   g.restore();
   g.strokeStyle = 'rgba(40,20,10,.10)'; g.lineWidth = 2; g.strokeRect(px, py, pw, ph);
   // strip: the claim in bold ink, the dare (if any) smaller in Kring pink
-  const parts = t.strip.split('\n'); const head = parts[0], dare = parts.slice(1).join(' ');
+  const [head, dare] = c.moment === 'help'
+    ? (th ? ['ช่วยดันคลิปฉันขึ้นอันดับ 🙏', 'กดหัวใจให้หน่อยนะ'] : ['Help my clip climb 🙏', 'Tap ♥ on it for me'])
+    : c.moment === 'challenge'
+      ? (th ? [`อันดับ ${c.rank} ของกรุงเทพฯ สัปดาห์นี้`, 'ใครจะแซงฉันได้?'] : [`#${c.rank} in Bangkok this week.`, 'Can you beat me?'])
+      : (th ? ['ฉันได้รางวัลจากกริ๊งสัปดาห์นี้ 🏆', 'ตาคุณแล้วนะ!'] : ['I won on Kring this week 🏆', 'Your turn next?']);
   const fH = (n: number) => `${th ? 700 : 800} ${n}px ${th ? TH : EN}`, fD = (n: number) => `${th ? 700 : 800} ${n}px ${th ? TH : EN}`;
   const a = fitLines(g, head, fH, th ? 70 : 76, pw - 60, 44, 0.6);
   const b = dare ? fitLines(g, dare, fD, th ? 54 : 58, pw - 60, 36, 0.6) : null;
