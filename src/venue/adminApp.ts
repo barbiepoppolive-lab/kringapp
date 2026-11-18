@@ -615,13 +615,35 @@ function faceBody(r: Face, signed: Record<string, string>, look?: FaceLookalikes
     lkBox = el('div', { class: 'lkbox' + (lk.verdict.tone === 'a' ? ' amber' : ''), id: 'verifyLookalike-' + r.id, 'data-tone': lk.verdict.tone },
       el('div', { class: 'lk-t' }, ic('warn'), lk.title),
       el('div', { class: 'pair' }, pic(oc?.photo, otherName, 'No card photo'), pic(selfie, 'This member’s selfie', 'Selfie deleted (30 days)')),
-      el('div', { class: 'lk-v', 'data-dist': lk.dist }, el('span', { class: 'v' }, lk.dist), el('b', {}, lk.verdict.text)),
+      el('div', { class: 'lk-v', 'data-dist': lk.dist }, el('b', {}, lk.verdict.tone === 'r' ? 'Same face' : 'Looks alike')),
       el('div', { class: 'lk-facts' }, el('span', {}), el('span', {}, 'Referrer code'), el('span', {}, 'Joined'),
         ...fact('This member', me, me?.joined_at ?? r.account_created, 'me'), ...fact(otherName, oc, oc?.joined_at, 'other')),
       lk.also ? el('div', { class: 'xs', style: 'margin-top:8px' }, `Also close: ${lk.also}`) : null);
   }
+  // 18 Nov (founder: "numbers are confusing, I can't decide"): ONE plain decision line first, with the reasons in words.
+  const plain = (() => {
+    const me = cards[r.user_id];
+    if (lk) {
+      const oc = cards[lk.other.user_id];
+      const otherName = `${lk.other.member_no != null ? `#${lk.other.member_no} ` : ''}${lk.other.first_name}`;
+      const invitedByOther = !!(me?.ref_code && oc && lk.other.member_no != null && me.ref_code.toLowerCase() === `k${String(lk.other.member_no).padStart(5, '0')}`);
+      const why = [lk.verdict.tone === 'r' ? `This selfie is the same face as ${otherName}` : `This selfie looks a bit like ${otherName}`];
+      if (invitedByOther) why.push(`They joined with ${otherName}'s own invite link`);
+      if (!own.tick) why.push('Their profile photo does not look like them');
+      return lk.verdict.tone === 'r'
+        ? { tone: 'r', head: `Reject: second account of ${otherName}`, why }
+        : { tone: 'a', head: `Check: compare with ${otherName}`, why: [...why, 'If it is the same person, reject. If not, approve.'] };
+    }
+    if (own.tick) return { tone: 'g', head: 'Approve: profile photo matches the selfie', why: ['No other account has this face'] };
+    return { tone: 'a', head: 'Check: is the profile photo really them?', why: ['The robot is not sure the profile photo matches the selfie', 'If the profile photo is not this person (a child, a celebrity, a cartoon), reject'] };
+  })();
+  const plainBox = el('div', { class: `plainv t-${plain.tone}`, id: 'verifyPlain-' + r.id,
+      style: `border-radius:16px;padding:14px 16px;margin:10px 0 12px;border:1px solid ${plain.tone === 'r' ? '#ff6b81' : plain.tone === 'g' ? '#2ecc8f' : '#f5b041'};background:${plain.tone === 'r' ? 'rgba(255,107,129,.10)' : plain.tone === 'g' ? 'rgba(46,204,143,.10)' : 'rgba(245,176,65,.10)'}` },
+    el('b', { style: 'font-size:20px;display:block;margin-bottom:6px' }, plain.head),
+    ...plain.why.map((w) => el('div', { style: 'font-size:15px;opacity:.9;margin-top:2px' }, '• ' + w)));
   return el('div', { 'data-verify': r.id },
     el('h2', { style: 'font-size:26px' }, r.first_name),
+    plainBox,
     el('div', { class: 'dim sm', style: 'margin-top:2px' }, `Joined ${ago(r.account_created)} · ${r.approved_reels} approved Reels · sent ${ago(r.created_at)}`),
     lkBox,
     el('div', { class: 'pair' }, pic(r.profile_photo, 'Profile photo', 'No photo'), pic(selfie, 'Live selfie', 'Selfie deleted (30 days)')),

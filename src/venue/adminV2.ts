@@ -588,6 +588,8 @@ function inboxCard(i: InboxItem, open?: InboxItem[]): HTMLElement {
     pill.onclick = () => { restBox.hidden = !restBox.hidden; pill.setAttribute('aria-expanded', String(!restBox.hidden)); };
     card.append(el('div', { class: 'v2verdict2' }, pill, restBox));
   } else if (i.what[1]) card.append(el('small', { class: 'v2sub v2what2' }, i.what[1]));
+  // 18 Nov (founder: "how do I decide if you don't show me the selfies"): every face decision shows the photos side by side, big
+  if (i.kind === 'check' || i.kind === 'lookalike') card.append(comparePhotos(i));
   card.append(actions(i));
   const rel = (i.related || []).filter((k) => !hiddenKeys.has(k) && (!open || open.some((o) => o.key === k)));
   if (rel.length) {
@@ -602,6 +604,34 @@ function inboxCard(i: InboxItem, open?: InboxItem[]): HTMLElement {
     card.append(b);
   }
   return card;
+}
+
+/** Big side-by-side photos for a face decision. Face check: card photo | live selfie. Look-alike: each person's card photo and selfie. */
+function comparePhotos(i: InboxItem): HTMLElement {
+  const box = el('div', { class: 'v2cmp', style: 'margin:10px 0 4px' }, el('small', { class: 'v2sub' }, 'Loading photos…'));
+  const tile = (src: string | null | undefined, cap: string) => el('figure', { style: 'margin:0;flex:1;min-width:0' },
+    src ? el('img', { src, alt: '', style: 'width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:14px;display:block' })
+      : el('div', { style: 'width:100%;aspect-ratio:3/4;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);font-size:13px;opacity:.7' }, 'No photo'),
+    el('figcaption', { style: 'font-size:13px;margin-top:4px;opacity:.85;text-align:center' }, cap));
+  const row = (...kids: HTMLElement[]) => el('div', { style: 'display:flex;gap:8px;margin-top:8px' }, ...kids);
+  void (async () => {
+    const ppl = i.people.slice(0, 2);
+    await loadPhotos(ppl.map((p) => p.user_id));
+    const faces = await Promise.all(ppl.map((p) => rpc<FaceCheck[]>('kr8_admin_v2_face_checks', { p_user: p.user_id, p_auto_only: false, p_limit: 3 }).catch(() => [] as FaceCheck[])));
+    const signed = await signSelfies(faces.flat());
+    const selfieOf = (k: number) => { const f = faces[k].find((x) => x.selfie_path && !x.selfie_deleted_at); return f?.selfie_path ? signed[f.selfie_path] : null; };
+    const nm = (p: Person) => `#${p.no ?? '–'} ${p.name || ''}`.trim();
+    if (i.kind === 'check') {
+      box.replaceChildren(row(tile(photos.get(ppl[0].user_id), `${nm(ppl[0])} · profile photo`), tile(selfieOf(0), 'Live selfie (taken now)')),
+        el('small', { class: 'v2sub', style: 'display:block;margin-top:6px' }, 'Same person in both? Real face (not a child, celebrity or a photo of a screen)? → Approve. Otherwise → Reject.'));
+    } else {
+      box.replaceChildren(
+        row(tile(photos.get(ppl[0].user_id), `${nm(ppl[0])} · profile`), tile(selfieOf(0), `${nm(ppl[0])} · selfie`)),
+        ppl[1] ? row(tile(photos.get(ppl[1].user_id), `${nm(ppl[1])} · profile`), tile(selfieOf(1), `${nm(ppl[1])} · selfie`)) : el('span', {}),
+        el('small', { class: 'v2sub', style: 'display:block;margin-top:6px' }, 'Top row and bottom row the same human? → Same person (the newer account is hidden). Different humans → Different.'));
+    }
+  })().catch(() => box.replaceChildren(el('small', { class: 'v2sub' }, 'Photos could not load. Open the member to see them.')));
+  return box;
 }
 function act(label: string, cls: string, id: string, fn: () => void): HTMLButtonElement {
   const b = el('button', { type: 'button', class: `v2btn ${cls}`, id }, label); b.onclick = fn; return b;
