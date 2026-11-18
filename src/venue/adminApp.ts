@@ -632,7 +632,7 @@ function faceBody(r: Face, signed: Record<string, string>, look?: FaceLookalikes
       if (!own.tick) why.push('Their profile photo does not look like them');
       return lk.verdict.tone === 'r'
         ? { tone: 'r', head: `Reject: second account of ${otherName}`, why }
-        : { tone: 'a', head: `Check: compare with ${otherName}`, why: [...why, 'If it is the same person, reject. If not, approve.'] };
+        : { tone: 'a', head: `Check: compare with ${otherName}`, why: [...why, 'If both are one human, reject. If they are two different people, approve.'] };
     }
     if (own.tick) return { tone: 'g', head: 'Approve: profile photo matches the selfie', why: ['No other account has this face'] };
     return { tone: 'a', head: 'Check: is the profile photo really them?', why: ['The robot is not sure the profile photo matches the selfie', 'If the profile photo is not this person (a child, a celebrity, a cartoon), reject'] };
@@ -2383,7 +2383,7 @@ function route() {
   v2Flush();
   const h = decodeURIComponent(location.hash.replace(/^#/, '')) || 'growth';   // 18 Nov: admin opens on Growth
   const [a, b, c] = h.split('/');
-  if (v2Route(a, b)) return;   // admin v2 screens (adminV2.ts)
+  if (v2Route(a, b, c)) return;   // admin v2 screens (adminV2.ts) · #x/<kind>/<id> = who-and-why sheet (18 Nov)
   if (a === 'q') {
     if (b === 'reels') return void reelQueue();
     if (b === 'faces') return void faceQueue();
