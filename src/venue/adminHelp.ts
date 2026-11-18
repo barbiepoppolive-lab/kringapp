@@ -6,7 +6,7 @@
  *                                prefilled with Sonnet's draft + one-tap "Send as Kring Team" (never auto-sent)
  *   helpSection(onCount?)      → a ready block (title + cards) that fills itself; used by adminV2 inboxView
  */
-import { el, rpc } from './shared';
+import { el, rpc, v5Client } from './shared';
 import { hasThaiText, helpQuestion, helpUrgency, helpUrgencyText, helpWaitLabel, sortHelpCases, type HelpCase } from './adminHelpLogic';
 import './adminHelp.css';
 
@@ -29,9 +29,12 @@ export function helpCaseCard(c: HelpCase, onDone?: (c: HelpCase) => void): HTMLE
   const rawItems = c.unanswered_items?.length
     ? c.unanswered_items.map((it) => ({ q: helpQuestion(it.body), en: it.translation_en }))
     : (c.messages?.length ? c.messages : [c.question]).map((b) => ({ q: helpQuestion(b), en: null }));
-  const draft = (c.suggested_reply || '').trim() || (
-    c.unanswered_items?.slice().reverse().find((it) => (it.suggested_reply || '').trim())?.suggested_reply?.trim() || ''
-  );
+  const lastAi = c.unanswered_items?.slice().reverse().find((it) => (it.suggested_reply || '').trim());
+  const draftTh = (c.suggested_reply || '').trim() || lastAi?.suggested_reply?.trim() || '';
+  const draftEn = (c.suggested_reply_en || '').trim() || lastAi?.suggested_reply_en?.trim() || '';
+  // founder can't read Thai: he reads and edits ENGLISH; the member gets natural Thai (translated on send)
+  const memberThai = rawItems.some((it) => hasThaiText(it.q));
+  const draft = memberThai ? draftEn : (draftEn || draftTh);
 
   const av = c.photo && /^https?:/.test(c.photo) ? el('img', { class: 'hpa-av', src: c.photo, alt: '' }) : el('span', { class: 'hpa-av none' }, (c.name || '?').slice(0, 1));
   const ta = el('textarea', {
@@ -39,14 +42,14 @@ export function helpCaseCard(c: HelpCase, onDone?: (c: HelpCase) => void): HTMLE
     id: 'hpaText-' + c.member,
     rows: draft ? '3' : '2',
     maxlength: '500',
-    placeholder: 'Reply as Kring Team… (use polite Thai ending)',
+    placeholder: memberThai ? 'Write your reply in English. It is sent to the member in Thai.' : 'Write your reply…',
   }) as HTMLTextAreaElement;
   if (draft) ta.value = draft;
 
   const suggestHead = draft
     ? el('label', { class: 'hpa-suggest-hd', for: 'hpaText-' + c.member },
         el('b', {}, 'Suggested reply'),
-        el('small', {}, 'Edit or tap Send — never sent automatically'))
+        el('small', {}, memberThai ? 'In English · sent in Thai · never automatic' : 'Edit or tap Send · never automatic'))
     : null;
 
   const send = el('button', { type: 'button', class: 'v2btn ok hpa-send', id: 'hpaSend-' + c.member }, 'Send as Kring Team');
@@ -72,11 +75,23 @@ export function helpCaseCard(c: HelpCase, onDone?: (c: HelpCase) => void): HTMLE
     urg !== 'ok' ? el('p', { class: 'hpa-risk', id: 'hpaRisk-' + c.member }, `⚠ ${helpUrgencyText(urg)}`) : null,
     hist, suggestHead, ta, el('div', { class: 'v2acts' }, send), status);
   send.onclick = async () => {
-    const body = ta.value.trim();
-    if (!body) { ta.focus(); return; }
-    send.setAttribute('disabled', ''); status.textContent = 'Sending…';
+    const en = ta.value.trim();
+    if (!en) { ta.focus(); return; }
+    send.setAttribute('disabled', ''); status.textContent = memberThai ? 'Translating to Thai…' : 'Sending…';
     try {
-      await rpc('kr8_admin_team_reply', { p_member: c.member, p_body: body });
+      let body = en;
+      if (memberThai && !hasThaiText(en)) {
+        if (draftTh && en === draftEn) body = draftTh;
+        else {
+          const cl = await v5Client();
+          const { data, error } = await cl.functions.invoke('kr8-help-ai', { body: { mode: 'translate_reply', text_en: en, lang: 'th' } });
+          const th = (data as { ok?: boolean; text?: string } | null)?.text;
+          if (error || !th) throw new Error('Thai translation failed, nothing was sent. Try again.');
+          body = th;
+        }
+        status.textContent = 'Sending…';
+      }
+      await rpc('kr8_admin_team_reply_en', { p_member: c.member, p_body: body, p_body_en: en });
       card.classList.add('hpa-done'); status.textContent = `Sent to ${who} as Kring Team ✓`; ta.setAttribute('disabled', '');
       onDone?.(c);
     } catch (e) {

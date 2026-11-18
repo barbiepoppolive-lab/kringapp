@@ -48,7 +48,7 @@ describe('admin Help cases', () => {
     (card.querySelector('textarea') as HTMLTextAreaElement).value = 'LINE opens don’t count ครับ';
     (card.querySelector('.hpa-send') as HTMLButtonElement).click();
     await Promise.resolve(); await Promise.resolve();
-    expect(shared.rpc).toHaveBeenCalledWith('kr8_admin_team_reply', { p_member: 'm50', p_body: 'LINE opens don’t count ครับ' });
+    expect(shared.rpc).toHaveBeenCalledWith('kr8_admin_team_reply_en', { p_member: 'm50', p_body: 'LINE opens don’t count ครับ', p_body_en: 'LINE opens don’t count ครับ' });
     vi.useRealTimers();
   });
   it('T-402 Help AI: shows English translation under every Thai line and prefills editable Suggested reply without auto-sending', async () => {
@@ -66,6 +66,7 @@ describe('admin Help cases', () => {
         { id: 42, body: 'ตรวจคลิปให้ทีนะคะ', translation_en: 'Please check my clip.', suggested_reply: 'คลิปล่าสุดของคุณอนุมัติขึ้นฟีดเรียบร้อยแล้วครับ ขอบคุณมากนะครับ' },
       ],
       suggested_reply: 'คลิปล่าสุดของคุณอนุมัติขึ้นฟีดเรียบร้อยแล้วครับ ขอบคุณมากนะครับ',
+      suggested_reply_en: 'Your latest clip is approved and live on the feed. Thank you!',
       history: [
         { id: 38, from: 'member', body: 'ขอบคุณค่ะ', at: new Date(now - 12 * 60_000).toISOString(), translation_en: 'Thank you.' },
         { id: 41, from: 'member', body: '[Help] ตรวจให้หน่อยค่ะ', at: new Date(now - 6 * 60_000).toISOString(), translation_en: 'Please check it for me.' },
@@ -82,12 +83,12 @@ describe('admin Help cases', () => {
     // Suggested reply box is prefilled, never auto-sent, and editable before tapping Send as Kring Team
     expect(card.querySelector('.hpa-suggest-hd')?.textContent).toContain('Suggested reply');
     const ta = card.querySelector('textarea') as HTMLTextAreaElement;
-    expect(ta.value).toBe('คลิปล่าสุดของคุณอนุมัติขึ้นฟีดเรียบร้อยแล้วครับ ขอบคุณมากนะครับ');
+    // founder reads and edits ENGLISH only; the unchanged English draft sends Sonnet's Thai version
+    expect(ta.value).toBe('Your latest clip is approved and live on the feed. Thank you!');
+    expect(/[\u0E00-\u0E7F]/.test(card.querySelector('.hpa-suggest-hd')?.textContent || '')).toBe(false);
     expect(shared.rpc).not.toHaveBeenCalled();
-
-    ta.value = 'คลิปล่าสุดของคุณอนุมัติเรียบร้อยแล้วครับ 🙏';
     (card.querySelector('.hpa-send') as HTMLButtonElement).click();
-    await Promise.resolve(); await Promise.resolve();
-    expect(shared.rpc).toHaveBeenCalledWith('kr8_admin_team_reply', { p_member: 'm74', p_body: 'คลิปล่าสุดของคุณอนุมัติเรียบร้อยแล้วครับ 🙏' });
+    await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
+    expect(shared.rpc).toHaveBeenCalledWith('kr8_admin_team_reply_en', { p_member: 'm74', p_body: 'คลิปล่าสุดของคุณอนุมัติขึ้นฟีดเรียบร้อยแล้วครับ ขอบคุณมากนะครับ', p_body_en: 'Your latest clip is approved and live on the feed. Thank you!' });
   });
 });

@@ -16,6 +16,7 @@ export interface HelpUnansweredItem {
   at?: string;
   translation_en?: string | null;
   suggested_reply?: string | null;
+  suggested_reply_en?: string | null;
   model?: string | null;
 }
 
@@ -26,6 +27,7 @@ export interface HelpCase {
   question: string; messages: string[]; history: HelpMsg[];
   unanswered_items?: HelpUnansweredItem[];
   suggested_reply?: string | null;
+  suggested_reply_en?: string | null;
   ai_model?: string | null;
 }
 export type HelpUrgency = 'ok' | 'risk' | 'late';
