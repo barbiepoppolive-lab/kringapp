@@ -150,7 +150,9 @@ export function RewardsPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewar
 /** Claim a prize: pick the app → one tap. Grab = full value, TrueMoney = truemoney_payout_pct of it (100% on live; a lower value would show as "N% of the prize value",
  *  audit P2-6: the 25% is the loss on Kring's own top-up stock, not a TrueMoney fee, so the app no longer says "TrueMoney keeps 25%"). */
 export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards | null; prize: KxPrize | null; onBack: () => void; onDone: (r: KxClaimResult) => void; toast: (m: string) => void;
-  /** preview harness only */ startStep?: 'pick' | 'face' | 'line'; faceDemo?: Parameters<typeof ClaimFace>[0]['demo'] }) {
+  /** 0111: the face check is needed ONLY to claim a prize. false = not verified yet → the claim asks for it first (undefined = unknown: the server decides) */
+  verified?: boolean; verifyPending?: boolean; onVerify?: () => void;
+  /** preview harness only */ startStep?: 'pick' | 'face' | 'line' | 'verify'; faceDemo?: Parameters<typeof ClaimFace>[0]['demo'] }) {
   const { L, Lf, data, prize } = props;
   const R = ringsRules(data?.rules);
   const pct = tmPct(R);
@@ -159,7 +161,11 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   // 0066: 'face' = the 3-second face check before the claim; 'line' = LINE must be linked first (switch claim_needs_line)
-  const [step, setStep] = useState<'pick' | 'face' | 'line'>(props.startStep || 'pick');
+  // 0111: 'verify' = not face-verified yet: the 5-second check is the required step before the claim (opened on top by the app)
+  const [step, setStep] = useState<'pick' | 'face' | 'line' | 'verify'>(props.startStep || 'pick');
+  const needsVerify = props.verified === false && !props.verifyPending && !!props.onVerify;
+  // verified (or sent for the team's look) while the step was showing → back to the choice, ready to claim
+  useEffect(() => { if (step === 'verify' && (props.verified === true || props.verifyPending) && !props.startStep) setStep('pick'); }, [step, props.verified, props.verifyPending, props.startStep]);
   const [waitUntil, setWaitUntil] = useState<string | null>(null);
   const amount = prize?.amount ?? 0;
   const opensAt = prize?.opens_at && Date.parse(prize.opens_at) > Date.now() ? prize.opens_at : waitUntil;
@@ -176,6 +182,7 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
       setStep('pick');
       if (c === 'NEED_LINE') { setStep('line'); return; }
       if (c === 'FACE_NEEDED') { setStep('face'); return; }
+      if (c === 'VERIFY_FIRST') { setStep('verify'); return; }   // 0111: the server asks for the face check first
       if (c === 'WEEK_REVIEW') { setWaitUntil('soon'); return; }
       setErr(c === 'ONE_ACCOUNT' ? L('This phone already claimed for another account. One person, one account.')
         : c === 'NO_PRIZE' ? L('That prize isn’t here any more.')
@@ -186,6 +193,7 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
   const go = () => {
     if (busy || !prize) return;
     if (data?.claim_needs_line && !data?.line_linked) { setStep('line'); return; }
+    if (needsVerify) { setStep('verify'); props.onVerify?.(); return; }   // 0111: face check first, only here
     if (data?.claim_face_check !== true) { void send(null); return; }   // before 0066 the server doesn't ask for it
     setStep('face');
   };
@@ -226,6 +234,14 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
           <button type="button" className="kx-btn line" id="kxClaimLinkLine" onClick={() => void linkLine()}><TE th="เชื่อม LINE" en="Link LINE" /></button>
         </div>
       ) : null}
+      {step === 'verify' ? (
+        <div className="kx-step kx-step-vfy" id="kxClaimVerify">
+          <span className="vf" aria-hidden="true">✓</span>
+          <b>{L('Verify your face to claim')}</b>
+          <small>{L('5 seconds, once. It keeps every prize one person, one account.')}</small>
+          <button type="button" className="kx-btn" id="kxClaimVerifyGo" onClick={() => props.onVerify?.()}>{L('Verify my face')}</button>
+        </div>
+      ) : null}
       {opensAt ? (
         <div className="kx-step" id="kxClaimWait">
           <TE th="กำลังตรวจผลประจำสัปดาห์" en="We’re checking this week’s results" />
@@ -248,7 +264,7 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
       </div>
       <div className="kx-cl-foot">
         {err ? <p className="kx-err center" role="alert" id="kxClaimErr">{err}</p> : <p className="kx-inst">{L('Your code shows in My prizes as soon as it’s ready.')}</p>}
-        <button type="button" className="kx-btn tall" id="kxClaimGo" disabled={busy || !prize || !!opensAt || step === 'line'} onClick={go}>
+        <button type="button" className="kx-btn tall" id="kxClaimGo" disabled={busy || !prize || !!opensAt || step === 'line' || step === 'verify'} onClick={go}>
           <b>{busy ? '…' : Lf('Claim with {0} · {1}', BRAND_NAME[brand], baht(valueFor(brand, amount, pct)))}</b>
         </button>
       </div>

@@ -80,3 +80,20 @@ export function hideNextStep(uid: string, kind: NextStepKind, now = Date.now()):
   if (!uid || kind === 'claim' || kind === 'verify') return;
   try { localStorage.setItem(`${KEY}${uid}:${kind}`, String(now)); } catch { /* private mode */ }
 }
+
+// ── 0111 (founder 18 Nov): the Me row "Verify your face in 5 seconds" is a gentle nudge, never a gate. × hides it for a week
+// (per member, stored on the phone); it comes back after that, and the claim screen always asks when a prize is claimed.
+const VKEY = 'kr8_vfy_hide:';
+export const VERIFY_HIDE_MS = 7 * 24 * 3600 * 1000;
+/** `_tick` only makes React read it again after a hide */
+export function verifyRowHidden(uid: string, _tick = 0, now = Date.now()): boolean {
+  if (!uid) return false;
+  try {
+    const t = Number(localStorage.getItem(VKEY + uid) || 0);
+    return t > 0 && now - t < VERIFY_HIDE_MS;
+  } catch { return false; }
+}
+export function hideVerifyRow(uid: string, now = Date.now()): void {
+  if (!uid) return;
+  try { localStorage.setItem(VKEY + uid, String(now)); } catch { /* private mode */ }
+}

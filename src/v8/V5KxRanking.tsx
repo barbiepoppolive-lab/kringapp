@@ -199,7 +199,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   onBack: () => void; onPerson: (id: string) => void; onPost: () => void; onShare: (reel: string) => void;
   /** audit 18 Nov: finger down on "Share my Reel" → fetch the /r/ link early, so the tap opens the share sheet at once */
   onShareDown?: (reel: string) => void;
-  /** 0066: not face-verified yet → a small nudge under my photo (everyone still shows on the board) */
+  /** 0066: not face-verified yet → a small nudge under my photo (everyone still shows on the board; 0111: it is only needed to claim a prize) */
   needsVerify?: boolean; onVerify?: () => void }) {
   const { L, Lf, lang } = props;
   const [data, setData] = useState<KxRanking | null>(null);
@@ -339,8 +339,8 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
               <Av photo={props.myPhoto} name={props.myName} size={42} />
               {props.needsVerify && props.onVerify ? (
                 <button type="button" className="rka-vfy" id="kxVerifyNudge" onClick={(e) => { e.stopPropagation(); props.onVerify?.(); }}
-                  aria-label={lang === 'th' ? 'ยืนยันใบหน้าสั้น ๆ เพื่อให้รีลของคุณติดบอร์ดอันดับ' : 'Quick face check to keep your Reel on the ranking board'}
-                  title={lang === 'th' ? 'ยืนยันใบหน้าสั้น ๆ เพื่อให้รีลของคุณติดบอร์ดอันดับ' : 'Quick face check to keep your Reel on the ranking board'}>
+                  aria-label={lang === 'th' ? 'ยืนยันใบหน้าสั้น ๆ ให้พร้อมรับรางวัล' : 'Quick face check, so you’re ready to claim prizes'}
+                  title={lang === 'th' ? 'ยืนยันใบหน้าสั้น ๆ ให้พร้อมรับรางวัล' : 'Quick face check, so you’re ready to claim prizes'}>
                   {lang === 'th' ? <span lang="th">ยืนยันหน้า</span> : <small lang="en">verify</small>}
                 </button>
               ) : null}

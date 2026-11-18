@@ -53,9 +53,14 @@ export const PHOTO_NOTE_MS = 1500;   // T-392: how long "We'll send this one pho
 const VIDEO_ATTRS = { 'x5-playsinline': 'true', 'webkit-playsinline': 'true', 'x5-video-player-type': 'h5-page', controlsList: 'nodownload nofullscreen noremoteplayback', disablePictureInPicture: true, disableRemotePlayback: true } as Record<string, unknown>;
 const device = () => (navigator.userAgent.match(/iPhone|iPad|Android|Mac|Windows|Linux/) || ['other'])[0];
 
-export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: boolean; onClose: () => void; onSent: () => void; onVerified?: () => void;
+/** 0111 (founder 18 Nov): the face check is needed ONLY to claim a prize.
+ *  'signup' = right after a new card (clear "Do it later", nothing waits for it) · 'me' = opened by the member ·
+ *  'claim' = the required step before a prize claim. */
+export type VerifyMode = 'signup' | 'me' | 'claim';
+export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: boolean; mode?: VerifyMode; onClose: () => void; onSent: () => void; onVerified?: () => void;
   onAddPhoto: () => void; errText: (e: unknown) => string }) {
   const { L } = props;
+  const mode: VerifyMode = props.mode || 'me';
   const [stage, setStage] = useState<Stage>(!props.photo && !TESTCOPY ? 'needphoto' : consentSaved() && !props.nudge ? 'loading' : 'intro');
   const [agree, setAgree] = useState(false);
   const [live, setLive] = useState<LiveState>(() => liveStart());
@@ -416,8 +421,11 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
       )}
 
       {stage === 'intro' && (
-        <Panel L={L} onClose={close} icon="intro" title={props.nudge ? L('New: 5-second face check') : L('Verify in 5 seconds')}
-          text={props.nudge ? L('Do it once. It keeps your ✓ and your prizes safe.') : L('Look at the camera, turn your head a little, blink. That’s it.')}>
+        <Panel L={L} onClose={close} icon="intro" id="verifyIntro"
+          title={mode === 'claim' ? L('One quick step to get your prize') : props.nudge ? L('New: 5-second face check') : L('Verify in 5 seconds')}
+          text={mode === 'claim' ? L('A 5-second face check keeps every prize one person, one account.')
+            : props.nudge ? L('Do it once. It keeps your ✓ and your prizes safe.')
+            : L('You only need it to claim a prize. Look at the camera, turn a little, blink.')}>
           {inApp && <p className="kfv2-small kfv2-inapp" id="verifyInApp" role="note">{L('You’re in an app’s built-in browser, where the camera often doesn’t work. If it doesn’t start, open this page in Chrome (or Safari).')}</p>}
           <details className="kfv2-consent" id="verifyConsent">
             <summary>{L('Your face data')}</summary>
@@ -434,13 +442,15 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
             <span>{L('I agree that Kring uses my face this way')}</span>
           </label>
           <button type="button" className="kfv2-cta" id="verifyStart" disabled={!agree} onClick={() => { saveConsent(); void start(); }}>{L('Agree and start')}</button>
-          <button type="button" className="kfv2-2nd" id="verifyLater" onClick={close}>{L('Not now · remind me later')}</button>
+          {/* 0111: a clear second choice; skipping never blocks anything (only a prize claim asks again) */}
+          <button type="button" className="kfv2-2nd" id="verifyLater" onClick={close}>{mode === 'claim' ? L('Not now') : L('Do it later')}</button>
         </Panel>
       )}
 
       {stage === 'pass' && (
-        <Panel L={L} onClose={close} icon="pass" photo={props.photo} title={L('You’re verified ✓')} text={L('The ✓ is on your card now. Members can see you’re real.')} id="verifyPass">
-          <button type="button" className="kfv2-cta" onClick={close}>{L('Done')}</button>
+        <Panel L={L} onClose={close} icon="pass" photo={props.photo} title={L('You’re verified ✓')} id="verifyPass"
+          text={mode === 'claim' ? L('Now pick where to get your prize.') : L('The ✓ is on your card now. Members can see you’re real.')}>
+          <button type="button" className="kfv2-cta" onClick={close}>{mode === 'claim' ? L('Back to my prize') : L('Done')}</button>
         </Panel>
       )}
 

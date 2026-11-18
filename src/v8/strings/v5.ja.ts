@@ -616,5 +616,16 @@ const T: Record<string, string> = {
   'How to win': '勝ち方',
   'Show my QR': '自分のQRを表示',
   'Your Reel is live': 'リールが公開されました',
+  // 0111: face check only for prize claims
+  'Do it later': 'あとで',
+  'You only need it to claim a prize. Look at the camera, turn a little, blink.': '賞品を受け取るときだけ必要です。カメラを見て、少し顔を向けて、まばたき。',
+  'One quick step to get your prize': '賞品まであと1ステップ',
+  'A 5-second face check keeps every prize one person, one account.': '5秒の顔チェックで、賞品は1人1アカウントに。',
+  'Now pick where to get your prize.': '賞品の受け取り先を選んでください。',
+  'Back to my prize': '賞品に戻る',
+  'Verify your face in 5 seconds': '5秒で顔認証',
+  'Be ready to claim your prize the moment you win.': '勝ったらすぐ賞品を受け取れます。',
+  'Hide': '非表示',
+  'Verify your face in 5 seconds to claim your prize.': '賞品を受け取るには5秒の顔認証をしてください。',
 };
 export default T;

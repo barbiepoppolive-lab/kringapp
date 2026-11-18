@@ -616,5 +616,16 @@ const T: Record<string, string> = {
   'How to win': 'कैसे जीतें',
   'Show my QR': 'मेरा QR दिखाएँ',
   'Your Reel is live': 'आपकी रील लाइव है',
+  // 0111: face check only for prize claims
+  'Do it later': 'बाद में करें',
+  'You only need it to claim a prize. Look at the camera, turn a little, blink.': 'यह सिर्फ़ इनाम लेने के लिए चाहिए। कैमरे की ओर देखें, थोड़ा मुड़ें, पलक झपकाएँ।',
+  'One quick step to get your prize': 'इनाम पाने के लिए बस एक कदम',
+  'A 5-second face check keeps every prize one person, one account.': '5 सेकंड का फ़ेस चेक हर इनाम को एक व्यक्ति, एक अकाउंट तक रखता है।',
+  'Now pick where to get your prize.': 'अब चुनें कि इनाम कहाँ लेना है।',
+  'Back to my prize': 'मेरे इनाम पर वापस',
+  'Verify your face in 5 seconds': '5 सेकंड में चेहरा वेरिफ़ाई करें',
+  'Be ready to claim your prize the moment you win.': 'जीतते ही इनाम लेने के लिए तैयार रहें।',
+  'Hide': 'छिपाएँ',
+  'Verify your face in 5 seconds to claim your prize.': 'इनाम लेने के लिए 5 सेकंड में चेहरा वेरिफ़ाई करें।',
 };
 export default T;

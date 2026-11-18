@@ -105,11 +105,14 @@ const DEALS_TRIP_ONLY = true;
 // Kring Light (18 Nov): low-end Android phones get a plain dark tint on sheets instead of a costly blur.
 const KR_LOWEND = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent || '') &&
   (((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8) <= 2 || (navigator.hardwareConcurrency ?? 8) <= 4);
-/** 0093 (supabase/migrations/0093_kr8_face_required_to_be_seen.sql): members above this number must pass the face check before
- *  they post, answer, say hi or chat; members ≤ 68 are exempt. Mirrors kr8_rcfg('face_gate_after_no', 68); the server is the real guard. */
+/** 0093 (supabase/migrations/0093_kr8_face_required_to_be_seen.sql): members above this number had to pass the face check before
+ *  they post, answer, say hi or chat; members ≤ 68 are exempt. Mirrors kr8_rcfg('face_gate_after_no', 68); the server is the real guard.
+ *  0111 (founder 18 Nov, "Do it later"): the face check is needed ONLY to claim a prize, so this client copy is OFF
+ *  (mirrors kr8_rcfg('face_gate_on', 0)). Everything else (card, Feed, People, Reels, likes, chat, Rings, board) works without it. */
 const FACE_GATE_AFTER_NO = 68;
+const FACE_GATE_ON = false;
 import { StayDo } from './V5StayDo';
-import { v5CardPrintOk, v5HandoffBoot, v5LogClient, v5MyFaceStatus, v5MyVerification, v5SaveCardPrint, V5_AREAS } from './v5Live';
+import { v5CardPrintOk, v5HandoffBoot, v5LogClient, v5MyVerification, v5SaveCardPrint, V5_AREAS } from './v5Live';
 import { v5AcceptTerms, v5PromoGet, v5SetPromo, V5_TERMS_VERSION, type V5Promo } from './v5Live';
 import { TermsAgreeText } from './V5Sheets';
 import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
@@ -144,7 +147,7 @@ import { createAskApi, type AskPerson } from './askThai';
 import { lazyPart, prefetchParts } from './lazyPart';
 import { PrizeBanner } from './V5PrizeBanner';
 import { NextStepCard } from './V5NextStep';
-import { hideNextStep, nextStepHidden, pickNextStep } from './nextStep';
+import { hideNextStep, hideVerifyRow, nextStepHidden, pickNextStep, verifyRowHidden } from './nextStep';
 import './kx.css';
 import { fmtN as kxFmtN } from './kxLogic';
 // 16 Nov perf 2: not needed for the first screen, so downloaded separately (see lazyPart)
@@ -1217,14 +1220,25 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const verifySeenRef = useRef(false);
   /** 17 Nov: the face check opened straight after a new card was minted */
   const afterVerifyRef = useRef(false);
+  /** 0111: which words the face check opens with: right after a new card ("Do it later"), from Me, or as the claim's required step */
+  const [verifyMode, setVerifyMode] = useState<'signup' | 'me' | 'claim'>('me');
+  /** 0111: the face check opened ON TOP of the claim screen (the claim stays underneath and goes on once verified) */
+  const [claimVerify, setClaimVerify] = useState(false);
+  /** 0111: the Me "Verify your face in 5 seconds" row was hidden (×) */
+  const [verifyHideTick, setVerifyHideTick] = useState(0);
   /** 0092: two taps to delete face data (the page can't show confirm dialogs) */
   const [forgetArm, setForgetArm] = useState(false);
-  // 0093: a new member tried to post / chat before the face check → open it (once the card exists)
+  // 0093: a new member tried to post / chat before the face check → open it (once the card exists).
+  // 0111: the server now asks only at a prize claim (KR8_VERIFY_FIRST): the check opens on top of the claim screen.
   useEffect(() => {
-    const on = () => { if (sheetRef.current !== 'verify') setTimeout(() => setSheet('verify'), 80); };
+    const on = () => {
+      if (sheetRef.current === 'claim') { setClaimVerify(true); return; }
+      if (sheetRef.current !== 'verify') setTimeout(() => { setVerifyMode('me'); setSheet('verify'); }, 80);
+    };
     window.addEventListener('kr8-verify-first', on);
     return () => window.removeEventListener('kr8-verify-first', on);
   }, []);
+  useEffect(() => { if (sheet !== 'claim') setClaimVerify(false); }, [sheet]);
   useEffect(() => {
     if (sheet === 'verify') { verifySeenRef.current = true; holdReels(true); }
     else if (verifySeenRef.current) holdReels(false);
@@ -2850,12 +2864,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [faceOkNow, setFaceOkNow] = useState(false);   // passed the check in this visit
   const [myMemberNo, setMyMemberNo] = useState<number | null>(null);
   useEffect(() => {
-    if (!live || !v5Uid || !v5Card || v5Card.verified) { setMyMemberNo(null); return; }
+    if (!FACE_GATE_ON || !live || !v5Uid || !v5Card || v5Card.verified) { setMyMemberNo(null); return; }
     let on = true;
     kxCardExtras().then((x) => { if (on) setMyMemberNo(x?.member_no ?? null); }).catch(() => undefined);
     return () => { on = false; };
   }, [live, v5Uid, !!v5Card, v5Card?.verified]);   // eslint-disable-line react-hooks/exhaustive-deps
-  const [verifyNudge, setVerifyNudge] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [legalOpen, setLegalOpen] = useState(false);
   const signPosters = async (paths: string[]) => {
@@ -2901,26 +2914,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       // no activity yet
     }
   };
-  // 0081 (founder, 17 Nov): ask every member ONCE to do the new 5-second check, so everyone gets a face code and future
-  // duplicates are caught automatically. Existing ✓ badges keep working until then. Only when no other sheet is open.
+  // 0081 asked every member ONCE (a pop-up 6 s after opening) to do the 5-second check. 0111 (founder 18 Nov): no pop-ups; the face
+  // check is only needed to claim a prize, so the gentle row on Me ("Verify your face in 5 seconds") and the claim screen ask instead.
+  // A ?open=verify link still opens the check.
   useEffect(() => {
     if (!live || !v5Uid || !v5Card?.photo || adminViewActive()) return;
-    const key = 'kr8_facecheck2_asked:' + v5Uid;
-    try { if (localStorage.getItem(key)) return; } catch { return; }
-    // waits while any sheet or the Terms dialog is open (checks again every 4 s, for up to 2 minutes)
-    let t = 0, tries = 0;
-    const busy = () => !!sheetRef.current || !!document.getElementById('termsDlg');
-    const ask = () => {
-      if (busy()) { if (++tries < 30) t = window.setTimeout(ask, 4000); return; }
-      void v5MyFaceStatus().then((st) => {
-        if (!st || st.new_check || st.pending || st.blocked || st.tries_left < 1 || busy()) return;
-        try { localStorage.setItem(key, new Date().toISOString()); } catch { /* private mode */ }
-        setVerifyNudge(true);
-        setSheet('verify');
-      });
-    };
-    t = window.setTimeout(ask, 6000);
-    try { if (new URLSearchParams(location.search).get('open') === 'verify') window.setTimeout(() => { if (!busy()) setSheet('verify'); }, 1500); } catch { /* ignore */ }
+    let t = 0;
+    try { if (new URLSearchParams(location.search).get('open') === 'verify') t = window.setTimeout(() => { if (!sheetRef.current && !document.getElementById('termsDlg')) { setVerifyMode('me'); setSheet('verify'); } }, 1500); } catch { /* ignore */ }
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [live, v5Uid, !!v5Card?.photo]);
@@ -2988,7 +2988,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   }, [live, v5Uid, !!v5Card]);   // eslint-disable-line react-hooks/exhaustive-deps
   {
     const no = myMemberNo ?? kxMe?.member_no ?? null;
-    faceGateRef.current = live && !!v5Card && !adminView && !(v5Card.verified || meProfile?.verified || faceOkNow)
+    faceGateRef.current = FACE_GATE_ON && live && !!v5Card && !adminView && !(v5Card.verified || meProfile?.verified || faceOkNow)
       && !v5Ghost && no != null && Number(no) > FACE_GATE_AFTER_NO;
     verifyFirstRef.current = () => {
       showToast(L('Verify your face in 5 seconds to post and chat. One person, one account.'));
@@ -4875,6 +4875,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onReel={openReelFromProfile}
               onPost={() => kxPostAt()}
               onVerify={() => setSheet('verify')}
+              verifyHidden={verifyRowHidden(v5Uid, verifyHideTick)} onVerifyHide={() => { hideVerifyRow(v5Uid); setVerifyHideTick((n) => n + 1); }}
               helpSlot={<HelpMeRow lang={lang} onOpen={() => setSheet('help')} />}
               nextSlot={nextStep ? <div className="nx-cardwrap"><NextStepCard step={nextStep} variant="card" lang={lang} L={L} Lf={Lf} onGo={() => nextGo('me')} onHide={nextHide} /></div>
                 : nextLoading ? <div className="nx-cardwrap nx-hold" id="nxHold" aria-hidden="true" /> : null}
@@ -5394,7 +5395,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               const wasNew = !!no && !v5CardWasRef.current;
               if (wasNew) pushMoment('minted');   // 16 Nov dings: ask right after the card is minted
               setSheet(null);
-              if (what === 'verify') { afterVerifyRef.current = wasNew; setTimeout(() => setSheet('verify'), 60); return; }
+              // 0111: the check still comes right after the card photo, with a clear "Do it later" (nothing below waits for it)
+              if (what === 'verify') { afterVerifyRef.current = wasNew; setVerifyMode(wasNew ? 'signup' : 'me'); setTimeout(() => setSheet('verify'), 60); return; }
               if (what === 'reel') { markReelNudgeSeen(v5LastUid.current || v5Uid); pendingActionRef.current = null; kxPostAt(); return; }
               const next = pendingActionRef.current;
               pendingActionRef.current = null;
@@ -7152,9 +7154,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onDeals={() => { closeTicket(); setTab('deals'); }} />
         )}
         {sheet === 'verify' && live && v5Card && (
-          <V5VerifySheet L={L} photo={v5Card.photo} errText={(e) => v5Msg(e)} nudge={verifyNudge}
+          <V5VerifySheet L={L} photo={v5Card.photo} errText={(e) => v5Msg(e)} mode={verifyMode === 'claim' ? 'me' : verifyMode}
             onClose={() => {
-              setSheet(null); setVerifyNudge(false); void loadMe();
+              setSheet(null); setVerifyMode('me'); void loadMe();
               // a brand-new member goes on to Me, where "Your next step" offers the first Reel
               if (afterVerifyRef.current) { afterVerifyRef.current = false; markReelNudgeSeen(v5LastUid.current || v5Uid); setTab('me'); }
             }}
@@ -7225,6 +7227,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         )}
         {sheet === 'claim' && live && (
           <ClaimPage L={L} Lf={Lf} lang={lang} data={kxRewards} prize={kxPrizeSel} toast={showToast} onBack={() => setSheet('rewards')}
+            verified={!!(meProfile?.verified || v5Card?.verified || faceOkNow)}
+            verifyPending={verifyPending} onVerify={() => setClaimVerify(true)}
             onDone={(r: KxClaimResult) => {
               a2hsMoment('claim');   // J: install nudge after a claim (shows once the claim screen is closed)
               void kxLoadRewards();
@@ -7234,6 +7238,14 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               else showToast(L('Your code is on the way'));
               setSheet('claimed');
             }} />
+        )}
+        {/* 0111: the face check is the claim's required step; it opens on top and the claim goes on once it passes */}
+        {sheet === 'claim' && claimVerify && live && v5Card && (
+          <V5VerifySheet L={L} photo={v5Card.photo} errText={(e) => v5Msg(e)} mode="claim"
+            onClose={() => { setClaimVerify(false); void loadMe(); }}
+            onSent={() => setVerifyPending(true)}
+            onVerified={() => { setVerifyPending(false); setFaceOkNow(true); setMeProfile((p) => (p ? { ...p, verified: true } : p)); }}
+            onAddPhoto={() => { setClaimVerify(false); setSheet('v5card'); }} />
         )}
         {sheet === 'claimed' && live && (
           <ClaimedPage key={kxClaimFocus.id || 'h'} L={L} Lf={Lf} lang={lang} data={kxRewards} focus={kxClaimFocus.id} fresh={kxClaimFocus.fresh} toast={showToast}

@@ -616,6 +616,17 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Paste it in Safari (or Chrome) and allow the camera.': 'วางลิงก์ใน Safari (หรือ Chrome) แล้วอนุญาตให้ใช้กล้อง',
     'Take selfie': 'ถ่ายเซลฟี่',
     'Getting ready… {0}%': 'กำลังเตรียม… {0}%',
+    // 0111 (18 Nov): the face check is needed only to claim a prize ("Do it later" in sign-up, a gentle row on Me, a step in the claim)
+    'Do it later': 'ไว้ทีหลัง',
+    'You only need it to claim a prize. Look at the camera, turn a little, blink.': 'ใช้แค่ตอนรับรางวัลเท่านั้น มองกล้อง หันหน้านิดนึง แล้วกะพริบตา',
+    'One quick step to get your prize': 'อีกขั้นเดียวก็รับรางวัลได้',
+    'A 5-second face check keeps every prize one person, one account.': 'เช็กหน้า 5 วินาที ให้ทุกรางวัลเป็นของคนจริง หนึ่งคน หนึ่งบัญชี',
+    'Now pick where to get your prize.': 'เลือกได้เลยว่าจะรับรางวัลทางไหน',
+    'Back to my prize': 'กลับไปรับรางวัล',
+    'Verify your face in 5 seconds': 'ยืนยันใบหน้าใน 5 วินาที',
+    'Be ready to claim your prize the moment you win.': 'พร้อมรับรางวัลทันทีที่คุณชนะ',
+    'Hide': 'ซ่อน',
+    'Verify your face in 5 seconds to claim your prize.': 'ยืนยันใบหน้า 5 วินาทีเพื่อรับรางวัลของคุณ',
   },
   // zh, hi, ja, ko: separate files, downloaded only when that language is chosen (loadV5Lang below)
 };
@@ -666,7 +677,7 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
     case 'NETWORK': return ['Couldn’t reach Kring. Check your connection and try again.'];
     case 'BAD_CODE': return ['That code is wrong or has expired. Send a new code below.'];
     case 'BAD_HANDLE': return ['That Instagram name doesn’t look right.'];
-    case 'VERIFY_FIRST': return ['Verify your face in 5 seconds to post and chat. One person, one account.'];
+    case 'VERIFY_FIRST': return ['Verify your face in 5 seconds to claim your prize.'];   // 0111: only a prize claim asks
     case 'NO_TEAM': return ['The team chat isn’t ready yet. Email ops@kringapp.com.'];
     case 'NO_LINKS': return ['For everyone’s safety, links can’t be sent in chat. Swap Instagram once you trust each other.'];
     case 'OWN_REEL': return ['That’s your own Reel.'];
@@ -695,6 +706,10 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
  */
 export const KX_L: Record<string, Record<string, string>> = {
   th: {
+    // 0111: the face check as the claim's one required step
+    'Verify your face to claim': 'ยืนยันใบหน้าเพื่อรับรางวัล',
+    '5 seconds, once. It keeps every prize one person, one account.': 'ใช้ 5 วินาที ทำครั้งเดียว ให้ทุกรางวัลเป็นของคนจริง หนึ่งคน หนึ่งบัญชี',
+    'Verify my face': 'ยืนยันใบหน้า',
     'Show my Instagram & TikTok on my card': 'โชว์ไอจีและติ๊กต็อกบนการ์ดของฉัน',
     'Off: only you can see them.': 'ปิดไว้: เห็นได้แค่คุณคนเดียว',
     // card + linking

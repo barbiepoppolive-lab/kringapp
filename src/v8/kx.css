@@ -770,6 +770,13 @@
 .v8-app-root .kx-step .kx-te:first-of-type { font: 800 1.125rem var(--kx-u); }
 .v8-app-root .kx-step .ln { width: 56px; height: 56px; border-radius: 18px; background: #06c755; display: grid; place-items: center; font: 800 0.8125rem var(--kx-j); color: #fff; }
 .v8-app-root .kx-step .kx-btn.line { background: #06c755; }
+/* 0111: the face check as the claim's one required step (same card as the LINE step; one language) */
+.v8-app-root .kx-step-vfy { margin-bottom: 16px; }
+.v8-app-root .kx-step-vfy .vf { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font: 800 1.5rem var(--kx-u); color: #fff;
+  background: linear-gradient(135deg, #5B6CFF, #FF4FA3); box-shadow: 0 8px 22px rgba(91,108,255,.35); }
+.v8-app-root .kx-step-vfy b { font: 800 1.125rem/1.3 var(--kx-u); }
+.v8-app-root .kx-step-vfy small { font: 500 0.8125rem/1.45 var(--kx-j); color: var(--kx-mu); max-width: 280px; }
+.v8-app-root .kx-step-vfy .kx-btn { width: 100%; margin-top: 4px; }
 .v8-app-root .kx-pzc .kx-wait { font: 700 0.7188rem/1.25 var(--kx-j); color: var(--kx-gd); text-align: right; max-width: 120px; }
 .v8-app-root .kx-vnudge { display: flex; align-items: center; gap: 10px; width: calc(100% - 36px); margin: 4px 18px 10px; padding: 10px 12px; border: 0; border-radius: 16px; text-align: left;
   background: rgba(63,240,255,.08); box-shadow: inset 0 0 0 1.5px rgba(63,240,255,.28); color: #e8e4f7; font: 700 0.8125rem var(--kx-j); }

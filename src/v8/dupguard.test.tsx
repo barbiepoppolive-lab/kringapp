@@ -55,8 +55,9 @@ describe('claim page (0066)', () => {
     render(<ClaimPage L={L} Lf={Lf} lang="th" data={rewards()} prize={prize()} onBack={() => undefined} onDone={() => undefined} toast={() => undefined}
       startStep="face" faceDemo={{ stage: 'fail' }} />);
     const box = document.getElementById('kxClaimFace')!;
-    expect(box.textContent).toContain('ยืนยันใบหน้าสั้น ๆ เพื่อรับรางวัล และให้รีลของคุณติดบอร์ดอันดับ');
-    expect(box.textContent).toContain('Quick face check to claim your reward and keep your Reel on the ranking board');
+    expect(box.textContent).toContain('ยืนยันใบหน้าสั้น ๆ เพื่อรับรางวัลของคุณ');
+    expect(box.textContent).toContain('Quick face check to claim your reward');
+    expect(box.textContent).not.toContain('ranking board');   // 0111: the board never needs the face check
     expect(document.getElementById('kxClaimFaceSkip')).toBeNull();
     expect(document.getElementById('kxClaimFaceRetry')).not.toBeNull();
     fireEvent.click(document.getElementById('kxClaimFaceBack')!);

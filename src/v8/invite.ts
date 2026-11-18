@@ -5,7 +5,7 @@
  *   · navigator.share → the phone's own share sheet (title + one short line + link)
  *   · LINE in-app browser → LINE's own share picker (https://line.me/R/share?text=…)
  *   · anything else (no share sheet: computer, Instagram/Facebook in-app on Android, or the sheet refused) → copy the link + "Link copied"
- * When the friend joins with the link and passes the face check, both get +X Rings on the week's board (0109_kr8_invite_rings.sql).
+ * When the friend joins with the link and their first Reel is approved, both get +X Rings on the week's board (0109, rule changed in 0111_kr8_face_later.sql).
  */
 import { inAppBrowser } from './A2HS';
 
@@ -67,7 +67,7 @@ export function shareText(lang: string, kind: ShareKind, name = ''): string {
 }
 
 /** The one quiet line next to a share button (Board button, post-success). Founder 18 Nov (2nd round): "Friend joins = +10 each"
- *  (both get the Rings once the friend passes the face check; 0109). On screen: lead · amount · Kring rings icon · tail. */
+ *  (both get the Rings once the friend's first Reel is approved; 0111). On screen: lead · amount · Kring rings icon · tail. */
 export function inviteHintParts(lang: string, x: number = INVITE_RINGS_DEFAULT): { lead: string; amt: string; word: string; tail: string } {
   const v = x > 0 ? x : INVITE_RINGS_DEFAULT;
   return isTh(lang) ? { lead: 'เพื่อนสมัคร = ได้', amt: `+${v}`, word: 'ริง', tail: 'ทั้งคู่' } : { lead: 'Friend joins =', amt: `+${v}`, word: 'Rings', tail: 'each' };

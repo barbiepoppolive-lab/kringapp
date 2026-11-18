@@ -63,13 +63,17 @@
 .v8-app-root .kme-qa span { width: 48px; height: 48px; border-radius: 50%; border: 1px solid #4A4658; display: grid; place-items: center; font-size: 1.0625rem; color: #FFF7EC; }
 
 /* verify prompt (section 2) */
-.v8-app-root .kme-verify { display: flex !important; align-items: center; gap: 12px; width: calc(100% - 32px); margin: 20px 16px 0; padding: 12px 14px !important; border-radius: 18px;
-  border: .5px solid rgba(91,108,255,.55) !important; background: linear-gradient(90deg, rgba(91,108,255,.16), rgba(255,79,163,.10)) !important; }
-.v8-app-root .kme-verify .ic { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #5B6CFF; font-weight: 800; flex: none; }
-.v8-app-root .kme-verify .t { flex: 1; }
+.v8-app-root .kme-verify { display: flex !important; align-items: center; gap: 4px; width: calc(100% - 32px); margin: 20px 16px 0; padding: 0 !important; border-radius: 18px;
+  border: .5px solid rgba(91,108,255,.4) !important; background: linear-gradient(90deg, rgba(91,108,255,.10), rgba(255,79,163,.06)) !important; }
+/* 0111: the row is a gentle nudge: the main part opens the check, × hides it for a week */
+.v8-app-root .kme-verify .kme-vmain { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 12px 6px 12px 14px; background: none; border: 0; color: inherit; text-align: left; font: inherit; }
+.v8-app-root .kme-verify .ic { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, #5B6CFF, #FF4FA3); color: #fff; font-weight: 800; flex: none; }
+.v8-app-root .kme-verify .t { flex: 1; min-width: 0; }
 .v8-app-root .kme-verify b { display: block; font-size: 0.875rem; }
 .v8-app-root .kme-verify small { display: block; font-size: 0.7188rem; color: var(--k-muted); margin-top: 2px; }
 .v8-app-root .kme-verify .go { color: var(--k-muted); }
+.v8-app-root .kme-verify .kme-vx { flex: none; width: 40px; height: 44px; margin-right: 4px; display: grid; place-items: center; background: none; border: 0; color: var(--k-muted); font-size: 1.25rem; line-height: 1; }
+.v8-app-root .kme-verify.wait .ic { background: rgba(91,108,255,.55); }
 
 /* next level: Thai tea cup that fills */
 .v8-app-root .kme-lvl { margin: 20px 16px 0; padding: 14px 16px; border-radius: 20px; background: linear-gradient(90deg, rgba(255,79,163,.10), rgba(255,138,61,.10));

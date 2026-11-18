@@ -1747,6 +1747,7 @@ function rulesView() {
       r('Selfies', 'Deleted 30 days after review.'),
       r('Replies', 'Max 5 a day · 20+ minutes apart · Kring only after 9 replies without it. A disclosure line is added when Kring is mentioned.'),
       r('Kring Local payouts', 'Only approved Reels count: first approved Reel, and 3 approved Reels within the first 14 days.'),
+      r('Recruiter pay', 'Per sign-up with their link whose first Reel is approved (Recruiters: "Paid · 1st Reel approved"). No face check needed: members verify only to claim a prize. Invite Rings (+10 each) follow the same rule.'),
       r('Recruiter milestones', 'M1 = verified + photo, area, IG + 1 approved Reel. M2 = M1 + opened the app on a later day and sent a hello / saved 3 / 2nd Reel.'),
       r('Venue deals', 'In baht, never percent. No quiet-hours words, links or phone numbers.'),
       r('Stay / Do', 'The partner sets the member price. No other-site prices. Hidden until switched live.'),
@@ -2149,7 +2150,7 @@ function recruitMemberRow(m: RecruitMember, act: RecruitActions | null): HTMLEle
     el('div', { class: 'faint xs' }, memberJoined(m.joined_at), m.src_code ? ` · src ${m.src_code}` : ''),
     m.how === 'credited' ? el('div', { class: 'xs', style: 'color:var(--pink);margin-top:2px', 'data-credit': m.credited_by || '' }, `Credited by ${m.credited_by || 'an admin'} · ${bkkTime(m.credited_at)}`) : null,
     el('div', { class: 'ml-ticks', style: 'margin-top:6px' }, tick(m.verified, 'Verified', 'Not verified'),
-      tick(m.approved_reels > 0, `${m.approved_reels} approved Reel${m.approved_reels === 1 ? '' : 's'}`, 'No approved Reel')),
+      tick(m.approved_reels > 0, `Paid · ${m.approved_reels} approved Reel${m.approved_reels === 1 ? '' : 's'}`, 'No approved Reel yet')),
     actBtn);
 }
 /** The whole Recruiters page body (exported for the preview harness and tests). act = null: read-only. */
@@ -2160,7 +2161,8 @@ export function recruitersBlock(d: Recruiters, act: RecruitActions | null): HTML
       el('span', { class: 'dim sm' }, `${c.via_link} by link${c.credited ? ` · ${c.credited} credited` : ''}`)), ic('chev')),
     el('div', { class: 'in' },
       el('div', { class: 'nrow', style: 'border-top:0;padding-top:0' }, el('div', { class: 'cells', 'data-sum': `${c.signups}/${c.posted}/${c.verified}` },
-        ...([[c.signups, 'Signed up'], [c.posted, 'Posted ≥1 approved'], [c.verified, 'Verified'], [c.credited, 'Credited by hand']] as [number, string][])
+        // 0111 (18 Nov): recruiters are paid per sign-up whose FIRST REEL IS APPROVED; the face check is optional (prize claims only)
+        ...([[c.signups, 'Signed up'], [c.posted, 'Paid · 1st Reel approved'], [c.verified, 'Face-verified (optional)'], [c.credited, 'Credited by hand']] as [number, string][])
           .map(([n, l], k) => el('div', { class: k && n ? 'y' : '' }, el('b', {}, String(n)), el('span', {}, l))))),
       ...c.members.map((m) => recruitMemberRow(m, act)))));
   const none = el('details', { class: 'card', id: 'rcNone', open: true },
@@ -2180,7 +2182,7 @@ export function recruitersBlock(d: Recruiters, act: RecruitActions | null): HTML
       statTile(d.codes.reduce((n, c) => n + c.signups, 0), 'Signed up', 'rcSigned'), statTile(d.no_code.length, 'Without a code', 'rcNoCode', d.no_code.length ? 'warn' : '')),
     ...(d.codes.length ? codes : [empty('No recruiter codes yet', 'Members who join with ?ref= show up here.')]),
     none, log,
-    el('p', { class: 'faint xs', style: 'margin:12px 4px 0' }, `Totals count the ref link OR a hand credit (${credited} by hand). A ref link is never changed. Posted = at least one approved, not hidden Reel.`));
+    el('p', { class: 'faint xs', style: 'margin:12px 4px 0' }, `Totals count the ref link OR a hand credit (${credited} by hand). A ref link is never changed. Paid = joined with the code and has at least one approved, not hidden Reel (no face check needed). Member invite Rings use the same rule.`));
 }
 export function creditSheet(m: RecruitMember, codes: string[], done: () => void) {
   const inp = el('input', { id: 'creditCode', autocapitalize: 'none', autocomplete: 'off', placeholder: 'recruiter code, e.g. pich', value: '' }) as HTMLInputElement;

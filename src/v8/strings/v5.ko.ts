@@ -616,5 +616,16 @@ const T: Record<string, string> = {
   'How to win': '이기는 방법',
   'Show my QR': '내 QR 보기',
   'Your Reel is live': '내 릴이 공개됐어요',
+  // 0111: face check only for prize claims
+  'Do it later': '나중에 하기',
+  'You only need it to claim a prize. Look at the camera, turn a little, blink.': '상품을 받을 때만 필요해요. 카메라를 보고, 고개를 살짝 돌리고, 눈을 깜빡이세요.',
+  'One quick step to get your prize': '상품까지 한 단계만 남았어요',
+  'A 5-second face check keeps every prize one person, one account.': '5초 얼굴 확인으로 모든 상품은 한 사람, 한 계정만.',
+  'Now pick where to get your prize.': '이제 상품 받을 곳을 고르세요.',
+  'Back to my prize': '내 상품으로 돌아가기',
+  'Verify your face in 5 seconds': '5초 만에 얼굴 인증하기',
+  'Be ready to claim your prize the moment you win.': '이기는 순간 바로 상품을 받을 수 있어요.',
+  'Hide': '숨기기',
+  'Verify your face in 5 seconds to claim your prize.': '상품을 받으려면 5초 얼굴 인증을 해 주세요.',
 };
 export default T;

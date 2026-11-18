@@ -616,5 +616,16 @@ const T: Record<string, string> = {
   'How to win': '如何赢',
   'Show my QR': '显示我的二维码',
   'Your Reel is live': '你的短视频已上线',
+  // 0111: face check only for prize claims
+  'Do it later': '稍后再做',
+  'You only need it to claim a prize. Look at the camera, turn a little, blink.': '只有领取奖品时才需要。看着镜头，稍微转头，眨眨眼。',
+  'One quick step to get your prize': '再一步就能领奖',
+  'A 5-second face check keeps every prize one person, one account.': '5 秒人脸验证，确保每份奖品一人一账号。',
+  'Now pick where to get your prize.': '现在选择领取奖品的方式。',
+  'Back to my prize': '返回我的奖品',
+  'Verify your face in 5 seconds': '5 秒完成人脸验证',
+  'Be ready to claim your prize the moment you win.': '赢了就能马上领奖。',
+  'Hide': '隐藏',
+  'Verify your face in 5 seconds to claim your prize.': '完成 5 秒人脸验证即可领取奖品。',
 };
 export default T;

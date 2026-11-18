@@ -123,7 +123,7 @@ export function ClaimFace(props: { onDone: (face: Float32Array | null, photo?: B
     <div className="kx-cf" id="kxClaimFace" data-stage={stage}>
       <div className="kx-cf-h">
         <TE th="สแกนหน้า 3 วินาที" en="3-second face check" />
-        <TE th="ยืนยันใบหน้าสั้น ๆ เพื่อรับรางวัล และให้รีลของคุณติดบอร์ดอันดับ" en="Quick face check to claim your reward and keep your Reel on the ranking board" />
+        <TE th="ยืนยันใบหน้าสั้น ๆ เพื่อรับรางวัลของคุณ" en="Quick face check to claim your reward" />
       </div>
       <div className="kx-cf-cam" style={{ ['--p' as string]: `${pct}%` }}>
         {props.demo?.img ? <img src={props.demo.img} alt="" /> : <video ref={videoRef} playsInline muted autoPlay id="kxClaimFaceVideo" />}

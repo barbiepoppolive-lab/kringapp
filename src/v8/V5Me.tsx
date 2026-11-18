@@ -156,6 +156,8 @@ export function MeView(props: {
   nextSlot?: React.ReactNode;
   /** 18 Nov (0097): "Questions? Ask Kring Helper" row, right under "This week" */
   helpSlot?: React.ReactNode;
+  /** 0111: the gentle "Verify your face in 5 seconds" row can be hidden (×) for a while; it never blocks anything */
+  verifyHidden?: boolean; onVerifyHide?: () => void;
 }) {
   const { L, Lf, p } = props;
   const lv = p.level;
@@ -229,15 +231,22 @@ export function MeView(props: {
           <b>{L('Post your first Reel')}</b><small>{L('Your Reels show here and count towards your next level')}</small>
         </button>
       ) : null}
-      {props.verifyState !== 'verified' && (p.reels.length > 0 || props.verifyState === 'pending' || !props.reelsSlot) && (
-        <button type="button" className="kme-verify" id="meVerify" onClick={props.onVerify} disabled={props.verifyState === 'pending'}>
-          <span className="ic">✓</span>
-          <span className="t">
-            <b>{props.verifyState === 'pending' ? L('We’re checking · usually within a day') : L('Get verified ✓')}</b>
-            <small>{props.verifyState === 'pending' ? L('You’ll see ✓ verified on your card when it’s done') : L('A 5-second face check on your phone. People reply more to verified members.')}</small>
-          </span>
-          {props.verifyState === 'pending' ? null : <span className="go">›</span>}
-        </button>
+      {/* 0111 (founder 18 Nov): a gentle nudge, not a gate. The face check is needed only to claim a prize; the row can be hidden. */}
+      {props.verifyState !== 'verified' && (p.reels.length > 0 || props.verifyState === 'pending' || !props.reelsSlot)
+        && !(props.verifyState === 'none' && props.verifyHidden) && (
+        <div className={`kme-verify${props.verifyState === 'pending' ? ' wait' : ''}`} id="meVerify">
+          <button type="button" className="kme-vmain" id="meVerifyGo" onClick={props.onVerify} disabled={props.verifyState === 'pending'}>
+            <span className="ic" aria-hidden="true">✓</span>
+            <span className="t">
+              <b>{props.verifyState === 'pending' ? L('We’re checking · usually within a day') : L('Verify your face in 5 seconds')}</b>
+              <small>{props.verifyState === 'pending' ? L('You’ll see ✓ verified on your card when it’s done') : L('Be ready to claim your prize the moment you win.')}</small>
+            </span>
+            {props.verifyState === 'pending' ? null : <span className="go" aria-hidden="true">›</span>}
+          </button>
+          {props.verifyState === 'none' && props.onVerifyHide ? (
+            <button type="button" className="kme-vx" id="meVerifyHide" aria-label={L('Hide')} onClick={props.onVerifyHide}>×</button>
+          ) : null}
+        </div>
       )}
       {props.reelsSlot ? (
         <>{props.reelsSlot}
