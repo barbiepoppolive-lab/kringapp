@@ -84,7 +84,7 @@ dict(slug='chatuchak-weekend', group='areas', img='tuktuk', areas=['ari', 'hub']
 - ถ้าเวียนหัวจากความร้อน หยุดพักในที่ร่มหรือห้องแอร์ทันที แล้วดื่มน้ำ
 
 ''',
-  cta=('ลงคลิปของเด็ดที่เจอในจตุจักร', 'ถ่าย Reel สั้น ๆ จากร้านหรือมุมที่ชอบในจตุจักรลงกริ๊ง! แล้วดูว่าใครชอบแนวเดียวกัน ชวนกันมาเดินเสาร์หน้าได้ ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  cta=('ลงคลิปของเด็ดที่เจอในจตุจักร', 'ถ่าย Reel สั้น ๆ จากร้านหรือมุมที่ชอบในจตุจักรลงกริ๊ง! แล้วดูว่าใครชอบแนวเดียวกัน ชวนกันมาเดินเสาร์หน้าได้ ใช้ฟรี อายุ 18 ปีขึ้นไป'),
   faq=[('ตลาดนัดจตุจักรเปิดกี่โมง', 'เปิดทั้งตลาดวันเสาร์และอาทิตย์ 9:00-18:00 น. วันพุธและพฤหัสเปิดเฉพาะโซนต้นไม้ 7:00-18:00 น.'),
        ('ไปจตุจักรลงสถานีอะไร', 'MRT กำแพงเพชร (ฝั่งตะวันตก) MRT สวนจตุจักร หรือ BTS หมอชิต (ฝั่งตะวันออก)'),
        ('ไปจตุจักรช่วงไหนดีที่สุด', 'ช่วงเช้าตอนตลาดเพิ่งเปิด อากาศเย็นกว่าและคนยังไม่แน่น'),
@@ -151,7 +151,7 @@ On Wednesdays and Thursdays only the plant section opens, from 7am. It is quiet 
 - Feeling dizzy from the heat? Stop in shade or air-con straight away and drink water.
 
 ''',
-  cta=('Show what you found at Chatuchak', 'Post a short Reel from your favourite Chatuchak stall or corner on Kring and see who shares your taste. Plan next Saturday together. Free, ages 20+.'),
+  cta=('Show what you found at Chatuchak', 'Post a short Reel from your favourite Chatuchak stall or corner on Kring and see who shares your taste. Plan next Saturday together. Free, ages 18+.'),
   faq=[('What are Chatuchak Weekend Market\'s opening hours?', 'The whole market opens Saturday and Sunday, 9:00–18:00. On Wednesday and Thursday only the plant section opens, 7:00–18:00.'),
        ('Which station is best for Chatuchak?', 'MRT Kamphaeng Phet for the western end, or MRT Chatuchak Park and BTS Mo Chit for the eastern end.'),
        ('When is the best time to visit Chatuchak?', 'Right when it opens in the morning, when it is cooler and less crowded.'),
@@ -225,7 +225,7 @@ dict(slug='night-markets-friends', group='do', img='tuktuk', areas=['yaowarat', 
 ## ทางเลือกริมน้ำ
 ถ้าอยากเริ่มด้วยพระอาทิตย์ตก แวะสวนลอยฟ้าเจ้าพระยาก่อน แล้วค่อยนั่งเรือลงไปฝั่งสาทร ดู[จุดชมพระอาทิตย์ตก](/blog/sunset-spots-bangkok/) หรือเดินย่าน[เยาวราช](/bangkok/yaowarat/) ตอนไฟนีออนเปิดก็สวยไม่แพ้กัน
 ''',
-  cta=('ตลาดไหนกำลังน่าไป ถามคนกรุงเทพฯ', 'ในห้อง "ถามคนไทย" ของกริ๊ง! ถามได้ว่าช่วงนี้ตลาดไหนคึกคัก ร้านไหนน่าแวะ แล้วค่อยชวนแก๊งเพื่อนไปเดิน แชตแปลไทย-อังกฤษให้ ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  cta=('ตลาดไหนกำลังน่าไป ถามคนกรุงเทพฯ', 'ในห้อง "ถามคนไทย" ของกริ๊ง! ถามได้ว่าช่วงนี้ตลาดไหนคึกคัก ร้านไหนน่าแวะ แล้วค่อยชวนแก๊งเพื่อนไปเดิน แชตแปลไทย-อังกฤษให้ ใช้ฟรี อายุ 18 ปีขึ้นไป'),
   faq=[('จ๊อดแฟร์เปิดกี่โมง อยู่ตรงไหน', 'จ๊อดแฟร์ รัชดา เปิดทุกวันราว 17:00 น. ถึงตีหนึ่ง ใกล้ MRT ศูนย์วัฒนธรรมแห่งประเทศไทย ทางออก 4 ส่วนสาขาพระราม 9 ปิดไปแล้วตั้งแต่ ม.ค. 2025'),
        ('ตลาดนัดรถไฟศรีนครินทร์เปิดวันไหน', 'พฤหัสถึงอาทิตย์ ประมาณ 17:00 น. ถึงตีหนึ่ง ปิดจันทร์ถึงพุธ'),
        ('ไปเอเชียทีคยังไง', 'นั่งเรือรับส่งฟรีจากท่าสาทร ใช้เวลาราว 10-15 นาที เอเชียทีคเปิดทุกวัน 16:00 น. ถึงเที่ยงคืน'),
@@ -294,7 +294,7 @@ Night markets are where Bangkok unwinds after work: the air cools, there is musi
 ## A riverside alternative
 To start with a sunset, stop at Chao Phraya Sky Park first, then take a boat down to Sathorn. See [sunset spots in Bangkok](/en/blog/sunset-spots-bangkok/). Or wander [Yaowarat](/en/bangkok/yaowarat/) as the neon comes on.
 ''',
-  cta=('Ask which market is buzzing', 'In Kring\'s "Ask a Thai" space, ask which night market is lively right now and which stalls are worth it, then bring your group. Chats translate Thai–English. Free, ages 20+.'),
+  cta=('Ask which market is buzzing', 'In Kring\'s "Ask a Thai" space, ask which night market is lively right now and which stalls are worth it, then bring your group. Chats translate Thai–English. Free, ages 18+.'),
   faq=[('Where is Jodd Fairs now, and when does it open?', 'Jodd Fairs Ratchada opens daily from about 17:00 to 01:00, near MRT Thailand Cultural Centre Exit 4. The Rama 9 site closed in January 2025.'),
        ('When is the Srinakarin Train Night Market open?', 'Thursday to Sunday, roughly 17:00 to 01:00; closed Monday to Wednesday.'),
        ('How do I get to Asiatique?', 'Take the free shuttle boat from Sathorn Pier, about 10–15 minutes. Asiatique opens daily from 16:00 to midnight.'),
@@ -370,7 +370,7 @@ dict(slug='free-things-bangkok', group='do', img='river', areas=['siam', 'talat-
 - ถ้ามีคนแปลกหน้าเข้ามาบอกว่าที่ที่จะไปปิดวันนี้ แล้วเสนอพาไปที่อื่น ให้ปฏิเสธสุภาพแล้วเช็กเอง
 
 ''',
-  cta=('ที่ฟรีที่คนกรุงเทพฯ ไปจริง ถามได้', 'ในห้อง "ถามคนไทย" ของกริ๊ง! ถามได้ว่าเสาร์นี้มีงานฟรีที่ไหน หรือสวนไหนคนไม่เยอะ แล้วคนที่อยู่ที่นี่จะช่วยตอบ ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  cta=('ที่ฟรีที่คนกรุงเทพฯ ไปจริง ถามได้', 'ในห้อง "ถามคนไทย" ของกริ๊ง! ถามได้ว่าเสาร์นี้มีงานฟรีที่ไหน หรือสวนไหนคนไม่เยอะ แล้วคนที่อยู่ที่นี่จะช่วยตอบ ใช้ฟรี อายุ 18 ปีขึ้นไป'),
   faq=[('ที่เที่ยวฟรีในกรุงเทพฯ มีที่ไหนบ้าง', 'หอศิลปวัฒนธรรมแห่งกรุงเทพมหานคร สวนลอยฟ้าเจ้าพระยา สวนลุมพินี สวนเบญจกิติ สวนเบญจสิริ สวนดาดฟ้า TCDC และสตรีทอาร์ตในตลาดน้อย'),
        ('หอศิลป์กรุงเทพฯ เสียค่าเข้าไหม', 'นิทรรศการเข้าฟรี ยกเว้นงานพิเศษบางงาน เปิดอังคาร-อาทิตย์ 10:00-20:00 น.'),
        ('สวนลอยฟ้าเจ้าพระยาเสียเงินไหม', 'ไม่เสีย เข้าฟรี เปิดทุกวัน 05:00-20:00 น.'),
@@ -441,7 +441,7 @@ Many free places stay that way because everyone looks after them. Take your rubb
 - If a friendly stranger says the place you are heading to is closed today and offers to take you somewhere else, decline politely and check for yourself.
 
 ''',
-  cta=('Ask where Bangkok people go for free', 'In Kring\'s "Ask a Thai" space, ask which free events are on this weekend or which park is quiet, and people who live here answer. Free, ages 20+.'),
+  cta=('Ask where Bangkok people go for free', 'In Kring\'s "Ask a Thai" space, ask which free events are on this weekend or which park is quiet, and people who live here answer. Free, ages 18+.'),
   faq=[('What are the best free things to do in Bangkok?', 'The Bangkok Art and Culture Centre, Chao Phraya Sky Park, Lumphini, Benjakitti and Benchasiri parks, the TCDC rooftop garden and Talat Noi\'s street art.'),
        ('Is the Bangkok Art and Culture Centre free?', 'Exhibitions are free except some special events. It opens Tuesday to Sunday, 10:00–20:00.'),
        ('Is Chao Phraya Sky Park free?', 'Yes, entry is free. The latest listing says it is open daily from 05:00 to 20:00.'),
@@ -510,7 +510,7 @@ dict(slug='rainy-season-bangkok', group='do', img='tuktuk', areas=['siam', 'hub'
 ## หน้าฝนกับการหาเพื่อนใหม่
 หน้าฝนคนอยู่บ้านมากขึ้น แต่ก็เป็นช่วงที่กิจกรรมในร่มคึกคักที่สุด คลาสเวิร์กช็อป บอร์ดเกม และนิทรรศการ เป็นโอกาสดีที่จะเจอคนใหม่ที่ชอบอะไรคล้าย ๆ กัน
 ''',
-  cta=('วันฝนตกก็ได้เพื่อนใหม่', 'เปิดกริ๊ง! ดู Reels จากที่ในร่มที่คนกรุงเทพฯ ไปช่วงฝนตก แล้วชวนคนที่อยู่ใกล้ ๆ ไปเล่นบอร์ดเกมด้วยกัน ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  cta=('วันฝนตกก็ได้เพื่อนใหม่', 'เปิดกริ๊ง! ดู Reels จากที่ในร่มที่คนกรุงเทพฯ ไปช่วงฝนตก แล้วชวนคนที่อยู่ใกล้ ๆ ไปเล่นบอร์ดเกมด้วยกัน ใช้ฟรี อายุ 18 ปีขึ้นไป'),
   faq=[('หน้าฝนกรุงเทพฯ เริ่มและหมดเมื่อไหร่', 'กรมอุตุนิยมวิทยาระบุว่าเริ่มราวกลางเดือนพฤษภาคมและสิ้นสุดราวกลางเดือนตุลาคม'),
        ('ฝนในกรุงเทพฯ ตกช่วงไหนของวัน', 'มักตกหนักเป็นพายุช่วงบ่ายถึงเย็น ช่วงเช้ามักแดดดี'),
        ('หน้าฝนในกรุงเทพฯ ไปไหนดี', 'หอศิลปวัฒนธรรมแห่งกรุงเทพมหานคร ห้องสมุด TCDC บอร์ดเกมคาเฟ่ และห้างที่เชื่อมกับรถไฟฟ้า'),
@@ -568,7 +568,7 @@ It is cooler than the hot season, the parks are lush and green, and after a stor
 ## Making friends in the rainy season
 People stay in more, but indoor activities are at their busiest: workshops, board games and exhibitions. It is a good time to find people who like the same things you do.
 ''',
-  cta=('Rainy days, new friends', 'Open Kring to see Reels from the indoor spots Bangkok people head to when it rains, then invite someone nearby to a board-game afternoon. Free, ages 20+.'),
+  cta=('Rainy days, new friends', 'Open Kring to see Reels from the indoor spots Bangkok people head to when it rains, then invite someone nearby to a board-game afternoon. Free, ages 18+.'),
   faq=[('When is the rainy season in Bangkok?', 'The Thai Meteorological Department says it starts around mid-May and ends around mid-October.'),
        ('What time of day does it rain in Bangkok?', 'Usually as heavy storms in the afternoon or evening. Mornings are often sunny.'),
        ('What can I do in Bangkok when it rains?', 'Visit the Bangkok Art and Culture Centre, the TCDC library, board-game cafés and malls linked to rail stations.'),
@@ -640,7 +640,7 @@ dict(slug='sunset-spots-bangkok', group='do', img='river', areas=['thonburi', 't
 ## จบเย็นแล้วไปไหนต่อ
 จากริมน้ำ ต่อไปตลาดกลางคืนได้ง่าย ดู[ตลาดกลางคืนในกรุงเทพฯ](/blog/night-markets-friends/)
 ''',
-  cta=('ลงคลิปพระอาทิตย์ตกมุมของคุณ', 'ถ่าย Reel สั้น ๆ ตอนพระอาทิตย์ตกจากมุมที่ชอบลงกริ๊ง! แล้วดูว่าใครชอบมุมเดียวกัน ชวนกันไปดูรอบหน้าได้ ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  cta=('ลงคลิปพระอาทิตย์ตกมุมของคุณ', 'ถ่าย Reel สั้น ๆ ตอนพระอาทิตย์ตกจากมุมที่ชอบลงกริ๊ง! แล้วดูว่าใครชอบมุมเดียวกัน ชวนกันไปดูรอบหน้าได้ ใช้ฟรี อายุ 18 ปีขึ้นไป'),
   faq=[('ดูพระอาทิตย์ตกในกรุงเทพฯ ที่ไหนฟรี', 'สวนลอยฟ้าเจ้าพระยา ลานริมน้ำฝั่งธนบุรี และทางเดินลอยฟ้าในสวนเบญจกิติ เข้าฟรีทั้งหมด'),
        ('สวนลอยฟ้าเจ้าพระยาเปิดถึงกี่โมง', 'เปิดทุกวัน 05:00-20:00 น. ปิดตรงเวลา ควรออกก่อน'),
        ('พระอาทิตย์ตกในกรุงเทพฯ กี่โมง', 'ราว 6 โมงเย็นเกือบทั้งปี เช็กเวลาที่แน่นอนในแอปพยากรณ์อากาศ'),
@@ -702,7 +702,7 @@ Allow for travel time, because the sun will not wait. Gather somewhere easy to f
 ## After sunset
 From the river, it is easy to carry on to a night market. See [Bangkok night markets with friends](/en/blog/night-markets-friends/).
 ''',
-  cta=('Share your sunset', 'Post a short sunset Reel from your favourite spot on Kring. See who loves the same view and plan the next one together. Free, ages 20+.'),
+  cta=('Share your sunset', 'Post a short sunset Reel from your favourite spot on Kring. See who loves the same view and plan the next one together. Free, ages 18+.'),
   faq=[('Where can I watch the sunset in Bangkok for free?', 'Chao Phraya Sky Park, the riverside decks on the Thonburi side and the skywalks in Benjakitti Forest Park are all free.'),
        ('What time does Chao Phraya Sky Park close?', 'The latest listing says it is open daily from 05:00 to 20:00.'),
        ('What time is sunset in Bangkok?', 'Around 6pm for most of the year. Check the exact time in a weather app.'),

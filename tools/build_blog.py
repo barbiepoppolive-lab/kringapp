@@ -163,14 +163,14 @@ T = {
             abouth='เกี่ยวกับบทความนี้', abouttxt='เขียนและตรวจข้อมูลโดยทีมกริ๊ง! ในกรุงเทพฯ ตรวจกับแหล่งข้อมูลด้านบนล่าสุดเมื่อ ' + DATE_TH + ' กริ๊ง! เป็นแอปของเราเอง ไม่มีที่ไหนในบทความนี้จ่ายเงินเพื่อให้ถูกพูดถึง เจอข้อมูลที่ไม่ตรง แจ้งเราได้ที่หน้า<a href="/contact">ติดต่อ</a>', disc='กริ๊ง! เป็นแอปของเราเอง', faq='คำถามที่พบบ่อย',
             fresh={'monthly': 'ตรวจเวลาเปิด ราคา และการเดินทางในหน้านี้ล่าสุด %s · หน้านี้เราตรวจซ้ำทุกเดือน', 'quarterly': 'ตรวจข้อมูลในหน้านี้ล่าสุด %s · หน้านี้เราตรวจซ้ำทุก 3 เดือน'},
             rel='อ่านต่อ', src='แหล่งข้อมูล', srcnote='ข้อมูลเวลาเปิด-ปิดและราคาอาจเปลี่ยนได้ เช็กกับช่องทางทางการของสถานที่ก่อนไปเสมอ',
-            open='เปิดกริ๊ง!', sub='ฟรี · LINE หรืออีเมล · อายุ 20 ปีขึ้นไป', switch='EN',
+            open='เปิดกริ๊ง!', sub='ฟรี · LINE หรืออีเมล · อายุ 18 ปีขึ้นไป', switch='EN',
             foot=[('/', 'หน้าแรก'), ('/blog/', 'บล็อก'), ('/bangkok/', 'ย่านในกรุงเทพฯ'), ('/locals/', 'โลคอลกริ๊ง!'), ('/partners/', 'สำหรับร้าน'), ('/safety', 'ความปลอดภัย'), ('/terms', 'ข้อกำหนด'), ('/privacy', 'ความเป็นส่วนตัว')],
             area='ย่าน', locale='th_TH'),
  'en': dict(home='Home', blog='Blog', hoods='Bangkok areas', upd='Updated ' + DATE_EN, read='%d min read', by='By the Kring team', about='/about',
             abouth='About this article', abouttxt='Written and fact-checked by the Kring team in Bangkok against the sources above, last checked on ' + DATE_EN + '. Kring is our own app. No place mentioned here paid to be included. Spotted something out of date? Tell us on our <a href="/contact">contact page</a>.', disc='Kring is our own app.', faq='FAQ',
             fresh={'monthly': 'Hours, prices and transport on this page last checked %s · we re-check this page every month', 'quarterly': 'Facts on this page last checked %s · we re-check this page every 3 months'},
             rel='Read next', src='Sources', srcnote='Opening hours and prices can change. Always check the place\'s official channels before you go.',
-            open='Open Kring', sub='Free · LINE or email · Ages 20+', switch='ไทย',
+            open='Open Kring', sub='Free · LINE or email · Ages 18+', switch='ไทย',
             foot=[('/en/', 'Home'), ('/en/blog/', 'Blog'), ('/en/bangkok/', 'Bangkok areas'), ('/locals/', 'Kring Locals'), ('/partners/', 'For venues'), ('/safety', 'Safety'), ('/terms', 'Terms'), ('/privacy', 'Privacy')],
             area='Area', locale='en_US'),
 }
@@ -206,7 +206,7 @@ def head(lang, title, desc, canon_th, canon_en, ld, img, ogtype='article', css_e
 def foot(lang):
     return '<footer>%s<span style="flex:1 0 100%%;padding:8px">© 2026 %s</span></footer>\n</body>\n</html>\n' % (
         ''.join('<a href="%s">%s</a>' % (u, E(n)) for u, n in T[lang]['foot']),
-        'กริ๊ง! (Kring) กรุงเทพฯ · สำหรับอายุ 20 ปีขึ้นไป' if lang == 'th' else 'Kring Bangkok · For ages 20 and over')
+        'กริ๊ง! (Kring) กรุงเทพฯ · สำหรับอายุ 18 ปีขึ้นไป' if lang == 'th' else 'Kring Bangkok · For ages 20 and over')
 
 def words(lang, text):
     if lang == 'en':

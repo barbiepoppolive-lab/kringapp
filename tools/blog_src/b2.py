@@ -74,7 +74,7 @@ Destination Thailand Visa (DTV) เป็นวีซ่าสำหรับค
 - **เสาร์** วิ่งเช้ากับรันคลับ บ่ายเดินตลาดหรือหอศิลป์
 - **อาทิตย์** พักจริง ๆ หรือไปกลุ่มแลกเปลี่ยนภาษาตอนบ่าย
 ''',
-  cta=('มีเพื่อนใหม่นอกเวลางาน', 'ในกริ๊ง! คุณโพสต์ Reel จากคาเฟ่หรือที่ทำงานที่ชอบ แล้วเจอคนที่ทำงานแถวเดียวกัน ทั้งคนไทยและต่างชาติ แชตแปลไทย-อังกฤษให้ ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  cta=('มีเพื่อนใหม่นอกเวลางาน', 'ในกริ๊ง! คุณโพสต์ Reel จากคาเฟ่หรือที่ทำงานที่ชอบ แล้วเจอคนที่ทำงานแถวเดียวกัน ทั้งคนไทยและต่างชาติ แชตแปลไทย-อังกฤษให้ ใช้ฟรี อายุ 18 ปีขึ้นไป'),
   faq=[('วีซ่า DTV อยู่ไทยได้นานแค่ไหน', 'วีซ่ามีอายุ 5 ปี อยู่ได้ครั้งละไม่เกิน 180 วัน ขยายในไทยได้อีกหนึ่งครั้งไม่เกิน 180 วัน ต้องแสดงเงินอย่างน้อย 500,000 บาท และทำงานให้บริษัทหรือลูกค้าไทยไม่ได้ ตามข้อมูลสถานทูตไทย'),
        ('โคเวิร์กกิ้งสเปซในกรุงเทพฯ ราคาเท่าไหร่', 'ตัวอย่างจากเดือนกันยายน 2026 อยู่ราว 250-750 บาทต่อวัน ขึ้นกับที่และโปรโมชัน'),
        ('ย่านไหนในกรุงเทพฯ เหมาะกับคนทำงานรีโมต', 'อารีย์สำหรับคนชอบความสงบ ทองหล่อ-เอกมัยสำหรับคนชอบความคึกคัก สยาม-ชิดลมสำหรับความสะดวก และเจริญกรุงสำหรับสายครีเอทีฟ'),
@@ -135,7 +135,7 @@ In the rainy season, Bangkok downpours usually hit in the afternoon or evening. 
 - **Sat**: a morning club run, then a market or gallery in the afternoon.
 - **Sun**: real rest, or an afternoon language exchange.
 ''',
-  cta=('New friends outside work hours', 'On Kring you post a Reel from your favourite café or workspace and find people working nearby, Thai and foreign. Chats translate between Thai and English. Free, ages 20+.'),
+  cta=('New friends outside work hours', 'On Kring you post a Reel from your favourite café or workspace and find people working nearby, Thai and foreign. Chats translate between Thai and English. Free, ages 18+.'),
   faq=[('How long can I stay on the DTV visa?', 'The visa is valid for 5 years, with stays of up to 180 days per entry, and each stay can be extended once inside Thailand for up to another 180 days. You must show at least 500,000 baht and cannot work for Thai companies or Thai clients, according to the Thai embassy.'),
        ('How much is co-working in Bangkok?', 'Examples from September 2026 range from about 250 to 750 baht per day, depending on the space and promotions.'),
        ('Which Bangkok area is best for digital nomads?', 'Ari for calm, Thonglor–Ekkamai for energy, Siam–Chit Lom for convenience and Charoen Krung for creative types.'),
@@ -213,7 +213,7 @@ dict(slug='expat-first-month-bangkok', group='live', img='tuktuk', areas=['ari',
 - **1330** สปสช. เรื่องสิทธิ์บัตรทอง · **1506** ประกันสังคม
 - **1323** สายด่วนสุขภาพจิต ปรึกษาฟรี 24 ชั่วโมง
 ''',
-  cta=('มีคำถามเรื่องกรุงเทพฯ ถามคนที่อยู่มาก่อน', 'ห้อง "ถามคนไทย" ในกริ๊ง! ไว้ถามเรื่องชีวิตในกรุงเทพฯ ตั้งแต่ย่านไหนน่าอยู่ ไปจนถึงร้านสะดวกซักแถวหอที่ไหนดี แล้วค่อย ๆ มีเพื่อนจากคำตอบเหล่านั้น ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  cta=('มีคำถามเรื่องกรุงเทพฯ ถามคนที่อยู่มาก่อน', 'ห้อง "ถามคนไทย" ในกริ๊ง! ไว้ถามเรื่องชีวิตในกรุงเทพฯ ตั้งแต่ย่านไหนน่าอยู่ ไปจนถึงร้านสะดวกซักแถวหอที่ไหนดี แล้วค่อย ๆ มีเพื่อนจากคำตอบเหล่านั้น ใช้ฟรี อายุ 18 ปีขึ้นไป'),
   faq=[('ย้ายมาทำงานกรุงเทพฯ ต้องย้ายทะเบียนบ้านไหม', 'ถ้าเป็นเรื่องสิทธิ์บัตรทอง ไม่ต้อง เปลี่ยนหน่วยบริการมาใกล้ที่พักได้เองผ่านแอป สปสช. ไลน์ @nhso หรือโทร 1330'),
        ('เช่าห้องในกรุงเทพฯ ต้องจ่ายล่วงหน้ากี่เดือน', 'ห้องเช่าและอพาร์ตเมนต์ที่ทำเป็นธุรกิจ เก็บเงินประกันรวมค่าเช่าล่วงหน้าได้ไม่เกิน 3 เดือน ตามประกาศคณะกรรมการว่าด้วยสัญญาฉบับปี 2568'),
        ('ค่าไฟหอแพงมาก เขาเก็บได้เท่าไร', 'ห้องเช่าที่ทำเป็นธุรกิจ คิดค่าน้ำค่าไฟเกินอัตราที่การประปาและการไฟฟ้าเรียกเก็บจริงไม่ได้ และต้องเขียนวิธีคิดไว้ในสัญญาให้ชัด'),
@@ -267,7 +267,7 @@ For emergencies, Thailand's 1155 police helpline for visitors has English-speaki
 ## Let people help you
 Bangkok people are generally very willing to help a newcomer who asks politely. Your condo office probably has a LINE group for residents; join it, because that is where water cuts, deliveries and building news are announced. When you are stuck on something small, such as where to get keys cut or how to pay a bill, asking a local beats an hour of searching online.
 ''',
-  cta=('Ask Bangkok people anything', 'Kring\'s "Ask a Thai" space is for everyday Bangkok questions, from which area to live in to where to find a good laundry, and friendships often start from the answers. Free, ages 20+.'),
+  cta=('Ask Bangkok people anything', 'Kring\'s "Ask a Thai" space is for everyday Bangkok questions, from which area to live in to where to find a good laundry, and friendships often start from the answers. Free, ages 18+.'),
   faq=[('What should I sort out in my first month in Bangkok?', 'A Thai SIM, LINE and a ride-hailing app, a home near a rail station, and one weekly activity where you see the same people.'),
        ('What do I need to buy a Thai SIM card as a foreigner?', 'Your passport, which is used to register the SIM. You can buy one at the airport or at a mobile operator\'s shop.'),
        ('What is TM30?', 'It is the report of a foreigner\'s address to Thai immigration. The landlord normally files it; tenants should ask to confirm it has been done.'),
@@ -321,7 +321,7 @@ dict(slug='thai-friends-etiquette', group='friends', img='cafe', areas=['ari', '
 ## ความปลอดภัยก็สำคัญ
 เป็นเพื่อนกันในที่สาธารณะก่อนเสมอ ระวังคนที่ชวนลงทุนหรือขอยืมเงินไม่ว่าจะชาติไหน และอย่าส่งเอกสารส่วนตัวให้คนที่เพิ่งรู้จัก
 ''',
-  cta=('คุยกับเพื่อนต่างชาติแบบไม่ต้องกลัวพูดผิด', 'แชตในกริ๊ง! แปลไทย-อังกฤษให้อัตโนมัติ คุณพิมพ์ไทย เพื่อนอ่านเป็นอังกฤษ ใช้ฟรี สำหรับอายุ 20 ปีขึ้นไป'),
+  cta=('คุยกับเพื่อนต่างชาติแบบไม่ต้องกลัวพูดผิด', 'แชตในกริ๊ง! แปลไทย-อังกฤษให้อัตโนมัติ คุณพิมพ์ไทย เพื่อนอ่านเป็นอังกฤษ ใช้ฟรี สำหรับอายุ 18 ปีขึ้นไป'),
   faq=[('ภาษาอังกฤษไม่เก่ง มีเพื่อนต่างชาติได้ไหม', 'ได้ ประโยคง่าย ๆ ไม่กี่ประโยคกับความตั้งใจฟังสำคัญกว่าไวยากรณ์ และแอปที่มีระบบแปลแชตก็ช่วยได้มาก'),
        ('เรื่องอะไรที่ไม่ควรถามเพื่อนต่างชาติตอนเพิ่งรู้จัก', 'อายุ เงินเดือน น้ำหนัก และคำทักเรื่องรูปร่าง หลายวัฒนธรรมถือว่าเป็นเรื่องส่วนตัว'),
        ('หาเพื่อนต่างชาติในกรุงเทพฯ ได้ที่ไหน', 'กลุ่มแลกเปลี่ยนภาษา รันคลับ บอร์ดเกมคาเฟ่ และย่านที่คนต่างชาติชอบเดิน เช่น อารีย์และตลาดน้อย'),
@@ -374,7 +374,7 @@ Thai is tonal, so expect to be misunderstood at first. Laugh about it; Thais usu
 ## Safety, both ways
 Make friends in public places first. Be wary of anyone, of any nationality, who quickly brings up money, investments or loans.
 ''',
-  cta=('Talk to Thai friends without the language wall', 'Kring chats translate between Thai and English automatically: you type English, your Thai friend reads Thai. Free, ages 20+.'),
+  cta=('Talk to Thai friends without the language wall', 'Kring chats translate between Thai and English automatically: you type English, your Thai friend reads Thai. Free, ages 18+.'),
   faq=[('What is kreng jai?', 'A Thai value of being considerate and not wanting to impose on others. It is why Thai friends may not say directly when something bothers them.'),
        ('Do I need to speak Thai to make Thai friends?', 'No. Many young Bangkok Thais speak some English, and a few Thai phrases plus patience go a long way. Translation in chat apps also helps.'),
        ('What should I avoid doing with Thai friends?', 'Losing your temper in public, touching people\'s heads, pointing your feet at people and joking about the royal family.'),
@@ -450,7 +450,7 @@ dict(slug='run-clubs-bangkok', group='do', img='twilight', areas=['ari', 'thongl
 ## วิ่งเสร็จแล้วไปไหนต่อ
 วิ่งที่สวนรถไฟแล้วเดินต่อไป[ตลาดนัดจตุจักร](/blog/chatuchak-weekend/)ได้ในวันเสาร์อาทิตย์ หรือวิ่งกับกลุ่มที่ theCOMMONS แล้วแวะนั่งคาเฟ่ย่าน[ทองหล่อ](/bangkok/thonglor/)ต่อ
 ''',
-  cta=('หาเพื่อนวิ่งในย่านเดียวกัน', 'โพสต์ Reel จากสวนที่วิ่งประจำลงกริ๊ง! แล้วดูว่าใครวิ่งที่เดียวกัน ชวนกันไปรันคลับสัปดาห์หน้าได้เลย ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  cta=('หาเพื่อนวิ่งในย่านเดียวกัน', 'โพสต์ Reel จากสวนที่วิ่งประจำลงกริ๊ง! แล้วดูว่าใครวิ่งที่เดียวกัน ชวนกันไปรันคลับสัปดาห์หน้าได้เลย ใช้ฟรี อายุ 18 ปีขึ้นไป'),
   faq=[('วิ่งที่ไหนในกรุงเทพฯ ดีที่สุด', 'สวนลุมพินี (ทางวิ่งราว 2.5 กม.) สวนเบญจกิติที่ต่อกับสวนลุมพินีด้วยสะพานเขียว 1.3 กม. และสวนรถไฟที่ร่มรื่นและกว้าง'),
        ('รันคลับในกรุงเทพฯ ฟรีไหม', 'หลายกลุ่มฟรีและไม่ต้องสมัคร เช่น SarDine Run Club แต่บางงานพิเศษต้องลงทะเบียนล่วงหน้า'),
        ('สวนลุมพินีเปิดกี่โมง', 'เปิดทุกวัน 04:30-21:00 น.'),
@@ -521,7 +521,7 @@ Start with brisk walks around Lumphini Park or a bike ride at Suan Rot Fai. Some
 ## After the run
 Run Suan Rot Fai and walk on to [Chatuchak Weekend Market](/en/blog/chatuchak-weekend/) on a Saturday or Sunday, or join a session at theCOMMONS and stay for coffee around [Thonglor](/en/bangkok/thonglor/).
 ''',
-  cta=('Find running friends nearby', 'Post a Reel from your usual park on Kring, see who runs the same loop and plan next week\'s club run together. Free, ages 20+.'),
+  cta=('Find running friends nearby', 'Post a Reel from your usual park on Kring, see who runs the same loop and plan next week\'s club run together. Free, ages 18+.'),
   faq=[('Where is the best place to run in Bangkok?', 'Lumphini Park (a loop of about 2.5 km), Benjakitti Forest Park, linked to Lumphini by the 1.3 km Green Bridge, and shady, spacious Suan Rot Fai.'),
        ('Are Bangkok run clubs free?', 'Many are free with no sign-up, such as SarDine Run Club per Time Out (February 2026), though special events may need registration.'),
        ('What time does Lumphini Park open?', 'Daily from 04:30 to 21:00.'),
@@ -597,7 +597,7 @@ dict(slug='board-game-cafes-bangkok', group='do', img='cafe', areas=['siam'],
 ## ต่อจากบอร์ดเกม
 เล่นเสร็จแถวสยาม เดินต่อไปหอศิลปวัฒนธรรมแห่งกรุงเทพมหานครที่เปิดถึงสองทุ่ม หรือวันฝนตกก็อยู่ในร่มต่อได้ทั้งวัน ดู[ทำอะไรดีหน้าฝน](/blog/rainy-season-bangkok/)
 ''',
-  cta=('หาเพื่อนเล่นเกมโต๊ะต่อไป', 'โพสต์ Reel จากร้านบอร์ดเกมที่ชอบลงกริ๊ง! แล้วชวนคนที่ชอบเกมแนวเดียวกันมาเล่นครั้งหน้า ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  cta=('หาเพื่อนเล่นเกมโต๊ะต่อไป', 'โพสต์ Reel จากร้านบอร์ดเกมที่ชอบลงกริ๊ง! แล้วชวนคนที่ชอบเกมแนวเดียวกันมาเล่นครั้งหน้า ใช้ฟรี อายุ 18 ปีขึ้นไป'),
   faq=[('บอร์ดเกมคาเฟ่ในกรุงเทพฯ ราคาเท่าไหร่', 'ขึ้นกับร้าน ตัวอย่างเช่น Quest ที่ MBK คิดราว 60 บาทต่อคนต่อชั่วโมง เช็กราคาล่าสุดกับร้าน'),
        ('ไปบอร์ดเกมคาเฟ่คนเดียวได้ไหม', 'ได้ บอกพนักงานว่ามาคนเดียว บางร้านช่วยหาโต๊ะหรือสอนเกมให้ และช่วงเย็นวันศุกร์หรือเสาร์อาทิตย์มีคนเยอะ'),
        ('บอร์ดเกมคาเฟ่ใกล้ BTS สยามมีที่ไหนบ้าง', 'The Stronghold ในสยามสแควร์ ซอย 9 และ Quest ชั้น 7 MBK ใกล้ BTS สนามกีฬาแห่งชาติ'),
@@ -665,7 +665,7 @@ People who teach games well become the person every table wants, which is a grea
 ## After the game
 From Siam, walk on to the Bangkok Art and Culture Centre, open until 20:00, or stay indoors all day when it pours. See [rainy-season plans in Bangkok](/en/blog/rainy-season-bangkok/).
 ''',
-  cta=('Find players for your next table', 'Post a Reel from your favourite board-game café on Kring and invite people who like the same games to play next time. Free, ages 20+.'),
+  cta=('Find players for your next table', 'Post a Reel from your favourite board-game café on Kring and invite people who like the same games to play next time. Free, ages 18+.'),
   faq=[('How much do board-game cafés in Bangkok cost?', 'It varies by café. Quest at MBK charges about 60 baht per person per hour, per The Thaiger (October 2025). Check current prices with the café.'),
        ('Can I go to a board-game café alone?', 'Yes. Tell staff you are solo; some cafés will find you a table or teach you a game. Friday evenings and weekends are busiest.'),
        ('Which board-game cafés are near BTS Siam?', 'The Stronghold in Siam Square Soi 9, and Quest on the 7th floor of MBK Center near BTS National Stadium.'),

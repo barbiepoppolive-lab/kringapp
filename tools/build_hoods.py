@@ -65,7 +65,7 @@ T = {
    like='What %s is like', spots='Places people love here', go='Getting there', how='How Kring works in %s',
    steps=['Make your card: your name, your neighbourhoods, what you are into.','Post a short Reel and tag the real place.','Talk to people who love the same places. Chats translate between Thai and English.'],
    faq='Good to know', q=[('Is Kring free?','Yes. Making a card, posting Reels and chatting are free.'),('Do I need to speak Thai?','No. Chats translate between Thai and English, so locals and travellers can talk.'),('Where do people get together?','Always in public places such as cafés, markets and parks. Never private addresses.'),('When does Kring open?','Kring opens in Bangkok on 1 December 2026. You can make your card now.')],
-   cta='Open Kring', sub='Free · LINE or email · 20+', more='More Bangkok neighbourhoods', hubh1='Make new friends in every Bangkok neighbourhood', hubtitle='Bangkok neighbourhoods: where to make new friends · Kring',
+   cta='Open Kring', sub='Free · LINE or email · 18+', more='More Bangkok neighbourhoods', hubh1='Make new friends in every Bangkok neighbourhood', hubtitle='Bangkok neighbourhoods: where to make new friends · Kring',
    hubdesc='Siam, Ari, Thonglor, Yaowarat, Talat Noi and the Thonburi riverside: what each Bangkok neighbourhood is like and how to make new friends there with Kring.',
    hublead='Every part of Bangkok has its own crowd. Pick a neighbourhood, see what it is like and who is posting from there.', bc='Home', other='ไทย'),
  'th': dict(home='/', hub='/bangkok/', hubname='ย่านในกรุงเทพฯ', h1='หาเพื่อนใหม่ย่าน%s', title='หาเพื่อนใหม่ย่าน%s กรุงเทพฯ · กริ๊ง!',
@@ -73,7 +73,7 @@ T = {
    like='ย่าน%sเป็นแบบไหน', spots='ที่ที่คนชอบในย่านนี้', go='ไปยังไง', how='กริ๊ง! ในย่าน%s',
    steps=['ทำการ์ดของคุณ ชื่อ ย่านที่ชอบ และสิ่งที่สนใจ','โพสต์ Reel สั้น ๆ แล้วแท็กสถานที่จริง','คุยกับคนที่ชอบที่เดียวกัน แชตแปลไทย-อังกฤษให้อัตโนมัติ'],
    faq='เรื่องที่ควรรู้', q=[('กริ๊ง! ใช้ฟรีไหม','ฟรี ทำการ์ด โพสต์ Reels และแชตได้ไม่มีค่าใช้จ่าย'),('ต้องพูดอังกฤษได้ไหม','ไม่ต้อง แชตแปลระหว่างไทยกับอังกฤษให้ คนกรุงเทพฯ กับนักท่องเที่ยวคุยกันได้'),('นัดเจอกันที่ไหน','ที่สาธารณะเท่านั้น เช่น คาเฟ่ ตลาด และสวน ไม่ใช่ที่อยู่ส่วนตัว'),('กริ๊ง! เปิดเมื่อไหร่','กริ๊ง! เปิดในกรุงเทพฯ วันที่ 1 ธันวาคม 2026 ทำการ์ดไว้ก่อนได้เลย')],
-   cta='เปิดกริ๊ง!', sub='ฟรี · LINE หรืออีเมล · 20+', more='ย่านอื่นในกรุงเทพฯ', hubh1='หาเพื่อนใหม่ได้ทุกย่านในกรุงเทพฯ', hubtitle='ย่านในกรุงเทพฯ: หาเพื่อนใหม่ที่ไหนดี · กริ๊ง!',
+   cta='เปิดกริ๊ง!', sub='ฟรี · LINE หรืออีเมล · 18+', more='ย่านอื่นในกรุงเทพฯ', hubh1='หาเพื่อนใหม่ได้ทุกย่านในกรุงเทพฯ', hubtitle='ย่านในกรุงเทพฯ: หาเพื่อนใหม่ที่ไหนดี · กริ๊ง!',
    hubdesc='สยาม อารีย์ ทองหล่อ เยาวราช ตลาดน้อย และฝั่งธนฯ ริมแม่น้ำ แต่ละย่านเป็นแบบไหน และหาเพื่อนใหม่ในย่านนั้นกับกริ๊ง! ได้ยังไง',
    hublead='แต่ละย่านของกรุงเทพฯ มีคนในแบบของตัวเอง เลือกย่าน ดูว่าเป็นแบบไหน และใครกำลังโพสต์จากที่นั่น', bc='หน้าแรก', other='EN'),
 }

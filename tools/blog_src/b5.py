@@ -73,7 +73,7 @@ dict(slug='song-wat-coolest-street-2026', group='areas', date='2026-11-18', rech
 - เดินต่อลงใต้ไป[ตลาดน้อย](/blog/talat-noi-charoen-krung/) หรือย้อนขึ้นไปเยาวราชตอนไฟนีออนเปิด
 - ถ้าอยากดูพระอาทิตย์ตกต่อ ดู[จุดชมพระอาทิตย์ตกในกรุงเทพฯ](/blog/sunset-spots-bangkok/)
 ''',
-  cta=('ลงคลิปทรงวาดของคุณ', 'ถ่าย Reel สั้น ๆ จากมุมที่ชอบบนถนนทรงวาดช่วง Song Wat Week แล้วลงกริ๊ง! ทุกไลก์และเซฟได้ริง ขึ้นบอร์ดประจำสัปดาห์ และได้เห็นกรุงเทพฯ ผ่านสายตาของคนที่อยู่ที่นี่จริง ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  cta=('ลงคลิปทรงวาดของคุณ', 'ถ่าย Reel สั้น ๆ จากมุมที่ชอบบนถนนทรงวาดช่วง Song Wat Week แล้วลงกริ๊ง! ทุกไลก์และเซฟได้ริง ขึ้นบอร์ดประจำสัปดาห์ และได้เห็นกรุงเทพฯ ผ่านสายตาของคนที่อยู่ที่นี่จริง ใช้ฟรี อายุ 18 ปีขึ้นไป'),
   faq=[('ทรงวาดได้อันดับเท่าไหร่ในรายชื่อของ Time Out', 'อันดับ 1 จาก 28 ถนนทั่วโลก ในรายชื่อถนนที่เจ๋งที่สุดในโลกปี 2026 ที่ Time Out ประกาศเมื่อ 17 พ.ย. 2026'),
        ('ไปถนนทรงวาดลงสถานีอะไร', 'ลง MRT วัดมังกร ทางออก 1 แล้วเดินราว 10 นาที หรือนั่งเรือด่วนเจ้าพระยาลงท่าราชวงศ์'),
        ('Song Wat Week 2026 จัดวันไหน', 'วันพฤหัสที่ 19 ถึงวันอาทิตย์ที่ 22 พ.ย. 2026 บนถนนทรงวาด เช็กตารางกิจกรรมล่าสุดจากผู้จัดก่อนไป'),
@@ -134,7 +134,7 @@ The street was named the world's best on Tuesday and the festival opens on Thurs
 - Carry on south to [Talat Noi](/en/blog/talat-noi-charoen-krung/), or head back up to Yaowarat when the neon comes on.
 - Want a sunset after? See our [Bangkok sunset spots](/en/blog/sunset-spots-bangkok/).
 ''',
-  cta=('Post your Song Wat clip', 'Film a short Reel of your favourite corner of Song Wat Road during Song Wat Week and post it on Kring. Every like and save earns Rings and moves you up the weekly board, and you get to see Bangkok through the eyes of people who live here. Free, ages 20+.'),
+  cta=('Post your Song Wat clip', 'Film a short Reel of your favourite corner of Song Wat Road during Song Wat Week and post it on Kring. Every like and save earns Rings and moves you up the weekly board, and you get to see Bangkok through the eyes of people who live here. Free, ages 18+.'),
   faq=[('What rank is Song Wat Road on Time Out\'s list?', 'No.1 of 28 streets worldwide in Time Out\'s coolest streets in the world for 2026, published on 17 November 2026.'),
        ('Which MRT station is closest to Song Wat Road?', 'Wat Mangkon on the Blue Line. Take Exit 1 and walk about 10 minutes, or take the Chao Phraya Express Boat to Ratchawong Pier.'),
        ('When is Song Wat Week 2026?', 'Thursday 19 to Sunday 22 November 2026, along Song Wat Road. Check the organisers\' latest schedule before you go.'),

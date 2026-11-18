@@ -69,7 +69,7 @@ dict(slug='ari-hang-out', group='areas', img='cafe', areas=['ari', 'siam', 'hub'
 - วันเสาร์อาทิตย์คาเฟ่ดัง ๆ คิวยาว มาก่อนสิบโมงจะได้ที่นั่งดี
 - เดินซอยเล็กดีกว่านั่งรถ ซอยแคบและรถติดช่วงเย็น
 ''',
-  cta=('เพื่อนใหม่ที่ชอบอารีย์เหมือนกัน', 'โพสต์ Reel จากคาเฟ่หรือซอยที่ชอบในอารีย์ลงกริ๊ง! แล้วดูว่าใครเป็นขาประจำที่เดียวกัน ทักไปชวนเดินอารีย์รอบหน้าได้เลย ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  cta=('เพื่อนใหม่ที่ชอบอารีย์เหมือนกัน', 'โพสต์ Reel จากคาเฟ่หรือซอยที่ชอบในอารีย์ลงกริ๊ง! แล้วดูว่าใครเป็นขาประจำที่เดียวกัน ทักไปชวนเดินอารีย์รอบหน้าได้เลย ใช้ฟรี อายุ 18 ปีขึ้นไป'),
   faq=[('ไปอารีย์ลงสถานีอะไร', 'ลง BTS อารีย์ สายสุขุมวิท ซอยต่าง ๆ อยู่หลังสถานี เดินถึงได้'),
        ('อารีย์มีอะไรให้ทำนอกจากคาเฟ่', 'มีแกลเลอรี พื้นที่จัดนิทรรศการและเวิร์กช็อป ศูนย์รวมร้านเล็กและป๊อปอัป และอยู่ห่างตลาดนัดจตุจักรแค่สองสถานี'),
        ('อารีย์เหมาะกับการหาเพื่อนใหม่ไหม', 'เหมาะ เพราะเป็นย่านที่คนอยู่จริง เจอหน้าเดิมบ่อย และมีเวิร์กช็อปที่จัดซ้ำ'),
@@ -128,7 +128,7 @@ Rain is not a big problem in Ari: most places are close together with awnings. D
 - Popular cafés have queues at weekends; arrive before 10am for a good seat.
 - Walk rather than drive; the sois are narrow and traffic builds in the evening.
 ''',
-  cta=('Friends who love Ari too', 'Post a Reel from your favourite Ari café or soi on Kring and see who else is a regular there. Say hi and plan the next Ari walk. Free, ages 20+.'),
+  cta=('Friends who love Ari too', 'Post a Reel from your favourite Ari café or soi on Kring and see who else is a regular there. Say hi and plan the next Ari walk. Free, ages 18+.'),
   faq=[('Which station is Ari?', 'BTS Ari on the Sukhumvit line. The sois are right behind the station and easy to walk.'),
        ('What is there to do in Ari besides cafés?', 'Galleries, exhibition and workshop spaces, a cluster of small shops and pop-ups, and Chatuchak Weekend Market is two stops away.'),
        ('Is Ari good for making friends?', 'Yes. People live there, so you see the same faces often, and workshop spaces run repeat classes.'),
@@ -189,7 +189,7 @@ theCOMMONS มีหลังคาและหลายชั้น นั่�
 ## เคล็ดลับเรื่องเวลา
 ย่านนี้รถติดมากช่วงเย็นวันศุกร์ ถ้านัดเพื่อนหลังเลิกงาน นัดใกล้ BTS หรือเผื่อเวลาเดินทางเพิ่มอีกครึ่งชั่วโมง
 ''',
-  cta=('หาเพื่อนที่แฮงก์เอาต์ย่านเดียวกัน', 'โพสต์ Reel จากที่ที่ชอบในทองหล่อหรือเอกมัยลงกริ๊ง! แล้วดูว่าใครชอบย่านเดียวกัน ใช้ฟรี แชตแปลไทย-อังกฤษให้ อายุ 20 ปีขึ้นไป'),
+  cta=('หาเพื่อนที่แฮงก์เอาต์ย่านเดียวกัน', 'โพสต์ Reel จากที่ที่ชอบในทองหล่อหรือเอกมัยลงกริ๊ง! แล้วดูว่าใครชอบย่านเดียวกัน ใช้ฟรี แชตแปลไทย-อังกฤษให้ อายุ 18 ปีขึ้นไป'),
   faq=[('theCOMMONS ทองหล่อเปิดกี่โมง', 'ตามข้อมูลของ theCOMMONS เปิด 8:00-01:00 น. แต่ละร้านมีเวลาของตัวเอง'),
        ('ไปทองหล่อลงสถานีอะไร', 'ลง BTS ทองหล่อ หรือ BTS เอกมัย สายสุขุมวิท theCOMMONS อยู่ซอยทองหล่อ 17 ห่างจากทางออก 3 ของ BTS ทองหล่อ ราว 5-10 นาทีโดยรถ'),
        ('ทองหล่อกับเอกมัยต่างกันยังไง', 'ทองหล่อคือสุขุมวิท 55 มีร้านดีไซน์และบรรยากาศหรูกว่า เอกมัยคือสุขุมวิท 63 สบาย ๆ กว่า สองซอยเชื่อมกันได้หลายจุด'),
@@ -246,7 +246,7 @@ theCOMMONS is covered and multi-level, so you can sit out a downpour there, or s
 ## A note on timing
 Traffic here is heavy on Friday evenings. For after-work plans, choose somewhere near the BTS or allow an extra half hour.
 ''',
-  cta=('Find friends who hang out in the same area', 'Post a Reel from your favourite Thonglor or Ekkamai spot on Kring and see who loves the same area. Free, with Thai–English chat translation, ages 20+.'),
+  cta=('Find friends who hang out in the same area', 'Post a Reel from your favourite Thonglor or Ekkamai spot on Kring and see who loves the same area. Free, with Thai–English chat translation, ages 18+.'),
   faq=[('What are theCOMMONS Thonglor opening hours?', 'According to theCOMMONS, 8am to 1am, with each vendor setting its own hours.'),
        ('Which BTS station is Thonglor?', 'BTS Thong Lo or BTS Ekkamai on the Sukhumvit line. theCOMMONS is on Thong Lo Soi 17, about 5–10 minutes by car from BTS Thong Lo Exit 3.'),
        ('What is the difference between Thonglor and Ekkamai?', 'Thonglor (Sukhumvit 55) is more polished and design-led; Ekkamai (Sukhumvit 63) is more relaxed. Side sois connect them.'),
@@ -306,7 +306,7 @@ dict(slug='talat-noi-charoen-krung', group='areas', img='river', areas=['talat-n
 - หลายที่ในเจริญกรุงหยุดวันจันทร์ เลือกมาวันอื่นจะเห็นครบกว่า
 - ถ้าอยากดูพระอาทิตย์ตกต่อ ดู[จุดชมพระอาทิตย์ตกในกรุงเทพฯ](/blog/sunset-spots-bangkok/)
 ''',
-  cta=('ลงคลิปตลาดน้อยของคุณ', 'ถ่าย Reel สั้น ๆ จากมุมที่ชอบในตลาดน้อยหรือเจริญกรุงลงกริ๊ง! ให้คนทั้งไทยและต่างชาติเห็นย่านนี้ในมุมของคุณ ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  cta=('ลงคลิปตลาดน้อยของคุณ', 'ถ่าย Reel สั้น ๆ จากมุมที่ชอบในตลาดน้อยหรือเจริญกรุงลงกริ๊ง! ให้คนทั้งไทยและต่างชาติเห็นย่านนี้ในมุมของคุณ ใช้ฟรี อายุ 18 ปีขึ้นไป'),
   faq=[('ไปตลาดน้อยลงสถานีอะไร', 'ลง MRT หัวลำโพง ทางออก 3 แล้วเดินราว 900 เมตรไปซอยเจริญกรุง 22 หรือนั่งเรือด่วนเจ้าพระยาลงท่าสี่พระยา'),
        ('บ้านโซวเฮงไถ่อยู่ตรงไหน', 'อยู่ท้ายซอยเจ้าสัวสอนในตลาดน้อย เป็นคฤหาสน์จีนเก่าอายุราว 230 ปี'),
        ('TCDC เปิดวันไหน', 'TCDC ที่อาคารไปรษณีย์กลางปิดวันจันทร์ เปิดวันอังคารถึงอาทิตย์ เช็กเวลาและราคาบัตรล่าสุดก่อนไป'),
@@ -362,7 +362,7 @@ Talat Noi's lanes are narrow and slippery in the rain. Shelter in TCDC, a big in
 - Many Charoen Krung spaces close on Mondays, so another day shows you more.
 - To stay for sunset, see [sunset spots in Bangkok](/en/blog/sunset-spots-bangkok/).
 ''',
-  cta=('Show your Talat Noi', 'Post a short Reel from your favourite corner of Talat Noi or Charoen Krung on Kring, so Thais and travellers see the area your way. Free, ages 20+.'),
+  cta=('Show your Talat Noi', 'Post a short Reel from your favourite corner of Talat Noi or Charoen Krung on Kring, so Thais and travellers see the area your way. Free, ages 18+.'),
   faq=[('How do I get to Talat Noi?', 'Take the MRT to Hua Lamphong, Exit 3, and walk about 900 m to Soi Charoen Krung 22, or take the Chao Phraya Express Boat to Si Phraya Pier.'),
        ('Where is So Heng Tai?', 'At the end of Soi Chao Sua Son in Talat Noi. It is a Chinese mansion around 230 years old.'),
        ('When is TCDC open?', 'TCDC in the Grand Postal Building is closed on Mondays and open Tuesday to Sunday. Check current hours and prices before you go.'),
@@ -428,7 +428,7 @@ dict(slug='silom-lumphini', group='areas', img='twilight', areas=['siam', 'hub']
 ## ความปลอดภัย
 สวนมีคนเยอะช่วงเช้าและเย็น แต่ใกล้เวลาปิดคนน้อยลง เดินทางเส้นที่มีไฟสว่าง และกลับก่อนสวนปิด ถ้าไปกับคนที่เพิ่งรู้จัก เลือกช่วงที่ยังสว่างหรือหัวค่ำที่คนยังเยอะ
 ''',
-  cta=('หาเพื่อนวิ่งหรือเดินเล่นในสวนลุมฯ', 'โพสต์ Reel จากสวนลุมพินีหรือสะพานเขียวลงกริ๊ง! แล้วดูว่าใครมาที่เดียวกันเป็นประจำ ชวนเดินเย็นวันธรรมดาด้วยกันได้ ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  cta=('หาเพื่อนวิ่งหรือเดินเล่นในสวนลุมฯ', 'โพสต์ Reel จากสวนลุมพินีหรือสะพานเขียวลงกริ๊ง! แล้วดูว่าใครมาที่เดียวกันเป็นประจำ ชวนเดินเย็นวันธรรมดาด้วยกันได้ ใช้ฟรี อายุ 18 ปีขึ้นไป'),
   faq=[('สวนลุมพินีเปิดกี่โมง', 'เปิดทุกวัน 04:30-21:00 น.'),
        ('ไปสวนลุมพินีลงสถานีอะไร', 'BTS ศาลาแดง หรือ MRT สีลม ฝั่งถนนพระราม 4 และ MRT ลุมพินี ฝั่งแยกวิทยุ'),
        ('สะพานเขียวยาวเท่าไหร่', 'ราว 1.3 กม. เชื่อมสวนลุมพินีที่แยกสารสินไปถึงสวนเบญจกิติ เดินและปั่นจักรยานได้'),
@@ -487,7 +487,7 @@ To see the park the way Bangkok people love it, come before 7am on a Sunday: run
 ## Safety
 The park is busy in the morning and early evening but thins out near closing. Stick to well-lit paths and leave before it closes. With people you have only just met, choose daylight or early evening when plenty of people are around.
 ''',
-  cta=('Find friends to walk or run Lumphini with', 'Post a Reel from Lumphini or the Green Bridge on Kring and see who comes here regularly. Plan a weekday evening walk together. Free, ages 20+.'),
+  cta=('Find friends to walk or run Lumphini with', 'Post a Reel from Lumphini or the Green Bridge on Kring and see who comes here regularly. Plan a weekday evening walk together. Free, ages 18+.'),
   faq=[('What time does Lumphini Park open?', 'Daily from 04:30 to 21:00.'),
        ('Which station is closest to Lumphini Park?', 'BTS Sala Daeng or MRT Si Lom on the Rama IV side, and MRT Lumphini on the Witthayu side.'),
        ('How long is the Green Bridge?', 'About 1.3 km, from Lumphini Park at Sarasin junction to Benjakitti Forest Park, for walking and cycling.'),
@@ -547,7 +547,7 @@ UnionSPACE WorkPod มีสาขาพร้อมพงษ์ เริ่ม
 - สวนเบญจกิติกว้างมาก บางช่วงเงียบตอนค่ำ เดินทางเดินหลักที่มีไฟ และออกจากสวนไปทางประตูที่ใกล้รถไฟฟ้า
 
 ''',
-  cta=('หาเพื่อนในย่านสุขุมวิท', 'โพสต์ Reel จากสวนเบญจกิติหรือมุมที่ชอบในย่านลงกริ๊ง! แล้วดูว่าใครอยู่ใกล้และชอบที่เดียวกัน ใช้ฟรี แชตแปลไทย-อังกฤษให้ อายุ 20 ปีขึ้นไป'),
+  cta=('หาเพื่อนในย่านสุขุมวิท', 'โพสต์ Reel จากสวนเบญจกิติหรือมุมที่ชอบในย่านลงกริ๊ง! แล้วดูว่าใครอยู่ใกล้และชอบที่เดียวกัน ใช้ฟรี แชตแปลไทย-อังกฤษให้ อายุ 18 ปีขึ้นไป'),
   faq=[('สวนเบญจกิติไปลงสถานีอะไร', 'ใกล้ BTS อโศก MRT สุขุมวิท และ MRT ศูนย์การประชุมแห่งชาติสิริกิติ์'),
        ('สวนเบญจสิริเปิดกี่โมง', 'เปิดทุกวัน 05:00-21:00 น. เข้าฟรี อยู่ติด BTS พร้อมพงษ์'),
        ('เดินจากเบญจกิติไปสวนลุมพินีได้ไหม', 'ได้ ผ่านสะพานเขียวลอยฟ้ายาวราว 1.3 กม. เดินและปั่นจักรยานได้'),
@@ -603,7 +603,7 @@ In a mall, people drift towards shop windows and conversation stalls. In a park,
 - Benjakitti is big and some stretches are quiet in the evening; keep to the main lit paths and leave by the gate nearest the train.
 
 ''',
-  cta=('Make friends around Sukhumvit', 'Post a Reel from Benjakitti or your favourite corner of the area on Kring and see who lives nearby and loves the same spots. Free, with Thai–English chat translation, ages 20+.'),
+  cta=('Make friends around Sukhumvit', 'Post a Reel from Benjakitti or your favourite corner of the area on Kring and see who lives nearby and loves the same spots. Free, with Thai–English chat translation, ages 18+.'),
   faq=[('Which station is closest to Benjakitti Park?', 'BTS Asok, MRT Sukhumvit and MRT Queen Sirikit National Convention Centre are all close.'),
        ('What are Benchasiri Park\'s opening hours?', 'Daily from 05:00 to 21:00, free entry, right by BTS Phrom Phong.'),
        ('Can I walk from Benjakitti to Lumphini Park?', 'Yes, via the elevated Green Bridge, about 1.3 km, for walking and cycling.'),

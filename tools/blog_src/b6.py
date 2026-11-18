@@ -102,7 +102,7 @@ dict(slug='free-bangkok-with-friends', group='do', date='2026-11-18', recheck='m
 ## ที่ฟรีของคุณอยู่ตรงไหน ลงกริ๊ง!
 เจอมุมฟรีที่ลิสต์นี้ไม่มี ถ่าย Reel สั้น ๆ แล้วลงกริ๊ง! ทุกไลก์และเซฟได้ริง และคนที่ชอบที่แบบเดียวกันจะเห็นคุณแล้วทักมาคุยได้ บ่ายฟรีหนึ่งบ่ายอาจได้เพื่อนใหม่กลับมาด้วย
 ''',
-  cta=('ลง Reel ที่ฟรีของคุณบนกริ๊ง!', 'ถ่าย Reel สั้น ๆ จากที่ฟรีที่คุณชอบในกรุงเทพฯ แล้วลงกริ๊ง! ทุกไลก์และเซฟได้ริง และคนที่ชอบที่เดียวกันจะเห็นคุณ ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  cta=('ลง Reel ที่ฟรีของคุณบนกริ๊ง!', 'ถ่าย Reel สั้น ๆ จากที่ฟรีที่คุณชอบในกรุงเทพฯ แล้วลงกริ๊ง! ทุกไลก์และเซฟได้ริง และคนที่ชอบที่เดียวกันจะเห็นคุณ ใช้ฟรี อายุ 18 ปีขึ้นไป'),
   faq=[('ที่เที่ยวฟรีในกรุงเทพฯ ที่ไปกับเพื่อนได้มีที่ไหนบ้าง', 'เช่น LV The Place Bangkok หอศิลป์ BACC สวนป่าเบญจกิติ สวนลุมพินี สวนลอยฟ้าเจ้าพระยา ตลาดน้อย ถนนทรงวาด และตลาดนัดจตุจักร'),
        ('ที่ฟรีที่ไหนปิดวันจันทร์', 'หอศิลป์ BACC อุทยานผีเสื้อฯ และพิพิธภัณฑ์ชาวบางกอก ร้านดังในตลาดน้อยหลายร้านก็หยุดวันจันทร์'),
        ('LV The Place Bangkok เข้าฟรีไหม', 'ฟรี แต่ต้องจองรอบก่อน เปิดทุกวัน 10:00–20:00 ที่เกษร อัมรินทร์ ใกล้ BTS ชิดลม'),
@@ -173,7 +173,7 @@ Both days, you pay only for trains, boats and food.
 ## Where is your free spot? Post it on Kring
 Found a free corner of Bangkok that is not on this list? Film a short Reel and post it on Kring. Every like and save earns Rings, and people who love the same places can find you and start a chat. One free afternoon might bring back a new friend.
 ''',
-  cta=('Post your ฿0 Bangkok spot', 'Film a short Reel at your favourite free spot in Bangkok and post it on Kring. Every like and save earns Rings, and people who like the same places can find you. Free, ages 20+.'),
+  cta=('Post your ฿0 Bangkok spot', 'Film a short Reel at your favourite free spot in Bangkok and post it on Kring. Every like and save earns Rings, and people who like the same places can find you. Free, ages 18+.'),
   faq=[('What are the best free things to do in Bangkok with friends?', 'LV The Place Bangkok, BACC, Benjakitti Forest Park, Lumphini Park, Chao Phraya Sky Park, Talat Noi, Song Wat Road and Chatuchak Weekend Market.'),
        ('Which free places in Bangkok close on Mondays?', 'BACC, the Bangkok Butterfly Garden and the Bangkokian Museum. Many well-known Talat Noi shops also close on Mondays.'),
        ('Is LV The Place Bangkok free?', 'Yes, but pre-book a slot. Open daily 10:00–20:00 at Gaysorn Amarin, near BTS Chit Lom.'),

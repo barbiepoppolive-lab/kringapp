@@ -69,11 +69,11 @@ dict(slug='make-friends-bangkok', group='friends', img='twilight', areas=['ari',
 ## ถ้าเพิ่งย้ายมาทำงานกรุงเทพฯ
 หลายคนย้ายจากบ้านเกิดมาทำงานแล้วรู้สึกเหงาช่วงปีแรก เป็นเรื่องปกติมาก เริ่มจากสิ่งที่ทำคนเดียวได้แต่มีคนอื่นอยู่ด้วย เช่น วิ่งเช้าในสวน นั่งทำงานที่ห้องสมุดหรือโคเวิร์กกิ้งสเปซ หรือไปคลาสภาษาอังกฤษตอนเย็น พอเริ่มเห็นหน้าเดิมบ่อย ๆ การทักทายก็ไม่ใช่เรื่องยากอีกต่อไป
 ''',
-  cta=('ให้กริ๊ง! ช่วยเรื่อง "ที่เดิม คนเดิม"', 'ในกริ๊ง! คุณโพสต์ Reel สั้น ๆ จากที่ที่ชอบ แล้วจะเห็นว่าใครชอบที่เดียวกัน ทักแชตได้เลย แชตแปลไทย-อังกฤษให้อัตโนมัติ ใช้ฟรี สำหรับอายุ 20 ปีขึ้นไป'),
+  cta=('ให้กริ๊ง! ช่วยเรื่อง "ที่เดิม คนเดิม"', 'ในกริ๊ง! คุณโพสต์ Reel สั้น ๆ จากที่ที่ชอบ แล้วจะเห็นว่าใครชอบที่เดียวกัน ทักแชตได้เลย แชตแปลไทย-อังกฤษให้อัตโนมัติ ใช้ฟรี สำหรับอายุ 18 ปีขึ้นไป'),
   faq=[('วัยทำงานไม่มีเพื่อนในกรุงเทพฯ เป็นเรื่องปกติไหม', 'ปกติมาก โดยเฉพาะช่วงหลังเรียนจบหรือหลังย้ายงาน ชีวิตประจำวันไม่ได้พาเราไปเจอคนใหม่ซ้ำ ๆ เหมือนตอนเรียน ทางแก้คือสร้างกิจวัตรที่ได้เจอคนเดิมทุกสัปดาห์'),
        ('หาเพื่อนใหม่ในกรุงเทพฯ แบบไม่เสียเงินทำได้ที่ไหน', 'รันคลับหลายกลุ่มวิ่งฟรี สวนสาธารณะอย่างสวนลุมพินีและสวนเบญจกิติเข้าฟรี หอศิลปวัฒนธรรมแห่งกรุงเทพมหานครก็เข้าชมนิทรรศการฟรี และมักมีกิจกรรมให้ร่วม'),
        ('ต้องใช้เวลานานแค่ไหนกว่าจะมีเพื่อนสนิท', 'ไม่มีตัวเลขตายตัว แต่ยิ่งเจอกันบ่อยยิ่งเร็ว การไปกิจกรรมเดิมทุกสัปดาห์ช่วยได้มากกว่าการไปหลายอีเวนต์ที่ไม่ซ้ำกัน'),
-       ('กริ๊ง! เป็นแอปหาคู่ไหม', 'ไม่ใช่ กริ๊ง! เป็นแอปหาเพื่อนใหม่และแฮงก์เอาต์ในที่สาธารณะ เน้นกลุ่มและสถานที่จริงในกรุงเทพฯ สำหรับอายุ 20 ปีขึ้นไป')],
+       ('กริ๊ง! เป็นแอปหาคู่ไหม', 'ไม่ใช่ กริ๊ง! เป็นแอปหาเพื่อนใหม่และแฮงก์เอาต์ในที่สาธารณะ เน้นกลุ่มและสถานที่จริงในกรุงเทพฯ สำหรับอายุ 18 ปีขึ้นไป')],
  ),
  en=dict(
   title='How to Make Friends in Bangkok as an Adult: 5 Ways That Work',
@@ -124,11 +124,11 @@ Ask questions that need more than a yes or no, then genuinely listen. People rem
 ## If you have just moved here for work
 The first year in a new city is lonely for a lot of people, Thai and foreign alike. Start with things you can do alone but around others: an early run in the park, a co-working desk, an evening language class. Once you keep seeing the same faces, saying hello stops feeling like a big step.
 ''',
-  cta=('Let Kring handle the "same places" part', 'On Kring you post a short Reel from a spot you love and see who else loves it too, then chat. Messages translate between Thai and English automatically. Free, for ages 20+.'),
+  cta=('Let Kring handle the "same places" part', 'On Kring you post a short Reel from a spot you love and see who else loves it too, then chat. Messages translate between Thai and English automatically. Free, for ages 18+.'),
   faq=[('Is it normal to have no friends in Bangkok as an adult?', 'Very normal, especially after graduating or moving for work. Daily life stops putting you in front of the same people. The fix is a routine that does: the same activity, every week.'),
        ('Where can I make friends in Bangkok for free?', 'Several run clubs are free, public parks such as Lumphini and Benjakitti cost nothing to enter, and the Bangkok Art and Culture Centre has free exhibitions and regular public events.'),
        ('How long does it take to make close friends?', 'There is no fixed number, but frequency matters most. Going to the same weekly activity beats attending many different one-off events.'),
-       ('Is Kring for romance?', 'No. Kring is for making new friends and hanging out in public places around Bangkok, with a focus on groups and real spots. It is for ages 20+.')],
+       ('Is Kring for romance?', 'No. Kring is for making new friends and hanging out in public places around Bangkok, with a focus on groups and real spots. It is for ages 18+.')],
  )),
 # ---------------------------------------------------------------- 2
 dict(slug='friend-apps-bangkok', group='friends', img='cafe', areas=['siam'],
@@ -194,7 +194,7 @@ InterNations เป็นชุมชนสำหรับชาวต่าง�
 
 ไม่ต้องเลือกแค่ตัวเดียว ใช้สองตัวคู่กับกิจกรรมจริงหนึ่งอย่างทุกสัปดาห์ ได้ผลกว่าโหลดมาห้าแอปแล้วไม่เปิดเลย
 ''',
-  cta=('ลองกริ๊ง! ดูไหม', 'ตั้งโปรไฟล์สั้น ๆ โพสต์ Reel จากที่ที่ชอบ แล้วคุยกับคนที่ชอบที่เดียวกัน ใช้ฟรี ล็อกอินด้วย LINE ได้ สำหรับอายุ 20 ปีขึ้นไป'),
+  cta=('ลองกริ๊ง! ดูไหม', 'ตั้งโปรไฟล์สั้น ๆ โพสต์ Reel จากที่ที่ชอบ แล้วคุยกับคนที่ชอบที่เดียวกัน ใช้ฟรี ล็อกอินด้วย LINE ได้ สำหรับอายุ 18 ปีขึ้นไป'),
   faq=[('แอปหาเพื่อนกับแอปหาคู่ต่างกันยังไง', 'แอปหาเพื่อนออกแบบมาเพื่อมิตรภาพ มักเน้นกลุ่มและกิจกรรม ไม่ได้จับคู่เชิงโรแมนติก ถ้าอยากได้เพื่อนจริง ๆ ใช้แอปที่ทำมาเพื่อเพื่อนจะตรงกว่า'),
        ('แอปหาเพื่อนตัวไหนฟรี', 'LINE OpenChat และกริ๊ง! ใช้ฟรี Bumble BFF โหลดฟรีแต่อาจมีฟีเจอร์เสียเงิน Timeleft เป็นบริการแบบเสียเงิน เช็กราคาล่าสุดในแอป'),
        ('ใช้แอปหาเพื่อนปลอดภัยไหม', 'ปลอดภัยถ้าเจอกันครั้งแรกในที่สาธารณะ บอกคนใกล้ตัวว่าไปไหน และเดินทางเอง อย่าให้ที่อยู่หรือข้อมูลการเงินกับคนที่เพิ่งรู้จัก'),
@@ -259,7 +259,7 @@ If you see these, stop replying and report the account. A good app makes reporti
 
 You do not need just one. Two apps plus one real weekly activity works far better than five apps you never open.
 ''',
-  cta=('Try Kring', 'Make a profile card, post a Reel from a spot you love and chat with people who love it too. Free, sign in with LINE or email, ages 20+.'),
+  cta=('Try Kring', 'Make a profile card, post a Reel from a spot you love and chat with people who love it too. Free, sign in with LINE or email, ages 18+.'),
   faq=[('How is a friend app different from a romance app?', 'Friend apps are designed around friendship, usually groups and activities, not romantic matching. If you want real friends, an app built for friends is the better tool.'),
        ('Which friend apps are free in Bangkok?', 'LINE OpenChat and Kring are free. Bumble BFF is free to download with optional paid features. Timeleft is a paid service; check current prices in the app.'),
        ('Are friend apps safe to use?', 'Yes, if you keep first hangouts in public places, tell someone where you are going and travel on your own. Never share your address or money details with someone you have just met online.'),
@@ -313,7 +313,7 @@ dict(slug='solo-travel-bangkok', group='friends', img='tuktuk', areas=['siam', '
 ## เคล็ดลับเล็ก ๆ ที่ได้ผล
 ใส่เสื้อของรันคลับ หรือพกกล้องฟิล์มติดตัว มักกลายเป็นเรื่องเปิดบทสนทนาโดยไม่ตั้งใจ และถ้าอยากรู้ว่าตอนนี้คนกรุงเทพฯ ไปไหนกัน ถามคนที่อยู่ที่นี่จริงได้ผลกว่าการอ่านลิสต์ออนไลน์
 ''',
-  cta=('ถามคนที่อยู่ที่นี่จริงในกริ๊ง!', 'ในห้อง "ถามคนไทย" ของกริ๊ง! ถามได้ว่าช่วงนี้คนกรุงเทพฯ ไปไหนกัน แล้วดู Reels จากที่จริงในเมืองก่อนออกจากที่พัก แชตแปลไทย-อังกฤษให้ ใช้ฟรี อายุ 20 ปีขึ้นไป'),
+  cta=('ถามคนที่อยู่ที่นี่จริงในกริ๊ง!', 'ในห้อง "ถามคนไทย" ของกริ๊ง! ถามได้ว่าช่วงนี้คนกรุงเทพฯ ไปไหนกัน แล้วดู Reels จากที่จริงในเมืองก่อนออกจากที่พัก แชตแปลไทย-อังกฤษให้ ใช้ฟรี อายุ 18 ปีขึ้นไป'),
   faq=[('เที่ยวกรุงเทพฯ คนเดียวปลอดภัยไหม', 'โดยทั่วไปถือว่าปลอดภัยสำหรับนักเดินทางที่ระวังตัวตามปกติ ใช้รถไฟฟ้าหรือแอปเรียกรถ เจอคนใหม่ในที่สาธารณะ และระวังคนแปลกหน้าที่เข้ามาชวนไปร้านหรือบอกว่าที่ที่จะไปปิด'),
        ('หาเพื่อนเที่ยวในกรุงเทพฯ ที่ไหนง่ายที่สุด', 'คลาสทำอาหารหรือมวยไทย รันคลับ บอร์ดเกมคาเฟ่ และกิจกรรมของที่พักสายโซเชียล เพราะคนส่วนใหญ่มาคนเดียวและมีกิจกรรมให้ทำร่วมกัน'),
        ('สวนลอยฟ้าเจ้าพระยาเปิดกี่โมง', 'เปิดทุกวัน 05:00-20:00 น. และเข้าฟรี'),
@@ -364,7 +364,7 @@ If making friends on the way is the goal, where you sleep matters more than you 
 ## Small things that help
 Wearing a run-club shirt, or learning a few Thai phrases, starts conversations on its own. See [Thai phrases and etiquette for making Thai friends](/en/blog/thai-friends-etiquette/). And if you want to know where Bangkok people are actually going this week, ask someone who lives here; it beats any list.
 ''',
-  cta=('Ask people who live here, on Kring', 'In Kring\'s "Ask a Thai" space you can ask where Bangkok people are going this week and watch Reels from real spots before you leave your room. Chats translate between Thai and English. Free, ages 20+.'),
+  cta=('Ask people who live here, on Kring', 'In Kring\'s "Ask a Thai" space you can ask where Bangkok people are going this week and watch Reels from real spots before you leave your room. Chats translate between Thai and English. Free, ages 18+.'),
   faq=[('Is Bangkok safe for solo travellers?', 'Generally yes, with normal city awareness. Use the BTS, MRT or a booked ride-hailing car, keep first hangouts in public places, and be wary of strangers who say your destination is closed.'),
        ('Where is the easiest place to make friends as a solo traveller in Bangkok?', 'Cooking or Muay Thai classes, run clubs, board-game cafés and guesthouse social events, because most people there came alone and there is an activity to share.'),
        ('What are Chao Phraya Sky Park\'s opening hours?', 'The latest listing we found says it is open daily from 05:00 to 20:00, and entry is free.'),
@@ -422,7 +422,7 @@ dict(slug='things-to-do-alone-bangkok', group='do', img='river', areas=['siam', 
 - ไปคนเดียวตอนค่ำ แชร์ตำแหน่งให้คนใกล้ตัว และกลับด้วยรถไฟฟ้าหรือแอปเรียกรถ
 
 ''',
-  cta=('วันคนเดียวที่อาจได้เพื่อนใหม่', 'โพสต์ Reel จากที่ที่ไปวันนี้ลงกริ๊ง! แล้วดูว่าใครชอบที่เดียวกัน ทักไปชวนครั้งหน้าก็ได้ ใช้ฟรี สำหรับอายุ 20 ปีขึ้นไป'),
+  cta=('วันคนเดียวที่อาจได้เพื่อนใหม่', 'โพสต์ Reel จากที่ที่ไปวันนี้ลงกริ๊ง! แล้วดูว่าใครชอบที่เดียวกัน ทักไปชวนครั้งหน้าก็ได้ ใช้ฟรี สำหรับอายุ 18 ปีขึ้นไป'),
   faq=[('ไปไหนคนเดียวในกรุงเทพฯ แล้วไม่เหงา', 'หอศิลปวัฒนธรรมแห่งกรุงเทพมหานคร ห้องสมุด TCDC สวนลุมพินี สวนลอยฟ้าเจ้าพระยา และบอร์ดเกมคาเฟ่ เป็นที่ที่คนมาคนเดียวเยอะและมีอะไรให้ทำตลอด'),
        ('หอศิลป์กรุงเทพฯ เข้าฟรีไหม', 'นิทรรศการเข้าชมฟรี ยกเว้นงานพิเศษบางงาน เปิดอังคาร-อาทิตย์ 10:00-20:00 น. ปิดวันจันทร์'),
        ('สวนลุมพินีเปิดกี่โมง', 'เปิดทุกวัน 04:30-21:00 น. ทางเดินรอบสวนยาวราว 2.5 กม.'),
@@ -475,7 +475,7 @@ A solo day does not have to end solo. If someone is photographing the same view,
 - Out alone after dark? Share your location with someone close, and head home by train or a booked ride.
 
 ''',
-  cta=('A solo day that might end with new friends', 'Post a Reel from today\'s spot on Kring and see who else loves it. Say hi and plan the next one together. Free, ages 20+.'),
+  cta=('A solo day that might end with new friends', 'Post a Reel from today\'s spot on Kring and see who else loves it. Say hi and plan the next one together. Free, ages 18+.'),
   faq=[('What can I do alone in Bangkok without feeling lonely?', 'The Bangkok Art and Culture Centre, the TCDC library, Lumphini Park, Chao Phraya Sky Park and board-game cafés all have lots of solo visitors and plenty to do.'),
        ('Is the Bangkok Art and Culture Centre free?', 'Exhibitions are free except for some special events. It opens Tuesday to Sunday, 10:00–20:00, and is closed on Mondays.'),
        ('What time does Lumphini Park open?', 'Daily from 04:30 to 21:00. The loop path is about 2.5 km.'),
@@ -533,7 +533,7 @@ Scholars of Sustenance (SOS) เป็นองค์กรช่วยลดข
 - ถ้ารู้จักกันจากแอป เลือกกิจกรรมกลุ่มในที่สาธารณะ เดินทางไปเองกลับเอง
 
 ''',
-  cta=('หาเพื่อนที่ชอบกิจกรรมเดียวกัน', 'ลง Reel จากรันคลับหรือร้านบอร์ดเกมที่ไป แล้วเจอคนที่ชอบแบบเดียวกันในกริ๊ง! ชวนกันไปครั้งหน้าได้เลย ใช้ฟรี สำหรับอายุ 20 ปีขึ้นไป'),
+  cta=('หาเพื่อนที่ชอบกิจกรรมเดียวกัน', 'ลง Reel จากรันคลับหรือร้านบอร์ดเกมที่ไป แล้วเจอคนที่ชอบแบบเดียวกันในกริ๊ง! ชวนกันไปครั้งหน้าได้เลย ใช้ฟรี สำหรับอายุ 18 ปีขึ้นไป'),
   faq=[('วันหยุดในกรุงเทพฯ ทำอะไรดีให้ได้เพื่อนใหม่', 'รันคลับตอนเช้า บอร์ดเกมคาเฟ่ตอนบ่าย กลุ่มแลกเปลี่ยนภาษา คลาสแบบเป็นคอร์ส และงานอาสา เป็นกิจกรรมที่จัดซ้ำและมีคนมาคนเดียวเยอะ'),
        ('รันคลับในกรุงเทพฯ ต้องเสียเงินไหม', 'หลายกลุ่มวิ่งฟรีและไม่ต้องสมัคร เช่น SarDine Run Club แต่บางงานพิเศษอาจต้องลงทะเบียนล่วงหน้า'),
        ('เช่าจักรยานปั่นในสวนรถไฟได้ไหม', 'ได้ ในสวนวชิรเบญจทัศ (สวนรถไฟ) มีจุดให้เช่าจักรยาน คนเยอะช่วงเสาร์อาทิตย์'),
@@ -587,7 +587,7 @@ You do not need to do it all. Pick one and repeat it every week.
 - If you know people only from an app, start with a group activity in a public place and travel there and back on your own.
 
 ''',
-  cta=('Find people who love the same thing', 'Post a Reel from your run club or board-game table and find people into the same things on Kring. Plan the next one together. Free, ages 20+.'),
+  cta=('Find people who love the same thing', 'Post a Reel from your run club or board-game table and find people into the same things on Kring. Plan the next one together. Free, ages 18+.'),
   faq=[('What can I do on weekends in Bangkok to make friends?', 'Morning run clubs, afternoon board-game cafés, language exchanges, multi-week courses and volunteering all repeat regularly and attract lots of people who come alone.'),
        ('Do Bangkok run clubs cost money?', 'Many are free with no sign-up, such as SarDine Run Club per Time Out (February 2026), though some special events need pre-registration.'),
        ('Can I rent a bike at Suan Rot Fai?', 'Yes. Wachirabenchathat Park (Suan Rot Fai) has bike rental, and it gets busy at weekends.'),
