@@ -161,6 +161,7 @@ const T: Record<string, string> = {
     'This video cannot be read · try another': '无法读取此视频 · 换一个试试',
     'Add the area pin first': '请先标记街区',
     'Reel posted · กริ๊ง!': '短视频已发布 · กริ๊ง!',
+    'Reel posted · Kring!': '短视频已发布 · Kring!',
     'Reel sent · it shows in the feed after a quick check': '短视频已提交 · 简单审核后出现在动态里',
     'Post a Reel': '发布短视频',
     'Change Reel': '更换短视频',

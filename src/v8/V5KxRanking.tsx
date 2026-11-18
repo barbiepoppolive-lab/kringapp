@@ -197,6 +197,8 @@ const RING_CLS = ['c0', 'c1', 'c2', 'c3'];
  */
 export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: string | null; myPhoto: string | null; myName: string; myId: string | null;
   onBack: () => void; onPerson: (id: string) => void; onPost: () => void; onShare: (reel: string) => void;
+  /** audit 18 Nov: finger down on "Share my Reel" → fetch the /r/ link early, so the tap opens the share sheet at once */
+  onShareDown?: (reel: string) => void;
   /** 0066: not face-verified yet → a small nudge under my photo (everyone still shows on the board) */
   needsVerify?: boolean; onVerify?: () => void }) {
   const { L, Lf, lang } = props;
@@ -355,6 +357,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
           <div className="bx-you bx-you-wait" aria-hidden="true" />
         ) : null}
         <button type="button" className={`bx-cta${share ? ' share' : ' post'}`} id="kxBoardCta" data-act={share ? 'share' : 'post'} aria-busy={latest === undefined}
+          onPointerDown={() => { if (latest) props.onShareDown?.(latest); }}
           onClick={() => { if (latest) props.onShare(latest); else if (latest === null) props.onPost(); }}>
           <span className="ic">{share ? <ShareIcon /> : <PlusIcon />}</span>
           <span className="tx">{share ? L('Share my Reel') : postLabel}</span>

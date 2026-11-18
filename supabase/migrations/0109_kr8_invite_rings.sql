@@ -7,7 +7,7 @@
 -- Rules (all in the database, nothing trusted from the phone):
 --   · X = kr8_rings_config.invite (default 10; 0 = off). Daily cap per inviter = kr8_rings_config.invite_day_cap (default 20, Bangkok day).
 --   · once per pair: the ledger's unique (member_id, reason, ref_id) + ref_code is set once (kr8_set_ref) → one pair, one credit.
---   · no self-invites (inviter = friend), no test accounts (kr8_is_test_member), no ghost accounts (kr8_members.ghost, dup robot),
+--   · no self-invites (inviter = friend), no circles (A invites B, then B "invites" A: only the first counts), no test accounts (kr8_is_test_member), no ghost accounts (kr8_members.ghost, dup robot),
 --     no duplicate / look-alike accounts: the friend has an open kr8_account_links row (face, face_maybe or device) with anyone.
 --     Shared Wi-Fi (network) and LINE rows are flags only and never block (founder 16 Nov).
 --   · the same check runs again when the board is read (kr8_invite_pair_ok), so if the dup robot ghosts an account LATER, its invite
@@ -20,20 +20,9 @@
 --
 -- Re-runnable: create or replace, on conflict do nothing, drop/create trigger, constraint dropped and re-added.
 --
--- UNDO (run as one block):
---   begin;
---   drop trigger if exists kr8_invite_trg on public.kr8_members;
---   drop function if exists public.kr8_invite_trg(); drop function if exists public.kr8_invite_try(uuid);
---   drop function if exists public.kr8_my_invites();
---   -- then re-run the three functions from 0094 (kr8_week_board) / the live copies saved at the bottom of this file
---   -- (kr8_score_breakdown, kr8_member_rings) BEFORE dropping kr8_invite_pair_ok, which the new versions use:
---   drop function if exists public.kr8_invite_pair_ok(uuid, uuid);
---   delete from public.kr8_rings_config where key in ('invite', 'invite_day_cap');
---   -- ledger rows with reason invite / invite_welcome stay (append-only); they no longer count anywhere once the functions are back.
---   alter table public.kr8_rings_ledger drop constraint if exists kr8_rings_ledger_reason_check;
---   alter table public.kr8_rings_ledger add constraint kr8_rings_ledger_reason_check check (reason in ('reel_place', 'likes_50',
---     'friend_join', 'friend_welcome', 'checkin', 'streak', 'react3', 'weekly_top', 'reel_removed', 'claim', 'invite', 'invite_welcome')) not valid;
---   commit;
+-- UNDO: supabase/undo/0109_kr8_invite_rings_UNDO.sql (one block, full pre-0109 bodies of kr8_week_board / kr8_score_breakdown /
+-- kr8_member_rings; tried on TEST in a rolled-back transaction, audit 18 Nov). Quick off-switch without UNDO:
+--   update kr8_rings_config set value = 0 where key = 'invite';   (no new invite Rings; earned ones still count)
 
 begin;
 
@@ -42,6 +31,9 @@ insert into public.kr8_rings_config (key, value, note) values
   ('invite', 10, 'Rings for BOTH people when a friend joins with your invite link and passes the face check (0 = off)'),
   ('invite_day_cap', 20, 'max invite rewards per inviter per Bangkok day (anti-abuse)')
 on conflict (key) do nothing;
+
+-- kr8_set_ref stamps ref_set_at (used by the no-circle rule below); present on TEST, kept safe if a copy lacks it
+alter table public.kr8_members add column if not exists ref_set_at timestamptz;
 
 -- 2. two new ledger reasons
 alter table public.kr8_rings_ledger drop constraint if exists kr8_rings_ledger_reason_check;
@@ -59,6 +51,12 @@ language sql stable security definer set search_path = public, pg_temp as $$
      and exists (select 1 from public.kr8_members f where f.user_id = p_friend and coalesce(f.verified, false) and not coalesce(f.ghost, false))
      and exists (select 1 from public.kr8_members i where i.user_id = p_inviter and not coalesce(i.ghost, false))
      and not public.kr8_is_test_member(p_inviter) and not public.kr8_is_test_member(p_friend)
+     -- audit 18 Nov: no circle. Two brand-new members can't "invite" each other for a second pair of Rewards: when the inviter
+     -- was themselves invited by this friend first, only the first direction counts.
+     and not exists (select 1 from public.kr8_members i, public.kr8_members f
+                     where i.user_id = p_inviter and f.user_id = p_friend and coalesce(i.ref_code, '') ~ '^k[0-9]{5,7}$'
+                       and substring(i.ref_code from 2)::int = f.member_no
+                       and coalesce(i.ref_set_at, i.created_at) <= coalesce(f.ref_set_at, f.created_at))
      and not exists (select 1 from public.kr8_account_links l
                      where l.dismissed_at is null and l.reason in ('face', 'face_maybe', 'device')
                        and (l.a = p_friend or l.b = p_friend or (l.a = least(p_inviter, p_friend) and l.b = greatest(p_inviter, p_friend))))

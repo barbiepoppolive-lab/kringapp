@@ -157,6 +157,7 @@ export const V5_L: Record<string, Record<string, string>> = {
     'This video cannot be read · try another': 'อ่านวิดีโอนี้ไม่ได้ · ลองไฟล์อื่น',
     'Add the area pin first': 'ปักหมุดย่านก่อนนะ',
     'Reel posted · กริ๊ง!': 'โพสต์รีลแล้ว · กริ๊ง!',
+    'Reel posted · Kring!': 'โพสต์รีลแล้ว · กริ๊ง!',   // audit 18 Nov: English mode showed Thai script in this toast
     'Reel sent · it shows in the feed after a quick check': 'ส่งรีลแล้ว · จะขึ้นฟีดหลังตรวจสั้น ๆ',
     'Post a Reel': 'โพสต์รีล',
     'Change Reel': 'เปลี่ยนรีล',

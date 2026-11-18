@@ -48,10 +48,10 @@ describe('one tap', () => {
     expect(lineShareUrl('สวัสดี', 'https://kringapp.com/r/x?ref=k00184'))
       .toBe(`https://line.me/R/share?text=${encodeURIComponent('สวัสดี\nhttps://kringapp.com/r/x?ref=k00184')}`);
   });
-  it('picks the channel: LINE browser → LINE picker; share sheet → native; phone without it → LINE; computer → copy', () => {
+  it('picks the channel: LINE browser → LINE picker; share sheet → native; no share sheet → copy', () => {
     expect(pickChannel(UA.line, true)).toBe('line');
     expect(pickChannel(UA.iphone, true)).toBe('native');
-    expect(pickChannel(UA.android, false)).toBe('line');
+    expect(pickChannel(UA.android, false)).toBe('copy');
     expect(pickChannel(UA.desktop, false)).toBe('copy');
   });
   it('phone: opens the share sheet straight away with title, one line and the link (nothing else)', async () => {
@@ -83,6 +83,9 @@ describe('one tap', () => {
     expect(t.toast).toHaveBeenCalledWith('คัดลอกลิงก์แล้ว');
     const refused = deps({ share: vi.fn(async () => { throw Object.assign(new Error('x'), { name: 'NotAllowedError' }); }) });
     expect(await oneTapShare(P, refused)).toBe('copy');
+    const blocked = deps({ ua: UA.desktop, share: null, copy: vi.fn(async () => false) });
+    await oneTapShare(P, blocked);
+    expect(blocked.toast).toHaveBeenCalledWith(P.url);   // copy blocked: the link itself, never a false Link copied
   });
 });
 
@@ -98,7 +101,7 @@ describe('copy: one language at a time, founder wording, no banned words', () =>
   it('share text: a short challenge, one line, one language', () => {
     expect(shareText('th', 'my_reel')).toBe('ช่วยกดไลก์คลิปนี้หน่อย! ยิ่งไลก์ยิ่งได้ขึ้นอันดับบนกริ๊ง! 🔥');
     expect(shareText('en', 'my_reel')).toBe('Help me climb! Every like and save on Kring pushes me up the board 🔥');
-    for (const lang of ['th', 'en']) for (const k of ['my_reel', 'reel', 'my_profile', 'profile', 'place'] as const) {
+    for (const lang of ['th', 'en']) for (const k of ['my_reel', 'reel', 'my_profile', 'profile', 'place', 'invite'] as const) {
       const t = shareText(lang, k, lang === 'th' ? 'มิ้นท์' : 'Mint');
       expect(t).not.toMatch(/\n/);
       expect(t.length).toBeLessThan(90);
@@ -124,13 +127,26 @@ describe('app wiring: every share goes through the one tap with my code', () => 
     expect(app).toContain('onClick={() => void shareReel(p)}');
   });
   it('profile, invite, Reel and place links all add my ref', () => {
-    expect(app).toMatch(/const tapShare = [\s\S]{0,120}withRef\(url, getMyRef\(\)\)/);
+    expect(app).toMatch(/const tapShare = [\s\S]{0,160}shareNow\(/);
+    expect(app).toMatch(/const shareNow = [\s\S]{0,120}withRef\(url, getMyRef\(\)\)/);
     expect(app).toContain("shareUrl={(id) => withRef(");
     for (const fn of ['const shareProfile', 'const kxShareInvite', 'const kxShareReelId', 'const shareReel']) {
       const body = app.slice(app.indexOf(fn), app.indexOf(fn) + 700);
       expect(body).toContain('tapShare(');
       expect(body).not.toContain('navigator.share(');
     }
+  });
+  it('audit 18 Nov: Ask, places and the old share buttons use the same one tap (closing the sheet shows nothing)', () => {
+    expect(app).toContain('shareLink={(url, text) => void shareNow(url, text)}');
+    expect(app).toContain("shareLink={(url, name) => void shareNow(url, shareText(shareLang, 'place', name))}");
+    const h = app.slice(app.indexOf('const handleShareLink'), app.indexOf('const handleShareLink') + 500);
+    expect(h).toContain('shareNow(');
+    expect(h).not.toContain('Link ready to share');
+    expect(app).toContain("tapShare(kxInviteLink(no), 'invite')");
+    expect(app).toContain('link: withRef(v5ProfileLink(v5Uid), getMyRef())');   // the QR card (if opened) carries the code too
+  });
+  it('audit 18 Nov: a shared Reel / profile / place link shows the thing first, not the join sheet', () => {
+    expect(app).toContain("q0.get('ref') && !['reel', 'u', 'place', 'v', 'so', 'person'].some((k) => q0.get(k))");
   });
   it('hint only next to existing share buttons (Board + post-success)', () => {
     expect(readFileSync('src/v8/V5KxRanking.tsx', 'utf8')).toContain('{share ? <InviteHint lang={lang} x={cfg?.invite} /> : null}');
@@ -141,6 +157,13 @@ describe('app wiring: every share goes through the one tap with my code', () => 
 describe('0109 credit rules (SQL)', () => {
   const sql = readFileSync('supabase/migrations/0109_kr8_invite_rings.sql', 'utf8');
   const fn = (name: string) => { const i = sql.indexOf(`function public.${name}(`); return sql.slice(i, sql.indexOf('$$;', i)); };
+  it('audit 18 Nov: no circle (A invites B, B "invites" A back) and a full UNDO file', () => {
+    expect(fn('kr8_invite_pair_ok')).toContain('substring(i.ref_code from 2)::int = f.member_no');
+    const undo = readFileSync('supabase/undo/0109_kr8_invite_rings_UNDO.sql', 'utf8');
+    for (const f of ['kr8_week_board', 'kr8_score_breakdown', 'kr8_member_rings']) expect(undo).toMatch(new RegExp(`function public\\.${f}\\(`, 'i'));
+    expect(undo).not.toContain('kr8_invite_rings(m.author');
+    expect(undo).toContain('drop trigger if exists kr8_invite_trg');
+  });
   it('is one transaction, re-runnable, with an UNDO block', () => {
     expect(sql).toMatch(/^begin;$/m);
     expect(sql).toMatch(/^commit;$/m);

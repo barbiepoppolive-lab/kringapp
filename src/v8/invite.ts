@@ -3,8 +3,8 @@
  * as muscle memory"). Every share the app makes carries the member's own invite code (?ref=k00184, the code kr8_set_ref stores),
  * and one tap goes straight to the phone's share sheet: no in-between sheet, no QR, no list.
  *   · navigator.share → the phone's own share sheet (title + one short line + link)
- *   · LINE in-app browser, or a phone without navigator.share → LINE's own share picker (https://line.me/R/share?text=…)
- *   · anything else (computer, or the share sheet refused) → copy the link + "Link copied"
+ *   · LINE in-app browser → LINE's own share picker (https://line.me/R/share?text=…)
+ *   · anything else (no share sheet: computer, Instagram/Facebook in-app on Android, or the sheet refused) → copy the link + "Link copied"
  * When the friend joins with the link and passes the face check, both get +X Rings on the week's board (0109_kr8_invite_rings.sql).
  */
 import { inAppBrowser } from './A2HS';
@@ -39,7 +39,7 @@ export function withRef(url: string, code: string | null | undefined): string {
 /** LINE's official share picker with the text and the link. */
 export const lineShareUrl = (text: string, url: string) => `https://line.me/R/share?text=${encodeURIComponent(text ? `${text}\n${url}` : url)}`;
 
-export type ShareKind = 'my_reel' | 'reel' | 'my_profile' | 'profile' | 'place';
+export type ShareKind = 'my_reel' | 'reel' | 'my_profile' | 'profile' | 'place' | 'invite';
 const isTh = (lang: string) => lang === 'th';
 
 /** One short natural line, in the app's language only (Thai mode = Thai, every other mode = English). Founder 18 Nov: a challenge. */
@@ -48,8 +48,11 @@ export function shareText(lang: string, kind: ShareKind, name = ''): string {
   const n = (name || '').trim();
   switch (kind) {
     case 'my_reel':
-    case 'my_profile':
       return th ? 'ช่วยกดไลก์คลิปนี้หน่อย! ยิ่งไลก์ยิ่งได้ขึ้นอันดับบนกริ๊ง! 🔥' : 'Help me climb! Every like and save on Kring pushes me up the board 🔥';
+    case 'my_profile':   // audit 18 Nov: a profile link is not "this clip" (Thai said "like this clip" on a profile)
+      return th ? 'ช่วยกดไลก์คลิปของฉันหน่อย! ยิ่งไลก์ยิ่งได้ขึ้นอันดับบนกริ๊ง! 🔥' : 'Help me climb! Every like and save on Kring pushes me up the board 🔥';
+    case 'invite':       // audit 18 Nov: right after making a card there is no Reel yet, so no "like this clip"
+      return th ? 'มาเล่นกริ๊งด้วยกัน! มาเที่ยว ได้เพื่อนใหม่ 🔥' : 'Join me on Kring! Explore Bangkok, make new friends 🔥';
     case 'reel':
       return th ? `${n ? `${n} กำลังไต่อันดับบนกริ๊ง` : 'คลิปนี้กำลังไต่อันดับบนกริ๊ง'} กดไลก์ช่วยดันหน่อย! 🔥` : `${n ? `${n} is climbing the Kring board` : 'This Reel is climbing the Kring board'} · one like pushes it up 🔥`;
     case 'profile':
@@ -84,7 +87,8 @@ export type ShareChannel = 'native' | 'line' | 'copy';
 export function pickChannel(ua: string, hasNativeShare: boolean): ShareChannel {
   if (inAppBrowser(ua) === 'line') return 'line';
   if (hasNativeShare) return 'native';
-  if (/Android|iPhone|iPad|iPod|Mobile/i.test(ua)) return 'line';
+  // audit 18 Nov: no share sheet (computer, Instagram / Facebook in-app on Android) → copy. LINE's picker is only for people inside LINE:
+  // a traveller in Instagram without LINE would land on a LINE web page.
   return 'copy';
 }
 
@@ -113,7 +117,7 @@ export async function oneTapShare(p: SharePayload, d: ShareDeps): Promise<ShareR
       // the phone refused the sheet (lost the tap, not allowed here): copy instead
     }
   }
-  await d.copy(p.url);
-  d.toast(copied);
+  const ok = await d.copy(p.url).catch(() => false);
+  d.toast(ok ? copied : p.url);   // copy blocked (old webview): show the link so it can be long-pressed
   return 'copy';
 }

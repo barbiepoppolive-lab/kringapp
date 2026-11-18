@@ -1741,7 +1741,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       try {
         const q0 = new URLSearchParams(window.location.search);
         if (!s0?.user?.id && adminWantedRef.current && !sheetRef.current) { setV5SignInNotice(L('Admin view · sign in with your admin email')); setSheet('signin'); }
-        else if (!s0?.user?.id && (q0.get('ref') || v5JoinAsked.current) && !sheetRef.current && !installAskRef.current) setSheet('signin');
+        // audit 18 Nov: every share now carries ?ref=. A link to something (a Reel, a profile, a place, a pass) shows that thing first;
+        // the join sheet waits for the first like / follow (the friend's name is still on it). A plain invite link opens it at once.
+        else if (!s0?.user?.id && ((q0.get('ref') && !['reel', 'u', 'place', 'v', 'so', 'person'].some((k) => q0.get(k))) || v5JoinAsked.current) && !sheetRef.current && !installAskRef.current) setSheet('signin');
         // audit P3-14: ?open=rewards while signed out → sign-in first; the rewards page opens right after (pushOpenRef effect)
         else if (!s0?.user?.id && q0.get('open') === 'rewards' && !sheetRef.current) { setV5SignInNotice(L('Sign in to see your rewards')); setSheet('signin'); }
       } catch { /* ignore */ }
@@ -2348,9 +2350,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const getMyRef = () => refCode(kxMe?.member_no ?? (v5Card as { member_no?: number | null } | null)?.member_no ?? myMemberNo ?? null);   // read at tap time
   const shareLang = lang === 'th' ? 'th' : 'en';
   /** ONE tap → the phone's share sheet (LINE picker inside LINE / without a share sheet; copy + toast otherwise). Call straight from the tap. */
-  const tapShare = (url: string, kind: ShareKind, name = ''): Promise<ShareResult> => {
+  const tapShare = (url: string, kind: ShareKind, name = ''): Promise<ShareResult> => shareNow(url, shareText(shareLang, kind, name));
+  /** audit 18 Nov: the same one tap for every other share (Ask, places, old share buttons), with its own line of text. */
+  const shareNow = (url: string, text: string): Promise<ShareResult> => {
     const u = withRef(url, getMyRef());
-    return oneTapShare({ title: shareLang === 'th' ? 'กริ๊ง!' : 'Kring', text: shareText(shareLang, kind, name), url: u }, {
+    return oneTapShare({ title: shareLang === 'th' ? 'กริ๊ง!' : 'Kring', text, url: u }, {
       ua: navigator.userAgent, lang: shareLang, copied: L('Link copied'), toast: showToast, copy: copyText,
       share: typeof navigator.share === 'function' ? (d) => navigator.share(d) : null,
       open: (x) => { if (inAppBrowser(navigator.userAgent) === 'line') location.href = x; else window.open(x, '_blank', 'noopener'); },
@@ -2519,7 +2523,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     try { const r = await kxMyRewards().catch(() => new Promise<void>((ok) => setTimeout(ok, 1500)).then(() => kxMyRewards())); setKxRewards(r); setKxMe((m) => (m ? { ...m, week: r.week, week_rank: r.rank, lifetime: r.lifetime, level: r.level, prizes: r.prizes.filter((x) => x.status === 'won').length } : m)); return r; } catch (e) { showToast(v5Msg(e)); return null; }
   };
   const kxInviteLink = (no: number | null | undefined) => `${location.origin}${import.meta.env.BASE_URL}?ref=${inviteCode(no ?? kxMe?.member_no)}`;
-  const kxShareInvite = async (no?: number | null) => { await tapShare(kxInviteLink(no), 'my_profile'); };
+  const kxShareInvite = async (no?: number | null) => { await tapShare(kxInviteLink(no), 'invite'); };   // just made a card: no Reel yet
   const [kxPlaceHalf, setKxPlaceHalf] = useState<{ half: boolean; preview: { name_en: string; name_th: string | null; area: string } | null }>({ half: false, preview: null });
   const kxOpenPlace = (id: string, preview: { name_en: string; name_th: string | null; area: string } | null = null, half = false) => { setKxPlaceHalf({ half, preview }); setKxPlaceId(id); setSheet('place'); };
   /** Share one of my Reels by its /r/<short> link (from the math sheet or the week result). */
@@ -3109,21 +3113,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   };
 
   const handleShareLink = async (title: string, queryParam: string) => {
-    const url = withRef(`${window.location.origin}${window.location.pathname}?${queryParam}`, getMyRef());
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: `Kring · ${title}`, text: L('Explore Bangkok, make new friends'), url });
-        return;
-      }
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(url);
-        showToast(L("Link copied"));
-        return;
-      }
-    } catch {
-      // ignore
-    }
-    showToast(L("Link ready to share"));
+    // audit 18 Nov: one tap like every other share; closing the share sheet shows nothing (it used to show a toast)
+    void title;
+    await shareNow(`${window.location.origin}${window.location.pathname}?${queryParam}`, shareText(shareLang, 'invite'));
   };
 
   const handleToggleHereNow = () => {
@@ -3254,11 +3246,12 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       setSheet(null);
       setTab('feed');
       triggerRingBurst();
-      showToast(r.status === 'approved' ? L('Reel posted · กริ๊ง!') : L('Reel sent · it shows in the feed after a quick check'));
+      showToast(r.status === 'approved' ? L('Reel posted · Kring!') : L('Reel sent · it shows in the feed after a quick check'));
       if (r.status === 'approved' && r.id) { setPostedShare(r.id); prefetchReelLink(r.id); }   // invite-1: one-tap share right after posting
       a2hsFirstValue('reel');
       pushMoment('first_reel');   // 16 Nov dings: ask after the first Reel (small card, never the browser prompt by itself)
-      v5Feed().then(setFeedItems).catch(() => undefined);
+      // audit 18 Nov: back at the top of the feed (it could land on the end card "Be the first in Bangkok today" right after posting)
+      v5Feed().then((f) => { setFeedItems(f); requestAnimationFrame(() => feedScrollRef.current?.scrollTo({ top: 0 })); }).catch(() => undefined);
     } catch (e) {
       if (e instanceof ReelError && e.code === 'TRIM_FAIL') {
         // nothing was uploaded; back to "Pick a clip" with the Thai + English message (caption, place and tags are kept)
@@ -4045,7 +4038,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
         {/* ==================== 1. FEED SCREEN ==================== */}
         <section
-          className={`v8-screen ${tab === 'feed' ? 'active' : ''} at-has-sw${feedMode === 'ask' ? ' at-on' : ''}${feedMode !== 'ask' && nextStep ? ' nx-on' : ''}`}
+          className={`v8-screen ${tab === 'feed' ? 'active' : ''} at-has-sw${feedMode === 'ask' ? ' at-on' : ''}${feedMode !== 'ask' && nextStep ? ' nx-on' : ''}${postedShare ? ' posted-on' : ''}`}
           id="s-feed"
           aria-label={L('Feed')}
         >
@@ -4124,9 +4117,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <AskSwitch L={L} mode={feedMode} onMode={pickFeedMode} dot={!askSeen} />
           {feedMode === 'ask' && (
             <AskThaiView L={L} api={askApi} me={askMeRef.current} areas={V5_AREAS} areaLabel={(a) => kxArea(lang, a, L)}
-              defaultArea={(live && v5Card?.area) || 'Bangkok'} need={requireSignInForAction} toast={showToast} refCode={getMyRef()} />
+              defaultArea={(live && v5Card?.area) || 'Bangkok'} need={requireSignInForAction} toast={showToast} refCode={getMyRef()}
+              shareLink={(url, text) => void shareNow(url, text)} />
           )}
-          {feedMode !== 'ask' && nextStep ? (
+          {postedShare && tab === 'feed' ? null /* audit 18 Nov: the post-success share takes this spot (it overlapped the pill) */ : feedMode !== 'ask' && nextStep ? (
             <NextStepCard step={nextStep} variant="pill" lang={lang} L={L} Lf={Lf} onGo={() => nextGo('feed')} onHide={nextHide} />
           ) : PRIZE_TICKER_ON_FEED && feedMode !== 'ask' && live && signedIn && v5Card && v5Uid && kxWeek ? (
             <PrizeBanner variant="ticker" lang={lang} uid={v5Uid} week={kxWeek} hideTick={prizeHideTick} onHide={() => setPrizeHideTick((n) => n + 1)}
@@ -7035,7 +7029,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             {live && v5Uid ? (
               /* 17 Nov: a clean member pass: name + member no. + white QR, then Save image / Share */
               <V5ShareCard L={L}
-                p={{ name: meProfile?.first_name || user.name, no: kxMe?.member_no ?? (v5Card as { member_no?: number | null } | null)?.member_no ?? null,   /* same number as the card on Me */ photo: meProfile?.photo || null, who: meProfile?.who === 'local' ? 'local' : 'traveller', link: v5ProfileLink(v5Uid) }}
+                p={{ name: meProfile?.first_name || user.name, no: kxMe?.member_no ?? (v5Card as { member_no?: number | null } | null)?.member_no ?? null,   /* same number as the card on Me */ photo: meProfile?.photo || null, who: meProfile?.who === 'local' ? 'local' : 'traveller', link: withRef(v5ProfileLink(v5Uid), getMyRef()) }}
                 onShare={() => { if (meProfile) void shareProfile(meProfile); }}
                 onSaved={(ok) => showToast(ok ? L('Card saved') : L('Could not save the image. Take a screenshot instead.'))} />
             ) : (
@@ -7221,7 +7215,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {sheet === 'ranking' && live && (
           <RankingPage L={L} Lf={Lf} lang={lang} myArea={v5Card?.area || null} myPhoto={v5Card?.photo || null} myName={v5Card?.first_name || ''} myId={v5Card ? v5Uid || null : null}
             onBack={() => setSheet(null)} onPerson={(id) => void goOpenBest(id)} onPost={() => requireSignInForAction(() => kxPostAt())}
-            onShare={(reel) => void kxShareReelId(reel)}
+            onShare={(reel) => void kxShareReelId(reel)} onShareDown={prefetchReelLink}
             needsVerify={!!meProfile && !meProfile.verified && !verifyPending} onVerify={() => setSheet('verify')} />
         )}
         {sheet === 'result' && live && kxResult && (
@@ -7245,6 +7239,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {sheet === 'place' && live && kxPlaceId && (
           <PlacePage key={kxPlaceId} L={L} Lf={Lf} lang={lang} id={kxPlaceId} toast={showToast} onBack={() => setSheet(null)} half={kxPlaceHalf.half} preview={kxPlaceHalf.preview}
             shareUrl={(id) => withRef(`${location.origin}${import.meta.env.BASE_URL}?place=${encodeURIComponent(id)}`, getMyRef())}
+            shareLink={(url, name) => void shareNow(url, shareText(shareLang, 'place', name))}
             onPost={(p) => requireSignInForAction(() => kxPostAt(p))} />
         )}
         {sheet === 'help' && (

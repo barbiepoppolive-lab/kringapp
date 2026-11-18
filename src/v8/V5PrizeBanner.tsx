@@ -193,7 +193,7 @@ export function PrizeBanner(props: PrizeBannerProps) {
     const chip = clock.last && !!copy.tight;
     const line = chip && copy.tight ? copy.tight : copy.short;
     return (
-      <div className={`kpz kpz-tick${leaving ? ' out' : ''}${clock.last ? ' last' : ''}`} id="kpzTicker" data-one={props.lang ? (props.lang === 'th' ? 'th' : 'en') : undefined} data-kind={pick.kind} role="group" aria-label="Kring weekly ranking">
+      <div className={`kpz kpz-tick${leaving ? ' out' : ''}${clock.last ? ' last' : ''}`} id="kpzTicker" data-one={props.lang ? (props.lang === 'th' ? 'th' : 'en') : undefined} data-kind={pick.kind} role="group" aria-label={props.lang === 'th' ? 'อันดับประจำสัปดาห์ของกริ๊ง' : 'Kring weekly ranking'}>
         <button type="button" className="kpz-hit" onClick={props.onOpen} aria-label={label}>
           <RingsMeter progress={pick.progress} small />
           <span className="kpz-tx" key={pick.kind}>
@@ -209,7 +209,7 @@ export function PrizeBanner(props: PrizeBannerProps) {
   }
 
   return (
-    <div className={`kpz kpz-card${leaving ? ' out' : ''}${clock.last ? ' last' : ''}`} id="kpzCard" data-one={props.lang ? (props.lang === 'th' ? 'th' : 'en') : undefined} data-kind={pick.kind} role="group" aria-label="Kring weekly ranking">
+    <div className={`kpz kpz-card${leaving ? ' out' : ''}${clock.last ? ' last' : ''}`} id="kpzCard" data-one={props.lang ? (props.lang === 'th' ? 'th' : 'en') : undefined} data-kind={pick.kind} role="group" aria-label={props.lang === 'th' ? 'อันดับประจำสัปดาห์ของกริ๊ง' : 'Kring weekly ranking'}>
       <button type="button" className="kpz-hit" onClick={props.onOpen} aria-label={label}>
         <span className="kpz-em">
           <RingsMeter progress={pick.progress} />

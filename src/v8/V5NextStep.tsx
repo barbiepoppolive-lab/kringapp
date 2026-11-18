@@ -53,16 +53,16 @@ export function NextStepCard(props: { step: NextStep; variant: 'pill' | 'card'; 
   const thai = !props.lang || props.lang === 'th';
   const c = nextStepCopy(s);
   const main = thai ? c.th : c.arg ? Lf(c.key, c.arg) : L(c.key);
-  const sub = thai ? c.en : '';
+  const sub = '';   // audit 18 Nov (founder rule): one language at a time. Thai mode had an English line under the Thai one.
   const ringsLine = s.kind === 'climb' && s.floor
     ? (s.gap ? { th: `${s.rings} ริง · อีก ${s.gap} ริงถึง ${s.floor}`, en: `${s.rings} Rings · ${s.gap} more to ${s.floor}`, k: Lf('{0} Rings · {1} more to {2}', String(s.rings), String(s.gap), String(s.floor)) }
       : { th: `${s.rings} ริง · ถึง ${s.floor} แล้ว`, en: `${s.rings} Rings · ${s.floor} reached`, k: Lf('{0} Rings · {1} reached', String(s.rings), String(s.floor)) })
     : null;
   // the pill has two lines: Thai + (English · note / Rings); the card has room for one more
   const pill = props.variant === 'pill';
-  const extra = s.kind === 'retry' && s.note ? s.note : ringsLine ? (thai ? (pill ? ringsLine.en : ringsLine.th) : ringsLine.k) : '';
+  const extra = s.kind === 'retry' && s.note ? s.note : ringsLine ? (thai ? ringsLine.th : ringsLine.k) : '';
   const btn = c.btnEn ? (thai ? c.btnTh : L(c.btnEn)) : '';
-  const label = `${thai ? 'ขั้นต่อไปของคุณ · Your next step' : L('Your next step')}: ${thai ? `${c.th} · ${c.en}` : main}${extra ? ` · ${extra}` : ''}`;
+  const label = `${thai ? 'ขั้นต่อไปของคุณ' : L('Your next step')}: ${main}${extra ? ` · ${extra}` : ''}`;
   const subLine = pill ? [sub, extra].filter(Boolean).join(' · ') : sub;
   return (
     <div className={`nx nx-${props.variant}`} id={pill ? 'nxPill' : 'nxCard'} data-kind={s.kind} data-one={thai ? 'th' : 'en'} role="group" aria-label={label}>
@@ -75,13 +75,13 @@ export function NextStepCard(props: { step: NextStep; variant: 'pill' | 'card'; 
         </span>
         {pill ? (btn ? <span className="nx-btn">{btn}</span> : <span className="nx-wait" aria-hidden="true"><i /><i /><i /></span>) : (
           <span className="nx-foot">
-            {extra ? <small className={`nx-extra${s.kind === 'retry' ? ' note' : ''}`}><span>{s.kind === 'climb' && thai && ringsLine ? <>{ringsLine.th}<em> · {ringsLine.en}</em></> : extra}</span></small> : <span className="nx-fill" />}
+            {extra ? <small className={`nx-extra${s.kind === 'retry' ? ' note' : ''}`}><span>{extra}</span></small> : <span className="nx-fill" />}
             {btn ? <span className="nx-btn">{btn}</span> : <span className="nx-wait" aria-hidden="true"><i /><i /><i /></span>}
           </span>
         )}
       </button>
       {s.dismissible ? (
-        <button type="button" className="nx-x" aria-label={thai ? 'ซ่อนไว้ 1 วัน · Hide for a day' : L('Hide for a day')} onClick={props.onHide}>
+        <button type="button" className="nx-x" aria-label={thai ? 'ซ่อนไว้ 1 วัน' : L('Hide for a day')} onClick={props.onHide}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17" /></svg>
         </button>
       ) : null}
