@@ -44,6 +44,12 @@ if (onLive) {
   const reloadedAt = recentChunkReload();
   if (reloadedAt) Sentry.addBreadcrumb({ category: 'kring.chunk', level: 'info', message: 'page reloaded after a stale code chunk (old tab during a deploy)', timestamp: reloadedAt / 1000 });
   Sentry.setTag('page', location.pathname.replace(/^\/app\/?/, '') || 'app');
+  // T-406: an opaque member id only (no name/email), so an error shows WHO was affected and the team can help them in Help
+  try {
+    const k = Object.keys(localStorage).find((x) => /^sb-.*-auth-token$/.test(x));
+    const uid = k ? (JSON.parse(localStorage.getItem(k) || '{}')?.user?.id as string | undefined) : undefined;
+    if (uid) Sentry.setUser({ id: uid });
+  } catch { /* private mode */ }
   if (new URLSearchParams(location.search).get('kr8_sentry_test') === '1') {
     setTimeout(() => { throw new Error('Kring Sentry test error (safe to ignore)'); }, 1500);
   }

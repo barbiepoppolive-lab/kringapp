@@ -37,32 +37,70 @@ export function hasWebGL(): boolean {
 }
 function glBroken(): boolean { try { return localStorage.getItem(NO_GL_KEY) === '1'; } catch { return false; } }
 function markGlBroken() { try { localStorage.setItem(NO_GL_KEY, '1'); } catch { /* private mode */ } }
+/** T-406 (Sentry KRING-WEB-5, iPhone iOS 18.7): a shader that fails to LINK inside face-api escaped as an unhandled rejection and
+ *  froze the face check until it timed out. Any GL error now moves this device to CPU, is logged, and never reaches the page. */
+const GL_ERR = /shader|webgl|gl_|context|INVALID|vertex|fragment/i;
+export function isGlError(e: unknown): boolean { return GL_ERR.test(String((e as Error)?.message || e)); }
+function logBackend(code: string, detail?: string) {
+  void import('./v5Live').then((m) => m.v5LogClient('verify_backend', code, detail)).catch(() => undefined);
+}
+let guardOn = false;
+function guardStrayGlErrors() {
+  if (guardOn || typeof window === 'undefined') return;
+  guardOn = true;
+  window.addEventListener('unhandledrejection', (ev) => {
+    if (!isGlError(ev.reason)) return;
+    ev.preventDefault();
+    markGlBroken();
+    logBackend('gl_stray', String((ev.reason as Error)?.message || ev.reason).slice(0, 120));
+    const tf = apiTf;
+    if (tf) void tf.setBackend('cpu').then(() => tf.ready()).catch(() => undefined);
+  });
+}
+let apiTf: TfLite | null = null;
 export async function pickFaceBackend(tf: TfLite): Promise<'webgl' | 'cpu'> {
+  apiTf = tf; guardStrayGlErrors();
   if (!glBroken() && hasWebGL()) {
     try {
       if (await tf.setBackend('webgl')) {
         await tf.ready();
         const v = tf.tidy(() => tf.scalar(1).add(tf.scalar(1)).dataSync()[0]);
-        if (v === 2) return 'webgl';
+        if (v === 2) { logBackend('webgl'); return 'webgl'; }
       }
     } catch { /* falls through to CPU */ }
     markGlBroken();
   }
   await tf.setBackend('cpu');
   await tf.ready();
+  logBackend('cpu', glBroken() ? 'gl_broken_before' : 'no_webgl');
   return 'cpu';
 }
 
 /** A WebGL error in the middle of a check (a shader that compiles only on first use): switch this device to CPU and try once more. */
-async function glSafe<T>(faceapi: FaceApi, run: () => Promise<T>): Promise<T> {
-  try {
-    return await run();
-  } catch (e) {
-    const tf = faceapi.tf as unknown as TfLite & { getBackend: () => string };
-    if (tf.getBackend() !== 'webgl' || !/shader|webgl|gl_|context|INVALID/i.test(String((e as Error)?.message || e))) throw e;
+const FIRST_GL_MS = 6000;
+let glProven = false;   // one WebGL detect has finished on this page
+export async function glSafe<T>(faceapi: FaceApi, run: () => Promise<T>): Promise<T> {
+  const tf = faceapi.tf as unknown as TfLite & { getBackend: () => string };
+  const toCpu = async (why: string) => {
     markGlBroken();
+    logBackend('cpu', why);
     await tf.setBackend('cpu');
     await tf.ready();
+  };
+  try {
+    if (tf.getBackend() === 'webgl' && !glProven) {
+      // the first WebGL detect can hang while shaders compile on some phones: give it 6 s, then use the CPU
+      const first = run();
+      first.catch(() => undefined);   // a late failure of the abandoned try must not surface as an unhandled rejection
+      const r = await Promise.race([first, new Promise<'__slow'>((ok) => setTimeout(() => ok('__slow'), FIRST_GL_MS))]);
+      if (r === '__slow') { await toCpu('first_detect_slow'); return await run(); }
+      glProven = true;
+      return r as T;
+    }
+    return await run();
+  } catch (e) {
+    if (tf.getBackend() !== 'webgl' || !isGlError(e)) throw e;
+    await toCpu(String((e as Error)?.message || e).slice(0, 120));
     return await run();
   }
 }

@@ -5,7 +5,7 @@
  * network: 12-s limit), the existing face-api models do the same job (slower, eye-shape blink). Everything runs on the phone.
  */
 import type { FaceLandmarker } from '@mediapipe/tasks-vision';
-import { loadFaceApi } from './v5Face';
+import { glSafe, loadFaceApi } from './v5Face';
 import type { LiveFrame } from './verifyLive';
 
 export type Engine = 'mediapipe' | 'faceapi';
@@ -120,7 +120,7 @@ export async function faceapiSampler(): Promise<Sampler> {
     async read(v) {
       if (n++ % 4 === 0) bright = brightness(v);
       const w = v.videoWidth || 1, h = v.videoHeight || 1;
-      const all = await faceapi.detectAllFaces(v, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.45 })).withFaceLandmarks();
+      const all = await glSafe(faceapi, async () => await faceapi.detectAllFaces(v, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.45 })).withFaceLandmarks());
       const now = Date.now();
       if (!all.length) return NO_FACE(now, bright);
       const r = all.sort((a, b) => b.detection.box.width - a.detection.box.width)[0];
