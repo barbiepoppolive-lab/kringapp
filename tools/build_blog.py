@@ -2,7 +2,7 @@
 """Blog pages for search: /blog/<slug>/ (Thai) and /en/blog/<slug>/ (English), two index pages and sitemap-blog.xml.
    Article text lives in tools/blog_src/b*.py (each defines ARTS = [...]).
    Body mini-markup: '## ' = H2, '- ' = list item, '| a | b |' = table row (first row = header), blank line = new paragraph, [text](url), **bold**.
-   Article keys: recheck='monthly'|'quarterly' (freshness line + re-check list), next=(label_th, label_en) optional end-of-page link text.
+   Article keys: css='...' optional extra CSS for that article only (type hero pages), recheck='monthly'|'quarterly' (freshness line + re-check list), next=(label_th, label_en) optional end-of-page link text.
    Run: python3 tools/build_blog.py            (build)
         python3 tools/build_blog.py --check    (build + word counts, banned words, title/meta lengths)
         python3 tools/build_blog.py --review N (write a plain-text review file for batch N to stdout)"""
@@ -243,7 +243,7 @@ def build_article(a, lang, arts_by_slug):
          'mainEntityOfPage': SITE + path(lang, slug)},
         {'@type': 'FAQPage', 'inLanguage': lang, 'mainEntity': [
             {'@type': 'Question', 'name': q, 'acceptedAnswer': {'@type': 'Answer', 'text': plain(x)}} for q, x in L['faq']]}]}
-    o = head(lang, L['title'], L['desc'], canon_th, canon_en, ld, og, css_extra=TYPE_CSS if typ else '')
+    o = head(lang, L['title'], L['desc'], canon_th, canon_en, ld, og, css_extra=(TYPE_CSS + a.get('css', '')) if typ else '')
     o += '<div class="top"><a class="logo" href="%s">กริ๊ง<i>!</i></a><a class="lg" href="%s" hreflang="%s">%s</a></div>\n' % (
         '/' if lang == 'th' else '/en/', canon_en if lang == 'th' else canon_th, 'en' if lang == 'th' else 'th', t['switch'])
     if typ:
@@ -318,7 +318,7 @@ BANNED = [r'\bmeet', r'\bguides?\b', r'\bguidebooks?\b', r'\btours?\b', r'\bhost
           r'alcohol', r'\bgifts?\b', r'\bwallets?\b', r'\bcredits?\b', r'\blucky\b', r'\bdraws?\b', r'\bdrawn\b', r'temples?', r'\brates?\b',
           r'\bstars?\b', r'\bcoins?\b', r'\blaunch', r'dating', r'go together', r'\bbeer\b', r'\bwine\b', r'cocktail',
           'ลุ้น', 'โฮสต์', 'ไกด์', 'ทัวร์', 'ครีเอเตอร์', 'ของขวัญ', 'วอลเล็ท', 'กระเป๋าเงิน', 'เครดิต', 'เหรียญ', 'จับฉลาก', 'นำโชค',
-          'รีวิว', 'แอลกอฮอล์', 'เหล้า', 'เบียร์', r'(?<!ห)วัด(?!มังกร|ปทุมคงคา)', 'นัดเจอ', 'เดท', 'ไปด้วยกัน', 'อัญมณี', 'คราฟต์เบียร์']
+          'รีวิว', 'แอลกอฮอล์', 'เหล้า', 'เบียร์', r'(?<!ห)วัด(?!มังกร|ปทุมคงคา|อรุณ)', 'นัดเจอ', 'เดท', 'ไปด้วยกัน', 'อัญมณี', 'คราฟต์เบียร์']
 
 def check(arts):
     bad = 0
