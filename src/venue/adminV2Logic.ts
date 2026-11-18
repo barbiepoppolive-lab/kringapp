@@ -280,7 +280,11 @@ export function waitShort(iso: string, now = Date.now()): string {
 const BRAND: Record<string, string> = { truemoney: 'TrueMoney', grab: 'Grab', shopeepay: 'ShopeePay' };
 const nameNo = (p: { name: string | null; no: number | null }) => `${p.name || 'Member'} (#${p.no ?? '?'})`;
 const TONE_ORDER: Record<InboxTone, number> = { r: 0, a: 1, f: 2 };
-export interface Handled { key: string; at: string; text: string; undoDup?: string; undone?: boolean }
+export interface Handled { key: string; at: string; text: string; undoDup?: string; undone?: boolean;
+  /** 18 Nov tap-all: what the robot did, to whom, why (for the who-and-why sheet) */
+  kind?: 'dup' | 'dup_preview' | 'face' | 'refused' | 'paid' | 'place' | 'settled';
+  who?: { user_id: string | null; no: number | null; name: string | null }[];
+  why?: string; ref?: string }
 
 
 /** Groups look-alike links into one card per set of accounts (union-find), the oldest account first. */
@@ -314,7 +318,9 @@ export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[
       const label = `#${older.no ?? '?'} · #${newer.no ?? '?'}`;
       const settled = newer.kind === 'ghost' || (newer.check?.status === 'rejected' && !newer.reels?.live && !(newer.claims?.paid));
       if (settled && !heldAll.some((c) => c.user_id === newer.user_id)) {
-        handled.push({ key: 'g:' + label, at: l.at || newer.joined_at, text: `${label}: newer account already refused at face check and has nothing live` });
+        handled.push({ key: 'g:' + label, at: l.at || newer.joined_at, text: `${label}: newer account already refused at face check and has nothing live`, kind: 'settled',
+          who: [older, newer].map((p) => ({ user_id: p.user_id, no: p.no, name: p.name })),
+          why: `#${newer.no ?? '?'} looked like #${older.no ?? '?'}, but the newer account was already refused at the face check and has nothing live, so there is nothing to decide.` });
         continue;
       }
       const strong = (l.sface_sim ?? 0) >= 0.6 || (l.dist ?? 1) < 0.4 || l.reason === 'device';
@@ -367,17 +373,26 @@ export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[
   const dupLogged = new Set<string>();
   const preview: Handled[] = [];
   for (const d of s.dups_auto || []) {
-    if (d.preview) { preview.push({ key: `dupp:${d.dup}`, at: d.at, text: dupAutoText(d) }); continue; }
+    const dWho = [{ user_id: d.dup, no: d.dup_no, name: d.dup_name }, ...(d.keep ? [{ user_id: d.keep, no: d.keep_no, name: d.keep_name }] : [])];
+    const keepW = d.keep_no != null ? `#${d.keep_no}${d.keep_name ? ` ${d.keep_name}` : ''}` : 'an older account';
+    const dWhy = `${d.dup_name || 'This account'}${d.dup_no != null ? ` #${d.dup_no}` : ''} has the ${d.why === 'same_device' ? 'same phone' : 'same face'} as ${keepW}, so it is a second account.`;
+    if (d.preview) { preview.push({ key: `dupp:${d.dup}`, at: d.at, text: dupAutoText(d), kind: 'dup_preview', who: dWho, why: `${dWhy} The robot WOULD hide it, but nothing changes until the sweep switch is on.` }); continue; }
     dupLogged.add(d.dup);
-    handled.push({ key: `dup:${d.dup}`, at: d.at, text: dupAutoText(d), undoDup: d.dup, undone: d.undone || !d.ghost });
+    handled.push({ key: `dup:${d.dup}`, at: d.at, text: dupAutoText(d), undoDup: d.dup, undone: d.undone || !d.ghost, kind: 'dup', who: dWho,
+      why: `${dWhy} The robot hid it (ghost mode: they can still use the app but nobody sees them)${d.voided_reels || d.ledger_void ? ' and took away this week’s Rings' : ''}. The older account was kept.` });
   }
   for (const p of people) {
     if (dupLogged.has(p.user_id)) continue;
-    if (p.check && p.check.status !== 'pending' && p.check.auto) handled.push({ key: 'a:' + p.check.id, at: p.check.at, text: `${who(p)} face check ${p.check.status} automatically` });
-    else if (p.check?.status === 'rejected' && /one (verified )?account/i.test(p.check.reason || '')) handled.push({ key: 'a:' + p.check.id, at: p.check.at, text: `${who(p)} refused: one account per person` });
+    const pw = [{ user_id: p.user_id, no: p.no, name: p.name }];
+    if (p.check && p.check.status !== 'pending' && p.check.auto) handled.push({ key: 'a:' + p.check.id, at: p.check.at, text: `${who(p)} face check ${p.check.status} automatically`, kind: 'face', who: pw, ref: p.check.id,
+      why: p.check.status === 'approved' ? `The live selfie matched ${who(p)}'s profile photo and no other account has this face, so the robot approved it.`
+        : `The robot refused ${who(p)}'s face check${p.check.reason ? `: ${p.check.reason.split('\n').pop()}` : ''}.` });
+    else if (p.check?.status === 'rejected' && /one (verified )?account/i.test(p.check.reason || '')) handled.push({ key: 'a:' + p.check.id, at: p.check.at, text: `${who(p)} refused: one account per person`, kind: 'refused', who: pw, ref: p.check.id,
+      why: `${who(p)}'s face is already verified on another account, so this second account was refused (one person, one account).` });
   }
-  for (const c of s.claims) if (c.status === 'assigned' && !c.held && !c.decided && (s.include_test || !c.is_test)) handled.push({ key: 'p:' + c.id, at: c.assigned_at || c.created_at, text: `${who(c)} paid ฿${c.amount} ${c.brand} automatically` });
-  for (const a of s.places_auto || []) { const text = placeAutoText(a); if (text) handled.push({ key: `pl:${a.action}:${a.place_id}:${a.at}`, at: a.at, text }); }
+  for (const c of s.claims) if (c.status === 'assigned' && !c.held && !c.decided && (s.include_test || !c.is_test)) handled.push({ key: 'p:' + c.id, at: c.assigned_at || c.created_at, text: `${who(c)} paid ฿${c.amount} ${c.brand} automatically`, kind: 'paid', ref: c.id,
+    who: [{ user_id: c.user_id, no: c.no, name: c.name }], why: `${who(c)} won a prize and had no duplicate warning signs, so the robot sent a ฿${c.amount} ${BRAND[c.brand] || c.brand} code straight away.` });
+  for (const a of s.places_auto || []) { const text = placeAutoText(a); if (text) handled.push({ key: `pl:${a.action}:${a.place_id}:${a.at}`, at: a.at, text, kind: 'place', ref: a.place_id || undefined, why: placeAutoWhy(a) }); }
   // red (money) first, then amber, then FYI; inside each, stronger cases first, then whoever has waited longest
   items.sort((a, b) => TONE_ORDER[a.tone] - TONE_ORDER[b.tone] || b.rank - a.rank || Date.parse(a.at) - Date.parse(b.at));
   handled.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
@@ -577,6 +592,18 @@ export function placeAutoText(a: PlaceAuto): string | null {
     default: return null;
   }
 }
+/** why the place robot did it, in one sentence */
+export function placeAutoWhy(a: PlaceAuto): string {
+  const by = a.no != null ? `member #${a.no}` : 'a member';
+  switch (a.action) {
+    case 'place_auto_live': return `${by} typed a new place name that looked real, so the robot added it${a.outside ? ' (it is outside Bangkok, so it earns no board Rings)' : ''}.`;
+    case 'place_auto_link': return `${by} typed ${q(a.name)}, which is the same place as ${q(a.into)}, so the robot used the existing place.`;
+    case 'place_auto_reject': return `${by} typed ${q(a.name)}: it is a ${REASON[a.reason || ''] || a.reason || 'junk entry'}, not a place, so the robot refused it.`;
+    case 'place_geo_found': return `The robot found ${q(a.name)} on the map and pinned it.`;
+    case 'place_geo_miss': return `The robot could not find ${q(a.name)} on the map, so it stays a name-only tag.`;
+    default: return placeAutoText(a) || a.action;
+  }
+}
 export interface PlaceRow { id: string; name_en: string; name_th: string | null; area: string; status: 'live' | 'pending' | 'rejected'; added_how: string | null;
   outside_bkk: boolean; coords_rough: boolean; osm_ref: string | null; lat: number; lng: number; created_at: string; by_no: number | null; by_name: string | null;
   geo: string | null; reels: number; auto: string | null }
@@ -593,7 +620,7 @@ export function placeFlags(p: PlaceRow): [string, string][] {
 // ───────── face checks (0089) ─────────
 export interface FaceCheck {
   id: string; user_id: string; no: number | null; name: string | null; status: 'approved' | 'pending' | 'rejected'; at: string; reviewed_at: string | null;
-  auto: boolean; live: { straight?: boolean; left?: boolean; right?: boolean; blink?: boolean; blink_fallback?: boolean; device?: string; match?: number | null } | null;
+  auto: boolean; live: { straight?: boolean; left?: boolean; right?: boolean; blink?: boolean; blink_fallback?: boolean; device?: string; match?: number | null; model?: string } | null;
   reason: string | null; selfie_path: string | null; selfie_deleted_at: string | null; verified: boolean; undo: boolean; paid: number;
 }
 /** Card chip: "✓ face" / "face pending" / "face refused" / "no face check". */

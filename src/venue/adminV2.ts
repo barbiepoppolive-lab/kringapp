@@ -8,9 +8,9 @@
 import { el, rpc, v5Client } from './shared';
 import { signReelPaths } from '../v8/v5Reel';
 import {
-  ago, both, buildInbox, buildRobotReport, claimChip, clock, filterPeople, groupPeople, isSnapshot, lookalikeWords, money, noCard, peopleCounts, peopleHeadline,
-  personFlags, personTrust, placeFlags, realPhoto, referrers, stepChip, trustChip, who, withAdminLogins, faceStatusWords, liveSteps,
-  INBOX_FILTERS, waitShort, type Handled,
+  ago, both, buildInbox, buildRobotReport, claimChip, clock, filterPeople, groupPeople, isSnapshot, money, noCard, peopleCounts, peopleHeadline,
+  personFlags, personTrust, placeFlags, realPhoto, referrers, stepChip, who, withAdminLogins, faceStatusWords, liveSteps,
+  INBOX_FILTERS, waitShort, moneyRobotVerdict, type Handled,
   type Claim, type DupAuto, type FaceCheck, type InboxItem, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot, type Trust,
 } from './adminV2Logic';
 import {
@@ -25,6 +25,10 @@ import {
 import { addDays, bkkToday, clampDay, countryName, dailyRange, dayName, flag, groupSources, isGrowth, isGrowthDaily, isGrowthDay, refLabel, seriesEnds, sparkPath, stepPct, trendWords, visibleRefs,
   type Growth, type GrowthDailyRow, type GrowthDay, type GrowthDays } from './growthLogic';
 import './adminV2.css';
+import { closeSheet, openSheet, sheetOpen, sheetRoute, xbtn, xlink, xrow, xsec, type SheetSpec, type SheetWho } from './adminSheet';
+import { alertSheetKind, alertUser, detailLines, flagSentence, flagWhy, giveWhy, isEx, linkVerdict, openWhy, ringsSentence, ringsSummary, selfieWords, trustWords, verdictSentence,
+  type ExClaim, type ExCodes, type ExErrors, type ExPlace, type ExReel, type ExRings } from './tapLogic';
+import { codeMeaning, kindName, uaInfo } from './problemsAdmin';
 import { helpSection } from './adminHelp';   // 0097: Help cases (self-contained)
 import { helpPanelLeave, helpPanelView } from './helpPanel';   // 0120: full Help panel (#help, #help/<uid>)
 import { bugSection, viewAsLeave, viewAsView } from './viewAs';   // 0110: View as member + Spot a bug cases
@@ -226,32 +230,41 @@ function renderMorningBrief(s: Snapshot, inboxItems: InboxItem[], extra: Kid[] =
   const runway = computeVoucherRunway(b.voucher_stock.available, b.voucher_stock.burn_7d);
   const daysStr = b.voucher_stock.days_left === null ? 'Steady' : `${b.voucher_stock.days_left}d left`;
 
-  const stat = (id: string, val: string, label: string, sub: string, href: string, hot = false) =>
-    el('a', { class: `mb-stat ${hot ? 'hot' : ''}`, href, id },
+  // 18 Nov tap-all: each number opens the exact list behind it (a filtered page or a sheet)
+  const stat = (id: string, val: string, label: string, sub: string, href: string, hot = false, sheet?: () => void) => {
+    const a = el('a', { class: `mb-stat ${hot ? 'hot' : ''}`, href, id },
       el('b', {}, val),
       el('span', {}, label),
       el('small', {}, sub));
+    return sheet ? tapIn(a, sheet) : a;
+  };
+  const caseHref = (t: { href: string; title: string }) => {
+    if (t.href !== '#inbox') return t.href;
+    const hit = inboxItems.find((i) => i.title === t.title);
+    if (hit) return `#inbox/case/${encodeURIComponent(hit.key)}`;
+    return /held payout/i.test(t.title) ? '#inbox/held' : t.href;
+  };
 
   const top3 = b.top3_needs_you.slice(0, 3);
   const errN = b.errors.total;
 
   return el('section', { class: 'mb-card lt-brief', id: 'v2MorningBrief' },
     el('div', { class: 'mb-grid' },
-      stat('mbMembers', `+${b.new_members.today}`, 'New today', `${b.new_members.total} real total`, '#people'),
-      stat('mbHeld', `฿${b.held_payouts.thb.toLocaleString('en-US')}`, 'Held', `${b.held_payouts.count} waiting`, '#inbox', b.held_payouts.count > 0),
-      stat('mbStock', daysStr, 'Codes', `${b.voucher_stock.available} left`, '#codes', runway.hot)),
+      stat('mbMembers', `+${b.new_members.today}`, 'New today', `${b.new_members.total} real total`, '#people/today'),
+      stat('mbHeld', `฿${b.held_payouts.thb.toLocaleString('en-US')}`, 'Held', `${b.held_payouts.count} waiting`, '#inbox/held', b.held_payouts.count > 0),
+      stat('mbStock', daysStr, 'Codes', `${b.voucher_stock.available} left`, '#money', runway.hot, () => openStockSheet())),
     el('div', { class: 'mb-top3', id: 'v2BriefTop3' },
       el('div', { class: 'mb-top3-hd' }, top3.length ? `${top3.length} thing${top3.length === 1 ? '' : 's'} need${top3.length === 1 ? 's' : ''} you` : 'Nothing urgent'),
       ...(top3.length
-        ? top3.map((t, idx) => el('a', { class: `mb-need sev-${t.severity}`, href: t.href, title: t.sub || undefined },
+        ? top3.map((t, idx) => el('a', { class: `mb-need sev-${t.severity}`, href: caseHref(t), title: t.sub || undefined },
             el('span', { class: 'mb-num' }, String(idx + 1)),
             el('b', { class: 'grow' }, t.title),
             ic('chev')))
         : [el('div', { class: 'mb-clear' }, 'Robots are watching everything.')])),
     fold('v2MoreNums', foldHead('More numbers'), [
       el('div', { class: 'mb-grid' },
-        stat('mbFaces', String(b.face_checks.today), 'Face checks', `${b.face_checks.pass} pass · ${b.face_checks.waiting} waiting`, '#faces', b.face_checks.waiting > 0),
-        stat('mbPosts', String(b.posts.reels_today + b.posts.asks_today), 'Posts today', `${b.posts.reels_live} live · ${b.posts.reels_waiting} waiting`, '#inbox', b.posts.reels_waiting > 0),
+        stat('mbFaces', String(b.face_checks.today), 'Face checks', `${b.face_checks.pass} pass · ${b.face_checks.waiting} waiting`, b.face_checks.waiting > 0 ? '#inbox/check' : '#faces', b.face_checks.waiting > 0),
+        stat('mbPosts', String(b.posts.reels_today + b.posts.asks_today), 'Posts today', `${b.posts.reels_live} live · ${b.posts.reels_waiting} waiting`, b.posts.reels_waiting > 0 ? '#inbox/reel' : '#people', b.posts.reels_waiting > 0),
         stat('mbErrors', String(errN), 'Errors (24h)', `${b.errors.client_24h} phone · ${b.errors.outbox_failed_24h + b.errors.robot_failed_24h} sys`, '#problems', errN > 0)),
       ...extra]));
 }
@@ -280,7 +293,7 @@ function renderAlertCentre(s: Snapshot, inboxItems: InboxItem[]): HTMLElement {
     const buyLink = buyUrl
       ? el('a', { class: 'ap-mini-btn ap-buy-link', href: buyUrl, target: '_blank', rel: 'noopener noreferrer' }, 'Buy codes ↗')
       : null;
-    return el('div', { class: `ac-row sev-${a.severity}`, 'data-alert': a.dedupe_key },
+    return tap(el('div', { class: `ac-row sev-${a.severity}`, 'data-alert': a.dedupe_key },
       el('span', { class: `ac-dot sev-${a.severity}` }),
       el('div', { class: 'grow' },
         el('div', { class: 'ac-tags' },
@@ -292,7 +305,7 @@ function renderAlertCentre(s: Snapshot, inboxItems: InboxItem[]): HTMLElement {
       el('div', { class: 'ac-acts' },
         buyLink,
         el('a', { class: 'ap-mini-btn', href: a.href }, 'Open →'),
-        dismissBtn));
+        dismissBtn)), () => openAlertSheet(a));
   };
 
   return el('section', { class: 'v2card ac-card', id: 'v2AlertCentre' },
@@ -354,6 +367,284 @@ function paintPhotos() {
     else { const img = el('img', { class: 'v2av', src, alt: '', style: (ph as HTMLElement).getAttribute('style') || '' }); ph.replaceWith(img); }
   });
 }
+
+// ───────── 18 Nov tap-all: who-and-why sheets (founder: "Everything inside admin must be tappable further") ─────────
+/** 0121 kr8_admin_explain; null when the database does not have it yet (the sheet then says so and shows what the snapshot has) */
+async function explain<T extends { kind: string }>(kind: T['kind'], id: string): Promise<T | null> {
+  try { const r = await rpc<unknown>('kr8_admin_explain', { p_kind: kind, p_id: id }); return isEx<T>(r, kind) ? r : null; } catch { return null; }
+}
+const needsDb = () => el('small', { class: 'xs-faint' }, 'More detail shows here after database update 0121.');
+const whoOf = (p: { user_id: string | null; no: number | null; name: string | null }, sub?: string): SheetWho =>
+  ({ user_id: p.user_id, no: p.no, name: p.name, photo: p.user_id ? photos.get(p.user_id) || null : null, sub });
+const personOf = (uid: string | null | undefined) => (uid && snap ? snap.people.find((p) => p.user_id === uid) : undefined);
+/** wire a non-link row so it opens a sheet (the tap-all guard test checks every row has a link or a click handler) */
+function tap<T extends HTMLElement>(node: T, fn: () => void): T {
+  node.onclick = (e) => { if ((e.target as HTMLElement).closest('button, a, input, select, summary') && e.target !== node) return; e.preventDefault(); fn(); };
+  node.classList.add('v2tap'); if (!node.getAttribute('role')) node.setAttribute('role', 'button'); node.tabIndex = 0;
+  return node;
+}
+/** a chip / number INSIDE a link that opens its own sheet instead of following the link */
+function tapIn<T extends HTMLElement>(node: T, fn: () => void): T {
+  node.onclick = (e) => { e.preventDefault(); e.stopPropagation(); fn(); };
+  node.classList.add('v2tap'); node.setAttribute('role', 'button');
+  return node;
+}
+const closeThen = (fn: () => void) => () => { closeSheet(); fn(); };
+
+// ─── alerts ───
+function openAlertSheet(a: RobotAlert): void {
+  const kind = alertSheetKind(a);
+  const key = 'alert:' + a.id;
+  const dismiss = !a.synthetic ? xbtn('Dismiss alert', '', 'xAlertDismiss', closeThen(() => later(key, `Alert dismissed: ${a.title}`, () => rpc('kr8_admin_alert_dismiss', { p_id: a.id })))) : null;
+  const open = a.href && a.href !== location.hash ? xlink('Open the page', a.href, 'xAlertOpen') : null;
+  const base: SheetSpec = { kind: 'alert', id: a.dedupe_key || a.id, title: a.title, why: a.body || a.title, faint: `${a.robot} robot · ${ago(a.at)}${detailLines(a.detail).length ? ' · ' + detailLines(a.detail).join(' · ') : ''}`, actions: [open, dismiss] };
+  const s = snap;
+  if (kind === 'protect') {
+    const flagKey = (a.dedupe_key || '').split(':')[1] || '';
+    openSheet({ ...base, why: flagKey === 'ring_farming' ? 'These members mostly like and save each other’s Reels. That can be two friends farming Rings. Look at each pair before approving prizes.'
+      : flagKey === 'scam_chat' ? 'These members sent chat messages that look like a scam. Robots never ban — you decide.' : base.why,
+      load: async (box) => {
+        const raw = await rpc<unknown>('kr8_admin_protect_overview').catch(() => null);
+        const flags = isProtectOverview(raw) ? raw.flags.filter((f) => !flagKey || f.flag_key === flagKey) : [];
+        await loadPhotos(flags.flatMap((f) => [f.user_id, String(f.detail?.partner_id || '')]).filter(Boolean));
+        if (!flags.length) { box.append(el('small', { class: 'xs-line' }, 'No member is flagged right now.')); return; }
+        box.append(xsec(`Flagged · ${flags.length}`), ...flags.map((f) => {
+          const partner = personOf(String(f.detail?.partner_id || ''));
+          const sentence = flagSentence({ no: f.member_no, name: f.name, flag_key: f.flag_key, summary: f.summary, detail: f.detail, partner_name: partner?.name });
+          const pk = `pflag:${f.user_id}:${f.flag_key}`;
+          const dis = xbtn('Not a problem', '', `xFlagDismiss-${f.user_id}`, () => { later(pk, `Flag cleared for #${f.member_no ?? '?'}`, () => rpc('kr8_admin_protect_dismiss', { p_user: f.user_id, p_flag_key: f.flag_key })); row.style.opacity = '.4'; });
+          const faces = el('div', { class: 'xs-pair' }, ...[whoOf({ user_id: f.user_id, no: f.member_no, name: f.name }), ...(partner ? [whoOf(partner)] : [])].map((w) =>
+            el('a', { class: 'xs-face', href: `#m/${w.user_id}` }, w.photo ? el('img', { src: w.photo, alt: '' }) : el('span', { class: 'none' }, (w.name || '?').slice(0, 1)), el('small', {}, `#${w.no ?? '?'} ${w.name || ''}`))));
+          const row = el('div', { class: 'xs-card', 'data-flag': `${f.user_id}:${f.flag_key}` }, faces, el('b', { class: 'xs-sent' }, sentence), el('small', { class: 'xs-faint' }, f.summary),
+            el('div', { class: 'xs-mini' }, xlink('Open member', `#m/${f.user_id}`), dis));
+          return row;
+        }));
+      } });
+    return;
+  }
+  if (kind === 'struggle') {
+    const u = alertUser(a);
+    openSheet({ ...base, who: u ? [whoOf(u)] : [], why: u ? `${u.name || 'This member'}${u.no != null ? ` #${u.no}` : ''} keeps hitting the same problem in the app. Their last errors are below in plain words — reply in Help if they need a hand.` : base.why,
+      actions: [xlink('Open Help chats', '#help', 'xAlertHelp', 'ok'), dismiss],
+      load: async (box) => {
+        if (!u) return;
+        const ex = await explain<ExErrors>('errors', u.user_id);
+        if (!ex) { box.append(needsDb()); return; }
+        box.append(xsec('Last problems on their phone'), ...(ex.rows.length ? ex.rows.map((r) => xrow(`${kindName(r.kind)}: ${codeMeaning(r.kind, r.code)}`, `${ago(r.at)} · ${uaInfo(r.ua).label}`, { tone: 'a' }))
+          : [el('small', { class: 'xs-line' }, 'No phone problems logged.')]));
+      } });
+    return;
+  }
+  if (kind === 'help') { openSheet({ ...base, why: 'A member is waiting for an answer in Help. Open Help chats to reply.', actions: [xlink('Open Help chats', '#help', 'xAlertHelp', 'ok'), dismiss] }); return; }
+  if (kind === 'stock') { openStockSheet(); return; }
+  if (kind === 'held' && s) { openClaimsSheet('Held claims', 'The robot held these prize claims because something looked like a second account. Tap one to see why, then Pay or Refuse.', s.claims.filter((c) => c.held && c.status === 'pending' && (includeTest || !c.is_test)), 'held'); return; }
+  if (kind === 'reports') { openSheet({ ...base, why: 'Members reported a Reel or a person. Open the reports to keep or remove each one.', actions: [xlink('Open reports', '#q/reports', 'xAlertReports', 'ok'), dismiss] }); return; }
+  if (kind === 'dups' && s) {
+    const { handled } = buildInbox(s);
+    openSheet({ ...base, why: 'The duplicate robot found accounts with the same face or phone as an older account and hid the newer one. Tap one to see who and to undo it.',
+      evidence: [xsec('Hidden today'), ...handled.filter((h) => h.kind === 'dup' && Date.parse(h.at) >= Date.parse(s.day_start)).map((h) => xrow(h.text, ago(h.at), { onTap: () => openHandledSheet(h), tone: 'a' }))] });
+    return;
+  }
+  if (kind === 'errors') { openSheet({ ...base, why: 'Some messages or robot jobs failed in the last 24 hours. The Problems page lists each one in plain words.', actions: [xlink('Open Problems', '#problems', 'xAlertProblems', 'ok'), dismiss] }); return; }
+  openSheet(base);
+}
+
+// ─── Handled automatically ───
+function openHandledSheet(h: Handled): void {
+  const actions: (HTMLElement | null)[] = [];
+  if (h.undoDup && !h.undone) { const dupId = h.undoDup; actions.push(xbtn('Undo — show this account again', 'ok', 'xUndoDup', closeThen(() => later(h.key, 'Duplicate restored · ghost mode off', () => rpc('kr8_admin_dup_auto_undo', { p_dup: dupId, p_action: 'undo' }))))); }
+  if (h.kind === 'face' || h.kind === 'refused') actions.push(xlink('Open face checks (Reject / Undo there)', '#faces', 'xHandledFaces'));
+  if (h.kind === 'place' && h.ref) { const pid = h.ref; actions.push(xbtn('Open the place', '', 'xHandledPlace', () => void openPlaceById(pid))); }
+  if (h.kind === 'paid' && h.ref && snap) { const c = snap.claims.find((x) => x.id === h.ref); if (c) actions.push(xbtn('See the claim', '', 'xHandledClaim', () => openClaimSheet(c))); }
+  void loadPhotos((h.who || []).map((w) => w.user_id || '').filter(Boolean));
+  openSheet({ kind: 'auto', id: h.key, title: h.kind === 'dup_preview' ? 'Robot preview (nothing changed)' : 'What the robot did',
+    who: (h.who || []).map((w) => whoOf(w)), why: h.why || h.text,
+    evidence: [xrow(h.text, `${ago(h.at)} · ${both(h.at, true)}`, { tone: h.undone ? '' : 'g' }), h.undone ? el('small', { class: 'xs-line' }, 'You already undid this.') : null], actions });
+}
+
+// ─── money: claims, codes ───
+const BRANDS: Record<string, string> = { truemoney: 'TrueMoney', grab: 'Grab', shopeepay: 'ShopeePay' };
+function claimWhy(c: Claim): string {
+  const w = who(c);
+  if (c.status === 'cancelled') return `${w}'s ฿${c.amount} claim was refused${c.decided ? ' by you' : ''}.`;
+  if (c.held && c.status === 'pending') {
+    const others = (c.hold_others || []).map((o) => `#${o.member_no ?? '?'}${o.first_name ? ` ${o.first_name}` : ''}`);
+    return c.hold_reason === 'review' ? `${w}'s claim is held: the face check needs your eye before paying.`
+      : `${w}'s claim is held because the robot thinks it may be a second account${others.length ? ` of ${others.join(', ')}` : ''}.`;
+  }
+  if (c.status === 'pending') return `${w} claimed ฿${c.amount}; it waits for a code (stock ran out). It is sent automatically when you add codes.`;
+  return `${w} got a ฿${c.amount} ${BRANDS[c.brand] || c.brand} code${c.decided === 'paid' ? ' after you tapped Pay' : ' automatically'}${c.used ? ' and has used it' : ''}.`;
+}
+function openClaimSheet(c: Claim): void {
+  const p = personOf(c.user_id);
+  const actions: HTMLElement[] = [];
+  const k = 'c:' + c.id;
+  if (c.held && c.status === 'pending') {
+    actions.push(xbtn(`Pay ฿${c.amount}`, 'ok', 'xPay-' + c.id, closeThen(() => later(k, `Paying ฿${c.amount} to ${who(c)}`, () => rpc('kr8_admin_release_claim', { p_claim: c.id })))),
+      xbtn('Refuse', 'bad', 'xRefuse-' + c.id, closeThen(() => later(k, 'Claim refused (member is not told why)', () => rpc('kr8_admin_refuse_claim', { p_claim: c.id, p_reason: 'One person, one account', p_return: false })))));
+  }
+  if (c.user_id) actions.push(xlink('Open member', `#m/${c.user_id}`, 'xClaimMember'));
+  const v = p && snap && c.held && c.status === 'pending' ? moneyRobotVerdict(c, p, snap) : null;
+  const ch = claimChip(c);
+  const mins = c.joined_at ? Math.round((Date.parse(c.created_at) - Date.parse(c.joined_at)) / 60000) : null;
+  if (c.user_id) void loadPhotos([c.user_id]);
+  openSheet({ kind: 'claim', id: c.id, title: `฿${c.amount} ${BRANDS[c.brand] || c.brand} · ${ch.text}`, who: [whoOf(c, mins != null ? `claimed ${mins} min after joining` : undefined)],
+    why: claimWhy(c),
+    evidence: [v ? el('div', { class: `xs-verdict ${v.tone}` }, el('b', {}, `Robot says: ${verdictSentence(v)}`), el('small', { class: 'xs-faint' }, `trust ${v.score}`)) : null,
+      xrow('Claimed', both(c.created_at, true)), c.assigned_at ? xrow('Code sent', both(c.assigned_at, true), { tone: 'g' }) : null,
+      c.prize?.kind ? xrow('Prize', `${c.prize.kind}${c.prize.rank ? ` · rank #${c.prize.rank}` : ''}${c.prize.week ? ` · week ${c.prize.week}` : ''}`) : null],
+    actions,
+    load: async (box) => {
+      const ex = await explain<ExClaim>('claim', c.id);
+      if (!ex) { box.append(needsDb()); return; }
+      if (ex.code) box.append(xrow(`Code ${ex.code.masked}`, ex.code.status === 'assigned' ? (ex.used_at ? `used ${ago(ex.used_at)}` : 'sent, not used yet') : ex.code.status, { tone: 'g' }));
+      if (ex.same_phone.length) box.append(xsec('Same phone claimed for'), ...ex.same_phone.map((o) => xrow(`#${o.no ?? '?'} ${o.name || ''}`, 'claimed a prize on the same phone', { href: o.user_id ? `#m/${o.user_id}` : undefined, tone: 'r' })));
+    } });
+}
+function openClaimsSheet(title: string, why: string, list: Claim[], id: string): void {
+  void loadPhotos(list.map((c) => c.user_id || '').filter(Boolean));
+  openSheet({ kind: 'claims', id, title: `${title} · ${list.length}`, why,
+    evidence: list.length ? list.map((c) => { const ch = claimChip(c); return xrow(`${who(c)} · ฿${c.amount} ${BRANDS[c.brand] || c.brand}`, `${ch.text} · ${ago(c.created_at)}`, { onTap: () => openClaimSheet(c), tone: ch.tone || '', id: 'xClaimRow-' + c.id }); })
+      : [el('small', { class: 'xs-line' }, 'None.')] });
+}
+function openStockSheet(brand?: string, amount?: number): void {
+  const s = snap;
+  const stock = brand ? `${brand}:${amount}` : 'all';
+  const rows = s ? s.codes.filter((k) => !brand || (k.brand === brand && k.amount === amount)) : [];
+  const left = rows.reduce((n, k) => n + k.available, 0);
+  openSheet({ kind: 'codes', id: stock, title: brand ? `${BRANDS[brand] || brand} ฿${amount} codes` : 'Prize codes',
+    why: left <= 5 ? `Only ${left} code${left === 1 ? '' : 's'} left. Winners who claim when it hits 0 have to wait, so buy more and paste them in.` : `${left} codes are ready to send. Each row below is one code and who got it.`,
+    evidence: rows.map((k) => xrow(`${BRANDS[k.brand] || k.brand} ฿${k.amount}`, `${k.available} left · ${k.assigned} given out`, { onTap: brand ? undefined : () => openStockSheet(k.brand, k.amount), tone: k.available <= 2 ? 'r' : k.available <= 5 ? 'a' : 'g' })),
+    actions: [xlink('Buy codes ↗', DEFAULT_VOUCHER_BUY_URL, 'xBuyCodes'), xlink('Paste codes', '#codes', 'xPasteCodes', 'ok')],
+    load: async (box) => {
+      const ex = await explain<ExCodes>('codes', stock);
+      if (!ex) { box.append(needsDb()); return; }
+      const shown = ex.codes.filter((x) => includeTest || !x.is_test);
+      box.append(xsec(`Every code · ${shown.length}`), ...shown.slice(0, 150).map((x) => xrow(`${x.masked} · ${BRANDS[x.brand] || x.brand} ฿${x.amount}`,
+        x.status === 'available' ? `ready · added ${ago(x.added_at)}` : `${x.no != null ? `#${x.no} ${x.name || ''}` : 'a removed member'} · sent ${ago(x.assigned_at)}${x.used_at ? ' · used' : ''}`,
+        { href: x.user_id ? `#m/${x.user_id}` : undefined, tone: x.status === 'available' ? 'g' : '' })));
+    } });
+}
+
+// ─── Reels ───
+const HIDE_REASONS: [string, string, string][] = [   // same texts as REEL_CHIPS in adminApp.ts (the member reads the Thai + English reason)
+  ['Not a real Bangkok spot', 'Kring Reels show a real spot in Bangkok.', 'รีลบนกริ๊ง! ต้องเป็นสถานที่จริงในกรุงเทพฯ ครับ'],
+  ['Wrong place pinned', 'The pinned place doesn’t match the Reel. Pin the right place and post again.', 'หมุดสถานที่ไม่ตรงกับรีล ปักหมุดให้ถูกแล้วโพสต์ใหม่ได้เลยครับ'],
+  ['Not their own clip', 'This clip looks copied. Please post a Reel you filmed yourself.', 'คลิปนี้ดูเหมือนก๊อปมา รบกวนโพสต์รีลที่คุณถ่ายเองนะครับ'],
+  ['Fake engagement', 'This Reel was hidden for fake engagement (bought views or many accounts).', 'รีลนี้ถูกซ่อนเพราะยอดไม่จริง (ซื้อวิวหรือใช้หลายบัญชี) ครับ'],
+];
+interface ReelLite { id: string; status: string; hidden?: boolean; board_off?: boolean; board_off_reason?: string | null; poster_path?: string | null; video_path?: string | null; author?: string | null; likes?: number; saves?: number; shares?: number; views?: number; note?: string | null; at?: string }
+function reelWhy(r: ReelLite): string {
+  if (r.hidden || r.status === 'hidden') return `This Reel is hidden${r.note ? ` (reason the member saw: ${r.note.split('\n').pop()})` : ''}.`;
+  if (r.status === 'pending') return 'This Reel waits for your OK. Watch it: a real spot in Bangkok, filmed by them? → Approve. Otherwise → Hide and pick why.';
+  if (r.board_off) return `This Reel is live in the feed but earns no board Rings${r.board_off_reason ? ` (${r.board_off_reason})` : ''}.`;
+  return 'This Reel is live in the feed and on the board.';
+}
+function openReelSheet(r0: ReelLite, after?: () => void): void {
+  const p = personOf(r0.author || undefined);
+  const k = 'reel:' + r0.id;
+  const video = el('div', { class: 'xs-video' }, el('small', { class: 'xs-line' }, 'Loading the clip…'));
+  const reasons = el('div', { class: 'xs-chips', hidden: true }, ...HIDE_REASONS.map(([label, en, th], i) => xbtn(label, 'bad', `xHideWhy-${i}`,
+    closeThen(() => { later(k, 'Reel hidden · reason sent', () => rpc('kr8_admin_review_reel', { p_reel: r0.id, p_status: 'hidden', p_note: `${th}\n${en}` })); after?.(); }))));
+  const hidden = r0.hidden || r0.status === 'hidden';
+  const actions = [
+    !hidden && r0.status !== 'approved' ? xbtn('Approve', 'ok', 'xReelOk', closeThen(() => { later(k, 'Reel approved', () => rpc('kr8_admin_review_reel', { p_reel: r0.id, p_status: 'approved' })); after?.(); })) : null,
+    hidden ? xbtn('Show again (approve)', 'ok', 'xReelShow', closeThen(() => { later(k, 'Reel live again', () => rpc('kr8_admin_review_reel', { p_reel: r0.id, p_status: 'approved' })); after?.(); }))
+      : xbtn('Hide…', 'bad', 'xReelHide', () => { reasons.hidden = !reasons.hidden; }),
+  ];
+  openSheet({ kind: 'reel', id: r0.id, title: hidden ? 'Hidden Reel' : r0.status === 'pending' ? 'Reel waiting' : 'Live Reel', who: p ? [whoOf(p)] : [], why: reelWhy(r0),
+    evidence: [video, reasons, r0.likes != null ? xrow(`${r0.likes} likes · ${r0.saves ?? 0} saves · ${r0.shares ?? 0} shares`, `${r0.views ?? 0} views${r0.at ? ` · posted ${ago(r0.at)}` : ''}`) : null],
+    actions,
+    load: async () => {
+      let vp = r0.video_path || snap?.pending.reels.find((x) => x.id === r0.id)?.video_path || null;
+      let pp = r0.poster_path || null;
+      let places: ExReel['places'] = [];
+      if (!vp) { const ex = await explain<ExReel>('reel', r0.id); if (ex) { vp = ex.video_path; pp = pp || ex.poster_path; places = ex.places; } }
+      const urls = await signReelPaths([vp || '', pp || ''].filter(Boolean)).catch(() => ({} as Record<string, string>));
+      if (vp && urls[vp]) video.replaceChildren(el('video', { src: urls[vp], poster: pp ? urls[pp] : undefined, controls: true, playsinline: true, preload: 'metadata', id: 'xReelVideo' }));
+      else if (pp && urls[pp]) video.replaceChildren(el('img', { src: urls[pp], alt: '' }), needsDb());
+      else video.replaceChildren(el('small', { class: 'xs-line' }, 'The clip could not load.'), el('a', { class: 'xs-line', href: '#q/reels' }, 'Open the Reels queue'));
+      if (places.length) video.after(xrow(`Place: ${places.map((x) => x.name).join(' · ')}`, places.some((x) => x.outside_bkk) ? 'outside Bangkok (no board Rings)' : 'Bangkok'));
+    } });
+}
+
+// ─── Rings this week ───
+function openRingsSheet(uid: string, nm?: { no: number | null; name: string | null }): void {
+  const p = personOf(uid);
+  const name = `${nm?.name || p?.name || 'This member'}${(nm?.no ?? p?.no) != null ? ` #${nm?.no ?? p?.no}` : ''}`;
+  const sc = p?.score;
+  void loadPhotos([uid]);
+  openSheet({ kind: 'rings', id: uid, title: `Rings this week · ${name}`, who: [whoOf({ user_id: uid, no: nm?.no ?? p?.no ?? null, name: nm?.name ?? p?.name ?? null })],
+    why: sc ? `${name} has ${sc.score} Rings this week: ${sc.likes} likes, ${sc.saves} saves and ${sc.opens} shared-link opens that counted. Who gave them is below.` : `Who gave ${name} Rings this week, and what did not count.`,
+    faint: 'A like = 1 Ring, a save = 3, a shared-link open = 5; likes and saves from verified travellers count double.',
+    load: async (box) => {
+      const ex = await explain<ExRings>('rings', uid);
+      if (!ex) { box.append(needsDb()); return; }
+      const sm = ringsSummary(ex);
+      box.querySelector('#xSheetWhy')!.textContent = ringsSentence(name, sm);
+      await loadPhotos(ex.gives.map((g) => g.user_id));
+      const giverRows = (what: 'like' | 'save') => ex.gives.filter((g) => g.what === what).map((g) => xrow(`#${g.no ?? '?'} ${g.name || 'member'}${g.traveller ? ' · traveller ×2' : ''}`,
+        g.counted ? `counted · ${ago(g.at)}` : `did not count: ${giveWhy(g.why)}`, { href: `#m/${g.user_id}`, tone: g.counted ? 'g' : 'r' }));
+      const likes = giverRows('like'), saves = giverRows('save');
+      box.append(...[
+        sm.topGivers.length ? xsec('Who gave the most') : null, ...sm.topGivers.map((t) => xrow(`#${t.no ?? '?'} ${t.name}`, `${t.n} counted like${t.n === 1 ? '' : 's'} / save${t.n === 1 ? '' : 's'}`, { href: `#m/${t.user_id}`, tone: 'g' })),
+        xsec(`Likes · ${sm.likes} counted${sm.likesOff ? ` · ${sm.likesOff} not` : ''}`), ...(likes.length ? likes : [el('small', { class: 'xs-line' }, 'No likes this week.')]),
+        xsec(`Saves · ${sm.saves} counted${sm.savesOff ? ` · ${sm.savesOff} not` : ''}`), ...(saves.length ? saves : [el('small', { class: 'xs-line' }, 'No saves this week.')]),
+        xsec(`Shared-link opens · ${sm.opens} counted${sm.opensOff ? ` · ${sm.opensOff} not` : ''}`),
+        ...(ex.opens.length ? ex.opens.slice(0, 60).map((o) => xrow(o.counted ? `Counted · from ${o.source || 'a link'}${o.country ? ` · ${o.country}` : ''}` : `Not counted: ${openWhy(o.why)}`,
+          `${ago(o.at)}${o.opener_no != null ? ` · opened by #${o.opener_no} ${o.opener_name || ''}` : ''}`, { tone: o.counted ? 'g' : 'r', href: o.opener ? `#m/${o.opener}` : undefined }))
+          : [el('small', { class: 'xs-line' }, 'Nobody opened a shared link this week.')]),
+        sm.offWhy.length ? xsec('Why some did not count') : null, ...sm.offWhy.map(([w, n]) => xrow(w, `${n} time${n === 1 ? '' : 's'}`, { tone: 'a' }))].filter((x): x is HTMLElement => !!x));
+    } });
+}
+
+// ─── places ───
+async function openPlaceById(id: string): Promise<void> {
+  const ex = await explain<ExPlace>('place', id);
+  if (ex) { openPlaceSheet({ id: ex.id, name_en: ex.name_en, name_th: ex.name_th, area: ex.area, status: ex.status as PlaceRow['status'], added_how: ex.added_how, outside_bkk: ex.outside_bkk,
+    coords_rough: false, osm_ref: null, lat: ex.lat, lng: ex.lng, created_at: ex.created_at, by_no: ex.by_no, by_name: ex.by_name, geo: null, reels: ex.reels.length, auto: null }); return; }
+  location.hash = '#places';
+}
+function openPlaceSheet(p: PlaceRow, after?: () => void): void {
+  const key = 'place:' + p.id;
+  const hide = p.status !== 'rejected';
+  const map = p.coords_rough ? `https://www.google.com/maps/search/${encodeURIComponent(p.name_th || p.name_en)}` : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+  openSheet({ kind: 'place', id: p.id, title: p.name_en, why: p.status === 'rejected' ? `${p.name_en} is hidden: it does not show in search or on any Reel.`
+      : `${p.name_en} was added ${p.added_how === 'typed' ? `by ${p.by_no != null ? `member #${p.by_no} ${p.by_name || ''}` : 'a member'}` : 'by Kring'} and is used on ${p.reels} Reel${p.reels === 1 ? '' : 's'}${p.outside_bkk ? '. It is outside Bangkok, so those Reels earn no board Rings' : ''}.`,
+    evidence: [p.name_th && p.name_th !== p.name_en ? xrow(p.name_th, 'name in Thai (what members typed)') : null, xrow(p.area, `added ${ago(p.created_at)} · ${placeFlags(p).map(([t]) => t).join(' · ')}`),
+      p.by_no != null ? xrow(`Added by #${p.by_no} ${p.by_name || ''}`, 'tap to open the member', { onTap: () => { const m = snap?.people.find((x) => x.no === p.by_no); location.hash = m ? `#m/${m.user_id}` : '#people'; } }) : null],
+    actions: [xlink('Map ↗', map, 'xPlaceMap'), xbtn(hide ? 'Hide this place' : 'Restore this place', hide ? 'bad' : 'ok', hide ? 'xPlaceHide' : 'xPlaceRestore',
+      closeThen(() => later(key, hide ? `Hidden: ${p.name_en}` : `Restored: ${p.name_en}`, async () => { await rpc('kr8_admin_place_undo', { p_id: p.id, p_action: hide ? 'hide' : 'restore' }); after?.(); })))],
+    load: async (box) => {
+      const ex = await explain<ExPlace>('place', p.id);
+      if (!ex) { box.append(needsDb()); return; }
+      const urls = await signReelPaths(ex.reels.map((r) => r.poster_path || '').filter(Boolean)).catch(() => ({} as Record<string, string>));
+      box.append(xsec(`Reels at this place · ${ex.reels.length}`), ...(ex.reels.length ? [el('div', { class: 'xs-reels' }, ...ex.reels.map((r) => tap(el('div', { class: 'v2reel' },
+        r.poster_path && urls[r.poster_path] ? el('img', { src: urls[r.poster_path], alt: '' }) : el('span', { class: 'none' }),
+        el('small', {}, `#${r.no ?? '?'} ${r.name || ''}`), el('small', {}, r.hidden || r.status === 'hidden' ? 'hidden' : r.status === 'pending' ? 'waiting' : 'live')),
+        () => openReelSheet({ id: r.id, status: r.status, hidden: r.hidden, poster_path: r.poster_path, author: r.author, at: r.at }))))] : [el('small', { class: 'xs-line' }, 'No Reel uses it.')]));
+    } });
+}
+
+// ─── chips / flags / trust ───
+function openFlagSheet(key: string, p: Person): void {
+  const fl = snap ? personFlags(p, snap.people, snap.claims).find((f) => f.key === key) : undefined;
+  const links = key === 'lookalike' || key === 'shared' || key === 'lookalike_board' ? p.links : [];
+  void loadPhotos([p.user_id, ...links.map((l) => l.user_id)]);
+  openSheet({ kind: 'flag', id: `${p.user_id}:${key}`, title: fl?.text || key.replace(/_/g, ' '), who: [whoOf(p)], why: flagWhy(key, p),
+    evidence: [...links.map((l) => { const v = linkVerdict(l); return xrow(v.text, `#${l.no ?? '?'} ${l.name || ''}${v.faint ? ` · ${v.faint}` : ''}`, { href: `#m/${l.user_id}`, tone: v.tone }); }),
+      key === 'opens_only' || key === 'board_off' ? xrow('See who gave the Rings', 'likes, saves and link opens this week', { onTap: () => openRingsSheet(p.user_id, p) }) : null],
+    actions: [links.length ? xlink('Decide in Needs you', '#inbox/lookalike', 'xFlagDecide', 'ok') : null, xlink('Open member', `#m/${p.user_id}`, 'xFlagMember')] });
+}
+function openTrustSheet(p: { user_id: string; no: number | null; name: string | null }, t: Trust): void {
+  const w = trustWords(t);
+  openSheet({ kind: 'trust', id: p.user_id, title: w.text, who: [whoOf(p)],
+    why: w.tone === 'g' ? `${who(p)} looks like a real, single account.` : w.tone === 'r' ? `${who(p)} shows strong signs of being a second account or a risk. Do not pay before checking.` : `${who(p)} has mixed signs. Look at their photos before paying.`,
+    evidence: t.reasons.length ? t.reasons.map((r) => xrow(r.replace(/^[+−-]\d+\s*/, ''), r.startsWith('+') ? 'good sign' : 'warning sign', { tone: r.startsWith('+') ? 'g' : 'r' })) : [el('small', { class: 'xs-line' }, 'No good or bad signs yet.')],
+    faint: `${w.detail} / 100 (50 = no signs either way)`, actions: [xlink('Open member', `#m/${p.user_id}`, 'xTrustMember')] });
+}
+/** chip that opens a why sheet (inside a link the link is not followed) */
+function whyChip(text: string, tone: string, fn: () => void): HTMLElement { return tapIn(chip(text, tone), fn); }
 
 // ───────── Growth (0113): the page admin opens on · 0114: Day view + Day by day table ─────────
 /** founder 18 Nov: "growth status should be the default page in admin" — visitors, where from, who comes back, which links bring members.
@@ -433,19 +724,30 @@ function growthBody(g: Growth, opt: { pastDay?: boolean; daily?: HTMLElement | n
     el('small', { class: k && of && n / of === low ? 'low' : '' }, k ? stepPct(n, of) : ''))));
 
   const src = groupSources(g.sources);
-  const sources = el('div', { class: 'lt-list', id: 'grSources' }, ...(src.length ? src.map((x) => el('div', { class: 'v2li gr-row', 'data-src': x.key, title: x.hosts.join(', ') || undefined },
+  // 18 Nov tap-all: each source / link / country row opens what it means
+  const sources = el('div', { class: 'lt-list', id: 'grSources' }, ...(src.length ? src.map((x) => tap(el('div', { class: 'v2li gr-row', 'data-src': x.key, title: x.hosts.join(', ') || undefined },
     el('span', { class: `gr-dot s-${x.key}` }),
     el('div', { class: 'grow' }, el('b', {}, x.label), el('i', { class: 'gr-bar' }, el('u', { style: `width:${Math.max(2, x.share)}%` })),
       x.key === 'other' && x.hosts.length ? el('small', {}, x.hosts.join(' · ')) : null),
-    el('div', { class: 'gr-n' }, el('b', {}, fmt(x.visitors)), el('small', {}, `${x.share}%`))))
+    el('div', { class: 'gr-n' }, el('b', {}, fmt(x.visitors)), el('small', {}, `${x.share}%`))), () => openSheet({ kind: 'source', id: `${g.from}:${g.to}:${x.key}`, title: x.label,
+      why: `${fmt(x.visitors)} visitor${x.visitors === 1 ? '' : 's'} (${x.share}% of everyone in this period) came to Kring first from ${x.label}.`,
+      evidence: x.hosts.length ? [xsec('Sites that sent them'), ...x.hosts.map((h) => xrow(h, 'the site the visit came from'))] : [el('small', { class: 'xs-line' }, 'No site name was passed on (typed link, home-screen app or an in-app browser).')] })))
     : [el('div', { class: 'v2sub gr-none' }, 'No visitors in this period yet.')]));
 
   const refs = visibleRefs(g.refs);
-  const refRow = (r: (typeof refs)[number]) => el('div', { class: 'v2li gr-row', 'data-ref': r.ref },
+  const refRow = (r: (typeof refs)[number]) => tap(el('div', { class: 'v2li gr-row', 'data-ref': r.ref },
     el('span', { class: 'gr-ic' }, ic('link')),
     el('div', { class: 'grow' }, el('b', {}, refLabel(r)),
       el('small', {}, `${fmt(r.visitors)} visitor${r.visitors === 1 ? '' : 's'} · ${r.reels} posted a Reel`)),
-    el('div', { class: 'gr-n' }, el('b', { class: r.joined ? 'hot' : '' }, fmt(r.joined)), el('small', {}, 'joined')));
+    el('div', { class: 'gr-n' }, el('b', { class: r.joined ? 'hot' : '' }, fmt(r.joined)), el('small', {}, 'joined'))), () => {
+      const joined = snap ? snap.people.filter((p) => p.kind === 'real' && (p.ref || '').toLowerCase() === r.ref.toLowerCase()) : [];
+      void loadPhotos(joined.map((p) => p.user_id));
+      openSheet({ kind: 'ref', id: `${g.from}:${r.ref}`, title: refLabel(r),
+        why: `${fmt(r.visitors)} phone${r.visitors === 1 ? '' : 's'} opened this link; ${r.joined} made a member card${r.reels ? ` and ${r.reels} posted a Reel` : ''}.`,
+        who: joined.slice(0, 30).map((p) => whoOf(p, `joined ${ago(p.joined_at)}`)),
+        evidence: joined.length ? [] : [el('small', { class: 'xs-line' }, 'Nobody with this code is in the member list yet.')],
+        actions: [xlink('Recruiters page', '#recruiters', 'xRefRecruiters')] });
+    });
   const head = refs.slice(0, 6); const rest = refs.slice(6);
   const recruit = el('div', { class: 'lt-list', id: 'grRefs' },
     ...(refs.length ? head.map(refRow) : [el('div', { class: 'v2sub gr-none' }, 'No recruiter or invite link was used in this period.')]),
@@ -455,10 +757,11 @@ function growthBody(g: Growth, opt: { pastDay?: boolean; daily?: HTMLElement | n
       el('div', { class: 'gr-n' }, el('b', {}, fmt(g.app_installs)), el('small', {}, 'installs'))));
 
   const cMax = Math.max(1, ...g.countries.map((c) => c.visitors));
-  const countries = el('div', { class: 'lt-list', id: 'grCountries' }, ...(g.countries.length ? g.countries.map((c) => el('div', { class: 'v2li gr-row' },
+  const countries = el('div', { class: 'lt-list', id: 'grCountries' }, ...(g.countries.length ? g.countries.map((c) => tap(el('div', { class: 'v2li gr-row' },
     el('span', { class: 'gr-flag' }, flag(c.country) || '🌐'),
     el('div', { class: 'grow' }, el('b', {}, countryName(c.country)), el('i', { class: 'gr-bar c' }, el('u', { style: `width:${Math.max(2, Math.round((c.visitors / cMax) * 100))}%` }))),
-    el('div', { class: 'gr-n' }, el('b', {}, fmt(c.visitors)))))
+    el('div', { class: 'gr-n' }, el('b', {}, fmt(c.visitors)))), () => openSheet({ kind: 'country', id: `${g.from}:${c.country}`, title: countryName(c.country),
+      why: `${fmt(c.visitors)} visitor${c.visitors === 1 ? '' : 's'} in this period came from ${countryName(c.country)}${c.country === 'TH' ? ' — the people Kring is for' : c.country === 'US' ? ' — often our own testing and robots' : ''}.` })))
     : [el('div', { class: 'v2sub gr-none' }, 'No visitors in this period yet.')]));
 
   const sec = (t: string, note: string, id: string) => el('div', { class: 'v2sec gr-sec' }, t, info(note, id));
@@ -535,6 +838,8 @@ export function growthView(dayArg?: string) {
 
 // ───────── Needs you: one case per card ─────────
 let inboxFilter: 'all' | InboxItem['kind'] = (LS('kr8-v2-if') as 'all' | InboxItem['kind']) || 'all';
+/** #inbox/case/<key>: the one case to scroll to and flash after the list paints */
+let focusCase = '';
 export function inboxView() {
   const help = helpSection(setHelpWaiting);   // 0097: created once per visit, so a half-typed reply survives the 30 s refresh
   const bugs = bugSection(setBugsWaiting);    // 0110: "Spot a bug" notes from View as member, one case per card
@@ -566,6 +871,11 @@ export function inboxView() {
       open.length || bugsWaiting ? null : el('div', { class: 'v2zero', id: 'v2Zero' }, ic('check'), el('b', {}, 'Nothing needs you'), el('span', {}, 'Everything else was handled automatically.')),
       el('div', { id: 'v2Inbox' }, ...shown.map((i) => inboxCard(i, open))),
       handledBox(handled, preview));
+    if (focusCase) {
+      const t = document.querySelector<HTMLElement>(`[data-item="${CSS.escape(focusCase)}"]`);
+      focusCase = '';
+      if (t) { t.scrollIntoView?.({ behavior: 'smooth', block: 'center' }); t.classList.add('v2flash'); window.setTimeout(() => t.classList.remove('v2flash'), 1400); }
+    }
   }, header('Needs you'));
 }
 const KIND_LABEL: Record<InboxItem['kind'], [string, string]> = { held: ['Money', 'r'], lookalike: ['Look-alike', 'a'], check: ['Face check', 'b'], reel: ['Reel', 'p'], reports: ['Reports', 'a'] };
@@ -585,9 +895,10 @@ function inboxCard(i: InboxItem, open?: InboxItem[]): HTMLElement {
     // the robot's reasons (and the second "what happened" line) sit behind the pill: one tap
     const restBox = el('div', { class: 'v2rest', hidden: true }, el('div', { class: 'v2flags' }, ...v.reasons.map((r) => chip(r, r.startsWith('+') ? 'g' : 'a'))),
       i.what[1] ? el('small', { class: 'v2sub' }, i.what[1]) : null);
-    const pill = el('button', { type: 'button', class: `v2pill ${v.tone}`, 'data-call': v.call, 'aria-expanded': 'false' }, ic('robot'), `Robot: ${v.call} · trust ${v.score}`);
+    // 18 Nov: the decision in one plain sentence; the score is small faint detail
+    const pill = el('button', { type: 'button', class: `v2pill ${v.tone}`, 'data-call': v.call, 'aria-expanded': 'false' }, ic('robot'), `Robot: ${v.call}`, el('small', { class: 'v2faint' }, ` · trust ${v.score}`));
     pill.onclick = () => { restBox.hidden = !restBox.hidden; pill.setAttribute('aria-expanded', String(!restBox.hidden)); };
-    card.append(el('div', { class: 'v2verdict2' }, pill, restBox));
+    card.append(el('div', { class: 'v2verdict2' }, el('b', { class: `v2vsent ${v.tone}` }, `Robot says: ${verdictSentence(v)}`), pill, restBox));
   } else if (i.what[1]) card.append(el('small', { class: 'v2sub v2what2' }, i.what[1]));
   // 18 Nov (founder: "how do I decide if you don't show me the selfies"): every face decision shows the photos side by side, big
   if (i.kind === 'check' || i.kind === 'lookalike') card.append(comparePhotos(i));
@@ -670,8 +981,8 @@ function dupUndoButton(h: Handled): HTMLElement | null {
   return b;
 }
 function handledLine(h: Handled, tag?: HTMLElement | null): HTMLElement {
-  return el('div', { class: 'v2li v2hl', style: hiddenKeys.has(h.key) ? 'opacity:.4' : undefined }, ic('robot'),
-    el('div', { class: 'grow' }, el('b', {}, h.text), el('small', {}, ago(h.at))), tag ?? dupUndoButton(h));
+  return tap(el('div', { class: 'v2li v2hl', style: hiddenKeys.has(h.key) ? 'opacity:.4' : undefined, 'data-h': h.key }, ic('robot'),
+    el('div', { class: 'grow' }, el('b', {}, h.text), el('small', {}, ago(h.at))), tag ?? dupUndoButton(h)), () => openHandledSheet(h));
 }
 /** "Handled automatically" — collapsed at the bottom of Needs you, one line per robot action, Undo where it can be undone */
 function handledBox(handled: Handled[], preview: Handled[]): HTMLElement {
@@ -687,8 +998,8 @@ export function autoView() {
     screen('inbox', header('Handled automatically', `${handled.length} things you did not have to touch`, '#inbox'),
       preview.length ? el('div', { class: 'v2sec', id: 'v2PreviewHd' }, `Handled automatically: preview · ${preview.length}`) : null,
       preview.length ? el('div', { class: 'v2sub', style: 'margin:-4px 2px 8px' }, 'Dry run of past data: the duplicate robot WOULD hide these accounts. Nobody is hidden until the sweep switch is on.') : null,
-      preview.length ? el('div', { class: 'v2card v2list', id: 'v2Preview' }, ...preview.map((h) => el('div', { class: 'v2li' }, ic('robot'),
-        el('div', { class: 'grow' }, el('b', {}, h.text), el('small', {}, `${ago(h.at)} · ${both(h.at, true)}`)), chip('preview', 'a')))) : null,
+      preview.length ? el('div', { class: 'v2card v2list', id: 'v2Preview' }, ...preview.map((h) => tap(el('div', { class: 'v2li' }, ic('robot'),
+        el('div', { class: 'grow' }, el('b', {}, h.text), el('small', {}, `${ago(h.at)} · ${both(h.at, true)}`)), chip('preview', 'a')), () => openHandledSheet(h)))) : null,
       el('div', { class: 'v2card v2list' }, ...handled.map((h) => {
         const undoBtn = h.undoDup && !h.undone
           ? el('button', { type: 'button', class: 'v2btn ok', id: 'dupUndo-' + h.undoDup, style: 'flex:0 0 auto;min-height:36px;padding:0 12px' }, 'Undo')
@@ -697,10 +1008,10 @@ export function autoView() {
           const dupId = h.undoDup;
           undoBtn.onclick = () => later(h.key, 'Duplicate restored · ghost mode off', () => rpc('kr8_admin_dup_auto_undo', { p_dup: dupId, p_action: 'undo' }));
         }
-        return el('div', { class: 'v2li', style: hiddenKeys.has(h.key) ? 'opacity:.4' : undefined },
+        return tap(el('div', { class: 'v2li', style: hiddenKeys.has(h.key) ? 'opacity:.4' : undefined },
           ic('robot'),
           el('div', { class: 'grow' }, el('b', {}, h.text), el('small', {}, `${ago(h.at)} · ${both(h.at, true)}`)),
-          undoBtn || (h.undone ? chip('undone', 'k') : null));
+          undoBtn || (h.undone ? chip('undone', 'k') : null)), () => openHandledSheet(h));
       })));
   }, header('Handled automatically', undefined, '#inbox'));
 }
@@ -763,20 +1074,21 @@ function pcard(p: Person, s: Snapshot): HTMLElement {
   const flags = personFlags(p, s.people, s.claims);
   const kindChip = p.kind === 'real' || noCard(p) ? null : chip(p.kind, 'k');
   const step = stepChip(p, s);
-  const tr = !noCard(p) ? trustChip(personTrust(p, s)) : null;
+  const tt = !noCard(p) ? personTrust(p, s) : null;
+  const tr = tt ? trustWords(tt) : null;
   return el('a', { class: `v2pc ${p.who === 'traveller' ? 'trav' : ''} ${flags.some((f) => f.tone === 'r') ? 'red' : ''}`, href: personLink(p), 'data-uid': p.user_id, 'data-who': p.who || 'local',
     title: `joined ${both(p.joined_at, true)} · ${p.ref ? `via ${p.ref}` : p.src ? `no referrer · came from ${p.src}` : 'no referrer'}` },
     el('span', { class: `v2pc-img ${src ? '' : 'none'}`, style: src ? `background-image:url("${src}")` : '' }, src ? '' : (p.name || p.email_hint || '?').slice(0, 1)),
     el('span', { class: 'v2pc-scrim' }),
     el('span', { class: 'v2pc-tl' }, el('b', {}, p.no != null ? `#${p.no}` : 'no card'), kindChip),
-    el('span', { class: 'v2pc-tr' }, tr ? chip(tr.text, tr.tone) : null),
+    el('span', { class: 'v2pc-tr' }, tr && tt ? tapIn(el('span', { class: `v2chip ${tr.tone}` }, tr.text, el('small', { class: 'v2faint' }, ` · ${tr.detail}`)), () => openTrustSheet(p, tt)) : null),
     el('span', { class: 'v2pc-info' },
       step ? el('span', { class: `v2step ${step.tone}`, 'data-step': step.key }, step.text) : null,
       el('b', { class: 'nm' }, p.name || p.email_hint || 'No name'),
       el('small', {}, p.kind === 'nocard' ? 'Signed in · no card yet' : `${p.who === 'traveller' ? 'Visiting' : 'Local'}${p.area ? ' · ' + p.area : ''} · ${ago(p.joined_at)}`),
       el('span', { class: 'v2pc-flags' },
-        ...flags.filter((f) => ['lookalike', 'shared', 'board_off'].includes(f.key)).map((f) => chip(f.key === 'lookalike' ? '👥 ' + f.text.replace('Looks like ', '') : f.key === 'shared' ? '📶 shared' : '⛔ board off', f.tone)),
-        p.claims?.held ? chip(`${p.claims.held} held claim${p.claims.held === 1 ? "" : "s"}`, "a") : null)));
+        ...flags.filter((f) => ['lookalike', 'shared', 'board_off'].includes(f.key)).map((f) => whyChip(f.key === 'lookalike' ? '👥 ' + f.text.replace('Looks like ', '') : f.key === 'shared' ? '📶 shared' : '⛔ board off', f.tone, () => openFlagSheet(f.key, p))),
+        p.claims?.held ? whyChip(`${p.claims.held} held claim${p.claims.held === 1 ? "" : "s"}`, "a", () => openClaimsSheet('Held claims', `${who(p)}'s prize claims the robot held for your decision.`, s.claims.filter((c) => c.user_id === p.user_id && c.held && c.status === 'pending'), 'held-' + p.user_id)) : null)));
 }
 
 // ───────── Member 360 ─────────
@@ -798,13 +1110,13 @@ export async function memberView(uid: string) {
   const body = el('div', {}, loadingCard());
   screen('people', header('Member', undefined, '#people'), body);
   stopV2();
+  rerender = () => { if (location.hash === `#m/${uid}`) void memberView(uid); };   // an Approve / Hide / Pay in a sheet refreshes this page
   let m: M360;
   try { m = await rpc<M360>('kr8_admin_v2_member', { p_user: uid }); } catch (e) { body.replaceChildren(errorCard(e)); return; }
   const c = m.card;
   const snapP = snap?.people.find((p) => p.user_id === uid);
   const flags = snapP && snap ? personFlags(snapP, snap.people, snap.claims) : [];
   const tr: Trust | null = m.trust || (snapP && snap ? personTrust(snapP, snap) : null);
-  const trChip = tr ? trustChip(tr) : null;
   const [urls, faces] = await Promise.all([
     signReelPaths(m.reels.map((r) => r.poster_path || '').filter(Boolean)).catch(() => ({} as Record<string, string>)),
     rpc<FaceCheck[]>('kr8_admin_v2_face_checks', { p_user: uid, p_auto_only: false, p_limit: 10 }).catch(() => [] as FaceCheck[]),
@@ -814,14 +1126,25 @@ export async function memberView(uid: string) {
   const sec = (title: string, n: number | string, ...kids: Kid[]) => fold(undefined, foldHead(title, String(n)), kids, 'v2m');
   const kv = (k: string, v: Kid) => el('div', { class: 'v2kv' }, el('span', {}, k), el('b', {}, v ?? '–'));
   const yes = (b: boolean | null | undefined) => (b ? 'Yes' : b === false ? 'No' : '–');
-  const timeline = [
-    ...(c ? [{ at: c.joined_at, t: 'Joined' + (c.ref ? ` via ${c.ref}` : '') }] : []),
-    ...m.reels.map((r) => ({ at: r.at, t: `Posted a Reel (${r.hidden ? 'hidden' : r.status})` })),
-    ...m.checks.map((v) => ({ at: v.at, t: `Face check ${v.status}${v.auto ? ` · robot said ${v.auto}` : ''}` })),
-    ...m.claims.map((x) => ({ at: x.created_at, t: `Claimed ฿${x.amount} ${x.brand} · ${claimChip({ ...x, user_id: uid } as unknown as Claim).text}` })),
-    ...m.links.map((l) => ({ at: l.at, t: `Linked to #${l.no} (${lookalikeWords(l.dist, l.reason).text})${l.dismissed ? ' · you said different people' : ''}` })),
-    ...m.admin_log.map((a) => ({ at: a.at, t: `Admin: ${a.action.replace(/_/g, ' ')}` })),
-    ...m.claims.filter((x) => x.decided_at).map((x) => ({ at: x.decided_at!, t: `You decided the held claim: ${x.decided}` })),
+  // 18 Nov tap-all: a member claim as a snapshot Claim (so the claim sheet works here too)
+  const asClaim = (x: M360['claims'][number]): Claim => snap?.claims.find((y) => y.id === x.id) || ({ ...x, user_id: uid, no: c?.no ?? null, name: c?.name ?? null, is_test: false,
+    face_dist: null, joined_at: c?.joined_at ?? null, hold_others: null, prize: null } as Claim);
+  const reelOf = (r: M360['reels'][number]) => ({ ...r, author: uid });
+  const checkSheet = (v: M360['checks'][number]) => openSheet({ kind: 'check', id: v.id, title: `Face check ${v.status}`, who: [whoOf({ user_id: uid, no: c?.no ?? null, name: c?.name ?? null })],
+    why: v.status === 'approved' ? `${c?.name || 'The member'}'s live selfie was approved${v.by_admin ? ' by you' : ' automatically'}.` : v.status === 'pending' ? 'This face check waits for your yes / no in Needs you.'
+      : `${c?.name || 'The member'}'s face check was refused${v.reason ? `: ${v.reason.split('\n').pop()}` : ''}.`,
+    evidence: [xrow('Taken', both(v.at, true)), v.reviewed_at ? xrow('Decided', both(v.reviewed_at, true)) : null],
+    actions: [v.status === 'pending' ? xlink('Decide in Needs you', '#inbox/check', 'xCheckDecide', 'ok') : xlink('Face checks page (Reject / Undo)', '#faces', 'xCheckFaces')] });
+  const timeline: { at: string; t: string; go: () => void }[] = [
+    ...(c ? [{ at: c.joined_at, t: 'Joined' + (c.ref ? ` via ${c.ref}` : ''), go: () => openSheet({ kind: 'event', id: `${uid}:joined`, title: 'Joined Kring', who: [whoOf({ user_id: uid, no: c.no, name: c.name })],
+      why: `${c.name} made a card ${ago(c.joined_at)}${c.ref ? ` using the invite / recruiter code ${c.ref}` : c.src ? `, coming from ${c.src}` : ' with no invite code'}.`, evidence: [xrow('Joined', both(c.joined_at, true))] }) }] : []),
+    ...m.reels.map((r) => ({ at: r.at, t: `Posted a Reel (${r.hidden ? 'hidden' : r.status})`, go: () => openReelSheet(reelOf(r)) })),
+    ...m.checks.map((v) => ({ at: v.at, t: `Face check ${v.status}${v.auto ? ` · robot said ${v.auto}` : ''}`, go: () => checkSheet(v) })),
+    ...m.claims.map((x) => ({ at: x.created_at, t: `Claimed ฿${x.amount} ${x.brand} · ${claimChip({ ...x, user_id: uid } as unknown as Claim).text}`, go: () => openClaimSheet(asClaim(x)) })),
+    ...m.links.map((l) => ({ at: l.at, t: `Linked to #${l.no}: ${linkVerdict(l).text}${l.dismissed ? ' · you said different people' : ''}`, go: () => { location.hash = `#m/${l.user_id}`; } })),
+    ...m.admin_log.map((a) => ({ at: a.at, t: `Admin: ${a.action.replace(/_/g, ' ')}`, go: () => openSheet({ kind: 'event', id: `${uid}:${a.at}`, title: 'Done in admin',
+      why: `Someone in admin did "${a.action.replace(/_/g, ' ')}" for this member.`, evidence: [xrow('When', both(a.at, true))] }) })),
+    ...m.claims.filter((x) => x.decided_at).map((x) => ({ at: x.decided_at!, t: `You decided the held claim: ${x.decided}`, go: () => openClaimSheet(asClaim(x)) })),
   ].sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
   const liveReels = m.reels.filter((r) => r.status === 'approved' && !r.hidden).length;
   const paidThb = m.claims.filter((x) => x.status === 'assigned').reduce((n, x) => n + x.amount, 0);
@@ -831,37 +1154,46 @@ export async function memberView(uid: string) {
       c?.photo ? el('img', { class: 'v2hero-img', src: c.photo, alt: '' }) : el('div', { class: 'v2hero-img none' }, (c?.name || '?').slice(0, 1)),
       el('div', { class: 'v2hero-info' },
         el('div', { class: 'v2flags' }, chip(c ? `#${c.no}` : 'no card', 'k'), m.kind !== 'real' ? chip(m.kind, 'a') : null,
-          c?.verified ? chip('✓ verified', 'g') : chip('not verified', ''), trChip ? chip(trChip.text, trChip.tone) : null),
+          c?.verified ? chip('✓ verified', 'g') : chip('not verified', ''),
+          tr ? tapIn(el('span', { class: `v2chip ${trustWords(tr).tone}`, id: 'v2MemberTrustChip' }, trustWords(tr).text, el('small', { class: 'v2faint' }, ` · ${trustWords(tr).detail}`)),
+            () => openTrustSheet({ user_id: uid, no: c?.no ?? null, name: c?.name ?? null }, tr)) : null),
         el('h2', {}, c?.name || m.email_hint || 'Account without a card'),
         el('div', { class: 'v2sub' }, c ? `${c.who === 'traveller' ? 'Visiting' : 'Local'} · ${c.area || '–'} · joined ${ago(c.joined_at)}` : `Signed up ${ago(m.signed_up_at)}`,
           c?.ig ? el('a', { href: `https://instagram.com/${c.ig}`, target: '_blank', rel: 'noopener' }, ` · IG @${c.ig}`) : null))),
-    flags.length ? el('div', { class: 'v2flags v2m-flags' }, ...flags.map((f) => chip(f.text, f.tone))) : '',
+    flags.length && snapP ? el('div', { class: 'v2flags v2m-flags' }, ...flags.map((f) => whyChip(f.text, f.tone, () => openFlagSheet(f.key, snapP)))) : '',
     el('div', { class: 'v2stats lt-stats' },
-      el('div', {}, el('b', {}, String(liveReels)), el('span', {}, 'live Reels')),
-      el('div', {}, el('b', {}, m.board ? `#${m.board.rank}` : '–'), el('span', {}, `board · ${m.board?.rings ?? 0} Rings`)),
-      el('div', {}, el('b', {}, `฿${paidThb}`), el('span', {}, `${m.claims.length} claims`))),
-    m.reels.length ? el('div', { class: 'v2reels' }, ...m.reels.map((r) => el('div', { class: 'v2reel' },
+      tap(el('div', { id: 'v2StatReels' }, el('b', {}, String(liveReels)), el('span', {}, 'live Reels')), () => document.querySelector('.v2reels')?.scrollIntoView({ behavior: 'smooth', block: 'center' })),
+      tap(el('div', { id: 'v2StatRings' }, el('b', {}, m.board ? `#${m.board.rank}` : '–'), el('span', {}, `board · ${m.board?.rings ?? 0} Rings`)), () => openRingsSheet(uid, { no: c?.no ?? null, name: c?.name ?? null })),
+      tap(el('div', { id: 'v2StatClaims' }, el('b', {}, `฿${paidThb}`), el('span', {}, `${m.claims.length} claims`)),
+        () => openClaimsSheet('Claims', `Every prize claim by ${c?.name || 'this member'}. Tap one to see why it was paid, held or refused.`, m.claims.map(asClaim), 'm-' + uid))),
+    m.reels.length ? el('div', { class: 'v2reels' }, ...m.reels.map((r) => tap(el('div', { class: 'v2reel', 'data-reel': r.id },
       r.poster_path && urls[r.poster_path] ? el('img', { src: urls[r.poster_path], alt: '' }) : el('span', { class: 'none' }),
       el('small', {}, r.hidden || r.status === 'hidden' ? '🙈 hidden' : r.status === 'pending' ? '⏳ waiting' : r.board_off ? '⛔ off board' : '✓ live'),
-      el('small', {}, `♥${r.likes} 🔖${r.saves} ↗${r.shares} 👁${r.views}`)))) : '',
+      el('small', {}, `♥${r.likes} 🔖${r.saves} ↗${r.shares} 👁${r.views}`)), () => openReelSheet(reelOf(r))))) : '',
     el('div', { class: 'lt-list' },
-      tr ? sec('Trust score', `${tr.score} / 100`,
+      tr ? sec('Trust score', `${trustWords(tr).text} · ${tr.score} / 100`,
         tr.reasons.length
           ? el('div', { class: 'v2kvs', id: 'v2MemberTrust' }, ...tr.reasons.map((r) => el('div', { class: 'v2kv' }, el('b', { style: 'text-align:left' }, r))))
           : el('div', { class: 'v2sub', id: 'v2MemberTrust' }, 'Neutral baseline (50) — no positive or negative signals yet.')) : '',
-      sec('Rings this week', m.rings_week?.score ?? 0, el('div', { class: 'v2kvs' }, kv('Likes', String(m.rings_week?.likes ?? 0)), kv('Saves', String(m.rings_week?.saves ?? 0)),
-        kv('Link opens', String(m.rings_week?.opens ?? 0)), kv('Past weeks', m.results.map((r) => `#${r.rank}`).join(', ') || '–'))),
-      m.claims.length ? sec('Claims', m.claims.length, ...m.claims.map((x) => { const ch = claimChip({ ...x, user_id: uid } as unknown as Claim); return el('div', { class: 'v2li' },
-        el('div', { class: 'grow' }, el('b', {}, `฿${x.amount} ${x.brand}`), el('small', {}, `${both(x.created_at, true)}${c ? ` · ${Math.round((Date.parse(x.created_at) - Date.parse(c.joined_at)) / 60000)} min after joining` : ''}`)), chip(ch.text, ch.tone)); })) : '',
-      m.links.length ? sec('Look-alikes & links', m.links.length, ...m.links.map((l) => { const w = lookalikeWords(l.dist, l.reason); return el('a', { class: 'v2li', href: `#m/${l.user_id}` },
-        el('div', { class: 'grow' }, el('b', {}, `#${l.no} ${l.name || ''}`), el('small', {}, `${w.text}${l.dismissed ? ' · you said different people' : ''}`)), chip(l.dismissed ? 'settled' : 'open', l.dismissed ? '' : w.tone)); })) : '',
+      sec('Rings this week', m.rings_week?.score ?? 0, el('div', { class: 'v2kvs', id: 'v2MemberRings' },
+        ...([['Likes', String(m.rings_week?.likes ?? 0)], ['Saves', String(m.rings_week?.saves ?? 0)], ['Link opens', String(m.rings_week?.opens ?? 0)]] as [string, string][])
+          .map(([k, v]) => tap(kv(k, v), () => openRingsSheet(uid, { no: c?.no ?? null, name: c?.name ?? null }))),
+        kv('Past weeks', m.results.map((r) => `#${r.rank}`).join(', ') || '–')),
+        tap(el('div', { class: 'v2li', id: 'v2RingsWho' }, el('div', { class: 'grow' }, el('b', {}, 'Who gave these Rings?'), el('small', {}, 'likes, saves and link opens — counted or not, and why')), ic('chev')),
+          () => openRingsSheet(uid, { no: c?.no ?? null, name: c?.name ?? null }))),
+      m.claims.length ? sec('Claims', m.claims.length, ...m.claims.map((x) => { const ch = claimChip({ ...x, user_id: uid } as unknown as Claim); return tap(el('div', { class: 'v2li', 'data-claim': x.id },
+        el('div', { class: 'grow' }, el('b', {}, `฿${x.amount} ${x.brand}`), el('small', {}, `${both(x.created_at, true)}${c ? ` · ${Math.round((Date.parse(x.created_at) - Date.parse(c.joined_at)) / 60000)} min after joining` : ''}`)), chip(ch.text, ch.tone)),
+        () => openClaimSheet(asClaim(x))); })) : '',
+      m.links.length ? sec('Look-alikes & links', m.links.length, ...m.links.map((l) => { const w = linkVerdict(l); return el('a', { class: 'v2li', href: `#m/${l.user_id}` },
+        el('div', { class: 'grow' }, el('b', {}, `#${l.no} ${l.name || ''}`), el('small', {}, `${l.dismissed ? 'You said different people' : w.text}`), w.faint ? el('small', { class: 'v2faint' }, w.faint) : null),
+        chip(l.dismissed ? 'settled' : 'open', l.dismissed ? '' : w.tone)); })) : '',
       m.referrals.length ? sec('Brought in', m.referrals.length, ...m.referrals.map((r) => el('a', { class: 'v2li', href: `#m/${r.user_id}` }, el('div', { class: 'grow' }, el('b', {}, `#${r.no} ${r.name}`), el('small', {}, ago(r.joined_at)))))) : '',
       faces.length || m.checks.length ? sec('Face check', faces.length ? faceStatusWords(faces[0]) : m.checks[0].status,
         ...faces.map((f, i) => facePair(f, c?.photo || null, selfies, i === 0)),
-        ...m.checks.map((v) => el('div', { class: 'v2li' },
+        ...m.checks.map((v) => tap(el('div', { class: 'v2li' },
           el('div', { class: 'grow' }, el('b', {}, `${v.status}${v.auto ? ` · robot: ${v.auto}` : ''}`), el('small', {}, `${both(v.at, true)}${v.reason ? ' · ' + v.reason.split('\n').pop() : ''}`)),
-          chip(v.by_admin ? 'by you' : v.reviewed_at ? 'auto' : 'waiting', '')))) : '',
-      sec('Timeline', timeline.length, ...timeline.slice(0, 40).map((t) => el('div', { class: 'v2li tl' }, el('i', {}), el('div', { class: 'grow' }, el('b', {}, t.t), el('small', {}, `${ago(t.at)} · ${both(t.at, true)}`))))),
+          chip(v.by_admin ? 'by you' : v.reviewed_at ? 'auto' : 'waiting', '')), () => checkSheet(v)))) : '',
+      sec('Timeline', timeline.length, ...timeline.slice(0, 40).map((t) => tap(el('div', { class: 'v2li tl' }, el('i', {}), el('div', { class: 'grow' }, el('b', {}, t.t), el('small', {}, `${ago(t.at)} · ${both(t.at, true)}`))), t.go))),
       sec('Account & consents', m.consents.terms_version || '–', el('div', { class: 'v2kvs' },
         kv('Terms', m.consents.terms_version ? `${m.consents.terms_version} · ${clock(m.consents.terms_at)}` : 'Not accepted'),
         kv('Promo use of content', yes(m.consents.promo_ok)), kv('Reels on the website', yes(m.consents.web_reels)), kv('18+ confirmed', c?.age_ok_at ? clock(c.age_ok_at) : '–'),
@@ -874,23 +1206,30 @@ export function moneyView() {
   void withSnap('money', (s) => {
     const m = money(s);
     const claims = s.claims.filter((c) => includeTest || !c.is_test);
+    // 18 Nov tap-all: each tile opens the claims behind its number; each stock row opens its codes and who got them
+    const w0 = Date.parse(s.week_start);
+    const paid = claims.filter((c) => c.status === 'assigned');
     screen('money', header('Money', 'TrueMoney / Grab codes and every claim', '#more'),
       el('div', { class: 'v2kpis' },
-        el('div', { class: `v2kpi ${m.available < 5 ? 'hot' : ''}`, id: 'mAvail' }, el('b', {}, String(m.available)), el('span', {}, 'Codes left'), el('small', {}, `${m.assigned} given out`)),
-        el('div', { class: 'v2kpi', id: 'mWeek' }, el('b', {}, `฿${m.paidWeekThb}`), el('span', {}, 'Paid this week'), el('small', {}, `${m.paidWeekN} claims · since Mon (BKK)`)),
-        el('div', { class: `v2kpi ${m.heldN ? 'hot' : ''}`, id: 'mHeld' }, el('b', {}, `฿${m.heldThb}`), el('span', {}, 'Held'), el('small', {}, `${m.heldN} waiting for you`)),
-        el('div', { class: 'v2kpi', id: 'mAll' }, el('b', {}, `฿${m.paidAllThb}`), el('span', {}, 'Paid in all'), el('small', {}, `${claims.filter((c) => c.status === 'assigned').length} claims`))),
+        tap(el('div', { class: `v2kpi ${m.available < 5 ? 'hot' : ''}`, id: 'mAvail' }, el('b', {}, String(m.available)), el('span', {}, 'Codes left'), el('small', {}, `${m.assigned} given out`)), () => openStockSheet()),
+        tap(el('div', { class: 'v2kpi', id: 'mWeek' }, el('b', {}, `฿${m.paidWeekThb}`), el('span', {}, 'Paid this week'), el('small', {}, `${m.paidWeekN} claims · since Mon (BKK)`)),
+          () => openClaimsSheet('Paid this week', 'Prize codes sent since Monday (Bangkok time). Tap one to see who and why.', paid.filter((c) => Date.parse(c.assigned_at || c.created_at) >= w0), 'week')),
+        tap(el('div', { class: `v2kpi ${m.heldN ? 'hot' : ''}`, id: 'mHeld' }, el('b', {}, `฿${m.heldThb}`), el('span', {}, 'Held'), el('small', {}, `${m.heldN} waiting for you`)),
+          () => openClaimsSheet('Held claims', 'The robot held these claims because something looked like a second account. Tap one to see why, then Pay or Refuse.', claims.filter((c) => c.held && c.status === 'pending'), 'held')),
+        tap(el('div', { class: 'v2kpi', id: 'mAll' }, el('b', {}, `฿${m.paidAllThb}`), el('span', {}, 'Paid in all'), el('small', {}, `${paid.length} claims`)),
+          () => openClaimsSheet('Paid in all', 'Every prize code ever sent. Tap one to see who and why.', paid, 'all'))),
       el('div', { class: 'v2sec' }, 'Code stock'),
-      el('div', { class: 'v2card v2list', id: 'mStock' }, ...s.codes.map((k) => el('div', { class: 'v2li' }, el('div', { class: 'grow' }, el('b', {}, `${k.brand === 'truemoney' ? 'TrueMoney' : k.brand} ฿${k.amount}`),
-        el('small', {}, `${k.assigned} given out${k.used ? ` · ${k.used} other` : ''}`)), el('span', { class: 'v2meter' }, el('i', { style: `width:${Math.round((k.available / Math.max(1, k.available + k.assigned)) * 100)}%` })), el('b', {}, `${k.available} left`))),
+      el('div', { class: 'v2card v2list', id: 'mStock' }, ...s.codes.map((k) => tap(el('div', { class: 'v2li', 'data-stock': `${k.brand}:${k.amount}` }, el('div', { class: 'grow' }, el('b', {}, `${k.brand === 'truemoney' ? 'TrueMoney' : k.brand} ฿${k.amount}`),
+        el('small', {}, `${k.assigned} given out${k.used ? ` · ${k.used} other` : ''}`)), el('span', { class: 'v2meter' }, el('i', { style: `width:${Math.round((k.available / Math.max(1, k.available + k.assigned)) * 100)}%` })), el('b', {}, `${k.available} left`)),
+        () => openStockSheet(k.brand, k.amount))),
         el('a', { class: 'v2li', href: '#codes' }, el('div', { class: 'grow' }, el('b', {}, 'Add codes')), ic('chev'))),
       el('div', { class: 'v2sec' }, `Per member · ${m.byMember.length}`),
       el('div', { class: 'v2card v2list', id: 'mPer' }, ...m.byMember.map((r) => el('a', { class: 'v2li', href: r.p.user_id ? `#m/${r.p.user_id}` : '#money' },
         el('div', { class: 'grow' }, el('b', {}, who(r.p)), el('small', {}, `${r.n} claim${r.n === 1 ? '' : 's'}`)), el('b', {}, `฿${r.thb}`)))),
       el('div', { class: 'v2sec' }, `Every claim · ${claims.length}`),
       el('div', { class: 'v2card v2list', id: 'mClaims' }, ...claims.map((c) => { const ch = claimChip(c); const mins = c.joined_at ? Math.round((Date.parse(c.created_at) - Date.parse(c.joined_at)) / 60000) : null;
-        return el('a', { class: 'v2li', href: c.user_id ? `#m/${c.user_id}` : '#money', 'data-claim': c.id },
-          el('div', { class: 'grow' }, el('b', {}, `${who(c)} · ฿${c.amount}`), el('small', {}, `${clock(c.created_at)} IST${mins != null ? ` · ${mins} min after joining` : ''}${c.prize?.kind ? ` · ${c.prize.kind}` : ''}`)), chip(ch.text, ch.tone)); })),
+        return tapIn(el('a', { class: 'v2li', href: c.user_id ? `#m/${c.user_id}` : '#money', 'data-claim': c.id },
+          el('div', { class: 'grow' }, el('b', {}, `${who(c)} · ฿${c.amount}`), el('small', {}, `${clock(c.created_at)} IST${mins != null ? ` · ${mins} min after joining` : ''}${c.prize?.kind ? ` · ${c.prize.kind}` : ''}`)), chip(ch.text, ch.tone)), () => openClaimSheet(c)); })),
       testToggle());
   }, header('Money', undefined, '#more'));
 }
@@ -905,13 +1244,14 @@ export function boardView() {
     screen('board', header('Board', el('span', {}, `Ends ${weekLeft(s)}`, info(`Week from Mon ${wk} (Bangkok). Top ${s.board.paid_ranks} win a prize. ${s.board.floor} Rings to qualify. Tap a row for likes, saves and opens.`, 'v2BoardInfo')), '#more'),
       el('div', { class: 'lt-list', id: 'v2Board' }, ...s.board.rows.map((r) => {
         const p = byId.get(r.user_id);
-        const fl = [r.opens && !(r.likes || 0) && !(r.saves || 0) ? chip('opens only', 'a') : null,
-          p?.reels?.board_off ? chip('board off', 'a') : null, p && p.links.length ? chip('look-alike', 'r') : null];
+        // 18 Nov tap-all: each chip opens why; the Rings number opens who gave them
+        const fl = p ? [r.opens && !(r.likes || 0) && !(r.saves || 0) ? whyChip('opens only', 'a', () => openFlagSheet('opens_only', p)) : null,
+          p.reels?.board_off ? whyChip('board off', 'a', () => openFlagSheet('board_off', p)) : null, p.links.length ? whyChip('look-alike', 'r', () => openFlagSheet('lookalike_board', p)) : null] : [];
         const line = r.rings < s.board.floor && r.rank <= s.board.paid_ranks ? `${s.board.floor - r.rings} Rings to qualify` : r.prize ? `prize ฿${r.prize.toLocaleString('en-US')}` : `#${r.no}`;
         return el('a', { class: 'v2li v2brow', href: `#m/${r.user_id}`, 'data-uid': r.user_id, title: `♥${r.likes ?? 0} · 🔖${r.saves ?? 0} · opens ${r.opens ?? 0}${r.is_new ? ' · new this week' : ''}` },
           el('span', { class: `v2rank ${r.rank <= 3 ? 'top' : ''}` }, String(r.rank)), avatar({ user_id: r.user_id, name: r.name }, 40),
           el('div', { class: 'grow' }, el('b', {}, r.name), el('small', {}, line), fl.some(Boolean) ? el('span', { class: 'v2flags' }, ...fl) : null),
-          el('b', { class: 'v2rings' }, String(r.rings)));
+          tapIn(el('b', { class: 'v2rings', id: 'v2Rings-' + r.user_id, title: 'Who gave these Rings' }, String(r.rings)), () => openRingsSheet(r.user_id, r)));
       })),
       el('a', { class: 'v2pri', href: '#week', id: 'v2WeekGo' }, 'Approve last week', ic('chev')));
   }, header('Board', undefined, '#more'));
@@ -935,9 +1275,11 @@ export async function logView() {
     for (const e of ev.filter(f)) {
       const d = new Date(e.at).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short' });
       if (d !== day) { day = d; rows.push(el('div', { class: 'v2sec' }, d)); }
-      rows.push(el(e.user_id ? 'a' : 'div', { class: `v2li ev k-${e.kind}`, href: e.user_id ? `#m/${e.user_id}` : undefined },
+      const evRow = el(e.user_id ? 'a' : 'div', { class: `v2li ev k-${e.kind}`, href: e.user_id ? `#m/${e.user_id}` : undefined },
         el('span', { class: `v2evdot ${e.auto ? 'auto' : 'you'}` }), el('div', { class: 'grow' }, el('b', {}, `${e.no != null ? `#${e.no} ${e.name || ''}` : 'Admin'} · ${e.text}${e.other_no ? ` #${e.other_no}` : ''}`),
-          el('small', {}, `${clock(e.at, 'Asia/Kolkata', false)} IST · ${clock(e.at, 'Asia/Bangkok', false)} BKK · ${e.auto ? 'automatic' : 'by a person'}`))));
+          el('small', {}, `${clock(e.at, 'Asia/Kolkata', false)} IST · ${clock(e.at, 'Asia/Bangkok', false)} BKK · ${e.auto ? 'automatic' : 'by a person'}`)));
+      rows.push(e.user_id ? evRow : tap(evRow, () => openSheet({ kind: 'event', id: `log:${e.at}:${e.kind}`, title: e.auto ? 'Done by a robot' : 'Done in admin',
+        why: `${e.text}${e.other_no ? ` #${e.other_no}` : ''}.`, evidence: [xrow('When', both(e.at, true))] })));
     }
     body.replaceChildren(el('div', { class: 'v2chips' }, ...groups.map(([k, l]) => { const b = el('button', { type: 'button', class: logFilter === k ? 'on' : '', id: 'lf-' + k }, l); b.onclick = () => { logFilter = k; paint(); }; return b; })),
       el('div', { class: 'v2card v2list', id: 'v2Log' }, ...rows));
@@ -964,11 +1306,11 @@ export async function placesView() {
     btn.onclick = () => later(key, hide ? `Hidden: ${p.name_en}` : `Restored: ${p.name_en}`, async () => { await rpc('kr8_admin_place_undo', { p_id: p.id, p_action: hide ? 'hide' : 'restore' }); await load(); });
     const map = !p.coords_rough ? el('a', { href: `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`, target: '_blank', rel: 'noopener', class: 'v2sub' }, 'Map')
       : el('a', { href: `https://www.google.com/maps/search/${encodeURIComponent(p.name_th || p.name_en)}`, target: '_blank', rel: 'noopener', class: 'v2sub' }, 'Search map');
-    return el('div', { class: 'v2li', 'data-place': p.id, style: hiddenKeys.has(key) ? 'opacity:.4' : undefined },
+    return tap(el('div', { class: 'v2li', 'data-place': p.id, style: hiddenKeys.has(key) ? 'opacity:.4' : undefined },
       el('div', { class: 'grow' }, el('b', {}, p.name_en), p.name_th && p.name_th !== p.name_en ? el('div', { class: 'v2sub' }, p.name_th) : null,
         el('small', {}, `${p.area} · ${p.by_no != null ? `#${p.by_no} ${p.by_name || ''} · ` : ''}${ago(p.created_at)} · on ${p.reels} Reel${p.reels === 1 ? '' : 's'} · `, map),
         el('span', { class: 'v2flags' }, ...placeFlags(p).map(([t, tone]) => chip(t, tone)))),
-      btn);
+      btn), () => openPlaceSheet(p, () => void load()));
   };
   const paint = () => {
     const q = el('input', { type: 'search', id: 'plSearch', placeholder: 'Search place name', value: plQuery, autocomplete: 'off' });
@@ -1004,7 +1346,7 @@ function facePair(f: FaceCheck, photo: string | null, selfies: Record<string, st
     el('div', { class: 'v2fpair' }, pic(photo, 'Card photo', 'No photo'),
       pic(selfie, 'Live selfie', f.selfie_deleted_at ? 'Deleted after 30 days' : f.selfie_path ? 'Could not load' : 'No selfie')),
     el('div', { class: 'v2flags' }, chip(faceStatusWords(f), tone), chip(f.auto ? 'auto' : f.status === 'pending' ? 'waiting' : 'manual', 'k'),
-      f.live?.match != null ? chip(`match ${f.live.match.toFixed(2)}`, '') : null),
+      f.live ? (() => { const w = selfieWords(f.live.match, /^sface/.test(f.live.model || '')); return el('span', { class: `v2chip ${w.tone}` }, w.text, w.faint ? el('small', { class: 'v2faint' }, ` · ${w.faint}`) : null); })() : null),
     el('small', { class: 'v2sub' }, `${both(f.at, true)}${f.reviewed_at ? ` · decided ${clock(f.reviewed_at)} IST` : ''}`),
     el('small', { class: 'v2sub' }, liveSteps(f.live)),
     f.reason && f.status === 'rejected' ? el('small', { class: 'v2sub' }, f.reason.split('\n').pop() || '') : null);
@@ -1247,7 +1589,7 @@ export async function autopilotView() {
         await load();
       });
     }
-    return el('div', { class: 'v2li ap-log-row', 'data-log': String(l.id), style: hiddenKeys.has(key) ? 'opacity:.4' : undefined },
+    return tap(el('div', { class: 'v2li ap-log-row', 'data-log': String(l.id), style: hiddenKeys.has(key) ? 'opacity:.4' : undefined },
       ic('robot'),
       el('div', { class: 'grow' },
         el('div', { class: 'ap-log-top' },
@@ -1255,7 +1597,10 @@ export async function autopilotView() {
           l.undone_at ? chip('undone', 'k') : null),
         el('b', {}, formatRobotLogLine(l)),
         el('small', {}, `${ago(l.at)} · ${both(l.at, true)}`)),
-      undoBtn);
+      undoBtn), () => openSheet({ kind: 'robotlog', id: String(l.id), title: l.dry_run ? 'Robot preview (nothing changed)' : 'What the robot did',
+        why: formatRobotLogLine(l), evidence: [xrow(`${l.robot.replace(/_/g, ' ')} robot`, `${ago(l.at)} · ${both(l.at, true)}`), ...detailLines(l.detail || undefined).map((t) => el('small', { class: 'xs-line' }, t))],
+        actions: [l.can_undo && !l.undone_at ? xbtn('Undo', 'ok', 'xLogUndo', closeThen(() => later(key, `Undoing ${l.robot}: ${l.action.replace(/_/g, ' ')}`, async () => { await rpc('kr8_admin_robot_undo', { p_log_id: l.id }); await load(); }))) : null,
+          l.target && /^[0-9a-f-]{36}$/i.test(l.target) && personOf(l.target) ? xlink('Open member', `#m/${l.target}`, 'xLogMember') : null] }));
   };
 
   const paint = () => {
@@ -1511,14 +1856,17 @@ export async function autopilotView() {
                 await load();
               });
               const whoText = `#${f.member_no ?? '?'} · ${flagKeyLabel(f.flag_key)}`;
-              const trustText = f.trust ? `Trust ${f.trust.score}/100` : '';
+              // 18 Nov: words first (the trust number and the robot's raw summary are faint detail)
+              const tw = f.trust ? trustWords(f.trust) : null;
+              const trustText = tw ? tw.text : '';
               return el('div', { class: `ap-pflag sev-${f.severity}`, 'data-flag': `${f.user_id}:${f.flag_key}` },
                 el('div', { class: 'grow' },
                   el('div', { class: 'ac-tags' },
                     chip(f.severity === 'red' ? 'High risk' : f.severity === 'amber' ? 'Warning' : 'Signal', f.severity === 'red' ? 'r' : f.severity === 'amber' ? 'a' : 'k'),
-                    trustText ? chip(trustText, f.trust && f.trust.score < 35 ? 'r' : 'a') : null),
+                    trustText && tw ? chip(trustText, tw.tone) : null),
                   el('b', {}, whoText),
-                  el('small', {}, f.summary)),
+                  el('small', {}, flagSentence({ no: f.member_no, name: f.name, flag_key: f.flag_key, summary: f.summary, detail: f.detail, partner_name: personOf(String(f.detail?.partner_id || ''))?.name })),
+                  el('small', { class: 'v2faint' }, `${f.summary}${tw ? ` · ${tw.detail}` : ''}`)),
                 el('div', { class: 'ap-pflag-acts' },
                   el('a', { class: 'ap-mini-btn', href: `#m/${f.user_id}` }, 'Member →'),
                   dismissBtn));
@@ -1717,17 +2065,37 @@ export async function autopilotView() {
   await load();
 }
 
-/** Router hook: returns true when the hash is a v2 screen. */
-export function v2Route(a: string, b?: string): boolean {
+/** Router hook: returns true when the hash is a v2 screen. 18 Nov: #x/<kind>/<id> is a who-and-why sheet over the page under it. */
+export function v2Route(a: string, b?: string, c?: string): boolean {
+  const sr = sheetRoute();
+  if (sr?.act === 'stay') return true;   // back closed a sheet: the page under it is still there
+  if (sr?.act === 'reopen') {             // back from a page the sheet linked to: the page under it, then the sheet again
+    const [ba, bb, bc] = decodeURIComponent(sr.base.replace(/^#/, '')).split('/');
+    if (v2RouteTo(ba || 'growth', bb, bc)) { sr.again(); return true; }
+    location.replace(sr.base); return true;
+  }
+  if (sr?.act === 'missing') { try { history.replaceState(null, '', '#today'); } catch { /* ignore */ } return v2RouteTo('today'); }
+  return v2RouteTo(a, b, c);
+}
+function v2RouteTo(a: string, b?: string, c?: string): boolean {
   viewAsLeave();
   helpPanelLeave();
   if (a === 'help') { stopV2(); helpPanelView((...kids) => screen('inbox', ...kids), b, setHelpWaiting); return true; }
   if (a === 'viewas') { stopV2(); viewAsView((...kids) => screen('more', ...kids)); return true; }
   if (a === 'growth' || a === '') { growthView(b); return true; }   // #growth/2026-11-17 = that day (0114)
   if (a === 'today') { todayView(); return true; }
-  if (a === 'inbox') { inboxView(); return true; }
+  if (a === 'inbox') {
+    // 18 Nov tap-all: #inbox/held = that filter; #inbox/case/<key> = scroll to that one case
+    if (b && b !== 'case' && INBOX_FILTERS.some((f) => f.key === b)) { inboxFilter = b as typeof inboxFilter; LS('kr8-v2-if', b); }
+    if (b === 'case' && c) { inboxFilter = 'all'; focusCase = c; }
+    inboxView(); return true;
+  }
   if (a === 'auto') { autoView(); return true; }
-  if (a === 'people') { peopleView(); return true; }
+  if (a === 'people') {
+    const pf: PeopleFilter[] = ['all', 'today', 'unverified', 'flagged', 'claims', 'nocard'];
+    if (b && pf.includes(b as PeopleFilter)) { pFilter = b as PeopleFilter; LS('kr8-v2-pf', b); }
+    peopleView(); return true;
+  }
   if (a === 'money') { moneyView(); return true; }
   if (a === 'board') { boardView(); return true; }
   if (a === 'log') { void logView(); return true; }
@@ -1742,4 +2110,11 @@ export function v2Route(a: string, b?: string): boolean {
 export function v2TabFor(old: 'todo' | 'members' | 'listings' | 'more'): V2Tab {
   return old === 'todo' ? 'inbox' : old === 'members' ? 'people' : 'more';
 }
-export { flush as v2Flush, testToggle as v2TestToggle };
+/** Called by the router on every hash change. Closing a who-and-why sheet (back to the page under it) or opening one keeps the 5 s Undo running. */
+function routeFlush() {
+  const o = sheetOpen();
+  const h = (x: string) => { try { return decodeURIComponent(x); } catch { return x; } };
+  if (location.hash.startsWith('#x/') || (o && h(location.hash) === h(o.base))) return;
+  flush();
+}
+export { routeFlush as v2Flush, testToggle as v2TestToggle };

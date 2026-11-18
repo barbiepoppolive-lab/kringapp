@@ -167,7 +167,8 @@ describe('T-380 M5: Protect Robot (scam chat, link tries, Ring farming, >=3 repo
     expect(card).toBeTruthy();
     expect(card.textContent).toContain('NEVER auto-bans');
     expect(card.textContent).toContain('#42 · Chat scam / LINE hunt');
-    expect(card.textContent).toContain('Trust 25/100');
+    expect(card.textContent).toContain('trust 25');   // 18 Nov: words first ("Risky"), the number is faint detail
+    expect(card.textContent).toMatch(/Risky|Likely a second account/);
     expect(card.textContent).toContain('REEL by #42 · 3 reports');
     expect(/[\u0E00-\u0E7F]/.test(document.body.textContent || '')).toBe(false);
 
