@@ -10,6 +10,7 @@ import {
   type AskAnswer, type AskApi, type AskPerson, type AskQuestion, type AskReportReason, type AskThreadData,
 } from './askThai';
 import { initialAvatar } from './v8Data';
+import { withRef } from './invite';
 
 type LFn = (en: string) => string;
 /** A server refusal the member can act on (ghost mode, too many posts, banned words, no card) gets its own message;
@@ -377,6 +378,8 @@ const Compose: React.FC<{
 // ───────────────────────── the whole Ask a Thai view ─────────────────────────
 export interface AskThaiViewProps {
   L: LFn;
+  /** invite-1: the member's invite code, added to shared links */
+  refCode?: string;
   api: AskApi;
   me: AskPerson | null;
   areas: readonly string[];
@@ -390,7 +393,7 @@ export interface AskThaiViewProps {
   openCompose?: boolean;
   composeText?: string;
 }
-export const AskThaiView: React.FC<AskThaiViewProps> = ({ L, api, me, areas, areaLabel, defaultArea = 'Bangkok', need, toast, openThread, openCompose, composeText }) => {
+export const AskThaiView: React.FC<AskThaiViewProps> = ({ L, api, me, areas, areaLabel, defaultArea = 'Bangkok', need, toast, openThread, openCompose, composeText, refCode }) => {
   const [items, setItems] = useState<AskQuestion[] | null>(null);
   const [err, setErr] = useState(false);
   const [more, setMore] = useState(true);
@@ -441,7 +444,7 @@ export const AskThaiView: React.FC<AskThaiViewProps> = ({ L, api, me, areas, are
     api.vote('q', q.id, v).catch((e) => toast(askErrText(L, e, 'Something went wrong')));
   });
   const share = async (q: AskQuestion) => {
-    const url = typeof location !== 'undefined' ? location.origin + location.pathname : '';
+    const url = withRef(typeof location !== 'undefined' ? location.origin + location.pathname : '', refCode);   // invite-1: my invite code
     const text = `${q.body} · ${L('Ask a Thai')}`;
     try {
       if (typeof navigator !== 'undefined' && navigator.share) { await navigator.share({ text, url }); return; }

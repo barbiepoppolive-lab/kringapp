@@ -148,6 +148,8 @@ export function MeView(props: {
   ghost?: boolean;
   /** 16 Nov: the weekly-prize race card, right under "This week" (hidden while the Founding "Next step" card shows: one next step at a time) */
   prizeSlot?: React.ReactNode;
+  /** invite-1: ONE quiet line under the stats, "Friends joined: 2 · +20 Rings" (no card) */
+  friendsSlot?: React.ReactNode;
   /** 0078: the one-time "Show my Reels on the web" ask (members with an approved Reel who were never asked) */
   webAskSlot?: React.ReactNode;
   /** 17 Nov: "Your next step" card, at the top */
@@ -219,6 +221,7 @@ export function MeView(props: {
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 14v6h14v-6" /></svg>{L('Share')}
         </button>
       </div>
+      {props.friendsSlot || null}
       {props.reelsSlot ? null : <PerksCard />}
       {/* 16 Nov: a new member's first step is their first Reel; the face check shows once they have one (or already sent it) */}
       {props.reelsSlot && !p.reels.length ? (

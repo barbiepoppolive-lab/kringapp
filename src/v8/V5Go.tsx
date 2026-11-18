@@ -144,6 +144,8 @@ export function GoReelPlayer(props: {
   viewProfile?: { id: string; name: string; photo: string | null } | null;
   onClose: () => void; onProfile: (user: string) => void; onPlace?: (place: string) => void; onMath?: (user: string) => void;
   onLike: (id: string) => Promise<{ liked: boolean; likes: number } | null>; onSave: (id: string) => Promise<boolean | null>; onShare: (id: string) => void;
+  /** invite-1: finger down on Share → fetch the share link early, so the tap opens the share sheet at once */
+  onShareDown?: (id: string) => void;
   onActive?: (reel: GoReel, el: HTMLElement) => void;
   /** 17 Nov: owner only, "My Reel stats" for one Reel (this week's numbers from the ranking math) */
   onStats?: (id: string) => Promise<GoReelStats | null>;
@@ -215,7 +217,7 @@ export function GoReelPlayer(props: {
                   <span className="go-rbi"><IcHeart on={r.liked} /></span><b>{fmtN(r.likes || 0)}</b></button>
                 <button type="button" className={`go-rb save${r.saved ? ' act' : ''}${pop === `s${r.id}` ? ' pop' : ''}`} data-go="save" aria-label={L('Save')} aria-pressed={!!r.saved} disabled={pending} onClick={() => void save(r)}>
                   <span className="go-rbi"><IcBook on={r.saved} /></span><b>{r.saves !== undefined ? fmtN(r.saves) : L('Save')}</b></button>
-                <button type="button" className="go-rb shr" data-go="share" aria-label={L('Share')} disabled={pending} onClick={() => props.onShare(r.id)}>
+                <button type="button" className="go-rb shr" data-go="share" aria-label={L('Share')} disabled={pending} onPointerDown={() => props.onShareDown?.(r.id)} onClick={() => props.onShare(r.id)}>
                   <span className="go-rbi"><IcShare /></span><b>{L('Share')}</b></button>
                 {r.mine && r.status === 'approved' && props.onStats ? (
                   <button type="button" className="go-rb sts" data-go="stats" aria-label={L('My Reel stats')} onClick={() => openStats(r)}>

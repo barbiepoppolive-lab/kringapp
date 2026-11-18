@@ -99,7 +99,7 @@ describe('Board V2: pinned row + progress to 25 Rings', () => {
     page();
     await waitFor(() => expect(document.querySelector('#kxMeBar')).toBeTruthy());
     expect(document.querySelector('#kxMeBar')!.className).toContain('full');
-    expect(document.querySelector('#kxMeNext')!.textContent).toBe('3 Rings to #8 · ฿100');
+    expect(document.querySelector('#kxMeNext')!.textContent).toBe('3 Rings to pass #8 · ฿100');
   });
   it('floorProgress / latestApproved', () => {
     expect(floorProgress(12, 25)).toEqual({ pct: 48, below: true, need: 13 });
