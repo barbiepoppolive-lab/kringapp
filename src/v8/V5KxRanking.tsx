@@ -5,15 +5,18 @@
  * Empty paid ranks show "Your spot? · ฿250". Pinned own row = progress to the prize floor + the next step. Tap any score → the math.
  * Every number comes from the server (kr8_weekly_ranking / kr8_score_breakdown); nothing is computed here.
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './kx.css';
 import { countdown, fmtN, mathLines, weekEnd } from './kxLogic';
-import { kxBreakdown, kxMemberReels, kxRanking, kxRules, kxSeatsLeft, type KxBreakdown, type KxGap, type KxRanking, type KxRankRow } from './v5Kx';
+import { kxBreakdown, kxCardExtras, kxMemberReels, kxRanking, kxRules, kxSeatsLeft, type KxBreakdown, type KxGap, type KxRanking, type KxRankRow } from './v5Kx';
 import { RingGlyph } from './V5KxCard';
 import { InviteHint } from './V5Invite';
 import { signReelPaths } from './v5Reel';
 import { RingToast, rulesVariant, WinSheet, winRules } from './V5KxRules';
-import { BackIcon, Crown, Disc, InfoIcon, Medal, PlusIcon, ShareIcon, type Tone } from './BoardArt';
+import { BackIcon, Crown, InfoIcon, Medal, PlusIcon, ShareIcon, type Tone } from './BoardArt';
+import { rankDelta, seenRankAtStart } from './prizeRace';
+import { refCode } from './invite';
+import { boardMoment, displayCode, cardBlob, cardCaption, cardLink, linkCopiedToast, shareCard, storyButtonLabel, storyFileName, type ShareCard } from './rankStory';
 
 type Tx = (en: string) => string;
 type Txf = (en: string, a: string, b?: string) => string;
@@ -21,6 +24,19 @@ type Txf = (en: string, a: string, b?: string) => string;
 const Av = ({ photo, name, size }: { photo: string | null; name: string; size: number }) => (
   <i className="kx-av" style={{ width: size, height: size, ...(photo ? { backgroundImage: `url('${photo}')` } : {}) }} aria-hidden="true">{photo ? '' : (name || '?').charAt(0).toUpperCase()}</i>
 );
+/** a story frame with a small star: "make a story picture" */
+const StoryIcon = () => (
+  <svg viewBox="0 0 24 24" focusable="false"><rect x="6" y="2.8" width="12" height="18.4" rx="3.2" fill="none" stroke="currentColor" strokeWidth="2" />
+    <path d="M12 8.2l1.15 2.35 2.6.38-1.88 1.83.44 2.58L12 14.12l-2.31 1.22.44-2.58-1.88-1.83 2.6-.38z" fill="currentColor" /></svg>
+);
+/** copy a link (clipboard API, else the old textarea way); true when it worked */
+export async function copyLink(s: string): Promise<boolean> {
+  try { if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(s); return true; } } catch { /* fall back */ }
+  try {
+    const t = document.createElement('textarea'); t.value = s; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+    document.body.appendChild(t); t.select(); const ok = document.execCommand('copy'); t.remove(); return ok;
+  } catch { return false; }
+}
 export const baht = (n: number) => `฿${fmtN(n)}`;
 export const ringsText = (L: Tx, Lf: Txf, n: number) => (n === 1 ? L('1 Ring') : Lf('{0} Rings', fmtN(n)));
 
@@ -188,6 +204,54 @@ const lowFx = () => {
 const RING_CLS = ['c0', 'c1', 'c2', 'c3'];
 
 /**
+ * board-1 v3 (founder 18 Nov): a live countdown in a small glass pill, to the real week end (Bangkok).
+ *   more than a day: "3d 08:14:22" (Thai "3 วัน 08:14:22") · last 24 h: "08:14:22", pink, gentle pulse · last hour: big "14:22"
+ */
+export type ClockMode = 'week' | 'day' | 'hour';
+export function liveClock(now: number, end: number, lang: string): { text: string; mode: ClockMode } {
+  const left = Math.max(0, end - now), p2 = (n: number) => String(n).padStart(2, '0');
+  const d = Math.floor(left / 86_400_000), h = Math.floor(left / 3_600_000) % 24, m = Math.floor(left / 60_000) % 60, sec = Math.floor(left / 1000) % 60;
+  if (left < 3_600_000) return { text: `${p2(m)}:${p2(sec)}`, mode: 'hour' };
+  if (left < 86_400_000) return { text: `${p2(h)}:${p2(m)}:${p2(sec)}`, mode: 'day' };
+  return { text: lang === 'th' ? `${d} วัน ${p2(h)}:${p2(m)}:${p2(sec)}` : `${d}d ${p2(h)}:${p2(m)}:${p2(sec)}`, mode: 'week' };
+}
+/** board-1 v3 copy, one language (Thai mode = Thai, every other mode = English). */
+export function boardCopy(lang: string) {
+  const th = lang === 'th';
+  return {
+    prizeLine: (n: number) => (th ? `เส้นรางวัล · ${n}` : `Prize line · ${n}`),
+    top: (d: number | null) => (th ? (d ? `คุณอันดับ 1 · นำ ${fmtN(d)} ริง` : 'คุณอันดับ 1') : (d ? `You’re #1 · ${fmtN(d)} ${d === 1 ? 'Ring' : 'Rings'} ahead` : 'You’re #1')),
+    chase: (rank: number, need: number, to: number) => (th ? `อันดับ ${rank} · อีก ${fmtN(need)} ริงถึงอันดับ ${to}` : `#${rank} · ${fmtN(need)} ${need === 1 ? 'Ring' : 'Rings'} to #${to}`),
+    rankOnly: (rank: number) => (th ? `อันดับ ${rank}` : `#${rank}`),
+    share: th ? 'แชร์' : 'Share',
+    myReel: th ? 'คลิปของฉัน' : 'My Reel',
+    myRank: th ? 'อันดับของฉัน' : 'My rank',
+    shareTitle: th ? 'แชร์อะไรดี?' : 'Share what?',
+    up: (n: number) => (n > 0 ? `↑${n}` : `↓${-n}`),
+    cdLabel: th ? 'เวลาที่เหลือของสัปดาห์นี้' : 'Time left this week',
+  };
+}
+const Stopwatch = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="13.5" r="7.5" fill="none" stroke="currentColor" strokeWidth="2" />
+    <path d="M12 9.5v4.2l2.6 1.6M9.5 3h5M12 3v2.4M18.4 6.6l1.3-1.3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+);
+/** Rings count up from 0 when the board opens (0.8 s, ease-out). Off with "reduce motion" and where there is no animation frame. */
+function useCountUp(go: boolean): number {
+  const [p, setP] = useState(1);
+  useEffect(() => {
+    if (!go) return;
+    let reduce = true;
+    try { reduce = typeof window.matchMedia !== 'function' || window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { reduce = true; }
+    if (reduce || typeof requestAnimationFrame !== 'function') return;
+    let raf = 0; const t0 = performance.now();
+    const step = (t: number) => { const x = Math.min(1, (t - t0) / 800); setP(1 - Math.pow(1 - x, 3)); if (x < 1) raf = requestAnimationFrame(step); };
+    setP(0); raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [go]);
+  return p;
+}
+
+/**
  * Board V2 "Compact" (founder pick 18 Nov, BOARDX_V2.png). One background picture; the rest is CSS/SVG.
  * Top: back · title (+ small crown) · one line "Closes Sun 23:59 · 38/50 seats left" · ⓘ (How to win + prize rules in a light glass sheet).
  * Podium: #1 bigger with a thin gold ring, soft warm glow and the crown (no wreath); #2 blue, #3 rose; prizes as gold text on 3D discs.
@@ -214,6 +278,10 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   const [toast] = useState(() => { try { return !!rv && new URLSearchParams(location.search).get('toast') === '1'; } catch { return false; } });
   /** undefined = still loading; null = no approved Reel yet */
   const [latest, setLatest] = useState<string | null | undefined>(props.myId ? undefined : null);
+  /** board-1: the poster of my best (else newest) approved Reel and my invite code, for the "Share my rank" story card */
+  const [posterPath, setPosterPath] = useState<string | null>(null);
+  const [myNo, setMyNo] = useState<number | null>(null);
+  const [vanity, setVanity] = useState<string | null>(null);
   const [seatsLeft, setSeatsLeft] = useState<number | null>(null);
   useEffect(() => {
     let dead = false;
@@ -226,13 +294,23 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
     let dead = false;
     if (!props.myId) { setLatest(null); return; }
     setLatest(undefined);
-    Promise.resolve(kxMemberReels(props.myId)).then((m) => { if (!dead) setLatest(latestApproved(m?.reels)); }).catch(() => { if (!dead) setLatest(null); });
+    Promise.resolve(kxMemberReels(props.myId)).then((m) => {
+      if (dead) return;
+      const id = latestApproved(m?.reels);
+      setLatest(id);
+      const ok = (m?.reels || []).filter((r) => r.status === 'approved' && r.poster_path);
+      setPosterPath((ok.find((r) => r.id === m?.best) || ok.find((r) => r.id === id) || ok[0])?.poster_path || null);
+    }).catch(() => { if (!dead) setLatest(null); });
+    Promise.resolve(kxCardExtras()).then((x) => { if (!dead) { setMyNo(x?.member_no ?? null); setVanity(x?.vanity_code ?? null); } }).catch(() => undefined);
     return () => { dead = true; };
   }, [props.myId]);
   const end = data?.ends_at ? Date.parse(data.ends_at) || weekEnd(now) : weekEnd(now);
   const hot = isLastHours(now, end);
-  const close = closeLine(Lf, lang, now, end);
-  useEffect(() => { const id = window.setInterval(() => setNow(Date.now()), hot ? 1000 : 15000); return () => window.clearInterval(id); }, [hot]);
+  const clock = liveClock(now, end, lang);
+  useEffect(() => { const id = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(id); }, []);
+  const C = boardCopy(lang);
+  const cu = useCountUp(!!data);
+  const [shareOpen, setShareOpen] = useState(false);
   const rows = data?.rows || [];
   const paid = data?.paid_ranks ?? 8;
   const prizes = data?.prizes || [];
@@ -241,15 +319,15 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   const wr = winRules(cfg, data);
   const floor = data?.floor ?? wr?.floor ?? 25;
   const prog = floorProgress(data?.gap?.rings ?? 0, floor);
-  const youLine = prog.below && (data?.gap?.rings ?? 0) > 0 && ['board', 'far', 'zero'].includes(own.key) ? Lf('{0} more Rings for a prize seat', fmtN(prog.need)) : own.l2;
   const floorNote = !!data && data.floor > 0 && (data.open_seats > 0 || rows.some((r) => r.needs));
   const postLabel = lang === 'th' ? 'โพสต์คลิป' : L('Post a Reel');   // founder copy for this button (the app says โพสต์รีล elsewhere)
   const share = latest !== null;
-  const elig = (r: KxRankRow) => (r.needs ? <em className="rka-elig">{Lf('{0} more Rings to be eligible', fmtN(Math.max(1, r.needs - r.rings)))}</em> : null);
+  // board-1 (Kring Light): "X more Rings to be eligible" only on MY row; other rows under the floor show a dimmed prize (the prize line says why)
+  const elig = (r: KxRankRow) => (r.needs && r.is_me ? <em className="rka-elig">{Lf('{0} more Rings to be eligible', fmtN(Math.max(1, r.needs - r.rings)))}</em> : null);
   // plain render functions (not components): the countdown re-render must not remount rows
   const Score = ({ r, cls }: { r: KxRankRow; cls: string }) => (
-    <button type="button" className={cls} data-score={r.rings} aria-label={L('See the math')} onClick={(e) => { e.stopPropagation(); setMath(r.user_id); }}>
-      <RingGlyph />{ringsText(L, Lf, r.rings)}{elig(r)}
+    <button type="button" className={cls} data-score={r.rings} aria-label={L('See the math')} title={ringsText(L, Lf, r.rings)} onClick={(e) => { e.stopPropagation(); setMath(r.user_id); }}>
+      <RingGlyph /><span className="num">{fmtN(Math.round(r.rings * cu))}</span>{elig(r)}
     </button>
   );
   const Row = ({ r }: { r: KxRankRow }) => (
@@ -274,6 +352,60 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
       <span className="kx-pz">{baht(prizes[rank - 1] || 0)}</span>
     </button>
   );
+  // board-1: "Share my rank" → a 1080×1920 story picture of ME only (no other member's face or name). Made ahead of the tap,
+  // so the phone's share sheet opens at once (iOS only allows it straight from a tap).
+  const g = data?.gap;
+  const canStory = !!props.myId && !!g?.rank && (g?.rings ?? 0) > 0;
+  // board-1 v2 (founder brief): the card is about ME only. Top N (paid seats) = "challenge", otherwise "help". Look A until the founder picks.
+  const paidN = (data?.prizes || prizes).slice(0, paid).filter((p) => p > 0).length;
+  const pool = (data?.prizes || prizes).slice(0, paid).reduce((a, p) => a + (p > 0 ? p : 0), 0);   // from the live config, never hard-coded
+  const moment = boardMoment(g?.rank, paidN || paid);
+  const storyIn: ShareCard | null = canStory && g?.rank ? {
+    lang: lang === 'th' ? 'th' : 'en', moment, look: 'B', rank: g.rank, daysLeft: Math.max(0, Math.floor((end - now) / 86_400_000)), won: 0,
+    paidN: paidN || paid, pool, code: displayCode(vanity, refCode(myNo)), hero: null,
+  } : null;
+  const storyLink = cardLink({ origin: location.origin, base: import.meta.env.BASE_URL || '/app/', reel: latest || null, code: refCode(myNo), moment });
+  const storyKey = storyIn ? JSON.stringify([{ ...storyIn, daysLeft: 0 }, storyIn.daysLeft, posterPath, props.myPhoto]) : '';
+  const story = useRef<{ key: string; blob: Promise<Blob | null> } | null>(null);
+  const makeStory = (): Promise<Blob | null> | null => {
+    if (!storyIn) return null;
+    if (story.current?.key === storyKey) return story.current.blob;
+    const s = storyIn;
+    const blob = (posterPath ? signReelPaths([posterPath]).then((m) => m[posterPath] || null).catch(() => null) : Promise.resolve(null))
+      .then((poster) => cardBlob({ ...s, hero: poster || props.myPhoto }));
+    story.current = { key: storyKey, blob };
+    return blob;
+  };
+  const [storyBusy, setStoryBusy] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
+  const toastT = useRef<number>();
+  const flash = (m: string) => { setToastMsg(m); window.clearTimeout(toastT.current); toastT.current = window.setTimeout(() => setToastMsg(''), 4200); };
+  useEffect(() => () => window.clearTimeout(toastT.current), []);
+  useEffect(() => {
+    if (!storyKey || latest === undefined) return;
+    const t = window.setTimeout(() => { void makeStory(); }, 900);   // after the board has painted
+    return () => window.clearTimeout(t);
+  }, [storyKey, latest]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const shareStory = async () => {
+    const p = makeStory();
+    if (!p || !storyIn) return;
+    setStoryBusy(true);
+    try {
+      await shareCard(await p, { name: storyFileName(storyIn.moment, storyIn.rank), caption: cardCaption(lang, storyIn.moment), link: storyLink,
+        copy: copyLink, toast: flash, copied: linkCopiedToast(lang) });
+    } finally { setStoryBusy(false); }
+  };
+  // board-1 v3: the pinned row is ONE line ("You’re #1 · 54 Rings ahead" / "#4 · 6 Rings to #3"); the bar only while chasing the next rank
+  const pin = ((): { text: React.ReactNode; chase: boolean; pct: number } => {
+    const gp = data?.gap;
+    if (!gp || !gp.rank) return { text: <>{own.l1}{own.l2 ? <> · {own.l2}</> : null}</>, chase: false, pct: 0 };
+    if (gp.state === 'top') return { text: C.top(gp.behind?.diff ?? null), chase: false, pct: 100 };
+    if (gp.state === 'floor' || (prog.below && gp.rings > 0)) return { text: `${C.rankOnly(gp.rank)} · ${Lf('{0} more Rings for a prize seat', fmtN(prog.need))}`, chase: true, pct: prog.pct };
+    const t = gp.target;
+    if (t && t.need > 0) return { text: C.chase(gp.rank, t.need, t.rank), chase: true, pct: Math.max(6, Math.min(96, Math.round((gp.rings * 100) / (gp.rings + t.need)))) };
+    return { text: C.rankOnly(gp.rank), chase: false, pct: 0 };
+  })();
+  const delta = props.myId && data?.gap?.rank ? rankDelta(seenRankAtStart(props.myId), data.week_start, data.gap.rank) : null;
   const TONE: Record<number, Tone> = { 1: 'gold', 2: 'blue', 3: 'rose' };
   return (
     <div className={`kx-page kx-rk bx${low ? ' lowfx' : ''}${lang === 'th' ? ' lth' : ''}`} id="kxRanking" lang={lang}>
@@ -283,8 +415,8 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
         <div className="bx-tt">
           <h1>{L('Weekly Ranking')}<Crown tone="gold" w={24} cls="bx-tcr" /></h1>
           <p className="bx-sub" id="kxBoardSub">
-            <span className={`bx-cd${close.soon ? ' soon' : ''}${hot ? ' hot' : ''}`} id="kxCountdown" data-hot={hot ? '1' : '0'}>{close.text}</span>
-            {seatsOk(seatsLeft) ? <> · <span id="kxSeatsLeft" data-left={Math.min(seatsLeft, PAID_SEATS)}>{Lf('{0}/{1} seats left', String(Math.min(seatsLeft, PAID_SEATS)), String(PAID_SEATS))}</span></> : null}
+            <span className={`bx-cd m-${clock.mode}${clock.mode !== 'week' ? ' day' : ''}${hot ? ' hot' : ''}`} id="kxCountdown" data-hot={hot ? '1' : '0'} data-mode={clock.mode}
+              role="timer" aria-label={`${C.cdLabel} ${clock.text}`}><Stopwatch /><span className="t">{clock.text}</span></span>
           </p>
         </div>
         <button type="button" className="bx-i" id="kxWinOpen" aria-label={L('How to win')} onClick={() => (wr ? setWin(true) : setHow(true))}><InfoIcon /></button>
@@ -313,7 +445,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
                   <span className="bx-nm">{r ? (r.is_me ? L('You') : r.first_name) : L('Your spot?')}</span>
                   {r ? Score({ r, cls: 'bx-r' }) : <span className="bx-r none">&nbsp;</span>}
                   {pz > 0 ? <b className={`bx-pz${r && !r.paid ? ' off' : ''}`} data-prize={pz}>{baht(pz)}</b> : <b className="bx-pz none">&nbsp;</b>}
-                  <Disc tone={rank === 1 ? 'gold' : rank === 2 ? 'blue' : 'pink'} w={rank === 1 ? 116 : 92} h={rank === 1 ? 18 : 10} />
+                  <i className={`bx-pool p${rank}`} aria-hidden="true" />
                 </div>
               );
             })}
@@ -322,7 +454,8 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
           <div className="kx-list bx-list" id="kxRankList">
             {Array.from({ length: Math.max(0, paid - 3) }, (_, i) => i + 4).map((rank) => { const r = at(rank); return <React.Fragment key={rank}>{r ? Row({ r }) : Seat({ rank })}</React.Fragment>; })}
             {rows.some((r) => r.rank > paid) || floorNote
-              ? <div className="kx-div bx-line" id="kxPrizeLine"><span>{floorNote ? Lf('PRIZE LINE · {0} RINGS TO TAKE A SEAT', String(data?.floor ?? 0)) : L('PRIZE LINE')}</span></div> : null}
+              ? <div className="kx-div bx-line" id="kxPrizeLine" data-floor={data?.floor ?? 0} aria-label={floorNote ? Lf('PRIZE LINE · {0} RINGS TO TAKE A SEAT', String(data?.floor ?? 0)) : L('PRIZE LINE')}>
+                <span>{floorNote ? <>{C.prizeLine(data?.floor ?? 0)} <RingGlyph /></> : C.prizeLine(paid).replace(/ · \d+$/, '')}</span></div> : null}
             {rows.filter((r) => r.rank > paid).map((r) => <React.Fragment key={r.user_id}>{Row({ r })}</React.Fragment>)}
           </div>
         </>
@@ -330,11 +463,11 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
       <div className="bx-endpad" />
       <div className="bx-pin" id="kxPin">
         {toast && rv ? <RingToast v={rv} lang={lang} pts={wr?.save ?? 3} who="Mint" act="save" /> : null}
+        {toastMsg ? <p className="bx-toast" id="kxStoryToast" role="status" lang={lang === 'th' ? 'th' : 'en'}>{toastMsg}</p> : null}
         {props.myId && data ? (
           <div className="bx-you" id="kxMeRow" data-state={own.key} role="button" tabIndex={0}
             onClick={() => { if (own.btn !== 'post' && own.key !== 'review') setMath(props.myId); }}
             onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && own.btn !== 'post') setMath(props.myId); }}>
-            <span className="n">{/^\d+$/.test(own.n) ? `#${own.n}` : own.n}</span>
             <span className="rka-meph bx-ra me">
               <Av photo={props.myPhoto} name={props.myName} size={42} />
               {props.needsVerify && props.onVerify ? (
@@ -346,10 +479,8 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
               ) : null}
             </span>
             <span className="t">
-              <span className="l1">{own.l1}</span>
-              <small id="kxMeNext">{youLine}</small>
-              <span className={`bx-bar${prog.below ? '' : ' full'}`} id="kxMeBar" data-pct={prog.pct} data-floor={floor}
-                role="progressbar" aria-valuemin={0} aria-valuemax={floor} aria-valuenow={Math.min(floor, data.gap?.rings ?? 0)}><i style={{ width: `${prog.pct}%` }} /></span>
+              <span className="l1" id="kxMeNext">{pin.text}{delta ? <i className={`bx-up${delta > 0 ? '' : ' dn'}`} id="kxRankMove">{C.up(delta)}</i> : null}</span>
+              {pin.chase ? <span className="bx-bar" id="kxMeBar" data-pct={pin.pct} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pin.pct}><i style={{ width: `${pin.pct}%` }} /></span> : null}
             </span>
           </div>
         ) : props.myId && !err ? (
@@ -357,17 +488,33 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
           <div className="bx-you bx-you-wait" aria-hidden="true" />
         ) : null}
         <button type="button" className={`bx-cta${share ? ' share' : ' post'}`} id="kxBoardCta" data-act={share ? 'share' : 'post'} aria-busy={latest === undefined}
-          onPointerDown={() => { if (latest) props.onShareDown?.(latest); }}
-          onClick={() => { if (latest) props.onShare(latest); else if (latest === null) props.onPost(); }}>
+          aria-haspopup={share && canStory ? 'dialog' : undefined}
+          onPointerDown={() => { if (latest) { props.onShareDown?.(latest); if (canStory) void makeStory(); } }}
+          onClick={() => { if (latest) { if (canStory) setShareOpen(true); else props.onShare(latest); } else if (latest === null) props.onPost(); }}>
           <span className="ic">{share ? <ShareIcon /> : <PlusIcon />}</span>
-          <span className="tx">{share ? L('Share my Reel') : postLabel}</span>
+          <span className="tx">{share ? C.share : postLabel}</span>
         </button>
-        {share ? <InviteHint lang={lang} x={cfg?.invite} /> : null}
       </div>
       {math ? <MathSheet L={L} Lf={Lf} lang={lang} user={math} onClose={() => setMath(null)} onHow={() => { setMath(null); setHow(true); }}
         onShare={(reel) => { setMath(null); if (reel) props.onShare(reel); else props.onPost(); }} /> : null}
       {how ? <HowSheet L={L} onClose={() => setHow(false)} /> : null}
-      {wr && win ? <WinSheet v={rv || 'C'} lang={lang} r={wr} glass onClose={() => setWin(false)} /> : null}
+      {wr && win ? <WinSheet v={rv || 'C'} lang={lang} r={wr} glass onClose={() => setWin(false)} extra={<SeatsLine L={L} Lf={Lf} lang={lang} left={seatsLeft} />} /> : null}
+      {shareOpen && latest ? (
+        <div className="kx-shbg bx-shbg" onClick={() => setShareOpen(false)}>
+          <div className="bx-sharesheet" id="kxShareSheet" role="dialog" aria-label={C.shareTitle} lang={lang === 'th' ? 'th' : 'en'} onClick={(e) => e.stopPropagation()}>
+            <span className="grab" />
+            <div className="bx-two">
+              <button type="button" className="bx-pick" id="kxShareReel" onClick={() => { setShareOpen(false); props.onShare(latest); }}>
+                <span className="ic"><ShareIcon /></span><span className="tx">{C.myReel}</span>
+              </button>
+              <button type="button" className="bx-pick" id="kxShareRank" aria-label={storyButtonLabel(lang)} aria-busy={storyBusy} onClick={() => { setShareOpen(false); void shareStory(); }}>
+                <span className="ic"><StoryIcon /></span><span className="tx">{C.myRank}</span>
+              </button>
+            </div>
+            <InviteHint lang={lang} x={cfg?.invite} />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

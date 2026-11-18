@@ -60,7 +60,7 @@ export function WinEntry({ v, lang, total, seats, onOpen }: { v: RulesVariant; l
 }
 
 /* ───────────── the sheet ───────────── */
-interface SheetProps { v: RulesVariant; lang: string; r: WinRules; onClose: () => void; /** Board V2: light glass sheet */ glass?: boolean }
+interface SheetProps { v: RulesVariant; lang: string; r: WinRules; onClose: () => void; /** Board V2: light glass sheet */ glass?: boolean; /** board-1: extra lines (seats left) moved here from the header */ extra?: React.ReactNode }
 
 function earnRows(r: WinRules) {
   return [
@@ -79,11 +79,11 @@ function fineRows(r: WinRules) {
   ];
 }
 
-export function WinSheet({ v, lang, r, onClose, glass }: SheetProps) {
+export function WinSheet({ v, lang, r, onClose, glass, extra }: SheetProps) {
   const total = r.prizes.reduce((a, b) => a + b, 0);
   const title = <h2 className="rw-h"><Bi lang={lang} th="วิธีชนะ" en="How to win" /></h2>;
   const sub = <p className="rw-sub"><Bi lang={lang} th={`ทุกสัปดาห์ ${r.prizes.length} อันดับแรกแบ่งกัน ${B(total)}`} en={`Every week the top ${r.prizes.length} share ${B(total)}`} /></p>;
-  const ok = <button type="button" className="rw-ok" id="kxWinOk" onClick={onClose}>{pick(lang, 'เข้าใจแล้ว', 'Got it')}</button>;
+  const ok = <>{extra}<button type="button" className="rw-ok" id="kxWinOk" onClick={onClose}>{pick(lang, 'เข้าใจแล้ว', 'Got it')}</button></>;
   let body: React.ReactNode;
   if (v === 'A') {
     body = (
