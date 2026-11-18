@@ -460,12 +460,15 @@ const T: Record<string, string> = {
     'See ideas': 'आइडिया देखें',
     'Find a spot': 'जगह ढूँढें',
     'Kring may earn a small commission. It never changes your price.': 'Kring को थोड़ा कमीशन मिल सकता है। आपकी कीमत कभी नहीं बदलती।',
-    // deals-1 (18 Nov): TAGTHAi Bangkok Pass card on top of For your trip
-    'Official Thailand pass': 'थाईलैंड का आधिकारिक पास',
-    'From ฿2,590': '฿2,590 से',
+    // deals-1 (18 Nov): TAGTHAi Bangkok Pass hero on top of For your trip
+    'TAGTHAi · Official pass': 'TAGTHAi · आधिकारिक पास',
     'Bangkok Pass': 'बैंकॉक पास',
-    'Pick 5 spots in 3 days · Mahanakhon SkyWalk, river boat, Museum Siam & more': '3 दिन में 5 जगहें चुनें · महानखोन स्काईवॉक, चाओ फ्राया बोट, म्यूज़ियम सियाम और भी बहुत कुछ',
-    'Bangkok sightseeing pass': 'बैंकॉक घूमने का पास',
+    '5 top spots · 3 days': '5 बेहतरीन जगहें · 3 दिन',
+    'from ฿2,590': '฿2,590 से',
+    'See the pass': 'पास देखें',
+    'Mahanakhon SkyWalk': 'महानखोन स्काईवॉक',
+    'Chao Phraya boat': 'चाओ फ्राया बोट',
+    'Tuk-tuk ride': 'टुक-टुक की सवारी',
     // Reel trim step (16 Nov)
     'Trim your clip': 'क्लिप छोटी करें',
     'Use this part': 'यह हिस्सा इस्तेमाल करें',

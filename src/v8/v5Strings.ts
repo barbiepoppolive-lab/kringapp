@@ -494,12 +494,15 @@ export const V5_L: Record<string, Record<string, string>> = {
     'See ideas': 'ดูไอเดีย',
     'Find a spot': 'หาที่ฝาก',
     'Kring may earn a small commission. It never changes your price.': 'กริ๊ง! อาจได้รับค่าคอมมิชชันเล็กน้อย ราคาของคุณไม่เปลี่ยน',
-    // deals-1 (18 Nov): TAGTHAi Bangkok Pass card on top of For your trip
-    'Official Thailand pass': 'พาสทางการของไทย',
-    'From ฿2,590': 'เริ่มต้น ฿2,590',
+    // deals-1 (18 Nov): TAGTHAi Bangkok Pass hero on top of For your trip
+    'TAGTHAi · Official pass': 'TAGTHAi · พาสทางการ',
     'Bangkok Pass': 'บัตรเที่ยวกรุงเทพฯ',
-    'Pick 5 spots in 3 days · Mahanakhon SkyWalk, river boat, Museum Siam & more': 'เลือกเที่ยวได้ 5 ที่ใน 3 วัน · มหานคร สกายวอล์ก เรือ⁠เจ้าพระยา มิวเซียมสยาม และอีกเพียบ',
-    'Bangkok sightseeing pass': 'บัตรเที่ยวกรุงเทพฯ',
+    '5 top spots · 3 days': '5 ที่เด็ด · 3 วัน',
+    'from ฿2,590': 'เริ่มต้น ฿2,590',
+    'See the pass': 'ดูพาส',
+    'Mahanakhon SkyWalk': 'มหานคร สกายวอล์ก',
+    'Chao Phraya boat': 'เรือเจ้าพระยา',
+    'Tuk-tuk ride': 'นั่งตุ๊กตุ๊ก',
     // Reel trim step (16 Nov)
     'Trim your clip': 'ตัดคลิป',
     'Use this part': 'ใช้ช่วงนี้',
