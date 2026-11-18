@@ -23,6 +23,31 @@ function enLine(rawText: string, tr?: string | null): HTMLElement | null {
   return el('small', { class: 'hpa-en' }, `EN: ${cleanTr}`);
 }
 
+/**
+ * The one send path for Help replies (Needs you cards AND the Help panel): the founder writes ENGLISH; when the member writes Thai
+ * the English is turned into natural Thai (kr8-help-ai translate_reply; the unchanged Sonnet draft sends Sonnet's own Thai),
+ * then kr8_admin_team_reply_en stores the Thai for the member and the English for the founder. Returns what the member got.
+ */
+export async function sendTeamReply(o: { member: string; en: string; memberThai: boolean; draftTh?: string; draftEn?: string; onStep?: (t: string) => void }): Promise<{ body: string; en: string }> {
+  const en = o.en.trim();
+  if (!en) throw new Error('Write a reply first.');
+  let body = en;
+  if (o.memberThai && !hasThaiText(en)) {
+    if (o.draftTh && en === (o.draftEn || '').trim()) body = o.draftTh;
+    else {
+      o.onStep?.('Translating to Thai…');
+      const cl = await v5Client();
+      const { data, error } = await cl.functions.invoke('kr8-help-ai', { body: { mode: 'translate_reply', text_en: en, lang: 'th' } });
+      const th = (data as { ok?: boolean; text?: string } | null)?.text;
+      if (error || !th) throw new Error('Thai translation failed, nothing was sent. Try again.');
+      body = th;
+    }
+  }
+  o.onStep?.('Sending…');
+  await rpc('kr8_admin_team_reply_en', { p_member: o.member, p_body: body, p_body_en: en });
+  return { body, en };
+}
+
 export function helpCaseCard(c: HelpCase, onDone?: (c: HelpCase) => void): HTMLElement {
   const urg = helpUrgency(c);
   const who = `${c.name || 'Member'}${c.member_no ? ` #${c.member_no}` : ''}`;
@@ -79,19 +104,7 @@ export function helpCaseCard(c: HelpCase, onDone?: (c: HelpCase) => void): HTMLE
     if (!en) { ta.focus(); return; }
     send.setAttribute('disabled', ''); status.textContent = memberThai ? 'Translating to Thai…' : 'Sending…';
     try {
-      let body = en;
-      if (memberThai && !hasThaiText(en)) {
-        if (draftTh && en === draftEn) body = draftTh;
-        else {
-          const cl = await v5Client();
-          const { data, error } = await cl.functions.invoke('kr8-help-ai', { body: { mode: 'translate_reply', text_en: en, lang: 'th' } });
-          const th = (data as { ok?: boolean; text?: string } | null)?.text;
-          if (error || !th) throw new Error('Thai translation failed, nothing was sent. Try again.');
-          body = th;
-        }
-        status.textContent = 'Sending…';
-      }
-      await rpc('kr8_admin_team_reply_en', { p_member: c.member, p_body: body, p_body_en: en });
+      await sendTeamReply({ member: c.member, en, memberThai, draftTh, draftEn, onStep: (t) => { status.textContent = t; } });
       card.classList.add('hpa-done'); status.textContent = `Sent to ${who} as Kring Team ✓`; ta.setAttribute('disabled', '');
       onDone?.(c);
     } catch (e) {
@@ -101,14 +114,18 @@ export function helpCaseCard(c: HelpCase, onDone?: (c: HelpCase) => void): HTMLE
   return card;
 }
 
-/** Self-filling block for "Needs you": nothing shows when no member is waiting. */
+/** Self-filling block for "Needs you": a "Help chats" link to the full Help panel (#help), then one card per waiting member. */
 export function helpSection(onCount?: (n: number) => void): HTMLElement {
   const box = el('section', { id: 'v2Help', class: 'hpa-sec' });
+  const link = (n: number, late: number) => el('a', { class: `hpa-open${late ? ' late' : ''}`, href: '#help', id: 'hpaOpenPanel' },
+    el('b', {}, n ? `Help · ${n} waiting` : 'Help chats'),
+    el('small', {}, late ? `${late} past 45 min · open all chats` : n ? 'Open all chats' : 'All answered · open all chats'),
+    el('span', { class: 'hpa-open-go', 'aria-hidden': 'true' }, '›'));
+  box.replaceChildren(link(0, 0));
   loadHelpCases().then((list) => {
     onCount?.(list.length);
-    if (!list.length) { box.replaceChildren(); return; }
     const late = list.filter((c) => helpUrgency(c) !== 'ok').length;
-    box.replaceChildren(el('div', { class: 'v2sec' }, `Help · ${list.length} waiting${late ? ` · ${late} past 45 min` : ''}`), ...list.map((c) => helpCaseCard(c)));
-  }).catch((e) => { box.replaceChildren(el('div', { class: 'v2card v2err' }, el('b', {}, 'Help cases could not load'), el('div', { class: 'v2sub' }, String((e as Error).message)))); });
+    box.replaceChildren(link(list.length, late), ...list.map((c) => helpCaseCard(c)));
+  }).catch((e) => { box.replaceChildren(link(0, 0), el('div', { class: 'v2card v2err' }, el('b', {}, 'Help cases could not load'), el('div', { class: 'v2sub' }, String((e as Error).message)))); });
   return box;
 }

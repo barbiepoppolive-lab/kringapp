@@ -26,6 +26,7 @@ import { addDays, bkkToday, clampDay, countryName, dailyRange, dayName, flag, gr
   type Growth, type GrowthDailyRow, type GrowthDay, type GrowthDays } from './growthLogic';
 import './adminV2.css';
 import { helpSection } from './adminHelp';   // 0097: Help cases (self-contained)
+import { helpPanelLeave, helpPanelView } from './helpPanel';   // 0120: full Help panel (#help, #help/<uid>)
 import { bugSection, viewAsLeave, viewAsView } from './viewAs';   // 0110: View as member + Spot a bug cases
 
 type Kid = Node | string | null | undefined | false;
@@ -1719,6 +1720,8 @@ export async function autopilotView() {
 /** Router hook: returns true when the hash is a v2 screen. */
 export function v2Route(a: string, b?: string): boolean {
   viewAsLeave();
+  helpPanelLeave();
+  if (a === 'help') { stopV2(); helpPanelView((...kids) => screen('inbox', ...kids), b, setHelpWaiting); return true; }
   if (a === 'viewas') { stopV2(); viewAsView((...kids) => screen('more', ...kids)); return true; }
   if (a === 'growth' || a === '') { growthView(b); return true; }   // #growth/2026-11-17 = that day (0114)
   if (a === 'today') { todayView(); return true; }

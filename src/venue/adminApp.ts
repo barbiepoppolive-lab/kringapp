@@ -1740,6 +1740,7 @@ function moreView() {
   ];
   screen('more', head('Kring admin', 'More'),
     el('div', { class: 'lt-group' },
+      li('#help', 'msg', 'Help chats', 'moreHelp'),   // 0120: every member Help conversation
       li('#board', 'trophy', 'Board', 'moreBoard'),   // 18 Nov: moved here from the dock (Growth took its seat)
       li('#viewas', 'eye', 'View as member', 'moreViewAs'),
       li('#autopilot', 'spark', 'Autopilot', 'moreAutopilot'),

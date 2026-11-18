@@ -48,7 +48,7 @@ export function helpWaitLabel(c: Pick<HelpCase, 'waiting_since'>, now = Date.now
   if (m < 1) return 'waiting just now';
   if (m < 60) return `waiting ${m} min`;
   const h = Math.floor(m / 60);
-  return h < 24 ? `waiting ${h} h ${m % 60} min` : `waiting ${Math.floor(h / 24)} d ${h % 60} h`;
+  return h < 24 ? `waiting ${h} h ${m % 60} min` : `waiting ${Math.floor(h / 24)} d ${h % 24} h`;
 }
 export function helpUrgencyText(u: HelpUrgency): string {
   return u === 'late' ? '1-hour promise missed' : u === 'risk' ? '1-hour promise at risk' : 'within the 1-hour promise';
