@@ -2,7 +2,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 import { closeLine, closesAt, floorProgress, latestApproved, RankingPage } from './V5KxRanking';
 import { KX_L, V5_L } from './v5Strings';
 import { prizeFor, prizeLadder } from './kxLogic';
@@ -53,7 +53,7 @@ describe('Board V2: prizes', () => {
   it('#9 and below: plain rows with "X to #8", under the prize line', async () => {
     kx.kxRanking.mockResolvedValue(board([...TOP8, row(9, 20), row(10, 12)], { gap: gap({}) }));
     page();
-    await screen.findByText('PRIZE LINE');
+    await waitFor(() => expect(document.querySelector('#kxPrizeLine')!.textContent).toBe('Prize line'));
     expect([...document.querySelectorAll('.bx-row.plain .kx-tl')].map((e) => e.textContent)).toEqual(['6 to #8', '14 to #8']);
     expect(document.querySelector('.bx-row.plain .kx-pz')).toBeNull();
   });
@@ -86,20 +86,17 @@ describe('Board V2: pinned row + progress to 25 Rings', () => {
     page();
     await waitFor(() => expect(document.querySelector('#kxMeRow')).toBeTruthy());
     const me = document.querySelector('#kxMeRow')!;
-    expect(me.querySelector('.n')!.textContent).toBe('#14');
-    expect(me.querySelector('.l1')!.textContent).toBe('You · 12 Rings');
-    expect(me.querySelector('#kxMeNext')!.textContent).toBe('13 more Rings for a prize seat');
+    // board-1 v3: ONE line; the bar shows while chasing (here: the 25-Ring prize seat)
+    expect(me.querySelector('#kxMeNext')!.textContent).toBe('#14 · 13 more Rings for a prize seat');
     const bar = me.querySelector('#kxMeBar')!;
     expect(bar.getAttribute('data-pct')).toBe('48');
-    expect(bar.getAttribute('aria-valuemax')).toBe('25');
-    expect(bar.className).not.toContain('full');
   });
   it('qualified: full bar and the next step (Rings to the next rank and its ฿)', async () => {
     kx.kxRanking.mockResolvedValue(board(TOP8, { gap: gap({ state: 'board', rank: 9, rings: 30, target: { rank: 8, need: 3, prize: 100, open: false } }) }));
     page();
     await waitFor(() => expect(document.querySelector('#kxMeBar')).toBeTruthy());
-    expect(document.querySelector('#kxMeBar')!.className).toContain('full');
-    expect(document.querySelector('#kxMeNext')!.textContent).toBe('3 Rings to pass #8 · ฿100');
+    expect(document.querySelector('#kxMeBar')!.getAttribute('data-pct')).toBe('91');
+    expect(document.querySelector('#kxMeNext')!.textContent).toBe('#9 · 3 Rings to #8');
   });
   it('floorProgress / latestApproved', () => {
     expect(floorProgress(12, 25)).toEqual({ pct: 48, below: true, need: 13 });
@@ -130,8 +127,10 @@ describe('Board V2: one main button', () => {
     page({ onShare, onPost });
     await waitFor(() => expect(document.querySelector('#kxBoardCta')!.getAttribute('data-act')).toBe('share'));
     await waitFor(() => expect(document.querySelector('#kxBoardCta')!.getAttribute('aria-busy')).toBe('false'));
-    expect(document.querySelector('#kxBoardCta')!.textContent).toBe('Share my Reel');
+    expect(document.querySelector('#kxBoardCta')!.textContent).toBe('Share');   // board-1 v3: one Share → My Reel / My rank
     fireEvent.click(document.querySelector('#kxBoardCta')!);
+    expect(document.querySelector('#kxShareSheet')!.textContent).toContain('My Reel');
+    fireEvent.click(document.querySelector('#kxShareReel')!);
     expect(onShare).toHaveBeenCalledWith('n');
     expect(onPost).not.toHaveBeenCalled();
     expect(kx.kxMemberReels).toHaveBeenCalledWith('me');
@@ -151,7 +150,7 @@ describe('Board V2: one main button', () => {
     r.unmount();
     kx.kxMemberReels.mockResolvedValue({ user_id: 'me', mine: true, best: 'a', reels: [reel('a', 'approved', '2026-11-16T01:00:00Z')] });
     page({ lang: 'th' });
-    await waitFor(() => expect(document.querySelector('#kxBoardCta')!.textContent).toBe('แชร์คลิปของฉัน'));
+    await waitFor(() => expect(document.querySelector('#kxBoardCta')!.textContent).toBe('แชร์'));
   });
   it('signed out: Post a Reel (sign-in happens in the composer flow)', async () => {
     const onPost = vi.fn();
@@ -167,12 +166,10 @@ describe('Board V2: one language at a time', () => {
   it('Thai mode: no English anywhere on the board (no English sub-lines)', async () => {
     kx.kxRanking.mockResolvedValue(board([...TOP8, row(9, 20)], { gap: gap({}) }));
     page({ lang: 'th' });
-    await waitFor(() => expect(document.querySelector('#kxSeatsLeft')).toBeTruthy());
     await waitFor(() => expect(document.querySelector('#kxMeRow')).toBeTruthy());
     const text = document.querySelector('#kxRanking')!.textContent!;
     expect(text).toContain('อันดับประจำสัปดาห์');
-    expect(text).toContain('ปิดรอบ อา. 23:59');
-    expect(text).toContain('เหลือ 38/50 ที่นั่ง');
+    expect(document.querySelector('#kxSeatsLeft')).toBeNull();   // board-1 v3: seats left moved into the ⓘ sheet
     expect(text).toContain('อีก 13 ริง ได้ที่นั่งรับรางวัล');
     expect(text).not.toMatch(/[A-Za-z]{2,}/);
     expect(document.querySelectorAll('#kxRanking [lang="en"]').length).toBe(0);
@@ -180,7 +177,7 @@ describe('Board V2: one language at a time', () => {
   it('English mode: no Thai on the board', async () => {
     kx.kxRanking.mockResolvedValue(board(TOP8.map((r) => ({ ...r, first_name: `P${r.rank}` })), { gap: gap({}) }));
     page();
-    await waitFor(() => expect(document.querySelector('#kxSeatsLeft')).toBeTruthy());
+    await waitFor(() => expect(document.querySelector('#kxMeRow')).toBeTruthy());
     const t = document.querySelector('#kxRanking')!.textContent!;
     expect(t.match(/.{0,8}[\u0E01-\u0E3A\u0E40-\u0E7F]+.{0,10}/g)).toBeNull();   // ฿ (U+0E3F) is fine
   });

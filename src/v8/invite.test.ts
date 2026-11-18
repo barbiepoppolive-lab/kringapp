@@ -151,7 +151,7 @@ describe('app wiring: every share goes through the one tap with my code', () => 
     expect(app).toContain("q0.get('ref') && !['reel', 'u', 'place', 'v', 'so', 'person'].some((k) => q0.get(k))");
   });
   it('hint only next to existing share buttons (Board + post-success)', () => {
-    expect(readFileSync('src/v8/V5KxRanking.tsx', 'utf8')).toContain('{share ? <InviteHint lang={lang} x={cfg?.invite} /> : null}');
+    expect(readFileSync('src/v8/V5KxRanking.tsx', 'utf8')).toContain('<InviteHint lang={lang} x={cfg?.invite} />');   // board-1 v3: inside the Share sheet
     expect(app.match(/<InviteHint /g)).toHaveLength(1);   // post-success only (the Board has its own)
   });
 });

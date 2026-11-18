@@ -963,7 +963,7 @@
 .v8-app-root .bx-sub { margin: 1px 0 0; font: 600 0.78rem/1.4 var(--kx-j); color: rgba(225,228,255,.74); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .v8-app-root .bx.lth .bx-sub { font-family: var(--bx-th); }
 .v8-app-root .bx-cd.hot { color: #FF9AD8; }
-@media (prefers-reduced-motion: no-preference) { .v8-app-root .bx-cd.hot { animation: bxHot 2.4s ease-in-out infinite; } }
+@media (prefers-reduced-motion: no-preference) { .v8-app-root .bx-cd.day { animation: bxHot 2.4s ease-in-out infinite; } }
 @keyframes bxHot { 50% { opacity: .55; } }
 .v8-app-root .bx .bx-i { flex: none; width: 38px; height: 38px; margin-top: 4px; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center; background: none; color: rgba(255,255,255,.88); }
 .v8-app-root .bx-i svg { width: 26px; height: 26px; }
@@ -1113,6 +1113,75 @@
 .v8-app-root .bx-story .tx { font: 800 0.9375rem/1 var(--kx-j); white-space: nowrap; text-shadow: 0 1px 4px rgba(40,10,80,.4); }
 .v8-app-root .bx.lth .bx-story .tx { font: 700 1rem/1.2 var(--bx-th); }
 .v8-app-root .bx-story[aria-busy="true"] { opacity: .7; }
+/* board-1 v3 · stronger beautify (founder 18 Nov). Same layout. One soft gradient (light violet → pink at the top, calm lower) with a few
+   sparkles instead of the neon swirls; soft light pools instead of glowing discs; airy rows; one-line pinned row; one Share button. */
+.v8-app-root .kx-page.bx { background: #4F3FA8; }
+.v8-app-root .bx-bg { filter: none; background:
+  radial-gradient(circle at 12% 9%, rgba(255,255,255,.9) 0 1.4px, transparent 2.4px),
+  radial-gradient(circle at 86% 15%, rgba(255,255,255,.85) 0 1.8px, transparent 3px),
+  radial-gradient(circle at 70% 4%, rgba(255,255,255,.7) 0 1.2px, transparent 2.2px),
+  radial-gradient(circle at 24% 38%, rgba(255,255,255,.5) 0 1.2px, transparent 2.2px),
+  radial-gradient(circle at 91% 47%, rgba(255,255,255,.55) 0 1.4px, transparent 2.4px),
+  radial-gradient(circle at 7% 66%, rgba(255,255,255,.45) 0 1.2px, transparent 2.2px),
+  radial-gradient(120% 42% at 50% 0%, rgba(255,186,226,.75), rgba(255,186,226,0) 70%),
+  linear-gradient(180deg, #A68CF6 0%, #B886E6 16%, #8A6BDA 36%, #6B54C6 58%, #5845B4 80%, #4F3FA8 100%); }
+.v8-app-root .bx-bg::after { content: none; }
+.v8-app-root .bx-tt h1 { filter: drop-shadow(0 1px 6px rgba(120,40,140,.45)); background: linear-gradient(180deg, #FFFFFF 30%, #FFE3F5); -webkit-background-clip: text; background-clip: text; }
+.v8-app-root .bx-tcr { filter: drop-shadow(0 0 4px rgba(255,210,120,.6)); }
+/* countdown: small glass pill + stopwatch; last 24 h pink and pulsing; last hour bigger mm:ss */
+.v8-app-root .bx-sub { margin-top: 6px; overflow: visible; }
+.v8-app-root .bx-cd { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px 5px 9px; border-radius: 999px; color: #fff;
+  background: rgba(255,255,255,.16); box-shadow: inset 0 0 0 1px rgba(255,255,255,.4); font: 700 0.8125rem/1.2 var(--kx-j); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.v8-app-root .bx-cd svg { width: 15px; height: 15px; flex: none; }
+.v8-app-root .bx.lth .bx-cd { font-family: var(--kx-j), var(--bx-th); }
+.v8-app-root .bx-cd.day { color: #fff; background: rgba(255,79,192,.42); box-shadow: inset 0 0 0 1px rgba(255,190,235,.75), 0 0 14px rgba(255,79,192,.45); }
+.v8-app-root .bx-cd.m-hour { padding: 6px 16px 6px 12px; font-size: 1.25rem; font-weight: 800; }
+.v8-app-root .bx-cd.m-hour svg { width: 19px; height: 19px; }
+/* podium: soft light pools instead of glowing discs; quieter beams and aura */
+.v8-app-root .bx-aura { opacity: .55; }
+.v8-app-root .bx-beam { display: none; }
+.v8-app-root .bx-pool { display: block; width: 118%; height: 26px; margin: 4px 0 -10px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(255,255,255,.34), rgba(255,255,255,0) 72%); }
+.v8-app-root .bx-pool.p1 { height: 32px; background: radial-gradient(50% 50% at 50% 50%, rgba(255,226,150,.55), rgba(255,226,150,0) 72%); }
+.v8-app-root .bx-pz { text-shadow: 0 1px 3px rgba(90,40,10,.45); }
+.v8-app-root .bx-r { text-shadow: 0 1px 3px rgba(40,10,80,.45); }
+/* rows: ring + number only, airy, hairlines */
+.v8-app-root .bx .bx-row { min-height: 60px; border-top: 1px solid rgba(255,255,255,.08); }
+.v8-app-root .bx-row .bx-sc { font-size: 0.8125rem; color: rgba(255,255,255,.9); }
+.v8-app-root .bx-sc .num, .v8-app-root .bx-r .num { font-variant-numeric: tabular-nums; }
+.v8-app-root .bx .bx-row .kx-pz.off, .v8-app-root .bx-pz.off { color: rgba(255,226,150,.55); font-size: 0.8125rem; font-weight: 700; text-shadow: none; }
+.v8-app-root .bx .bx-row .kx-tl { color: rgba(255,255,255,.75); }
+.v8-app-root .bx .bx-row.mer { margin: 2px -8px; padding-left: 8px; padding-right: 10px; border-radius: 16px; border-top-color: transparent;
+  background: linear-gradient(90deg, rgba(255,255,255,.2), rgba(255,255,255,.07)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
+.v8-app-root .bx .bx-row.mer + .bx-row { border-top-color: transparent; }
+/* prize line: one thin dotted line + a tiny centred chip */
+.v8-app-root .bx .bx-line { height: 40px; }
+.v8-app-root .bx .bx-line::before { border-top: 1px dotted rgba(255,228,145,.7); }
+.v8-app-root .bx .bx-line span { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; font: 700 0.6875rem/1.2 var(--kx-j); letter-spacing: .02em; text-transform: none; color: #FFE7A6; text-shadow: none; }
+.v8-app-root .bx.lth .bx-line span { font-family: var(--kx-j), var(--bx-th); }
+.v8-app-root .bx .bx-line span::before { background: #5E4BBE; box-shadow: inset 0 0 0 1px rgba(255,228,145,.55); }
+.v8-app-root .bx .bx-line + .bx-row { border-top-color: transparent; }
+/* pinned: one line; the bar only while chasing; the ↑2 chip */
+.v8-app-root .bx-pin { padding-top: 18px; background: linear-gradient(to bottom, rgba(79,63,168,0), #4F3FA8 18px); }
+.v8-app-root .kx-page.bx { padding-bottom: calc(190px + env(safe-area-inset-bottom)); }
+.v8-app-root .bx-you { min-height: 56px; padding: 7px 14px 7px 7px; }
+.v8-app-root .bx-you .l1 { display: flex; align-items: center; gap: 8px; font-size: 0.9375rem; }
+.v8-app-root .bx-up { flex: none; padding: 2px 7px; border-radius: 999px; font: 800 0.6875rem/1.3 var(--kx-j); font-style: normal; color: #0E4D2C; background: #8CF0B8; }
+.v8-app-root .bx-up.dn { color: #5A1030; background: #FFB3CF; }
+.v8-app-root .bx-bar { margin-top: 6px; }
+/* one Share button + a tiny two-choice sheet */
+.v8-app-root .bx-shbg { z-index: 60; background: rgba(40,22,96,.42); }
+.v8-app-root .bx-sharesheet { position: absolute; left: 0; right: 0; bottom: 0; max-width: 480px; margin: 0 auto; padding: 10px 16px calc(84px + env(safe-area-inset-bottom)); border-radius: 26px 26px 0 0; color: #fff;
+  background: linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,.1)), rgba(84,64,176,.97); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 -10px 40px rgba(20,8,60,.35); }
+.v8-app-root .bx-sharesheet .grab { display: block; width: 40px; height: 4px; margin: 0 auto 14px; border-radius: 2px; background: rgba(255,255,255,.5); }
+.v8-app-root .bx-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.v8-app-root .bx .bx-pick { height: 92px; border: 0; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: #fff; cursor: pointer;
+  background: rgba(255,255,255,.14); box-shadow: inset 0 0 0 1.2px rgba(255,255,255,.5); }
+.v8-app-root .bx-pick .ic svg { width: 26px; height: 26px; }
+.v8-app-root .bx-pick .tx { font: 800 1rem/1.2 var(--kx-j); }
+.v8-app-root .bx.lth .bx-pick .tx { font: 700 1.0625rem/1.3 var(--bx-th); }
+.v8-app-root .bx-sharesheet .kx-ihint { margin-top: 14px; font-size: 0.8125rem; color: rgba(255,255,255,.88); }
+.v8-app-root .rw-sheet .rka-seats { margin: 14px 0 0; text-align: center; font: 700 0.875rem var(--kx-j); color: #FFE7A6; }
 /* ===== Kring Light 5a (founder-approved 18 Nov): bottom sheets = light glass (see v8.css) ===== */
 .v8-app-root .kx-sh {
   background: linear-gradient(rgba(255,255,255,.07), rgba(255,255,255,.07)), rgba(16,14,27,.8);

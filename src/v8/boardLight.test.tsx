@@ -2,7 +2,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { render, waitFor } from '@testing-library/react';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 import { RankingPage } from './V5KxRanking';
 import { KX_L, V5_L } from './v5Strings';
 import { prizeFor, prizeLadder } from './kxLogic';
@@ -44,9 +44,12 @@ beforeEach(() => {
 describe('board-1: one language per mode on the whole board', () => {
   it('Thai mode: every word on the board (incl. the new Share my rank button) is Thai, no English sub-lines', async () => {
     page('th');
+    await waitFor(() => expect(document.querySelector('#kxBoardCta')!.getAttribute('aria-busy')).toBe('false'));
+    fireEvent.click(document.querySelector('#kxBoardCta')!);
     await waitFor(() => expect(document.querySelector('#kxShareRank')).toBeTruthy());
     const text = document.querySelector('#kxRanking')!.textContent!;
-    expect(text).toContain('แชร์อันดับ');
+    expect(text).toContain('อันดับของฉัน');
+    expect(text).toContain('คลิปของฉัน');
     expect(text).not.toMatch(LATIN_WORD);
     expect(document.querySelectorAll('#kxRanking [lang="en"]').length).toBe(0);
     const labels = [...document.querySelectorAll('#kxRanking [aria-label]')].map((e) => e.getAttribute('aria-label')!);
@@ -55,9 +58,11 @@ describe('board-1: one language per mode on the whole board', () => {
   it('English mode: no Thai anywhere on the board, labels included', async () => {
     kx.kxRanking.mockResolvedValue(board(ROWS.map((r) => ({ ...r, first_name: `P${r.rank}` })), { gap: gap({}) }));
     page('en');
+    await waitFor(() => expect(document.querySelector('#kxBoardCta')!.getAttribute('aria-busy')).toBe('false'));
+    fireEvent.click(document.querySelector('#kxBoardCta')!);
     await waitFor(() => expect(document.querySelector('#kxShareRank')).toBeTruthy());
     const text = document.querySelector('#kxRanking')!.textContent!;
-    expect(text).toContain('Share my rank');
+    expect(text).toContain('My rank');
     expect(text).not.toMatch(THAI);
     for (const e of document.querySelectorAll('#kxRanking [aria-label]')) expect(e.getAttribute('aria-label')!).not.toMatch(THAI);
   });
@@ -97,16 +102,48 @@ describe('board-1: less clutter', () => {
 });
 
 describe('board-1: Share my rank (story card)', () => {
-  it('Share my Reel still works next to it; the story button only shows when I am on the board', async () => {
-    const r = page('en');
-    await waitFor(() => expect(document.querySelector('#kxBoardCta')!.getAttribute('data-act')).toBe('share'));
-    expect(document.querySelector('#kxBoardCta')!.textContent).toBe('Share my Reel');
+  it('one Share button → a tiny sheet: My Reel (the Reel share flow) / My rank (the story card) + the friend line; not on the board → Share goes straight to my Reel', async () => {
+    const onShare = vi.fn();
+    const r = render(<RankingPage L={en} Lf={enf} lang="en" myArea={null} myPhoto={null} myName="Ploy" myId="me" onBack={() => undefined} onPerson={() => undefined} onPost={() => undefined} onShare={onShare} />);
+    await waitFor(() => expect(document.querySelector('#kxBoardCta')!.getAttribute('aria-busy')).toBe('false'));
+    await waitFor(() => expect(document.querySelector('#kxMeRow')).toBeTruthy());
+    expect(document.querySelector('#kxBoardCta')!.textContent).toBe('Share');
+    fireEvent.click(document.querySelector('#kxBoardCta')!);
+    const sheet = document.querySelector('#kxShareSheet')!;
+    expect([...sheet.querySelectorAll('.bx-pick .tx')].map((e) => e.textContent)).toEqual(['My Reel', 'My rank']);
+    expect(sheet.querySelector('#kxInviteHint')).toBeTruthy();                       // "Friend joins = +10 each" lives in the sheet now
+    expect(document.querySelectorAll('#kxInviteHint').length).toBe(1);
     expect(document.querySelector('#kxShareRank')!.getAttribute('aria-label')).toBe('Share my rank as a story');
+    fireEvent.click(document.querySelector('#kxShareReel')!);
+    expect(onShare).toHaveBeenCalledWith('r1');
+    expect(document.querySelector('#kxShareSheet')).toBeNull();
     r.unmount();
     kx.kxRanking.mockResolvedValue(board(ROWS.slice(1).map((x) => ({ ...x, is_me: false })), { gap: gap({ state: 'off', rank: null, rings: 0, prize_now: 0, target: { rank: 8, need: 25, prize: 100, open: false } }) }));
     page('en');
     await waitFor(() => expect(document.querySelector('#kxMeRow')).toBeTruthy());
-    expect(document.querySelector('#kxShareRank')).toBeNull();
+    await waitFor(() => expect(document.querySelector('#kxBoardCta')!.getAttribute('aria-busy')).toBe('false'));
+    fireEvent.click(document.querySelector('#kxBoardCta')!);
+    expect(document.querySelector('#kxShareSheet')).toBeNull();
+  });
+  it('pinned row: one line, the bar only while chasing; rows show the ring + number only (the word stays in the pinned row)', async () => {
+    page('en');
+    await waitFor(() => expect(document.querySelector('#kxMeNext')).toBeTruthy());
+    expect(document.querySelector('#kxMeNext')!.textContent).toBe('You’re #1 · 54 Rings ahead');
+    expect(document.querySelector('#kxMeBar')).toBeNull();                            // #1: nothing to chase
+    expect([...document.querySelectorAll('.bx-row .bx-sc')].map((e) => e.textContent)).toEqual(['19', '14', '9', '6', '5', '3', '2']);
+    expect(document.querySelector('#kxRankList')!.textContent).not.toMatch(/Rings?\b/);
+  });
+  it('live countdown: days, then the last 24 h (pink, pulsing), then the last hour (big mm:ss); Thai units in Thai', async () => {
+    const { liveClock } = await import('./V5KxRanking');
+    const end = Date.parse('2026-11-22T17:00:00Z');
+    const left = (d: number, h: number, m: number, s: number) => end - (((d * 24 + h) * 60 + m) * 60 + s) * 1000;
+    expect(liveClock(left(3, 8, 14, 22), end, 'en')).toEqual({ text: '3d 08:14:22', mode: 'week' });
+    expect(liveClock(left(3, 8, 14, 22), end, 'th')).toEqual({ text: '3 วัน 08:14:22', mode: 'week' });
+    expect(liveClock(left(0, 8, 14, 22), end, 'en')).toEqual({ text: '08:14:22', mode: 'day' });
+    expect(liveClock(left(0, 0, 14, 22), end, 'th')).toEqual({ text: '14:22', mode: 'hour' });
+    expect(liveClock(end + 5000, end, 'en')).toEqual({ text: '00:00', mode: 'hour' });
+    const css = fs.readFileSync(path.join(__dirname, 'kx.css'), 'utf8');
+    expect(css).toMatch(/prefers-reduced-motion: no-preference\) \{ \.v8-app-root \.bx-cd\.day \{ animation: bxHot/);
   });
   it('card words: one language per card, every moment; pool line from the config; the code big and readable', () => {
     for (const moment of MOMENTS) {

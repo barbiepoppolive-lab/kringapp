@@ -33,10 +33,12 @@ describe('Board: "X of 50 paid seats left" (0096)', () => {
       unmount();
     }
   });
-  it('on the board (V2: in the line under the title "… · 37/50 seats left"), from kr8_seats_left', async () => {
+  it('board-1 v3: not in the header any more (title + countdown only); shown in the ⓘ How to win sheet, from kr8_seats_left', async () => {
     render(<RankingPage L={en} Lf={enf} lang="en" myArea={null} myPhoto={null} myName="" myId={null} onBack={() => undefined} onPerson={() => undefined} onPost={() => undefined} onShare={() => undefined} />);
-    await waitFor(() => expect(document.querySelector('#kxSeatsLeft')?.textContent).toBe('37/50 seats left'));
-    expect(document.querySelector('#kxBoardSub')!.textContent).toMatch(/^Closes .+ · 37\/50 seats left$/);
+    await waitFor(() => expect(kxMock.kxSeatsLeft).toHaveBeenCalled());
+    await waitFor(() => expect(document.querySelector('#kxCountdown')).toBeTruthy());
+    expect(document.querySelector('#kxBoardSub #kxSeatsLeft')).toBeNull();
+    expect(readFileSync('src/v8/V5KxRanking.tsx', 'utf8')).toContain('extra={<SeatsLine L={L} Lf={Lf} lang={lang} left={seatsLeft} />}');
     expect(kxMock.kxSeatsLeft).toHaveBeenCalled();
   });
   it('copy has no banned words; the SQL returns one integer and never reads voucher stock', () => {

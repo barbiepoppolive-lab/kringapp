@@ -264,15 +264,15 @@ describe('Ranking screen', () => {
     kxMock.kxRanking.mockResolvedValue(ranking(rows, { me: { rank: 9, all_rank: 9, rings: 107, prize: 0, move: null },
       gap: { state: 'board', rank: 9, rings: 107, floor: 25, prize_now: 0, target: { rank: 8, need: 12, prize: 100, open: false }, above: null, behind: null, top10_need: null } }));
     render(<RankingPage L={L} Lf={Lf} lang="en" myArea="Ari" myPhoto={null} myName="Mint" myId="u9" onBack={() => undefined} onPerson={() => undefined} onPost={() => undefined} onShare={() => undefined} />);
-    await screen.findByText('PRIZE LINE');
+    await waitFor(() => expect(document.querySelector('#kxPrizeLine')!.textContent).toBe('Prize line'));   // board-1 v3: a tiny chip on a dotted line
     expect([...document.querySelectorAll('#kxPodium [data-prize]')].map((e) => e.textContent)).toEqual(['฿900', '฿1,500', '฿600']);
     expect([...document.querySelectorAll('.kx-row .kx-pz')].map((e) => e.textContent)).toEqual(['฿500', '฿400', '฿250', '฿150', '฿100']);
     expect([...document.querySelectorAll('.kx-row .kx-tl')].map((e) => e.textContent)).toEqual(['12 to #8', '23 to #8']);
     expect(document.querySelectorAll('[data-rank]').length).toBe(10);
-    expect(document.querySelector('#kxMeNext')!.textContent).toBe('12 Rings to pass #8 · ฿100');
+    expect(document.querySelector('#kxMeNext')!.textContent).toBe('#9 · 12 Rings to #8');   // board-1 v3: one line
     expect(document.querySelector('.bx-tt h1')!.textContent).toBe('Weekly Ranking');
-    // board V2: the closing time ("Closes Sun 23:59"), or a live countdown in the last 24 h
-    expect(document.querySelector('#kxCountdown')!.textContent).toMatch(/^Closes (Sun 23:59|in \d\d:\d\d)$/);
+    // board-1 v3: a live countdown pill ("3d 08:14:22", last 24 h "08:14:22", last hour "14:22")
+    expect(document.querySelector('#kxCountdown')!.textContent).toMatch(/^(\d+d \d\d:\d\d:\d\d|\d\d:\d\d:\d\d|\d\d:\d\d)$/);
     expect(document.querySelector('#kxRanking')!.textContent).not.toMatch(/\+5,000|\+500/);
     // look A (17 Nov): the All Bangkok · My area · Friends tabs are gone; the board is always All Bangkok
     expect(document.querySelector('[role="tablist"], #kxRank-area, #kxRank-friends, #kxHowBtn')).toBeNull();
@@ -283,7 +283,8 @@ describe('Ranking screen', () => {
     const rows = [88, 64, 51, 33, 18].map((r, i) => row(i + 1, r));
     kxMock.kxRanking.mockResolvedValue(ranking(rows, { gap: { state: 'off', rank: null, rings: 0, floor: 25, prize_now: 0, target: { rank: 6, need: 25, prize: 250, open: true }, above: null, behind: null, top10_need: 1 } }));
     render(<RankingPage L={L} Lf={Lf} lang="en" myArea="Ari" myPhoto={null} myName="Mint" myId="me" onBack={() => undefined} onPerson={() => undefined} onPost={() => undefined} onShare={() => undefined} />);
-    await screen.findByText('PRIZE LINE · 25 RINGS TO TAKE A SEAT');
+    await waitFor(() => expect(document.querySelector('#kxPrizeLine')!.textContent).toMatch(/^Prize line · 25/));
+    expect(document.querySelector('#kxPrizeLine')!.getAttribute('aria-label')).toBe('PRIZE LINE · 25 RINGS TO TAKE A SEAT');
     expect([...document.querySelectorAll('[data-seat="open"]')].map((e) => e.textContent)).toEqual(['6Your spot?฿250', '7Your spot?฿150', '8Your spot?฿100']);
     // board-1 (Kring Light): the "X more Rings to be eligible" line is only on MY row now; another member under the floor = dimmed prize
     expect(document.querySelector('[data-rank="5"]')!.textContent).not.toContain('more Rings to be eligible');
