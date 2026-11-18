@@ -34,19 +34,60 @@ describe('admin Help cases', () => {
     const s = sortHelpCases([mk(5), mk(50, { test: true }), mk(30)]);
     expect(s.map((c) => c.member)).toEqual(['m30', 'm5', 'm50']);
   });
-  it('renders one self-contained card with the question, red risk line and a reply-as-team box', async () => {
+  it('renders one self-contained card with the question, red risk line and a reply-as-team box (silent fallback when no AI draft)', async () => {
     vi.useFakeTimers(); vi.setSystemTime(now);
     const { helpCaseCard } = await import('./adminHelp');
     const shared = await import('./shared');
+    vi.mocked(shared.rpc).mockClear();
     const card = helpCaseCard(mk(50));
     expect(card.dataset.urgency).toBe('risk');
     expect(card.textContent).toContain('Shared my link on LINE, why no Rings?');
     expect(card.textContent).not.toContain('[Help]');
     expect(card.textContent).toContain('1-hour promise at risk');
+    expect(card.querySelector('.hpa-suggest-hd')).toBeNull();
     (card.querySelector('textarea') as HTMLTextAreaElement).value = 'LINE opens don’t count ครับ';
     (card.querySelector('.hpa-send') as HTMLButtonElement).click();
     await Promise.resolve(); await Promise.resolve();
     expect(shared.rpc).toHaveBeenCalledWith('kr8_admin_team_reply', { p_member: 'm50', p_body: 'LINE opens don’t count ครับ' });
     vi.useRealTimers();
+  });
+  it('T-402 Help AI: shows English translation under every Thai line and prefills editable Suggested reply without auto-sending', async () => {
+    const { helpCaseCard } = await import('./adminHelp');
+    const shared = await import('./shared');
+    vi.mocked(shared.rpc).mockClear();
+    const card = helpCaseCard(mk(12, {
+      member: 'm74',
+      member_no: 74,
+      name: 'พลอยนภัส',
+      unanswered: 3,
+      unanswered_items: [
+        { id: 38, body: 'ขอบคุณค่ะ', translation_en: 'Thank you.' },
+        { id: 41, body: '[Help] ตรวจให้หน่อยค่ะ', translation_en: 'Please check it for me.' },
+        { id: 42, body: 'ตรวจคลิปให้ทีนะคะ', translation_en: 'Please check my clip.', suggested_reply: 'คลิปล่าสุดของคุณอนุมัติขึ้นฟีดเรียบร้อยแล้วครับ ขอบคุณมากนะครับ' },
+      ],
+      suggested_reply: 'คลิปล่าสุดของคุณอนุมัติขึ้นฟีดเรียบร้อยแล้วครับ ขอบคุณมากนะครับ',
+      history: [
+        { id: 38, from: 'member', body: 'ขอบคุณค่ะ', at: new Date(now - 12 * 60_000).toISOString(), translation_en: 'Thank you.' },
+        { id: 41, from: 'member', body: '[Help] ตรวจให้หน่อยค่ะ', at: new Date(now - 6 * 60_000).toISOString(), translation_en: 'Please check it for me.' },
+        { id: 42, from: 'member', body: 'ตรวจคลิปให้ทีนะคะ', at: new Date(now - 5 * 60_000).toISOString(), translation_en: 'Please check my clip.' },
+      ],
+    }));
+
+    // English translations appear under every Thai line in both unanswered quotes and Chat so far
+    const qEn = [...card.querySelectorAll('.hpa-q .hpa-en')].map((n) => n.textContent);
+    expect(qEn).toEqual(['EN: Thank you.', 'EN: Please check it for me.', 'EN: Please check my clip.']);
+    const histEn = [...card.querySelectorAll('.hpa-hist .hpa-en')].map((n) => n.textContent);
+    expect(histEn).toEqual(['EN: Thank you.', 'EN: Please check it for me.', 'EN: Please check my clip.']);
+
+    // Suggested reply box is prefilled, never auto-sent, and editable before tapping Send as Kring Team
+    expect(card.querySelector('.hpa-suggest-hd')?.textContent).toContain('Suggested reply');
+    const ta = card.querySelector('textarea') as HTMLTextAreaElement;
+    expect(ta.value).toBe('คลิปล่าสุดของคุณอนุมัติขึ้นฟีดเรียบร้อยแล้วครับ ขอบคุณมากนะครับ');
+    expect(shared.rpc).not.toHaveBeenCalled();
+
+    ta.value = 'คลิปล่าสุดของคุณอนุมัติเรียบร้อยแล้วครับ 🙏';
+    (card.querySelector('.hpa-send') as HTMLButtonElement).click();
+    await Promise.resolve(); await Promise.resolve();
+    expect(shared.rpc).toHaveBeenCalledWith('kr8_admin_team_reply', { p_member: 'm74', p_body: 'คลิปล่าสุดของคุณอนุมัติเรียบร้อยแล้วครับ 🙏' });
   });
 });

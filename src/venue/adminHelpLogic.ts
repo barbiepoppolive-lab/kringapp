@@ -1,19 +1,40 @@
 /**
- * Admin "Needs you" → Help cases (0097, 18 Nov 2026). Pure logic, no DOM (tested in adminHelp.test.ts).
+ * Admin "Needs you" → Help cases (0097 + T-402 Help AI, 18 Nov 2026). Pure logic, no DOM (tested in adminHelp.test.ts).
  * One case per member whose last message to the Kring Team is unanswered. Promise to members: "the team replies within 1 hour".
  */
-export interface HelpMsg { from: 'member' | 'team'; body: string; at: string }
+export interface HelpMsg {
+  id?: number;
+  from: 'member' | 'team';
+  body: string;
+  at: string;
+  translation_en?: string | null;
+}
+
+export interface HelpUnansweredItem {
+  id?: number;
+  body: string;
+  at?: string;
+  translation_en?: string | null;
+  suggested_reply?: string | null;
+  model?: string | null;
+}
+
 export interface HelpCase {
   thread_id: string; member: string; member_no: number | null; name: string | null; photo: string | null;
   verified: boolean; test: boolean;
   waiting_since: string; last_at: string; unanswered: number;
   question: string; messages: string[]; history: HelpMsg[];
+  unanswered_items?: HelpUnansweredItem[];
+  suggested_reply?: string | null;
+  ai_model?: string | null;
 }
 export type HelpUrgency = 'ok' | 'risk' | 'late';
 
 /** at 45 min the case turns red ("1-hour promise at risk"); after 60 min the promise is missed */
 export const HELP_RISK_MIN = 45;
 export const HELP_PROMISE_MIN = 60;
+
+export const hasThaiText = (s: string) => /[\u0E01-\u0E3E\u0E40-\u0E7F]/.test(s || '');
 
 export const helpWaitMin = (c: Pick<HelpCase, 'waiting_since'>, now = Date.now()) => Math.max(0, Math.floor((now - Date.parse(c.waiting_since)) / 60_000));
 export function helpUrgency(c: Pick<HelpCase, 'waiting_since'>, now = Date.now()): HelpUrgency {
@@ -25,7 +46,7 @@ export function helpWaitLabel(c: Pick<HelpCase, 'waiting_since'>, now = Date.now
   if (m < 1) return 'waiting just now';
   if (m < 60) return `waiting ${m} min`;
   const h = Math.floor(m / 60);
-  return h < 24 ? `waiting ${h} h ${m % 60} min` : `waiting ${Math.floor(h / 24)} d ${h % 24} h`;
+  return h < 24 ? `waiting ${h} h ${m % 60} min` : `waiting ${Math.floor(h / 24)} d ${h % 60} h`;
 }
 export function helpUrgencyText(u: HelpUrgency): string {
   return u === 'late' ? '1-hour promise missed' : u === 'risk' ? '1-hour promise at risk' : 'within the 1-hour promise';
