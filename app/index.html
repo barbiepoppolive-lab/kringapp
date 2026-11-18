@@ -80,14 +80,14 @@
         fetch('https://pedxoxpammnyfnizljyj.supabase.co/rest/v1/link_visits', { method: 'POST', keepalive: true, credentials: 'omit', headers: { apikey: K, Authorization: 'Bearer ' + K, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
           body: JSON.stringify({ ref: 'pwa-install', path: '/app/', referrer: null, session_id: s }) }).catch(function () {}); } catch (e) {} });
     </script>
-    <script type="module" crossorigin src="/app/assets/main-KOOKJfpj.js"></script>
+    <script type="module" crossorigin src="/app/assets/main-DLLHu3r3.js"></script>
     <link rel="modulepreload" crossorigin href="/app/assets/vendor-lfa02b0C.js">
     <link rel="modulepreload" crossorigin href="/app/assets/v5Live-DmqufGpA.js">
     <link rel="modulepreload" crossorigin href="/app/assets/chunkGuard-FwRbDaV8.js">
     <link rel="modulepreload" crossorigin href="/app/assets/nextStep-CJoGDQH1.js">
     <link rel="modulepreload" crossorigin href="/app/assets/v5Strings-BrusLCkc.js">
     <link rel="modulepreload" crossorigin href="/app/assets/v5Reel-DMrEmkar.js">
-    <link rel="stylesheet" crossorigin href="/app/assets/main-CIBMhcUF.css">
+    <link rel="stylesheet" crossorigin href="/app/assets/main-6rgp9ykI.css">
     <link rel="stylesheet" crossorigin href="/app/assets/fonts-v8-CYouA3b9.css">
   </head>
   <body class="antialiased" style="background:#0B0A12;margin:0">
@@ -100,6 +100,9 @@
         <style>@keyframes krboot{from{transform:translateX(-30%)}to{transform:translateX(180%)}}#kr-boot.kr-boot-poster{justify-content:flex-end!important;padding-bottom:calc(84px + env(safe-area-inset-bottom))}#kr-boot.kr-boot-poster>svg,#kr-boot.kr-boot-poster>div:nth-of-type(1){display:none}</style>
       </div>
     </div>
+    <script>/* T-398 boot watchdog: a script/style that fails to load before the app starts -> clear Kring caches + reload once, then show a reload button; log to kr8_log_boot_fail. A slow boot (20 s) is only logged, never reloaded. */(function(){var sent=0;function log(code,d){if(sent)return;sent=1;try{var K='sb_publishable_SaAf7mILfPPpCeAEvj79bA_Vz8JnCBN';fetch('https://pedxoxpammnyfnizljyj.supabase.co/rest/v1/rpc/kr8_log_boot_fail',{method:'POST',keepalive:true,credentials:'omit',headers:{apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json'},body:JSON.stringify({p_page:'app',p_code:code,p_detail:String(d||'').slice(0,200),p_ua:navigator.userAgent.slice(0,140)})}).catch(function(){})}catch(e){}}
+      window.addEventListener('error',function(e){var t=e&&e.target;if(!t||window.__KR8_BOOTED__||(t.tagName!=='SCRIPT'&&t.tagName!=='LINK'))return;var u=t.src||t.href||'';if(u.indexOf('/app/assets/')<0)return;log('asset_load_fail',u);try{if(!sessionStorage.getItem('kr_boot_retry')&&'caches' in window){sessionStorage.setItem('kr_boot_retry','1');caches.keys().then(function(ks){return Promise.all(ks.filter(function(k){return k.indexOf('kring-')===0}).map(function(k){return caches.delete(k)}))}).then(function(){location.reload()},function(){location.reload()});return}}catch(x){}var b=document.getElementById('kr-boot');if(b)b.innerHTML='<button onclick="location.reload()" style="padding:12px 22px;border-radius:999px;border:0;background:#7381FF;color:#fff;font:700 15px system-ui;cursor:pointer">'+(/^th/i.test(navigator.language||'')?'โหลดใหม่':'Reload')+'</button>'},true);
+      setTimeout(function(){if(!window.__KR8_BOOTED__)log('boot_slow_20s',location.pathname)},20000)})();</script>
     <script>
       if ('serviceWorker' in navigator && navigator.serviceWorker && !window.__kr8Mirror) {
         window.addEventListener('load', () => {

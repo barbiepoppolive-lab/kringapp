@@ -10,7 +10,7 @@
 // - Reel videos, the feed (/feed0) and every Supabase call: never touched here (always live).
 // - Dings (16 Nov push): 'push' shows the notification the server sent (title, body, in-app link); tapping it focuses an open
 //   Kring window and moves it to the link, or opens /app/ at the link. Links are only ever inside /app/.
-const SHELL = 'kring-shell-v10'
+const SHELL = 'kring-shell-v11'
 const ASSETS = 'kring-assets-v1'
 const POSTERS = 'kring-posters-v1'
 const KEEP = [SHELL, ASSETS, POSTERS]
@@ -62,7 +62,7 @@ async function cacheFirst(request, name, key) {
 async function networkFirstPage(event) {
   const shell = await caches.open(SHELL)
   const net = fetch(event.request).then((res) => {
-    if (res && res.status === 200 && res.type === 'basic') shell.put('./', res.clone()).catch(() => {})
+    if (res && res.status === 200 && res.type === 'basic') { const c = res.clone(); c.text().then((h) => { if (h.includes('/app/assets/')) shell.put('./', new Response(h, { headers: c.headers })) }).catch(() => {}) }   // T-398: never cache a broken shell
     return res
   })
   const slow = new Promise((resolve) => setTimeout(resolve, NAV_TIMEOUT_MS)).then(() => shell.match('./'))
