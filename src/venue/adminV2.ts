@@ -649,7 +649,7 @@ export async function memberView(uid: string) {
       sec('Timeline', timeline.length, ...timeline.slice(0, 40).map((t) => el('div', { class: 'v2li tl' }, el('i', {}), el('div', { class: 'grow' }, el('b', {}, t.t), el('small', {}, `${ago(t.at)} · ${both(t.at, true)}`))))),
       sec('Account & consents', m.consents.terms_version || '–', el('div', { class: 'v2kvs' },
         kv('Terms', m.consents.terms_version ? `${m.consents.terms_version} · ${clock(m.consents.terms_at)}` : 'Not accepted'),
-        kv('Promo use of content', yes(m.consents.promo_ok)), kv('Reels on the website', yes(m.consents.web_reels)), kv('20+ confirmed', c?.age_ok_at ? clock(c.age_ok_at) : '–'),
+        kv('Promo use of content', yes(m.consents.promo_ok)), kv('Reels on the website', yes(m.consents.web_reels)), kv('18+ confirmed', c?.age_ok_at ? clock(c.age_ok_at) : '–'),
         kv('Joined', both(c?.joined_at || m.signed_up_at, true)), kv('Brought in', String(m.referrals.length)),
         kv('Sign-in', `${m.email_hint || '–'} · LINE ${m.line ? 'linked' : 'no'} · last ${ago(m.last_sign_in_at)}`)))));
 }

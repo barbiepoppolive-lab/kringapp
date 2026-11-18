@@ -496,8 +496,8 @@ describe('banned words', () => {
   });
   it('every new UI string has Thai', () => {
     const shared = new Set(['Back', 'Close', 'Done', 'Share', 'You', 'Rewards', 'Today', 'My area', 'Open in Maps', 'Link copied', 'First name', 'Saving…', 'Your Kring card',
-      'More about you (optional) ›', 'Languages you speak', 'One line about you', 'Your area', 'e.g. Coffee walks, street food, sunset spots', 'I confirm I am 20 or older',
-      'Add your first name.', 'Pick at least one language.', 'Please confirm you are 20 or older.', 'Card saved · กริ๊ง!', 'Something went wrong. Try again.',
+      'More about you (optional) ›', 'Languages you speak', 'One line about you', 'Your area', 'e.g. Coffee walks, street food, sunset spots', 'I confirm I am 18 or older',
+      'Add your first name.', 'Pick at least one language.', 'Please confirm you are 18 or older.', 'Card saved · กริ๊ง!', 'Something went wrong. Try again.',
       'Couldn’t reach Kring. Check your connection and try again.', 'Please agree to the Terms to continue.']);
     const missing = newKeys().filter((k) => !KX_L.th[k] && !(shared.has(k) && V5_L.th[k]));
     for (const k of ['Founding Local', '3 steps to the board', '{0} of {1} spots left', 'Add Instagram or TikTok', 'Post your first Reel at a place', 'Saved Reels', '{0} seats open', '{0} to {1}', 'A clip you already have works']) expect(KX_L.th[k], k).toBeTruthy();

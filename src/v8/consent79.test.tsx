@@ -33,19 +33,19 @@ const fillNew = async () => {
 
 describe('0079 new card: explicit agree checkbox', () => {
   it('version is the 17 Nov terms', () => expect(V5_TERMS_VERSION).toBe('member-2026-11-17'));
-  it('one checkbox (makecard-1: 20+ and Terms together) starts unticked, names promotion, and links Terms + Privacy Policy', async () => {
+  it('one checkbox (makecard-1: 18+ and Terms together) starts unticked, names promotion, and links Terms + Privacy Policy', async () => {
     sheet(null);
     const box = document.getElementById('v5TermsOk') as HTMLInputElement;
     expect(box.checked).toBe(false);
     expect(document.getElementById('v5Age')).toBeNull();
     const line = document.getElementById('v5CardTerms')!;
-    expect(line.textContent).toBe('I’m 20+ and agree to the Terms and Privacy Policy (Kring may feature my posts).');
+    expect(line.textContent).toBe('I’m 18+ and agree to the Terms and Privacy Policy (Kring may feature my posts).');
     expect([...line.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toEqual(['/terms.html', '/privacy.html']);
   });
   it('cannot mint without agreeing; nothing is saved', async () => {
     sheet(null); await fillNew();
     fireEvent.click(document.getElementById('v5SaveCard')!);
-    await vi.waitFor(() => expect(document.getElementById('v5CardNotice')!.textContent).toBe('Please confirm you’re 20+ and agree to the Terms.'));
+    await vi.waitFor(() => expect(document.getElementById('v5CardNotice')!.textContent).toBe('Please confirm you’re 18+ and agree to the Terms.'));
     expect(liveMock.v5SaveCard).not.toHaveBeenCalled();
     expect(liveMock.v5AcceptTerms).not.toHaveBeenCalled();
   });
@@ -54,7 +54,7 @@ describe('0079 new card: explicit agree checkbox', () => {
     fireEvent.click(document.getElementById('v5TermsOk')!);
     fireEvent.click(document.getElementById('v5SaveCard')!);
     await vi.waitFor(() => expect(liveMock.v5AcceptTerms).toHaveBeenCalledWith('signup'));
-    // the one tick still sends the 20+ confirmation the server requires (kr8_save_card p_age_ok)
+    // the one tick still sends the 18+ confirmation the server requires (kr8_save_card p_age_ok)
     expect(liveMock.v5SaveCard).toHaveBeenCalledWith(expect.objectContaining({ age_ok: true }));
   });
   it('makecard-1: a new card shows no photo box, no Instagram/TikTok rows and no "I am" row until "More about you"', async () => {

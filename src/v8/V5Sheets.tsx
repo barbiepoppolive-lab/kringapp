@@ -41,9 +41,9 @@ export function TermsAgreeText(props: { L: Tx; text?: string }) {
     : x === '{1}' ? <React.Fragment key={i}>{link('/privacy.html', L('Privacy Policy'))}</React.Fragment> : <React.Fragment key={i}>{x}</React.Fragment>))}</>);
 }
 
-/** makecard-1 (18 Nov): the new-card line: 20+ and Terms in one tick, promotion use still named, Terms / Privacy Policy linked. */
+/** makecard-1 (18 Nov): the new-card line: 18+ and Terms in one tick, promotion use still named, Terms / Privacy Policy linked. */
 export function CardConsentText(props: { L: Tx }) {
-  return <TermsAgreeText L={props.L} text={props.L('I’m 20+ and agree to the {0} and {1} (Kring may feature my posts).')} />;
+  return <TermsAgreeText L={props.L} text={props.L('I’m 18+ and agree to the {0} and {1} (Kring may feature my posts).')} />;
 }
 
 function useErr(L: Tx, Lf: Txf) {
@@ -226,7 +226,7 @@ export function V5CardSheet(props: { L: Tx; Lf: Txf; card: V5Card | null; uiLang
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [ageOk, setAgeOk] = useState(false);
-  const [more, setMore] = useState(!isNew);   // new card: only photo, name and 20+ first; the rest is optional (13 Nov funnel fix)
+  const [more, setMore] = useState(!isNew);   // new card: only photo, name and 18+ first; the rest is optional (13 Nov funnel fix)
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const busyRef = useRef(false);
@@ -245,7 +245,7 @@ export function V5CardSheet(props: { L: Tx; Lf: Txf; card: V5Card | null; uiLang
     if (busyRef.current) return;
     if (!name.trim()) return setNotice(L('Add your first name.'));
     if (!langs.length) return setNotice(L('Pick at least one language.'));
-    if (isNew && !ageOk) return setNotice(L('Please confirm you are 20 or older.'));
+    if (isNew && !ageOk) return setNotice(L('Please confirm you are 18 or older.'));
     busyRef.current = true;
     setBusy(true);
     try {
@@ -318,7 +318,7 @@ export function V5CardSheet(props: { L: Tx; Lf: Txf; card: V5Card | null; uiLang
       {isNew && (
         <label style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 13.5, fontWeight: 700, margin: '4px 0 12px' }}>
           <input type="checkbox" id="v5Age" checked={ageOk} onChange={(e) => setAgeOk(e.target.checked)} style={{ width: 20, height: 20 }} />
-          {L('I confirm I am 20 or older')}
+          {L('I confirm I am 18 or older')}
         </label>
       )}
       {card?.terms_version !== V5_TERMS_VERSION && <TermsLine L={L} id="v5CardTerms" style={{ marginTop: 4 }} />}

@@ -158,7 +158,7 @@ const Confetti = () => (
 );
 
 /**
- * Make / edit your card. New members: photo + first name + IG/TikTok + 20+ → "Mint my card" → "Card minted!".
+ * Make / edit your card. New members: photo + first name + IG/TikTok + 18+ → "Mint my card" → "Card minted!".
  * Editing: same live card, plus the optional fields, "Save my card".
  */
 const PHOTO_MSG: Record<'none' | 'small' | 'group', string> = {
@@ -250,8 +250,8 @@ export function V5MintSheet(props: {
     if ((isNew || props.photoFix) && !photo) { setPhotoMsg(photoMsg || 'Add a photo where your face is clearly visible.'); return setNotice(''); }
     if (!name.trim()) return setNotice(L('Add your first name.'));
     if (!langs.length) return setNotice(L('Pick at least one language.'));
-    // makecard-1: one tick on a new card covers both (20+ and Terms); both are still sent / recorded separately below
-    if (isNew && (!ageOk || !termsOk)) return setNotice(L('Please confirm you’re 20+ and agree to the Terms.'));
+    // makecard-1: one tick on a new card covers both (18+ and Terms); both are still sent / recorded separately below
+    if (isNew && (!ageOk || !termsOk)) return setNotice(L('Please confirm you’re 18+ and agree to the Terms.'));
     busyRef.current = true;
     setBusy(true);
     try {
@@ -414,7 +414,7 @@ export function V5MintSheet(props: {
             </div>
           </div>
         )}
-        {/* makecard-1: the two ticks (20+ and Terms) are one short line now. Still unticked by default, still required; the server
+        {/* makecard-1: the two ticks (18+ and Terms) are one short line now. Still unticked by default, still required; the server
             still gets age_ok and the agreement is still logged as 'signup' (kr8_agree_terms). Full text is behind the two links. */}
         {isNew && (
           <label className="kx-age kx-terms">

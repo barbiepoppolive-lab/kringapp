@@ -123,8 +123,8 @@ export const V5_L: Record<string, Record<string, string>> = {
     'e.g. Coffee walks, street food, sunset spots': 'เช่น เดินหากาแฟ ของกินริมทาง จุดชมพระอาทิตย์ตก',
     'Your area': 'ย่านของคุณ',
     'Shown as an area only, never your exact location.': 'แสดงแค่ชื่อย่าน ไม่แสดงตำแหน่งจริงของคุณ',
-    'I confirm I am 20 or older': 'ฉันยืนยันว่าอายุ 20 ปีขึ้นไป',
-    'Please confirm you are 20 or older.': 'กรุณายืนยันว่าคุณอายุ 20 ปีขึ้นไป',
+    'I confirm I am 18 or older': 'ฉันยืนยันว่าอายุ 18 ปีขึ้นไป',
+    'Please confirm you are 18 or older.': 'กรุณายืนยันว่าคุณอายุ 18 ปีขึ้นไป',
     'Save my card · กริ๊ง!': 'บันทึกบัตร · กริ๊ง!',
     'Saving…': 'กำลังบันทึก…',
     'Add your first name.': 'ใส่ชื่อจริงของคุณ',
@@ -658,7 +658,7 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
     case 'SIGN_IN': return ['Sign in to continue'];
     case 'ADMIN_VIEW': return ['Admin view · read-only'];
     case 'NO_CARD': return ['Make your Kring card first.'];
-    case 'AGE_CONFIRM': return ['Please confirm you are 20 or older.'];
+    case 'AGE_CONFIRM': return ['Please confirm you are 18 or older.'];
     case 'BAD_NAME': return ['Add your first name.'];
     case 'BAD_LANGS': return ['Pick at least one language.'];
     case 'BAD_BIO': case 'BAD_TEXT': return ['Keep it short, with no phone numbers, links or LINE IDs.'];
@@ -733,8 +733,8 @@ export const KX_L: Record<string, Record<string, string>> = {
     'Choose from gallery': 'เลือกจากแกลเลอรี',
     'Take a photo': 'ถ่ายรูป',
     'or take a photo': 'หรือถ่ายรูป',
-    'I’m 20+ and agree to the {0} and {1} (Kring may feature my posts).': 'ฉันอายุ 20 ปีขึ้นไป และยอมรับ{0}และ{1} (กริ๊ง! อาจนำโพสต์ของฉันไปโปรโมต)',
-    'Please confirm you’re 20+ and agree to the Terms.': 'กรุณายืนยันว่าอายุ 20 ปีขึ้นไปและยอมรับข้อกำหนด',
+    'I’m 18+ and agree to the {0} and {1} (Kring may feature my posts).': 'ฉันอายุ 18 ปีขึ้นไป และยอมรับ{0}และ{1} (กริ๊ง! อาจนำโพสต์ของฉันไปโปรโมต)',
+    'Please confirm you’re 18+ and agree to the Terms.': 'กรุณายืนยันว่าอายุ 18 ปีขึ้นไปและยอมรับข้อกำหนด',
     'Link': 'เชื่อม',
     'Linked': 'เชื่อมแล้ว',
     'Link Instagram': 'เชื่อม Instagram',
