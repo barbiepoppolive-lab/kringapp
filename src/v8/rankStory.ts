@@ -17,7 +17,7 @@ export const SAFE_TOP = 250;
 export const SAFE_BOTTOM = 300;
 
 export type Moment = 'help' | 'challenge' | 'proof';
-export type Look = 'A' | 'B' | 'B2' | 'C';
+export type Look = 'A' | 'B' | 'B2' | 'B3' | 'C';
 export const MOMENTS: Moment[] = ['help', 'challenge', 'proof'];
 export const LOOKS: Look[] = ['B', 'B2'];   // founder picked B (18 Nov): B1 tilted + tape, B2 straight + pin
 
@@ -466,6 +466,53 @@ function lookB(g: G, img: Img | null, c: ShareCard, t: ReturnType<typeof cardTex
   siteLine(g, t, th, W / 2, base - 6);
 }
 
+
+/* B3 · polaroid, refined (founder 18 Nov 17:47: keep B, make it "wow", less clutter). One big polaroid (the photo is the hero, thin
+   paper), ONE accent per card (stamp / play / prize), a clean dimmed blur of the same photo behind — no tape, pin, pill, bokeh or top
+   logo. Eye path: the face → the accent → the headline (bold) + the dare (pink) → ฿ pool in gold → kringapp.com. */
+function lookB3(g: G, img: Img | null, c: ShareCard, t: ReturnType<typeof cardText>, th: boolean) {
+  const W = STORY_W, H = STORY_H, base = H - SAFE_BOTTOM;
+  if (img) { g.save(); g.filter = 'blur(46px) saturate(135%) brightness(1.08)'; cover(g, img, -120, -120, W + 240, H + 240, 0.5); g.restore(); } else bgFallback(g);
+  g.fillStyle = 'rgba(12,8,28,.16)'; g.fillRect(0, 0, W, H);
+  const v = g.createRadialGradient(W / 2, H * 0.42, H * 0.25, W / 2, H * 0.5, H * 0.78); v.addColorStop(0, 'rgba(10,6,24,0)'); v.addColorStop(1, 'rgba(10,6,24,.38)');
+  g.fillStyle = v; g.fillRect(0, 0, W, H);
+  g.save(); g.globalAlpha = 0.5; g.fillStyle = g.createPattern(grain(), 'repeat') as CanvasPattern; g.fillRect(0, 0, W, H); g.restore();
+  const fw = 940, side = 24, topB = 24, pw = fw - side * 2, ph = 990, strip = 236, fh = topB + ph + strip;
+  const fx = (W - fw) / 2, fy = SAFE_TOP - 40, rot = -0.03, px = fx + side, py = fy + topB, ccx = W / 2, ccy = fy + fh / 2;
+  if (c.moment === 'proof') confetti(g, { x: fx, y: fy, w: fw, h: fh }, 11);
+  g.save(); g.translate(ccx, ccy); g.rotate(rot); g.translate(-ccx, -ccy);
+  g.save(); shadow(g, 80, 0.5, 40); rr(g, fx, fy, fw, fh, 8); g.fillStyle = '#FFFCF5'; g.fill(); g.restore();
+  g.save(); shadow(g, 5, 0.25, 2); rr(g, fx, fy, fw, fh, 8); g.fillStyle = '#FFFCF5'; g.fill(); g.restore();
+  g.save(); rr(g, fx, fy, fw, fh, 8); g.clip(); g.fillStyle = g.createPattern(grain(), 'repeat') as CanvasPattern; g.globalCompositeOperation = 'multiply'; g.fillRect(fx, fy, fw, fh); g.restore();
+  g.save(); g.beginPath(); g.rect(px, py, pw, ph); g.clip();
+  if (img) cover(g, img, px, py, pw, ph, c.focus ?? 0.6); else { g.fillStyle = '#C9B6F2'; g.fillRect(px, py, pw, ph); }
+  const sheen = g.createLinearGradient(px, py, px + pw * 0.7, py + ph * 0.6); sheen.addColorStop(0, 'rgba(255,255,255,.10)'); sheen.addColorStop(0.45, 'rgba(255,255,255,0)');
+  g.fillStyle = sheen; g.fillRect(px, py, pw, ph);
+  g.restore();
+  g.strokeStyle = 'rgba(40,20,10,.10)'; g.lineWidth = 2; g.strokeRect(px, py, pw, ph);
+  // strip: the claim in bold ink, the dare (if any) smaller in Kring pink
+  const parts = t.strip.split('\n'); const head = parts[0], dare = parts.slice(1).join(' ');
+  const fH = (n: number) => `${th ? 700 : 800} ${n}px ${th ? TH : EN}`, fD = (n: number) => `${th ? 700 : 800} ${n}px ${th ? TH : EN}`;
+  const a = fitLines(g, head, fH, th ? 70 : 76, pw - 60, 44, 0.6);
+  const b = dare ? fitLines(g, dare, fD, th ? 54 : 58, pw - 60, 36, 0.6) : null;
+  const lhA = a.px * (th ? 1.28 : 1.08), gapAB = b ? b.px * 0.55 : 0;
+  const block = a.px * 0.74 + (a.lines.length - 1) * lhA + (b ? gapAB + b.px * 0.74 : 0);
+  let y = py + ph + (strip - block) / 2 + a.px * 0.74;
+  g.textAlign = 'center'; g.fillStyle = '#1E1636'; g.font = fH(a.px);
+  a.lines.forEach((l, i) => g.fillText(l, W / 2, y + i * lhA));
+  if (b) { y += (a.lines.length - 1) * lhA + gapAB + b.px * 0.74; g.font = fD(b.px); g.fillStyle = '#E8338F'; g.fillText(b.lines.join(' '), W / 2, y); }
+  g.textAlign = 'left';
+  if (c.moment === 'help') playButton(g, px + pw / 2, py + ph * 0.5, 92);
+  if (c.moment === 'challenge') stamp(g, px + pw - 96, py + 108, `#${c.rank}`, 0.18);
+  if (c.moment === 'proof' && t.amount) prizeSticker(g, px + pw - 110, py + ph - 150, t.amount, 0.16);
+  g.restore();
+  if (t.pool) poolLine(g, t.pool, th, W / 2, base - 40);
+  // kringapp.com with the rings, small (the code rides in the link)
+  g.font = `800 40px ${EN}`; const sw = g.measureText(t.site).width, mk = 52, gap = 14, x0 = W / 2 - (mk + gap + sw) / 2;
+  shadow(g, 10, 0.45, 2); ringsMark(g, x0 + mk / 2, base + 34, 15, 5.5);
+  g.fillStyle = 'rgba(255,255,255,.9)'; g.textAlign = 'left'; g.fillText(t.site, x0 + mk + gap, base + 48); noShadow(g);
+}
+
 /* C · bold sticker: the Reel full-bleed with playful die-cut stickers (clean, few colours) */
 function burst(g: G, cx: number, cy: number, r: number, n: number, fill: string) {
   g.beginPath();
@@ -528,7 +575,7 @@ export async function drawCard(cv: HTMLCanvasElement, c: ShareCard, images = tru
   await fontsReady(Object.values(t).join(' '), th);
   const img = images && c.hero ? await loadImg(c.hero) : null;
   g.textBaseline = 'alphabetic';
-  if (c.look === 'B' || c.look === 'B2') lookB(g, img, c, t, th, c.look === 'B2' ? 2 : 1); else if (c.look === 'C') lookC(g, img, c, t, th); else lookA(g, img, c, t, th);
+  if (c.look === 'B3') lookB3(g, img, c, t, th); else if (c.look === 'B' || c.look === 'B2') lookB(g, img, c, t, th, c.look === 'B2' ? 2 : 1); else if (c.look === 'C') lookC(g, img, c, t, th); else lookA(g, img, c, t, th);
 }
 
 export async function cardBlob(c: ShareCard): Promise<Blob | null> {
