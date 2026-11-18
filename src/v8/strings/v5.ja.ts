@@ -226,6 +226,8 @@ const T: Record<string, string> = {
     'That code is wrong or has expired. Send a new code below.': 'コードが違うか期限切れです。下から新しいコードを送ってください。',
     'We couldn’t send the email. Check the address and try again.': 'メールを送れませんでした。アドレスを確認してもう一度お試しください。',
     'Continue with LINE': 'LINE で続ける',
+    'Fastest · 1 tap, no email code to wait for': 'いちばん速い · ワンタップで完了、メールのコードを待つ必要なし',
+    'Use email instead': 'メールで登録する',
     'Join with LINE': 'LINE で参加',
     '{0} invited you to Kring. Join free, post short clips of your Bangkok and get seen.': '{0} さんから Kring への招待です。無料で参加して、あなたのバンコクの短い動画を投稿しよう。',
     'More about you (optional) ›': 'もっと詳しく（任意）›',

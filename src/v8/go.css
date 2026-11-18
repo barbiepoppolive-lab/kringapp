@@ -216,6 +216,15 @@
 .v8-app-root .go-sib.goog { background: #fff; color: #1f1f1f; box-shadow: 0 6px 20px rgba(0,0,0,.35); }
 .v8-app-root .go-sib.mail { background: var(--go-sf2); color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); }
 .v8-app-root .go-sib svg { width: 18px; height: 18px; flex: none; }
+/* line-1 (18 Nov): LINE first. LINE button guideline: #06C755, white LINE logo, thin divider, white bold label; pressed = 30% black overlay */
+.v8-app-root .go-sib.line { position: relative; height: 54px; gap: 0; padding: 0 22px 0 0; text-shadow: none; font-size: 1rem; overflow: hidden; }
+.v8-app-root .go-sib.line .lg { display: flex; align-items: center; justify-content: center; width: 58px; height: 100%; flex: none; border-right: 1px solid rgba(0,0,0,.08); }
+.v8-app-root .go-sib.line .lg svg { width: 30px; height: 30px; }
+.v8-app-root .go-sib.line .lt { flex: 1; text-align: center; }
+.v8-app-root .go-sib.line:active::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,.3); }
+.v8-app-root .go-linenudge { margin: -2px 0 2px; text-align: center; font-size: 0.8125rem; font-weight: 700; color: #7CF0A8; }
+.v8-app-root .go-mailtext { align-self: center; margin-top: 4px; padding: 8px 18px; min-height: 38px; background: rgba(255,247,236,.08); border-radius: 99px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 0; cursor: pointer; font: 700 0.875rem var(--kx-j); color: rgba(255,247,236,.78); }
+.v8-app-root .go-mailtext[disabled] { opacity: .5; }
 @media (prefers-reduced-motion: reduce) { .v8-app-root .go-page, .v8-app-root .go-player, .v8-app-root .go-sheet, .v8-app-root .go-gt, .v8-app-root .go-hole, .v8-app-root .go-bub { animation: none !important; } }
 
 /* People tab: neon cards like the prototype (pink = Kring Local, cyan = traveller) */

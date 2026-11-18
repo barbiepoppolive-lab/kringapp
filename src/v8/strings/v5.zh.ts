@@ -226,6 +226,8 @@ const T: Record<string, string> = {
     'That code is wrong or has expired. Send a new code below.': '验证码错误或已过期，请在下方重新发送。',
     'We couldn’t send the email. Check the address and try again.': '无法发送邮件，请检查地址后重试。',
     'Continue with LINE': '使用 LINE 继续',
+    'Fastest · 1 tap, no email code to wait for': '最快 · 一键登录，无需等待邮件验证码',
+    'Use email instead': '改用邮箱',
     'Join with LINE': '用 LINE 加入',
     '{0} invited you to Kring. Join free, post short clips of your Bangkok and get seen.': '{0} 邀请你加入 Kring。免费加入，发布你的曼谷短视频，让更多人看到。',
     'More about you (optional) ›': '更多关于你（可选）›',

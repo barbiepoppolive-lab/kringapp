@@ -226,6 +226,8 @@ const T: Record<string, string> = {
     'That code is wrong or has expired. Send a new code below.': 'कोड गलत है या उसकी अवधि खत्म हो गई है। नीचे नया कोड भेजें।',
     'We couldn’t send the email. Check the address and try again.': 'ईमेल नहीं भेज पाए। पता जाँचें और फिर कोशिश करें।',
     'Continue with LINE': 'LINE से जारी रखें',
+    'Fastest · 1 tap, no email code to wait for': 'सबसे तेज़ · 1 टैप, ईमेल कोड का इंतज़ार नहीं',
+    'Use email instead': 'इसके बजाय ईमेल इस्तेमाल करें',
     'Join with LINE': 'LINE से जुड़ें',
     '{0} invited you to Kring. Join free, post short clips of your Bangkok and get seen.': '{0} ने आपको Kring पर बुलाया है। मुफ़्त जुड़ें, अपने बैंकॉक की छोटी क्लिप पोस्ट करें और लोगों तक पहुँचें।',
     'More about you (optional) ›': 'अपने बारे में और (वैकल्पिक) ›',

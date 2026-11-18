@@ -226,6 +226,8 @@ const T: Record<string, string> = {
     'That code is wrong or has expired. Send a new code below.': '코드가 틀렸거나 만료됐어요. 아래에서 새 코드를 보내세요.',
     'We couldn’t send the email. Check the address and try again.': '이메일을 보내지 못했어요. 주소를 확인하고 다시 시도하세요.',
     'Continue with LINE': 'LINE으로 계속하기',
+    'Fastest · 1 tap, no email code to wait for': '가장 빨라요 · 한 번 탭, 이메일 코드 기다릴 필요 없어요',
+    'Use email instead': '이메일로 하기',
     'Join with LINE': 'LINE으로 가입',
     '{0} invited you to Kring. Join free, post short clips of your Bangkok and get seen.': '{0} 님이 Kring에 초대했어요. 무료로 가입하고 나만의 방콕 짧은 영상을 올려 보세요.',
     'More about you (optional) ›': '나에 대해 더 보기 (선택) ›',

@@ -226,6 +226,8 @@ export const V5_L: Record<string, Record<string, string>> = {
     'That code is wrong or has expired. Send a new code below.': 'รหัสไม่ถูกต้องหรือหมดอายุแล้ว กดส่งรหัสใหม่ด้านล่าง',
     'We couldn’t send the email. Check the address and try again.': 'ส่งอีเมลไม่ได้ ตรวจที่อยู่อีเมลแล้วลองใหม่',
     'Continue with LINE': 'เข้าสู่ระบบด้วย LINE',
+    'Fastest · 1 tap, no email code to wait for': 'เร็วที่สุด · แตะครั้งเดียว ไม่ต้องรอรหัสทางอีเมล',
+    'Use email instead': 'ใช้อีเมลแทน',
     'Join with LINE': 'เข้าร่วมด้วย LINE',
     '{0} invited you to Kring. Join free, post short clips of your Bangkok and get seen.': '{0} ชวนคุณมาเข้าร่วม Kring สมัครฟรี โพสต์คลิปสั้นกรุงเทพฯ ในแบบของคุณ ให้คนเห็นมากขึ้น',
     'More about you (optional) ›': 'ข้อมูลเพิ่มเติม (ไม่บังคับ) ›',
