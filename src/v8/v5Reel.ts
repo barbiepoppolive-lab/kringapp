@@ -342,10 +342,20 @@ function putOnce(base: string, key: string, token: string, path: string, body: B
     x.setRequestHeader('cache-control', 'max-age=31536000');   // a file never changes after upload (new upload = new name)
     x.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
     // 409 = this exact file already landed on an earlier try: that is a success
-    x.onload = () => (x.status >= 200 && x.status < 300) || x.status === 409 ? ok() : bad(new ReelError('UPLOAD', x.status));
+    // errfix-1 (18 Nov): storage's own reason (e.g. "InvalidJWT", "Payload too large") goes into the log, not just "400"
+    x.onload = () => (x.status >= 200 && x.status < 300) || x.status === 409 ? ok() : bad(new ReelError('UPLOAD', x.status, storageWhy(x.responseText)));
     x.onerror = () => bad(new ReelError('UPLOAD', 0));
     x.send(body);
   });
+}
+/** Short reason from a Supabase Storage error body ({"error":"…","message":"…"}), for the phone-error log. */
+export function storageWhy(body: string | null | undefined): string | undefined {
+  if (!body) return undefined;
+  try {
+    const j = JSON.parse(body) as { error?: unknown; message?: unknown; statusCode?: unknown };
+    const parts = [j.statusCode, j.error, j.message].filter((x) => typeof x === 'string' || typeof x === 'number').map(String);
+    return parts.length ? parts.join(' ').replace(/\s+/g, ' ').slice(0, 80) : undefined;
+  } catch { return body.replace(/\s+/g, ' ').slice(0, 80) || undefined; }
 }
 /** 16 Nov (member #26, Android in-app browser): failed uploads now retry by themselves (3 tries, short waits) before the member sees an error. */
 async function putObject(base: string, key: string, token: string, path: string, body: Blob, type: string, onProgress: (p: number) => void): Promise<void> {
@@ -365,9 +375,13 @@ async function putObject(base: string, key: string, token: string, path: string,
  * (every upload then fails at once). Reading it into memory first makes it safe to send, and a file that can't be read at all
  * gives a clear "choose the video again" instead of endless failures.
  */
-async function readable(b: Blob): Promise<Blob> {
+export async function readable(b: Blob): Promise<Blob> {
   if (!(typeof File !== 'undefined' && b instanceof File)) return b;
-  try { return new Blob([await b.arrayBuffer()], { type: b.type }); } catch { throw new ReelError('REPICK'); }
+  let buf: ArrayBuffer;
+  try { buf = await b.arrayBuffer(); } catch { throw new ReelError('REPICK'); }
+  // errfix-1 (18 Nov, #68): a lost file can also read back EMPTY or cut short instead of failing; sending that gave storage 400s
+  if (buf.byteLength === 0 || buf.byteLength !== b.size) throw new ReelError('REPICK');
+  return new Blob([buf], { type: b.type });
 }
 const reelIds = new WeakMap<ReelReady, string>();   // the same Reel keeps the same file names on every retry (no orphan covers)
 

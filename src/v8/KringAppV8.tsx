@@ -3232,6 +3232,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const publishReel = async (cap: string) => {
     if (!reelInfo) return;
     if (faceGateRef.current) { verifyFirstRef.current(); return; }   // 0093: never upload what the server will refuse
+    // errfix-1 (18 Nov): a ghost account is refused by kr8_create_reel AFTER the whole video went up (#58: 6 tries, up to 18 MB
+    // each, files left behind). Say it before preparing or uploading anything.
+    if (v5Ghost) { setReelProblem(L('Ghost mode is on: likes, saves, follows, hellos and posts are off.')); return; }
     const reelArea = postArea || postPlaces[0]?.kr_area || (postPlaces.length ? 'Bangkok' : '');
     if (!reelArea) { showToast(L('Add the area pin first')); return; }   // area pin is required for Reels
     const ac = reelWorkRef.current.ready ? null : makeAudio();   // inside the tap: lets the phone capture the sound
@@ -3278,10 +3281,21 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         setReelProblem(reelProblemText('TRIM_FAIL'));
         return;
       }
+      if (e instanceof ReelError && e.code === 'REPICK') {
+        // errfix-1 (18 Nov, #68): the phone lost the picked file. "Retry" kept sending that same dead file and every try came
+        // back 400 (6 failures in a row). Back to "Pick a clip" instead (caption, place and tags are kept), like TRIM_FAIL.
+        v5LogClient('reel_publish_fail', 'REPICK', `${reelInfo.file.type || '?'} ${Math.round(reelInfo.file.size / 1e5) / 10}MB ${Math.round(reelInfo.durationMs / 1000)}s ${reelInfo.width}x${reelInfo.height} ${/; wv\)/.test(navigator.userAgent) ? 'inapp' : ''}`);
+        URL.revokeObjectURL(reelInfo.url);
+        setReelInfo(null);
+        reelWorkRef.current = {};
+        setReelStage('idle');
+        setReelProblem(reelProblemText('REPICK'));
+        return;
+      }
       setReelStage('failed');
       setReelProblem(e instanceof ReelError ? reelProblemText(e.code) : v5Msg(e));
       v5LogClient('reel_publish_fail', e instanceof ReelError ? `${e.code}${e.status !== undefined ? ':' + e.status : ''}` : ((e as { code?: string })?.code || (e as Error)?.message || 'UNKNOWN'),
-        `${reelInfo.file.type || '?'} ${Math.round(reelInfo.file.size / 1e5) / 10}MB ${Math.round(reelInfo.durationMs / 1000)}s ${reelInfo.width}x${reelInfo.height} ${/; wv\)/.test(navigator.userAgent) ? 'inapp' : ''}`);
+        `${reelInfo.file.type || '?'} ${Math.round(reelInfo.file.size / 1e5) / 10}MB ${Math.round(reelInfo.durationMs / 1000)}s ${reelInfo.width}x${reelInfo.height} ${/; wv\)/.test(navigator.userAgent) ? 'inapp' : ''}${e instanceof ReelError && e.why ? ' ' + e.why : ''}`.trim());
     } finally {
       void ac?.close().catch(() => undefined);
     }

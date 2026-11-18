@@ -26,6 +26,21 @@ export function holdNext(heldMs: number, f: FaceSample, dtMs: number): number {
   return goodFrame(f) ? Math.min(HOLD_MS, heldMs + Math.max(0, Math.min(dtMs, 400))) : 0;
 }
 
+/** errfix-1 (18 Nov): claim_face_fail TIMEOUT said nothing (#48 iPad in LINE ×8, #67 iPhone: no prize claimed). Counts what the
+ *  25 s saw, so the log tells "no face found" from "too far" / "not straight" / "off-centre" / "slow phone" (few frames). */
+export interface Seen { n: number; found: number; centered: number; near: number; straight: number; best: number }
+export function countSeen(s: Seen, f: FaceSample, heldMs: number): void {
+  s.n++;
+  if (!f.found) return;
+  s.found++;
+  if (f.centered) s.centered++;
+  if (f.size > 0.15) s.near++;
+  if (Math.abs(f.yaw - 0.5) < 0.12) s.straight++;
+  s.best = Math.max(s.best, heldMs);
+}
+export function timeoutWhy(s: Seen, v?: { videoWidth?: number; videoHeight?: number } | null): string {
+  return `n${s.n} f${s.found} c${s.centered} near${s.near} st${s.straight} best${Math.round(s.best)}ms ${v?.videoWidth || 0}x${v?.videoHeight || 0}`;
+}
 type Stage = 'start' | 'loading' | 'look' | 'busy' | 'fail';
 function testFeed(): FaceSample[] | null {
   if (import.meta.env.VITE_FACE_TEST !== '1') return null;
@@ -83,12 +98,13 @@ export function ClaimFace(props: { onDone: (face: Float32Array | null, photo?: B
     runRef.current = true;
     let h = 0, last = Date.now(), tries = 0;
     const started = Date.now();
+    const seen = { n: 0, found: 0, centered: 0, near: 0, straight: 0, best: 0 };   // errfix-1: why a TIMEOUT happened
     while (runRef.current) {
-      if (Date.now() - started > 25000) { stop(); v5LogClient('claim_face_fail', 'TIMEOUT'); setFailWhy('noface'); setStage('fail'); return; }
+      if (Date.now() - started > 25000) { stop(); v5LogClient('claim_face_fail', 'TIMEOUT', timeoutWhy(seen, v)); setFailWhy('noface'); setStage('fail'); return; }
       const feed = testFeed();
       const f = feed && feed.length ? (feed.shift() as FaceSample) : v.readyState >= 2 ? await sampleFace(v, 320).catch(() => null) : null;
       const now = Date.now();
-      if (f) { h = holdNext(h, f, now - last); setHeld(h); }
+      if (f) { h = holdNext(h, f, now - last); setHeld(h); countSeen(seen, f, h); }
       last = now;
       if (h >= HOLD_MS) {
         setStage('busy');
