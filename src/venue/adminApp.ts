@@ -1718,6 +1718,7 @@ function moreView() {
   ];
   screen('more', head('Kring admin', 'More'),
     el('div', { class: 'lt-group' },
+      li('#viewas', 'eye', 'View as member', 'moreViewAs'),
       li('#autopilot', 'spark', 'Autopilot', 'moreAutopilot'),
       li('#post', 'reel', 'Post a Reel', 'morePost'),
       li('#money', 'party', 'Money', 'moreMoney'),

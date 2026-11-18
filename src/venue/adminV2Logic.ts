@@ -7,7 +7,7 @@
 import { pickNextStep, type NextStepInput, type NextStepKind } from '../v8/nextStep';
 
 // ───────── rows from 0082 ─────────
-export type Kind = 'real' | 'test' | 'team' | 'ghost' | 'admin' | 'nocard';
+export type Kind = 'real' | 'test' | 'team' | 'ghost' | 'admin' | 'nocard' | 'mirror';   // 0110: mirror = View-as-member sign-in, never a member
 export interface Link { user_id: string; no: number | null; name: string | null; reason: string; dist: number | null; sface_sim?: number | null; at: string }
 export interface Trust { score: number; reasons: string[] }
 export interface Person {

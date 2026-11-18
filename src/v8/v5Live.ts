@@ -9,7 +9,7 @@ import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { initialAvatar, NEUTRAL_IMG } from './v8Data';
 import { demoPostAvatar } from './v5DemoAvatars';
 import { appBase, lineChannel } from './lineEnv';
-import { adminViewActive, adminViewBlocks, guardClient } from './adminView';
+import { adminViewActive, adminViewBlocks, guardClient, mirrorActive } from './adminView';
 import { sharedRead } from './rpcShare';
 import type { V8ChatMessage, V8ChatThread, V8Deal, V8FeedItem, V8HelloRequest, V8Person } from './v8Data';
 
@@ -47,6 +47,25 @@ export const V5_PLAN_BG =
   "data:image/svg+xml;utf8," +
   encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='400' height='700'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#2A2A8C'/><stop offset='1' stop-color='#15131F'/></linearGradient></defs><rect width='400' height='700' fill='url(#g)'/><circle cx='330' cy='120' r='90' fill='#5B6CFF' opacity='0.35'/><circle cx='70' cy='560' r='120' fill='#FF5A6B' opacity='0.18'/></svg>");
 
+/** Where the sign-in is kept. The View-as-member frame (?mirror=1) uses its own key, so its lock and cross-tab channel never
+ *  meet the admin page's own sign-in (same site, same browser). */
+export const MIRROR_AUTH_KEY = 'kr8-mirror-auth';
+export function v5AuthKey(): string { return mirrorActive() ? MIRROR_AUTH_KEY : 'kr8-v5-auth'; }
+
+/**
+ * Admin "View as member": signs a mirror account in WITHOUT storing anything (a throwaway client, no storage, no auto refresh)
+ * and returns the session exactly as supabase-js keeps it, for the phone frame's own in-memory storage. The e-mail and the
+ * one-time password come from kr8_admin_mirror_signin (admins only, 0110); nothing secret is in the app.
+ */
+export async function v5MirrorSession(email: string, password: string): Promise<string> {
+  const m = await import('@supabase/supabase-js');
+  const mod = (typeof m?.createClient === 'function' ? m : (m as unknown as { default?: typeof m })?.default) as typeof m;
+  const c = mod.createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: 'kr8-mirror-mint' } });
+  const { data, error } = await c.auth.signInWithPassword({ email, password });
+  if (error || !data.session) throw new Error(error?.message || 'NO_SESSION');
+  return JSON.stringify(data.session);
+}
+
 let clientP: Promise<SupabaseClient> | null = null;
 export function v5Client(): Promise<SupabaseClient> {
   if (!clientP) {
@@ -58,7 +77,7 @@ export function v5Client(): Promise<SupabaseClient> {
       if (!mod || typeof mod.createClient !== 'function') throw new V5Error('NETWORK');
       // 17 Nov admin view: the client refuses every write / log call while the admin view is on (adminView.ts)
       return guardClient(mod.createClient(SUPA_URL, SUPA_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce', storageKey: 'kr8-v5-auth' },
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: !mirrorActive(), flowType: 'pkce', storageKey: v5AuthKey() },
       }));
     });
     clientP = p;
@@ -480,7 +499,7 @@ function early(): Promise<EarlyFeed> | null {
  *  first means a visitor's feed never waits for the Supabase library (59 KB) to download and start. */
 function maybeSignedIn(): boolean {
   try {
-    return !!localStorage.getItem('kr8-v5-auth') || /[?&#](code|access_token|error_description)=/.test(location.search + location.hash);
+    return !!localStorage.getItem(v5AuthKey()) || /[?&#](code|access_token|error_description)=/.test(location.search + location.hash);
   } catch {
     return true;
   }

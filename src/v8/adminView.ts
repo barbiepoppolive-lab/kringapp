@@ -22,6 +22,24 @@ export const ADMIN_VIEW_READS: ReadonlySet<string> = new Set([
   'kr8_coach_state', 'kr8_social_status', 'kr8_ref_name', 'kr8_card_print_ok',
 ]);
 
+/**
+ * 18 Nov "View as member" (admin → More): the admin page frames the app with ?mirror=1 and gives it its own in-memory storage
+ * (index.html sets window.__kr8Mirror). The app looks exactly like a member's (no admin pill, no read-only banner), but the same
+ * guard stops every write before it leaves the phone. The server refuses the mirror's writes too (0110).
+ */
+export const MIRROR_EXTRA_READS: ReadonlySet<string> = new Set([
+  'kr8_seats_left', 'kr8_my_face_status', 'kr8_my_verification', 'kr8_my_verify_files', 'kr8_my_reel_files', 'kr8_ask_thread',
+  'kr8_promo_get', 'kr8_web_reels_get', 'kr8_tag_candidates', 'kr8_my_invites',
+]);
+export function mirrorActive(): boolean {
+  try { return typeof window !== 'undefined' && !!(window as unknown as { __kr8Mirror?: unknown }).__kr8Mirror; } catch { return false; }
+}
+/** The mirror's persona ('visitor' | 'newmember' | 'member'), or null outside the View-as-member frame. */
+export function mirrorPersona(): string | null {
+  if (!mirrorActive()) return null;
+  return String((window as unknown as { __kr8Mirror: { persona?: string } }).__kr8Mirror.persona || 'visitor');
+}
+
 let active = false;
 
 function store(): Storage | null {
@@ -64,6 +82,7 @@ export function adminViewActive(): boolean {
 
 /** True when this call must not leave the phone (admin view on and the call is not a read). */
 export function adminViewBlocks(fn: string): boolean {
+  if (mirrorActive()) return !ADMIN_VIEW_READS.has(fn) && !MIRROR_EXTRA_READS.has(fn);
   return active && !ADMIN_VIEW_READS.has(fn);
 }
 
@@ -100,7 +119,7 @@ export function guardClient<C extends { rpc: (...a: never[]) => unknown; storage
       return new Proxy(o, {
         get(t, k, r) {
           const v = Reflect.get(t, k, r);
-          if (active && (k === 'upload' || k === 'update' || k === 'remove' || k === 'move' || k === 'copy') && typeof v === 'function') {
+          if ((active || mirrorActive()) && (k === 'upload' || k === 'update' || k === 'remove' || k === 'move' || k === 'copy') && typeof v === 'function') {
             return async () => ({ data: null, error: { message: ADMIN_VIEW_ERR } });
           }
           return typeof v === 'function' ? v.bind(t) : v;
