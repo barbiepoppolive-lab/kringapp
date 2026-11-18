@@ -15,7 +15,7 @@ type LFn = (en: string) => string;
 /** A server refusal the member can act on (ghost mode, too many posts, banned words, no card) gets its own message;
  *  anything else keeps the plain fallback. */
 const ASK_ERR: Record<string, string> = {
-  GHOST: 'Ghost mode is on: likes, saves, follows, hellos and posts are off.',
+  GHOST: 'This account is paused. Please use your main Kring account.',
   SLOW_DOWN: 'Slow down a little and try again soon.',
   BAD_TEXT: 'Keep it short, with no phone numbers, links or LINE IDs.',
   NO_CARD: 'Make your Kring card first.',

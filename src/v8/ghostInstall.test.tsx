@@ -50,7 +50,7 @@ describe('?install=1 from the website', () => {
 describe('ghost mode (client side)', () => {
   it('KR8_GHOST has a translated message', () => {
     const [k] = v5ErrText('GHOST');
-    expect(k).toMatch(/Ghost mode is on/);
+    expect(k).toMatch(/This account is paused/);
     expect(k in V5_L.th).toBe(true);
     expect(V5_L.th['Ghost mode · nobody can see you']).toBeTruthy();
   });

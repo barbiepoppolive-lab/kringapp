@@ -501,6 +501,7 @@ export const V5_L: Record<string, Record<string, string>> = {
     // ghost mode (admin-only account, 16 Nov)
     'Ghost mode · nobody can see you': 'โหมดล่องหน · ไม่มีใครเห็นคุณ',
     'Ghost mode is on: likes, saves, follows, hellos and posts are off.': 'โหมดล่องหนเปิดอยู่: กดถูกใจ บันทึก ติดตาม ทักทาย และโพสต์ถูกปิดไว้',
+    'This account is paused. Please use your main Kring account.': 'บัญชีนี้ถูกพักไว้ กรุณาใช้บัญชีกริ๊ง!หลักของคุณครับ',
     // Ask a Thai (16 Nov)
     'Feed': 'ฟีด',
     'Ask a Thai': 'ถามคนไทย',
@@ -678,7 +679,7 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
     case 'LINE_OTHER': return ['This account already has a different LINE linked.'];
     case 'OTP_SEND': return ['We couldn’t send the email. Check the address and try again.'];
     case 'GOOGLE_OFF': return ['Google sign-in isn’t switched on yet. Use an email code for now.'];
-    case 'GHOST': return ['Ghost mode is on: likes, saves, follows, hellos and posts are off.'];
+    case 'GHOST': return ['This account is paused. Please use your main Kring account.'];
     case 'PHOTO_NEEDED': return ['Add a photo where your face is clearly visible.'];   // 0070: a new card needs an uploaded photo
     default: return ['Something went wrong. Try again.'];
   }

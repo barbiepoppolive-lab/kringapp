@@ -470,6 +470,7 @@ const T: Record<string, string> = {
     // ghost mode (admin-only account, 16 Nov)
     'Ghost mode · nobody can see you': '隐身模式 · 没有人能看到你',
     'Ghost mode is on: likes, saves, follows, hellos and posts are off.': '隐身模式已开启：点赞、收藏、关注、打招呼和发帖已关闭。',
+    'This account is paused. Please use your main Kring account.': '此账号已暂停，请使用你的主 Kring 账号。',
     // Ask a Thai (16 Nov)
     "Feed": "动态",
     "Ask a Thai": "问问泰国人",

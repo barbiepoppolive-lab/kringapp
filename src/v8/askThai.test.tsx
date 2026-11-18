@@ -154,7 +154,7 @@ describe('Ask a Thai copy rules', () => {
 
 describe('Ask a Thai server refusals', () => {
   it('shows the ghost / slow-down / text messages, and the fallback for anything else', () => {
-    expect(askErrText(L, { message: 'KR8_GHOST' }, 'x')).toMatch(/^Ghost mode is on/);
+    expect(askErrText(L, { message: 'KR8_GHOST' }, 'x')).toMatch(/^This account is paused/);
     expect(askErrText(L, new Error('KR8_SLOW_DOWN'), 'x')).toBe('Slow down a little and try again soon.');
     expect(askErrText(L, { message: 'KR8_BAD_TEXT' }, 'x')).toMatch(/^Keep it short/);
     expect(askErrText(L, { message: 'KR8_BAD_FILE' }, 'Couldn’t post · try again')).toBe('Couldn’t post · try again');

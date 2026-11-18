@@ -3234,7 +3234,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     if (faceGateRef.current) { verifyFirstRef.current(); return; }   // 0093: never upload what the server will refuse
     // errfix-1 (18 Nov): a ghost account is refused by kr8_create_reel AFTER the whole video went up (#58: 6 tries, up to 18 MB
     // each, files left behind). Say it before preparing or uploading anything.
-    if (v5Ghost) { setReelProblem(L('Ghost mode is on: likes, saves, follows, hellos and posts are off.')); return; }
+    if (v5Ghost) { setReelProblem(L('This account is paused. Please use your main Kring account.')); return; }
     const reelArea = postArea || postPlaces[0]?.kr_area || (postPlaces.length ? 'Bangkok' : '');
     if (!reelArea) { showToast(L('Add the area pin first')); return; }   // area pin is required for Reels
     const ac = reelWorkRef.current.ready ? null : makeAudio();   // inside the tap: lets the phone capture the sound
