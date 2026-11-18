@@ -11,10 +11,10 @@ import { GenderChip, GenderRow, genderPayload, isGender, type Gender } from './V
 import { kxNotePhotoCheck, kxSetGender } from './v5Kx';
 import { LEVEL_KEY, levelFor, memberNo, parseHandle, socialUrl, type Social } from './kxLogic';
 import { kxSetTiktok } from './v5Kx';
-import { v5AcceptTerms, v5CompressImage, v5ErrCode, v5SaveCard, v5SetIgHandle, v5SetSocialsShown, v5TakeLinePrefill, V5_AREAS, V5_LANGS, V5_TERMS_VERSION } from './v5Live';
+import { v5AcceptTerms, v5CompressImage, v5ErrCode, v5LogClient, v5SaveCard, v5SetIgHandle, v5SetSocialsShown, v5TakeLinePrefill, V5_AREAS, V5_LANGS, V5_TERMS_VERSION } from './v5Live';
 import type { V5Card, V5Me } from './v5Live';
 import { v5ErrText } from './v5Strings';
-import { TermsAgreeText } from './V5Sheets';
+import { CardConsentText } from './V5Sheets';
 
 type Tx = (en: string) => string;
 type Txf = (en: string, a: string, b?: string) => string;
@@ -203,6 +203,12 @@ export function V5MintSheet(props: {
   const [link, setLink] = useState<Social | null>(null);
   const [minted, setMinted] = useState<{ no: number | null } | null>(null);
   const busyRef = useRef(false);
+  /** 18 Nov (makecard-1): the card screen had no events, so nobody could see where new members stop. Activity only (not errors). */
+  useEffect(() => { if (isNew) v5LogClient('card_open', 'new'); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+  const closeNew = () => {
+    if (isNew) v5LogClient('card_close', 'new', `photo=${photo ? 1 : 0} name=${name.trim() ? 1 : 0} ok=${ageOk && termsOk ? 1 : 0} ig=${ig || tt ? 1 : 0}`);
+    props.onClose();
+  };
   useEffect(() => {
     if (card) return;
     const pre = v5TakeLinePrefill();
@@ -225,7 +231,7 @@ export function V5MintSheet(props: {
       const d = await v5CompressImage(f, 384, 110000);
       const v = await checkProfilePhoto(d);
       if (v === 'ok' || v === 'error') { setPhoto(d); setPhotoVerdict(v); setPhotoMsg(''); setNotice(''); }
-      else setPhotoMsg(PHOTO_MSG[v]);
+      else { setPhotoMsg(PHOTO_MSG[v]); if (isNew) v5LogClient('card_photo_no', v); }
     } catch (e) { setNotice(errText(e)); } finally { setChecking(false); }
   };
   const toggleLang = (l: string) => setLangs((prev) => (prev.includes(l) ? prev.filter((x) => x !== l) : prev.length >= 6 ? prev : [...prev, l]));
@@ -244,8 +250,8 @@ export function V5MintSheet(props: {
     if ((isNew || props.photoFix) && !photo) { setPhotoMsg(photoMsg || 'Add a photo where your face is clearly visible.'); return setNotice(''); }
     if (!name.trim()) return setNotice(L('Add your first name.'));
     if (!langs.length) return setNotice(L('Pick at least one language.'));
-    if (isNew && !ageOk) return setNotice(L('Please confirm you are 20 or older.'));
-    if (isNew && !termsOk) return setNotice(L('Please agree to the Terms to continue.'));
+    // makecard-1: one tick on a new card covers both (20+ and Terms); both are still sent / recorded separately below
+    if (isNew && (!ageOk || !termsOk)) return setNotice(L('Please confirm you’re 20+ and agree to the Terms.'));
     busyRef.current = true;
     setBusy(true);
     try {
@@ -317,7 +323,7 @@ export function V5MintSheet(props: {
   return (
     <div className="kx-page kx-mint" id="sh-v5card" data-v5="card">
       <div className="kx-hd">
-        <button type="button" className="kx-x" aria-label={L('Close')} onClick={props.onClose}>✕</button>
+        <button type="button" className="kx-x" aria-label={L('Close')} onClick={closeNew}>✕</button>
         <h1>{isNew ? L('Make your card') : L('Your Kring card')}</h1>
         <span className="kx-st">{isNew ? '2/3' : ''}</span>
       </div>
@@ -334,12 +340,22 @@ export function V5MintSheet(props: {
             <input type="file" accept="image/*" onChange={(e) => { void pick(e.target.files?.[0]); e.currentTarget.value = ''; }} />
           </label>
         ) : null}
+        {/* makecard-1: "Take a photo" moved from the box under the card onto the card itself (a plain link, no box) */}
+        {isNew && !shownPhoto && !checking ? (
+          <label className="kx-addcam" id="kxPhotoCamera">{L('or take a photo')}
+            <input type="file" accept="image/*" capture="user" onChange={(e) => { void pick(e.target.files?.[0]); e.currentTarget.value = ''; }} />
+          </label>
+        ) : null}
         <label className="kx-cam" aria-label={shownPhoto ? L('Change photo') : L('Add photo')}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#07060d" strokeWidth="2.4" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></svg>
           <input type="file" accept="image/*" id="v5Photo" onChange={(e) => void pick(e.target.files?.[0])} />
         </label>
       </div>
-      {(checking || photoMsg || ((isNew || props.photoFix) && !photo)) ? (
+      {isNew && !props.photoFix ? (
+        // makecard-1: the empty card already says "Add photo", so a new member sees no extra box; only a short plain line when
+        // the photo is being checked or was refused (no face / too small / group)
+        checking || photoMsg ? <p className="kx-photo-line" id="kxPhotoNeed" role="status" aria-live="polite">{checking ? L('Checking photo…') : L(photoMsg)}</p> : null
+      ) : (checking || photoMsg || ((isNew || props.photoFix) && !photo)) ? (
         <div className="kx-photo-need" id="kxPhotoNeed" role="status" aria-live="polite">
           <p>{checking ? L('Checking photo…') : L(photoMsg || 'Add a photo where your face is clearly visible.')}</p>
           {!checking ? (
@@ -352,10 +368,11 @@ export function V5MintSheet(props: {
       ) : null}
       <div className="kx-form">
         <label className="kx-in">
-          <small>{L('First name')}</small>
-          <input id="v5Name" maxLength={30} autoComplete="given-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={L('Your first name')} />
+          {isNew ? null : <small>{L('First name')}</small>}
+          <input id="v5Name" maxLength={30} autoComplete="given-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={L('Your first name')} aria-label={L('First name')} />
         </label>
-        {(['ig', 'tt'] as Social[]).map((k) => {
+        {/* makecard-1: on a new card, Instagram / TikTok are added from the "+ Add Instagram" slot on the card itself (no rows) */}
+        {isNew ? null : (['ig', 'tt'] as Social[]).map((k) => {
           const h = k === 'ig' ? ig : tt;
           return (
             <button type="button" key={k} className={`kx-lr${h ? ' on' : ''}`} id={k === 'ig' ? 'kxIgRow' : 'kxTtRow'} onClick={() => setLink(k)}>
@@ -365,14 +382,15 @@ export function V5MintSheet(props: {
             </button>
           );
         })}
-        {ig || tt ? (
+        {(ig || tt) && (!isNew || more) ? (
           <label className="kx-gshow kx-sshow" id="kxSocialsShow">
             <input type="checkbox" id="kxSocialsShowBox" checked={showSocials} disabled={busy} onChange={(e) => setShowSocials(e.target.checked)} />
             <i aria-hidden="true" /><span>{L('Show my Instagram & TikTok on my card')}</span>
           </label>
         ) : null}
-        {(ig || tt) && !showSocials ? <p className="kx-gnote" id="kxSocialsNote">{L('Off: only you can see them.')}</p> : null}
-        <GenderRow L={L} value={gender} show={showGender} disabled={busy} onChange={(g, sh) => { setGender(g); setShowGender(sh); }} />
+        {(ig || tt) && !showSocials && (!isNew || more) ? <p className="kx-gnote" id="kxSocialsNote">{L('Off: only you can see them.')}</p> : null}
+        {/* makecard-1: optional "I am" sits behind "More about you" on a new card */}
+        {!isNew || more ? <GenderRow L={L} value={gender} show={showGender} disabled={busy} onChange={(g, sh) => { setGender(g); setShowGender(sh); }} /> : null}
         {!more && (
           <button type="button" className="kx-more" id="v5More" onClick={() => setMore(true)}>{L('More about you (optional) ›')}</button>
         )}
@@ -396,16 +414,12 @@ export function V5MintSheet(props: {
             </div>
           </div>
         )}
-        {isNew && (
-          <label className="kx-age">
-            <input type="checkbox" id="v5Age" checked={ageOk} onChange={(e) => setAgeOk(e.target.checked)} />
-            <span>{L('I confirm I am 20 or older')}</span>
-          </label>
-        )}
+        {/* makecard-1: the two ticks (20+ and Terms) are one short line now. Still unticked by default, still required; the server
+            still gets age_ok and the agreement is still logged as 'signup' (kr8_agree_terms). Full text is behind the two links. */}
         {isNew && (
           <label className="kx-age kx-terms">
-            <input type="checkbox" id="v5TermsOk" checked={termsOk} onChange={(e) => setTermsOk(e.target.checked)} />
-            <span id="v5CardTerms"><TermsAgreeText L={L} /></span>
+            <input type="checkbox" id="v5TermsOk" checked={ageOk && termsOk} onChange={(e) => { setAgeOk(e.target.checked); setTermsOk(e.target.checked); }} />
+            <span id="v5CardTerms"><CardConsentText L={L} /></span>
           </label>
         )}
         {notice && <p id="v5CardNotice" className="kx-err" role="status" aria-live="polite">{notice}</p>}

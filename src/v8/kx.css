@@ -1087,3 +1087,9 @@
   .v8-app-root .kx-sh { background: linear-gradient(rgba(255,255,255,.07), rgba(255,255,255,.07)), rgba(14,12,22,.84); }
 }
 .v8-app-root.kr-lowend .kx-sh { background: linear-gradient(rgba(255,255,255,.07), rgba(255,255,255,.07)), rgba(14,12,22,.84); -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* makecard-1 (18 Nov): lighter "Make your card": take-photo link on the card, a plain photo line (no box), see-through name field */
+.v8-app-root .kx-mint-card .kx-addcam { position: absolute; left: 50%; top: calc(34% + 74px); transform: translateX(-50%); z-index: 3; padding: 8px 14px; white-space: nowrap;
+  font: 700 0.8125rem var(--kx-j); color: rgba(255,255,255,.72); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.v8-app-root .kx-mint-card .kx-addcam input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.v8-app-root .kx-photo-line { margin: 26px 22px 0; text-align: center; font: 700 0.875rem/1.45 var(--kx-j); color: #ff9ae8; }
+.v8-app-root .kx-mint .kx-in { background: transparent; }

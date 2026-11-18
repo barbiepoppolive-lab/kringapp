@@ -28,23 +28,24 @@ const sheet = (c: V5Card | null) => render(<V5MintSheet L={L} Lf={Lf} card={c as
 const fillNew = async () => {
   fireEvent.change(document.querySelector('#kxAddPhoto input')!, { target: { files: [new File(['x'], 'me.jpg', { type: 'image/jpeg' })] } });
   await vi.waitFor(() => { expect(document.getElementById('kxAddPhoto')).toBeNull(); expect(document.getElementById('kxPhotoNeed')).toBeNull(); expect((document.getElementById('v5SaveCard') as HTMLButtonElement).disabled).toBe(false); }, { timeout: 4000 });
-  fireEvent.change(document.getElementById('v5Name')!, { target: { value: 'TEST-Mali' } }); fireEvent.click(document.getElementById('v5Age')!);
+  fireEvent.change(document.getElementById('v5Name')!, { target: { value: 'TEST-Mali' } });
 };
 
 describe('0079 new card: explicit agree checkbox', () => {
   it('version is the 17 Nov terms', () => expect(V5_TERMS_VERSION).toBe('member-2026-11-17'));
-  it('the checkbox starts unticked, names promotion, and links Terms + Privacy Policy', async () => {
+  it('one checkbox (makecard-1: 20+ and Terms together) starts unticked, names promotion, and links Terms + Privacy Policy', async () => {
     sheet(null);
     const box = document.getElementById('v5TermsOk') as HTMLInputElement;
     expect(box.checked).toBe(false);
+    expect(document.getElementById('v5Age')).toBeNull();
     const line = document.getElementById('v5CardTerms')!;
-    expect(line.textContent).toBe('I agree to the Terms and Privacy Policy, including Kring using my posts to promote Kring.');
+    expect(line.textContent).toBe('I’m 20+ and agree to the Terms and Privacy Policy (Kring may feature my posts).');
     expect([...line.querySelectorAll('a')].map((a) => a.getAttribute('href'))).toEqual(['/terms.html', '/privacy.html']);
   });
   it('cannot mint without agreeing; nothing is saved', async () => {
     sheet(null); await fillNew();
     fireEvent.click(document.getElementById('v5SaveCard')!);
-    await vi.waitFor(() => expect(document.getElementById('v5CardNotice')!.textContent).toBe('Please agree to the Terms to continue.'));
+    await vi.waitFor(() => expect(document.getElementById('v5CardNotice')!.textContent).toBe('Please confirm you’re 20+ and agree to the Terms.'));
     expect(liveMock.v5SaveCard).not.toHaveBeenCalled();
     expect(liveMock.v5AcceptTerms).not.toHaveBeenCalled();
   });
@@ -53,6 +54,25 @@ describe('0079 new card: explicit agree checkbox', () => {
     fireEvent.click(document.getElementById('v5TermsOk')!);
     fireEvent.click(document.getElementById('v5SaveCard')!);
     await vi.waitFor(() => expect(liveMock.v5AcceptTerms).toHaveBeenCalledWith('signup'));
+    // the one tick still sends the 20+ confirmation the server requires (kr8_save_card p_age_ok)
+    expect(liveMock.v5SaveCard).toHaveBeenCalledWith(expect.objectContaining({ age_ok: true }));
+  });
+  it('makecard-1: a new card shows no photo box, no Instagram/TikTok rows and no "I am" row until "More about you"', async () => {
+    sheet(null);
+    expect(document.getElementById('kxPhotoNeed')).toBeNull();
+    expect(document.getElementById('kxPhotoGallery')).toBeNull();
+    expect(document.getElementById('kxPhotoCamera')).toBeTruthy();
+    expect(document.getElementById('kxIgRow')).toBeNull();
+    expect(document.getElementById('kxTtRow')).toBeNull();
+    expect(document.getElementById('kxGender')).toBeNull();
+    fireEvent.click(document.getElementById('v5More')!);
+    expect(document.getElementById('kxGender')).toBeTruthy();
+  });
+  it('makecard-1: editing an existing card keeps every row', async () => {
+    sheet(card());
+    expect(document.getElementById('kxIgRow')).toBeTruthy();
+    expect(document.getElementById('kxTtRow')).toBeTruthy();
+    expect(document.getElementById('kxGender')).toBeTruthy();
   });
   it('editing an existing card never counts as agreeing (that happens in the update dialog)', async () => {
     sheet(card());
