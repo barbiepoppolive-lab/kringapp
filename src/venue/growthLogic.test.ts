@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { countryName, flag, groupSources, hostOf, isGrowth, isInternalRef, isNoiseHost, refLabel, seriesEnds, sourceOf, sparkPath, stepPct, trendWords, visibleRefs } from './growthLogic';
+import { addDays, bkkToday, clampDay, dailyRange, dayName, isGrowthDaily, isGrowthDay, countryName, flag, groupSources, hostOf, isGrowth, isInternalRef, isNoiseHost, refLabel, seriesEnds, sourceOf, sparkPath, stepPct, trendWords, visibleRefs } from './growthLogic';
 
 describe('growth: source grouping', () => {
   it('cleans referrers to hosts', () => {
@@ -103,5 +103,40 @@ describe('growth: numbers and labels', () => {
   it('shape guard', () => {
     expect(isGrowth(null)).toBe(false);
     expect(isGrowth({ visitors: 1, visits: 1, funnel: {}, sources: [], refs: [], countries: [], series: [] })).toBe(true);
+  });
+});
+
+describe('growth: day by day (0114)', () => {
+  it('Bangkok today flips at midnight Bangkok (UTC+7), not UTC', () => {
+    expect(bkkToday(Date.parse('2026-11-18T16:59:00Z'))).toBe('2026-11-18');
+    expect(bkkToday(Date.parse('2026-11-18T17:00:00Z'))).toBe('2026-11-19');
+  });
+  it('steps days across month ends', () => {
+    expect(addDays('2026-11-01', -1)).toBe('2026-10-31');
+    expect(addDays('2026-12-31', 1)).toBe('2027-01-01');
+    expect(dayName('2026-11-17')).toBe('Tue 17 Nov');
+  });
+  it('keeps a picked day between the first day and today', () => {
+    expect(clampDay('2026-11-17', '2026-11-18')).toBe('2026-11-17');
+    expect(clampDay('2026-11-25', '2026-11-18')).toBe('2026-11-18');
+    expect(clampDay('2026-01-01', '2026-11-18', '2026-10-01')).toBe('2026-10-01');
+    expect(clampDay('nope', '2026-11-18')).toBe('2026-11-18');
+    expect(clampDay('2026-02-31', '2026-11-18')).toBe('2026-11-18');
+    expect(clampDay(undefined, '2026-11-18')).toBe('2026-11-18');
+  });
+  it('table range ends today and covers 7 / 30 days', () => {
+    expect(dailyRange(7, '2026-11-18')).toEqual(['2026-11-12', '2026-11-18']);
+    expect(dailyRange(30, '2026-11-18')).toEqual(['2026-10-20', '2026-11-18']);
+  });
+  it('trend words for a past day say "the day before"', () => {
+    expect(trendWords(12, 10, 1, true)).toBe('+20% vs the day before');
+    expect(trendWords(12, 10, 1)).toBe('+20% vs same time yesterday');
+  });
+  it('shape guards', () => {
+    expect(isGrowthDaily([{ day: '2026-11-18', visitors: 3, visits: 4, returning: 1, signins: 1, cards: 1, first_reels: 0 }])).toBe(true);
+    expect(isGrowthDaily([{ day: '2026-11-18' }])).toBe(false);
+    expect(isGrowthDaily(null)).toBe(false);
+    expect(isGrowthDay({ visitors: 1, visits: 1, funnel: {}, sources: [], refs: [], countries: [], series: [], day: '2026-11-18' })).toBe(true);
+    expect(isGrowthDay({ visitors: 1, visits: 1, funnel: {}, sources: [], refs: [], countries: [], series: [] })).toBe(false);
   });
 });
