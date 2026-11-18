@@ -285,7 +285,8 @@ describe('Ranking screen', () => {
     render(<RankingPage L={L} Lf={Lf} lang="en" myArea="Ari" myPhoto={null} myName="Mint" myId="me" onBack={() => undefined} onPerson={() => undefined} onPost={() => undefined} onShare={() => undefined} />);
     await screen.findByText('PRIZE LINE · 25 RINGS TO TAKE A SEAT');
     expect([...document.querySelectorAll('[data-seat="open"]')].map((e) => e.textContent)).toEqual(['6Your spot?฿250', '7Your spot?฿150', '8Your spot?฿100']);
-    expect(document.querySelector('[data-rank="5"]')!.textContent).toContain('7 more Rings to be eligible');
+    // board-1 (Kring Light): the "X more Rings to be eligible" line is only on MY row now; another member under the floor = dimmed prize
+    expect(document.querySelector('[data-rank="5"]')!.textContent).not.toContain('more Rings to be eligible');
     expect(document.querySelector('[data-rank="5"] .kx-pz')!.className).toContain('off');
     expect(document.querySelector('[data-rank="5"]')!.className).toContain('low');
     expect(document.querySelector('#kxMeRow')!.textContent).toContain('Seat #6 is open · ฿250');

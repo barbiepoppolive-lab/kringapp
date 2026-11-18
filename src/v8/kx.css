@@ -1084,6 +1084,32 @@
 .v8-app-root .lowfx .rw-sheet.glass { -webkit-backdrop-filter: none; backdrop-filter: none; background: linear-gradient(180deg, rgba(92,72,170,.97), rgba(40,28,98,.98) 45%); }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .v8-app-root .rw-sheet.glass { background: linear-gradient(180deg, rgba(92,72,170,.97), rgba(40,28,98,.98) 45%); } }
 .v8-app-root .rw-sheet.glass .rw-card { background: rgba(255,255,255,.1); }
+/* board-1 · Kring Light on the board (founder 18 Nov: "beautify, not redesign"). Same layout and elements; no opaque slabs:
+   the picture is softer and brighter, the pinned row is see-through glass (no blur: cheap Android), the prize-line label has no dark
+   pill, prizes not yet won are a soft gold, and the dark fade behind the pinned row is gone (a short tinted fade keeps it readable). */
+.v8-app-root .bx-bg { filter: saturate(.84) brightness(1.12); }
+.v8-app-root .bx-bg::after { content: ''; position: absolute; inset: 0;
+  background: radial-gradient(120% 60% at 50% 0%, rgba(255,226,246,.16), rgba(255,226,246,0) 60%), linear-gradient(180deg, rgba(255,255,255,0) 55%, rgba(255,190,232,.08)); }
+.v8-app-root .bx-pin { padding-top: 34px; background: linear-gradient(to bottom, rgba(58,22,120,0), rgba(60,22,122,.95) 30px, rgba(66,24,128,.98)); }
+.v8-app-root .kx-page.bx { padding-bottom: calc(232px + env(safe-area-inset-bottom)); }
+.v8-app-root .bx-you { background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.08)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.34), 0 8px 24px -14px rgba(20,6,60,.6); }
+.v8-app-root .bx-you .n { text-shadow: 0 0 10px rgba(255,140,225,.75); }
+.v8-app-root .bx .bx-line span { text-shadow: 0 1px 6px rgba(20,10,60,.7); }
+.v8-app-root .bx .bx-line span::before { background: rgba(255,255,255,.06); box-shadow: inset 0 0 0 1px rgba(255,228,145,.45); }
+.v8-app-root .bx .bx-row .kx-pz.off, .v8-app-root .bx-pz.off { color: rgba(255,228,145,.5); text-shadow: none; }
+.v8-app-root .bx .bx-row { border-top-color: rgba(255,255,255,.1); }
+.v8-app-root .bx .bx-row .t, .v8-app-root .bx-row .bx-sc { text-shadow: 0 1px 4px rgba(20,8,60,.45); }
+.v8-app-root .bx .bx-row.mer .rka-elig { color: #FFD3F1; }
+/* the two buttons: Share my Reel (main) + Share my rank (story picture, light glass) */
+.v8-app-root .bx-ctas { display: flex; gap: 10px; }
+.v8-app-root .bx-ctas .bx-cta { flex: 1; min-width: 0; }
+.v8-app-root .bx-ctas.two .bx-cta .tx { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .bx .bx-story { flex: none; height: 54px; padding: 0 18px 0 14px; border: 0; border-radius: 999px; display: flex; align-items: center; gap: 7px; color: #fff; cursor: pointer;
+  background: linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,.08)); box-shadow: inset 0 0 0 1.4px rgba(255,255,255,.55); }
+.v8-app-root .bx-story .ic { display: grid; } .v8-app-root .bx-story .ic svg { width: 21px; height: 21px; }
+.v8-app-root .bx-story .tx { font: 800 0.9375rem/1 var(--kx-j); white-space: nowrap; text-shadow: 0 1px 4px rgba(40,10,80,.4); }
+.v8-app-root .bx.lth .bx-story .tx { font: 700 1rem/1.2 var(--bx-th); }
+.v8-app-root .bx-story[aria-busy="true"] { opacity: .7; }
 /* ===== Kring Light 5a (founder-approved 18 Nov): bottom sheets = light glass (see v8.css) ===== */
 .v8-app-root .kx-sh {
   background: linear-gradient(rgba(255,255,255,.07), rgba(255,255,255,.07)), rgba(16,14,27,.8);
