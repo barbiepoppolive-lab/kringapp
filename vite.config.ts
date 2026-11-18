@@ -2,6 +2,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import type { Plugin } from 'vite'
+import { execSync } from 'node:child_process'
 
 /** KRING_NOINDEX=1 (preview deploys such as /preview-6nov/) adds <meta name="robots" content="noindex,nofollow">. */
 function kringNoindex(): Plugin {
@@ -16,7 +17,13 @@ function kringNoindex(): Plugin {
 }
 
 /** J1: one version string per build, baked into the bundle and written to /app/version.json (served no-cache). */
-const RELEASE = 'kring-web@' + new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')
+/*  18 Nov: plus the git short sha, so every deploy has its own Sentry release: kring-web@<yyyymmddHHMM>-<sha> (UTC). */
+function gitSha(): string {
+  try {
+    return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
+  } catch { return 'nogit' }
+}
+const RELEASE = 'kring-web@' + new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '') + '-' + gitSha()
 function kringVersionFile(): Plugin {
   return {
     name: 'kring-version-file',

@@ -3,13 +3,16 @@
  * Same rule as lib/sentry.ts: errors are only sent from the live site. Errors that happen before Sentry has loaded are kept
  * here and sent as soon as it is ready, so nothing from the first seconds is lost.
  */
+import { chunkReloadPending, isChunkError } from './chunkGuard';
+
 const onLive = typeof location !== 'undefined' && /(^|\.)kringapp\.com$/.test(location.hostname);
 
 export function startSentryLater(): void {
   if (!onLive || typeof window === 'undefined') return;
   const early: unknown[] = [];
-  const onError = (e: ErrorEvent) => { if (early.length < 20) early.push(e.error ?? e.message); };
-  const onReject = (e: PromiseRejectionEvent) => { if (early.length < 20) early.push(e.reason); };
+  const keep = (x: unknown) => !(chunkReloadPending() && isChunkError(x));
+  const onError = (e: ErrorEvent) => { if (early.length < 20 && keep(e.error ?? e.message)) early.push(e.error ?? e.message); };
+  const onReject = (e: PromiseRejectionEvent) => { if (early.length < 20 && keep(e.reason)) early.push(e.reason); };
   window.addEventListener('error', onError);
   window.addEventListener('unhandledrejection', onReject);
   const load = () => {
@@ -17,7 +20,7 @@ export function startSentryLater(): void {
       .then(({ Sentry }) => {
         window.removeEventListener('error', onError);
         window.removeEventListener('unhandledrejection', onReject);
-        for (const x of early.splice(0)) Sentry.captureException(x);
+        for (const x of early.splice(0)) if (keep(x)) Sentry.captureException(x);
       })
       .catch(() => undefined);
   };

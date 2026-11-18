@@ -3,6 +3,9 @@
  * Imported first by every entry (app, admin, staff, stand, owner). `?kr8_sentry_test=1` throws one test error on purpose.
  */
 import * as Sentry from '@sentry/browser';
+import { chunkReloadPending, installChunkGuard, isChunkError, recentChunkReload } from './chunkGuard';
+
+installChunkGuard();   // staff/stand/owner get the stale-chunk reload too (idempotent; app and admin install it first)
 
 const DSN = 'https://5a1e2ea9cf9dd68ef1c5ed5610481f2d@o4511808158760960.ingest.us.sentry.io/4512406631219200';
 declare const __KR8_RELEASE__: string;
@@ -27,7 +30,9 @@ if (onLive) {
       /Failed to fetch$/,      // offline / flaky 4G
     ],
     denyUrls: [/extensions\//i, /^chrome:\/\//i, /^moz-extension:\/\//i, /static\.cloudflareinsights\.com/i],
-    beforeSend(event) {
+    beforeSend(event, hint) {
+      // stale tab after a deploy: the chunk guard is already reloading the page, so this is not a real error
+      if (chunkReloadPending() && (isChunkError(hint?.originalException) || event.exception?.values?.some((v) => isChunkError(v.value)))) return null;
       // never send emails, phone numbers or sign-in codes that may sit in a message or URL
       const scrub = (s?: string) => s?.replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '[email]').replace(/\+?\d[\d -]{7,}\d/g, '[number]');
       if (event.message) event.message = scrub(event.message);
@@ -36,6 +41,8 @@ if (onLive) {
       return event;
     },
   });
+  const reloadedAt = recentChunkReload();
+  if (reloadedAt) Sentry.addBreadcrumb({ category: 'kring.chunk', level: 'info', message: 'page reloaded after a stale code chunk (old tab during a deploy)', timestamp: reloadedAt / 1000 });
   Sentry.setTag('page', location.pathname.replace(/^\/app\/?/, '') || 'app');
   if (new URLSearchParams(location.search).get('kr8_sentry_test') === '1') {
     setTimeout(() => { throw new Error('Kring Sentry test error (safe to ignore)'); }, 1500);
