@@ -41,7 +41,7 @@ export function helpCaseCard(c: HelpCase, onDone?: (c: HelpCase) => void): HTMLE
     class: 'hpa-ta',
     id: 'hpaText-' + c.member,
     rows: draft ? '3' : '2',
-    maxlength: '500',
+    maxlength: '2000',
     placeholder: memberThai ? 'Write your reply in English. It is sent to the member in Thai.' : 'Write your reply…',
   }) as HTMLTextAreaElement;
   if (draft) ta.value = draft;
