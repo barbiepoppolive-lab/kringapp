@@ -127,7 +127,7 @@ import { shownGender } from './V5Gender';
 import { useChatTranslate } from './v5Translate';
 import { kxMyInvites, kxBreakdown, kxGenderShown, kxMemberReels, kxReelPeople, kxTagPeople, type KxGridReel, type KxMemberReels, type KxTagPerson } from './v5Kx';
 import { kxRules, kxSetWebReels, kxWebReelsGet, type KxWebReels } from './v5Kx';
-import { friendsLine, friendsParts, oneTapShare, refCode, shareText, withRef, type ShareKind, type ShareResult } from './invite';
+import { friendsLine, friendsParts, liveSeen, markLiveSeen, oneTapShare, pickLiveReel, refCode, shareText, withRef, type ShareKind, type ShareResult } from './invite';
 import { InviteHint } from './V5Invite';
 import { copyText } from './camGuard';
 import { PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, SavedReelsPage, type PickedPlace } from './V5KxPlaces';
@@ -2338,8 +2338,15 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     if (which === 'reelshare' && live && /^[0-9a-f-]{36}$/.test(p.id)) void kxShareLink(p.id).catch(() => undefined);
   };
   /** invite-1: my own invite code (?ref=k00184), added to every link the app shares. */
-  const [postedShare, setPostedShare] = useState<string | null>(null);
-  useEffect(() => { if (!postedShare) return; const t = setTimeout(() => setPostedShare(null), 9000); return () => clearTimeout(t); }, [postedShare]);
+  /** "Show my QR" from my own profile's ⋯ menu: closing the QR card goes back to the profile */
+  const qrBackRef = useRef<'profile' | null>(null);
+  useEffect(() => { if (sheet !== 'mycode') qrBackRef.current = null; }, [sheet]);
+  // founder 18 Nov: the share right after posting shows for EVERYONE. 'posted' = approved on upload (shares the Reel);
+  // 'pending' = still in review (shares my profile + ref: it shows the Reel once approved, never a hidden Reel);
+  // 'live' = a Reel the team approved later: "Your Reel is live · Share" once, the next time the member is on the Feed.
+  const [postedShare, setPostedShare] = useState<{ id: string; mode: 'posted' | 'pending' | 'live' } | null>(null);
+  useEffect(() => { if (!postedShare) return; const t = setTimeout(() => setPostedShare(null), postedShare.mode === 'live' ? 12000 : 9000); return () => clearTimeout(t); }, [postedShare]);
+  const [liveReel, setLiveReel] = useState<string | null>(null);
   const [myInvites, setMyInvites] = useState<{ friends: number; rings: number; x: number } | null>(null);
   useEffect(() => {
     if (!live || !v5Uid || tab !== 'me') return;
@@ -2532,6 +2539,44 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     const res = await tapShare(await reelUrlFast(id), kind, name);
     if (res !== 'cancelled') void v5LogShare(id, res);
   };
+  /** The post-success / "Your Reel is live" button. Pending: my profile link (+ref) with "my new Reel is coming up" text. */
+  const sharePosted = (m: { id: string; mode: 'posted' | 'pending' | 'live' }) => {
+    setPostedShare(null);
+    if (m.mode === 'pending') { if (v5Uid) void tapShare(v5ProfileLink(v5Uid), 'my_reel_soon'); return; }
+    void kxShareReelId(m.id);
+  };
+  // "Your Reel is live · Share": a Reel the team approved after it was posted (kr8_my_activity 'approved'; the approval also sends
+  // the existing ding, 0059 kr8_push_on_reel). Checked on open, when the app comes back to the front, on the Feed tab and when a
+  // ding is tapped; shown once per Reel on this phone.
+  const liveCheckAt = useRef(0);
+  const checkReelLive = (force = false) => {
+    if (!live || !v5Uid || !v5Card) return;
+    if (!force && Date.now() - liveCheckAt.current < 60_000) return;
+    liveCheckAt.current = Date.now();
+    const uid = v5Uid;
+    v5Activity().then((rows) => {
+      const id = pickLiveReel(rows, liveSeen(uid));
+      if (!id) return;
+      markLiveSeen(uid, (rows || []).filter((r) => r.kind === 'approved' && r.post_id).map((r) => r.post_id as string));   // once, the newest only
+      setLiveReel(id);
+      prefetchReelLink(id);
+    }).catch(() => { liveCheckAt.current = 0; });
+  };
+  const checkReelLiveRef = useRef(checkReelLive);
+  checkReelLiveRef.current = checkReelLive;
+  useEffect(() => { checkReelLiveRef.current(true); }, [live, v5Uid, !!v5Card]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const vis = () => { if (document.visibilityState === 'visible') checkReelLiveRef.current(); };
+    document.addEventListener('visibilitychange', vis);
+    return () => document.removeEventListener('visibilitychange', vis);
+  }, []);
+  useEffect(() => { if (tab === 'feed') checkReelLiveRef.current(); }, [tab]);
+  // shown on the Feed, with no sheet open, never on top of a post-success share
+  useEffect(() => {
+    if (!liveReel || tab !== 'feed' || sheet || postedShare) return;
+    setPostedShare({ id: liveReel, mode: 'live' });
+    setLiveReel(null);
+  }, [liveReel, tab, sheet, postedShare]);
   /** The Ranking tile's second line: the next step and what it pays. */
   const kxTileLine = (r: KxRanking): string => {
     const g = r.gap;
@@ -3247,7 +3292,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       setTab('feed');
       triggerRingBurst();
       showToast(r.status === 'approved' ? L('Reel posted · Kring!') : L('Reel sent · it shows in the feed after a quick check'));
-      if (r.status === 'approved' && r.id) { setPostedShare(r.id); prefetchReelLink(r.id); }   // invite-1: one-tap share right after posting
+      // invite-1 + founder 18 Nov: one-tap share right after posting, for EVERYONE (in review → my profile link, see sharePosted)
+      if (r.id) {
+        if (r.status === 'approved') { if (v5Uid) markLiveSeen(v5Uid, r.id); setPostedShare({ id: r.id, mode: 'posted' }); prefetchReelLink(r.id); }
+        else setPostedShare({ id: r.id, mode: 'pending' });
+      }
       a2hsFirstValue('reel');
       pushMoment('first_reel');   // 16 Nov dings: ask after the first Reel (small card, never the browser prompt by itself)
       // audit 18 Nov: back at the top of the feed (it could land on the end card "Be the first in Bangkok today" right after posting)
@@ -3419,7 +3468,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   };
   const openPushLink = (link: PushLink | null) => {
     if (!link) return;
-    if (link.reel) { reelLinkRef.current = link.reel; setSheet(null); setTab('feed'); v5Feed().then(setFeedItems).catch(() => undefined); return; }
+    if (link.reel) { reelLinkRef.current = link.reel; setSheet(null); setTab('feed'); v5Feed().then(setFeedItems).catch(() => undefined); checkReelLiveRef.current(true); return; }   // the "Reel approved" ding → "Your Reel is live · Share"
     if (link.tab) setTab(link.tab);
     if (link.rewards && live) { setKxReady(false); setSheet('rewards'); void kxLoadRewards(); }
   };
@@ -7021,7 +7070,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               <button
                 type="button"
                 className="xbtn"
-                onClick={() => setSheet(null)}
+                aria-label={L('Close')}
+                onClick={() => { const back = qrBackRef.current; qrBackRef.current = null; setSheet(back); }}
               >
                 ✕
               </button>
@@ -7157,6 +7207,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               } catch (e) { showToast(v5Msg(e)); }
             }))}
             onShare={() => void shareProfile(otherProfile)}
+            onQr={live && v5Uid && otherProfile.mine ? () => { if (!meProfile) setMeProfile(otherProfile); qrBackRef.current = 'profile'; setSheet('mycode'); } : undefined}
             onMath={() => setKxMathFor(otherProfile.user_id)}
             onOpen={(i) => goOpenPlayer((goOtherReels?.reels || []).map((r) => gridToGo(r, { id: otherProfile.user_id, name: otherProfile.first_name, photo: otherProfile.photo, handle: kxOther?.ig_handle || otherProfile.ig_handle }, false)), i)}
             kx={kxOther} />
@@ -7511,11 +7562,12 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           </div>
         )}
 
-        {/* invite-1: post-success, one tap to share the Reel that just went live + the one quiet hint line */}
-        {postedShare && (
-          <div className="v8-posted" id="postedShare">
-            <button type="button" className="v8-posted-btn" id="postedShareBtn" onClick={() => { const id = postedShare; setPostedShare(null); void kxShareReelId(id); }}>
-              <span aria-hidden="true">↗</span>{L('Share my Reel')}
+        {/* invite-1: post-success (every member) and "Your Reel is live" (approved later): one tap to share + the one quiet hint line */}
+        {postedShare && tab === 'feed' && (
+          <div className="v8-posted" id="postedShare" data-mode={postedShare.mode}>
+            <button type="button" className="v8-posted-btn" id="postedShareBtn" onPointerDown={() => { if (postedShare.mode !== 'pending') prefetchReelLink(postedShare.id); }} onClick={() => sharePosted(postedShare)}>
+              {postedShare.mode === 'live' ? <>{L('Your Reel is live')}<i className="v8-posted-dot" aria-hidden="true">·</i>{L('Share')}<span aria-hidden="true">↗</span></>
+                : <><span aria-hidden="true">↗</span>{L('Share my Reel')}</>}
             </button>
             <InviteHint lang={shareLang} x={kxRewards?.rules?.invite} id="postedHint" />
           </div>

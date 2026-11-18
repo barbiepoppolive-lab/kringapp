@@ -614,5 +614,7 @@ const T: Record<string, string> = {
   '{0} more Rings for a prize seat': '상금 자리까지 {0} Rings 더',
   'Share my Reel': '내 릴 공유하기',
   'How to win': '이기는 방법',
+  'Show my QR': '내 QR 보기',
+  'Your Reel is live': '내 릴이 공개됐어요',
 };
 export default T;

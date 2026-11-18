@@ -351,6 +351,8 @@ export function GoProfilePage(props: {
   L: Tx; Lf: Txf; lang: string; p: V5Profile; kx: KxCardExtras | null | undefined; reels: KxMemberReels | null; busy: boolean;
   onBack: () => void; onFollow: () => void; onHi: () => void; onReport: () => void; onBlock: () => void; onShare: () => void;
   onList: (k: 'followers' | 'following') => void; onOpen: (i: number) => void; onMath: () => void; gender?: string | null;
+  /** founder 18 Nov: my own profile's ⋯ menu has "Show my QR" (the QR card was lost from the Me tab) */
+  onQr?: () => void;
 }) {
   const { L, p } = props;
   const [menu, setMenu] = useState(false);
@@ -366,6 +368,7 @@ export function GoProfilePage(props: {
       {menu && (
         <div className="kme-menu go-menu" role="menu">
           <button type="button" role="menuitem" id="profileShare" onClick={() => { setMenu(false); props.onShare(); }}>{L('Share profile')}</button>
+          {p.mine && props.onQr ? <button type="button" role="menuitem" id="profileQr" onClick={() => { setMenu(false); props.onQr?.(); }}>{L('Show my QR')}</button> : null}
           {!p.mine && <button type="button" role="menuitem" id="profileReport" onClick={() => { setMenu(false); props.onReport(); }}>{L('Report')}</button>}
           {!p.mine && <button type="button" role="menuitem" className="bad" id="profileBlock" onClick={() => { setMenu(false); props.onBlock(); }}>{L('Block')}</button>}
         </div>

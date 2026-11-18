@@ -614,5 +614,7 @@ const T: Record<string, string> = {
   '{0} more Rings for a prize seat': '再得 {0} Rings 即可获得奖励名额',
   'Share my Reel': '分享我的短视频',
   'How to win': '如何赢',
+  'Show my QR': '显示我的二维码',
+  'Your Reel is live': '你的短视频已上线',
 };
 export default T;

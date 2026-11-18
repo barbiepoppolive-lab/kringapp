@@ -1,7 +1,7 @@
 // invite-1 (18 Nov): one-tap invite sharing — share URL, LINE fallback, hint text, and the 0109 credit rules.
 import { describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { friendsLine, inviteHint, lineShareUrl, oneTapShare, pickChannel, refCode, shareText, withRef } from './invite';
+import { friendsLine, inviteHint, lineShareUrl, liveSeen, markLiveSeen, oneTapShare, pickChannel, pickLiveReel, refCode, shareText, withRef } from './invite';
 
 const UA = {
   iphone: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
@@ -91,9 +91,11 @@ describe('one tap', () => {
 
 describe('copy: one language at a time, founder wording, no banned words', () => {
   it('reward hint, Thai mode = Thai only, English mode = English only, X from config', () => {
-    expect(inviteHint('th')).toBe('เพื่อนไลก์ = ขึ้นอันดับ · +10 ริง');
-    expect(inviteHint('en')).toBe('Friends’ likes = you climb · +10 Rings');
-    expect(inviteHint('th', 25)).toBe('เพื่อนไลก์ = ขึ้นอันดับ · +25 ริง');
+    // founder 18 Nov (2nd round): "Friend joins = +10 each" (both get the Rings)
+    expect(inviteHint('th')).toBe('เพื่อนสมัคร = ได้ +10 ริง ทั้งคู่');
+    expect(inviteHint('en')).toBe('Friend joins = +10 Rings each');
+    expect(inviteHint('th', 25)).toBe('เพื่อนสมัคร = ได้ +25 ริง ทั้งคู่');
+    expect(inviteHint('en')).not.toMatch(/likes|climb/);
     expect(inviteHint('en', 0)).toContain('+10');   // 0 / missing → default
     expect(inviteHint('th')).not.toMatch(/[A-Za-z]/);
     expect(inviteHint('en')).not.toMatch(/[฀-๿]/);
@@ -101,7 +103,7 @@ describe('copy: one language at a time, founder wording, no banned words', () =>
   it('share text: a short challenge, one line, one language', () => {
     expect(shareText('th', 'my_reel')).toBe('ช่วยกดไลก์คลิปนี้หน่อย! ยิ่งไลก์ยิ่งได้ขึ้นอันดับบนกริ๊ง! 🔥');
     expect(shareText('en', 'my_reel')).toBe('Help me climb! Every like and save on Kring pushes me up the board 🔥');
-    for (const lang of ['th', 'en']) for (const k of ['my_reel', 'reel', 'my_profile', 'profile', 'place', 'invite'] as const) {
+    for (const lang of ['th', 'en']) for (const k of ['my_reel', 'my_reel_soon', 'reel', 'my_profile', 'profile', 'place', 'invite'] as const) {
       const t = shareText(lang, k, lang === 'th' ? 'มิ้นท์' : 'Mint');
       expect(t).not.toMatch(/\n/);
       expect(t.length).toBeLessThan(90);
@@ -203,5 +205,55 @@ describe('0109 credit rules (SQL)', () => {
     expect(sql).toContain("'invite', 'invite_welcome'));");
     expect(sql).toContain('grant execute on function public.kr8_my_invites() to authenticated');
     expect(sql).toMatch(/revoke all on function public\.kr8_invite_try\(uuid\) from public, anon, authenticated/);
+  });
+});
+
+describe('founder 18 Nov: share after posting for everyone, "Your Reel is live", QR in my ⋯ menu', () => {
+  const app = readFileSync('src/v8/KringAppV8.tsx', 'utf8');
+  const go = readFileSync('src/v8/V5Go.tsx', 'utf8');
+  it('post-success share shows for approved AND in-review Reels', () => {
+    expect(app).not.toContain("if (r.status === 'approved' && r.id) { setPostedShare(r.id)");
+    expect(app).toContain("setPostedShare({ id: r.id, mode: 'posted' })");
+    expect(app).toContain("else setPostedShare({ id: r.id, mode: 'pending' })");
+  });
+  it('a Reel in review shares my profile link (+ my ref), never the hidden Reel', () => {
+    const f = app.slice(app.indexOf('const sharePosted'), app.indexOf('const sharePosted') + 400);
+    expect(f).toContain("if (m.mode === 'pending') { if (v5Uid) void tapShare(v5ProfileLink(v5Uid), 'my_reel_soon'); return; }");
+    expect(f).toContain('void kxShareReelId(m.id)');
+    expect(shareText('en', 'my_reel_soon')).toBe('My new Reel is coming up on Kring · follow me so you don’t miss it 🔥');
+    expect(shareText('th', 'my_reel_soon')).toBe('รีลใหม่ของฉันกำลังจะขึ้นบนกริ๊ง! กดติดตามไว้ก่อนเลย 🔥');
+  });
+  it('"Your Reel is live": newest team-approved Reel of the last 3 days, once per Reel', () => {
+    const now = Date.parse('2026-11-18T12:00:00Z');
+    const h = (n: number) => new Date(now - n * 3600_000).toISOString();
+    const rows = [
+      { kind: 'like', at: h(0), post_id: 'L' },
+      { kind: 'approved', at: h(5), post_id: 'A' },
+      { kind: 'approved', at: h(1), post_id: 'B' },
+      { kind: 'approved', at: h(80), post_id: 'OLD' },
+      { kind: 'hidden', at: h(0), post_id: 'H' },
+    ];
+    expect(pickLiveReel(rows, [], now)).toBe('B');
+    expect(pickLiveReel(rows, ['B'], now)).toBe('A');
+    expect(pickLiveReel(rows, ['A', 'B'], now)).toBeNull();
+    expect(pickLiveReel(null, [], now)).toBeNull();
+    markLiveSeen('u1', 'B'); markLiveSeen('u1', 'B'); markLiveSeen('u1', 'A');
+    expect(liveSeen('u1')).toEqual(['B', 'A']);
+    expect(liveSeen('u2')).toEqual([]);
+    markLiveSeen('u3', ['A', 'B', 'OLD']);   // one moment, the newest; the older approvals never follow on the next open
+    expect(pickLiveReel(rows, liveSeen('u3'), now)).toBeNull();
+  });
+  it('live moment: from kr8_my_activity, on open / back to front / Feed / ding tap; Reels approved on upload never repeat it', () => {
+    expect(app).toContain('const id = pickLiveReel(rows, liveSeen(uid));');
+    expect(app).toContain("document.addEventListener('visibilitychange', vis);");
+    expect(app).toContain("checkReelLiveRef.current(true); return; }");   // the existing "Reel approved" ding (0059) opens it
+    expect(app).toContain("if (r.status === 'approved') { if (v5Uid) markLiveSeen(v5Uid, r.id);");
+    expect(app).toContain("{L('Your Reel is live')}");
+    expect(app).toMatch(/\{postedShare && tab === 'feed' && \(/);
+  });
+  it('"Show my QR" only on my own profile ⋯ menu, opens the QR card, closing goes back to the profile', () => {
+    expect(go).toContain("{p.mine && props.onQr ? <button type=\"button\" role=\"menuitem\" id=\"profileQr\"");
+    expect(app).toContain("qrBackRef.current = 'profile'; setSheet('mycode');");
+    expect(app).toContain('const back = qrBackRef.current; qrBackRef.current = null; setSheet(back);');
   });
 });

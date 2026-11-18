@@ -614,5 +614,7 @@ const T: Record<string, string> = {
   '{0} more Rings for a prize seat': 'इनाम वाली सीट के लिए {0} और Rings',
   'Share my Reel': 'मेरी रील शेयर करें',
   'How to win': 'कैसे जीतें',
+  'Show my QR': 'मेरा QR दिखाएँ',
+  'Your Reel is live': 'आपकी रील लाइव है',
 };
 export default T;

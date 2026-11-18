@@ -33,6 +33,9 @@ export const V5_L: Record<string, Record<string, string>> = {
     '{0} more Rings for a prize seat': 'อีก {0} ริง ได้ที่นั่งรับรางวัล',
     'Share my Reel': 'แชร์คลิปของฉัน',
     'How to win': 'วิธีชนะ',
+    // founder 18 Nov: QR in my profile's ⋯ menu; "Your Reel is live · Share" after the team approves a Reel
+    'Show my QR': 'แสดง QR ของฉัน',
+    'Your Reel is live': 'รีลของคุณขึ้นฟีดแล้ว',
     '+ Add {0}': '+ เพิ่ม {0}',
     'Outside opens': 'เปิดจากลิงก์แชร์',
     '{0} of these from travellers (count double)': 'มาจากนักท่องเที่ยว {0} ครั้ง (นับ 2 เท่า)',
