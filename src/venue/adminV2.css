@@ -694,3 +694,24 @@ details.v2brief:not([open]) { padding-bottom: 12px; }
 .xs-reels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .xs-verdict { padding: 10px 12px; border-radius: 14px; background: var(--s1); border: 1px solid var(--line); margin: 4px 0 8px; }
 .xs-verdict.r b { color: #ff8a97; } .xs-verdict.a b { color: var(--warn); } .xs-verdict.g b { color: var(--go2); }
+/* 0138 Traveller check: passport photo big (full width), the card photo right under it next to the three checks */
+.v2pp { margin: 10px 0 4px; }
+.v2pp-f { margin: 0; min-width: 0; }
+.v2pp-f a { display: block; }
+.v2pp-f img, .v2pp-none { width: 100%; display: block; border-radius: 14px; background: rgba(255, 255, 255, 0.06); }
+.v2pp-pass img, .v2pp-pass .v2pp-none { aspect-ratio: 7 / 5; object-fit: contain; background: #000; }
+.v2pp-row { display: flex; gap: 12px; align-items: flex-start; margin-top: 10px; }
+.v2pp-card { flex: 0 0 132px; }
+.v2pp-card img, .v2pp-card .v2pp-none { aspect-ratio: 3 / 4; object-fit: cover; }
+.v2pp-none { display: flex; align-items: center; justify-content: center; font-size: 13px; opacity: 0.7; }
+.v2pp-f figcaption { font-size: 12.5px; margin-top: 4px; opacity: 0.85; text-align: center; }
+.v2pp-chk { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; font-size: 14.5px; font-weight: 700; flex: 1; min-width: 0; line-height: 1.3; }
+.v2pp-chk li { padding-left: 24px; position: relative; overflow-wrap: anywhere; }
+.v2pp-chk li::before { content: ''; position: absolute; left: 0; top: 1px; width: 15px; height: 15px; border: 2px solid var(--v2cy); border-radius: 4px; }
+.v2pp-note { display: block; margin-top: 8px; }
+.v2pp-ref { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.v2pp-ref[hidden] { display: none; }
+.v2pp-opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.v2pp-opts .v2chip { font-size: 13px; padding: 7px 11px; border: 0; cursor: pointer; white-space: normal; }
+.v2pp-note-in { min-height: 44px; border-radius: 12px; padding: 0 12px; background: var(--s2); border: 1px solid var(--line2); color: var(--text); font-size: 14px; }
+.v2pp-note-in[hidden] { display: none; }

@@ -225,7 +225,8 @@ export function V5CardSheet(props: { L: Tx; Lf: Txf; card: V5Card | null; uiLang
   const [bio, setBio] = useState(card?.bio || '');
   const [ig, setIg] = useState(card?.ig_handle || '');
   const [area, setArea] = useState(card?.area || 'Bangkok');
-  const [who, setWho] = useState<'local' | 'traveller'>(card?.who || 'local');
+  // 0138: the traveller tag is asked for with a passport check (V5Traveller), never picked here
+  const who: 'local' | 'traveller' = card?.who === 'traveller' ? 'traveller' : 'local';
   const [photo, setPhoto] = useState<string | null>(null);
   // new card after "Continue with LINE": LINE name (editable) and LINE picture (optional, skipped if it can't be loaded)
   useEffect(() => {
@@ -321,10 +322,6 @@ export function V5CardSheet(props: { L: Tx; Lf: Txf; card: V5Card | null; uiLang
         {V5_AREAS.map((a) => <option key={a} value={a}>{a === 'Bangkok' ? L('All Bangkok') : L(a)}</option>)}
       </select>
       <p style={{ ...smallStyle, marginTop: 0 }}>{L('Shown as an area only, never your exact location.')}</p>
-      <div className="trip-opts" style={{ marginBottom: 10, display: 'flex', gap: 8 }}>
-        <button type="button" id="v5WhoTraveller" className={who === 'traveller' ? 'on' : ''} aria-pressed={who === 'traveller'} onClick={() => setWho('traveller')}>{L('✈ Visiting Bangkok')}</button>
-        <button type="button" id="v5WhoLocal" className={who === 'local' ? 'on' : ''} aria-pressed={who === 'local'} onClick={() => setWho('local')}>{L('🏠 I live here')}</button>
-      </div>
       </>)}
       {isNew && (
         <label style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 13.5, fontWeight: 700, margin: '4px 0 12px' }}>

@@ -1216,3 +1216,41 @@
 
 /* 19 Nov: the optional Instagram/TikTok ask is a quiet link, not a second big button */
 .v8-app-root .kx-fc-link { display: block; margin-top: 8px; padding: 4px 0; background: none; border: 0; color: rgba(255,255,255,.62); font-size: 14px; font-weight: 600; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
+
+/* traveller tag: passport check (light: plain lines, a dashed frame, no opaque boxes) */
+.v8-app-root .kt-row .kt-plane { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-size: 1rem; color: var(--kx-cy); box-shadow: inset 0 0 0 1.5px rgba(63,240,255,.45); flex: none; }
+.v8-app-root .kt-row em.wait { color: var(--kx-gd); }
+.v8-app-root .kt-row em.bad { color: #ff8fb2; }
+.v8-app-root .kt-row .kt-chev { font: 800 1.25rem var(--kx-j); color: rgba(255,255,255,.45); }
+.v8-app-root .kt-hint { margin: 4px 2px 0; }
+.v8-app-root .kt-page { z-index: 60; padding-bottom: 120px; }
+.v8-app-root .kt-body { padding: 4px 22px 0; display: flex; flex-direction: column; gap: 12px; }
+.v8-app-root .kt-h { font: 800 1.375rem/1.25 var(--kx-u); margin: 6px 0 0; }
+.v8-app-root .kt-lead { margin: 0; font: 600 0.9062rem/1.5 var(--kx-j); color: #d9d4ef; }
+.v8-app-root .kt-frame { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; aspect-ratio: 7 / 5; width: 100%;
+  border-radius: 20px; border: 1.5px dashed rgba(63,240,255,.55); background: rgba(63,240,255,.04); color: var(--kx-cy); text-align: center; padding: 14px; overflow: hidden; cursor: pointer; }
+.v8-app-root .kt-frame .pl { font: 300 2.75rem/1 var(--kx-j); }
+.v8-app-root .kt-frame b { font: 800 0.875rem/1.35 var(--kx-j); max-width: 240px; }
+.v8-app-root .kt-frame.has { border-style: solid; border-color: rgba(63,240,255,.35); padding: 0; }
+.v8-app-root .kt-frame img { width: 100%; height: 100%; object-fit: contain; background: #000; display: block; }
+.v8-app-root .kt-frame input, .v8-app-root .kt-link input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.v8-app-root .kt-pick { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: -2px; }
+.v8-app-root .kt-pick i { color: var(--kx-mu); font-style: normal; }
+.v8-app-root .kt-link { position: relative; font: 800 0.875rem var(--kx-j); color: #ff9ae8; cursor: pointer; padding: 6px 2px; }
+.v8-app-root .kt-check b { font: 800 0.8125rem var(--kx-j); color: #fff; }
+.v8-app-root .kt-check ul { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.v8-app-root .kt-check li { font: 600 0.875rem/1.4 var(--kx-j); color: #d9d4ef; padding-left: 24px; position: relative; }
+.v8-app-root .kt-check li::before { content: '✓'; position: absolute; left: 2px; color: var(--kx-cy); font-weight: 800; }
+.v8-app-root .kt-priv { display: flex; gap: 8px; margin: 0; font: 600 0.8125rem/1.45 var(--kx-j); color: var(--kx-mu); }
+.v8-app-root .kt-refused { margin: 4px 0 0; display: flex; flex-direction: column; gap: 4px; padding-left: 12px; border-left: 3px solid #ff8fb2; }
+.v8-app-root .kt-refused b { font: 800 0.9375rem var(--kx-j); color: #ff8fb2; }
+.v8-app-root .kt-refused span { font: 600 0.875rem/1.45 var(--kx-j); color: #fff; }
+.v8-app-root .kt-refused small { font: 600 0.8125rem var(--kx-j); color: var(--kx-mu); }
+.v8-app-root .kt-state { padding: 48px 26px 0; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; }
+.v8-app-root .kt-big { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; font-size: 2.25rem; color: var(--kx-cy);
+  box-shadow: inset 0 0 0 2px rgba(63,240,255,.55), 0 0 28px rgba(63,240,255,.25); margin-bottom: 6px; }
+.v8-app-root .kt-big.approved { color: #07060d; background: var(--kx-cy); box-shadow: 0 0 28px rgba(63,240,255,.55); }
+.v8-app-root .kt-state h2 { font: 800 1.25rem/1.3 var(--kx-u); margin: 0; }
+.v8-app-root .kt-state p { margin: 0; font: 600 0.9375rem/1.5 var(--kx-j); color: #d9d4ef; }
+.v8-app-root .kt-state .kt-priv { margin-top: 14px; text-align: left; }
+.v8-app-root .kt-page .kx-cta { position: fixed; left: 0; right: 0; bottom: 0; max-width: 480px; margin: 0 auto; z-index: 61; }
