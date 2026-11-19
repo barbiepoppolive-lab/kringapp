@@ -16,7 +16,7 @@ import { pushSendArgs } from './pushAdmin';
 import { bannedIn, fileSize, PLATFORMS, REEL_CAPTION, REEL_CAPTION_EN, shareReel, type Platform } from './postReel';
 import { agentsByLabel, cleanRef, codeMeaning, funnelLine, funnelRate, isProblemLog, isRecruiters, kindName, uaInfo,
   type ProblemLog, type RecruitMember, type Recruiters } from './problemsAdmin';
-import { buildClusters, faceWords, flagText, isLookalikeMap, isLookCardMap, joinDate, lookalikeBlock, ownPhotoLabel, type LookCard, type FaceLookalikes, istWhen, weekRange, type WeekRow, HOLD_LABEL, isDupOverview, isLinkReason, isWeekReview, linkText, prizeName, REASON_LABEL, weekFlags,
+import { awsLookalikes, buildClusters, faceWords, flagText, isLookalikeMap, isLookCardMap, joinDate, lookalikeBlock, ownPhotoLabel, type LookCard, type FaceLookalikes, istWhen, weekRange, type WeekRow, HOLD_LABEL, isDupOverview, isLinkReason, isWeekReview, linkText, prizeName, REASON_LABEL, weekFlags,
   type DupCluster, type DupFlagged, type DupHeld, type DupMember, type WeekReview, reviewText } from './dupAdmin';
 import './admin2.css';
 import { info, v2Flush, v2Route, v2TabFor, v2Tabbar, v2TestToggle } from './adminV2';
@@ -29,7 +29,8 @@ type Reel = { id: string; author_id: string; author_name: string; ref_code: stri
 type Counts = { id: string; views: number; likes: number; saves: number; shares: number; open_reports: number };
 type Face = { id: string; user_id: string; first_name: string; profile_photo: string | null; selfie_path: string | null;
   live_check: { straight?: boolean; left?: boolean; right?: boolean; blink?: boolean; blink_fallback?: boolean; match?: number | null; device?: string;
-    /** 0081 instant check */ auto?: 'pass' | 'review' | 'block'; review?: string[]; engine?: string; ms?: number; order?: string; same?: number | null; real?: number | null; dup_sim?: number | null; model?: string };
+    /** 0081 instant check */ auto?: 'pass' | 'review' | 'block'; review?: string[]; engine?: string; ms?: number; order?: string; same?: number | null; real?: number | null; dup_sim?: number | null; model?: string;
+    /** 0125 server check (AWS) */ aws_dup?: { user_id?: string; member_no?: number | null; first_name?: string | null; sim?: number } | null; yaw?: Record<string, number> };
   status: 'pending' | 'approved' | 'rejected'; created_at: string; reviewed_at: string | null; reject_reason: string | null; approved_reels: number; account_created: string };
 type Report = { id: string; created_at: string; category: string | null; reason: string; reporter_name: string | null; target_id: string | null; target_name: string | null;
   post_id: string | null; post_kind: string | null; post_body: string | null; video_path: string | null; poster_path: string | null; post_hidden: boolean | null;
@@ -601,11 +602,12 @@ function faceBody(r: Face, signed: Record<string, string>, look?: FaceLookalikes
   const lk = lookalikeBlock(look);
   const lc = r.live_check || {};
   const m = lc.match;
-  const own = ownPhotoLabel(m, /^sface/.test(lc.model || ''));
+  const aws = lc.model === 'aws-rekognition';
+  const own = ownPhotoLabel(m, /^sface/.test(lc.model || ''), aws);
   const selfie = r.selfie_path ? signed[r.selfie_path] : null;
   const pic = (src: string | null | undefined, cap: string, none: string) => el('figure', {}, src ? el('img', { src, alt: cap }) : el('div', { class: 'none' }, none), el('figcaption', { class: 'chip' }, cap));
   const step = (on: boolean | undefined, icon: string, t: string, bad = false) => el('div', { class: on ? 'y' : bad ? 'n' : '' }, ic(icon), t);
-  const noBlink = (!!lc.right && !lc.blink) || lc.blink_fallback === true;   // audit P2-5: the 12-s fallback is never shown as a blink
+  const noBlink = !aws && ((!!lc.right && !lc.blink) || lc.blink_fallback === true);   // 0125: the AWS check has no blink step (3 photos)   // audit P2-5: the 12-s fallback is never shown as a blink
   const ownParts = own.text.split('✓');
   let lkBox: HTMLElement | null = null;
   if (lk) {
@@ -697,6 +699,12 @@ const FACE_REASON: Record<string, string> = {
   old_server: 'Sent by the old route',
   live_check: 'Live check not passed', timeout: 'No head turn + blink in time', still: 'Never moved (still photo?)', lost: 'Face left the oval',
   noface: 'No clear face', swap: 'Face changed during the check', mismatch: 'Selfie is clearly not the card photo', spoof: 'Photo or screen held up (anti-spoof)',
+  // 0125 server check (AWS Rekognition)
+  aws_same_face: 'AWS: same face as another member (95%+). Nothing blocked: compare and decide',
+  card_mismatch: 'AWS: selfie does not match the card photo (below 80%)',
+  aws_error: 'AWS did not answer: check by eye',
+  no_face: 'No clear face', many_faces: 'More than one face', too_dark: 'Too dark', too_blurry: 'Blurry photo', too_far: 'Face too far',
+  eyes_closed: 'Eyes closed', sunglasses: 'Sunglasses', look_straight: 'Not facing the camera', turn_left_missing: 'No left turn', turn_right_missing: 'No right turn',
 };
 type FaceDecisionRow = { id: string; created_at: string; decision: 'pass' | 'review' | 'block' | 'fail'; reasons: string[]; match: number | null; dup_sim: number | null;
   dup_source: string | null; was_verified: boolean; engine: string | null; ms: string | null; device: string | null; user_id: string; member_no: number | null;
@@ -731,6 +739,8 @@ async function faceQueue() {
   const signed = await signSelfies(rows).catch(() => ({} as Record<string, string>));
   // 0076: look-alikes for the banner (empty before database update 0076)
   const looks = await rpc<unknown>('kr8_admin_verify_lookalikes', { p_ids: rows.map((r) => r.id) }).then((x) => (isLookalikeMap(x) ? x : {})).catch(() => ({} as Record<string, FaceLookalikes>));
+  // 0125: a server (AWS) check names its look-alike itself; it goes first so both card photos show side by side with the selfie
+  for (const r of rows) { const a = awsLookalikes(r.live_check); if (a) looks[r.id] = { has_print: true, matches: [...a.matches, ...(looks[r.id]?.matches || []).filter((x) => x.user_id !== a.matches[0].user_id)] }; }
   // 0080: card photo, referrer code and join date for each flagged member and the account it looks like (empty before 0080)
   const flagged = rows.filter((r) => looks[r.id]?.matches?.length);
   const cardIds = [...new Set(flagged.flatMap((r) => [r.user_id, looks[r.id].matches[0].user_id]))].slice(0, 20);
@@ -743,6 +753,8 @@ async function faceQueue() {
         (why) => rpc('kr8_admin_review_verification', { p_id: r.id, p_approve: false, p_reason: why }), api.next), { id: 'verifyReject-' + r.id }),
       btn(lkFlag ? 'ghost big' : 'go big', [ic('check'), 'Approve'], () => api.done('Verified ✓', async () => {
         await rpc('kr8_admin_review_verification', { p_id: r.id, p_approve: true });
+        // 0125: an approved server (AWS) check goes into the duplicate search too (never blocks the approve)
+        if (r.live_check?.model === 'aws-rekognition') void v5Client().then((c) => c.functions.invoke('face-check-aws', { body: { action: 'index', id: r.id } })).catch(() => undefined);
         // 0076: every approved face check keeps a face code (older app builds never sent one)
         if (looks[r.id] && !looks[r.id].has_print && r.selfie_path && signed[r.selfie_path]) void adminSelfiePrint(r.user_id, r.id, signed[r.selfie_path]);
       }), { id: 'verifyApprove-' + r.id })),

@@ -18,6 +18,7 @@ import { allBlack, CAM_STEPS, camDenied, camFix, copyText, engineSupport, firstF
 import type { CamFix } from './camGuard';
 import { lineExternal, targetUrl } from './escape';
 import type { V5FaceDecision } from './v5Live';
+import { CamFixCarousel, FaceDoneScreen, OpenInBrowserGuide, guideApp } from './faceGuides';
 import './verify.css';
 
 type Tx = (en: string) => string;
@@ -72,9 +73,12 @@ const navHints = () => (typeof navigator === 'undefined' ? null : navigator as N
  *  'claim' = the required step before a prize claim. */
 export type VerifyMode = 'signup' | 'me' | 'claim';
 export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: boolean; mode?: VerifyMode; onClose: () => void; onSent: () => void; onVerified?: () => void;
-  onAddPhoto: () => void; errText: (e: unknown) => string }) {
+  onAddPhoto: () => void; errText: (e: unknown) => string;
+  /** 19 Nov 2B: "Keep using Kring" goes to the feed (falls back to onClose) */
+  onFeed?: () => void }) {
   const { L } = props;
   const mode: VerifyMode = props.mode || 'me';
+  const [selfieUrl, setSelfieUrl] = useState<string | null>(null);   // 2B: the selfie in the ring (a data URL, stays on the phone)
   const [stage, setStage] = useState<Stage>(!props.photo && !TESTCOPY ? 'needphoto' : consentSaved() && !props.nudge ? 'loading' : 'intro');
   const [agree, setAgree] = useState(false);
   const [live, setLive] = useState<LiveState>(() => liveStart());
@@ -118,6 +122,8 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
   }, []);
   useEffect(() => stop, []);
   const close = () => { stop(); props.onClose(); };
+  const toFeed = () => { stop(); (props.onFeed || props.onClose)(); };
+  const keepSelfie = (c: HTMLCanvasElement | null) => { try { setSelfieUrl(c && c.width ? c.toDataURL('image/jpeg', 0.7) : null); } catch { setSelfieUrl(null); } };
 
   const blocked = (why: string) => {
     stop();
@@ -351,6 +357,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
     stop();
     try {
       if (!frame || !frame.width) throw new Error('FRAME');
+      keepSelfie(frame);
       const r = await v5VerifySimple(await canvasJpeg(frame), { why: w, device: device() }, FACE_CONSENT_VERSION);
       setLeft(typeof r.tries_left === 'number' ? r.tries_left : null);
       if (r.result === 'pass') { setStage('pass'); props.onVerified?.(); } else { setStage('review'); props.onSent(); }
@@ -401,6 +408,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
         // need_photo: say so on screen before the one selfie is uploaded for the team (PDPA, T-392)
         () => { setPhotoNote(true); return new Promise<void>((ok) => setTimeout(ok, PHOTO_NOTE_MS)); });
       setLeft(typeof r.tries_left === 'number' ? r.tries_left : null);
+      if (r.result === 'pass' || r.result === 'review') keepSelfie(bestRef.current);
       if (r.result === 'pass') { setStage('pass'); props.onVerified?.(); }
       else if (r.result === 'block') setStage('block');
       else if (r.result === 'fail') { setWhy('timeout'); setStage('fail'); }
@@ -512,17 +520,10 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
         </Panel>
       )}
 
-      {stage === 'pass' && (
-        <Panel L={L} onClose={close} icon="pass" photo={props.photo} title={L('You’re verified ✓')} id="verifyPass"
-          text={mode === 'claim' ? L('Now pick where to get your prize.') : L('The ✓ is on your card now. Members can see you’re real.')}>
-          <button type="button" className="kfv2-cta" onClick={close}>{mode === 'claim' ? L('Back to my prize') : L('Done')}</button>
-        </Panel>
-      )}
-
-      {stage === 'review' && (
-        <Panel L={L} onClose={close} icon="review" title={L('We’re checking · usually within a day')} text={L('You’ll see ✓ verified on your card when it’s done')} id="verifyReview">
-          <button type="button" className="kfv2-cta" onClick={close}>{L('OK')}</button>
-        </Panel>
+      {/* 2B (founder's pick, 19 Nov): ✓ verified, or "we'll notify you" while the team looks */}
+      {(stage === 'pass' || stage === 'review') && (
+        <FaceDoneScreen L={L} state={stage === 'pass' ? 'pass' : 'pending'} selfie={selfieUrl || props.photo} sent={stage === 'review'} claim={mode === 'claim'}
+          onContinue={mode === 'claim' ? close : toFeed} onClose={close} />
       )}
 
       {stage === 'fail' && (
@@ -557,7 +558,12 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
         </Panel>
       )}
 
-      {stage === 'error' && camBlocked && (inApp || !camDenied(camWhy) ? (
+      {/* 19 Nov 1A: inside Instagram / TikTok, two pictures + Copy link (LINE keeps its one-tap button) */}
+      {stage === 'error' && camBlocked && guideApp(ua()) && (
+        <OpenInBrowserGuide L={L} app={guideApp(ua())!} link={fix?.copy || window.location.href} onClose={close}
+          open={fix?.open} onOpen={() => v5LogClient('verify_cam_open', fix!.open!.kind, inApp || '')} />
+      )}
+      {stage === 'error' && camBlocked && !guideApp(ua()) && (inApp || !camDenied(camWhy) ? (
         <Panel L={L} onClose={close} icon="fail" title={L('Camera blocked')} text={L('Open this page in Chrome (or Safari) and allow the camera.')} id="verifyCamBlocked">
           <CamSteps L={L} steps={fix ? CAM_STEPS[fix.steps] : []} />
           {fix?.open
@@ -574,12 +580,8 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
           <button type="button" className="kfv2-2nd" onClick={close}>{L('Not now')}</button>
         </Panel>
       ) : (
-        // fix4: already in Chrome / Safari and the camera is blocked for this site: how to allow it, then Try again
-        <Panel L={L} onClose={close} icon="fail" title={L('Allow the camera')} text={L('Your browser is blocking the camera for Kring. Allow it, then try again.')} id="verifyCamBlocked">
-          <CamSteps L={L} steps={fix ? CAM_STEPS[fix.steps] : []} />
-          <button type="button" className="kfv2-cta" id="verifyCamRetry" onClick={() => void start()}>{L('Try again')}</button>
-          <button type="button" className="kfv2-2nd" onClick={close}>{L('Not now')}</button>
-        </Panel>
+        // 19 Nov 3C: already in Chrome / Safari and the camera was refused: 3 swipe cards (iPhone or Android steps), then Try again
+        <CamFixCarousel L={L} ua={ua()} onRetry={() => void start()} onClose={close} />
       ))}
 
       {stage === 'error' && !camBlocked && (
