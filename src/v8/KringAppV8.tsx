@@ -94,12 +94,15 @@ import {
   v5StoredRef,
 } from './v5Live';
 import { ActivitySheet, FollowSheet, InterestsSheet, LANG_NAME, MeView } from './V5Me';
+import { meVariantFromUrl } from './V5MeVariants';
 import { inAppBrowser, A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip, openInstallSheet, takeInstallAsk } from './A2HS';
 import { parsePushLink, pushConfigured, pushDisable, pushEnable, pushMoment, pushResync, pushState, type PushLink, type PushState } from './push';
 import { PUSH_ASK_LINE, PushAskCard } from './V5Push';
 import { EscapeScreen } from './V5Escape';
 import { inAppOf, isLiffOpen, openEscape } from './escape';
 import { TripPerks } from './V5Trip';
+/** 19 Nov Me redesign PREVIEW: ?mev=1..4 on a dev / preview build only; always 0 (= the current Me tab) in production. */
+const ME_VARIANT = meVariantFromUrl();
 // founder 17 Nov: hide café treats / stays; Deals = trip partners + "more deals coming soon"
 const DEALS_TRIP_ONLY = true;
 // Kring Light (18 Nov): low-end Android phones get a plain dark tint on sheets instead of a costly blur.
@@ -4856,6 +4859,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               L={L}
               Lf={Lf}
               ghost={v5Ghost}
+              mev={ME_VARIANT}
+              onHelp={() => setSheet('help')}
+              weekPrize={kxWeek?.me?.prize ?? null}
+              nextKind={nextStep?.kind ?? null}
+              invites={myInvites}
               p={meProfile}
               rank={meRank}
               posters={mePosters}

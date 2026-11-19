@@ -13,6 +13,7 @@ import { NeonCard, progLine, RingGlyph } from './V5KxCard';
 import { InstallChip } from './A2HS';
 import { fmtN, levelFor, reviewNoteText } from './kxLogic';
 import type { KxCardExtras } from './v5Kx';
+import { MeVariantView } from './V5MeVariants';
 
 // ── pre-season (D-11NOV-G): the board ranks from day one; rewards start on kr8_settings.reward_start_at ──
 const LOCALE: Record<string, string> = { th: 'th-TH', zh: 'zh-CN', hi: 'hi-IN', ja: 'ja-JP', ko: 'ko-KR' };
@@ -134,7 +135,7 @@ export function FoundingChecklist(props: { L: Tx; Lf: Txf; kx: KxCardExtras | nu
 export const foundingDue = (kx: KxCardExtras | null | undefined) => !!kx && !kx.founding_no && kx.founding_left !== undefined && !kx.has_reel;
 
 /** My Me tab */
-export function MeView(props: {
+export type MeViewProps = {
   L: Tx; Lf: Txf; p: V5Profile; rank: number | null; posters: Record<string, string>; savedCount: number; savedImgs: string[];
   unread: boolean; verifyState: 'none' | 'pending' | 'verified';
   onTop10: () => void; onList: (k: 'followers' | 'following') => void; onSettings: () => void; onActivity: () => void;
@@ -158,7 +159,11 @@ export function MeView(props: {
   helpSlot?: React.ReactNode;
   /** 0111: the gentle "Verify your face in 5 seconds" row can be hidden (×) for a while; it never blocks anything */
   verifyHidden?: boolean; onVerifyHide?: () => void;
-}) {
+  /** 19 Nov Me redesign PREVIEW only (?mev=1..4 on a dev / preview build, see V5MeVariants). 0 / absent = the current Me tab. */
+  mev?: number; onHelp?: () => void; weekPrize?: number | null; nextKind?: string | null; invites?: { friends: number; rings: number } | null;
+};
+export function MeView(props: MeViewProps) {
+  if (props.mev) return <MeVariantView {...props} mev={props.mev} />;
   const { L, Lf, p } = props;
   const lv = p.level;
   const visits = Math.ceil(lv.need_points / 5);
