@@ -71,7 +71,7 @@ declare me record; n int; h int; tries int := public.kr8_rcfg('verify_tries_day'
 begin
   if p_user is null then raise exception 'KR8_SIGN_IN'; end if;
   -- the team can test the server check before it is switched on for members (kringapp.com/app/?faceaws=1)
-  tester := public.kr8_is_team(p_user) or exists (select 1 from auth.users u join public.kr8_admin_emails a on a.email = lower(u.email)
+  tester := public.kr8_is_team(p_user) or public.kr8_is_test_member(p_user) or exists (select 1 from auth.users u join public.kr8_admin_emails a on a.email = lower(u.email)
                                                    where u.id = p_user and u.email_confirmed_at is not null);
   if public.kr8_rcfg('face_aws_on', 0) <> 1 and not tester then raise exception 'KR8_FACE_AWS_OFF'; end if;
   select mb.user_id, mb.verified, mb.photo, mb.member_no into me from public.kr8_members mb where mb.user_id = p_user;
