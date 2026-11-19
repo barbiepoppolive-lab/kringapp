@@ -288,11 +288,11 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
     Promise.resolve(kxRules()).then((c) => { if (!dead) setCfg(c || null); }).catch(() => undefined);
     Promise.resolve(kxSeatsLeft()).then((n) => { if (!dead) setSeatsLeft(typeof n === 'number' ? n : null); }).catch(() => undefined);
     kxRanking('all').then((d) => { if (!dead) setData(d); }).catch(() => { if (!dead) setErr(true); });
-    // 19 Nov founder: the board is live, so it refreshes every 15 s while it is on screen (no flicker, a failed refresh keeps the last board)
+    // 19 Nov founder: the board is live, so it refreshes every 60 s while it is on screen (15 s overloaded the small server) (no flicker, a failed refresh keeps the last board)
     const tick = window.setInterval(() => {
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       kxRanking('all').then((d) => { if (!dead && d) { setData(d); setErr(false); } }).catch(() => undefined);
-    }, 15000);
+    }, 60000);
     return () => { dead = true; window.clearInterval(tick); };
   }, []);
   useEffect(() => {
