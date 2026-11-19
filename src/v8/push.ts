@@ -153,7 +153,9 @@ export async function pushResync(uid: string, d: PushDeps = defaultPushDeps(), n
 const ASK_KEY = 'kr8_push_ask';
 const ASK_EVENT = 'kr8-push-ask';
 export const PUSH_SNOOZE_MS = 14 * 864e5;
-export type PushMoment = 'minted' | 'first_reel' | 'escaped';
+// 'daily_task' (20 Nov, founder): the planned daily tasks are the main moment to offer "Remind me tomorrow" (LINE first, phone
+// dings second, iPhone via home screen). Call pushMoment('daily_task') when a member finishes one; the card then shows once.
+export type PushMoment = 'minted' | 'first_reel' | 'escaped' | 'daily_task';
 export interface PushAsk { due?: number; by?: PushMoment; snooze?: number; asked?: boolean; seen?: PushMoment[] }
 const readAsk = (): PushAsk => { try { return JSON.parse(localStorage.getItem(ASK_KEY) || '{}') as PushAsk; } catch { return {}; } };
 const writeAsk = (v: PushAsk) => { try { localStorage.setItem(ASK_KEY, JSON.stringify(v)); } catch { /* ignore */ } };

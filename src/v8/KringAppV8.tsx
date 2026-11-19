@@ -112,6 +112,7 @@ const KR_LOWEND = typeof navigator !== 'undefined' && /Android/i.test(navigator.
 const FACE_GATE_AFTER_NO = 68;
 const FACE_GATE_ON = true;   // 19 Nov (founder): face check right after the card photo; no posting / chat / People until verified (server: face_gate_on = 1)
 import { StayDo } from './V5StayDo';
+import { v5MarkThreadRead } from './v5Live';
 import { v5DeviceSeen, v5HandoffBoot, v5LogClient, v5MyVerification, V5_AREAS } from './v5Live';
 import { v5AcceptTerms, v5PromoGet, v5SetPromo, V5_TERMS_VERSION, type V5Promo } from './v5Live';
 import { TermsAgreeText } from './V5Sheets';
@@ -1560,6 +1561,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const v5LoadMessages = async (tid: string) => {
     try {
       const msgs = await v5Messages(tid);
+      void v5MarkThreadRead(tid);   // 0160: read on the server too, so the dot does not come back after a reload
       // once the other person has written, the one-message rule no longer applies (even before the next inbox refresh)
       setThreads((prev) =>
         prev.map((t) =>
