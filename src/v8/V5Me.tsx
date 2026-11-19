@@ -102,6 +102,24 @@ function ReelRow(props: { reels: V5Profile['reels']; posters: Record<string, str
   );
 }
 
+
+/** 19 Nov (founder, card A): show in pictures that weak Reels are not accepted (✓ you at a real place · ✕ copied · ✕ dark at home) */
+export function ReelStamps(props: { L: Tx }) {
+  const { L } = props;
+  const one = (src: string, ok: boolean, tag: string) => (
+    <div className={`kx-rs-th${ok ? '' : ' no'}`} style={{ backgroundImage: `url('/media/${src}')` }}>
+      <span className={`kx-rs-stamp ${ok ? 'ok' : 'no'}`}>{ok ? `✓ ${L('Accepted')}` : `✕ ${L('Not accepted')}`}</span>
+      <span className="kx-rs-tag">{L(tag)}</span>
+    </div>
+  );
+  return (
+    <div className="kx-rs" id="kxReelStamps">
+      <p className="kx-rs-h">{L('Every Reel is checked by our team before it goes live.')}</p>
+      <div className="kx-rs-row">{one('reel_ok.jpg', true, 'You · real place')}{one('reel_copied.jpg', false, 'Copied TikTok')}{one('reel_dark.jpg', false, 'Dark · at home')}</div>
+    </div>
+  );
+}
+
 /**
  * "Founding Local · ฿100": three steps under the card, step 1 already ticked (mock m5). Shows until the member is a Founding Local;
  * when all the spots are taken it becomes "3 steps to the board" with no ฿. The spots-left number is the true count from the server.
@@ -123,7 +141,8 @@ export function FoundingChecklist(props: { L: Tx; Lf: Txf; kx: KxCardExtras | nu
       <button type="button" className="st go" id="kxFoundingPost" onClick={props.onPost}>
         <i>2</i><span>{L('Post your first Reel at a place')}</span>{open ? <em>{amt}</em> : null}
       </button>
-      {open ? <p className="kx-next-l" id="kxFoundingPaid">{L('Yours when Kring approves your Reel')}</p> : null}
+      {open ? <p className="kx-next-l" id="kxFoundingPaid">{L('Yours when Kring approves your Reel · claim 24 h after posting')}</p> : null}
+      <ReelStamps L={L} />
       {!props.hasSocial ? (
         <button type="button" className="kx-fc-link" id="kxFoundingAdd" onClick={props.onLink}>{L('Optional: add Instagram or TikTok')} ›</button>
       ) : null}
