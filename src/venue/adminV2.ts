@@ -32,6 +32,7 @@ import { codeMeaning, kindName, uaInfo } from './problemsAdmin';
 import { helpSection } from './adminHelp';   // 0097: Help cases (self-contained)
 import { helpPanelLeave, helpPanelView } from './helpPanel';   // 0120: full Help panel (#help, #help/<uid>)
 import { bugSection, viewAsLeave, viewAsView } from './viewAs';   // 0110: View as member + Spot a bug cases
+import { farmAlertList, farmBoardMark, farmSection } from './farmCheck';   // 0123: Ring-farming check (self-contained)
 
 type Kid = Node | string | null | undefined | false;
 const app = () => document.getElementById('app')!;
@@ -404,6 +405,7 @@ function openAlertSheet(a: RobotAlert): void {
     openSheet({ ...base, why: flagKey === 'ring_farming' ? 'These members mostly like and save each other’s Reels. That can be two friends farming Rings. Look at each pair before approving prizes.'
       : flagKey === 'scam_chat' ? 'These members sent chat messages that look like a scam. Robots never ban — you decide.' : base.why,
       load: async (box) => {
+        if (flagKey === 'ring_farming') await farmAlertList(box);   // 0123: the full cases first
         const raw = await rpc<unknown>('kr8_admin_protect_overview').catch(() => null);
         const flags = isProtectOverview(raw) ? raw.flags.filter((f) => !flagKey || f.flag_key === flagKey) : [];
         await loadPhotos(flags.flatMap((f) => [f.user_id, String(f.detail?.partner_id || '')]).filter(Boolean));
@@ -843,6 +845,7 @@ let focusCase = '';
 export function inboxView() {
   const help = helpSection(setHelpWaiting);   // 0097: created once per visit, so a half-typed reply survives the 30 s refresh
   const bugs = bugSection(setBugsWaiting);    // 0110: "Spot a bug" notes from View as member, one case per card
+  const farm = farmSection();                 // 0123: Ring-farming check cards, top of Needs you
   void withSnap('inbox', (s) => {
     const { items, handled, preview } = buildInbox(s);
     const open = items.filter((i) => !hiddenKeys.has(i.key));
@@ -862,6 +865,7 @@ export function inboxView() {
     const redN = alerts.filter((a) => a.severity === 'red').length;
     const filterName = INBOX_FILTERS.find((f) => f.key === inboxFilter)?.label || 'All';
     screen('inbox', header('Needs you', open.length + bugsWaiting ? `${open.length + bugsWaiting} decision${open.length + bugsWaiting === 1 ? '' : 's'}` : 'Inbox zero'),
+      farm,
       // 6 alert boxes → one status line (opens to the same Alert centre)
       fold('v2AlertFold', foldHead(alerts.length ? `${alerts.length} robot alert${alerts.length === 1 ? '' : 's'}` : 'All robots OK', redN ? `${redN} broken` : alerts.length ? 'none broken' : '0 alerts', redN ? 'r' : alerts.length ? 'a' : 'g'),
         [renderAlertCentre(s, open)], 'lt-status'),
@@ -1254,6 +1258,7 @@ export function boardView() {
           tapIn(el('b', { class: 'v2rings', id: 'v2Rings-' + r.user_id, title: 'Who gave these Rings' }, String(r.rings)), () => openRingsSheet(r.user_id, r)));
       })),
       el('a', { class: 'v2pri', href: '#week', id: 'v2WeekGo' }, 'Approve last week', ic('chev')));
+    farmBoardMark(document.getElementById('v2Board'));   // 0123: "Ring-farming?" chip → the case
   }, header('Board', undefined, '#more'));
 }
 
