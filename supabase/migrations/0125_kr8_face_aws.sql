@@ -186,6 +186,7 @@ language sql stable security definer set search_path = public, pg_temp as $$
   select coalesce(jsonb_agg(jsonb_build_object('user_id', x.user_id, 'photo', x.photo)), '[]'::jsonb) from (
     select mb.user_id, mb.photo from public.kr8_members mb
      where mb.verified and mb.photo is not null and not public.kr8_is_team(mb.user_id)
+       and not coalesce(mb.ghost, false)   -- demo / ghost members share stock photos: never index them
        and not exists (select 1 from public.kr8_face_aws_faces f where f.user_id = mb.user_id)
      order by mb.member_no nulls last limit least(greatest(coalesce(p_limit, 25), 1), 50)) x
 $$;
