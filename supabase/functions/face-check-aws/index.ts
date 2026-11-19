@@ -121,7 +121,7 @@ async function rk<T>(target: string, payload: Record<string, unknown>): Promise<
 const img = (b64: string) => ({ Bytes: b64 });
 const detect = (b64: string) => rk<unknown>('DetectFaces', { Image: img(b64), Attributes: ['DEFAULT', 'EYES_OPEN', 'SUNGLASSES'] });
 async function search(b64: string): Promise<unknown> {
-  const p = { CollectionId: COLLECTION, Image: img(b64), FaceMatchThreshold: 90, MaxFaces: 5, QualityFilter: 'NONE' };
+  const p = { CollectionId: COLLECTION, Image: img(b64), FaceMatchThreshold: 80, MaxFaces: 5, QualityFilter: 'NONE' };   // 19 Nov: 80 so look-alikes are kept for the prize check
   try { return await rk<unknown>('SearchFacesByImage', p); }
   catch (e) {
     // first run: the collection does not exist yet → make it (empty, so no matches this time)
@@ -130,6 +130,18 @@ async function search(b64: string): Promise<unknown> {
       return { FaceMatches: [] };
     }
     throw e;
+  }
+}
+
+/** 19 Nov: every other member whose face is ≥ 80 % like this one is kept (kr8_face_lookalikes); a prize claim with a look-alike
+ *  that already has a prize is held for the founder. The ✓ itself still only waits at ≥ dupMin (95). */
+async function noteLookalikes(uid: string, resp: unknown): Promise<void> {
+  const list = (resp as { FaceMatches?: { Similarity?: number; Face?: { ExternalImageId?: string } }[] } | null)?.FaceMatches || [];
+  for (const m of list) {
+    const id = m?.Face?.ExternalImageId, sim = typeof m?.Similarity === 'number' ? m.Similarity : null;
+    if (!id || sim === null || sim < 80 || id.toLowerCase() === uid.toLowerCase()) continue;
+    try { await rpc('kr8_face_lookalike_note', { p_user: uid, p_other: id, p_sim: Math.round(sim * 10) / 10 }); }
+    catch (e) { log({ lookalike_error: String(e).slice(0, 200) }); }
   }
 }
 async function indexFace(uid: string, b64: string, source: 'check' | 'card', verification: string | null): Promise<string | null> {
@@ -206,6 +218,7 @@ async function check(uid: string, body: Record<string, unknown>): Promise<Respon
       ]);
       card = cmp ? cardSimilarity(cmp) : null;
       other = pickOther(srch, uid);
+      await noteLookalikes(uid, srch);
     }
   } catch (e) {
     // Rekognition down / throttled / keys wrong: the member is never stuck, the selfie goes to the founder's Face checks
@@ -271,7 +284,7 @@ async function admin(jwt: string, body: Record<string, unknown>, robot = false):
     for (const t of todo || []) {
       const b64 = await photoB64(t.photo);
       if (!b64) { skipped++; continue; }
-      try { if (await indexFace(t.user_id, b64, 'card', null)) done++; else skipped++; }
+      try { await noteLookalikes(t.user_id, await search(b64).catch(() => null)); if (await indexFace(t.user_id, b64, 'card', null)) done++; else skipped++; }
       catch (e) { skipped++; log({ backfill_error: String(e).slice(0, 200) }); }
     }
     return json({ indexed: done, skipped, left: Math.max((todo || []).length - done - skipped, 0) });

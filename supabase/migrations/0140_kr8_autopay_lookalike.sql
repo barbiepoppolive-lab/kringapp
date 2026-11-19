@@ -1,0 +1,3 @@
+-- 0140 (19 Nov): applied live from bus/drop/m0148_autopay.sql (kr8_face_lookalikes + kr8_face_lookalike_note, claim_lookalike_min,
+-- kr8_claim_prize: old phone face links no longer hold a claim; an AWS look-alike >= 80 % of a member with a prize does) and
+-- claim_always_hold set to 0 (automatic payment back on). The full function text is in that file.
