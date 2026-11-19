@@ -40,12 +40,9 @@ export type Brand = (typeof BRANDS)[number];
 export const BRAND_NAME: Record<Brand, string> = { grab: 'Grab', shopeepay: 'ShopeePay', truemoney: 'TrueMoney' };
 /** Ways to get a prize that are switched on (ShopeePay is hidden by a config flag). */
 /** The ways to take a prize, in the order shown. Founding Local: TrueMoney first (and pre-selected); weekly prizes: Grab first. */
-export const claimBrands = (R: Pick<RingsRules, 'shopeepay_on'> = RINGS, kind?: 'weekly' | 'founding' | null): Brand[] => {
-  // 19 Nov: Founding prizes are paid only in TrueMoney (no Grab codes in stock) — Grab is not offered there.
-  if (kind === 'founding') return ['truemoney'];
-  const two: Brand[] = ['grab', 'truemoney'];
-  return R.shopeepay_on === 1 ? [...two, 'shopeepay'] : two;
-};
+export const claimBrands = (_R: Pick<RingsRules, 'shopeepay_on'> = RINGS, _kind?: 'weekly' | 'founding' | null): Brand[] =>
+  // 19 Nov founder decision: every prize is paid in TrueMoney only — Grab and ShopeePay are not offered.
+  ['truemoney'];
 /** TrueMoney share of a prize in percent, from the server config (1–100). */
 export const tmPct = (R?: Partial<Pick<RingsRules, 'truemoney_payout_pct'>> | null): number => {
   const n = Number(R?.truemoney_payout_pct ?? RINGS.truemoney_payout_pct);

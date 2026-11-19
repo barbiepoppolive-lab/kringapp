@@ -75,7 +75,7 @@ function fineRows(r: WinRules) {
     { k: 'floor', ic: '🎯', th: `ต้องมีอย่างน้อย ${r.floor} ริง ถึงจะมีสิทธิ์รับรางวัล`, en: `${r.floor} Rings to be eligible for a prize` },
     { k: 'best', ic: '⭐', th: r.best <= 1 ? 'นับเฉพาะรีลที่ดีที่สุดของคุณ 1 รีล' : `นับ ${r.best} รีลที่ดีที่สุดของคุณ`, en: r.best <= 1 ? 'Only your best Reel counts' : `Your best ${r.best} Reels count` },
     { k: 'end', ic: '⏰', th: 'ปิดรอบทุกวันอาทิตย์ 23:59 น. (เวลากรุงเทพฯ)', en: 'Week ends Sunday 23:59, Bangkok time' },
-    { k: 'pay', ic: '💸', th: 'รับรางวัลเป็นโค้ด Grab หรือ TrueMoney ในแอป', en: 'Paid as Grab or TrueMoney codes in the app' },
+    { k: 'pay', ic: '💸', th: 'รับรางวัลเป็นโค้ด TrueMoney ในแอป', en: 'Paid as TrueMoney codes in the app' },
   ];
 }
 

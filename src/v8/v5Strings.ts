@@ -1083,6 +1083,7 @@ export const KX_L: Record<string, Record<string, string>> = {
     'Replay intro': 'ดูแนะนำอีกครั้ง',
     'Intro is on again': 'เปิดแนะนำให้ใหม่แล้ว',
     'Choose one. This prize can be claimed once.': 'เลือกได้ 1 ช่องทาง รางวัลนี้กดรับได้ครั้งเดียว',
+    'This prize can be claimed once.': 'รางวัลนี้กดรับได้ครั้งเดียว',
     'OR': 'หรือ',
     'Claim with {0} · {1}': 'กดรับผ่าน {0} · {1}',
     'Claimed with {0} · {1}': 'รับผ่าน {0} แล้ว · {1}',

@@ -74,8 +74,8 @@ export const HELP_FAQS: HelpFaq[] = [
     en: [['board', 2], ['not on the board', 3], ['reel not showing', 3], ['can\'t see my reel', 3], ['my reel', 1], ['pending', 2], ['approved', 2], ['not in the feed', 3], ['missing', 1]] },
   // ── codes ──
   { id: 'claim_how', cat: 'codes', qTh: 'รับรางวัลยังไง?', qEn: 'How do I claim my prize?', chipTh: 'รับรางวัลยังไง?', chipEn: 'How to claim?',
-    aTh: 'ไปที่ ฉัน → สัปดาห์นี้ → รางวัล กด “กดรับ” แล้วเลือก Grab หรือ TrueMoney (เลือกได้ครั้งเดียวต่อรางวัล) โค้ดจะอยู่ใน “รางวัลของฉัน”',
-    aEn: 'Go to Me → This week → Rewards, tap Claim and choose Grab or TrueMoney (one choice per prize). Your code appears under My prizes.',
+    aTh: 'ไปที่ ฉัน → สัปดาห์นี้ → รางวัล กด “กดรับ” รับเป็นโค้ด TrueMoney (กดรับได้ครั้งเดียวต่อรางวัล) โค้ดจะอยู่ใน “รางวัลของฉัน”',
+    aEn: 'Go to Me → This week → Rewards, tap Claim to get a TrueMoney code (once per prize). Your code appears under My prizes.',
     th: [['รับรางวัลยังไง', 3], ['รับรางวัล', 3], ['กดรับ', 3], ['รับยังไง', 2], ['แลกรางวัล', 2]],
     en: [['claim', 3], ['how to claim', 3], ['get my prize', 2], ['collect', 2], ['grab', 1], ['truemoney', 1]] },
   { id: 'code_late', cat: 'codes', qTh: 'กดรับแล้ว แต่โค้ดยังไม่มา', qEn: 'I claimed, but my code hasn’t come', chipTh: 'โค้ดยังไม่มา', chipEn: 'Code not here yet',
@@ -85,8 +85,8 @@ export const HELP_FAQS: HelpFaq[] = [
     th: [['โค้ดยังไม่มา', 3], ['ยังไม่ได้รับโค้ด', 3], ['ยังไม่มา', 3], ['ยังไม่ได้รับ', 3], ['ยังไม่ได้โค้ด', 3], ['รอโค้ด', 2], ['โค้ด', 1]],
     en: [['hasn\'t come', 3], ['hasnt come', 3], ['not here', 2], ['not received', 3], ['haven\'t received', 3], ['didn\'t get', 2], ['no code', 3], ['still waiting', 2], ['waiting', 1], ['code', 1]] },
   { id: 'code_use', cat: 'codes', qTh: 'ใช้โค้ดยังไง?', qEn: 'How do I use my code?',
-    aTh: 'กด “คัดลอก” (หรือ “คัดลอกลิงก์” ถ้าเป็นลิงก์ TrueMoney) แล้วเปิด Grab หรือกดเติมเข้า TrueMoney ใช้แล้วเลื่อนสวิตช์เป็น “ใช้แล้ว” จะได้รู้ว่าเหลือโค้ดไหนบ้าง',
-    aEn: 'Tap Copy (or Copy link for a TrueMoney link), then open Grab or tap Redeem into TrueMoney. After using it, switch it to USED so you know which codes are left.',
+    aTh: 'กด “คัดลอก” (หรือ “คัดลอกลิงก์” ถ้าเป็นลิงก์ TrueMoney) แล้วกดเติมเข้า TrueMoney ใช้แล้วเลื่อนสวิตช์เป็น “ใช้แล้ว” จะได้รู้ว่าเหลือโค้ดไหนบ้าง',
+    aEn: 'Tap Copy (or Copy link for a TrueMoney link), then tap Redeem into TrueMoney. After using it, switch it to USED so you know which codes are left.',
     th: [['ใช้โค้ด', 3], ['ใช้ยังไง', 2], ['คัดลอก', 2], ['เติมเงิน', 2], ['เติม', 1], ['โค้ด', 1]],
     en: [['use my code', 3], ['use the code', 3], ['use code', 3], ['how to use', 2], ['redeem', 2], ['copy', 2], ['top up', 2], ['code', 1]] },
   // ── safe ──

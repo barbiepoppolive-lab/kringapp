@@ -185,18 +185,18 @@ describe('prizes (one config, baht, ranks 1–8)', () => {
     expect([1500, 900, 600, 500, 400, 250, 150, 100].map((a) => valueFor('truemoney', a))).toEqual([1500, 900, 600, 500, 400, 250, 150, 100]);
     expect([1500, 900, 600, 500, 400, 250, 150, 100].map((a) => valueFor('truemoney', a, 75))).toEqual([1125, 675, 450, 375, 300, 187, 112, 75]);
     expect(valueFor('grab', 1500)).toBe(1500);
-    expect(claimBrands()).toEqual(['grab', 'truemoney']);
-    expect(claimBrands(ringsRules({ shopeepay_on: 1 }))).toContain('shopeepay');
+    expect(claimBrands()).toEqual(['truemoney']);
+    expect(claimBrands(ringsRules({ shopeepay_on: 1 }))).toEqual(['truemoney']);   // 19 Nov: TrueMoney only
   });
   it('claim: exact-amount code in stock → assigned; none → HELD (pending); wrong member or hidden brand → refused', () => {
     const p = { id: 'w-4', member: 'me', kind: 'weekly' as const, rank: 4, amount: 500, status: 'won' as const };
-    const stock = [{ brand: 'grab' as const, amount: 100, code: 'G100' }, { brand: 'grab' as const, amount: 500, code: 'G500' }];
-    const ok = claimPrize(p, 'me', 'grab', stock);
+    const stock = [{ brand: 'truemoney' as const, amount: 100, code: 'G100' }, { brand: 'truemoney' as const, amount: 500, code: 'G500' }];
+    const ok = claimPrize(p, 'me', 'truemoney', stock);
     expect(ok).toMatchObject({ status: 'assigned', code: 'G500', value: 500 });
     expect(ok.status === 'assigned' && ok.stock).toEqual([stock[0]]);
-    expect(claimPrize(p, 'me', 'truemoney', stock)).toMatchObject({ status: 'pending', value: 500 });   // no ฿500 TrueMoney code: held, founder emailed
-    expect(claimPrize({ ...p, amount: 1500 }, 'me', 'grab', stock)).toMatchObject({ status: 'pending', value: 1500 });
-    expect(claimPrize(p, 'someone', 'grab', stock)).toEqual({ status: 'error', error: 'NO_PRIZE' });
+    expect(claimPrize({ ...p, amount: 1500 }, 'me', 'truemoney', stock)).toMatchObject({ status: 'pending', value: 1500 });   // no ฿1,500 code: held
+    expect(claimPrize(p, 'someone', 'truemoney', stock)).toEqual({ status: 'error', error: 'NO_PRIZE' });
+    expect(claimPrize(p, 'me', 'grab', stock)).toEqual({ status: 'error', error: 'BAD_REWARD' });
     expect(claimPrize(p, 'me', 'shopeepay', stock)).toEqual({ status: 'error', error: 'BAD_REWARD' });
     expect(claimPrize(undefined, 'me', 'grab', stock)).toEqual({ status: 'error', error: 'NO_PRIZE' });
   });
@@ -357,39 +357,37 @@ describe('Rewards screen (simplified)', () => {
 });
 
 describe('Claim a prize', () => {
-  it('Grab = full value, TrueMoney = 75% shown as "75% of the prize value"; ShopeePay hidden', () => {
+  it('TrueMoney only: a 75% config shows "75% of the prize value"; no Grab, no ShopeePay', () => {
     render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards()} prize={prize({ amount: 1500, rank: 1 })} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
     const tm = document.querySelector('[data-brand="truemoney"]')!;
     expect(tm.textContent).toContain('฿1,125');
-    expect(tm.textContent).toContain('75% of the prize value');   // audit P2-6: no blame on TrueMoney
-    expect(tm.textContent).not.toContain('keeps');
-    expect(document.querySelector('[data-brand="grab"] [data-value]')!.getAttribute('data-value')).toBe('1500');
+    expect(tm.textContent).toContain('75% of the prize value');
+    expect(document.querySelector('[data-brand="grab"]')).toBeNull();
     expect(document.querySelector('[data-brand="shopeepay"]')).toBeNull();
-    fireEvent.click(tm);
     expect(screen.getByText('Claim with TrueMoney · ฿1,125')).toBeTruthy();
     expect(document.querySelector('#kxClaim')!.textContent).not.toMatch(/Rings/);
   });
   it('one tap claims that prize on the chosen app', async () => {
-    kxMock.kxClaimPrize.mockResolvedValue({ status: 'assigned', claim_id: 'c1', brand: 'grab', amount: 500, value: 500, code: 'TEST-123', activation_url: null });
+    kxMock.kxClaimPrize.mockResolvedValue({ status: 'assigned', claim_id: 'c1', brand: 'truemoney', amount: 500, value: 375, code: 'TEST-123', activation_url: null });
     const onDone = vi.fn();
     render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards()} prize={prize()} onBack={() => undefined} onDone={onDone} toast={() => undefined} />);
-    fireEvent.click(screen.getByText('Claim with Grab · ฿500'));
+    fireEvent.click(screen.getByText('Claim with TrueMoney · ฿375'));
     await waitFor(() => expect(onDone).toHaveBeenCalled());
-    expect(kxMock.kxClaimPrize).toHaveBeenCalledWith('pz1', 'grab');
+    expect(kxMock.kxClaimPrize).toHaveBeenCalledWith('pz1', 'truemoney');
   });
   it('one person, one account: the server refusal is shown', async () => {
     kxMock.kxClaimPrize.mockRejectedValue(new Error('KR8_ONE_ACCOUNT'));
     const onDone = vi.fn();
     render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards()} prize={prize()} onBack={() => undefined} onDone={onDone} toast={() => undefined} />);
-    fireEvent.click(screen.getByText('Claim with Grab · ฿500'));
+    fireEvent.click(screen.getByText('Claim with TrueMoney · ฿375'));
     expect((await screen.findByRole('alert')).textContent).toContain('One person, one account');
     expect(onDone).not.toHaveBeenCalled();
   });
   it('no code of that amount in stock: the claim is HELD, "Your code is on the way"', async () => {
-    kxMock.kxClaimPrize.mockResolvedValue({ status: 'pending', claim_id: 'p1', brand: 'grab', amount: 500, value: 500 });
+    kxMock.kxClaimPrize.mockResolvedValue({ status: 'pending', claim_id: 'p1', brand: 'truemoney', amount: 500, value: 375 });
     const onDone = vi.fn();
     render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards()} prize={prize()} onBack={() => undefined} onDone={onDone} toast={() => undefined} />);
-    fireEvent.click(screen.getByText('Claim with Grab · ฿500'));
+    fireEvent.click(screen.getByText('Claim with TrueMoney · ฿375'));
     await waitFor(() => expect(onDone).toHaveBeenCalledWith(expect.objectContaining({ status: 'pending' })));
     cleanup();
     const held = rewards({ claims: [claim({ id: 'p1', status: 'pending', value: 500, code: null, assigned_at: null })] });

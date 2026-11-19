@@ -248,7 +248,7 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
           <TE th={`รางวัลของคุณปลอดภัย กดรับได้${opensAt === 'soon' ? 'ภายใน 24 ชั่วโมง' : ` ${openTime('th', opensAt)}`}`} en={`Your prize is safe. You can claim it ${opensAt === 'soon' ? 'within 24 hours' : openTime('en', opensAt)}`} />
         </div>
       ) : null}
-      <p className="kx-one" id="kxClaimOne">{L('Choose one. This prize can be claimed once.')}</p>
+      <p className="kx-one" id="kxClaimOne">{L(brands.length > 1 ? 'Choose one. This prize can be claimed once.' : 'This prize can be claimed once.')}</p>
       <div className="kx-pays" role="radiogroup" aria-label={L('Get it on')}>
         {brands.map((b, i) => (
           <Fragment key={b}>
