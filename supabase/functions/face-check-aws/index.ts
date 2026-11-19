@@ -25,7 +25,7 @@ import { signV4 } from './sigv4.ts';
 const SUPA = (Deno.env.get('SUPABASE_URL') ?? '').replace(/\/$/, '');
 const ANON = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 const SR = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-const REGION = Deno.env.get('AWS_REGION') || 'ap-southeast-1';
+const REGION = Deno.env.get('AWS_REGION') || 'ap-southeast-2';
 const AK = Deno.env.get('AWS_ACCESS_KEY_ID') ?? '';
 const SK = Deno.env.get('AWS_SECRET_ACCESS_KEY') ?? '';
 const TOKEN = Deno.env.get('AWS_SESSION_TOKEN') || undefined;

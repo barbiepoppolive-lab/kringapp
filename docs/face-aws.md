@@ -4,7 +4,7 @@ Built 19 Nov 2026 on branch `aws-face-1119`. **Off** until `face_aws_on = 1`. Wh
 
 ## What it does
 
-The phone downloads nothing. It takes 3 small photos (look straight, turn left, turn right; 480 px wide, JPEG 0.8, about 40 KB each) and sends them to the edge function `face-check-aws`. The function asks AWS Rekognition in Singapore (`ap-southeast-1`):
+The phone downloads nothing. It takes 3 small photos (look straight, turn left, turn right; 480 px wide, JPEG 0.8, about 40 KB each) and sends them to the edge function `face-check-aws`. The function asks AWS Rekognition in Singapore (`ap-southeast-2`):
 
 | Call | Count | Used for |
 |---|---|---|
@@ -51,7 +51,7 @@ Limits: 20 calls per member per hour (`face_aws_hour`), plus the usual `verify_t
         "rekognition:DeleteFaces",
         "rekognition:CreateCollection"
       ],
-      "Resource": "arn:aws:rekognition:ap-southeast-1:<ACCOUNT_ID>:collection/kring-members"
+      "Resource": "arn:aws:rekognition:ap-southeast-2:<ACCOUNT_ID>:collection/kring-members"
     }
   ]
 }
@@ -62,13 +62,13 @@ Limits: 20 calls per member per hour (`face_aws_hour`), plus the usual `verify_t
 2. **Create the collection** (the function also creates it on its first search if it is missing):
 
 ```
-aws rekognition create-collection --collection-id kring-members --region ap-southeast-1
+aws rekognition create-collection --collection-id kring-members --region ap-southeast-2
 ```
 
 3. **Supabase secrets**:
 
 ```
-supabase secrets set AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... AWS_REGION=ap-southeast-1
+supabase secrets set AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... AWS_REGION=ap-southeast-2
 # optional: FACE_AWS_COLLECTION=kring-members  FACE_AWS_YAW_SIGN=0
 ```
 
