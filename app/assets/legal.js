@@ -15,4 +15,9 @@
     try { const u = new URL(location.href); u.searchParams.set('lang', b.dataset.set); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch (e) {}
   }));
   set(pick);
+  // #face (and any data-anchor): scroll to that section in the language now shown (the other language's copy is hidden)
+  const jump = () => { const h = decodeURIComponent((location.hash || '').slice(1)); if (!h) return;
+    const el = document.querySelector('[data-l]:not([hidden]) [data-anchor="' + h.replace(/"/g, '') + '"]'); if (el) el.scrollIntoView(); };
+  jump();
+  window.addEventListener('hashchange', jump);
 })();
