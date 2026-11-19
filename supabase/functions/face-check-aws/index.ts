@@ -1,4 +1,4 @@
-// face-check-aws (19 Nov 2026): the face check on the SERVER with AWS Rekognition (ap-southeast-1 / Singapore), so the phone
+// face-check-aws (19 Nov 2026): the face check on the SERVER with AWS Rekognition (ap-southeast-2 / Sydney), so the phone
 // downloads no face models (~38 MB before). OFF until kr8_rings_config face_aws_on = 1 (migration 0125); while off, every call
 // answers 409 FACE_AWS_OFF and the app keeps the on-phone check. See docs/face-aws.md.
 //
@@ -14,7 +14,7 @@
 //   { action: 'backfill', limit? }   index the card photos of verified members not in the collection yet (≤ 50 a call)
 //   { action: 'sweep' }   remove faces of deleted / no longer verified members from the collection (PDPA)
 //
-// Env: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION (default ap-southeast-1), FACE_AWS_COLLECTION (default kring-members),
+// Env: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION (default ap-southeast-2), FACE_AWS_COLLECTION (default kring-members),
 //      FACE_AWS_YAW_SIGN (+1 / -1 / 0, see decide.ts), FACE_AWS_MOCK=1 (canned answers, no AWS keys needed: the body may add
 //      mock: 'pass' | 'lookalike' | 'card_mismatch' | 'dark' | 'no_turn' | 'aws_down'; FACE_AWS_MOCK_OTHER = a user id for 'lookalike').
 //      SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY are set by Supabase.

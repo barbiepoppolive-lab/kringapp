@@ -4,7 +4,7 @@ Built 19 Nov 2026 on branch `aws-face-1119`. **Off** until `face_aws_on = 1`. Wh
 
 ## What it does
 
-The phone downloads nothing. It takes 3 small photos (look straight, turn left, turn right; 480 px wide, JPEG 0.8, about 40 KB each) and sends them to the edge function `face-check-aws`. The function asks AWS Rekognition in Singapore (`ap-southeast-2`):
+The phone downloads nothing. It takes 3 small photos (look straight, turn left, turn right; 480 px wide, JPEG 0.8, about 40 KB each) and sends them to the edge function `face-check-aws`. The function asks AWS Rekognition in Sydney (`ap-southeast-2`):
 
 | Call | Count | Used for |
 |---|---|---|
