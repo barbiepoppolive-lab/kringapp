@@ -153,7 +153,7 @@ describe('Face check v2: look-alike block, own-photo line, buttons', async () =>
   });
   it('the admin screen: look-alike block first, equal buttons when flagged, no "Very likely the same person" on the own photo', () => {
     const app = readFileSync('src/venue/adminApp.ts', 'utf8');
-    const body = app.slice(app.indexOf('function faceBody('), app.indexOf('/** 0076: the admin page makes a face code itself'));
+    const body = app.slice(app.indexOf('function faceBody('), app.indexOf('// 19 Nov: the admin page no longer makes face codes itself'));
     expect(body.indexOf('lkBox,')).toBeLessThan(body.indexOf("pic(r.profile_photo, 'Profile photo'"));
     expect(body).not.toMatch(/same person/i);
     expect(app).toMatch(/class: lkFlag \? 'two even' : 'two'/);

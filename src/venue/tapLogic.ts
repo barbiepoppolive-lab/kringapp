@@ -109,19 +109,21 @@ export function verdictSentence(v: MoneyVerdict): string {
   return `Wait — ${(other[0] || neg[0] || 'mixed signals').replace(/^Borderline signals — /, '')}; look at the photos before paying.`;
 }
 /** look-alike link in words: "Same face as #74 — second account → Reject" */
-export function linkVerdict(l: Pick<Link, 'reason' | 'dist' | 'no'> & { sface_sim?: number | null }): { text: string; tone: 'r' | 'a'; faint: string } {
+/** 19 Nov: only AWS numbers are shown ("86% (AWS)"); the retired on-phone engine's distances never are */
+export function linkVerdict(l: Pick<Link, 'reason' | 'dist' | 'no'> & { sface_sim?: number | null; aws_sim?: number | null }): { text: string; tone: 'r' | 'a'; faint: string } {
   const other = `#${l.no ?? '?'}`;
-  const faint = l.sface_sim != null ? `similarity ${l.sface_sim.toFixed(2)}` : l.dist != null ? `face distance ${l.dist.toFixed(2)}` : '';
+  const faint = l.aws_sim != null ? `${Math.round(l.aws_sim)}% alike (AWS)` : '';
   if (l.reason === 'device') return { text: `Same phone as ${other} — probably the same person → check`, tone: 'a', faint };
   if (l.reason === 'network') return { text: `Same Wi-Fi as ${other} — often friends or family, not proof`, tone: 'a', faint };
-  const strong = (l.sface_sim ?? 0) >= 0.6 || (l.dist != null && l.dist < 0.4);
-  if (strong) return { text: `Same face as ${other} — second account → Reject`, tone: 'r', faint };
-  if (l.dist != null && l.dist > 0.5 && l.sface_sim == null) return { text: `A little like ${other} — probably different people`, tone: 'a', faint };
+  if ((l.aws_sim ?? 0) >= 95) return { text: `Same face as ${other} — second account → Reject`, tone: 'r', faint };
   return { text: `Looks like ${other} — compare the photos`, tone: 'a', faint };
 }
 /** profile photo vs own live selfie (0081 SFace similarity: higher = more alike; older face-api distance: lower = more alike) */
-export function selfieWords(match: number | null | undefined, sface: boolean): { text: string; tone: 'g' | 'a'; faint: string } {
+export function selfieWords(match: number | null | undefined, sface: boolean, aws = false): { text: string; tone: 'g' | 'a'; faint: string } {
   if (match == null) return { text: 'No face found in one of the photos → look yourself', tone: 'a', faint: '' };
+  // 19 Nov: AWS CompareFaces 0–1; a mismatch sends the member an automatic "change your photo" message, so it is only information here
+  if (aws) return match >= 0.8 ? { text: 'Selfie matches the card photo', tone: 'g', faint: `${Math.round(match * 100)}% (AWS)` }
+    : { text: 'Card photo does not match · member was asked to change it', tone: 'a', faint: `${Math.round(match * 100)}% (AWS)` };
   const ok = sface ? match >= 0.45 : match < 0.6;
   return ok ? { text: 'Selfie matches the profile photo', tone: 'g', faint: `${sface ? 'similarity' : 'distance'} ${match.toFixed(2)}` }
     : { text: 'Profile photo may not be them → check', tone: 'a', faint: `${sface ? 'similarity' : 'distance'} ${match.toFixed(2)}` };

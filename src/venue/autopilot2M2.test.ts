@@ -228,12 +228,13 @@ describe('T-380 M2: Alert Centre + Morning Brief', () => {
     await new Promise((r) => setTimeout(r, 30));
     const ac = document.getElementById('v2AlertCentre');
     expect(ac).toBeTruthy();
-    expect(ac?.textContent).toContain('1 broken · 1 needs decision · 1 FYI');
+    // 19 Nov clean-up: Needs you lists only what the founder can act on; the FYI (grey) alert lives on Today
+    expect(ac?.textContent).toContain('1 broken · 1 to decide');
+    expect(ac?.textContent).not.toContain('FYI');
     const rows = [...document.querySelectorAll('#v2AlertCentre .ac-row')];
-    expect(rows.length).toBe(3);
+    expect(rows.length).toBe(2);
     expect(rows[0].className).toContain('sev-red');
     expect(rows[1].className).toContain('sev-amber');
-    expect(rows[2].className).toContain('sev-grey');
 
     const dismissBtn = document.getElementById('alertDismiss-a-red-1') as HTMLButtonElement;
     expect(dismissBtn).toBeTruthy();
