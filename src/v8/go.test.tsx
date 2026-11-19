@@ -248,12 +248,12 @@ describe('claim: choose ONE', () => {
     expect(kxMock.kxClaimPrize).toHaveBeenCalledTimes(1);
     expect(kxMock.kxClaimPrize).toHaveBeenCalledWith('pz1', 'truemoney');
   });
-  it('Founding Local: TrueMoney is FIRST and pre-selected, Grab second, still one OR and one confirm', () => {
+  it('Founding Local: TrueMoney only (19 Nov, no Grab stock), pre-selected, one confirm', () => {
     render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards()} prize={prize({ kind: 'founding' })} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
     const radios = [...document.querySelectorAll('[role="radio"]')];
-    expect(radios.map((r) => r.getAttribute('data-brand'))).toEqual(['truemoney', 'grab']);
+    expect(radios.map((r) => r.getAttribute('data-brand'))).toEqual(['truemoney']);
     expect(radios[0].getAttribute('aria-checked')).toBe('true');
-    expect(document.querySelectorAll('.kx-or').length).toBe(1);
+    expect(document.querySelectorAll('.kx-or').length).toBe(0);
     expect(document.getElementById('kxClaimGo')!.textContent).toBe('Claim with TrueMoney · ฿75');
   });
   it('weekly prize: Grab stays first and pre-selected', () => {
@@ -287,7 +287,7 @@ describe('claim: choose ONE', () => {
     expect(tmPct({ truemoney_payout_pct: 0 })).toBe(1);
     expect(tmPct(null)).toBe(100);
     expect(tmPct({ truemoney_payout_pct: Number.NaN })).toBe(100);
-    expect(claimBrands(RINGS, 'founding')).toEqual(['truemoney', 'grab']);
+    expect(claimBrands(RINGS, 'founding')).toEqual(['truemoney']);
     expect(claimBrands(RINGS)).toEqual(['grab', 'truemoney']);
   });
   it('a TrueMoney voucher that arrives as a LINK: "Redeem into TrueMoney" button opens the link, Copy copies it, the raw link is not printed as a code', () => {

@@ -41,7 +41,9 @@ export const BRAND_NAME: Record<Brand, string> = { grab: 'Grab', shopeepay: 'Sho
 /** Ways to get a prize that are switched on (ShopeePay is hidden by a config flag). */
 /** The ways to take a prize, in the order shown. Founding Local: TrueMoney first (and pre-selected); weekly prizes: Grab first. */
 export const claimBrands = (R: Pick<RingsRules, 'shopeepay_on'> = RINGS, kind?: 'weekly' | 'founding' | null): Brand[] => {
-  const two: Brand[] = kind === 'founding' ? ['truemoney', 'grab'] : ['grab', 'truemoney'];
+  // 19 Nov: Founding prizes are paid only in TrueMoney (no Grab codes in stock) — Grab is not offered there.
+  if (kind === 'founding') return ['truemoney'];
+  const two: Brand[] = ['grab', 'truemoney'];
   return R.shopeepay_on === 1 ? [...two, 'shopeepay'] : two;
 };
 /** TrueMoney share of a prize in percent, from the server config (1–100). */
