@@ -615,6 +615,8 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Let’s try that again': 'ลองอีกครั้งนะ',
     'That’s 3 tries for today. Try again tomorrow.': 'วันนี้ลองครบ 3 ครั้งแล้ว พรุ่งนี้ลองใหม่นะ',
     'No more tries today. Try again tomorrow.': 'วันนี้ลองครบแล้ว พรุ่งนี้ลองใหม่นะครับ',
+    'Your face check is with our team. You can claim as soon as it passes. We’ll notify you.': 'ทีมงานกำลังตรวจใบหน้าของคุณ ผ่านแล้วกดรับรางวัลได้เลย เราจะแจ้งเตือนให้',
+    'Post a Reel and get it approved to claim your prize.': 'โพสต์รีลและรอให้รีลผ่านการอนุมัติก่อน ถึงจะกดรับรางวัลได้',
     'Live': 'สด',
     'Try again · {0} left today': 'ลองอีกครั้ง · วันนี้เหลือ {0} ครั้ง',
     'Change card photo': 'เปลี่ยนรูปบนการ์ด',
@@ -758,6 +760,8 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
     case 'BAD_CODE': return ['That code is wrong or has expired. Send a new code below.'];
     case 'BAD_HANDLE': return ['That Instagram name doesn’t look right.'];
     case 'VERIFY_FIRST': return ['Verify your face in 5 seconds to claim your prize.'];   // 0111: only a prize claim asks
+    case 'VERIFY_PENDING': return ['Your face check is with our team. You can claim as soon as it passes. We’ll notify you.'];
+    case 'NEED_REEL': return ['Post a Reel and get it approved to claim your prize.'];
     case 'NO_TEAM': return ['The team chat isn’t ready yet. Email ops@kringapp.com.'];
     case 'NO_LINKS': return ['For everyone’s safety, links can’t be sent in chat. Swap Instagram once you trust each other.'];
     case 'OWN_REEL': return ['That’s your own Reel.'];

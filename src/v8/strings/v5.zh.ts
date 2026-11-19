@@ -602,6 +602,8 @@ const T: Record<string, string> = {
   'Let’s try that again': '我们再试一次',
   'That’s 3 tries for today. Try again tomorrow.': '今天已经试了 3 次，明天再来吧。',
   'No more tries today. Try again tomorrow.': '今天的次数已用完，明天再试吧。',
+  'Your face check is with our team. You can claim as soon as it passes. We’ll notify you.': '你的人脸检测正在由团队审核。通过后即可领取，我们会通知你。',
+  'Post a Reel and get it approved to claim your prize.': '发布一个 Reel 并通过审核后才能领取奖品。',
   'Live': '实时',
   'Try again · {0} left today': '再试一次 · 今天还剩 {0} 次',
   'Change card photo': '更换名片照片',

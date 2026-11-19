@@ -602,6 +602,8 @@ const T: Record<string, string> = {
   'Let’s try that again': 'चलिए फिर से कोशिश करें',
   'That’s 3 tries for today. Try again tomorrow.': 'आज की 3 कोशिशें हो गईं। कल फिर कोशिश करें।',
   'No more tries today. Try again tomorrow.': 'आज के प्रयास पूरे हो गए। कल फिर कोशिश करें।',
+  'Your face check is with our team. You can claim as soon as it passes. We’ll notify you.': 'आपकी फ़ेस जाँच हमारी टीम देख रही है। पास होते ही आप इनाम ले सकते हैं। हम आपको बताएँगे।',
+  'Post a Reel and get it approved to claim your prize.': 'इनाम लेने के लिए एक Reel पोस्ट करें और उसे मंज़ूर होने दें।',
   'Live': 'लाइव',
   'Try again · {0} left today': 'फिर कोशिश करें · आज {0} बाकी',
   'Change card photo': 'कार्ड फ़ोटो बदलें',

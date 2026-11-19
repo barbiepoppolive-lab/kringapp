@@ -602,6 +602,8 @@ const T: Record<string, string> = {
   'Let’s try that again': '다시 해 볼까요',
   'That’s 3 tries for today. Try again tomorrow.': '오늘 3번 다 시도했어요. 내일 다시 해 보세요.',
   'No more tries today. Try again tomorrow.': '오늘은 더 이상 시도할 수 없어요. 내일 다시 해 주세요.',
+  'Your face check is with our team. You can claim as soon as it passes. We’ll notify you.': '얼굴 확인을 팀이 검토 중이에요. 통과하면 바로 받을 수 있어요. 알려 드릴게요.',
+  'Post a Reel and get it approved to claim your prize.': '릴스를 올리고 승인되면 상품을 받을 수 있어요.',
   'Live': '실시간',
   'Try again · {0} left today': '다시 하기 · 오늘 {0}번 남음',
   'Change card photo': '카드 사진 바꾸기',
