@@ -84,7 +84,9 @@ export function buildClusters(ov: DupOverview): DupCluster[] {
     || Date.parse(b.members[b.members.length - 1]?.joined_at || '0') - Date.parse(a.members[a.members.length - 1]?.joined_at || '0'));
 }
 // ───────── 0076 Face check banner (kr8_admin_verify_lookalikes) ─────────
-export interface FaceLookalike { user_id: string; member_no: number | null; first_name: string; verified: boolean; dist: number; strength: 'same' | 'maybe'; sources?: string }
+export interface FaceLookalike { user_id: string; member_no: number | null; first_name: string; verified: boolean; dist: number; strength: 'same' | 'maybe'; sources?: string;
+  /** 0125: AWS Rekognition similarity 0–100 (server face check); dist is then 1 − sim/100 */
+  aws_sim?: number }
 export interface FaceLookalikes { has_print: boolean; matches: FaceLookalike[] }
 export function isLookalikeMap(x: unknown): x is Record<string, FaceLookalikes> {
   return !!x && typeof x === 'object' && !Array.isArray(x)
@@ -117,11 +119,21 @@ export function lookalikeVerdict(dist: number): { tone: 'r' | 'a'; text: string 
 export function lookalikeBlock(l: FaceLookalikes | null | undefined): { title: string; dist: string; verdict: { tone: 'r' | 'a'; text: string }; other: FaceLookalike; also: string } | null {
   const m = l?.matches?.[0];
   if (!m) return null;
-  return { title: `Possible second account: ${whoName(m)}`, dist: m.dist.toFixed(2), verdict: lookalikeVerdict(m.dist), other: m,
+  return { title: `Possible second account: ${whoName(m)}`, dist: m.aws_sim != null ? `AWS ${m.aws_sim.toFixed(1)}%` : m.dist.toFixed(2), verdict: lookalikeVerdict(m.dist), other: m,
     also: l!.matches.slice(1).map((x) => `${whoName(x)} ${x.dist.toFixed(2)}`).join(' · ') };
 }
+/** 0125: the server face check (AWS Rekognition) stores the look-alike in live_check.aws_dup; as a look-alike match for the card */
+export function awsLookalikes(lc: { model?: string; aws_dup?: { user_id?: string; member_no?: number | null; first_name?: string | null; sim?: number } | null } | null | undefined): FaceLookalikes | null {
+  const d = lc?.model === 'aws-rekognition' ? lc.aws_dup : null;
+  if (!d?.user_id || typeof d.sim !== 'number') return null;
+  return { has_print: true, matches: [{ user_id: d.user_id, member_no: d.member_no ?? null, first_name: d.first_name || '–', verified: false,
+    dist: Math.max(0, 1 - d.sim / 100), strength: d.sim >= 95 ? 'same' : 'maybe', sources: 'AWS face check', aws_sim: d.sim }] };
+}
 /** The member's own profile photo vs their own live selfie. Never says "same person" (that wording belongs to the look-alike block). */
-export function ownPhotoLabel(match: number | null | undefined, sface = false): { tone: 'n' | 'a'; tick: boolean; text: string } {
+export function ownPhotoLabel(match: number | null | undefined, sface = false, aws = false): { tone: 'n' | 'a'; tick: boolean; text: string } {
+  // 0125: AWS CompareFaces similarity stored as 0–1 (0.80+ = automatic ✓)
+  if (aws && match !== null && match !== undefined) return match >= 0.8 ? { tone: 'n', tick: true, text: `Profile photo vs own selfie: ✓ matches (AWS ${(match * 100).toFixed(0)}%)` }
+    : { tone: 'a', tick: false, text: `Profile photo vs own selfie: may not match (AWS ${(match * 100).toFixed(0)}%), look carefully` };
   // 0081: SFace similarity, higher = more alike (0.45+ = match, calibrated on LFW); older checks: face-api distance, lower = more alike
   if (sface && match !== null && match !== undefined) return match >= 0.45 ? { tone: 'n', tick: true, text: `Profile photo vs own selfie: ✓ matches (similarity ${match.toFixed(2)})` }
     : { tone: 'a', tick: false, text: `Profile photo vs own selfie: may not match (similarity ${match.toFixed(2)}), look carefully` };

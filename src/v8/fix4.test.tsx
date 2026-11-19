@@ -207,7 +207,7 @@ describe('fix4 · 3 camera blocked', () => {
     expect(V5_L.th['Allow the camera']).toBeTruthy();
   });
 
-  it('NotAllowedError inside Instagram (Android): Camera blocked → steps + Open in Chrome; never silent', async () => {
+  it('NotAllowedError inside Instagram (Android): 1A guide + Copy link + Open in Chrome; never silent', async () => {
     const gum = vi.fn(async () => { const e = new Error('denied'); e.name = 'NotAllowedError'; throw e; });
     vi.stubGlobal('navigator', { ...navigator, userAgent: U.ig_android, mediaDevices: { getUserMedia: gum } });
     try { localStorage.removeItem('kr8_face_consent'); } catch { /* ignore */ }
@@ -216,12 +216,13 @@ describe('fix4 · 3 camera blocked', () => {
     fireEvent.click(container.querySelector('#verifyAgree')!);
     await act(async () => { fireEvent.click(container.querySelector('#verifyStart')!); });
     await act(async () => { await new Promise((ok) => setTimeout(ok, 0)); });
-    expect(container.querySelector('#verifyCamBlocked')).not.toBeNull();
-    expect(container.querySelectorAll('#verifyCamSteps li')).toHaveLength(2);
+    // 19 Nov: Instagram / TikTok show the 1A guide (2 pictures + Copy link), keeping the one-tap Open in Chrome on Android
+    expect(container.querySelector('#verifyOpenGuide')).not.toBeNull();
+    expect(container.querySelector('#verifyCopyLink')).not.toBeNull();
     expect(container.querySelector('#verifyOpenChrome')?.getAttribute('href')).toMatch(/^intent:\/\//);
     expect(liveMock.v5LogClient).toHaveBeenCalledWith('verify_cam_fail', 'NotAllowedError', 'instagram');
   });
-  it('NotAllowedError in Chrome itself: "Allow the camera" with 3 steps and Try again', async () => {
+  it('NotAllowedError in Chrome itself: 3C carousel with 3 steps and Try again', async () => {
     const gum = vi.fn(async () => { const e = new Error('denied'); e.name = 'NotAllowedError'; throw e; });
     vi.stubGlobal('navigator', { ...navigator, userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36', mediaDevices: { getUserMedia: gum } });
     try { localStorage.removeItem('kr8_face_consent'); } catch { /* ignore */ }
@@ -230,8 +231,10 @@ describe('fix4 · 3 camera blocked', () => {
     fireEvent.click(container.querySelector('#verifyAgree')!);
     await act(async () => { fireEvent.click(container.querySelector('#verifyStart')!); });
     await act(async () => { await new Promise((ok) => setTimeout(ok, 0)); });
-    expect(getByText('Allow the camera')).toBeTruthy();
-    expect(container.querySelectorAll('#verifyCamSteps li')).toHaveLength(3);
+    // 19 Nov 3C: 3 swipe cards with the Android Chrome steps
+    expect(getByText('Turn on the camera in 3 steps')).toBeTruthy();
+    expect(container.querySelectorAll('#verifyCamFix [data-card]')).toHaveLength(3);
+    expect(getByText('Tap the lock icon')).toBeTruthy();
     expect(container.querySelector('#verifyOpenChrome')).toBeNull();
     await act(async () => { fireEvent.click(container.querySelector('#verifyCamRetry')!); });
     expect(gum).toHaveBeenCalledTimes(2);

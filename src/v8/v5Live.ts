@@ -803,6 +803,40 @@ export async function v5VerifyInstant(selfie: Blob | null, check: Record<string,
     return { result: 'review', reasons: ['old_server'] };   // the face-api code is saved by the caller in the background
   }
 }
+/** 0125 server face check (AWS Rekognition, edge function face-check-aws): what the server answered. */
+export interface V5FaceAwsResult { result: 'pass' | 'review' | 'retry'; why?: string; reasons?: string[]; verified?: boolean; tries_left?: number; again?: boolean }
+const blobB64 = (b: Blob) => new Promise<string>((ok, bad) => {
+  const r = new FileReader();
+  r.onload = () => ok(String(r.result).replace(/^data:[^,]*,/, ''));
+  r.onerror = () => bad(new V5Error('FRAME'));
+  r.readAsDataURL(b);
+});
+/** 0125: the 3 frames (straight · left · right, small JPEGs) → the server decides in 1–2 s. Errors are V5Error codes
+ *  (SLOW_DOWN, CONSENT_REQUIRED, FACE_AWS_OFF, SIGN_IN, NETWORK…). */
+export async function v5FaceAwsCheck(frames: { straight: Blob; left: Blob; right: Blob }, consent: string, device: string, timeoutMs = 25000): Promise<V5FaceAwsResult> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new V5Error('OFFLINE');
+  if (adminViewActive()) throw new V5Error('ADMIN_VIEW');
+  const c = await v5Client();
+  const { data } = await c.auth.getSession();
+  if (!data.session) throw new V5Error('SIGN_IN');
+  const [straight, left, right] = await Promise.all([blobB64(frames.straight), blobB64(frames.left), blobB64(frames.right)]);
+  let mock: string | undefined;
+  try { mock = localStorage.getItem('kr8_face_aws_mock') || undefined; } catch { /* private mode */ }   // test aid (server FACE_AWS_MOCK=1 only)
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), timeoutMs);
+  let r: Response | null;
+  try {
+    r = await fetch(`${SUPA_URL.replace(/\/$/, '')}/functions/v1/face-check-aws`, {
+      method: 'POST', signal: ctl.signal,
+      headers: { authorization: `Bearer ${data.session.access_token}`, apikey: SUPA_KEY, 'content-type': 'application/json' },
+      body: JSON.stringify({ consent, device, frames: { straight, left, right }, mock }),
+    }).catch(() => null);
+  } finally { clearTimeout(t); }
+  if (!r) throw new V5Error('NETWORK');
+  const j = await r.json().catch(() => null) as (V5FaceAwsResult & { error?: string }) | null;
+  if (!r.ok || !j || j.error) throw new V5Error(j?.error || (r.status === 401 ? 'SIGN_IN' : 'UNKNOWN'));
+  return j;
+}
 /** 0082: the simple path when the face engine can't run on this phone: ONE selfie → the founder's Face checks queue. */
 export async function v5VerifySimple(selfie: Blob, check: { why: string; device: string }, consent: string): Promise<V5FaceDecision> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new V5Error('OFFLINE');

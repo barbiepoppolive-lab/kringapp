@@ -5,7 +5,7 @@
 import { bkkTime, el, rpc, tx, v5Client, type TxPair } from './shared';
 
 type Row = { id: string; user_id: string; first_name: string; profile_photo: string | null; selfie_path: string | null;
-  live_check: { straight?: boolean; left?: boolean; right?: boolean; blink?: boolean; match?: number | null; device?: string };
+  live_check: { straight?: boolean; left?: boolean; right?: boolean; blink?: boolean; match?: number | null; device?: string; model?: string };
   status: 'pending' | 'approved' | 'rejected'; created_at: string; reviewed_at: string | null; reject_reason: string | null;
   approved_reels: number; account_created: string };
 
@@ -18,7 +18,10 @@ const T = {
   noBlink: ['กะพริบตา: ตรวจไม่พบ (ผ่านด้วยการมองกล้องตรง 20 วินาที) ดูเซลฟี่ให้ดี', 'blink: not detected (passed after 20 s facing the camera). Look at the selfie carefully.'],
 } as const satisfies Record<string, TxPair>;
 
-function matchLabel(m: number | null | undefined): [string, TxPair] {
+function matchLabel(m: number | null | undefined, aws = false): [string, TxPair] {
+  // 0125: AWS similarity 0–1, higher = more alike (0.80+ = automatic ✓)
+  if (aws && m !== null && m !== undefined) return m >= 0.8 ? ['ok', [`น่าจะเป็นคนเดียวกัน (AWS ${(m * 100).toFixed(0)}%)`, `Likely the same person (AWS ${(m * 100).toFixed(0)}%)`]]
+    : ['err', [`ดูให้ดี อาจเป็นคนละคน (AWS ${(m * 100).toFixed(0)}%)`, `Look carefully: may be a different person (AWS ${(m * 100).toFixed(0)}%)`]];
   if (m === null || m === undefined) return ['meta', ['ไม่มีคะแนน (หาใบหน้าในรูปใดรูปหนึ่งไม่เจอ)', 'No score (no face found in one of the photos)']];
   if (m < 0.5) return ['ok', [`น่าจะเป็นคนเดียวกันมาก (${m.toFixed(2)})`, `Very likely the same person (${m.toFixed(2)})`]];
   if (m < 0.6) return ['ok', [`น่าจะเป็นคนเดียวกัน (${m.toFixed(2)})`, `Likely the same person (${m.toFixed(2)})`]];
@@ -68,14 +71,14 @@ export async function verifyView(body: HTMLElement, onCount?: (n: number) => voi
     const msg = el('div', {});
     const pic = (src: string | null | undefined, label: TxPair, empty: TxPair) => el('figure', { class: 'vf-pic' },
       src ? el('img', { src, alt: '' }) : el('div', { class: 'vf-none' }, tx(empty)), el('figcaption', {}, tx(label)));
-    const [cls, ml] = matchLabel(r.live_check.match);
+    const [cls, ml] = matchLabel(r.live_check.match, r.live_check.model === 'aws-rekognition');
     const lc = r.live_check;
     const card = el('div', { class: 'card reel-card', 'data-verify': r.id },
       el('div', { class: 'row' }, el('b', { class: 'grow' }, r.first_name), el('span', { class: `pill ${r.status === 'approved' ? 'live' : ''}` }, r.status)),
       el('div', { class: 'vf-pair' }, pic(r.profile_photo, T.profile, T.noPhoto), pic(r.selfie_path ? signed[r.selfie_path] : null, T.selfie, T.gone)),
       el('div', { class: cls, 'data-match': String(lc.match ?? '') }, tx(ml)),
       el('div', { class: 'meta' }, tx(T.steps), ' ', [lc.straight && '🙂', lc.left && '↶', lc.right && '↷', lc.blink && '😉'].filter(Boolean).join(' '), lc.device ? ` · ${lc.device}` : ''),
-      lc.right && !lc.blink ? el('div', { class: 'err', 'data-noblink': '1' }, tx(T.noBlink)) : null,
+      lc.right && !lc.blink && lc.model !== 'aws-rekognition' ? el('div', { class: 'err', 'data-noblink': '1' }, tx(T.noBlink)) : null,
       el('div', { class: 'meta' }, bkkTime(r.created_at), ` · account ${bkkTime(r.account_created)} · approved Reels ${r.approved_reels}`),
       r.reject_reason ? el('p', { class: 'meta' }, r.reject_reason) : null);
     if (r.status === 'pending') {

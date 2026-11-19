@@ -152,7 +152,8 @@ import { hideNextStep, hideVerifyRow, nextStepHidden, pickNextStep, verifyRowHid
 import './kx.css';
 import { fmtN as kxFmtN } from './kxLogic';
 // 16 Nov perf 2: not needed for the first screen, so downloaded separately (see lazyPart)
-const V5VerifySheet = lazyPart(() => import('./V5Verify').then((m) => m.V5VerifySheet));
+// 0125: V5VerifyPick opens the server face check (face_aws_on = 1) or the on-phone one (V5Verify, unchanged)
+const V5VerifySheet = lazyPart(() => import('./V5VerifyPick').then((m) => m.V5VerifyPick));
 const AskThaiView = lazyPart(() => import('./V5AskThai').then((m) => m.AskThaiView));
 const StandHowSheet = lazyPart(() => import('./V5Ticket').then((m) => m.StandHowSheet));
 const V5TicketSheet = lazyPart(() => import('./V5Ticket').then((m) => m.V5TicketSheet));
@@ -7170,6 +7171,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             }}
             onSent={() => setVerifyPending(true)}
             onVerified={() => { setVerifyPending(false); setFaceOkNow(true); markFacePassed(v5Uid); setMeProfile((p) => (p ? { ...p, verified: true } : p)); }}
+            onFeed={() => { setSheet(null); setVerifyMode('me'); void loadMe(); if (afterVerifyRef.current) { afterVerifyRef.current = false; markReelNudgeSeen(v5LastUid.current || v5Uid); } setTab('feed'); }}
             onAddPhoto={() => setSheet('v5card')} />
         )}
         {sheet === 'follow' && followFor && (
