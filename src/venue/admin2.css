@@ -213,6 +213,9 @@ label.f { display: flex; flex-direction: column; gap: 6px; font-size: 13px; colo
 .pill.r { background: rgba(255, 90, 107, 0.16); color: var(--bad); }
 .pill.a { background: rgba(255, 196, 77, 0.14); color: var(--warn); }
 .pill.p { background: rgba(255, 79, 163, 0.16); color: var(--pink); }
+/* 0122 Photo OK: a small tappable pill next to "Photo needs a look" (Members row, photo sheet, member page) */
+button.photo-ok { border: 1px solid rgba(33, 196, 122, 0.45); font-family: inherit; cursor: pointer; line-height: 1.2; }
+button.photo-ok:disabled { cursor: default; opacity: 0.85; }
 
 /* stats */
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }

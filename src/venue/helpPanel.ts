@@ -7,7 +7,7 @@
  * Refreshes every 20 s without touching what the founder is typing. English-only chrome; Thai only reaches the member.
  */
 import { el, rpc } from './shared';
-import { sendTeamReply } from './adminHelp';
+import { closeHelpNoReply, sendTeamReply } from './adminHelp';
 import { hasThaiText, helpQuestion, sortHelpCases, type HelpCase } from './adminHelpLogic';
 import { flagKeyLabel, type ProtectFlagKey } from './autopilotLogic';
 import {
@@ -186,7 +186,9 @@ async function chatView(screen: Screen, member: string, onCount?: (waiting: numb
   }));
   const send = el('button', { type: 'button', class: 'v2btn ok hp-send', id: 'hpSend' }, 'Send as Kring Team');
   const status = el('small', { class: 'hp-status', id: 'hpStatus', role: 'status' });
-  const composer = el('div', { class: 'hp-comp', id: 'hpComp' }, qr, ta, el('div', { class: 'hp-comp-row' }, hint, send), status);
+  // 0122: close the case without sending anything (shown only while the member is waiting)
+  const noReply = el('button', { type: 'button', class: 'v2btn hp-noreply', id: 'hpNoReply', title: 'Close this case without sending a message', hidden: true }, 'No reply needed') as HTMLButtonElement;
+  const composer = el('div', { class: 'hp-comp', id: 'hpComp' }, qr, ta, el('div', { class: 'hp-comp-row' }, hint, noReply, send), status);
 
   let detail: HelpThreadDetail | null = null;
   let draft: { en: string; th: string } | null = null;
@@ -206,6 +208,7 @@ async function chatView(screen: Screen, member: string, onCount?: (waiting: numb
     const firstWait = waiting ? lastRunStart(detail.messages) : null;
     const min = firstWait ? Math.floor((Date.now() - Date.parse(firstWait)) / 60_000) : 0;
     const chip = statusChip({ unanswered: detail.unanswered, team_replied: detail.messages.some((m) => m.from === 'team'), waiting_since: firstWait }, Date.now());
+    noReply.hidden = !waiting;
     state.className = `hp-state ${chip.tone}`;
     state.textContent = waiting ? `${chip.text}${min > HELP_RISK_MIN ? (min >= 60 ? ' · 1-hour promise missed' : ' · 1-hour promise at risk') : ''}` : `Answered${t ? ` · last message ${agoIst(t.last_at)}` : ''}`;
     flagsRow.replaceChildren(...flagChips(member, detail));
@@ -265,6 +268,23 @@ async function chatView(screen: Screen, member: string, onCount?: (waiting: numb
       status.className = 'hp-status bad'; status.textContent = `Not sent: ${(e as Error).message}`;
     } finally {
       send.removeAttribute('disabled'); ta.removeAttribute('disabled');
+    }
+  };
+
+  noReply.onclick = async () => {
+    noReply.disabled = true; send.setAttribute('disabled', '');
+    status.className = 'hp-status'; status.textContent = 'Closing…';
+    try {
+      await closeHelpNoReply(member);
+      if (detail) detail = { ...detail, unanswered: 0 };
+      status.className = 'hp-status ok'; status.textContent = 'Closed · no message sent ✓';
+      if (threads) { threads = sortThreads(threads.map((x) => (x.member === member ? { ...x, unanswered: 0, waiting_since: null } : x))); onCount?.(threads.filter((x) => x.unanswered > 0).length); }
+      paint(false);
+      void refresh();
+    } catch (e) {
+      status.className = 'hp-status bad'; status.textContent = `Not closed: ${(e as Error).message}`;
+    } finally {
+      noReply.disabled = false; send.removeAttribute('disabled');
     }
   };
 

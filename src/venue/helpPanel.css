@@ -68,3 +68,6 @@
 .hp-status:empty { display: none; }
 .hp-status.ok { color: var(--go2); font-weight: 700; }
 .hp-status.bad { color: #ff8a97; font-weight: 700; }
+/* 0122 "No reply needed": small secondary button, only while the member is waiting */
+.hp-noreply { flex: 0 0 auto; min-height: 38px; padding: 0 12px; font-size: 13px; font-weight: 600; }
+.hp-noreply[hidden] { display: none; }

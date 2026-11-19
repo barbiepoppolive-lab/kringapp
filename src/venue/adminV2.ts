@@ -29,6 +29,7 @@ import { closeSheet, openSheet, sheetOpen, sheetRoute, xbtn, xlink, xrow, xsec, 
 import { alertSheetKind, alertUser, detailLines, flagSentence, flagWhy, giveWhy, isEx, linkVerdict, openWhy, ringsSentence, ringsSummary, selfieWords, trustWords, verdictSentence,
   type ExClaim, type ExCodes, type ExErrors, type ExPlace, type ExReel, type ExRings } from './tapLogic';
 import { codeMeaning, kindName, uaInfo } from './problemsAdmin';
+import { photoOkButton } from './photoOk';   // 0122: one-tap Photo OK
 import { helpSection } from './adminHelp';   // 0097: Help cases (self-contained)
 import { helpPanelLeave, helpPanelView } from './helpPanel';   // 0120: full Help panel (#help, #help/<uid>)
 import { bugSection, viewAsLeave, viewAsView } from './viewAs';   // 0110: View as member + Spot a bug cases
@@ -1155,6 +1156,9 @@ export async function memberView(uid: string) {
       el('div', { class: 'v2hero-info' },
         el('div', { class: 'v2flags' }, chip(c ? `#${c.no}` : 'no card', 'k'), m.kind !== 'real' ? chip(m.kind, 'a') : null,
           c?.verified ? chip('✓ verified', 'g') : chip('not verified', ''),
+          // 0122: the card photo could not be face-checked (or a 2nd refused photo was let through) → look, then one tap
+          c?.photo_check === 'unchecked' ? el('span', { class: 'v2chip a', 'data-photo-check': 'unchecked', id: 'v2PhotoLook' }, 'Photo needs a look') : null,
+          c?.photo_check === 'unchecked' ? photoOkButton(uid, () => { c.photo_check = 'ok'; document.getElementById('v2PhotoLook')?.remove(); if (snapP) snapP.photo_check = 'ok'; }, 'v2chip g photo-ok') : null,
           tr ? tapIn(el('span', { class: `v2chip ${trustWords(tr).tone}`, id: 'v2MemberTrustChip' }, trustWords(tr).text, el('small', { class: 'v2faint' }, ` · ${trustWords(tr).detail}`)),
             () => openTrustSheet({ user_id: uid, no: c?.no ?? null, name: c?.name ?? null }, tr)) : null),
         el('h2', {}, c?.name || m.email_hint || 'Account without a card'),

@@ -33,3 +33,5 @@
 .hpa-open-go { grid-row: 1 / span 2; grid-column: 2; font-size: 24px; line-height: 1; color: var(--faint); }
 .hpa-open.late { border-color: rgba(255, 90, 107, 0.55); }
 .hpa-open.late small { color: #ff8a97; font-weight: 700; }
+/* 0122 "No reply needed": small secondary button next to Send */
+.hpa-noreply { flex: 0 0 auto; min-height: 40px; font-size: 13px; font-weight: 600; align-self: center; }

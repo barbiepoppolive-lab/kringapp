@@ -48,6 +48,17 @@ export async function sendTeamReply(o: { member: string; en: string; memberThai:
   return { body, en };
 }
 
+/**
+ * 0122 "No reply needed": closes the member's waiting Help case WITHOUT sending anything. The admin-only RPC records
+ * kr8_help_closed(thread, closed_upto_message_id); the waiting lists and the help SLA ignore member messages up to that id,
+ * so a NEW message from the member opens the case again. thread = null closes every Kring Team chat of that member.
+ */
+export const HELP_CLOSE_RPC = 'kr8_admin_help_no_reply';
+export async function closeHelpNoReply(member: string, thread: string | null = null): Promise<{ closed: number }> {
+  const r = await rpc<{ closed?: number } | null>(HELP_CLOSE_RPC, { p_member: member, p_thread: thread });
+  return { closed: Number(r?.closed) || 0 };
+}
+
 export function helpCaseCard(c: HelpCase, onDone?: (c: HelpCase) => void): HTMLElement {
   const urg = helpUrgency(c);
   const who = `${c.name || 'Member'}${c.member_no ? ` #${c.member_no}` : ''}`;
@@ -78,6 +89,7 @@ export function helpCaseCard(c: HelpCase, onDone?: (c: HelpCase) => void): HTMLE
     : null;
 
   const send = el('button', { type: 'button', class: 'v2btn ok hpa-send', id: 'hpaSend-' + c.member }, 'Send as Kring Team');
+  const noReply = el('button', { type: 'button', class: 'v2btn hpa-noreply', id: 'hpaNoReply-' + c.member, title: 'Close this case without sending a message' }, 'No reply needed');
   const status = el('small', { class: 'hpa-status', role: 'status' });
   const hist = el('details', { class: 'hpa-hist' }, el('summary', {}, `Chat so far · ${c.history?.length || 0}`),
     ...(c.history || []).map((h) => {
@@ -98,17 +110,27 @@ export function helpCaseCard(c: HelpCase, onDone?: (c: HelpCase) => void): HTMLE
       el('p', {}, `“${it.q}”`),
       enLine(it.q, it.en)))),
     urg !== 'ok' ? el('p', { class: 'hpa-risk', id: 'hpaRisk-' + c.member }, `⚠ ${helpUrgencyText(urg)}`) : null,
-    hist, suggestHead, ta, el('div', { class: 'v2acts' }, send), status);
+    hist, suggestHead, ta, el('div', { class: 'v2acts' }, send, noReply), status);
   send.onclick = async () => {
     const en = ta.value.trim();
     if (!en) { ta.focus(); return; }
     send.setAttribute('disabled', ''); status.textContent = memberThai ? 'Translating to Thai…' : 'Sending…';
     try {
       await sendTeamReply({ member: c.member, en, memberThai, draftTh, draftEn, onStep: (t) => { status.textContent = t; } });
-      card.classList.add('hpa-done'); status.textContent = `Sent to ${who} as Kring Team ✓`; ta.setAttribute('disabled', '');
+      card.classList.add('hpa-done'); status.textContent = `Sent to ${who} as Kring Team ✓`; ta.setAttribute('disabled', ''); noReply.setAttribute('disabled', '');
       onDone?.(c);
     } catch (e) {
       send.removeAttribute('disabled'); status.textContent = `Not sent: ${(e as Error).message}`;
+    }
+  };
+  noReply.onclick = async () => {
+    noReply.setAttribute('disabled', ''); send.setAttribute('disabled', ''); status.textContent = 'Closing…';
+    try {
+      await closeHelpNoReply(c.member, c.thread_id || null);
+      card.classList.add('hpa-done'); status.textContent = `Closed · no message sent to ${who} ✓`; ta.setAttribute('disabled', '');
+      onDone?.(c);
+    } catch (e) {
+      noReply.removeAttribute('disabled'); send.removeAttribute('disabled'); status.textContent = `Not closed: ${(e as Error).message}`;
     }
   };
   return card;

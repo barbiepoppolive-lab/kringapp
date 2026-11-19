@@ -20,6 +20,7 @@ import { buildClusters, faceWords, flagText, isLookalikeMap, isLookCardMap, join
   type DupCluster, type DupFlagged, type DupHeld, type DupMember, type WeekReview, reviewText } from './dupAdmin';
 import './admin2.css';
 import { info, v2Flush, v2Route, v2TabFor, v2Tabbar, v2TestToggle } from './adminV2';
+import { photoOkButton } from './photoOk';   // 0122: one-tap Photo OK
 
 // ───────────────────────────── types (same rows as v1) ─────────────────────────────
 type Reel = { id: string; author_id: string; author_name: string; ref_code: string | null; area: string; body: string; created_at: string;
@@ -1075,9 +1076,19 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 export function cardMissing(m: Pick<MemberRow, 'photo' | 'first_name' | 'area'>): string[] {
   return [!m.photo && 'photo', !(m.first_name || '').trim() && 'name', !(m.area || '').trim() && 'area'].filter(Boolean) as string[];
 }
+/** 0122 Photo OK: the row (and any open copy of it) stops saying "Photo needs a look". */
+function photoChecked(m: MemberRow) {
+  m.photo_check = 'ok';
+  document.querySelectorAll<HTMLElement>(`[data-member="${m.user_id}"] [data-photo-check="unchecked"], .ml-pcheck [data-photo-check="unchecked"]`).forEach((n) => n.remove());
+  // the other copy of the button (row ↔ sheet) shows the same done state
+  document.querySelectorAll<HTMLButtonElement>(`[data-photo-ok="${m.user_id}"]:not([data-done])`).forEach((b) => { b.disabled = true; b.dataset.done = '1'; b.textContent = '✓ Photo OK'; });
+}
 function photoSheet(m: MemberRow) {
   const s = sheet(el('img', { class: 'ml-big', src: m.photo || '', alt: `Photo of ${m.first_name || 'member'}` }),
     el('h3', { style: 'margin-top:12px' }, m.first_name || 'No name yet'), el('p', { class: 'dim sm', style: 'margin:2px 0 0' }, `#${m.member_no ?? '–'} · ${memberJoined(m.joined_at)}`),
+    m.photo_check === 'unchecked' ? el('div', { class: 'ml-pcheck', style: 'display:flex;gap:8px;align-items:center;margin-top:10px' },
+      el('span', { class: 'pill a', 'data-photo-check': 'unchecked' }, 'Photo needs a look'),
+      photoOkButton(m.user_id, () => photoChecked(m))) : null,
     el('button', { class: 'btn ghost', type: 'button', id: 'photoClose', style: 'width:100%;margin-top:14px' }, 'Close'));
   (s.box.querySelector('#photoClose') as HTMLButtonElement).onclick = s.close;
 }
@@ -1105,7 +1116,9 @@ export function memberRow(m: MemberRow, onPhoto: (m: MemberRow) => void = photoS
     m.interests?.length ? el('div', { class: 'ml-int' }, ...m.interests.map((t) => pill(t))) : null,
     el('div', { class: 'ml-ticks' }, tick(m.verified, 'Verified', 'Not verified'),
       el('span', { class: 'pill ' + (miss.length ? 'a' : 'g'), 'data-complete': miss.length ? '0' : '1' }, miss.length ? `Card missing ${miss.join(', ')}` : '✓ Card complete'),
-      m.photo_check === 'unchecked' ? el('span', { class: 'pill a', 'data-photo-check': 'unchecked', title: 'The face check could not run on this photo, or the member’s 2nd photo was refused and let through (fix4). Look at the photo.' }, 'Photo needs a look') : null),
+      m.photo_check === 'unchecked' ? el('span', { class: 'pill a', 'data-photo-check': 'unchecked', title: 'The face check could not run on this photo, or the member’s 2nd photo was refused and let through (fix4). Look at the photo.' }, 'Photo needs a look') : null,
+      // 0122: one tap clears the flag (no "Not OK": there is no hide / ask-for-a-new-photo flow for card photos yet)
+      m.photo_check === 'unchecked' ? photoOkButton(m.user_id, () => photoChecked(m)) : null),
     el('div', { class: 'ml-foot xs dim' },
       el('span', { 'data-reels': `${m.reels_approved}/${m.reels_waiting}/${m.reels_hidden}` }, `Reels: ${m.reels_approved} live · ${m.reels_waiting} waiting · ${m.reels_hidden} hidden`),
       el('span', {}, `Last seen ${ago(m.last_active_at)}`)));
