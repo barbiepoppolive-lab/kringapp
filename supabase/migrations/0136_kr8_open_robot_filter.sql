@@ -9,6 +9,7 @@
 --      non-TH open this week was marked robot). Switch: kr8_rings_config 'opens_th_only' (1 = on, 0 = off).
 --   3. one device (= hashed network + browser, made by the website) counts once per member per Bangkok day, across all of
 --      that member's Reels (was: once per Reel). Switch: 'opens_device_member_day' = how many count (default 1).
+-- (19 Nov review: Telegram/WhatsApp/Slack/Discord in-app browsers are real people; their link-preview robots are caught by 'bot' or not starting with Mozilla.)
 -- Only NEW opens are affected: nothing already stored is re-scored, so this week's board does not move.
 -- Keeps the live burst guard (12 counted opens per Reel per hour) that was added on the database directly and was missing here.
 -- Rollback: quick off-switches without a deploy: update kr8_rings_config set value = 0 where key = 'opens_th_only';
@@ -26,7 +27,7 @@ declare ua text := btrim(coalesce(p_ua, '')); c text := upper(btrim(coalesce(p_c
 begin
   if ua = '' or ua !~* '^mozilla/' then return true; end if;
   if ua !~* 'cubot' and ua ~* ('bot|crawl|spider|slurp|facebookexternalhit|facebookcatalog|facebot|meta-external|meta-inspector|preview'
-       || '|whatsapp|telegram|slack|discord|skypeuri|embed|iframely|curl|wget|python|aiohttp|httpx|go-http-client|okhttp|node-fetch|undici'
+       || '|skypeuri|embed|iframely|curl|wget|python|aiohttp|httpx|go-http-client|okhttp|node-fetch|undici'
        || '|axios|java/|libwww|apache-httpclient|headless|playwright|puppeteer|phantomjs|selenium|webdriver|lighthouse|pagespeed|gtmetrix'
        || '|pingdom|uptime|monitor|scan|google-inspectiontool|google-read-aloud|googleother|feedfetcher|mediapartners|adsbot|applebot'
        || '|line-poker|linespider|chatgpt|gptbot|claude|perplexity|bytespider|petalbot|yandex|baidu|semrush|ahrefs') then
