@@ -132,11 +132,12 @@ export function pickOther(resp: unknown, uid: string): OtherMatch | null {
 
 export type FaceAwsDecision = { result: 'pass'; reasons: [] } | { result: 'review'; reasons: string[] };
 /** after a good live check: automatic ✓, or the founder looks (look-alike of another member, card photo not matching, …) */
-export function decide(input: { card: number | null; other: OtherMatch | null; autoOn: boolean }, lim: FaceAwsLimits = AWS_LIMITS): FaceAwsDecision {
+export function decide(input: { card: number | null; other: OtherMatch | null; autoOn: boolean }, lim: FaceAwsLimits = AWS_LIMITS): FaceAwsDecision & { cardFix: string | null } {
   const reasons: string[] = [];
   if (input.other && input.other.similarity >= lim.dupMin) reasons.push('aws_same_face');
-  if (input.card === null) reasons.push('no_card_face');
-  else if (input.card < lim.cardMin) reasons.push('card_mismatch');
+  // 19 Nov (founder): the card photo no longer decides the ✓ (it sent most checks to the founder by hand). A weak / missing
+  // card match passes and the member is asked by message to change the card photo (cardFix); only a duplicate face waits.
+  const cardFix = input.card === null ? 'no_card_face' : input.card < lim.cardMin ? 'card_mismatch' : null;
   if (!input.autoOn) reasons.push('auto_off');
-  return reasons.length ? { result: 'review', reasons } : { result: 'pass', reasons: [] };
+  return reasons.length ? { result: 'review', reasons, cardFix } : { result: 'pass', reasons: [], cardFix };
 }

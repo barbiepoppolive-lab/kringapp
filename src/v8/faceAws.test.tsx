@@ -50,13 +50,14 @@ describe('decision rules (faceAwsDecide)', () => {
     expect(liveCheck({ straight: [face(0)], left: [face(-20)], right: [face(21)] }, lim).ok).toBe(true);
   });
   it('pass / review', () => {
-    expect(decide({ card: 97, other: null, autoOn: true })).toEqual({ result: 'pass', reasons: [] });
+    expect(decide({ card: 97, other: null, autoOn: true })).toEqual({ result: 'pass', reasons: [], cardFix: null });
     expect(decide({ card: 97, other: { user_id: 'b', similarity: 93 }, autoOn: true }).result).toBe('pass');   // under 95: not a look-alike
-    expect(decide({ card: 97, other: { user_id: 'b', similarity: 98.2 }, autoOn: true })).toEqual({ result: 'review', reasons: ['aws_same_face'] });
-    expect(decide({ card: 62, other: null, autoOn: true })).toEqual({ result: 'review', reasons: ['card_mismatch'] });
-    expect(decide({ card: null, other: null, autoOn: true })).toEqual({ result: 'review', reasons: ['no_card_face'] });
-    expect(decide({ card: 99, other: null, autoOn: false })).toEqual({ result: 'review', reasons: ['auto_off'] });
-    expect(decide({ card: 70, other: { user_id: 'b', similarity: 99 }, autoOn: true }).reasons).toEqual(['aws_same_face', 'card_mismatch']);
+    expect(decide({ card: 97, other: { user_id: 'b', similarity: 98.2 }, autoOn: true })).toEqual({ result: 'review', reasons: ['aws_same_face'], cardFix: null });
+    // 19 Nov: a weak / missing card match passes; the member is asked to change the card photo
+    expect(decide({ card: 62, other: null, autoOn: true })).toEqual({ result: 'pass', reasons: [], cardFix: 'card_mismatch' });
+    expect(decide({ card: null, other: null, autoOn: true })).toEqual({ result: 'pass', reasons: [], cardFix: 'no_card_face' });
+    expect(decide({ card: 99, other: null, autoOn: false })).toEqual({ result: 'review', reasons: ['auto_off'], cardFix: null });
+    expect(decide({ card: 70, other: { user_id: 'b', similarity: 99 }, autoOn: true }).reasons).toEqual(['aws_same_face']);
   });
   it('reads the raw Rekognition answers', () => {
     const f = summarize({ FaceDetails: [{ Confidence: 99.9, Pose: { Yaw: -12.34, Pitch: 1 }, Quality: { Brightness: 55, Sharpness: 20 }, EyesOpen: { Value: true, Confidence: 99 },

@@ -218,8 +218,11 @@ async function check(uid: string, body: Record<string, unknown>): Promise<Respon
     return json({ result: 'retry', why: live.why, verified: rec.verified, tries_left: rec.tries_left });
   }
   const d = decide({ card, other, autoOn: (gate.auto_on ?? 1) === 1 }, lim);
-  const liveInfo = { yaw: live.yaw, card_sim: card, other_sim: other?.similarity ?? null };
+  const liveInfo = { yaw: live.yaw, card_sim: card, other_sim: other?.similarity ?? null, card_fix: d.cardFix };
   const { rec } = await keep(d.result, d.reasons, liveInfo, card, other);
+  if (rec.result === 'pass' && d.cardFix) {
+    try { await rpc('kr8_face_card_nudge', { p_user: uid, p_why: d.cardFix }); } catch (e) { log({ nudge_error: String(e).slice(0, 200) }); }
+  }
   if (rec.result === 'pass') {
     try { await indexFace(uid, S, 'check', rec.verification_id ?? null); }
     catch (e) { log({ index_error: String(e).slice(0, 300) }); }   // the ✓ stays; the next sweep / backfill can add it

@@ -182,6 +182,8 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
       props.onDone(await (face ? (selfie ? kxClaimPrize(prize.id, brand, face, selfie) : kxClaimPrize(prize.id, brand, face)) : kxClaimPrize(prize.id, brand)));
     } catch (e) {
       const c = v5ErrCode(e);
+      // 19 Nov (#138 ×14 during the database outage): a network error must not use up the "verified, no scan" try
+      if (c !== 'FACE_NEEDED') skipTried.current = false;
       setStep('pick');
       if (c === 'NEED_LINE') { setStep('line'); return; }
       if (c === 'FACE_NEEDED') { if (skipTried.current) v5LogClient('claim_face_skip', 'server_needs_face'); setStep('face'); return; }
