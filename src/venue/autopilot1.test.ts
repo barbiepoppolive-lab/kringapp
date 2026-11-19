@@ -103,7 +103,7 @@ describe('T-370 Autopilot Step 1', () => {
       joined_at: '2026-11-17T10:00:00Z',
       claims: { n: 1, paid: 0, held: 1, thb: 0, first_at: '2026-11-17T10:08:00Z' },
       shared_net: 1,
-      links: [{ user_id: 'u-1', no: 24, name: 'Somchai', reason: 'face', dist: null, sface_sim: 0.88, at: '2026-11-17T10:05:00Z' }],
+      links: [{ user_id: 'u-1', no: 24, name: 'Somchai', reason: 'face', dist: null, sface_sim: null, aws_sim: 98, at: '2026-11-17T10:05:00Z' }],
     });
     const tShady = personTrust(shady);
     expect(tShady.score).toBe(0);
@@ -173,14 +173,14 @@ describe('T-370 Autopilot Step 1', () => {
       no: 30,
       name: 'Nok',
       joined_at: '2026-11-10T00:00:00Z',
-      links: [{ user_id: 'u-grey', no: 31, name: 'NokB', reason: 'face', dist: 0.46, sface_sim: 0.54, at: '2026-11-17T09:00:00Z' }],
+      links: [{ user_id: 'u-grey', no: 31, name: 'NokB', reason: 'face', dist: null, sface_sim: null, aws_sim: 86, at: '2026-11-17T09:00:00Z' }],
     });
     const pGrey = mkPerson({
       user_id: 'u-grey',
       no: 31,
       name: 'NokB',
       joined_at: '2026-11-17T09:00:00Z',
-      links: [{ user_id: 'u-old', no: 30, name: 'Nok', reason: 'face', dist: 0.46, sface_sim: 0.54, at: '2026-11-17T09:00:00Z' }],
+      links: [{ user_id: 'u-old', no: 30, name: 'Nok', reason: 'face', dist: null, sface_sim: null, aws_sim: 86, at: '2026-11-17T09:00:00Z' }],
     });
 
     const snap = mkSnapshot({
@@ -203,7 +203,7 @@ describe('T-370 Autopilot Step 1', () => {
     });
 
     const inbox = buildInbox(snap);
-    // 0.54 look-alike stays a founder decision in Needs you
+    // 19 Nov: an AWS 86 % look-alike stays a founder decision in Needs you
     expect(inbox.items.some((i) => i.kind === 'lookalike' && i.question === '#30 and #31 look alike. Same person?')).toBe(true);
     // >= 0.60 auto-ghosted duplicate appears in Handled automatically with undoDup
     const dupRow = inbox.handled.find((h) => h.undoDup === 'u-dup99');

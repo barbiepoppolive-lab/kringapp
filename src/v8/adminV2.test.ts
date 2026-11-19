@@ -20,7 +20,11 @@ function claim(no: number, o: Partial<Claim> = {}): Claim {
     created_at: '2026-11-16T14:00:00Z', assigned_at: '2026-11-16T14:00:00Z', is_test: false, hold_reason: null, decided: null, decided_at: null,
     face_dist: null, joined_at: '2026-11-16T13:50:00Z', hold_others: null, prize: null, ...o };
 }
-const L = (no: number, reason = 'face', dist: number | null = 0.48) => ({ user_id: 'u' + no, no, name: 'M' + no, reason, dist, at: '2026-11-17T08:00:00Z' });
+// 19 Nov: look-alikes are AWS now (face_maybe / face-api distances are the retired engine and are dropped). The old distances map to
+// AWS similarities: < 0.40 → 98 % (same face), otherwise 86 % (looks alike).
+const L = (no: number, reason = 'face', dist: number | null = 0.48) => (reason === 'face'
+  ? { user_id: 'u' + no, no, name: 'M' + no, reason, dist: null, aws_sim: dist == null ? null : dist < 0.4 ? 98 : 86, at: '2026-11-17T08:00:00Z' }
+  : { user_id: 'u' + no, no, name: 'M' + no, reason, dist, at: '2026-11-17T08:00:00Z' });
 
 function snap(): Snapshot {
   const people: Person[] = [
@@ -65,7 +69,8 @@ describe('admin v2 · Needs you', () => {
     expect(groups.map((g) => g.map((p) => p.no))).toEqual(expect.arrayContaining([[30, 53, 58], [50, 56, 57]]));
     const { items } = buildInbox(snap());
     const look = items.filter((i) => i.kind === 'lookalike');
-    expect(look.map((i) => i.people.map((p) => p.no))).toEqual(expect.arrayContaining([[30, 53], [53, 58], [50, 56], [50, 57], [56, 57]]));
+    expect(look.map((i) => i.people.map((p) => p.no))).toEqual(expect.arrayContaining([[30, 53], [53, 58], [50, 56], [50, 57]]));
+    expect(look.some((i) => i.people[0].no === 56 && i.people[1].no === 57)).toBe(false);   // 19 Nov: face_maybe is the retired engine
     expect(look.every((i) => i.people.length === 2 && i.what.length <= 2)).toBe(true);
     expect(look.find((i) => i.people[0].no === 30)!.question).toBe('#30 and #53 look alike. Same person?');
   });
@@ -73,10 +78,10 @@ describe('admin v2 · Needs you', () => {
     const g = buildInbox(snap()).items.find((i) => i.people[0].no === 30 && i.people[1].no === 53)!;
     expect(g.what.join(' ')).toMatch(/2 live Reels/);
     expect(g.what.join(' ')).toMatch(/face check refused/);
-    expect(g.what.join(' ')).toMatch(/Looks alike/);
+    expect(g.what.join(' ')).toMatch(/Faces look alike · 86% \(AWS\)/);
     expect(g.what.join(' ')).not.toMatch(/0\.\d/);
     const strong = buildInbox(snap()).items.find((i) => i.people[0].no === 53 && i.people[1].no === 58)!;
-    expect(strong.what[0]).toBe('Faces: Very alike — very likely one person');
+    expect(strong.what[0]).toBe('Same face · 98% (AWS) — very likely one person');
   });
   it('a held claim inside a look-alike group is its OWN money card, first, linked by "related"', () => {
     const s = snap();
@@ -161,7 +166,7 @@ describe('admin v2 · plain-English summary + times', () => {
     const t = summary(snap()).join(' ');
     expect(t).toMatch(/^5 new members today, via no referrer, eiko, pich\./);
     expect(t).toMatch(/2 members claimed a prize within 15 min of joining/);
-    expect(t).toMatch(/5 look-alike pairs to settle/);
+    expect(t).toMatch(/4 look-alike pairs to settle/);
     expect(t).toMatch(/10 codes left/);
   });
   it('India time first, Bangkok small', () => {

@@ -5,10 +5,12 @@
  */
 
 import { pickNextStep, type NextStepInput, type NextStepKind } from '../v8/nextStep';
+import { awsWords, checkReasons, holdLines, isRetiredFaceLink, type AwsPair } from './adminClean';
 
 // ───────── rows from 0082 ─────────
 export type Kind = 'real' | 'test' | 'team' | 'ghost' | 'admin' | 'nocard' | 'mirror';   // 0110: mirror = View-as-member sign-in, never a member
-export interface Link { user_id: string; no: number | null; name: string | null; reason: string; dist: number | null; sface_sim?: number | null; at: string }
+export interface Link { user_id: string; no: number | null; name: string | null; reason: string; dist: number | null; sface_sim?: number | null;
+  /** 19 Nov: AWS Rekognition similarity 0–100 (kr8_face_lookalikes / face-check-aws); dist and sface_sim are the retired on-phone engine */ aws_sim?: number | null; at: string }
 export interface Trust { score: number; reasons: string[] }
 export interface Person {
   user_id: string; kind: Kind; no: number | null; name: string; who: string | null; area: string | null; joined_at: string; last_active_at: string | null;
@@ -28,6 +30,10 @@ export interface Claim {
   decided_at: string | null; face_dist: number | null; joined_at: string | null;
   hold_others: { user_id: string; member_no: number | null; first_name: string | null; reasons?: string[]; face_dist?: number | null }[] | null;
   prize: { kind: string; week: string | null; rank: number | null } | null;
+  /** 19 Nov (0141): why the claim waits (kr8_claim_holds.detail.review), e.g. aws_look_alike */
+  hold_review?: string[];
+  /** 19 Nov (0141): 'watched_invite_group' — the watched inviter at the top of the member's invite chain */
+  hold_watch?: { no: number; name: string | null } | null;
 }
 export interface CodeStock { brand: string; amount: number; available: number; assigned: number; used: number }
 export interface BoardRow {
@@ -58,6 +64,8 @@ export interface Snapshot {
   dups_auto?: DupAuto[];
   /** 0138 kr8_admin_traveller_requests('pending'): passport checks for the traveller tag (missing before 0138) */
   traveller?: TravellerCase[];
+  /** 19 Nov (0141 kr8_admin_aws_lookalikes): AWS look-alike pairs, for the held-claim reason */
+  aws_pairs?: AwsPair[];
 }
 /** 0138: one "I'm a traveller" request (the passport photo stays in the private kr8-passport bucket; no passport number anywhere) */
 export interface TravellerCase {
@@ -109,9 +117,11 @@ export const isReal = (p: Person) => p.kind === 'real';
 
 // ───────── face distance → one wording everywhere (audit: two "same person" lines meant opposite things) ─────────
 /** Look-alike between TWO accounts. Lower = more alike (face-api dist); higher sface_sim = more alike. Never used for "is the photo the same person as the selfie". */
-export function lookalikeWords(dist: number | null | undefined, reason = 'face', sfaceSim?: number | null): { tone: 'r' | 'a'; text: string } {
+export function lookalikeWords(dist: number | null | undefined, reason = 'face', sfaceSim?: number | null, awsSim?: number | null): { tone: 'r' | 'a'; text: string } {
   if (reason === 'device') return { tone: 'a', text: 'Same phone' };
   if (reason === 'network') return { tone: 'a', text: 'Same Wi-Fi / network' };
+  // 19 Nov: only AWS look-alikes are real; a link with no old number is an AWS link
+  if (awsSim != null || (dist == null && sfaceSim == null)) { const w = awsWords(awsSim); return { tone: w.tone, text: w.text }; }
   if (sfaceSim != null) {
     if (sfaceSim >= 0.6) return { tone: 'r', text: `Same face · ${sfaceSim.toFixed(2)}` };
     return { tone: 'a', text: `Looks alike · ${sfaceSim.toFixed(2)}` };
@@ -121,6 +131,10 @@ export function lookalikeWords(dist: number | null | undefined, reason = 'face',
   if (dist <= 0.5) return { tone: 'a', text: `Looks alike · ${dist.toFixed(2)}` };
   return { tone: 'a', text: `Slightly alike · ${dist.toFixed(2)}` };
 }
+
+/** 19 Nov: a look-alike strong enough to say "same face": AWS 95 %+ (the retired engine's numbers no longer count) */
+export const strongFace = (l: Pick<Link, 'reason'> & { aws_sim?: number | null }) => l.reason === 'face' && (l.aws_sim ?? 0) >= 95;
+const liveLinks = <T extends { reason: string; dist?: number | null; sface_sim?: number | null; aws_sim?: number | null }>(ls: T[]) => ls.filter((l) => !isRetiredFaceLink(l));
 
 // ───────── Trust score 0–100 (0095 kr8_trust + client fallback before 0095) ─────────
 export function personTrust(p: Person, s?: Snapshot): Trust {
@@ -136,13 +150,14 @@ export function personTrust(p: Person, s?: Snapshot): Trust {
   if (hasRealPh) { score += 10; items.push({ w: 10, t: '+10 real photo' }); }
   if ((p.reels?.live || 0) > 0) { score += 10; items.push({ w: 10, t: '+10 approved Reel' }); }
 
-  const sameFace = p.links.find((l) => l.reason === 'face' && ((l.sface_sim ?? 0) >= 0.6 || (l.dist != null && l.dist < 0.4)));
-  const alikeFace = !sameFace ? p.links.find((l) => l.reason === 'face') : undefined;
+  const links = liveLinks(p.links);
+  const sameFace = links.find(strongFace);
+  const alikeFace = !sameFace ? links.find((l) => l.reason === 'face') : undefined;
   if (sameFace) { score -= 40; items.push({ w: 40, t: `−40 same face as #${sameFace.no ?? '?'}` }); }
   else if (alikeFace) { score -= 20; items.push({ w: 20, t: `−20 looks like #${alikeFace.no ?? '?'}` }); }
 
-  const sameDev = p.links.find((l) => l.reason === 'device');
-  const sameNet = p.links.some((l) => l.reason === 'network') || p.shared_net > 0;
+  const sameDev = links.find((l) => l.reason === 'device');
+  const sameNet = links.some((l) => l.reason === 'network') || p.shared_net > 0;
   if (sameDev) { score -= 35; items.push({ w: 35, t: `−35 same phone as #${sameDev.no ?? '?'}` }); }
 
   const firstAt = p.claims?.first_at || s?.claims.filter((c) => c.user_id === p.user_id && !c.is_test).map((c) => c.created_at).sort()[0] || null;
@@ -173,17 +188,18 @@ export interface MoneyVerdict {
 export function moneyRobotVerdict(c: Claim, p: Person | undefined, s: Snapshot): MoneyVerdict {
   const tr = p ? personTrust(p, s) : { score: 25, reasons: ['−25 no member card yet'] };
   const holdOthers = c.hold_others || [];
-  const strongHoldOther = holdOthers.some((o) => (o.reasons || []).includes('device') || (o.face_dist != null && o.face_dist < 0.4));
-  const strongPersonLink = !!p?.links.some((l) => l.reason === 'device' || (l.reason === 'face' && ((l.sface_sim ?? 0) >= 0.6 || (l.dist != null && l.dist < 0.4))));
+  const strongHoldOther = holdOthers.some((o) => (o.reasons || []).includes('device'));
+  const pl = p ? liveLinks(p.links) : [];
+  const strongPersonLink = pl.some((l) => l.reason === 'device' || strongFace(l));
   const hardDup = strongHoldOther || strongPersonLink || p?.kind === 'ghost' || p?.check?.status === 'rejected';
-  const anyDupLink = holdOthers.length > 0 || !!p?.links.some((l) => l.reason === 'face' || l.reason === 'device');
+  const anyDupLink = holdOthers.length > 0 || pl.some((l) => l.reason === 'face' || l.reason === 'device') || (c.hold_review || []).includes('aws_look_alike');
 
   let call: MoneyCall;
   let tone: 'g' | 'a' | 'r';
   if (hardDup || tr.score <= 30) {
     call = 'REFUSE';
     tone = 'r';
-  } else if (tr.score >= 70 && p?.verified && c.hold_reason !== 'review' && !anyDupLink) {
+  } else if (tr.score >= 70 && p?.verified && !anyDupLink && !(c.hold_review || []).some((r) => r === 'ring_farming' || r === 'fake_red')) {
     call = 'PAY';
     tone = 'g';
   } else {
@@ -192,7 +208,7 @@ export function moneyRobotVerdict(c: Claim, p: Person | undefined, s: Snapshot):
   }
 
   const pool: string[] = [...tr.reasons];
-  if (c.hold_reason === 'review' && !pool.some((r) => /face check/i.test(r))) pool.push('Face check needs your eye before paying');
+  for (const h of holdLines(c, s.aws_pairs || [])) if (!/^(Same phone|Same face|Linked to)/.test(h) && !/no warning left/.test(h)) pool.push(h);
   for (const o of holdOthers) {
     const tag = `#${o.member_no ?? '?'}`;
     if (!pool.some((r) => r.includes(tag))) pool.push(`Linked to ${tag}${o.first_name ? ` ${o.first_name}` : ''}`);
@@ -229,9 +245,10 @@ export type FlagKey = 'lookalike' | 'shared' | 'board_off' | 'fast_claim' | 'ope
 export interface Flag { key: FlagKey; text: string; tone: 'r' | 'a' }
 export function personFlags(p: Person, all: Person[] = [], claims: Claim[] = []): Flag[] {
   const f: Flag[] = [];
-  const alike = p.links.filter((l) => l.reason.startsWith('face'));
-  if (alike.length) f.push({ key: 'lookalike', tone: alike.some((l) => (l.sface_sim ?? 0) >= 0.6 || (l.dist ?? 1) < 0.4) ? 'r' : 'a', text: `Looks like ${alike.map((l) => `#${l.no ?? '?'}`).join(', ')}` });
-  const dev = p.links.filter((l) => !l.reason.startsWith('face'));
+  const links = liveLinks(p.links);
+  const alike = links.filter((l) => l.reason === 'face');
+  if (alike.length) f.push({ key: 'lookalike', tone: alike.some(strongFace) ? 'r' : 'a', text: `Looks like ${alike.map((l) => `#${l.no ?? '?'}`).join(', ')}` });
+  const dev = links.filter((l) => !l.reason.startsWith('face'));
   if (dev.length || p.shared_net) f.push({ key: 'shared', tone: 'a', text: dev.length ? `Same phone/Wi-Fi as ${dev.map((l) => `#${l.no ?? '?'}`).join(', ')}` : `Claimed on the same Wi-Fi/phone as ${p.shared_net} other` });
   if (p.reels?.board_off) f.push({ key: 'board_off', tone: 'a', text: 'Off the board' + (p.reels.board_off_reason ? ` · ${p.reels.board_off_reason}` : '') });
   const mine = claims.filter((c) => c.user_id === p.user_id).sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
@@ -265,7 +282,7 @@ export interface InboxItem {
   /** keys of other open cases about the same person(s) */
   related: string[];
   people: Person[]; claims: Claim[];
-  links: { a: string; b: string; reason: string; dist: number | null; sface_sim?: number | null }[];
+  links: { a: string; b: string; reason: string; dist: number | null; sface_sim?: number | null; aws_sim?: number | null }[];
   reelIds: string[]; checkIds: string[]; at: string; count?: number;
   verdict?: MoneyVerdict;
   /** 0138: the traveller request behind a 'traveller' card */
@@ -276,7 +293,8 @@ export const INBOX_FILTERS: { key: 'all' | InboxKind; label: string }[] = [
   { key: 'check', label: 'Face check' }, { key: 'traveller', label: 'Traveller' }, { key: 'reel', label: 'Reels' }, { key: 'reports', label: 'Reports' },
 ];
 /** "Very alike / Looks alike / Slightly alike / Same phone" — never a decimal on a card (decimals live on the member page) */
-export function alikeWord(dist: number | null | undefined, reason = 'face', sfaceSim?: number | null): string {
+export function alikeWord(dist: number | null | undefined, reason = 'face', sfaceSim?: number | null, awsSim?: number | null): string {
+  if (reason === 'face' && (awsSim != null || (dist == null && sfaceSim == null))) return awsWords(awsSim).text;   // "Faces look alike · 86% (AWS)"
   const t = lookalikeWords(dist, reason, sfaceSim).text.split(' · ')[0];
   return t === 'Same face' ? 'Very alike' : t;
 }
@@ -309,8 +327,8 @@ export function linkGroups(people: Person[]): Person[][] {
   const byId = new Map(people.map((p) => [p.user_id, p]));
   const parent = new Map<string, string>();
   const find = (x: string): string => { let r = x; while (parent.get(r) !== r) r = parent.get(r)!; return r; };
-  for (const p of people) if (p.links.length) parent.set(p.user_id, p.user_id);
-  for (const p of people) for (const l of p.links) { if (!byId.has(l.user_id)) continue; parent.set(l.user_id, parent.get(l.user_id) || l.user_id); const a = find(p.user_id), b = find(l.user_id); if (a !== b) parent.set(b, a); }
+  for (const p of people) if (liveLinks(p.links).length) parent.set(p.user_id, p.user_id);
+  for (const p of people) for (const l of liveLinks(p.links)) { if (!byId.has(l.user_id)) continue; parent.set(l.user_id, parent.get(l.user_id) || l.user_id); const a = find(p.user_id), b = find(l.user_id); if (a !== b) parent.set(b, a); }
   const groups = new Map<string, Person[]>();
   for (const id of parent.keys()) { const r = find(id); groups.set(r, [...(groups.get(r) || []), byId.get(id)!]); }
   return [...groups.values()].filter((g) => g.length > 1).map((g) => g.sort((x, y) => Date.parse(x.joined_at) - Date.parse(y.joined_at)));
@@ -329,7 +347,8 @@ export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[
   // 1) look-alikes: one card per PAIR (older account first)
   for (const g of linkGroups(people)) {
     const ids = new Set(g.map((p) => p.user_id));
-    const links = dedupeLinks(g.flatMap((p) => p.links.filter((l) => ids.has(l.user_id)).map((l) => ({ a: p.user_id, b: l.user_id, reason: l.reason, dist: l.dist, sface_sim: l.sface_sim, at: l.at }))));
+    // shared Wi-Fi / LINE alone is a flag (often friends), never a decision card
+    const links = dedupeLinks(g.flatMap((p) => liveLinks(p.links).filter((l) => ids.has(l.user_id) && l.reason !== 'network' && l.reason !== 'line').map((l) => ({ a: p.user_id, b: l.user_id, reason: l.reason, dist: l.dist, sface_sim: l.sface_sim, aws_sim: l.aws_sim, at: l.at }))));
     for (const l of links) {
       const [older, newer] = [byId.get(l.a)!, byId.get(l.b)!].sort((x, y) => Date.parse(x.joined_at) - Date.parse(y.joined_at));
       const label = `#${older.no ?? '?'} · #${newer.no ?? '?'}`;
@@ -340,22 +359,21 @@ export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[
           why: `#${newer.no ?? '?'} looked like #${older.no ?? '?'}, but the newer account was already refused at the face check and has nothing live, so there is nothing to decide.` });
         continue;
       }
-      const strong = (l.sface_sim ?? 0) >= 0.6 || (l.dist ?? 1) < 0.4 || l.reason === 'device';
+      const strong = strongFace(l) || l.reason === 'device';
       const facts = [newer.reels?.live ? `${newer.reels.live} live Reel${newer.reels.live === 1 ? '' : 's'}` : '', newer.claims?.paid ? `paid ฿${newer.claims.thb}` : '',
         newer.check?.status === 'rejected' ? 'face check refused' : ''].filter(Boolean);
       push({ key: `l:${older.user_id},${newer.user_id}`, kind: 'lookalike', tone: 'a', rank: 80 + (strong ? 5 : 0), at: l.at || newer.joined_at,
         question: l.reason === 'device' ? `#${older.no ?? '?'} and #${newer.no ?? '?'} use the same phone. Same person?` : `#${older.no ?? '?'} and #${newer.no ?? '?'} look alike. Same person?`,
-        what: [`${l.reason === 'device' ? 'Same phone' : `Faces: ${alikeWord(l.dist, l.reason, l.sface_sim)}`}${strong ? ' — very likely one person' : ''}`,
+        what: [`${l.reason === 'device' ? 'Same phone' : l.reason === 'network' ? 'Same Wi-Fi / network' : alikeWord(l.dist, l.reason, l.sface_sim, l.aws_sim)}${strong ? ' — very likely one person' : ''}`,
           `#${newer.no ?? '?'} joined ${ago(newer.joined_at)}${facts.length ? ' · ' + facts.join(' · ') : ''}`],
-        people: [older, newer], links: [{ a: l.a, b: l.b, reason: l.reason, dist: l.dist, sface_sim: l.sface_sim }] });
+        people: [older, newer], links: [{ a: l.a, b: l.b, reason: l.reason, dist: l.dist, sface_sim: l.sface_sim, aws_sim: l.aws_sim }] });
     }
   }
   // 2) every held claim is its own Money card
   for (const c of heldAll) {
     const p = byId.get(c.user_id!); if (!p) continue;
     const mins = minutesBetween(p.joined_at, c.created_at);
-    const alike = [...new Set([...(c.hold_others || []).map((o) => `#${o.member_no ?? '?'}`), ...p.links.map((l) => `#${l.no ?? '?'}`)])];
-    const held = c.hold_reason === 'review' ? 'Held: face check needs your eye' : alike.length ? `Held: looks like ${alike.slice(0, 3).join(', ')}` : 'Held by the robot for a check';
+    const held = holdLines(c, s.aws_pairs || []).join(' · ');
     push({ key: 'c:' + c.id, kind: 'held', tone: 'r', rank: 100, at: c.created_at, people: [p], claims: [c], verdict: moneyRobotVerdict(c, p, s),
       question: `Pay ${nameNo(p)} ฿${c.amount} ${BRAND[c.brand] || c.brand}?`,
       what: [mins != null && mins >= 0 && mins <= 60 ? `Claimed ${mins} min after joining` : `Claimed ${ago(c.created_at)}`, held] });
@@ -365,7 +383,7 @@ export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[
     const p = byId.get(v.user_id); if (!p) continue;
     push({ key: 'v:' + v.id, kind: 'check', tone: 'a', rank: 70, at: v.at, people: [p], checkIds: [v.id],
       question: `Approve ${nameNo(p)}'s face check?`,
-      what: [v.review?.length ? `Robot was not sure: ${v.review.slice(0, 2).join(', ').replace(/_/g, ' ')}` : 'Waiting for your yes / no'] });
+      what: [checkReasons(v.review).length ? checkReasons(v.review).slice(0, 2).join(' · ') : 'Waiting for your yes / no'] });
   }
   // 3b) 0138 traveller tag: one card per passport check (a member missing from the snapshot, e.g. a test row, still gets a card)
   for (const t of s.traveller || []) {

@@ -35,6 +35,7 @@ import { helpSection } from './adminHelp';   // 0097: Help cases (self-contained
 import { helpPanelLeave, helpPanelView } from './helpPanel';   // 0120: full Help panel (#help, #help/<uid>)
 import { bugSection, viewAsLeave, viewAsView } from './viewAs';   // 0110: View as member + Spot a bug cases
 import { farmAlertList, farmBoardMark, farmSection } from './farmCheck';   // 0123: Ring-farming check (self-contained)
+import { cleanSnapshot, hiddenAlert, holdLines, isAwsFacts, isRetiredFaceLink, plainAlertText, plainDetail, robotName } from './adminClean';   // 19 Nov clean-up
 
 type Kid = Node | string | null | undefined | false;
 const app = () => document.getElementById('app')!;
@@ -100,15 +101,20 @@ export async function loadSnapshot(force = false): Promise<Snapshot | null> {
   const mb = rpc<unknown>('kr8_admin_morning_brief', { p_include_test: includeTest }).catch(() => null);
   // 0138: passport checks for the traveller tag (empty before 0138)
   const trav = rpc<TravellerCase[]>('kr8_admin_traveller_requests', { p_status: 'pending' }).catch(() => [] as TravellerCase[]);
-  loadingSnap = Promise.all([rpc<unknown>('kr8_admin_v2_snapshot', { p_include_test: includeTest }), auto, extra, dups, mb, trav])
-    .then(([s, pa, ex, da, mbRaw, tr]) => {
+  // 19 Nov (0141): the real AWS look-alikes (kr8_face_lookalikes) + why each held claim waits; null before 0141 (old face links are still dropped)
+  const aws = rpc<unknown>('kr8_admin_aws_lookalikes').then((x) => (isAwsFacts(x) ? x : null)).catch(() => null);
+  loadingSnap = Promise.all([rpc<unknown>('kr8_admin_v2_snapshot', { p_include_test: includeTest }), auto, extra, dups, mb, trav, aws])
+    .then(([s, pa, ex, da, mbRaw, tr, aw]) => {
       if (!isSnapshot(s)) throw new Error('Admin v2 needs database update 0082');
       s.places_auto = Array.isArray(pa) ? pa : [];
       s.traveller = Array.isArray(tr) ? tr : [];
       if (ex && ex.counts && ex.rows) s.extra = ex;
       if (!Array.isArray(s.dups_auto) && Array.isArray(da)) s.dups_auto = da;
-      snap = withAdminLogins(s);
+      snap = withAdminLogins(cleanSnapshot(s, aw));
       morningCache = isMorningBriefData(mbRaw) ? mbRaw : synthesizeMorningBrief(snap);
+      // 19 Nov: plain English only; the AWS look-alike alert is a Look-alike card now; retired face-engine alerts never show
+      morningCache = { ...morningCache, alerts: morningCache.alerts.filter((a) => !hiddenAlert(a)).map((a) => ({ ...a, title: plainAlertText(a.title), body: plainAlertText(a.body) })),
+        brief: { ...morningCache.brief, top3_needs_you: morningCache.brief.top3_needs_you.filter((t) => !/^Look-alike: #/.test(t.title)).map((t) => ({ ...t, title: plainAlertText(t.title), sub: plainAlertText(t.sub) })) } };
       snapAt = Date.now();
       return snap;
     })
@@ -275,9 +281,10 @@ function renderMorningBrief(s: Snapshot, inboxItems: InboxItem[], extra: Kid[] =
       ...extra]));
 }
 
-function renderAlertCentre(s: Snapshot, inboxItems: InboxItem[]): HTMLElement {
+/** actionable = only alerts the founder can act on (Needs you); FYI (grey) alerts sit on Today */
+function renderAlertCentre(s: Snapshot, inboxItems: InboxItem[], actionable = false): HTMLElement {
   const mb = morningCache || synthesizeMorningBrief(s, { items: inboxItems });
-  const visible = sortRobotAlerts(mb.alerts).filter((a) => !hiddenKeys.has('alert:' + a.id));
+  const visible = sortRobotAlerts(mb.alerts).filter((a) => !hiddenKeys.has('alert:' + a.id) && !hiddenAlert(a) && (!actionable || a.severity !== 'grey'));
   const redN = visible.filter((a) => a.severity === 'red').length;
   const ambN = visible.filter((a) => a.severity === 'amber').length;
   const gryN = visible.filter((a) => a.severity === 'grey').length;
@@ -304,7 +311,7 @@ function renderAlertCentre(s: Snapshot, inboxItems: InboxItem[]): HTMLElement {
       el('div', { class: 'grow' },
         el('div', { class: 'ac-tags' },
           chip(meta.label, meta.tone),
-          chip(a.robot, ''),
+          chip(robotName(a.robot), ''),
           el('small', { class: 'dim' }, ago(a.at))),
         el('b', {}, a.title),
         a.body ? el('small', {}, a.body) : null),
@@ -320,7 +327,7 @@ function renderAlertCentre(s: Snapshot, inboxItems: InboxItem[]): HTMLElement {
       el('div', { class: 'grow' },
         el('b', {}, 'Alert centre'),
         el('small', {}, visible.length
-          ? `${redN} broken · ${ambN} needs decision · ${gryN} FYI`
+          ? [redN ? `${redN} broken` : '', ambN ? `${ambN} to decide` : '', gryN ? `${gryN} FYI` : ''].filter(Boolean).join(' · ')
           : '0 alerts — all robots report green')),
       el('a', { class: 'v2robot-go', href: '#autopilot' }, 'Switches →')),
     visible.length
@@ -361,6 +368,7 @@ export function todayView() {
         avatar(p, 40), el('div', { class: 'grow' }, el('b', {}, `${p.name || '—'} #${p.no ?? '–'}`),
           el('small', {}, `${ago(p.joined_at)} · ${nextStep(p, s)}`)), ic('chev')))),
       el('div', { class: 'lt-list' },
+        fold('v2TodayAlerts', [ic('shield'), el('b', { class: 'grow' }, 'Robot alerts'), el('small', {}, 'all, including FYI')], [renderAlertCentre(s, items)]),
         fold('v2RobotFold', [ic('robot'), el('b', { class: 'grow' }, 'Robot report'), el('small', {}, `${rr.lines.length} note${rr.lines.length === 1 ? '' : 's'} today`)], [
           el('a', { class: 'v2robot', href: '#inbox', id: 'v2RobotReport' }, el('ul', { class: 'v2robot-ul' }, ...rr.lines.map((ln) => el('li', {}, ln))))])));
   }, header('Today', date));
@@ -403,7 +411,7 @@ function openAlertSheet(a: RobotAlert): void {
   const key = 'alert:' + a.id;
   const dismiss = !a.synthetic ? xbtn('Dismiss alert', '', 'xAlertDismiss', closeThen(() => later(key, `Alert dismissed: ${a.title}`, () => rpc('kr8_admin_alert_dismiss', { p_id: a.id })))) : null;
   const open = a.href && a.href !== location.hash ? xlink('Open the page', a.href, 'xAlertOpen') : null;
-  const base: SheetSpec = { kind: 'alert', id: a.dedupe_key || a.id, title: a.title, why: a.body || a.title, faint: `${a.robot} robot · ${ago(a.at)}${detailLines(a.detail).length ? ' · ' + detailLines(a.detail).join(' · ') : ''}`, actions: [open, dismiss] };
+  const base: SheetSpec = { kind: 'alert', id: a.dedupe_key || a.id, title: a.title, why: a.body || a.title, faint: `${robotName(a.robot)} · ${ago(a.at)}${plainDetail(a.detail).length ? ' · ' + plainDetail(a.detail).join(' · ') : ''}`, actions: [open, dismiss] };
   const s = snap;
   if (kind === 'protect') {
     const flagKey = (a.dedupe_key || '').split(':')[1] || '';
@@ -475,9 +483,7 @@ function claimWhy(c: Claim): string {
   const w = who(c);
   if (c.status === 'cancelled') return `${w}'s ฿${c.amount} claim was refused${c.decided ? ' by you' : ''}.`;
   if (c.held && c.status === 'pending') {
-    const others = (c.hold_others || []).map((o) => `#${o.member_no ?? '?'}${o.first_name ? ` ${o.first_name}` : ''}`);
-    return c.hold_reason === 'review' ? `${w}'s claim is held: the face check needs your eye before paying.`
-      : `${w}'s claim is held because the robot thinks it may be a second account${others.length ? ` of ${others.join(', ')}` : ''}.`;
+    return `${w}'s claim is held: ${holdLines(c, snap?.aws_pairs || []).map((x) => x.charAt(0).toLowerCase() + x.slice(1)).join('; ')}.`;
   }
   if (c.status === 'pending') return `${w} claimed ฿${c.amount}; it waits for a code (stock ran out). It is sent automatically when you add codes.`;
   return `${w} got a ฿${c.amount} ${BRANDS[c.brand] || c.brand} code${c.decided === 'paid' ? ' after you tapped Pay' : ' automatically'}${c.used ? ' and has used it' : ''}.`;
@@ -488,7 +494,8 @@ function openClaimSheet(c: Claim): void {
   const k = 'c:' + c.id;
   if (c.held && c.status === 'pending') {
     actions.push(xbtn(`Pay ฿${c.amount}`, 'ok', 'xPay-' + c.id, closeThen(() => later(k, `Paying ฿${c.amount} to ${who(c)}`, () => rpc('kr8_admin_release_claim', { p_claim: c.id })))),
-      xbtn('Refuse', 'bad', 'xRefuse-' + c.id, closeThen(() => later(k, 'Claim refused (member is not told why)', () => rpc('kr8_admin_refuse_claim', { p_claim: c.id, p_reason: 'One person, one account', p_return: false })))));
+      xbtn('Refuse', 'bad', 'xRefuse-' + c.id, closeThen(() => later(k, 'Claim refused (member is not told why)', () => rpc('kr8_admin_refuse_claim', { p_claim: c.id, p_reason: 'One person, one account', p_return: false })))),
+      xbtn('Refuse for now · they can claim again', '', 'xRefuseLater-' + c.id, closeThen(() => later(k, 'Refused for now · the prize goes back to Claim', () => rpc('kr8_admin_refuse_claim', { p_claim: c.id, p_reason: 'Check again later', p_return: true })))));
   }
   if (c.user_id) actions.push(xlink('Open member', `#m/${c.user_id}`, 'xClaimMember'));
   const v = p && snap && c.held && c.status === 'pending' ? moneyRobotVerdict(c, p, snap) : null;
@@ -866,14 +873,14 @@ export function inboxView() {
       return b;
     }));
     const mb = morningCache || synthesizeMorningBrief(s, { items: open });
-    const alerts = mb.alerts.filter((a) => !hiddenKeys.has('alert:' + a.id));
+    const alerts = mb.alerts.filter((a) => !hiddenKeys.has('alert:' + a.id) && !hiddenAlert(a) && a.severity !== 'grey');
     const redN = alerts.filter((a) => a.severity === 'red').length;
     const filterName = INBOX_FILTERS.find((f) => f.key === inboxFilter)?.label || 'All';
     screen('inbox', header('Needs you', open.length + bugsWaiting ? `${open.length + bugsWaiting} decision${open.length + bugsWaiting === 1 ? '' : 's'}` : 'Inbox zero'),
       farm,
       // 6 alert boxes → one status line (opens to the same Alert centre)
       fold('v2AlertFold', foldHead(alerts.length ? `${alerts.length} robot alert${alerts.length === 1 ? '' : 's'}` : 'All robots OK', redN ? `${redN} broken` : alerts.length ? 'none broken' : '0 alerts', redN ? 'r' : alerts.length ? 'a' : 'g'),
-        [renderAlertCentre(s, open)], 'lt-status'),
+        [renderAlertCentre(s, open, true)], 'lt-status'),
       help,
       bugs,
       open.length ? fold('v2FilterFold', foldHead(`Showing ${filterName.toLowerCase()} · ${shown.length}`, 'Filter'), [chips], 'lt-filter') : null,
@@ -902,8 +909,9 @@ function inboxCard(i: InboxItem, open?: InboxItem[]): HTMLElement {
   if (i.verdict) {
     const v = i.verdict;
     // the robot's reasons (and the second "what happened" line) sit behind the pill: one tap
-    const restBox = el('div', { class: 'v2rest', hidden: true }, el('div', { class: 'v2flags' }, ...v.reasons.map((r) => chip(r, r.startsWith('+') ? 'g' : 'a'))),
-      i.what[1] ? el('small', { class: 'v2sub' }, i.what[1]) : null);
+    // 19 Nov: why it is held is always on screen (plain words); the robot's scored reasons sit behind the pill
+    if (i.what[1]) card.append(el('small', { class: 'v2sub v2what2', id: 'v2HoldWhy-' + i.key.replace(/[^a-zA-Z0-9_-]/g, '_') }, i.what[1]));
+    const restBox = el('div', { class: 'v2rest', hidden: true }, el('div', { class: 'v2flags' }, ...v.reasons.map((r) => chip(r, r.startsWith('+') ? 'g' : 'a'))));
     // 18 Nov: the decision in one plain sentence; the score is small faint detail
     const pill = el('button', { type: 'button', class: `v2pill ${v.tone}`, 'data-call': v.call, 'aria-expanded': 'false' }, ic('robot'), `Robot: ${v.call}`, el('small', { class: 'v2faint' }, ` · trust ${v.score}`));
     pill.onclick = () => { restBox.hidden = !restBox.hidden; pill.setAttribute('aria-expanded', String(!restBox.hidden)); };
@@ -944,8 +952,16 @@ function comparePhotos(i: InboxItem): HTMLElement {
     const selfieOf = (k: number) => { const f = faces[k].find((x) => x.selfie_path && !x.selfie_deleted_at); return f?.selfie_path ? signed[f.selfie_path] : null; };
     const nm = (p: Person) => `#${p.no ?? '–'} ${p.name || ''}`.trim();
     if (i.kind === 'check') {
-      box.replaceChildren(row(tile(photos.get(ppl[0].user_id), `${nm(ppl[0])} · profile photo`), tile(selfieOf(0), 'Live selfie (taken now)')),
-        el('small', { class: 'v2sub', style: 'display:block;margin-top:6px' }, 'Same person in both? Real face (not a child, celebrity or a photo of a screen)? → Approve. Otherwise → Reject.'));
+      // 19 Nov: a card photo vs selfie mismatch is handled automatically (the member is asked to change the photo). The founder only
+      // decides a look-alike (AWS): this selfie next to the OTHER member's card photo.
+      const lk = ppl[0].links.find((l) => l.reason === 'face');
+      if (lk) await loadPhotos([lk.user_id]);
+      box.replaceChildren(lk
+        ? row(tile(selfieOf(0), `${nm(ppl[0])} · live selfie`), tile(photos.get(lk.user_id), `#${lk.no ?? '–'} ${lk.name || ''} · card photo`.trim()))
+        : row(tile(selfieOf(0), `${nm(ppl[0])} · live selfie`), tile(photos.get(ppl[0].user_id), 'Card photo')),
+        el('small', { class: 'v2sub', style: 'display:block;margin-top:6px' }, lk
+          ? `Same human as #${lk.no ?? '?'}? → Reject (one person, one account). Two different people → Approve.`
+          : 'Real face, clear, not a photo of a screen? → Approve. Otherwise → Reject.'));
     } else {
       box.replaceChildren(
         row(tile(photos.get(ppl[0].user_id), `${nm(ppl[0])} · profile`), tile(selfieOf(0), `${nm(ppl[0])} · selfie`)),
@@ -1177,6 +1193,7 @@ export async function memberView(uid: string) {
   rerender = () => { if (location.hash === `#m/${uid}`) void memberView(uid); };   // an Approve / Hide / Pay in a sheet refreshes this page
   let m: M360;
   try { m = await rpc<M360>('kr8_admin_v2_member', { p_user: uid }); } catch (e) { body.replaceChildren(errorCard(e)); return; }
+  m.links = m.links.filter((l) => !isRetiredFaceLink(l));   // 19 Nov: old on-phone face links are not evidence any more
   const c = m.card;
   const snapP = snap?.people.find((p) => p.user_id === uid);
   const flags = snapP && snap ? personFlags(snapP, snap.people, snap.claims) : [];
@@ -1220,8 +1237,9 @@ export async function memberView(uid: string) {
         el('div', { class: 'v2flags' }, chip(c ? `#${c.no}` : 'no card', 'k'), m.kind !== 'real' ? chip(m.kind, 'a') : null,
           c?.verified ? chip('✓ verified', 'g') : chip('not verified', ''),
           // 0122: the card photo could not be face-checked (or a 2nd refused photo was let through) → look, then one tap
-          c?.photo_check === 'unchecked' ? el('span', { class: 'v2chip a', 'data-photo-check': 'unchecked', id: 'v2PhotoLook' }, 'Photo needs a look') : null,
-          c?.photo_check === 'unchecked' ? photoOkButton(uid, () => { c.photo_check = 'ok'; document.getElementById('v2PhotoLook')?.remove(); if (snapP) snapP.photo_check = 'ok'; }, 'v2chip g photo-ok') : null,
+          // 19 Nov: a verified member's card photo needs nothing from the founder (a mismatch gets an automatic message)
+          c?.photo_check === 'unchecked' && !c.verified ? el('span', { class: 'v2chip a', 'data-photo-check': 'unchecked', id: 'v2PhotoLook' }, 'Photo needs a look') : null,
+          c?.photo_check === 'unchecked' && !c.verified ? photoOkButton(uid, () => { c.photo_check = 'ok'; document.getElementById('v2PhotoLook')?.remove(); if (snapP) snapP.photo_check = 'ok'; }, 'v2chip g photo-ok') : null,
           tr ? tapIn(el('span', { class: `v2chip ${trustWords(tr).tone}`, id: 'v2MemberTrustChip' }, trustWords(tr).text, el('small', { class: 'v2faint' }, ` · ${trustWords(tr).detail}`)),
             () => openTrustSheet({ user_id: uid, no: c?.no ?? null, name: c?.name ?? null }, tr)) : null),
         el('h2', {}, c?.name || m.email_hint || 'Account without a card'),
@@ -1414,7 +1432,7 @@ function facePair(f: FaceCheck, photo: string | null, selfies: Record<string, st
     el('div', { class: 'v2fpair' }, pic(photo, 'Card photo', 'No photo'),
       pic(selfie, 'Live selfie', f.selfie_deleted_at ? 'Deleted after 30 days' : f.selfie_path ? 'Could not load' : 'No selfie')),
     el('div', { class: 'v2flags' }, chip(faceStatusWords(f), tone), chip(f.auto ? 'auto' : f.status === 'pending' ? 'waiting' : 'manual', 'k'),
-      f.live ? (() => { const w = selfieWords(f.live.match, /^sface/.test(f.live.model || '')); return el('span', { class: `v2chip ${w.tone}` }, w.text, w.faint ? el('small', { class: 'v2faint' }, ` · ${w.faint}`) : null); })() : null),
+      f.live?.model === 'aws-rekognition' ? (() => { const w = selfieWords(f.live.match, false, true); return el('span', { class: `v2chip ${w.tone}` }, w.text, w.faint ? el('small', { class: 'v2faint' }, ` · ${w.faint}`) : null); })() : null),
     el('small', { class: 'v2sub' }, `${both(f.at, true)}${f.reviewed_at ? ` · decided ${clock(f.reviewed_at)} IST` : ''}`),
     el('small', { class: 'v2sub' }, liveSteps(f.live)),
     f.reason && f.status === 'rejected' ? el('small', { class: 'v2sub' }, f.reason.split('\n').pop() || '') : null);
@@ -1679,7 +1697,7 @@ export async function autopilotView() {
         el('b', {}, formatRobotLogLine(l)),
         el('small', {}, `${ago(l.at)} · ${both(l.at, true)}`)),
       undoBtn), () => openSheet({ kind: 'robotlog', id: String(l.id), title: l.dry_run ? 'Robot preview (nothing changed)' : 'What the robot did',
-        why: formatRobotLogLine(l), evidence: [xrow(`${l.robot.replace(/_/g, ' ')} robot`, `${ago(l.at)} · ${both(l.at, true)}`), ...detailLines(l.detail || undefined).map((t) => el('small', { class: 'xs-line' }, t))],
+        why: formatRobotLogLine(l), evidence: [xrow(robotName(l.robot), `${ago(l.at)} · ${both(l.at, true)}`), ...detailLines(l.detail || undefined).map((t) => el('small', { class: 'xs-line' }, t))],
         actions: [l.can_undo && !l.undone_at ? xbtn('Undo', 'ok', 'xLogUndo', closeThen(() => later(key, `Undoing ${l.robot}: ${l.action.replace(/_/g, ' ')}`, async () => { await rpc('kr8_admin_robot_undo', { p_log_id: l.id }); await load(); }))) : null,
           l.target && /^[0-9a-f-]{36}$/i.test(l.target) && personOf(l.target) ? xlink('Open member', `#m/${l.target}`, 'xLogMember') : null] }));
   };

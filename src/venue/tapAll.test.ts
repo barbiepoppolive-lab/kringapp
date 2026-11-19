@@ -33,7 +33,7 @@ const snapshot: Snapshot = {
       reels: { live: 1, waiting: 0, hidden: 0, board_off: 0, board_off_reason: null }, board: { rank: 1, rings: 40 }, score: { likes: 4, saves: 2, opens: 3, score: 40 },
       check: { id: 'chk74', status: 'approved', at: '2026-11-17T09:00:00Z', auto: 'pass', reason: null } }),
     person({ user_id: U76, no: 76, name: 'Reaper', joined_at: '2026-11-18T05:00:00Z', trust: { score: 18, reasons: ['−40 same face as #74', '−20 claimed within 15 min of joining'] },
-      links: [{ user_id: U74, no: 74, name: 'Mint', reason: 'face', dist: 0.31, at: '2026-11-18T05:10:00Z' }],
+      links: [{ user_id: U74, no: 74, name: 'Mint', reason: 'face', dist: null, aws_sim: 98, at: '2026-11-18T05:10:00Z' }],
       reels: { live: 1, waiting: 1, hidden: 0, board_off: 1, board_off_reason: 'AI-made' }, board: { rank: 2, rings: 15 }, score: { likes: 0, saves: 0, opens: 3, score: 15 },
       claims: { n: 1, paid: 0, held: 1, thb: 0, first_at: '2026-11-18T05:06:00Z' } }),
   ],
@@ -74,7 +74,7 @@ const member = {
   reels: [{ id: 'reel76', status: 'pending', hidden: false, board_off: false, board_off_reason: null, likes: 0, saves: 0, shares: 0, views: 3, at: '2026-11-18T06:00:00Z', poster_path: 'p/76.jpg', note: null }],
   rings_week: { likes: 0, saves: 0, opens: 3, score: 15 }, board: { rank: 2, rings: 15 }, rings_ledger: [], results: [],
   claims: [{ id: 'cl76', brand: 'truemoney', amount: 100, status: 'pending', held: true, used: false, created_at: '2026-11-18T05:06:00Z', assigned_at: null, hold_reason: 'linked', decided: null, decided_at: null }],
-  referrals: [], links: [{ user_id: U74, no: 74, name: 'Mint', reason: 'face', dist: 0.31, at: '2026-11-18T05:10:00Z', dismissed: false }],
+  referrals: [], links: [{ user_id: U74, no: 74, name: 'Mint', reason: 'face', dist: null, aws_sim: 98, at: '2026-11-18T05:10:00Z', dismissed: false }],
   checks: [{ id: 'chk76', status: 'rejected', auto: 'block', reason: 'same face', at: '2026-11-18T05:20:00Z', reviewed_at: '2026-11-18T05:20:01Z', by_admin: false }],
   admin_log: [{ at: '2026-11-18T07:00:00Z', action: 'claim_held' }],
 };

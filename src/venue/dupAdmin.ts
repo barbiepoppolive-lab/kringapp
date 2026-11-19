@@ -5,7 +5,7 @@
  */
 /** 0076: 'face_maybe' = faces look alike (a card photo, or a face check just over the line): a FLAG only, never a link */
 export type DupReason = 'face' | 'face_maybe' | 'device' | 'network' | 'line';
-export interface DupLink { a: string; b: string; reason: DupReason; detail: { dist?: number; where?: string; sources?: string }; first_at: string; dismissed: boolean }
+export interface DupLink { a: string; b: string; reason: DupReason; detail: { dist?: number; where?: string; sources?: string; /** 19 Nov: AWS Rekognition 0–100 */ aws_sim?: number }; first_at: string; dismissed: boolean }
 export interface DupPrize { id: string; kind: 'weekly' | 'founding'; amount: number; status: 'won' | 'claimed' | 'cancelled'; week: string | null; rank: number | null; founding_no: number | null }
 export interface DupMember { user_id: string; member_no: number | null; first_name: string; photo: string | null; joined_at: string; verified: boolean; ghost: boolean;
   is_test: boolean; line: boolean; prints: number; selfie_path: string | null; reels: number; prizes: DupPrize[] }
@@ -46,6 +46,7 @@ export function flagText(f: DupFlagged): string {
   return parts.join(' · ');
 }
 export function linkText(l: DupLink): string {
+  if (l.reason === 'face' && typeof l.detail?.aws_sim === 'number') return `${REASON_LABEL.face} · ${Math.round(l.detail.aws_sim)}% (AWS)`;
   if ((l.reason === 'face' || l.reason === 'face_maybe') && typeof l.detail?.dist === 'number')
     return `${REASON_LABEL[l.reason]} · ${l.detail.dist.toFixed(2)}${l.detail.sources ? ` (${l.detail.sources})` : ''}`;
   return REASON_LABEL[l.reason] + (l.detail?.where ? ` · ${l.detail.where}` : '');
@@ -163,6 +164,7 @@ export function weekFlags(r: WeekRow, now = Date.now()): string[] {
   const f: string[] = [];
   const others = new Map<string, { name: string; reasons: Set<string> }>();
   for (const l of r.links) {
+    if (l.reason === 'face_maybe') continue;   // 19 Nov: retired on-phone face checker
     const o = others.get(l.other) || { name: `${l.other_name ?? 'member'}${l.other_no != null ? ` #${l.other_no}` : ''}`, reasons: new Set<string>() };
     o.reasons.add(REASON_LABEL[l.reason]); others.set(l.other, o);
   }

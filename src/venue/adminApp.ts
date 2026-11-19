@@ -5,7 +5,6 @@
  * Every RPC and its parameters are the same as v1 (reelsAdmin / verifyAdmin / socialAdmin / stayAdmin / admin.ts).
  */
 import { V5_AREAS, v5VerifyCode } from '../v8/v5Live';
-import { faceDescriptor, loadImage } from '../v8/v5Face';
 import { signReelPaths } from '../v8/v5Reel';
 import { basePath, bkkTime, el, rpc, rpcWrite, sendKeepalive, staffLink, v5Client, type RpcWrite } from './shared';
 import { checklistCsv, type Check } from './reelsAdmin';
@@ -16,11 +15,12 @@ import { pushSendArgs } from './pushAdmin';
 import { bannedIn, fileSize, PLATFORMS, REEL_CAPTION, REEL_CAPTION_EN, shareReel, type Platform } from './postReel';
 import { agentsByLabel, cleanRef, codeMeaning, funnelLine, funnelRate, isProblemLog, isRecruiters, kindName, uaInfo,
   type ProblemLog, type RecruitMember, type Recruiters } from './problemsAdmin';
-import { awsLookalikes, buildClusters, faceWords, flagText, isLookalikeMap, isLookCardMap, joinDate, lookalikeBlock, ownPhotoLabel, type LookCard, type FaceLookalikes, istWhen, weekRange, type WeekRow, HOLD_LABEL, isDupOverview, isLinkReason, isWeekReview, linkText, prizeName, REASON_LABEL, weekFlags,
-  type DupCluster, type DupFlagged, type DupHeld, type DupMember, type WeekReview, reviewText } from './dupAdmin';
+import { awsLookalikes, buildClusters, flagText, isLookCardMap, joinDate, lookalikeBlock, ownPhotoLabel, type LookCard, type FaceLookalikes, istWhen, weekRange, type WeekRow, isDupOverview, isLinkReason, isWeekReview, linkText, prizeName, REASON_LABEL, weekFlags,
+  type DupCluster, type DupFlagged, type DupHeld, type DupMember, type WeekReview } from './dupAdmin';
 import './admin2.css';
 import { info, v2Flush, v2Route, v2TabFor, v2Tabbar, v2TestToggle } from './adminV2';
 import { photoOkButton } from './photoOk';   // 0122: one-tap Photo OK
+import { checkReasons, holdLines, isRetiredFaceLink } from './adminClean';   // 19 Nov clean-up (old on-phone face checker retired)
 
 // ───────────────────────────── types (same rows as v1) ─────────────────────────────
 type Reel = { id: string; author_id: string; author_name: string; ref_code: string | null; area: string; body: string; created_at: string;
@@ -632,13 +632,12 @@ function faceBody(r: Face, signed: Record<string, string>, look?: FaceLookalikes
       const invitedByOther = !!(me?.ref_code && oc && lk.other.member_no != null && me.ref_code.toLowerCase() === `k${String(lk.other.member_no).padStart(5, '0')}`);
       const why = [lk.verdict.tone === 'r' ? `This selfie is the same face as ${otherName}` : `This selfie looks a bit like ${otherName}`];
       if (invitedByOther) why.push(`They joined with ${otherName}'s own invite link`);
-      if (!own.tick) why.push('Their profile photo does not look like them');
       return lk.verdict.tone === 'r'
         ? { tone: 'r', head: `Reject: second account of ${otherName}`, why }
         : { tone: 'a', head: `Check: compare with ${otherName}`, why: [...why, 'If both are one human, reject. If they are two different people, approve.'] };
     }
-    if (own.tick) return { tone: 'g', head: 'Approve: profile photo matches the selfie', why: ['No other account has this face'] };
-    return { tone: 'a', head: 'Check: is the profile photo really them?', why: ['The robot is not sure the profile photo matches the selfie', 'If the profile photo is not this person (a child, a celebrity, a cartoon), reject'] };
+    // 19 Nov: a card photo that does not match is handled automatically (the member is asked to change it), so it is not the founder's question
+    return { tone: own.tick ? 'g' : 'a', head: 'Approve: no other account has this face', why: ['Real face, clear, not a photo of a screen? Then approve'] };
   })();
   const plainBox = el('div', { class: `plainv t-${plain.tone}`, id: 'verifyPlain-' + r.id,
       style: `border-radius:16px;padding:14px 16px;margin:10px 0 12px;border:1px solid ${plain.tone === 'r' ? '#ff6b81' : plain.tone === 'g' ? '#2ecc8f' : '#f5b041'};background:${plain.tone === 'r' ? 'rgba(255,107,129,.10)' : plain.tone === 'g' ? 'rgba(46,204,143,.10)' : 'rgba(245,176,65,.10)'}` },
@@ -650,43 +649,17 @@ function faceBody(r: Face, signed: Record<string, string>, look?: FaceLookalikes
     el('div', { class: 'dim sm', style: 'margin-top:2px' }, `Joined ${ago(r.account_created)} · ${r.approved_reels} approved Reels · sent ${ago(r.created_at)}`),
     lkBox,
     el('div', { class: 'pair' }, pic(r.profile_photo, 'Profile photo', 'No photo'), pic(selfie, 'Live selfie', 'Selfie deleted (30 days)')),
-    el('div', { class: 'score ' + own.tone, 'data-match': String(m ?? '') },
-      el('b', {}, ...(ownParts.length > 1 ? [ownParts[0], el('span', { class: 'tick' }, '✓'), ownParts[1]] : [own.text]))),
+    aws && m != null ? el('div', { class: 'score ' + own.tone, 'data-match': String(m) },
+      el('b', {}, ...(own.tick && ownParts.length > 1 ? [ownParts[0], el('span', { class: 'tick' }, '✓'), ownParts[1]] : ['Card photo does not match: the member was asked to change it (nothing for you to do)']))) : null,
     el('div', { class: 'steps' }, step(lc.straight, 'face', 'Straight'), step(lc.left, 'left', 'Left'), step(lc.right, 'right', 'Right'), step(lc.blink && !lc.blink_fallback, 'blink', noBlink ? 'No blink seen' : 'Blink', noBlink)),
     noBlink ? el('div', { class: 'warnbox', 'data-noblink': '1' }, ic('warn'), 'No blink seen (moved on after 12 s facing the camera). Could be a still photo held up: look at the selfie carefully.') : null,
-    lc.review && lc.review.length ? el('div', { class: 'warnbox', 'data-review': lc.review.join(' ') }, ic('info'),
-      el('span', {}, el('b', {}, 'Why it\u2019s here: '), lc.review.map((k) => FACE_REASON[k] || k).join(' · '))) : null,
-    lc.device || lc.engine ? el('div', { class: 'faint xs', style: 'margin-top:8px' },
-      [lc.auto ? `Instant check (${lc.auto})` : '', lc.real != null ? `real-face ${lc.real}` : '', lc.dup_sim != null ? `most alike other ${lc.dup_sim}` : '', lc.ms ? `${(lc.ms / 1000).toFixed(1)} s` : '', lc.device || ''].filter(Boolean).join(' · ')) : null,
+    checkReasons(lc.review).length ? el('div', { class: 'warnbox', 'data-review': (lc.review || []).join(' ') }, ic('info'),
+      el('span', {}, el('b', {}, 'Why it\u2019s here: '), checkReasons(lc.review).join(' · '))) : null,
+    lc.device ? el('div', { class: 'faint xs', style: 'margin-top:8px' }, lc.device) : null,
     r.reject_reason ? el('p', { class: 'dim sm' }, 'Reason: ' + r.reject_reason) : null,
     el('div', { class: 'tip' }, ic('info'), 'Profile photo matches the selfie, clear face, not a photo of a screen.'));
 }
-/** 0076: the admin page makes a face code itself (same face-api models as the phone). Never throws. */
-async function adminFacePrint(src: string): Promise<Float32Array | null> {
-  try { return await faceDescriptor(await loadImage(src)); } catch { return null; }
-}
-async function adminSelfiePrint(user: string, verification: string, url: string): Promise<void> {
-  const d = await adminFacePrint(url);
-  if (d) await rpc('kr8_admin_save_face_print', { p_user: user, p_desc: Array.from(d, (x) => Math.round(x * 1e6) / 1e6), p_source: 'selfie', p_verification: verification }).catch(() => undefined);
-}
-/** 0076 "Backfill face codes": card photos and stored selfies with no face code yet → codes → look-alikes linked / flagged */
-export async function faceBackfill(progress: (t: string) => void): Promise<{ done: number; noFace: number; failed: number }> {
-  const todo = await rpc<{ cards: { user_id: string; member_no: number | null; photo: string }[]; selfies: { user_id: string; verification_id: string; selfie_path: string }[] }>('kr8_admin_face_backfill_todo');
-  let done = 0, noFace = 0, failed = 0;
-  const signed = todo.selfies.length ? await signSelfies(todo.selfies.map((x) => ({ selfie_path: x.selfie_path } as Face))).catch(() => ({} as Record<string, string>)) : {};
-  const jobs: { user: string; src: string; source: 'selfie' | 'backfill-card'; ver?: string }[] = [
-    ...todo.selfies.filter((x) => signed[x.selfie_path]).map((x) => ({ user: x.user_id, src: signed[x.selfie_path], source: 'selfie' as const, ver: x.verification_id })),
-    ...todo.cards.map((x) => ({ user: x.user_id, src: x.photo, source: 'backfill-card' as const })),
-  ];
-  for (const [i, j] of jobs.entries()) {
-    progress(`Face codes ${i + 1} / ${jobs.length}`);
-    const d = await adminFacePrint(j.src);
-    if (!d) { noFace++; continue; }
-    try { await rpc('kr8_admin_save_face_print', { p_user: j.user, p_desc: Array.from(d, (x) => Math.round(x * 1e6) / 1e6), p_source: j.source, p_verification: j.ver ?? null }); done++; }
-    catch { failed++; }
-  }
-  return { done, noFace, failed };
-}
+// 19 Nov: the admin page no longer makes face codes itself (face-api.js retired; AWS Rekognition indexes faces on the server)
 /** 0081: the instant check's reasons, in plain words for the founder */
 const FACE_REASON: Record<string, string> = {
   same_face_other_account: 'Same face as an older account (similarity 0.60+): blocked as a second account',
@@ -737,10 +710,9 @@ async function faceQueue() {
   let rows: Face[];
   try { rows = await rpc<Face[]>('kr8_admin_verifications', { p_status: 'pending' }); } catch (e) { app.replaceChildren(el('div', { class: 'scr' }, errP(e))); return; }
   const signed = await signSelfies(rows).catch(() => ({} as Record<string, string>));
-  // 0076: look-alikes for the banner (empty before database update 0076)
-  const looks = await rpc<unknown>('kr8_admin_verify_lookalikes', { p_ids: rows.map((r) => r.id) }).then((x) => (isLookalikeMap(x) ? x : {})).catch(() => ({} as Record<string, FaceLookalikes>));
-  // 0125: a server (AWS) check names its look-alike itself; it goes first so both card photos show side by side with the selfie
-  for (const r of rows) { const a = awsLookalikes(r.live_check); if (a) looks[r.id] = { has_print: true, matches: [...a.matches, ...(looks[r.id]?.matches || []).filter((x) => x.user_id !== a.matches[0].user_id)] }; }
+  // 19 Nov: only the server (AWS) check's own look-alike counts (the old on-phone face codes, kr8_admin_verify_lookalikes, are retired)
+  const looks: Record<string, FaceLookalikes> = {};
+  for (const r of rows) { const a = awsLookalikes(r.live_check); if (a) looks[r.id] = a; }
   // 0080: card photo, referrer code and join date for each flagged member and the account it looks like (empty before 0080)
   const flagged = rows.filter((r) => looks[r.id]?.matches?.length);
   const cardIds = [...new Set(flagged.flatMap((r) => [r.user_id, looks[r.id].matches[0].user_id]))].slice(0, 20);
@@ -755,8 +727,6 @@ async function faceQueue() {
         await rpc('kr8_admin_review_verification', { p_id: r.id, p_approve: true });
         // 0125: an approved server (AWS) check goes into the duplicate search too (never blocks the approve)
         if (r.live_check?.model === 'aws-rekognition') void v5Client().then((c) => c.functions.invoke('face-check-aws', { body: { action: 'index', id: r.id } })).catch(() => undefined);
-        // 0076: every approved face check keeps a face code (older app builds never sent one)
-        if (looks[r.id] && !looks[r.id].has_print && r.selfie_path && signed[r.selfie_path]) void adminSelfiePrint(r.user_id, r.id, signed[r.selfie_path]);
       }), { id: 'verifyApprove-' + r.id })),
     skipBtn(api)));
     return faceBody(r, signed, looks[r.id], cards);
@@ -1098,7 +1068,7 @@ function photoChecked(m: MemberRow) {
 function photoSheet(m: MemberRow) {
   const s = sheet(el('img', { class: 'ml-big', src: m.photo || '', alt: `Photo of ${m.first_name || 'member'}` }),
     el('h3', { style: 'margin-top:12px' }, m.first_name || 'No name yet'), el('p', { class: 'dim sm', style: 'margin:2px 0 0' }, `#${m.member_no ?? '–'} · ${memberJoined(m.joined_at)}`),
-    m.photo_check === 'unchecked' ? el('div', { class: 'ml-pcheck', style: 'display:flex;gap:8px;align-items:center;margin-top:10px' },
+    m.photo_check === 'unchecked' && !m.verified ? el('div', { class: 'ml-pcheck', style: 'display:flex;gap:8px;align-items:center;margin-top:10px' },
       el('span', { class: 'pill a', 'data-photo-check': 'unchecked' }, 'Photo needs a look'),
       photoOkButton(m.user_id, () => photoChecked(m))) : null,
     el('button', { class: 'btn ghost', type: 'button', id: 'photoClose', style: 'width:100%;margin-top:14px' }, 'Close'));
@@ -1128,9 +1098,9 @@ export function memberRow(m: MemberRow, onPhoto: (m: MemberRow) => void = photoS
     m.interests?.length ? el('div', { class: 'ml-int' }, ...m.interests.map((t) => pill(t))) : null,
     el('div', { class: 'ml-ticks' }, tick(m.verified, 'Verified', 'Not verified'),
       el('span', { class: 'pill ' + (miss.length ? 'a' : 'g'), 'data-complete': miss.length ? '0' : '1' }, miss.length ? `Card missing ${miss.join(', ')}` : '✓ Card complete'),
-      m.photo_check === 'unchecked' ? el('span', { class: 'pill a', 'data-photo-check': 'unchecked', title: 'The face check could not run on this photo, or the member’s 2nd photo was refused and let through (fix4). Look at the photo.' }, 'Photo needs a look') : null,
+      m.photo_check === 'unchecked' && !m.verified ? el('span', { class: 'pill a', 'data-photo-check': 'unchecked', title: 'The face check could not run on this photo. Look at the photo.' }, 'Photo needs a look') : null,
       // 0122: one tap clears the flag (no "Not OK": there is no hide / ask-for-a-new-photo flow for card photos yet)
-      m.photo_check === 'unchecked' ? photoOkButton(m.user_id, () => photoChecked(m)) : null),
+      m.photo_check === 'unchecked' && !m.verified ? photoOkButton(m.user_id, () => photoChecked(m)) : null),
     el('div', { class: 'ml-foot xs dim' },
       el('span', { 'data-reels': `${m.reels_approved}/${m.reels_waiting}/${m.reels_hidden}` }, `Reels: ${m.reels_approved} live · ${m.reels_waiting} waiting · ${m.reels_hidden} hidden`),
       el('span', {}, `Last seen ${ago(m.last_active_at)}`)));
@@ -1754,7 +1724,6 @@ function moreView() {
     el('a', { class: 'li', href: ghostAppUrl(), id: 'moreGhostOpen', target: '_blank', rel: 'noopener' }, el('span', { class: 'ic' }, ic('open')), el('span', { class: 'grow' }, el('b', {}, 'Open app as ghost')), ic('chev')),
     li('#history/reels', 'reel', 'All Reels', 'histReels'),
     li('#history/faces', 'face', 'Past face checks', 'histFaces'),
-    li('#facelog', 'face', 'Face auto-decisions', 'faceLog'),
     li('#history/reports', 'flag', 'Closed reports', 'histReports'),
     li('#top5', 'trophy', 'Old manual awards', 'moreOldAwards'),
     li('#rules', 'book', 'House rules', 'rulesLink'),
@@ -2301,23 +2270,19 @@ export function dupBlock(clusters: DupCluster[], signed: Record<string, string>,
     const nm = (id: string) => { const m = byId.get(id); return m ? `${m.first_name}${m.member_no != null ? ` #${m.member_no}` : ''}` : 'member'; };
     const faceLink = c.links.find((l) => l.reason === 'face') || c.links.find((l) => l.reason === 'face_maybe');
     return el('div', { class: 'card dup', 'data-cluster': c.key },
-      el('div', { class: 'row' }, el('b', { class: 'grow' }, c.members.length > 1 ? (c.reasons.some(isLinkReason) ? `Same person? · ${c.members.length} accounts` : `Flag only · ${c.members.length} accounts`) : 'Held claim'),
-        ...c.reasons.map((r) => pill(isLinkReason(r) ? REASON_LABEL[r] : `Flag: ${REASON_LABEL[r]}`, isLinkReason(r) ? 'r' : 'a'))),
+      el('div', { class: 'row' }, el('b', { class: 'grow' }, c.members.length > 1 ? (c.reasons.some(isLinkReason) ? `Same person? · ${c.members.length} accounts` : `Same Wi-Fi only · ${c.members.length} accounts`) : 'Held claim'),
+        ...c.reasons.map((r) => pill(REASON_LABEL[r], isLinkReason(r) ? 'r' : 'a'))),
       el('div', { class: 'pair dup-faces' + (c.members.length > 2 ? ' three' : '') }, ...c.members.slice(0, 3).map((m, i) => dupFace(m, signed, i === 0 && c.members.length > 1))),
-      faceLink?.detail?.dist != null ? el('p', { class: 'sm', style: 'margin:0 0 8px' }, `Face match ${faceLink.detail.dist.toFixed(2)}: ${faceWords(faceLink.detail.dist)}`) : null,
+      faceLink?.detail?.aws_sim != null ? el('p', { class: 'sm', style: 'margin:0 0 8px' }, `Faces ${Math.round(faceLink.detail.aws_sim)}% alike (AWS)`) : null,
       el('div', { class: 'dup-list' }, ...c.members.map(dupWho)),
       c.links.length ? el('div', { class: 'dup-why' }, el('div', { class: 'xs dim' }, 'Why they are linked'),
-        ...c.links.map((l) => el('div', { class: 'sm' }, `${nm(l.a)} ↔ ${nm(l.b)}: ${linkText(l)}${isLinkReason(l.reason) ? '' : ' (flag only)'}`))) : null,
+        ...c.links.map((l) => el('div', { class: 'sm' }, `${nm(l.a)} ↔ ${nm(l.b)}: ${linkText(l)}${isLinkReason(l.reason) ? '' : ' · often friends, not proof'}`))) : null,
       c.mutual.length ? el('div', { class: 'dup-why' }, el('div', { class: 'xs dim' }, 'Likes and saves between them (not counted for Rings)'),
         ...c.mutual.map((x) => el('div', { class: 'sm' }, `${nm(x.from)} → ${nm(x.to)}’s Reels: ${x.likes} like${x.likes === 1 ? '' : 's'}, ${x.saves} save${x.saves === 1 ? '' : 's'}`))) : null,
       ...c.held.map((h) => el('div', { class: 'dup-held', 'data-held': h.claim_id },
         el('div', { class: 'row' }, el('b', { class: 'grow' }, `${nm(h.user_id)} claimed ${prizeName({ ...h, kind: h.prize_kind })} · ${h.brand === 'truemoney' ? 'TrueMoney' : h.brand === 'grab' ? 'Grab' : h.brand} ฿${h.amount}`), pill('held', 'warn')),
-        el('div', { class: 'sm', style: 'margin:4px 0 10px' }, (HOLD_LABEL[h.reason] || HOLD_LABEL.linked)
-          + (h.detail?.others?.length ? `: ${h.detail.others.map((o) => `${o.first_name}${o.member_no != null ? ` #${o.member_no}` : ''}`).join(', ')}` : '')
-          + (h.detail?.review?.length ? `: ${reviewText(h)}` : '') + ` · ${ago(h.created_at)}`),
-        h.detail?.claim_photo && signed[h.detail.claim_photo] ? el('figure', { class: 'dup-claimphoto', 'data-claim-photo': h.claim_id },
-          el('img', { src: signed[h.detail.claim_photo], alt: 'Photo taken at the claim', style: 'max-width:160px;border-radius:12px' }),
-          el('figcaption', { class: 'chip' }, 'Claim photo · compare with the selfie above')) : null,
+        el('div', { class: 'sm', style: 'margin:4px 0 10px' }, `${holdLines({ user_id: h.user_id, hold_reason: h.reason, hold_review: h.detail?.review,
+          hold_others: (h.detail?.others || []).map((o) => ({ ...o, member_no: o.member_no, first_name: o.first_name, reasons: o.reasons })) }).join(' · ')} · ${ago(h.created_at)}`),
         act ? el('div', { class: 'two' },
           btn('bad', [ic('x'), 'Refuse'], () => act.refuse(h, false), { id: 'dupRefuse-' + h.claim_id }),
           btn('go', [ic('check'), 'Pay'], () => act.pay(h), { id: 'dupPay-' + h.claim_id })) : null,
@@ -2333,12 +2298,14 @@ export function dupBlock(clusters: DupCluster[], signed: Record<string, string>,
 async function dupsView() {
   const body = el('div', {}, loading());
   screen('more', backHead('Same person?', '#more'),
-    el('p', { class: 'dim sm', style: 'margin:-6px 0 14px' }, 'Accounts with the same face or phone (linked: their likes and saves don’t count for Rings, and their claims wait for you), plus flags only: same Wi-Fi / network, same LINE, face check not matching.'), body);
+    el('p', { class: 'dim sm', style: 'margin:-6px 0 14px' }, 'Accounts with the same face (AWS) or the same phone: their likes and saves don’t count for Rings, and their claims wait for you. Same Wi-Fi or LINE alone is often friends.'), body);
   let ov: unknown;
   try { ov = await rpc<unknown>('kr8_admin_dup_overview'); } catch (e) { body.replaceChildren(errP(e)); return; }
   if (!isDupOverview(ov)) { body.replaceChildren(el('p', { class: 'err' }, 'Same person? needs database update 0066.')); return; }
+  // 19 Nov: links made by the retired on-phone face checker are not evidence any more (AWS look-alikes and same phone stay)
+  ov.links = ov.links.filter((l) => !isRetiredFaceLink(l));
   const clusters = buildClusters(ov);
-  const paths = [...clusters.flatMap((c) => c.members.map((m) => m.selfie_path)), ...ov.held.map((h) => h.detail?.claim_photo)].filter((x): x is string => !!x);
+  const paths = clusters.flatMap((c) => c.members.map((m) => m.selfie_path)).filter((x): x is string => !!x);
   let signed: Record<string, string> = {};
   if (paths.length) { const { data } = await (await v5Client()).storage.from('kr8-verify').createSignedUrls([...new Set(paths)], 600); for (const d of data || []) if (d.path && d.signedUrl) signed[d.path] = d.signedUrl; }
   const again = () => void dupsView();
