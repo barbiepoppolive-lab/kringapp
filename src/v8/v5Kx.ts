@@ -1,6 +1,7 @@
 /** Live calls for Card + Rings + Ranking + Places (migration 0044). Every Ring is decided on the server. */
 import { v5Client, V5Error, v5ErrCode } from './v5Live';
 import { sharedRead } from './rpcShare';
+import { kr8DeviceId } from './deviceId';
 import { areaCentre, BKK_BBOX, inBangkok, type Brand, type GapState } from './kxLogic';
 import type { ReelReady, UploadedReel } from './v5Reel';
 
@@ -55,13 +56,8 @@ export interface KxCheckin { added: number; streak: number; bonus: number; ready
 export const kxCheckin = () => rpc<KxCheckin>('kr8_checkin');
 export type KxClaimResult = { status: 'assigned'; claim_id: string; brand: Brand; amount: number; value: number; code: string; activation_url: string | null }
   | { status: 'pending'; claim_id: string; brand: Brand; amount: number; value?: number };
-function deviceId(): string {
-  try {
-    let d = localStorage.getItem('kr8_device');
-    if (!d || !/^[A-Za-z0-9-]{16,64}$/.test(d)) { d = (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}abcdef`).slice(0, 40); localStorage.setItem('kr8_device', d); }
-    return d;
-  } catch { return ''; }
-}
+/** the phone id prize claims send (0124: shared with client events, see deviceId.ts) */
+function deviceId(): string { return kr8DeviceId(); }
 /** One tap: the prize the member won, on the app they pick. The server decides everything. */
 export const kxClaimPrize = (prize: string, brand: Brand, face?: Float32Array | number[] | null, selfie?: string | null) =>
   rpc<KxClaimResult>('kr8_claim_prize', { p_prize: prize, p_brand: brand, p_device: deviceId() || null, p_face: face ? Array.from(face, (x) => Math.round(x * 1e6) / 1e6) : null,

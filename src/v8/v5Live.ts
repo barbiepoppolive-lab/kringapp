@@ -11,6 +11,7 @@ import { demoPostAvatar } from './v5DemoAvatars';
 import { appBase, lineChannel } from './lineEnv';
 import { adminViewActive, adminViewBlocks, guardClient, mirrorActive } from './adminView';
 import { sharedRead } from './rpcShare';
+import { deviceSeenDue, kr8DeviceId } from './deviceId';
 import type { V8ChatMessage, V8ChatThread, V8Deal, V8FeedItem, V8HelloRequest, V8Person } from './v8Data';
 
 const ENV = ((import.meta as unknown as { env?: Record<string, string | undefined> }).env || {}) as Record<string, string | undefined>;
@@ -699,14 +700,8 @@ export const v5SetIgHandle = (h: string) => rpc<string | null>('kr8_set_ig_handl
 export interface V5TagPlace { venue_id: string; name: string; name_th: string | null; area: string; deal_id: string | null; deal_en: string | null; deal_th: string | null }
 export const v5TagPlaces = () => rpc<V5TagPlace[]>('kr8_tag_places');
 export const v5SetReelPlace = (post: string, venue: string | null) => rpc<void>('kr8_set_reel_place', { p_post: post, p_venue: venue });
-/** A random id this phone keeps, so signed-out views count once a day. Never sent anywhere else. */
-function deviceId(): string {
-  try {
-    let d = localStorage.getItem('kr8_device');
-    if (!d || !/^[A-Za-z0-9-]{16,64}$/.test(d)) { d = (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}abcdef`).slice(0, 40); localStorage.setItem('kr8_device', d); }
-    return d;
-  } catch { return ''; }
-}
+/** A random id this phone keeps, so signed-out views count once a day (0124: the same id as 'kr8_did', see deviceId.ts). */
+function deviceId(): string { return kr8DeviceId(); }
 export const v5LogView = (post: string) => rpc<boolean>('kr8_log_reel_view', { p_post: post, p_device: deviceId() || null }).catch(() => false);
 export const v5LogShare = (post: string, channel: 'line' | 'copy' | 'native') => rpc<boolean>('kr8_log_reel_share', { p_post: post, p_channel: channel }).catch(() => false);
 /** The link people share. kringapp.com/app/?reel=<id> opens the feed on that Reel (the website adds the preview card). */
@@ -859,12 +854,20 @@ export async function v5SaveCardPrint(desc: Float32Array): Promise<boolean> {
   if (desc.length !== 128) throw new V5Error('BAD_FACE');
   return (await rpc<boolean>('kr8_save_card_print', { p_desc: Array.from(desc, (x) => Math.round(x * 1e6) / 1e6) })) === true;
 }
-/** 16 Nov: phone-side failures (Reel pick / upload, face check) go to kr8_client_events so the team can see them. Never throws. */
+/** 16 Nov: phone-side failures (Reel pick / upload, face check) go to kr8_client_events so the team can see them. Never throws.
+ *  0124: also sends this phone's id (p_did, localStorage 'kr8_did'); a database without 0124 refuses p_did, so it retries without. */
 export function v5LogClient(kind: string, code?: string, detail?: string): void {
   try {
     const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-    void rpc<void>('kr8_log_client', { p_kind: kind, p_code: code || null, p_detail: detail || null, p_ua: ua }).catch(() => undefined);
+    const base = { p_kind: kind, p_code: code || null, p_detail: detail || null, p_ua: ua };
+    const did = kr8DeviceId();
+    const send = (args: Record<string, unknown>) => rpc<void>('kr8_log_client', args);
+    void (did ? send({ ...base, p_did: did }).catch(() => send(base)) : send(base)).catch(() => undefined);
   } catch { /* never block the member */ }
+}
+/** 0124: once a Bangkok day per member on this phone, so the Fake Finder knows which phone each active member uses. Never throws. */
+export function v5DeviceSeen(uid: string): void {
+  try { if (deviceSeenDue(uid)) v5LogClient('device_seen'); } catch { /* never block the member */ }
 }
 /** Terms + Privacy notice version the member agreed to. Bump when terms.html / privacy.html change.
  *  0079 (17 Nov): Terms §4 now lets Kring feature members' posts in its own promotion, so existing members agree again. */
