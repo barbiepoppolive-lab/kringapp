@@ -288,7 +288,12 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
     Promise.resolve(kxRules()).then((c) => { if (!dead) setCfg(c || null); }).catch(() => undefined);
     Promise.resolve(kxSeatsLeft()).then((n) => { if (!dead) setSeatsLeft(typeof n === 'number' ? n : null); }).catch(() => undefined);
     kxRanking('all').then((d) => { if (!dead) setData(d); }).catch(() => { if (!dead) setErr(true); });
-    return () => { dead = true; };
+    // 19 Nov founder: the board is live, so it refreshes every 15 s while it is on screen (no flicker, a failed refresh keeps the last board)
+    const tick = window.setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      kxRanking('all').then((d) => { if (!dead && d) { setData(d); setErr(false); } }).catch(() => undefined);
+    }, 15000);
+    return () => { dead = true; window.clearInterval(tick); };
   }, []);
   useEffect(() => {
     let dead = false;
@@ -417,6 +422,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
           <p className="bx-sub" id="kxBoardSub">
             <span className={`bx-cd m-${clock.mode}${clock.mode !== 'week' ? ' day' : ''}${hot ? ' hot' : ''}`} id="kxCountdown" data-hot={hot ? '1' : '0'} data-mode={clock.mode}
               role="timer" aria-label={`${C.cdLabel} ${clock.text}`}><Stopwatch /><span className="t">{clock.text}</span></span>
+            <span className="bx-live" id="kxLive"><i aria-hidden="true" />{L('Live')}</span>
           </p>
         </div>
         <button type="button" className="bx-i" id="kxWinOpen" aria-label={L('How to win')} onClick={() => (wr ? setWin(true) : setHow(true))}><InfoIcon /></button>

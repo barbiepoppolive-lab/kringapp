@@ -131,8 +131,10 @@ export function WinSheet({ v, lang, r, onClose, glass, extra }: SheetProps) {
     );
   } else {
     const steps = [
-      { n: 1, art: '🎬', th: 'โพสต์รีลที่สถานที่ในกรุงเทพฯ', en: 'Post a Reel at a Bangkok place',
-        chips: [{ th: r.best <= 1 ? 'นับรีลที่ดีที่สุด 1 รีล' : `นับ ${r.best} รีลที่ดีที่สุด`, en: r.best <= 1 ? 'Your best Reel counts' : `Best ${r.best} Reels count` }] },
+      // 19 Nov founder: the Reel must show YOU, out at a real place in Bangkok
+      { n: 1, art: '🎬', th: 'โพสต์รีลที่มีตัวคุณอยู่ในคลิป ตามที่เที่ยวในกรุงเทพฯ', en: 'Post a Reel with you in it, out in Bangkok',
+        chips: [{ th: '🙋 เห็นหน้าคุณในคลิป', en: '🙋 You on camera' }, { th: '📍 ที่ไหนก็ได้ในกรุงเทพฯ', en: '📍 Any real Bangkok spot' },
+          { th: r.best <= 1 ? 'นับรีลที่ดีที่สุด 1 รีล' : `นับ ${r.best} รีลที่ดีที่สุด`, en: r.best <= 1 ? 'Your best Reel counts' : `Best ${r.best} Reels count` }] },
       { n: 2, art: <RingGlyph />, th: 'เก็บริงจากคนที่ชอบรีลคุณ', en: 'Collect Rings on your Reel',
         chips: earnRows(r).map((x) => ({ th: `${x.ic} ${x.pts}`, en: `${x.ic} ${x.pts}` })) },
       { n: 3, art: '🏆', th: `ติด ${r.prizes.length} อันดับแรก รับรางวัลทุกสัปดาห์`, en: `Make the top ${r.prizes.length}, win every week`,

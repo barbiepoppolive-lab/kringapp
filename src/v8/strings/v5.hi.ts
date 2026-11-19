@@ -602,6 +602,7 @@ const T: Record<string, string> = {
   'Let’s try that again': 'चलिए फिर से कोशिश करें',
   'That’s 3 tries for today. Try again tomorrow.': 'आज की 3 कोशिशें हो गईं। कल फिर कोशिश करें।',
   'No more tries today. Try again tomorrow.': 'आज के प्रयास पूरे हो गए। कल फिर कोशिश करें।',
+  'Live': 'लाइव',
   'Try again · {0} left today': 'फिर कोशिश करें · आज {0} बाकी',
   'Change card photo': 'कार्ड फ़ोटो बदलें',
   'This face is already on another Kring account': 'यह चेहरा पहले से किसी दूसरे Kring अकाउंट पर है',

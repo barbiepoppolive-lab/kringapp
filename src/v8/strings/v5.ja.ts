@@ -602,6 +602,7 @@ const T: Record<string, string> = {
   'Let’s try that again': 'もう一度やってみましょう',
   'That’s 3 tries for today. Try again tomorrow.': '今日は3回試しました。また明日どうぞ。',
   'No more tries today. Try again tomorrow.': '今日はもう試せません。また明日どうぞ。',
+  'Live': 'ライブ',
   'Try again · {0} left today': 'もう一度 · 今日はあと{0}回',
   'Change card photo': 'カードの写真を変える',
   'This face is already on another Kring account': 'この顔はすでに別のKringアカウントにあります',

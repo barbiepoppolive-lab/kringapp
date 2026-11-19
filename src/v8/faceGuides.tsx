@@ -180,6 +180,9 @@ export function FaceDoneScreen(props: { L: Tx; state: DoneState; selfie: string 
         {pass && <span className="kfg-badge">✓</span>}
       </div>
       <h2 className="kfg-h2"><Grad text={title} /></h2>
+      {/* 19 Nov founder: a yellow progress bar shows where the check is (fills to ~90% while checking, full when done) */}
+      <div className={`kfg-prog ${state}`} id="verifyProgress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={state === 'checking' ? 60 : 100}
+        aria-label={state === 'checking' ? L('Checking your face…') : pass ? L('Verified ✓') : L('Our team checks it')}><span /></div>
       <p className="kfg-sub">{pass ? (props.claim ? L('Now pick where to get your prize.') : L('The ✓ is on your card now. Members can see you’re real.'))
         : L('No need to wait here. Go ahead and keep using the app.')}</p>
       <div className="kfg-checks">

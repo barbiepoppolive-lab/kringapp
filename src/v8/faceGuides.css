@@ -68,3 +68,12 @@
 @media (prefers-reduced-motion: reduce) {
   .v8-app-root .kfg *, .v8-app-root .kfg *::before { animation: none !important; }
 }
+
+/* 19 Nov: yellow progress bar on the checking screen */
+.v8-app-root .kfg-prog { width: 100%; max-width: 280px; height: 8px; border-radius: 99px; background: rgba(255,255,255,.12); overflow: hidden; margin: 10px auto 4px; }
+.v8-app-root .kfg-prog > span { display: block; height: 100%; width: 100%; border-radius: inherit; background: linear-gradient(90deg, #FFC83D, #FFE27A);
+  box-shadow: 0 0 10px rgba(255,200,61,.55); transform-origin: left center; transform: scaleX(.06); }
+.v8-app-root .kfg-prog.checking > span { animation: kfg-prog 6s cubic-bezier(.2,.7,.3,1) forwards; }
+.v8-app-root .kfg-prog.pass > span, .v8-app-root .kfg-prog.pending > span { transform: scaleX(1); transition: transform .35s ease-out; }
+@keyframes kfg-prog { 0% { transform: scaleX(.06); } 35% { transform: scaleX(.55); } 100% { transform: scaleX(.92); } }
+@media (prefers-reduced-motion: reduce) { .v8-app-root .kfg-prog.checking > span { animation: none; transform: scaleX(.6); } }
