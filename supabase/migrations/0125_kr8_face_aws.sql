@@ -2,7 +2,7 @@
 --
 -- Why: the on-phone check downloads ~38 MB of face models; on Thai mobile data + mid phones it times out and falls back to the
 -- founder's manual review. New route: the phone sends 3 small JPEG frames (straight · left · right) to the edge function
--- face-check-aws, which asks Rekognition (ap-southeast-1) and writes the result here with the SAME side effects as
+-- face-check-aws, which asks Rekognition (ap-southeast-2) and writes the result here with the SAME side effects as
 -- kr8_verify_instant (0095): kr8_verifications row, kr8_face_decisions line, kr8_members.verified, kr8_account_links 'face',
 -- the daily tries (verify_tries_day) and the 30-day selfie deletion (reviewed_at + selfie_path, kr8_admin_verify_files_due).
 --
@@ -67,17 +67,20 @@ revoke all on function public.kr8_face_has_new_check(uuid) from public, anon, au
 -- ───────── 1. before calling AWS: switch, card, consent, limits ─────────
 create or replace function public.kr8_face_aws_gate(p_user uuid, p_consent text) returns jsonb
 language plpgsql security definer set search_path = public, pg_temp as $$
-declare me record; n int; h int; tries int := public.kr8_rcfg('verify_tries_day', 3);
+declare me record; n int; h int; tries int := public.kr8_rcfg('verify_tries_day', 3); tester boolean;
 begin
   if p_user is null then raise exception 'KR8_SIGN_IN'; end if;
-  if public.kr8_rcfg('face_aws_on', 0) <> 1 then raise exception 'KR8_FACE_AWS_OFF'; end if;
+  -- the team can test the server check before it is switched on for members (kringapp.com/app/?faceaws=1)
+  tester := public.kr8_is_team(p_user) or exists (select 1 from auth.users u join public.kr8_admin_emails a on a.email = lower(u.email)
+                                                   where u.id = p_user and u.email_confirmed_at is not null);
+  if public.kr8_rcfg('face_aws_on', 0) <> 1 and not tester then raise exception 'KR8_FACE_AWS_OFF'; end if;
   select mb.user_id, mb.verified, mb.photo, mb.member_no into me from public.kr8_members mb where mb.user_id = p_user;
   if me.user_id is null then raise exception 'KR8_NO_CARD'; end if;
-  -- the server-check consent text (photos go to AWS Singapore) starts at face-2026-11-19a
+  -- the server-check consent text (photos go to AWS Australia, Sydney) starts at face-2026-11-19a
   if p_consent is null or p_consent !~ '^face-[0-9]{4}-[0-9]{2}-[0-9]{2}[a-z]?$' or p_consent < 'face-2026-11-19a' then
     raise exception 'KR8_CONSENT_REQUIRED';
   end if;
-  if me.verified and public.kr8_face_has_new_check(p_user) then
+  if me.verified and public.kr8_face_has_new_check(p_user) and not tester then   -- a tester always gets a real check
     return jsonb_build_object('again', true, 'verified', true);
   end if;
   delete from public.kr8_face_aws_calls where user_id = p_user and at < now() - interval '2 days';

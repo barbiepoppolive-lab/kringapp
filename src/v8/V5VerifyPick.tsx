@@ -20,7 +20,15 @@ const KEEP_MS = 5 * 60_000;
 let known: { on: boolean; at: number } | null = null;
 /** the switch from the live rules (kr8_rings_rules); only exactly 1 turns it on */
 export const faceAwsOn = (rules: Record<string, unknown> | null | undefined) => Number(rules?.face_aws_on) === 1;
+/** team test: kringapp.com/app/?faceaws=1 opens the server check on this phone before it is switched on (the server lets only the team through) */
+function forcedAws(): boolean {
+  try {
+    if (typeof location !== 'undefined' && /[?&]faceaws=1\b/.test(location.search)) sessionStorage.setItem('kr8_faceaws', '1');
+    return sessionStorage.getItem('kr8_faceaws') === '1';
+  } catch { return false; }
+}
 export function faceAwsFlag(): Promise<boolean> {
+  if (forcedAws()) return Promise.resolve(true);
   if (known && Date.now() - known.at < KEEP_MS) return Promise.resolve(known.on);
   return withTimeout(kxRules(), FLAG_MS).then(faceAwsOn, () => false).then((on) => { known = { on, at: Date.now() }; return on; });
 }

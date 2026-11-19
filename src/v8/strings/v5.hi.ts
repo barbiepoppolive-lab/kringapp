@@ -601,6 +601,7 @@ const T: Record<string, string> = {
   'We’re checking · usually within a day': 'हम जाँच रहे हैं · आमतौर पर एक दिन में',
   'Let’s try that again': 'चलिए फिर से कोशिश करें',
   'That’s 3 tries for today. Try again tomorrow.': 'आज की 3 कोशिशें हो गईं। कल फिर कोशिश करें।',
+  'No more tries today. Try again tomorrow.': 'आज के प्रयास पूरे हो गए। कल फिर कोशिश करें।',
   'Try again · {0} left today': 'फिर कोशिश करें · आज {0} बाकी',
   'Change card photo': 'कार्ड फ़ोटो बदलें',
   'This face is already on another Kring account': 'यह चेहरा पहले से किसी दूसरे Kring अकाउंट पर है',
@@ -663,7 +664,7 @@ const T: Record<string, string> = {
   // 0125 server face check + 19 Nov face guides (1A · 2B · 3C)
   "Checked securely · about 5 seconds": "सुरक्षित जाँच · लगभग 5 सेकंड",
   "You only need it to claim a prize. Look at the camera, then turn a little left and right.": "यह सिर्फ़ इनाम लेने के लिए चाहिए। कैमरे को देखें, फिर थोड़ा बाएँ और दाएँ मुड़ें।",
-  "Your phone takes 3 quick photos. They go securely to our face-check service (Amazon Web Services, Singapore), which compares them with your card photo and with other members’ faces, to keep Kring one person, one account.": "आपका फ़ोन 3 फ़ोटो जल्दी से लेता है। वे सुरक्षित रूप से हमारी फ़ेस-जाँच सेवा (Amazon Web Services, सिंगापुर) पर जाती हैं, जो उन्हें आपकी कार्ड फ़ोटो और दूसरे सदस्यों के चेहरों से मिलाती है, ताकि Kring पर एक व्यक्ति, एक अकाउंट रहे।",
+  "Your phone takes 3 quick photos. They go securely to our face-check service (Amazon Web Services, Australia), which compares them with your card photo and with other members’ faces, to keep Kring one person, one account.": "आपका फ़ोन 3 फ़ोटो जल्दी से लेता है। वे सुरक्षित रूप से हमारी फ़ेस-जाँच सेवा (Amazon Web Services, ऑस्ट्रेलिया) पर जाती हैं, जो उन्हें आपकी कार्ड फ़ोटो और दूसरे सदस्यों के चेहरों से मिलाती है, ताकि Kring पर एक व्यक्ति, एक अकाउंट रहे।",
   "We keep one photo for our team to check and delete it about 30 days later. Your face code stays with Amazon until you delete your face data or your account.": "हम टीम की जाँच के लिए एक फ़ोटो रखते हैं और लगभग 30 दिन बाद उसे हटा देते हैं। आपका फ़ेस कोड Amazon के पास तब तक रहता है जब तक आप अपना चेहरा डेटा या अकाउंट नहीं हटाते।",
   "Refresh": "रीफ़्रेश",
   "Hide Toolbar": "टूलबार छिपाएँ",

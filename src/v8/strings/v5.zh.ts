@@ -601,6 +601,7 @@ const T: Record<string, string> = {
   'We’re checking · usually within a day': '我们正在核对 · 通常一天内完成',
   'Let’s try that again': '我们再试一次',
   'That’s 3 tries for today. Try again tomorrow.': '今天已经试了 3 次，明天再来吧。',
+  'No more tries today. Try again tomorrow.': '今天的次数已用完，明天再试吧。',
   'Try again · {0} left today': '再试一次 · 今天还剩 {0} 次',
   'Change card photo': '更换名片照片',
   'This face is already on another Kring account': '这张脸已经在另一个 Kring 账号上了',
@@ -663,7 +664,7 @@ const T: Record<string, string> = {
   // 0125 server face check + 19 Nov face guides (1A · 2B · 3C)
   "Checked securely · about 5 seconds": "安全检测 · 约5秒",
   "You only need it to claim a prize. Look at the camera, then turn a little left and right.": "只有领取奖品时才需要。看着镜头，然后向左、向右稍微转头。",
-  "Your phone takes 3 quick photos. They go securely to our face-check service (Amazon Web Services, Singapore), which compares them with your card photo and with other members’ faces, to keep Kring one person, one account.": "手机会快速拍3张照片，安全发送到我们的人脸检测服务（Amazon Web Services，新加坡），与你的名片照片和其他会员的脸比对，确保 Kring 一人一个账号。",
+  "Your phone takes 3 quick photos. They go securely to our face-check service (Amazon Web Services, Australia), which compares them with your card photo and with other members’ faces, to keep Kring one person, one account.": "手机会快速拍3张照片，安全发送到我们的人脸检测服务（Amazon Web Services，澳大利亚），与你的名片照片和其他会员的脸比对，确保 Kring 一人一个账号。",
   "We keep one photo for our team to check and delete it about 30 days later. Your face code stays with Amazon until you delete your face data or your account.": "我们保留1张照片供团队核对，约30天后删除。你的人脸代码保存在 Amazon，直到你删除人脸数据或账号。",
   "Refresh": "刷新",
   "Hide Toolbar": "隐藏工具栏",

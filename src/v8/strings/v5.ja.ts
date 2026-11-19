@@ -601,6 +601,7 @@ const T: Record<string, string> = {
   'We’re checking · usually within a day': '確認中です · ふつうは1日以内',
   'Let’s try that again': 'もう一度やってみましょう',
   'That’s 3 tries for today. Try again tomorrow.': '今日は3回試しました。また明日どうぞ。',
+  'No more tries today. Try again tomorrow.': '今日はもう試せません。また明日どうぞ。',
   'Try again · {0} left today': 'もう一度 · 今日はあと{0}回',
   'Change card photo': 'カードの写真を変える',
   'This face is already on another Kring account': 'この顔はすでに別のKringアカウントにあります',
@@ -663,7 +664,7 @@ const T: Record<string, string> = {
   // 0125 server face check + 19 Nov face guides (1A · 2B · 3C)
   "Checked securely · about 5 seconds": "安全にチェック · 約5秒",
   "You only need it to claim a prize. Look at the camera, then turn a little left and right.": "必要なのは賞品を受け取るときだけ。カメラを見て、少し左右を向いてください。",
-  "Your phone takes 3 quick photos. They go securely to our face-check service (Amazon Web Services, Singapore), which compares them with your card photo and with other members’ faces, to keep Kring one person, one account.": "スマホで3枚の写真をさっと撮ります。写真は顔チェックサービス（Amazon Web Services、シンガポール）に安全に送られ、カードの写真やほかのメンバーの顔と照合して、Kringを1人1アカウントに保ちます。",
+  "Your phone takes 3 quick photos. They go securely to our face-check service (Amazon Web Services, Australia), which compares them with your card photo and with other members’ faces, to keep Kring one person, one account.": "スマホで3枚の写真をさっと撮ります。写真は顔チェックサービス（Amazon Web Services、オーストラリア）に安全に送られ、カードの写真やほかのメンバーの顔と照合して、Kringを1人1アカウントに保ちます。",
   "We keep one photo for our team to check and delete it about 30 days later. Your face code stays with Amazon until you delete your face data or your account.": "確認用に写真を1枚だけ保管し、約30日後に削除します。顔コードは、顔データかアカウントを削除するまでAmazonに保管されます。",
   "Refresh": "再読み込み",
   "Hide Toolbar": "ツールバーを非表示",

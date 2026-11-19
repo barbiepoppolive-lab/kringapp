@@ -614,6 +614,7 @@ export const V5_L: Record<string, Record<string, string>> = {
     'We’re checking · usually within a day': 'ขอเช็กอีกนิด · ปกติไม่เกิน 1 วัน',
     'Let’s try that again': 'ลองอีกครั้งนะ',
     'That’s 3 tries for today. Try again tomorrow.': 'วันนี้ลองครบ 3 ครั้งแล้ว พรุ่งนี้ลองใหม่นะ',
+    'No more tries today. Try again tomorrow.': 'วันนี้ลองครบแล้ว พรุ่งนี้ลองใหม่นะครับ',
     'Try again · {0} left today': 'ลองอีกครั้ง · วันนี้เหลือ {0} ครั้ง',
     'Change card photo': 'เปลี่ยนรูปบนการ์ด',
     'This face is already on another Kring account': 'หน้านี้อยู่ในบัญชี Kring อื่นแล้ว',
@@ -664,7 +665,7 @@ export const V5_L: Record<string, Record<string, string>> = {
     // 0125 server face check + 19 Nov face guides (1A · 2B · 3C)
     "Checked securely · about 5 seconds": "ตรวจอย่างปลอดภัย · ประมาณ 5 วินาที",
     "You only need it to claim a prize. Look at the camera, then turn a little left and right.": "ใช้แค่ตอนรับรางวัลเท่านั้น มองกล้อง แล้วหันซ้ายขวานิดนึง",
-    "Your phone takes 3 quick photos. They go securely to our face-check service (Amazon Web Services, Singapore), which compares them with your card photo and with other members’ faces, to keep Kring one person, one account.": "มือถือจะถ่ายรูปสั้น ๆ 3 รูป แล้วส่งอย่างปลอดภัยไปยังระบบตรวจใบหน้าของเรา (Amazon Web Services สิงคโปร์) เพื่อเทียบกับรูปบนการ์ดของคุณและใบหน้าของสมาชิกคนอื่น ให้ Kring เป็นหนึ่งคน หนึ่งบัญชี",
+    "Your phone takes 3 quick photos. They go securely to our face-check service (Amazon Web Services, Australia), which compares them with your card photo and with other members’ faces, to keep Kring one person, one account.": "มือถือจะถ่ายรูปสั้น ๆ 3 รูป แล้วส่งอย่างปลอดภัยไปยังระบบตรวจใบหน้าของเรา (Amazon Web Services ออสเตรเลีย) เพื่อเทียบกับรูปบนการ์ดของคุณและใบหน้าของสมาชิกคนอื่น ให้ Kring เป็นหนึ่งคน หนึ่งบัญชี",
     "We keep one photo for our team to check and delete it about 30 days later. Your face code stays with Amazon until you delete your face data or your account.": "เราเก็บรูป 1 รูปไว้ให้ทีมงานตรวจ แล้วลบทิ้งภายในประมาณ 30 วัน ส่วนรหัสใบหน้าจะเก็บไว้ที่ Amazon จนกว่าคุณจะลบข้อมูลใบหน้าหรือลบบัญชี",
     "Refresh": "รีเฟรช",
     "Hide Toolbar": "ซ่อนแถบเครื่องมือ",

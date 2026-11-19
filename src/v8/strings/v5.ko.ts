@@ -601,6 +601,7 @@ const T: Record<string, string> = {
   'We’re checking · usually within a day': '확인 중이에요 · 보통 하루 안에',
   'Let’s try that again': '다시 해 볼까요',
   'That’s 3 tries for today. Try again tomorrow.': '오늘 3번 다 시도했어요. 내일 다시 해 보세요.',
+  'No more tries today. Try again tomorrow.': '오늘은 더 이상 시도할 수 없어요. 내일 다시 해 주세요.',
   'Try again · {0} left today': '다시 하기 · 오늘 {0}번 남음',
   'Change card photo': '카드 사진 바꾸기',
   'This face is already on another Kring account': '이 얼굴은 이미 다른 Kring 계정에 있어요',
@@ -663,7 +664,7 @@ const T: Record<string, string> = {
   // 0125 server face check + 19 Nov face guides (1A · 2B · 3C)
   "Checked securely · about 5 seconds": "안전하게 확인 · 약 5초",
   "You only need it to claim a prize. Look at the camera, then turn a little left and right.": "상품을 받을 때만 필요해요. 카메라를 보고, 왼쪽과 오른쪽으로 살짝 돌려 주세요.",
-  "Your phone takes 3 quick photos. They go securely to our face-check service (Amazon Web Services, Singapore), which compares them with your card photo and with other members’ faces, to keep Kring one person, one account.": "휴대폰이 사진 3장을 빠르게 찍어요. 사진은 얼굴 확인 서비스(Amazon Web Services, 싱가포르)로 안전하게 전송되어 카드 사진과 다른 회원의 얼굴과 비교해 Kring을 1인 1계정으로 지켜요.",
+  "Your phone takes 3 quick photos. They go securely to our face-check service (Amazon Web Services, Australia), which compares them with your card photo and with other members’ faces, to keep Kring one person, one account.": "휴대폰이 사진 3장을 빠르게 찍어요. 사진은 얼굴 확인 서비스(Amazon Web Services, 호주)로 안전하게 전송되어 카드 사진과 다른 회원의 얼굴과 비교해 Kring을 1인 1계정으로 지켜요.",
   "We keep one photo for our team to check and delete it about 30 days later. Your face code stays with Amazon until you delete your face data or your account.": "팀 확인용으로 사진 1장만 보관하고 약 30일 후 삭제해요. 얼굴 코드는 얼굴 데이터나 계정을 삭제할 때까지 Amazon에 보관돼요.",
   "Refresh": "새로고침",
   "Hide Toolbar": "도구 막대 가리기",

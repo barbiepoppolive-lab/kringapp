@@ -22,7 +22,7 @@ type Stage = 'needphoto' | 'intro' | 'camera' | 'sending' | 'pass' | 'review' | 
 export type AwsStep = 'straight' | 'left' | 'right';
 export const AWS_STEPS: readonly AwsStep[] = ['straight', 'left', 'right'];
 
-/** the consent text of the server check (photos go to AWS Singapore); the database asks for at least this version */
+/** the consent text of the server check (photos go to AWS Australia, Sydney); the database asks for at least this version */
 export const FACE_AWS_CONSENT_VERSION = 'face-2026-11-19a';
 const CONSENT_KEY = 'kr8_face_aws_consent';
 const consentSaved = () => { try { return localStorage.getItem(CONSENT_KEY) === FACE_AWS_CONSENT_VERSION; } catch { return false; } };
@@ -261,7 +261,7 @@ export function V5VerifyAws(props: { L: Tx; photo: string | null; nudge?: boolea
             <summary>{L('Your face data')}</summary>
             <ul>
               <li>{L('Your face is sensitive personal data under Thailand’s PDPA. We use it only to confirm you are a real person and that your profile photo is you.')}</li>
-              <li>{L('Your phone takes 3 quick photos. They go securely to our face-check service (Amazon Web Services, Singapore), which compares them with your card photo and with other members’ faces, to keep Kring one person, one account.')}</li>
+              <li>{L('Your phone takes 3 quick photos. They go securely to our face-check service (Amazon Web Services, Australia), which compares them with your card photo and with other members’ faces, to keep Kring one person, one account.')}</li>
               <li><b>{L('We keep one photo for our team to check and delete it about 30 days later. Your face code stays with Amazon until you delete your face data or your account.')}</b></li>
               <li>{L('Questions or deletion: ops@kringapp.com')}</li>
             </ul>
@@ -284,7 +284,7 @@ export function V5VerifyAws(props: { L: Tx; photo: string | null; nudge?: boolea
 
       {stage === 'retry' && (
         <Panel L={L} onClose={close} icon="fail" title={L('Let’s try that again')} text={L(retryText(why))} id="verifyFail">
-          {left === 0 ? <p className="kfv2-small">{L('That’s 3 tries for today. Try again tomorrow.')}</p> : (
+          {left === 0 ? <p className="kfv2-small">{L('No more tries today. Try again tomorrow.')}</p> : (
             <button type="button" className="kfv2-cta" id="verifyRetry" onClick={() => void start()}>
               {left !== null && left <= 5 ? L('Try again · {0} left today').replace('{0}', String(left)) : L('Try again')}
             </button>
