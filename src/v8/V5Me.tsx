@@ -107,7 +107,7 @@ function ReelRow(props: { reels: V5Profile['reels']; posters: Record<string, str
 export function ReelStamps(props: { L: Tx }) {
   const { L } = props;
   const one = (src: string, ok: boolean, tag: string) => (
-    <div className={`kx-rs-th${ok ? '' : ' no'}`} style={{ backgroundImage: `url('/media/${src}')` }}>
+    <div className={`kx-rs-th${ok ? '' : ' no'}`} style={{ backgroundImage: `url('${(import.meta.env.BASE_URL || '/app/').replace(/\/?$/, '/')}media/${src}')` }}>
       <span className={`kx-rs-stamp ${ok ? 'ok' : 'no'}`}>{ok ? `✓ ${L('Accepted')}` : `✕ ${L('Not accepted')}`}</span>
       <span className="kx-rs-tag">{L(tag)}</span>
     </div>
