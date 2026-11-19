@@ -190,10 +190,12 @@ async function check(uid: string, body: Record<string, unknown>): Promise<Respon
   };
 
   let live: ReturnType<typeof liveCheck>;
+  let yaws: (number | null)[] = [];   // 19 Nov: kept on a retry so the turn limits can be tuned on real members
   let card: number | null = null, other: ReturnType<typeof pickOther> = null;
   try {
     const det = await Promise.all((['straight', 'left', 'right'] as const).map((k) =>
       (MOCK ? rk<unknown>('DetectFaces', { __step: k }) : detect(frames[k]!)).then(summarize)));
+    yaws = det.map((fs) => (fs[0] ? Math.round(fs[0].yaw * 10) / 10 : null));
     live = liveCheck({ straight: det[0], left: det[1], right: det[2] }, lim);
     if (live.ok) {
       const cardB64 = await photoB64(gate.photo);
@@ -212,7 +214,7 @@ async function check(uid: string, body: Record<string, unknown>): Promise<Respon
     return json({ result: 'review', reasons: rec.reasons, verified: rec.verified, tries_left: rec.tries_left });
   }
   if (!live.ok) {
-    const rec = await record('fail', [live.why], { fail_aws: live.why }, null, null, null);
+    const rec = await record('fail', [live.why], { fail_aws: live.why, yaws }, null, null, null);
     return json({ result: 'retry', why: live.why, verified: rec.verified, tries_left: rec.tries_left });
   }
   const d = decide({ card, other, autoOn: (gate.auto_on ?? 1) === 1 }, lim);
