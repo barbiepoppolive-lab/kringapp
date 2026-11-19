@@ -786,7 +786,7 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
  */
 export const KX_L: Record<string, Record<string, string>> = {
   th: {
-    // 19 Nov Me redesign preview (V5MeVariants, ?mev=1..4 on dev / preview only)
+    // 19 Nov Me tab A (card + one line)
     'Ask Kring Helper': 'ถามผู้ช่วยกริ๊ง!',
     'Friends joined': 'เพื่อนที่ชวนมา',
     'Rank': 'อันดับ',

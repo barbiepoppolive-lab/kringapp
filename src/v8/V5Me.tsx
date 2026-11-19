@@ -7,13 +7,13 @@
  */
 import React, { useEffect, useState } from 'react';
 import './me.css';
+import './meA.css';
 import { PerksCard } from './V5Perks';
 import type { V5Activity, V5FollowRow, V5Level, V5Profile } from './v5Live';
 import { NeonCard, progLine, RingGlyph } from './V5KxCard';
-import { InstallChip } from './A2HS';
+import { isStandalone, openInstallSheet } from './A2HS';
 import { fmtN, levelFor, reviewNoteText } from './kxLogic';
 import type { KxCardExtras } from './v5Kx';
-import { MeVariantView } from './V5MeVariants';
 
 // ── pre-season (D-11NOV-G): the board ranks from day one; rewards start on kr8_settings.reward_start_at ──
 const LOCALE: Record<string, string> = { th: 'th-TH', zh: 'zh-CN', hi: 'hi-IN', ja: 'ja-JP', ko: 'ko-KR' };
@@ -134,6 +134,16 @@ export function FoundingChecklist(props: { L: Tx; Lf: Txf; kx: KxCardExtras | nu
 /** Same rule as FoundingChecklist: the Founding "Next step" card is on screen. */
 export const foundingDue = (kx: KxCardExtras | null | undefined) => !!kx && !kx.founding_no && kx.founding_left !== undefined && !kx.has_reel;
 
+const IcBell = () => <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" /></svg>;
+const IcMore = () => <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4" /><circle cx="12" cy="12" r="1.4" /><circle cx="19" cy="12" r="1.4" /></svg>;
+const IcShare = () => <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 14v6h14v-6" /></svg>;
+const IcHelp = () => <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.6M12 17.2h.01" /></svg>;
+const IcPlay = () => <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6M4 4v4h4" /></svg>;
+const IcPhone = () => <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5" /><path d="M12 8v6M9.5 11.5 12 14l2.5-2.5" /></svg>;
+const Chev = () => <i className="kme-chev" aria-hidden="true">›</i>;
+/** small caps label; Thai gets no letter-spacing / caps (spaced Thai letters read badly) */
+const Cap = ({ t }: { t: string }) => <small className={/[฀-๿]/.test(t) ? 'thai' : undefined}>{t}</small>;
+
 /** My Me tab */
 export type MeViewProps = {
   L: Tx; Lf: Txf; p: V5Profile; rank: number | null; posters: Record<string, string>; savedCount: number; savedImgs: string[];
@@ -147,43 +157,60 @@ export type MeViewProps = {
   reelsSlot?: React.ReactNode; onReplay?: () => void; gender?: string | null;
   /** 0061: the admin's own ghost card (only that phone sees this line) */
   ghost?: boolean;
-  /** 16 Nov: the weekly-prize race card, right under "This week" (hidden while the Founding "Next step" card shows: one next step at a time) */
+  /** 16 Nov: the weekly-prize race card (no longer shown on Me since 17 Nov; the prize amount sits on the week line) */
   prizeSlot?: React.ReactNode;
-  /** invite-1: ONE quiet line under the stats, "Friends joined: 2 · +20 Rings" (no card) */
-  friendsSlot?: React.ReactNode;
   /** 0078: the one-time "Show my Reels on the web" ask (members with an approved Reel who were never asked) */
   webAskSlot?: React.ReactNode;
-  /** 17 Nov: "Your next step" card, at the top */
-  nextSlot?: React.ReactNode;
-  /** 18 Nov (0097): "Questions? Ask Kring Helper" row, right under "This week" */
-  helpSlot?: React.ReactNode;
+  /** 17 Nov: "Your next step" card, at the top. 19 Nov (A): shown only for a step that asks for an action (see nextKind) */
+  nextSlot?: React.ReactNode; nextKind?: string | null;
   /** 0111: the gentle "Verify your face in 5 seconds" row can be hidden (×) for a while; it never blocks anything */
   verifyHidden?: boolean; onVerifyHide?: () => void;
-  /** 19 Nov Me redesign PREVIEW only (?mev=1..4 on a dev / preview build, see V5MeVariants). 0 / absent = the current Me tab. */
-  mev?: number; onHelp?: () => void; weekPrize?: number | null; nextKind?: string | null; invites?: { friends: number; rings: number } | null;
+  /** 19 Nov (A): Ask Kring Helper lives in the ⋯ menu; the week line shows this week's prize at my rank (0 = none) */
+  onHelp?: () => void; weekPrize?: number | null;
+  /** invite-1: friends who joined with my link (a number on the stats line) */
+  invites?: { friends: number; rings: number } | null;
 };
+
+/**
+ * 19 Nov, founder picked "A · Card + one line": the card, then ONE hairline line (This week · Rank · Prize now), then the stats line
+ * (followers · following · likes · friends joined) and the Reels. Share card, Ask Kring Helper, Install app and Replay intro are one tap
+ * away in the ⋯ menu. "Climb this week's board" is not shown (the week line says it); action steps (post a Reel, claim, face check) still show.
+ */
 export function MeView(props: MeViewProps) {
-  if (props.mev) return <MeVariantView {...props} mev={props.mev} />;
   const { L, Lf, p } = props;
   const lv = p.level;
   const visits = Math.ceil(lv.need_points / 5);
+  const [menu, setMenu] = useState(false);
+  const prize = props.weekPrize && props.weekPrize > 0 ? `฿${fmtN(props.weekPrize)}` : null;
+  const pick = (f?: () => void) => () => { setMenu(false); f?.(); };
+  const actionStep = !!props.nextKind && props.nextKind !== 'climb';
   return (
-    <div className="kme" id="meView">
+    <div className="kme kme-a" id="meView">
       <div className="kme-top">
         <span className="cap">{L('Your Kring')}</span>
-        <InstallChip L={L} />
         <span className="kme-icons">
           <button type="button" id="activityBtn" aria-label={L('Activity')} onClick={props.onActivity}>
-            <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-            {props.unread ? <i className="dot" /> : null}
+            <IcBell />{props.unread ? <i className="dot" /> : null}
           </button>
           <button type="button" className="kp-gear" id="meGear" aria-label={L('Settings')} onClick={props.onSettings}>
             {/* G (15 Nov): a real gear, same stroke as the bell (the old rays read as a light-mode sun) */}
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
           </button>
+          <button type="button" id="meMore" aria-label={L('More')} aria-expanded={menu} onClick={() => setMenu((m) => !m)}><IcMore /></button>
         </span>
       </div>
-      {props.nextSlot || null}
+      {menu ? (
+        <>
+          <div className="kme-scrim" onClick={() => setMenu(false)} />
+          <div className="kme-pop" id="meMoreList" role="menu">
+            <button type="button" role="menuitem" id="meShare" onClick={pick(props.onCode)}><span className="ic"><IcShare /></span><span className="t">{L('Share card')}</span><Chev /></button>
+            {props.onHelp ? <button type="button" role="menuitem" id="meHelpRow" onClick={pick(props.onHelp)}><span className="ic"><IcHelp /></span><span className="t">{L('Ask Kring Helper')}</span><Chev /></button> : null}
+            {isStandalone() ? null : <button type="button" role="menuitem" id="installChip" onClick={pick(openInstallSheet)}><span className="ic"><IcPhone /></span><span className="t">{L('Install app')}</span><Chev /></button>}
+            {props.onReplay ? <button type="button" role="menuitem" id="goReplay" onClick={pick(props.onReplay)}><span className="ic"><IcPlay /></span><span className="t">{L('Replay intro')}</span><Chev /></button> : null}
+          </div>
+        </>
+      ) : null}
+      {actionStep ? props.nextSlot : null}
       {props.ghost ? <p className="kme-ghost" id="meGhost" role="status"><span aria-hidden="true">👻</span>{L('Ghost mode · nobody can see you')}</p> : null}
       <div className="kme-cardwrap">
         <KxMemberCard L={L} Lf={Lf} p={p} kx={props.kx} gender={props.gender} />
@@ -191,21 +218,19 @@ export function MeView(props: MeViewProps) {
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" /></svg>
         </button>
       </div>
-      {/* polish #4: one "This week" row: Rings · rank · Rewards › (the Rewards page links to the full ranking) */}
-      <div className="kx-tiles kx-week" id="kxTiles">
-        {/* T-301 (T301-001 axe nested-interactive): the tile is a plain box; the whole-tile tap is one button stretched over it and
-            the rank is its own button on top (no button inside a button) */}
-        <div className="kx-mtile rw kx-weekrow kx-wk-box" id="kxRingsTile">
-          <button type="button" className="kx-wk-hit" id="kxRingsHit" aria-label={`${L('This week')} · ${L('Rewards')}`} onClick={props.onRings} />
+      {/* A: one hairline line, no box. This week → Rewards, Rank → the weekly board, Prize now → Rewards */}
+      <div className="kme-line" id="kxTiles">
+        <button type="button" className="c" id="kxRingsHit" aria-label={`${L('This week')} · ${L('Rewards')}`} onClick={props.onRings}>
+          <Cap t={L('This week')} /><b>{props.kx ? fmtN(props.kx.week ?? 0) : '…'} <RingGlyph /></b>
           {props.ringsDot || (props.kx?.prizes ?? 0) > 0 ? <i className="kx-tdot" aria-label={L('New')} /> : null}
-          <span className="kx-wk-l">{L('This week')}</span>
-          <b>{props.kx ? fmtN(props.kx.week ?? 0) : '…'} <RingGlyph /></b>
-          <button type="button" className="kx-wk-rk" id="kxRankTile" onClick={() => (props.onRanking ? props.onRanking() : props.onRings?.())}>{props.weekRank ? Lf('Rank #{0}', String(props.weekRank)) : L('Ranking')}</button>
-          <span className="kx-wk-go">{L('Rewards')} <i>›</i></span>
-        </div>
+        </button>
+        <button type="button" className="c" id="kxRankTile" onClick={() => (props.onRanking ? props.onRanking() : props.onRings?.())}>
+          <Cap t={L('Rank')} /><b className="gd">{props.weekRank ? `#${props.weekRank}` : '–'}</b>
+        </button>
+        <button type="button" className="c" id="kxPrizeNow" onClick={props.onRings}>
+          <Cap t={prize ? L('Prize now') : L('Rewards')} /><b>{prize || <Chev />}</b>
+        </button>
       </div>
-      {props.helpSlot || null}
-      {/* founder 17 Nov: the big ฿ prize card is gone from Me (the prize lives in the Feed ticker + Rewards) */}
       {props.webAskSlot || null}
       <FoundingChecklist L={L} Lf={Lf} kx={props.kx} hasSocial={!!(props.kx?.ig_handle || props.kx?.tiktok_handle || p.ig_handle)} onLink={props.onLink || props.onEdit} onPost={props.onPost} />
       {props.reelsSlot ? null : (
@@ -216,19 +241,12 @@ export function MeView(props: MeViewProps) {
         <span className="go">›</span>
       </button>
       )}
-      {/* polish #4/#5: followers · following · likes on one line; one "Share card" button (the QR is inside it); Edit = pencil on the card */}
-      <div className="kme-stline kme-stline2" id="meStats">
-        <button type="button" id="statFollowers" onClick={() => props.onList('followers')}><b>{fmtCount(p.followers)}</b> {L('Followers')}</button>
-        <i aria-hidden="true">·</i>
-        <button type="button" id="statFollowing" onClick={() => props.onList('following')}><b>{fmtCount(p.following)}</b> {L('Following')}</button>
-        <i aria-hidden="true">·</i>
-        <span><b>{fmtCount(p.likes)}</b> {L('Likes')}</span>
-        {/* 17 Nov de-clutter: Share is a small pill on the stats line, not a full-width button */}
-        <button type="button" className="kme-sharepill" id="meShare" aria-label={L('Share card')} onClick={props.onCode}>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 14v6h14v-6" /></svg>{L('Share')}
-        </button>
+      <div className="kme-stats" id="meStats">
+        <button type="button" id="statFollowers" onClick={() => props.onList('followers')}><b>{fmtCount(p.followers)}</b><span>{L('Followers')}</span></button>
+        <button type="button" id="statFollowing" onClick={() => props.onList('following')}><b>{fmtCount(p.following)}</b><span>{L('Following')}</span></button>
+        <span><b>{fmtCount(p.likes)}</b><span>{L('Likes')}</span></span>
+        {props.invites ? <span id="meFriends"><b>{fmtN(props.invites.friends)}</b><span>{L('Friends joined')}</span></span> : null}
       </div>
-      {props.friendsSlot || null}
       {props.reelsSlot ? null : <PerksCard />}
       {/* 16 Nov: a new member's first step is their first Reel; the face check shows once they have one (or already sent it) */}
       {props.reelsSlot && !p.reels.length ? (
@@ -253,10 +271,7 @@ export function MeView(props: MeViewProps) {
           ) : null}
         </div>
       )}
-      {props.reelsSlot ? (
-        <>{props.reelsSlot}
-        {props.onReplay ? <button type="button" className="go-replay" id="goReplay" onClick={props.onReplay}>{L('Replay intro')}</button> : null}</>
-      ) : (
+      {props.reelsSlot ? props.reelsSlot : (
         <>
       <div className="kme-lvl" id="meLevel">
         <span className="cup" aria-hidden="true"><span className="liq" style={{ height: `${Math.max(8, Math.min(100, lv.pct))}%` }} /></span>

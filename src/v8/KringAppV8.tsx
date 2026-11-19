@@ -94,15 +94,12 @@ import {
   v5StoredRef,
 } from './v5Live';
 import { ActivitySheet, FollowSheet, InterestsSheet, LANG_NAME, MeView } from './V5Me';
-import { meVariantFromUrl } from './V5MeVariants';
 import { inAppBrowser, A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip, openInstallSheet, takeInstallAsk } from './A2HS';
 import { parsePushLink, pushConfigured, pushDisable, pushEnable, pushMoment, pushResync, pushState, type PushLink, type PushState } from './push';
 import { PUSH_ASK_LINE, PushAskCard } from './V5Push';
 import { EscapeScreen } from './V5Escape';
 import { inAppOf, isLiffOpen, openEscape } from './escape';
 import { TripPerks } from './V5Trip';
-/** 19 Nov Me redesign PREVIEW: ?mev=1..4 on a dev / preview build only; always 0 (= the current Me tab) in production. */
-const ME_VARIANT = meVariantFromUrl();
 // founder 17 Nov: hide café treats / stays; Deals = trip partners + "more deals coming soon"
 const DEALS_TRIP_ONLY = true;
 // Kring Light (18 Nov): low-end Android phones get a plain dark tint on sheets instead of a costly blur.
@@ -121,7 +118,7 @@ import { TermsAgreeText } from './V5Sheets';
 import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
 import type { V5Blocked, V5Card, V5FeedItem, V5Me, V5ReportReason, V5TagPlace, V5Thread } from './v5Live';
 import { V5_L, KX_L, kxArea, v5ErrText, loadV5Lang, v5LangReady } from './v5Strings';
-import { RingGlyph, V5MintSheet } from './V5KxCard';
+import { V5MintSheet } from './V5KxCard';
 import { checkProfilePhoto, faceDescriptor, loadImage, prefetchFaceApi } from './v5Face';
 import { ensureCardPrint } from './cardPrint';
 import { afterStartIdle } from './idle';
@@ -134,7 +131,7 @@ import { useChatTranslate } from './v5Translate';
 import { kxMyInvites, kxBreakdown, kxGenderShown, kxMemberReels, kxReelPeople, kxTagPeople, type KxGridReel, type KxMemberReels, type KxTagPerson } from './v5Kx';
 import { kxRules, kxSetWebReels, kxWebReelsGet, type KxWebReels } from './v5Kx';
 import { facePassedHere, markFacePassed, skipClaimFace } from './faceSkip';
-import { friendsLine, friendsParts, liveSeen, markLiveSeen, oneTapShare, pickLiveReel, refCode, shareText, withRef, type ShareKind, type ShareResult } from './invite';
+import { liveSeen, markLiveSeen, oneTapShare, pickLiveReel, refCode, shareText, withRef, type ShareKind, type ShareResult } from './invite';
 import { InviteHint } from './V5Invite';
 import { copyText } from './camGuard';
 import { PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, SavedReelsPage, type PickedPlace } from './V5KxPlaces';
@@ -179,7 +176,7 @@ import { isMemberId } from './deepLink';
 import { ADMIN_VIEW_NO_SHEETS, adminPanelHref, adminViewActive, adminViewWanted, mirrorActive, setAdminViewActive } from './adminView';
 const appBasePath = () => ((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.BASE_URL) || '/app/';
 import { AdminViewMe, AdminViewPill } from './V5AdminView';
-import { HELP_UI, HelpMeRow, HelpSheet } from './V5Help';
+import { HELP_UI, HelpSheet } from './V5Help';
 import { v5HelpEvent, v5HelpOpen } from './v5Live';
 
 const V9_L: Record<string, Record<string, string>> = {
@@ -2971,11 +2968,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     void nextHideTick;
     return s && !nextStepHidden(v5Uid, s.kind) ? s : null;
   })();
-  // K-006 (18 Nov): on Me the next-step card (130 px) arrived after the card and pushed it down (CLS 0.15). While its data is
-  // still loading, an empty space of the same height is kept (for at most 8 s), so nothing jumps when it arrives.
-  const [nextWaitOver, setNextWaitOver] = useState(false);
-  useEffect(() => { setNextWaitOver(false); const t = window.setTimeout(() => setNextWaitOver(true), 8000); return () => window.clearTimeout(t); }, [v5Uid]);
-  const nextLoading = !nextStep && !nextWaitOver && live && signedIn && !!v5Uid && !adminView && !!v5Card && (goMine === null || kxRewards === null);
+  // K-006 (18 Nov) kept an empty space on Me while the next step loaded; 19 Nov (Me A): Me shows only action steps, so no space is held.
   const nextGo = (where: 'feed' | 'me') => {
     const s = nextStep;
     if (!s) return;
@@ -4859,7 +4852,6 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               L={L}
               Lf={Lf}
               ghost={v5Ghost}
-              mev={ME_VARIANT}
               onHelp={() => setSheet('help')}
               weekPrize={kxWeek?.me?.prize ?? null}
               nextKind={nextStep?.kind ?? null}
@@ -4883,19 +4875,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onEdit={() => setSheet('v5card')}
               onShare={() => void shareProfile(meProfile)}
               onCode={() => void shareProfile(meProfile)}
-              friendsSlot={myInvites ? (
-                <p className="kx-friends" id="meFriends" aria-label={friendsLine(shareLang, myInvites.friends, myInvites.rings)}>
-                  {friendsParts(shareLang, myInvites.friends, myInvites.rings).lead} <b>{friendsParts(shareLang, myInvites.friends, myInvites.rings).amt}</b> <RingGlyph />
-                </p>) : null}
               onSaved={() => setSheet('saved')}
               onRewards={() => setSheet('activity')}
               onReel={openReelFromProfile}
               onPost={() => kxPostAt()}
               onVerify={() => setSheet('verify')}
               verifyHidden={verifyRowHidden(v5Uid, verifyHideTick)} onVerifyHide={() => { hideVerifyRow(v5Uid); setVerifyHideTick((n) => n + 1); }}
-              helpSlot={<HelpMeRow lang={lang} onOpen={() => setSheet('help')} />}
-              nextSlot={nextStep ? <div className="nx-cardwrap"><NextStepCard step={nextStep} variant="card" lang={lang} L={L} Lf={Lf} onGo={() => nextGo('me')} onHide={nextHide} /></div>
-                : nextLoading ? <div className="nx-cardwrap nx-hold" id="nxHold" aria-hidden="true" /> : null}
+              nextSlot={nextStep ? <div className="nx-cardwrap"><NextStepCard step={nextStep} variant="card" lang={lang} L={L} Lf={Lf} onGo={() => nextGo('me')} onHide={nextHide} /></div> : null}
               gender={shownGender(v5Card)}
               onReplay={() => { void coachReplay(coachRef.current, true).then(() => { setTab('feed'); showToast(L('Intro is on again')); }); }}
               reelsSlot={(
