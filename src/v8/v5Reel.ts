@@ -219,6 +219,27 @@ async function makePoster(info: ReelInfo, vv: HTMLVideoElement | null): Promise<
   return fallbackPoster();
 }
 
+/** 0148 copied-Reel check: two extra frames (middle, near the end of the chosen part) for the server's watermark reader
+ *  (TikTok / CapCut marks often appear after the first second). Best effort, ≤ 4 s, never blocks posting. Kept by poster blob. */
+const scanOf = new WeakMap<Blob, Blob[]>();
+export const scanFramesOf = (poster: Blob): Blob[] => scanOf.get(poster) || [];
+export async function makeScanFrames(info: ReelInfo, vv: HTMLVideoElement | null, poster: Blob): Promise<Blob[]> {
+  if (!vv || !vv.videoWidth) return [];
+  const from = info.trim ? info.trim.startMs / 1000 : 0;
+  const len = info.durationMs / 1000;
+  const out: Blob[] = [];
+  const work = (async () => {
+    for (const at of [from + len * 0.5, from + Math.max(len - 0.5, len * 0.9)]) {
+      const b = await posterOf(vv, at).catch(() => null);
+      if (b) out.push(b);
+    }
+  })();
+  await Promise.race([work, new Promise((r) => setTimeout(r, 4000))]);
+  const got = out.slice(0, 2);
+  if (got.length) scanOf.set(poster, got);
+  return got;
+}
+
 /** Preview image for the post sheet when the <video> there cannot show a frame (object URL, or ''). */
 export async function previewPoster(info: ReelInfo): Promise<string> {
   const p = await (await import('./reelTranscode')).webCodecsPoster(info.file, (info.trim ? info.trim.startMs / 1000 : 0) + Math.min(1, info.durationMs / 3000)).catch(() => null);
@@ -248,6 +269,7 @@ export async function prepareReel(info: ReelInfo, ac: AudioContext | null, onPro
   let vv: HTMLVideoElement | null = null;
   if (info.decodable !== false) { try { vv = await loadVideo(info.url); } catch { vv = null; } }
   const poster = await makePoster(info, vv);
+  await makeScanFrames(info, vv, poster).catch(() => []);   // 0148: frames for the copied-Reel check (best effort)
   const original = (): ReelReady => {
     if (cut) throw new ReelError('TRIM_FAIL', undefined, why.join('|').slice(0, 52) || 'none');
     if (info.file.size > REEL_MAX_BYTES) throw new ReelError('TOO_BIG', undefined, why.join('|').slice(0, 52) || 'none');   // message: trim it shorter or film at 1080p
@@ -440,7 +462,7 @@ export async function readable(b: Blob): Promise<Blob> {
   return new Blob([buf], { type: b.type });
 }
 /** fix4: parts of a Reel that already landed (kept across Retry taps, so only the missing part is sent again, under a new name). */
-const landed = new WeakMap<ReelReady, { posterPath?: string; videoPath?: string }>();
+const landed = new WeakMap<ReelReady, { posterPath?: string; videoPath?: string; scanned?: boolean }>();
 
 export interface UploadedReel { videoPath: string; posterPath: string }
 
@@ -463,6 +485,15 @@ export async function uploadReel(r: ReelReady, onProgress: (p: number) => void, 
   if (!have.videoPath) {
     const body = await readable(r.blob);
     have.videoPath = await putFresh((p) => putOnce(cfg.supabaseUrl, cfg.supabaseKey, s.access_token, p, body, r.mime.split(';')[0], onProgress), () => reelObjectPath(uid, r.ext));
+  }
+  // 0148: the scan frames sit next to the video (<video>.s1.jpg / .s2.jpg) for the server's watermark check; a failure is ignored
+  // (the check then reads the poster only). Nothing references them, so the nightly orphan clean-up removes them after a day.
+  const scan = scanFramesOf(r.poster);
+  if (scan.length && !have.scanned) {
+    have.scanned = true;
+    for (const [i, b] of scan.entries()) {
+      await putOnce(cfg.supabaseUrl, cfg.supabaseKey, s.access_token, `${have.videoPath}.s${i + 1}.jpg`, b, 'image/jpeg', () => undefined).catch(() => undefined);
+    }
   }
   onProgress(1);
   return { videoPath: have.videoPath, posterPath: have.posterPath, done: [have.posterPath, have.videoPath] };

@@ -21,6 +21,7 @@ import './admin2.css';
 import { info, v2Flush, v2Route, v2TabFor, v2Tabbar, v2TestToggle } from './adminV2';
 import { photoOkButton } from './photoOk';   // 0122: one-tap Photo OK
 import { checkReasons, holdLines, isRetiredFaceLink } from './adminClean';   // 19 Nov clean-up (old on-phone face checker retired)
+import { copyLabel, feedLabel, feedOffReason, loadReelChecks, setReelFeed, type ReelCheck } from './reelChecks';   // 0145/0147
 
 // ───────────────────────────── types (same rows as v1) ─────────────────────────────
 type Reel = { id: string; author_id: string; author_name: string; ref_code: string | null; area: string; body: string; created_at: string;
@@ -476,13 +477,38 @@ function reelVideo(src: string, poster: string, chips: Kid[], overlay: Kid[]): H
   return box;
 }
 
+/** 0145/0147: the copied-watermark line + "Hide from feed / Show in feed" (one tap) for a Reel card. Null before 0147 is live. */
+export function reelCheckRow(id: string, c: ReelCheck | undefined): HTMLElement | null {
+  if (!c) return null;
+  const copy = copyLabel(c);
+  const line = el('span', { class: 'fact', 'data-feedline': id });
+  const b = el('button', { type: 'button', class: 'fact', id: 'reelFeed-' + id, style: 'cursor:pointer' }) as HTMLButtonElement;
+  const draw = () => {
+    const f = feedLabel(c);
+    line.replaceChildren(...(f ? [ic(c.feed_off ? 'eyeoff' : 'flag'), f] : []));
+    line.hidden = !f;
+    line.classList.toggle('red', !c.feed_off && c.verdict === 'SUGGEST_FEED_OFF');
+    b.replaceChildren(ic(c.feed_off ? 'eye' : 'eyeoff'), c.feed_off ? 'Show in feed' : 'Hide from feed');
+  };
+  b.onclick = async () => {
+    const off = !c.feed_off;
+    b.disabled = true;
+    try { const r = await setReelFeed(rpc, id, off, off ? feedOffReason(c) : undefined); c.feed_off = r.feed_off; c.feed_off_reason = r.reason; draw(); toast(off ? 'Hidden from feed · still on their profile' : 'Back in the feed', { ms: 1800 }); }
+    catch (e) { toast(errText(e)); }
+    b.disabled = false;
+  };
+  draw();
+  return el('div', { class: 'facts', 'data-reelcheck': id }, copy ? el('span', { class: 'fact red', 'data-copied': id }, copy) : null, line, b);
+}
+
 async function reelQueue() {
   app.replaceChildren(el('div', { class: 'scr' }, loading()));
   let rows: Reel[];
   try { rows = await rpc<Reel[]>('kr8_admin_reels', { p_status: 'pending', p_limit: 100 }); } catch (e) { app.replaceChildren(el('div', { class: 'scr' }, errP(e))); return; }
-  const [urls, cnt] = await Promise.all([
+  const [urls, cnt, checks] = await Promise.all([
     signReelPaths(rows.flatMap((r) => [r.video_path, r.poster_path])).catch(() => ({} as Record<string, string>)),
     rows.length ? rpc<Counts[]>('kr8_admin_reel_counts', { p_ids: rows.map((r) => r.id) }).catch(() => [] as Counts[]) : Promise.resolve([] as Counts[]),
+    loadReelChecks(rpc, rows.map((r) => r.id)),
   ]);
   const cm = new Map(cnt.map((c) => [c.id, c]));
   // audit P3-2: label each Reel with the member's own "I live here / Visiting" (older databases: plain "Member")
@@ -504,7 +530,8 @@ async function reelQueue() {
         el('span', { class: 'fact' }, ic('check'), 'Approved before ', el('b', {}, String(r.author_approved))),
         c ? el('span', { class: 'fact', 'data-counts': r.id }, ic('eye'), el('b', {}, String(c.views)), ic('heart'), el('b', {}, String(c.likes)), ic('save'), el('b', {}, String(c.saves)), ic('share'), el('b', {}, String(c.shares))) : null,
         c?.open_reports ? el('span', { class: 'fact red' }, ic('flag'), el('b', {}, String(c.open_reports)), ' open reports') : null,
-        el('a', { class: 'fact', href: reelLink(r.id), target: '_blank', rel: 'noopener' }, ic('open'), 'Open Reel')));
+        el('a', { class: 'fact', href: reelLink(r.id), target: '_blank', rel: 'noopener' }, ic('open'), 'Open Reel')),
+      reelCheckRow(r.id, checks.get(r.id)));
   });
 }
 
@@ -1786,11 +1813,12 @@ async function historyView(kind: string) {
     if (kind === 'reels') {
       const st = histSeg.reels as Reel['status'];
       const rows = await rpc<Reel[]>('kr8_admin_reels', { p_status: st, p_limit: 100 });
-      const urls = await signReelPaths(rows.map((r) => r.poster_path)).catch(() => ({} as Record<string, string>));
+      const [urls, checks] = await Promise.all([signReelPaths(rows.map((r) => r.poster_path)).catch(() => ({} as Record<string, string>)), loadReelChecks(rpc, rows.map((r) => r.id))]);
       body.replaceChildren(...(rows.length ? rows.map((r) => {
         const row = el('div', { class: 'li', 'data-reel': r.id }, el('img', { class: 'thumb', src: urls[r.poster_path] || '', alt: '' }),
           el('span', { class: 'grow' }, el('b', {}, r.author_name), el('span', { class: 's' }, `${r.area} · ${ago(r.created_at)}`),
-            el('a', { class: 'link xs', href: reelLink(r.id), target: '_blank', rel: 'noopener', style: 'display:block;margin-top:4px' }, 'Open Reel')));
+            el('a', { class: 'link xs', href: reelLink(r.id), target: '_blank', rel: 'noopener', style: 'display:block;margin-top:4px' }, 'Open Reel'),
+            reelCheckRow(r.id, checks.get(r.id))));
         const acts = el('div', { style: 'display:flex;flex-direction:column;gap:6px' });
         const set = (s: 'approved' | 'hidden', label: string, cls: string) => btn(cls, [label], s === 'hidden'
           // 17 Nov: Hide here asks why too (same sheet as the Reel queue)

@@ -13,6 +13,10 @@
 //   { action: 'index', id }   after the founder approves a pending AWS check: index its selfie (duplicate search finds it later)
 //   { action: 'backfill', limit? }   index the card photos of verified members not in the collection yet (≤ 50 a call)
 //   { action: 'sweep' }   remove faces of deleted / no longer verified members from the collection (PDPA)
+//   { action: 'reel_copy_scan', limit? }   (0148, robot) new waiting Reels: poster + 2 scan frames → DetectText → copied watermark?
+//                          recorded in kr8_reel_copy_checks (+ amber alert). Never hides a Reel.
+// 0148: the straight frame's DetectFaces also asks AGE_RANGE (same call); pass / review → kr8_age_check_record (likely under 18
+//       → red alert). Never closes an account.
 //
 // Env: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION (default ap-southeast-2), FACE_AWS_COLLECTION (default kring-members),
 //      FACE_AWS_YAW_SIGN (+1 / -1 / 0, see decide.ts), FACE_AWS_MOCK=1 (canned answers, no AWS keys needed: the body may add
@@ -21,6 +25,7 @@
 // Rate limits: face_aws_hour (default 20) calls per member per hour + the usual verify_tries_day decisions a day (database).
 import { AWS_LIMITS, cardSimilarity, decide, liveCheck, pickOther, summarize, type FaceAwsLimits, type FaceStep } from './decide.ts';
 import { signV4 } from './sigv4.ts';
+import { ageVerdict, copyHits, copySummary, scanFramePaths, type CopyHit, type TextDet } from './copyscan.ts';
 
 const SUPA = (Deno.env.get('SUPABASE_URL') ?? '').replace(/\/$/, '');
 const ANON = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
@@ -33,6 +38,7 @@ const COLLECTION = Deno.env.get('FACE_AWS_COLLECTION') || 'kring-members';
 const MOCK = Deno.env.get('FACE_AWS_MOCK') === '1';
 const YAW_SIGN = Number(Deno.env.get('FACE_AWS_YAW_SIGN') || 0) || 0;
 const BUCKET = 'kr8-verify';
+const REELS = 'kr8-reels';
 const MAX_B64 = 1_400_000;   // ≈ 1 MB of JPEG per frame (a 480-px frame is ~40 KB)
 
 const CORS = {
@@ -78,8 +84,8 @@ async function upload(path: string, b64: string): Promise<void> {
 async function removeFile(path: string): Promise<void> {
   await fetch(`${SUPA}/storage/v1/object/${BUCKET}`, { method: 'DELETE', headers: SRH, body: JSON.stringify({ prefixes: [path] }) }).catch(() => undefined);
 }
-async function download(path: string): Promise<string | null> {
-  const r = await fetch(`${SUPA}/storage/v1/object/${BUCKET}/${path}`, { headers: { apikey: SR, Authorization: `Bearer ${SR}` } }).catch(() => null);
+async function download(path: string, bucket = BUCKET): Promise<string | null> {
+  const r = await fetch(`${SUPA}/storage/v1/object/${bucket}/${path}`, { headers: { apikey: SR, Authorization: `Bearer ${SR}` } }).catch(() => null);
   if (!r || !r.ok) return null;
   return bytesToB64(new Uint8Array(await r.arrayBuffer()));
 }
@@ -119,7 +125,15 @@ async function rk<T>(target: string, payload: Record<string, unknown>): Promise<
   return j as T;
 }
 const img = (b64: string) => ({ Bytes: b64 });
-const detect = (b64: string) => rk<unknown>('DetectFaces', { Image: img(b64), Attributes: ['DEFAULT', 'EYES_OPEN', 'SUNGLASSES'] });
+const detect = (b64: string) => rk<unknown>('DetectFaces', { Image: img(b64), Attributes: ['DEFAULT', 'EYES_OPEN', 'SUNGLASSES', 'AGE_RANGE'] });   // 0148: + age, same call
+/** 0148: the age range of the biggest face in a DetectFaces answer (null when none) */
+export function ageOf(resp: unknown): { Low: number; High: number } | null {
+  const fs = ((resp as { FaceDetails?: { BoundingBox?: { Width?: number; Height?: number }; AgeRange?: { Low?: number; High?: number } }[] } | null)?.FaceDetails || [])
+    .slice().sort((a, b) => (b.BoundingBox?.Width ?? 0) * (b.BoundingBox?.Height ?? 0) - (a.BoundingBox?.Width ?? 0) * (a.BoundingBox?.Height ?? 0));
+  const a = fs[0]?.AgeRange;
+  return a && typeof a.Low === 'number' && typeof a.High === 'number' ? { Low: a.Low, High: a.High } : null;
+}
+
 async function search(b64: string): Promise<unknown> {
   const p = { CollectionId: COLLECTION, Image: img(b64), FaceMatchThreshold: 80, MaxFaces: 5, QualityFilter: 'NONE' };   // 19 Nov: 80 so look-alikes are kept for the prize check
   try { return await rk<unknown>('SearchFacesByImage', p); }
@@ -155,7 +169,8 @@ async function indexFace(uid: string, b64: string, source: 'check' | 'card', ver
 /** FACE_AWS_MOCK=1: canned Rekognition answers, so the whole flow (database rows, storage, alerts, the app) can be tested without keys */
 function mockRk(target: string, p: Record<string, unknown>): unknown {
   const face = (yaw: number, extra: Record<string, unknown> = {}) => ({ Confidence: 99.9, BoundingBox: { Width: 0.45, Height: 0.6 }, Pose: { Yaw: yaw, Pitch: 2, Roll: 1 },
-    Quality: { Brightness: 70, Sharpness: 60 }, EyesOpen: { Value: true, Confidence: 98 }, Sunglasses: { Value: false, Confidence: 99 }, ...extra });
+    Quality: { Brightness: 70, Sharpness: 60 }, EyesOpen: { Value: true, Confidence: 98 }, Sunglasses: { Value: false, Confidence: 99 },
+    AgeRange: mockCase === 'minor' ? { Low: 12, High: 18 } : { Low: 24, High: 32 }, ...extra });
   if (target === 'DetectFaces') {
     const step = (p as { __step?: FaceStep }).__step || 'straight';
     if (mockCase === 'aws_down') throw new AwsError('ThrottlingException', 'mock: Rekognition is busy');
@@ -168,6 +183,7 @@ function mockRk(target: string, p: Record<string, unknown>): unknown {
     const other = Deno.env.get('FACE_AWS_MOCK_OTHER') || '00000000-0000-0000-0000-000000000000';
     return mockCase === 'lookalike' ? { FaceMatches: [{ Similarity: 98.7, Face: { ExternalImageId: other, FaceId: 'mock-face' } }] } : { FaceMatches: [] };
   }
+  if (target === 'DetectText') return { TextDetections: mockCase === 'tiktok' ? [{ DetectedText: 'TikTok', Type: 'LINE', Confidence: 99 }] : [] };
   if (target === 'IndexFaces') return { FaceRecords: [{ Face: { FaceId: `mock-${crypto.randomUUID()}` } }] };
   if (target === 'ListFaces' || target === 'DeleteFaces' || target === 'CreateCollection') return {};
   return {};
@@ -204,9 +220,12 @@ async function check(uid: string, body: Record<string, unknown>): Promise<Respon
   let live: ReturnType<typeof liveCheck>;
   let yaws: (number | null)[] = [];   // 19 Nov: kept on a retry so the turn limits can be tuned on real members
   let card: number | null = null, other: ReturnType<typeof pickOther> = null;
+  let age: { Low: number; High: number } | null = null;   // 0148
   try {
-    const det = await Promise.all((['straight', 'left', 'right'] as const).map((k) =>
-      (MOCK ? rk<unknown>('DetectFaces', { __step: k }) : detect(frames[k]!)).then(summarize)));
+    const raw = await Promise.all((['straight', 'left', 'right'] as const).map((k) =>
+      (MOCK ? rk<unknown>('DetectFaces', { __step: k }) : detect(frames[k]!))));
+    age = ageOf(raw[0]);
+    const det = raw.map(summarize);
     yaws = det.map((fs) => (fs[0] ? Math.round(fs[0].yaw * 10) / 10 : null));
     live = liveCheck({ straight: det[0], left: det[1], right: det[2] }, lim);
     if (live.ok) {
@@ -235,6 +254,11 @@ async function check(uid: string, body: Record<string, unknown>): Promise<Respon
   const { rec } = await keep(d.result, d.reasons, liveInfo, card, other);
   if (rec.result === 'pass' && d.cardFix) {
     try { await rpc('kr8_face_card_nudge', { p_user: uid, p_why: d.cardFix }); } catch (e) { log({ nudge_error: String(e).slice(0, 200) }); }
+  }
+  // 0148 under-18 check: recorded for the founder (likely minor → red alert); never blocks or closes anything here
+  if (age && ageVerdict(age)) {
+    try { await rpc('kr8_age_check_record', { p_user: uid, p_low: age.Low, p_high: age.High, p_source: 'check' }); }
+    catch (e) { log({ age_error: String(e).slice(0, 200) }); }   // before 0148: the function is missing, the check goes on
   }
   if (rec.result === 'pass') {
     try { await indexFace(uid, S, 'check', rec.verification_id ?? null); }
@@ -268,7 +292,7 @@ async function photoCheck(body: Record<string, unknown>): Promise<Response> {
 // ───────── admin actions ─────────
 async function admin(jwt: string, body: Record<string, unknown>, robot = false): Promise<Response> {
   // 19 Nov fix2: the canary (service key) runs backfill every hour, so faces the team approves by hand get into AWS too
-  const ok = robot ? (body.action === 'backfill' || body.action === 'sweep') : await rpc<boolean>('kr8_is_admin', {}, jwt).catch(() => false);
+  const ok = robot ? (body.action === 'backfill' || body.action === 'sweep' || body.action === 'reel_copy_scan') : await rpc<boolean>('kr8_is_admin', {}, jwt).catch(() => false);
   if (ok !== true) return json({ error: 'ADMIN_ONLY' }, 403);
   if (body.action === 'index') {
     const info = await rpc<{ user_id: string; selfie_path: string | null; status: string; aws: boolean } | null>('kr8_face_aws_index_info', { p_id: body.id });
@@ -296,7 +320,37 @@ async function admin(jwt: string, body: Record<string, unknown>, robot = false):
     const n = await rpc<number>('kr8_face_aws_forgot', { p_face_ids: stale });
     return json({ removed: n });
   }
+  if (body.action === 'reel_copy_scan') return json(await reelCopyScan(Math.min(Number(body.limit) || 10, 20)));
   return json({ error: 'BAD_ACTION' }, 400);
+}
+
+// ───────── 0148: copied-Reel check ─────────
+// Deno cannot run ffmpeg, so the frames come from the phone: the poster it already makes + two small scan frames
+// (<video>.s1.jpg middle, .s2.jpg end, see v5Reel scanFrames; older app versions: poster only). One DetectText per frame.
+export async function reelCopyScan(limit: number): Promise<{ scanned: number; copied: number }> {
+  if (MOCK) mockCase = 'tiktok';
+  const todo = await rpc<{ id: string; video_path: string | null; poster_path: string | null }[]>('kr8_reel_copy_todo', { p_limit: limit });
+  let scanned = 0, copied = 0;
+  for (const t of todo || []) {
+    const frames: [string, string][] = [];
+    if (t.poster_path) frames.push(['poster', t.poster_path]);
+    if (t.video_path) scanFramePaths(t.video_path).forEach((p, i) => frames.push([i === 0 ? 'middle' : 'end', p]));
+    const hits: CopyHit[] = [];
+    let read = 0;
+    for (const [at, path] of frames) {
+      const b64 = MOCK ? '/9j/mock' : await download(path, REELS);
+      if (!b64) continue;
+      read++;
+      try { hits.push(...copyHits((await rk<{ TextDetections?: TextDet[] }>('DetectText', { Image: img(b64) })).TextDetections, at)); }
+      catch (e) { log({ copy_scan_error: String(e).slice(0, 200), post: t.id }); }
+    }
+    const s = copySummary(hits);
+    await rpc('kr8_reel_copy_record', { p_post: t.id, p_copied: s.copied, p_kind: s.kind, p_watermark: s.watermark, p_app: s.app, p_evidence: hits.slice(0, 20), p_frames: read });
+    scanned++;
+    if (s.copied) copied++;
+  }
+  log({ reel_copy_scan: scanned, copied });
+  return { scanned, copied };
 }
 
 const STATUS: Record<string, number> = { SIGN_IN: 401, NO_CARD: 400, CONSENT_REQUIRED: 400, SLOW_DOWN: 429, FACE_AWS_OFF: 409, BAD_SELFIE: 400, ADMIN_ONLY: 403 };
