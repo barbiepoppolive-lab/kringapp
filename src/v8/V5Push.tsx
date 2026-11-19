@@ -9,13 +9,12 @@ type Tx = (en: string) => string;
 export const PUSH_ASK_LINE = 'Get a ding when you’re verified, your reward is ready, or your Reel goes live';
 export const PUSH_IOS_LINE = 'On iPhone, add Kring to your home screen first, then turn on dings';
 
-/** Thai screens show the English line under the Thai one. */
+/** One language at a time (founder, 18 Nov): Thai screens show the Thai line only. */
 function Two(props: { L: Tx; lang: string; en: string; id?: string }) {
   const main = props.L(props.en);
   return (
     <p className="kpa-line" id={props.id}>
       {main}
-      {props.lang === 'th' && main !== props.en ? <small>{props.en}</small> : null}
     </p>
   );
 }

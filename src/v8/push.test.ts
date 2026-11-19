@@ -230,9 +230,10 @@ describe('the card', () => {
     render(React.createElement(PushAskCard, { L, lang: 'th', toast, onInstallHelp: () => undefined }));
     expect(document.getElementById('pushAsk')).toBeNull();          // first load: nothing
     await act(async () => { push.pushMoment('minted'); });
+    expect(push.pushAskAfter({}, 'daily_task', 1).by).toBe('daily_task');   // the daily-task moment counts like the others
     expect(document.getElementById('pushAsk')).not.toBeNull();
     expect(screen.getByText(V5_L.th[PUSH_ASK_LINE], { exact: false })).toBeTruthy();
-    expect(screen.getByText(PUSH_ASK_LINE)).toBeTruthy();            // English under the Thai line
+    expect(screen.queryByText(PUSH_ASK_LINE)).toBeNull();            // one language at a time: no English under the Thai line
     expect(req).not.toHaveBeenCalled();
     await act(async () => { fireEvent.click(document.getElementById('pushAskOn')!); });
     expect(req).toHaveBeenCalledTimes(1);

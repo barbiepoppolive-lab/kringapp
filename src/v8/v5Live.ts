@@ -651,6 +651,8 @@ export async function v5Inbox(): Promise<{ threads: V5Thread[]; requests: V8Hell
   return { threads, requests };
 }
 interface MsgRow { id: number; mine: boolean; body: string; created_at: string }
+/** 0160 (20 Nov): the member opened this thread, so its unread dot stays off after a reload (server-side read marker). */
+export const v5MarkThreadRead = (thread: string) => rpcRaw<void>('kr8_mark_thread_read', { p_thread: thread }).catch(() => undefined);
 export async function v5Messages(thread: string): Promise<V8ChatMessage[]> {
   const rows = await rpc<MsgRow[]>('kr8_thread_messages', { p_thread: thread, p_after: 0 });
   return (rows || []).map((m) => ({ id: String(m.id), sender: m.mine ? 'me' : 'them', text: m.body, createdAt: v5TimeLabel(m.created_at) }));
