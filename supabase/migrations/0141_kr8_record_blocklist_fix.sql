@@ -1,0 +1,5 @@
+-- 0141 (19 Nov): applied live from bus/drop/m0149_record_fix.sql and m0150_blocklist_fix.sql.
+-- kr8_face_aws_record: the "deleted prize winner" branch read kr8_face_aws_faces.added_at (no such column → every face check of a
+--   re-joined winner failed with DB, e.g. #152 = deleted #136). Now created_at.
+-- kr8_blocklist_on_delete: ON CONFLICT hit the same (kind,value) twice (same IP in claims and events) → the whole insert failed
+--   silently, so deleted winners after 0131 were never blocked. Now distinct on (kind, value); backfilled.

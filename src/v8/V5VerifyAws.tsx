@@ -173,7 +173,8 @@ export function V5VerifyAws(props: { L: Tx; photo: string | null; nudge?: boolea
     for (const s of AWS_STEPS) {
       if (run !== runRef.current) return;
       setStep(s); setCount(null);
-      await wait(s === 'straight' ? 400 : SETTLE_MS);
+      // 19 Nov: the straight photo came back faceless on cheap Androids (camera still focusing / adjusting light): wait 1.2 s first
+      await wait(s === 'straight' ? 1200 : SETTLE_MS);
       for (let n = COUNT_FROM; n > 0;) {
         if (run !== runRef.current) return;
         if (darkRef.current) { setCount(null); await wait(DARK_POLL_MS); n = COUNT_FROM; continue; }

@@ -102,8 +102,11 @@ export function liveCheck(frames: Record<FaceStep, AwsFace[]>, lim: FaceAwsLimit
   const y0 = s.face.yaw, yl = l.face.yaw - y0, yr = r.face.yaw - y0;
   // with a known sign, each turn must go its own way; without one, the two must at least be opposite
   const wantL = lim.yawSign === 0 ? Math.sign(yl) || 1 : lim.yawSign;
-  if (Math.abs(yl) < lim.turnMinYaw || (lim.yawSign !== 0 && Math.sign(yl) !== wantL)) return { ok: false, why: 'turn_left_missing' };
-  if (Math.abs(yr) < lim.turnMinYaw || Math.sign(yr) !== -wantL) return { ok: false, why: 'turn_right_missing' };
+  // 19 Nov (live yaws, e.g. #152 [8.5, 11.1, -18.6]): one small turn is fine when the two turns are clearly opposite and far apart
+  // (a held-up photo can't move 20°); both turns small still asks again.
+  const bigGap = Math.sign(yl) === -Math.sign(yr) && Math.abs(yl - yr) >= 20;
+  if ((Math.abs(yl) < lim.turnMinYaw && !bigGap) || (lim.yawSign !== 0 && Math.sign(yl) !== wantL)) return { ok: false, why: 'turn_left_missing' };
+  if ((Math.abs(yr) < lim.turnMinYaw && !bigGap) || Math.sign(yr) !== -wantL) return { ok: false, why: 'turn_right_missing' };
   if (Math.abs(yl - yr) < lim.turnMinGap) return { ok: false, why: 'turn_right_missing' };
   return { ok: true, yaw: { straight: round1(s.face.yaw), left: round1(l.face.yaw), right: round1(r.face.yaw) } };
 }

@@ -37,7 +37,9 @@ describe('decision rules (faceAwsDecide)', () => {
     expect(liveCheck({ ...good, straight: [face(1, { sunglasses: true })] })).toEqual({ ok: false, why: 'sunglasses' });
     expect(liveCheck({ ...good, straight: [face(30)] })).toEqual({ ok: false, why: 'look_straight' });
     expect(liveCheck({ ...good, left: [] })).toEqual({ ok: false, why: 'turn_left_missing' });
-    expect(liveCheck({ ...good, left: [face(4)] })).toEqual({ ok: false, why: 'turn_left_missing' });
+    // 19 Nov: a small left turn passes when the right turn is big and opposite (gap ≥ 20°); both small still retries
+    expect(liveCheck({ ...good, left: [face(4)] }).ok).toBe(true);
+    expect(liveCheck({ ...good, left: [face(4)], right: [face(-8)] })).toEqual({ ok: false, why: 'turn_left_missing' });
     expect(liveCheck({ ...good, right: [face(4)] })).toEqual({ ok: false, why: 'turn_right_missing' });
   });
   it('a held-up photo (same yaw in all 3) or both turns the same way is not live', () => {
