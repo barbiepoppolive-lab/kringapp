@@ -11,11 +11,11 @@ import { cosine, loadFaceEngine, readFace } from './faceEngine';
 import type { FaceRead } from './faceEngine';
 import { bestSampler, brightness, canvasJpeg, faceapiSampler, snap } from './v5Mp';
 import type { Sampler } from './v5Mp';
-import { checkPayload, clientVerdict, currentTurn, frontalScore, liveStart, liveStep, progressOf } from './verifyLive';
-import type { FailWhy, Hint, LiveState } from './verifyLive';
+import { checkPayload, clientVerdict, currentTurn, frontalScore, LIMITS_FAST, LIMITS_SLOW, liveStart, liveStepWith, progressOf, slowPhone, SLOW_FRAME_MS } from './verifyLive';
+import type { FailWhy, Hint, LiveLimits, LiveState } from './verifyLive';
 import { v5ErrCode, v5HandoffCreate, v5LogClient, v5SaveFacePrint, v5VerifyInstant, v5VerifySimple } from './v5Live';
-import { allBlack, copyText, engineSupport, firstFrame, inAppBrowser, openOutside, simpleWhy, withTimeout } from './camGuard';
-import type { OpenOut } from './camGuard';
+import { allBlack, CAM_STEPS, camDenied, camFix, copyText, engineSupport, firstFrame, inAppBrowser, simpleWhy, withTimeout } from './camGuard';
+import type { CamFix } from './camGuard';
 import type { V5FaceDecision } from './v5Live';
 import './verify.css';
 
@@ -47,11 +47,13 @@ export const CAM_FRAME_MS = 6000;
 const camAskMs = () => (inAppBrowser(ua()) ? 6000 : 15000);   // a real browser may be showing its Allow prompt
 export const CAM_BLACK_MS = 3000;     // frames still black this long after the video starts = the browser can't show the camera
 export const TRACKER_MS = 2000;       // tracker errors (or MediaPipe blind while face-api sees a face) this long = switch tracker
-export const ENGINE_MS = 20000;
-export const PHOTO_NOTE_MS = 1500;   // T-392: how long "We'll send this one photo to our team…" shows before the upload starts       // the face engine must load within this, or the simple path (one selfie → the founder looks)
+export const ENGINE_MS = 20000;      // the face engine must load within this, or the simple path (one selfie → the founder looks)
+export const ENGINE_SLOW_MS = 45000; // fix4: the same on a slow phone (few cores / little memory, or after a timeout here)
+export const PHOTO_NOTE_MS = 1500;   // T-392: how long "We'll send this one photo to our team…" shows before the upload starts
 // some phone-maker / X5 browsers take over a <video> with their own player (black picture, a "download" button): ask them not to
 const VIDEO_ATTRS = { 'x5-playsinline': 'true', 'webkit-playsinline': 'true', 'x5-video-player-type': 'h5-page', controlsList: 'nodownload nofullscreen noremoteplayback', disablePictureInPicture: true, disableRemotePlayback: true } as Record<string, unknown>;
 const device = () => (navigator.userAgent.match(/iPhone|iPad|Android|Mac|Windows|Linux/) || ['other'])[0];
+const navHints = () => (typeof navigator === 'undefined' ? null : navigator as Navigator & { deviceMemory?: number });
 
 /** 0111 (founder 18 Nov): the face check is needed ONLY to claim a prize.
  *  'signup' = right after a new card (clear "Do it later", nothing waits for it) · 'me' = opened by the member ·
@@ -68,7 +70,8 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
   const [left, setLeft] = useState<number | null>(null);
   const [err, setErr] = useState('');
   const [camBlocked, setCamBlocked] = useState(false);
-  const [out, setOut] = useState<OpenOut | null>(null);
+  const [camWhy, setCamWhy] = useState('');   // fix4: why the camera was blocked (NotAllowedError = a permission "no")
+  const [fix, setFix] = useState<CamFix | null>(null);
   const [copied, setCopied] = useState(false);
   const inApp = inAppBrowser(ua());
   const [simple, setSimple] = useState<string | null>(null);   // why the simple path is used (null = the full check)
@@ -84,6 +87,9 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
   const firstRef = useRef<HTMLCanvasElement | null>(null);
   const endRef = useRef<HTMLCanvasElement | null>(null);
   const cardRef = useRef<Promise<FaceRead | null> | null>(null);
+  /** fix4: this phone is slow (hardware hints, slow frames, or a timeout already on this screen): longer limits from now on */
+  const slowRef = useRef(slowPhone(navHints()));
+  const engineMs = () => (slowRef.current ? ENGINE_SLOW_MS : ENGINE_MS);
 
   const stop = () => {
     runRef.current++;
@@ -102,20 +108,23 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
     stop();
     v5LogClient('verify_cam_fail', why, inApp || '');
     setErr('');
+    setCamWhy(why);
     setCamBlocked(true);
     setStage('error');
   };
-  // "Open in Chrome": the same page (face check opens again); on Android it carries a one-time sign-in code, renewed every 2.5 min
+  // "Open in Chrome / Safari": the same page (face check opens again) with a one-time sign-in code, renewed every 2.5 min.
+  // fix4: already in Chrome / Safari → no open button, just the steps to allow the camera (camFix)
   useEffect(() => {
     if (stage !== 'error' || !camBlocked) return undefined;
     let live = true;
     setCopied(false);
-    setOut(openOutside(window.location.href, ua()));
-    const renew = () => { if (openOutside(window.location.href, ua()).kind === 'chrome') void v5HandoffCreate().then((ho) => { if (live) setOut(openOutside(window.location.href, ua(), ho)); }).catch(() => undefined); };
+    const denied = camDenied(camWhy);
+    setFix(camFix(window.location.href, ua(), null, denied));
+    const renew = () => { if (camFix(window.location.href, ua(), null, denied).open) void v5HandoffCreate().then((ho) => { if (live) setFix(camFix(window.location.href, ua(), ho, denied)); }).catch(() => undefined); };
     renew();
     const t = window.setInterval(renew, 150_000);
     return () => { live = false; clearInterval(t); };
-  }, [stage, camBlocked]);
+  }, [stage, camBlocked, camWhy]);
 
   const start = async () => {
     setErr('');
@@ -131,7 +140,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
     // T-310: the models load IN PARALLEL with the camera; the camera never waits for them
     const engine = why ? null : loadFaceEngine();
     engine?.catch(() => undefined);
-    const samplerP = why ? null : samplerRef.current ? Promise.resolve(samplerRef.current) : withTimeout(bestSampler(), ENGINE_MS);
+    const samplerP = why ? null : samplerRef.current ? Promise.resolve(samplerRef.current) : withTimeout(bestSampler(slowRef.current), engineMs());
     samplerP?.catch(() => undefined);
     let stream: MediaStream;
     try {
@@ -201,7 +210,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
   /** T-310: the tracker broke (errors on every frame for 2 s) or MediaPipe sees no face for 2 s while face-api does:
    *  switch to face-api; if face-api can't load either, the simple path (one selfie → the founder). */
   const fallbackTracker = async (run: number): Promise<Sampler | null> => {
-    const alt = await withTimeout(faceapiSampler(), ENGINE_MS).catch(() => null);
+    const alt = await withTimeout(faceapiSampler(), engineMs()).catch(() => null);
     if (run !== runRef.current) return null;
     if (alt) { samplerRef.current = alt; v5LogClient('verify_tracker_switch', 'faceapi', device()); return alt; }
     v5LogClient('verify_simple', 'tracker_fail', device());
@@ -216,13 +225,22 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
     let afterDone = 0;
     let errSince = 0, emptySince = 0, probed = false;
     let probe: Promise<Sampler | null> | null = null;
+    // fix4: slow phones get longer limits; the first 8 frame reads decide too (a slow tracker = few frames a second)
+    let lim: LiveLimits = slowRef.current ? LIMITS_SLOW : LIMITS_FAST;
+    const readMs: number[] = [];
     // test aid: localStorage kr8_face_debug = '1' keeps the last 600 readings in window.__kr8Frames (numbers only, never sent)
     const dbg = (() => { try { return localStorage.getItem('kr8_face_debug') === '1'; } catch { return false; } })();
     const W = window as unknown as { __kr8Frames?: unknown[] };
     if (dbg) W.__kr8Frames = [];
     while (run === runRef.current) {
       if (v.readyState < 2) { await new Promise((ok) => setTimeout(ok, 40)); continue; }
+      const r0 = performance.now();
       const f = await sampler.read(v).then((x) => { errSince = 0; return x; }, () => { errSince ||= performance.now(); return null; });
+      if (f && lim !== LIMITS_SLOW && readMs.push(performance.now() - r0) >= 8) {
+        const med = [...readMs].sort((a, b) => a - b)[4];
+        if (med > SLOW_FRAME_MS) { slowRef.current = true; lim = LIMITS_SLOW; v5LogClient('verify_slow', 'frames', `${Math.round(med)}ms ${device()}`); }
+        else readMs.length = 0;
+      }
       if (run !== runRef.current) return;
       if (!f) {
         if (errSince && performance.now() - errSince > TRACKER_MS) {
@@ -238,7 +256,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
         emptySince ||= performance.now();
         if (performance.now() - emptySince > TRACKER_MS) {
           probed = true;
-          probe = withTimeout(faceapiSampler(), ENGINE_MS).then(async (alt) => ((await alt.read(v)).found ? alt : null)).catch(() => null);
+          probe = withTimeout(faceapiSampler(), engineMs()).then(async (alt) => ((await alt.read(v)).found ? alt : null)).catch(() => null);
         }
       } else if (f.found) emptySince = 0;
       if (probe) {
@@ -251,7 +269,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
       }
       if (s.step !== 'done') {
         const before = s.step;
-        s = liveStep(s, f);
+        s = liveStepWith(s, f, lim);
         if (dbg && W.__kr8Frames!.length < 600) W.__kr8Frames!.push({ t: f.t, found: f.found, yaw: +f.yaw.toFixed(3), closed: f.closed === null ? null : +f.closed.toFixed(2),
           size: +f.size.toFixed(2), cx: +f.cx.toFixed(2), cy: +f.cy.toFixed(2), bright: f.bright === null ? null : +f.bright.toFixed(2), step: s.step, hint: s.hint, good: s.good });
         if (s.restarts && before !== 'straight' && s.step === 'straight') { best = -9; bestRef.current = null; midRef.current = null; firstRef.current = null; }
@@ -319,9 +337,14 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
     await new Promise((ok) => requestAnimationFrame(() => setTimeout(ok, 30)));
     const t0 = performance.now();
     try {
-      if (s.step !== 'done') { v5LogClient('verify_live_fail', s.fail || 'timeout', `r${s.restarts}`); await sendFail(s, engine, s.fail || 'timeout'); return; }
+      if (s.step !== 'done') {
+        v5LogClient('verify_live_fail', s.fail || 'timeout', `r${s.restarts}${slowRef.current ? ' slow' : ''}`);
+        // fix4: after a timeout the next try gets the slow-phone limits (and "Do it later" shows next to "Try again")
+        if (s.fail === 'timeout' || s.fail === 'still') slowRef.current = true;
+        await sendFail(s, engine, s.fail || 'timeout'); return;
+      }
       // the face-code models never loaded: the selfie still goes to the founder (simple path), the member is never stuck
-      if (!(await withTimeout(loadFaceEngine(), ENGINE_MS).then(() => true, () => false))) { await sendSimple(bestRef.current, 'model_timeout'); return; }
+      if (!(await withTimeout(loadFaceEngine(), engineMs()).then(() => true, () => false))) { await sendSimple(bestRef.current, 'model_timeout'); return; }
       const read = (c: HTMLCanvasElement | null) => (c ? readFace(c) : Promise.resolve(null));
       // 3 frames of the check: anti-spoof on all of them, and the same face throughout
       const selfie = await read(bestRef.current);
@@ -469,7 +492,11 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
           )}
           {why === 'mismatch'
             ? <button type="button" className="kfv2-2nd" id="verifyChangePhoto" onClick={props.onAddPhoto}>{L('Change card photo')}</button>
-            : <button type="button" className="kfv2-2nd" onClick={close}>{L('Not now')}</button>}
+            : (why === 'timeout' || why === 'still') && mode !== 'claim'
+              // fix4: the face check is only needed to claim a prize, so a timed-out check never feels like a dead end
+              ? <><button type="button" className="kfv2-2nd" id="verifyLaterFail" onClick={() => { v5LogClient('verify_later', why); close(); }}>{L('Do it later')}</button>
+                <p className="kfv2-small" id="verifyLaterNote">{L('No rush. You only need this to claim a prize.')}</p></>
+              : <button type="button" className="kfv2-2nd" onClick={close}>{L('Not now')}</button>}
           <TipRow L={L} />
         </Panel>
       )}
@@ -488,17 +515,30 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
         </Panel>
       )}
 
-      {stage === 'error' && camBlocked && (
+      {stage === 'error' && camBlocked && (inApp || !camDenied(camWhy) ? (
         <Panel L={L} onClose={close} icon="fail" title={L('Camera blocked')} text={L('Open this page in Chrome (or Safari) and allow the camera.')} id="verifyCamBlocked">
-          {out?.kind === 'chrome'
-            ? <a className="kfv2-cta" id="verifyOpenChrome" href={out.url}>{L('Open in Chrome')}</a>
-            : <button type="button" className="kfv2-cta" id="verifyCopyLink" onClick={() => { if (out) void copyText(out.url).then(setCopied); }}>
-              {copied ? L('Link copied') : L('Copy link')}</button>}
-          {out?.kind === 'copy' && copied && <p className="kfv2-small" id="verifyCopied">{L('Paste it in Safari (or Chrome) and allow the camera.')}</p>}
+          <CamSteps L={L} steps={fix ? CAM_STEPS[fix.steps] : []} />
+          {fix?.open
+            ? <a className="kfv2-cta" id={fix.open.kind === 'chrome' ? 'verifyOpenChrome' : 'verifyOpenBrowser'} href={fix.open.url}
+              onClick={() => v5LogClient('verify_cam_open', fix.open!.kind, inApp || '')}>
+              {L(fix.open.kind === 'chrome' ? 'Open in Chrome' : fix.open.kind === 'safari' ? 'Open in Safari' : 'Open in browser')}</a>
+            : null}
+          {fix?.copy
+            ? <button type="button" className={fix.open ? 'kfv2-2nd' : 'kfv2-cta'} id="verifyCopyLink" onClick={() => { void copyText(fix.copy!).then(setCopied); }}>
+              {copied ? L('Link copied') : L('Copy link')}</button>
+            : null}
+          {fix?.copy && copied && <p className="kfv2-small" id="verifyCopied">{L('Paste it in Safari (or Chrome) and allow the camera.')}</p>}
           <button type="button" className="kfv2-2nd" id="verifyCamRetry" onClick={() => void start()}>{L('Try again')}</button>
           <button type="button" className="kfv2-2nd" onClick={close}>{L('Not now')}</button>
         </Panel>
-      )}
+      ) : (
+        // fix4: already in Chrome / Safari and the camera is blocked for this site: how to allow it, then Try again
+        <Panel L={L} onClose={close} icon="fail" title={L('Allow the camera')} text={L('Your browser is blocking the camera for Kring. Allow it, then try again.')} id="verifyCamBlocked">
+          <CamSteps L={L} steps={fix ? CAM_STEPS[fix.steps] : []} />
+          <button type="button" className="kfv2-cta" id="verifyCamRetry" onClick={() => void start()}>{L('Try again')}</button>
+          <button type="button" className="kfv2-2nd" onClick={close}>{L('Not now')}</button>
+        </Panel>
+      ))}
 
       {stage === 'error' && !camBlocked && (
         <Panel L={L} onClose={close} icon="fail" title={L('The camera didn’t start')} text={err} id="verifyError">
@@ -508,6 +548,12 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
       )}
     </div>
   );
+}
+
+/** fix4: short numbered steps (open in the real browser / allow the camera); plain text, no box */
+function CamSteps({ L, steps }: { L: Tx; steps: string[] }) {
+  if (!steps.length) return null;
+  return <ol className="kfv2-steps" id="verifyCamSteps">{steps.map((t) => <li key={t}>{L(t)}</li>)}</ol>;
 }
 
 function TipRow({ L }: { L: Tx }) {

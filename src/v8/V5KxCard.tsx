@@ -6,7 +6,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './kx.css';
 import './go.css';
-import { checkProfilePhoto } from './v5Face';
+import { checkProfilePhoto, photoDecision } from './v5Face';
 import { GenderChip, GenderRow, genderPayload, isGender, type Gender } from './V5Gender';
 import { kxNotePhotoCheck, kxSetGender } from './v5Kx';
 import { LEVEL_KEY, levelFor, memberNo, parseHandle, socialUrl, type Social } from './kxLogic';
@@ -190,8 +190,12 @@ export function V5MintSheet(props: {
   const [showGender, setShowGender] = useState<boolean>(isGender(card?.gender) && card?.show_gender === true);
   const [who, setWho] = useState<'local' | 'traveller'>(card?.who || 'local');
   const [photo, setPhoto] = useState<string | null>(null);
-  /** did the face check run on `photo`? 'error' = it could not (old phone, model failed to load): saved as unchecked for the admin */
-  const [photoVerdict, setPhotoVerdict] = useState<'ok' | 'error' | null>(null);
+  /** did the face check run on `photo`? 'error' = it could not (old phone, model failed to load); 'review' = fix4 2nd refused
+   *  photo, accepted anyway. Both are saved as unchecked, so the admin looks at them by eye. */
+  const [photoVerdict, setPhotoVerdict] = useState<'ok' | 'error' | 'review' | null>(null);
+  /** fix4: refused photos on this card so far (2 strikes: the 2nd one is accepted and marked for review) */
+  const photoFails = useRef(0);
+  const [photoNote, setPhotoNote] = useState('');
   const [checking, setChecking] = useState(false);
   const [photoMsg, setPhotoMsg] = useState(props.photoFix ? 'Kring is for real people. Add a photo where your face is clearly visible.' : '');
   const [ageOk, setAgeOk] = useState(false);
@@ -230,8 +234,19 @@ export function V5MintSheet(props: {
     try {
       const d = await v5CompressImage(f, 384, 110000);
       const v = await checkProfilePhoto(d);
-      if (v === 'ok' || v === 'error') { setPhoto(d); setPhotoVerdict(v); setPhotoMsg(''); setNotice(''); }
-      else { setPhotoMsg(PHOTO_MSG[v]); if (isNew) v5LogClient('card_photo_no', v); }
+      const dec = photoDecision(v, photoFails.current);
+      if (v === 'ok' || v === 'error') { setPhoto(d); setPhotoVerdict(v); setPhotoMsg(''); setPhotoNote(''); setNotice(''); }
+      else if (dec.use) {
+        // fix4: 2nd refused photo → use it, the team takes a quick look (never a dead end)
+        photoFails.current++;
+        setPhoto(d); setPhotoVerdict('review'); setPhotoMsg(''); setNotice('');
+        setPhotoNote('Thanks! Your photo is in. Our team will take a quick look.');
+        v5LogClient('card_photo_review', v, `try${photoFails.current}${isNew ? '' : ' edit'}`);
+      } else {
+        photoFails.current++;
+        setPhotoMsg(PHOTO_MSG[v]); setPhotoNote('');
+        if (isNew) v5LogClient('card_photo_no', v, `try${photoFails.current}`);
+      }
     } catch (e) { setNotice(errText(e)); } finally { setChecking(false); }
   };
   const toggleLang = (l: string) => setLangs((prev) => (prev.includes(l) ? prev.filter((x) => x !== l) : prev.length >= 6 ? prev : [...prev, l]));
@@ -366,6 +381,7 @@ export function V5MintSheet(props: {
           ) : null}
         </div>
       ) : null}
+      {!checking && !photoMsg && photoNote ? <p className="kx-photo-line" id="kxPhotoReview" role="status" aria-live="polite">{L(photoNote)}</p> : null}
       <div className="kx-form">
         <label className="kx-in">
           {isNew ? null : <small>{L('First name')}</small>}

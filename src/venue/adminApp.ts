@@ -1105,7 +1105,7 @@ export function memberRow(m: MemberRow, onPhoto: (m: MemberRow) => void = photoS
     m.interests?.length ? el('div', { class: 'ml-int' }, ...m.interests.map((t) => pill(t))) : null,
     el('div', { class: 'ml-ticks' }, tick(m.verified, 'Verified', 'Not verified'),
       el('span', { class: 'pill ' + (miss.length ? 'a' : 'g'), 'data-complete': miss.length ? '0' : '1' }, miss.length ? `Card missing ${miss.join(', ')}` : '✓ Card complete'),
-      m.photo_check === 'unchecked' ? el('span', { class: 'pill a', 'data-photo-check': 'unchecked', title: 'The phone could not run the face check. Look at the photo.' }, 'Photo not face-checked · look') : null),
+      m.photo_check === 'unchecked' ? el('span', { class: 'pill a', 'data-photo-check': 'unchecked', title: 'The face check could not run on this photo, or the member’s 2nd photo was refused and let through (fix4). Look at the photo.' }, 'Photo needs a look') : null),
     el('div', { class: 'ml-foot xs dim' },
       el('span', { 'data-reels': `${m.reels_approved}/${m.reels_waiting}/${m.reels_hidden}` }, `Reels: ${m.reels_approved} live · ${m.reels_waiting} waiting · ${m.reels_hidden} hidden`),
       el('span', {}, `Last seen ${ago(m.last_active_at)}`)));

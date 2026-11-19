@@ -53,6 +53,20 @@ export const JUMP = 0.22, JUMP_SIZE = 1.6;
 export const LIVE_MAX_MS = 15000;
 /** the whole check gives up after this (positioning included) */
 export const TOTAL_MAX_MS = 40000;
+/**
+ * fix4 (19 Nov, live: verify_live_fail "timeout" r0 again and again on slower phones): on a slow phone the camera reads only a
+ * few frames a second, so the same moves took longer than the limits above. Slow phones (few CPU cores / little memory, or
+ * frames that take > SLOW_FRAME_MS to read, or a timeout already on this screen) get more time. The live part stays inside
+ * the server's own limit (verify_live_max_ms 25 000).
+ */
+export interface LiveLimits { total: number; live: number }
+export const LIMITS_FAST: LiveLimits = { total: TOTAL_MAX_MS, live: LIVE_MAX_MS };
+export const LIMITS_SLOW: LiveLimits = { total: 75000, live: 22000 };
+export const SLOW_FRAME_MS = 120;
+export function slowPhone(nav: { hardwareConcurrency?: number; deviceMemory?: number } | null | undefined, frameMs = 0): boolean {
+  const cores = nav?.hardwareConcurrency || 0, mem = nav?.deviceMemory || 0;
+  return (cores > 0 && cores <= 4) || (mem > 0 && mem <= 3) || frameMs > SLOW_FRAME_MS;
+}
 /** restarts allowed (face lost / swapped) before it counts as a fail */
 export const MAX_RESTARTS = 3;
 
@@ -113,12 +127,14 @@ function restart(s: LiveState, f: LiveFrame, hint: Hint): LiveState {
 }
 
 /** Pure step machine: one frame in, the next state out. */
-export function liveStep(s0: LiveState, f: LiveFrame): LiveState {
+export function liveStep(s0: LiveState, f: LiveFrame): LiveState { return liveStepWith(s0, f, LIMITS_FAST); }
+/** fix4: the same step machine with the time limits of this phone (LIMITS_FAST / LIMITS_SLOW). */
+export function liveStepWith(s0: LiveState, f: LiveFrame, lim: LiveLimits): LiveState {
   if (s0.step === 'done' || s0.step === 'failed') return s0;
   const s: LiveState = { ...s0, started: s0.started || f.t };
   // time limits
-  if (f.t - s.started > TOTAL_MAX_MS) return { ...s, step: 'failed', fail: s.step === 'straight' ? (s.last ? 'timeout' : 'noface') : 'timeout' };
-  if (s.straightAt && f.t - s.straightAt > LIVE_MAX_MS) return { ...s, step: 'failed', fail: s.turned.left || s.turned.right ? 'timeout' : 'still' };
+  if (f.t - s.started > lim.total) return { ...s, step: 'failed', fail: s.step === 'straight' ? (s.last ? 'timeout' : 'noface') : 'timeout' };
+  if (s.straightAt && f.t - s.straightAt > lim.live) return { ...s, step: 'failed', fail: s.turned.left || s.turned.right ? 'timeout' : 'still' };
 
   const hint = frameHint(f, s.last);
   if (!f.found) {

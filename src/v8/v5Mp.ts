@@ -77,8 +77,9 @@ export function mpFrame(pts: P[], faces: number, blend: { categoryName: string; 
     size: x1 - x0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, bright, t };
 }
 
-export async function mediapipeSampler(): Promise<Sampler> {
-  let lm = await loadLandmarker();
+/** fix4: a slow phone gets 25 s (not 12 s) to load the tracker before face-api takes over. */
+export async function mediapipeSampler(slow = false): Promise<Sampler> {
+  let lm = await loadLandmarker(undefined, slow ? 25000 : 12000);
   let onCpu = preferCpu(), switching = false;
   let last = 0, n = 0, bright: number | null = null;
   const took: number[] = [];
@@ -137,10 +138,10 @@ export async function faceapiSampler(): Promise<Sampler> {
 
 /** MediaPipe first; face-api if MediaPipe can't load here. The face-api models load in the background either way
  *  (they make the face code that is compared with the card photo and with other members). */
-export async function bestSampler(): Promise<Sampler> {
+export async function bestSampler(slow = false): Promise<Sampler> {
   // T-310: face-api is no longer loaded alongside (it was part of a ~40 MB boot); it loads only as the fallback tracker or
   // after a passed check (the 0075 prize-claim print)
-  try { return await mediapipeSampler(); } catch { return await faceapiSampler(); }
+  try { return await mediapipeSampler(slow); } catch { return await faceapiSampler(); }
 }
 
 /** copy the current video frame into a canvas (the selfie candidates; only the best one is ever uploaded) */

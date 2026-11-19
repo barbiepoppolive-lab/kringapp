@@ -294,9 +294,11 @@ function loadDetector(): Promise<FaceApi> {
 
 /** 'ok' | 'none' (no face: helmet, scenery, fireworks, pets, cartoons) | 'small' (face too far away) | 'group' (no clear main person) | 'error' (could not check: let it through) */
 export type PhotoVerdict = 'ok' | 'none' | 'small' | 'group' | 'error';
-export const PHOTO_MIN_FACE = 0.14;   // face box at least 14 % of the photo's width
-export const PHOTO_GROUP_RATIO = 0.7;
-export const PHOTO_MIN_SCORE = 0.5; // a second face this big or bigger = group photo
+// fix4 (19 Nov, live: card_photo_no 19× for 9 new members): a smaller face is fine now (8 % of the width, was 14 %), and a photo
+// with other people passes when one face is clearly the biggest (the second face under 85 % of it, was 70 %)
+export const PHOTO_MIN_FACE = 0.08;   // face box at least 8 % of the photo's width
+export const PHOTO_GROUP_RATIO = 0.85; // a second face this big (share of the biggest) or bigger = group photo
+export const PHOTO_MIN_SCORE = 0.5;
 
 export function photoVerdict(faces: { w: number; score: number }[], imgW: number): PhotoVerdict {
   const f = faces.filter((x) => x.score >= PHOTO_MIN_SCORE).sort((a, b) => b.w - a.w);
@@ -304,6 +306,19 @@ export function photoVerdict(faces: { w: number; score: number }[], imgW: number
   if (f[0].w / (imgW || 1) < PHOTO_MIN_FACE) return 'small';
   if (f.length > 1 && f[1].w >= f[0].w * PHOTO_GROUP_RATIO) return 'group';
   return 'ok';
+}
+
+/**
+ * fix4: two strikes. The first refused photo shows the friendly "use another photo" line. From the 2nd refused photo on the same
+ * card, the photo is ACCEPTED and marked for the team to look at by eye (photo_check 'unchecked', the existing admin flag), so a
+ * member is never stuck. 'ok' / 'error' are unchanged ('error' = the check couldn't run: accepted and marked the same way).
+ */
+export const PHOTO_STRIKES = 2;
+export type PhotoDecision = { use: true; review: boolean } | { use: false; review: false };
+export function photoDecision(v: PhotoVerdict, failsBefore: number): PhotoDecision {
+  if (v === 'ok') return { use: true, review: false };
+  if (v === 'error') return { use: true, review: true };
+  return failsBefore + 1 >= PHOTO_STRIKES ? { use: true, review: true } : { use: false, review: false };
 }
 
 export const PHOTO_MAX_FACE = 0.9;    // 17 Nov: a "face" wider than 90 % of the photo is a food bowl / texture, not a person

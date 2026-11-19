@@ -2,7 +2,7 @@
  *  WebView, or a Custom Tab) the camera can be blocked without any error: getUserMedia never answers, or the stream never
  *  sends a frame, and the screen sat on "Getting the camera ready" with a black oval. These pure helpers let the face check
  *  give up after a few seconds and offer "Open in Chrome" (Android intent) or "Copy link" (iPhone / other). */
-import { chromeIntent, inAppOf, osOf, targetUrl, type InApp } from './escape';
+import { chromeIntent, inAppOf, lineExternal, osOf, safariUrl, targetUrl, type InApp } from './escape';
 
 /** Waits for a promise, but gives up after `ms` (rejects with name 'CamTimeout'). */
 export function withTimeout<T>(p: Promise<T>, ms: number, onLate?: (v: T) => void): Promise<T> {
@@ -60,6 +60,45 @@ export function openOutside(href: string, ua: string, ho?: string | null): OpenO
   }
   return { kind: 'copy', url: targetUrl(page.toString()) };
 }
+
+/**
+ * fix4 (19 Nov, live: verify_cam_fail NotAllowedError, mostly inside LINE / Instagram): what the "camera blocked" screen offers.
+ * - In an app's built-in browser: ONE button that opens this page (face check again) in the real browser, plus 2 short steps.
+ *   Android → Chrome (intent), LINE → the phone's browser (openExternalBrowser), iPhone → Safari (x-safari-https, iOS 17+;
+ *   the plain link stays as "Copy link" for older iPhones).
+ * - Already in Chrome / Safari (the member tapped Block, or the site is blocked): no "open" button (it would open the same
+ *   browser); 3 short steps to allow the camera for this site, then Try again.
+ */
+export type CamSteps = 'inapp_android' | 'inapp_ios' | 'inapp_line' | 'allow_android' | 'allow_ios' | 'allow_other';
+export interface CamFix { open: { kind: 'chrome' | 'safari' | 'browser'; url: string } | null; copy: string | null; steps: CamSteps }
+/** `denied` = the browser said NotAllowedError / SecurityError (a permission "no"); other reasons (no frames, black frames,
+ *  no answer) in a real browser are treated like an in-app browser: try the phone's main browser. */
+export const camDenied = (why: string) => why === 'NotAllowedError' || why === 'SecurityError' || why === 'PermissionDeniedError';
+export function camFix(href: string, ua: string, ho?: string | null, denied = true): CamFix {
+  const page = new URL(href);
+  page.searchParams.set('open', 'verify');
+  const os = osOf(ua), app = inAppOf(ua);
+  const plain = targetUrl(page.toString());
+  if (!app && denied) return { open: null, copy: null, steps: os === 'android' ? 'allow_android' : os === 'ios' ? 'allow_ios' : 'allow_other' };
+  if (os === 'android') {
+    const out = openOutside(href, ua, ho);
+    return { open: { kind: 'chrome', url: out.url }, copy: null, steps: 'inapp_android' };
+  }
+  const https = targetUrl(page.toString(), { ho });
+  if (app === 'line') return { open: { kind: 'browser', url: lineExternal(https) }, copy: plain, steps: 'inapp_line' };
+  if (!app && os !== 'ios') return { open: null, copy: plain, steps: 'allow_other' };
+  if (os === 'ios') return { open: { kind: 'safari', url: safariUrl(https) }, copy: plain, steps: 'inapp_ios' };
+  return { open: null, copy: plain, steps: 'inapp_ios' };
+}
+/** The short steps under the camera-blocked screen (English keys; the screen translates them). */
+export const CAM_STEPS: Record<CamSteps, string[]> = {
+  inapp_android: ['Tap “Open in Chrome” below', 'When Chrome asks for the camera, tap Allow'],
+  inapp_line: ['Tap the button below to open your phone’s browser', 'When it asks for the camera, tap Allow'],
+  inapp_ios: ['Tap “Open in Safari” below (or ⋯ → Open in browser)', 'When Safari asks for the camera, tap Allow'],
+  allow_android: ['Tap the icon left of the web address', 'Permissions → Camera → Allow', 'Come back and tap Try again'],
+  allow_ios: ['Tap “aA” in the address bar', 'Website Settings → Camera → Allow', 'Come back and tap Try again'],
+  allow_other: ['Click the icon left of the web address', 'Camera → Allow', 'Come back and click Try again'],
+};
 
 /** Copies text; true when it worked (clipboard API, then the old textarea way). */
 export async function copyText(s: string): Promise<boolean> {

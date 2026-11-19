@@ -380,9 +380,9 @@ function putOnce(base: string, key: string, token: string, path: string, body: B
     x.setRequestHeader('x-upsert', 'false');
     x.setRequestHeader('cache-control', 'max-age=31536000');   // a file never changes after upload (new upload = new name)
     x.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
-    // 409 = this exact file already landed on an earlier try: that is a success
     // errfix-1 (18 Nov): storage's own reason (e.g. "InvalidJWT", "Payload too large") goes into the log, not just "400"
-    x.onload = () => (x.status >= 200 && x.status < 300) || x.status === 409 ? ok() : bad(new ReelError('UPLOAD', x.status, storageWhy(x.responseText)));
+    // fix4 (19 Nov): a 409 / "Duplicate" is NOT a success any more (it can be a half-sent file); every try uses a fresh name instead
+    x.onload = () => (x.status >= 200 && x.status < 300) ? ok() : bad(new ReelError('UPLOAD', x.status, storageWhy(x.responseText)));
     x.onerror = () => bad(new ReelError('UPLOAD', 0));
     x.send(body);
   });
@@ -396,15 +396,32 @@ export function storageWhy(body: string | null | undefined): string | undefined 
     return parts.length ? parts.join(' ').replace(/\s+/g, ' ').slice(0, 80) : undefined;
   } catch { return body.replace(/\s+/g, ' ').slice(0, 80) || undefined; }
 }
-/** 16 Nov (member #26, Android in-app browser): failed uploads now retry by themselves (3 tries, short waits) before the member sees an error. */
-async function putObject(base: string, key: string, token: string, path: string, body: Blob, type: string, onProgress: (p: number) => void): Promise<void> {
+/**
+ * fix4 (19 Nov, live: UPLOAD:0 then UPLOAD:400 "409 Duplicate The resource already exists" on every Retry): the old code reused the
+ * same storage name on every try, so a file that had (half) landed on the first try blocked every retry. Now EVERY try, inside one
+ * upload and across Retry taps, gets a brand-new name `<user id>/<new uuid>.<ext>` (the server only checks that shape). A file that
+ * landed half-way is simply left behind under its old name and never blocks the next try.
+ */
+export function reelObjectPath(uid: string, ext: string, gen: () => string = uuid): string { return `${uid}/${gen()}.${ext}`; }
+/** Storage says "this name is taken" — as HTTP 409 or as 400 with statusCode 409 / "Duplicate" in the body. */
+export function isDuplicate(e: unknown): boolean {
+  const r = e as ReelError;
+  return r?.status === 409 || /\b409\b|duplicate|already exists/i.test(r?.why || '');
+}
+/** Worth another try with a fresh name: no answer (0), server trouble, timeouts, rate limits, and "name taken". */
+export function retryableUpload(e: unknown): boolean {
+  const st = (e as ReelError)?.status ?? 0;
+  return !st || st >= 500 || st === 408 || st === 429 || isDuplicate(e);
+}
+/** Tries `put` up to `tries` times, each with a NEW name from `newPath`; returns the name that landed. */
+export async function putFresh(put: (path: string) => Promise<void>, newPath: () => string, tries = 3, waitMs = 800): Promise<string> {
   let last: unknown;
-  for (let i = 0; i < 3; i++) {
-    try { await putOnce(base, key, token, path, body, type, onProgress); return; } catch (e) {
+  for (let i = 0; i < tries; i++) {
+    const path = newPath();
+    try { await put(path); return path; } catch (e) {
       last = e;
-      const st = (e as ReelError).status ?? 0;
-      if (st && st < 500 && st !== 408 && st !== 429) break;   // a real "no" (bad token, too big…): retrying won't help
-      await new Promise((r) => setTimeout(r, 800 * (i + 1)));
+      if (!retryableUpload(e)) break;   // a real "no" (bad token, too big…): retrying won't help
+      if (i < tries - 1 && waitMs) await new Promise((r) => setTimeout(r, waitMs * (i + 1)));
     }
   }
   throw last;
@@ -422,26 +439,33 @@ export async function readable(b: Blob): Promise<Blob> {
   if (buf.byteLength === 0 || buf.byteLength !== b.size) throw new ReelError('REPICK');
   return new Blob([buf], { type: b.type });
 }
-const reelIds = new WeakMap<ReelReady, string>();   // the same Reel keeps the same file names on every retry (no orphan covers)
+/** fix4: parts of a Reel that already landed (kept across Retry taps, so only the missing part is sent again, under a new name). */
+const landed = new WeakMap<ReelReady, { posterPath?: string; videoPath?: string }>();
 
 export interface UploadedReel { videoPath: string; posterPath: string }
 
-/** Uploads poster + video. Re-calling with the same `paths` retries the parts that did not land. */
+/** Uploads poster + video. Parts that landed on an earlier call are kept; every new try of a missing part gets a fresh name. */
 export async function uploadReel(r: ReelReady, onProgress: (p: number) => void, prev?: Partial<UploadedReel> & { done?: string[] }): Promise<UploadedReel & { done: string[] }> {
   const c = await v5Client();
   const { data } = await c.auth.getSession();
   const s = data.session;
   if (!s) throw new ReelError('SIGN_IN');
   const cfg = c as unknown as { supabaseUrl: string; supabaseKey: string };
-  const id = reelIds.get(r) || uuid();
-  reelIds.set(r, id);
-  const videoPath = prev?.videoPath || `${s.user.id}/${id}.${r.ext}`;
-  const posterPath = prev?.posterPath || `${s.user.id}/${id}.jpg`;
-  const done = [...(prev?.done || [])];
-  if (!done.includes(posterPath)) { await putObject(cfg.supabaseUrl, cfg.supabaseKey, s.access_token, posterPath, r.poster, 'image/jpeg', () => undefined); done.push(posterPath); }
-  if (!done.includes(videoPath)) { const body = await readable(r.blob); await putObject(cfg.supabaseUrl, cfg.supabaseKey, s.access_token, videoPath, body, r.mime.split(';')[0], onProgress); done.push(videoPath); }
+  const have = landed.get(r) || {};
+  landed.set(r, have);
+  const prevDone = prev?.done || [];
+  if (!have.posterPath && prev?.posterPath && prevDone.includes(prev.posterPath)) have.posterPath = prev.posterPath;
+  if (!have.videoPath && prev?.videoPath && prevDone.includes(prev.videoPath)) have.videoPath = prev.videoPath;
+  const uid = s.user.id;
+  if (!have.posterPath) {
+    have.posterPath = await putFresh((p) => putOnce(cfg.supabaseUrl, cfg.supabaseKey, s.access_token, p, r.poster, 'image/jpeg', () => undefined), () => reelObjectPath(uid, 'jpg'));
+  }
+  if (!have.videoPath) {
+    const body = await readable(r.blob);
+    have.videoPath = await putFresh((p) => putOnce(cfg.supabaseUrl, cfg.supabaseKey, s.access_token, p, body, r.mime.split(';')[0], onProgress), () => reelObjectPath(uid, r.ext));
+  }
   onProgress(1);
-  return { videoPath, posterPath, done };
+  return { videoPath: have.videoPath, posterPath: have.posterPath, done: [have.posterPath, have.videoPath] };
 }
 
 export async function createReel(u: UploadedReel, r: ReelReady, area: string, body: string, here: boolean): Promise<{ id: string; status: 'pending' | 'approved' }> {

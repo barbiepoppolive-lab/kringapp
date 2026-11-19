@@ -42,6 +42,8 @@ export function cleanRef(s: string): string {
 export const KIND_NAME: Record<string, string> = {
   reel_pick_fail: 'Clip refused when picked', reel_publish_fail: 'Reel did not post', reel_trim: 'Trim step',
   verify_fail: 'Face check did not send', verify_cam_fail: 'Face check camera', reel_open: 'Reel screen opened',
+  card_photo_no: 'Card photo refused', card_photo_review: 'Card photo let through for review', verify_live_fail: 'Face check timed out / failed',
+  verify_later: 'Face check: “Do it later” after a fail', verify_cam_open: 'Face check: tapped Open in browser', verify_slow: 'Face check: slow phone, more time given',
 };
 export const kindName = (k: string) => KIND_NAME[k] || k.replace(/_/g, ' ');
 
@@ -101,6 +103,10 @@ export function codeMeaning(kind: string, code: string | null | undefined): stri
   }
   if (kind === 'verify_cam_fail') return CAM[c] || `camera did not start (${c || 'no reason'})`;
   if (kind === 'verify_fail') return VERIFY[c] || (c ? `face check did not send (${c})` : 'face check did not send');
+  if (kind === 'card_photo_no' || kind === 'card_photo_review') {
+    const why = c === 'none' ? 'no face seen' : c === 'small' ? 'face too small' : c === 'group' ? 'group photo' : c;
+    return kind === 'card_photo_review' ? `2nd refused photo (${why}) used anyway, marked “Photo needs a look”` : `photo refused: ${why}`;
+  }
   if (kind === 'reel_open') return c === 'place' ? 'opened from a place' : c === 'feed' ? 'opened from the feed' : 'opened';
   return c || kind;
 }

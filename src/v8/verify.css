@@ -118,3 +118,5 @@
   .v8-app-root .kfv2-say b { font-size: 1.2rem; }
   .v8-app-root .kfv2-hint { min-height: 26px; padding: 3px 12px; font-size: .82rem; }
 }
+/* fix4: camera-blocked steps (plain numbered lines, no box) */
+.v8-app-root .kfv2-steps { margin: 0 0 6px; padding-left: 22px; text-align: left; display: grid; gap: 6px; color: rgba(255, 247, 236, 0.8); font-size: .9rem; line-height: 1.45; }
