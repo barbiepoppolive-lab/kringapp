@@ -112,7 +112,7 @@ const KR_LOWEND = typeof navigator !== 'undefined' && /Android/i.test(navigator.
 const FACE_GATE_AFTER_NO = 68;
 const FACE_GATE_ON = false;
 import { StayDo } from './V5StayDo';
-import { v5CardPrintOk, v5HandoffBoot, v5LogClient, v5MyVerification, v5SaveCardPrint, V5_AREAS } from './v5Live';
+import { v5CardPrintOk, v5DeviceSeen, v5HandoffBoot, v5LogClient, v5MyVerification, v5SaveCardPrint, V5_AREAS } from './v5Live';
 import { v5AcceptTerms, v5PromoGet, v5SetPromo, V5_TERMS_VERSION, type V5Promo } from './v5Live';
 import { TermsAgreeText } from './V5Sheets';
 import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
@@ -2624,6 +2624,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [kxReady, setKxReady] = useState(false);
   useEffect(() => {
     if (!live || !v5Uid || !v5Card) return;
+    v5DeviceSeen(v5Uid);   // 0124: once a day, this phone's id (Fake Finder)
     const day = new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
     const key = `kr8_checkin_${v5Uid}`;
     let seenDay = '';

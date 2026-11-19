@@ -33,7 +33,8 @@ export const HOLD_LABEL: Record<DupHeld['reason'], string> = { linked: 'Same fac
   review: 'Face check needs your eye' };
 /** 0075: the reasons a claim waits for a face review, in plain words */
 export const REVIEW_LABEL: Record<string, string> = { no_photo: 'no claim photo', no_verified_print: 'not verified yet (no approved face check to compare with)',
-  face_far: 'face doesn’t match the verified face', face_copy: 'face code is a copy of the stored one, not a new camera frame' };
+  face_far: 'face doesn’t match the verified face', face_copy: 'face code is a copy of the stored one, not a new camera frame',
+  /** 0124 */ fake_red: 'Fake Finder says red (see Fake Finder for the reasons)' };
 export function reviewText(h: Pick<DupHeld, 'detail'>): string {
   const r = (h.detail?.review || []).map((x) => REVIEW_LABEL[x] || x);
   const d = h.detail?.verified_dist;
