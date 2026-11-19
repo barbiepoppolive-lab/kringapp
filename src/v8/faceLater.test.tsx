@@ -163,7 +163,7 @@ describe('Me: a gentle nudge, never a gate', () => {
 describe('the app no longer gates being seen / posting / chat on the face check', () => {
   const app = read('./KringAppV8.tsx');
   it('the client copy of the 0093 gate is off and the 6-second face pop-up is gone', () => {
-    expect(app).toContain('const FACE_GATE_ON = false;');
+    expect(app).toMatch(/const FACE_GATE_ON = true;/);   // 19 Nov: the gate is back on (founder)
     expect(app).toContain('faceGateRef.current = FACE_GATE_ON &&');
     expect(app).not.toContain("const key = 'kr8_facecheck2_asked:'");
   });

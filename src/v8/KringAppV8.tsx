@@ -110,7 +110,7 @@ const KR_LOWEND = typeof navigator !== 'undefined' && /Android/i.test(navigator.
  *  0111 (founder 18 Nov, "Do it later"): the face check is needed ONLY to claim a prize, so this client copy is OFF
  *  (mirrors kr8_rcfg('face_gate_on', 0)). Everything else (card, Feed, People, Reels, likes, chat, Rings, board) works without it. */
 const FACE_GATE_AFTER_NO = 68;
-const FACE_GATE_ON = false;
+const FACE_GATE_ON = true;   // 19 Nov (founder): face check right after the card photo; no posting / chat / People until verified (server: face_gate_on = 1)
 import { StayDo } from './V5StayDo';
 import { v5DeviceSeen, v5HandoffBoot, v5LogClient, v5MyVerification, V5_AREAS } from './v5Live';
 import { v5AcceptTerms, v5PromoGet, v5SetPromo, V5_TERMS_VERSION, type V5Promo } from './v5Live';
