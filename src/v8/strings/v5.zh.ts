@@ -689,6 +689,7 @@ const T: Record<string, string> = {
   "Our team checks it": "团队正在核对",
   "Face check · under 1 minute": "人脸检测 · 不到1分钟",
   "Keep using Kring": "继续使用 Kring",
+  "Checking your face…": "正在检查…",
   "We’ll notify you when it passes": "通过后我们会通知你",
   "Turn on the camera in 3 steps": "3步打开相机",
   "Switch to Android": "切换到 Android",

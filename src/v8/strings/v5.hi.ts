@@ -689,6 +689,7 @@ const T: Record<string, string> = {
   "Our team checks it": "हमारी टीम देख रही है",
   "Face check · under 1 minute": "चेहरा जाँच · 1 मिनट से कम",
   "Keep using Kring": "Kring चलाते रहें",
+  "Checking your face…": "जाँच हो रही है…",
   "We’ll notify you when it passes": "पास होने पर हम आपको बताएँगे",
   "Turn on the camera in 3 steps": "3 कदम में कैमरा चालू करें",
   "Switch to Android": "Android पर बदलें",

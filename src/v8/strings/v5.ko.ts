@@ -689,6 +689,7 @@ const T: Record<string, string> = {
   "Our team checks it": "팀이 확인 중",
   "Face check · under 1 minute": "얼굴 확인 · 1분 이내",
   "Keep using Kring": "Kring 계속하기",
+  "Checking your face…": "확인 중…",
   "We’ll notify you when it passes": "통과하면 알려 드릴게요",
   "Turn on the camera in 3 steps": "3단계로 카메라 켜기",
   "Switch to Android": "Android로 바꾸기",

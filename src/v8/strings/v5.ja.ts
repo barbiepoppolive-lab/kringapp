@@ -689,6 +689,7 @@ const T: Record<string, string> = {
   "Our team checks it": "チームが確認中",
   "Face check · under 1 minute": "顔チェック · 1分以内",
   "Keep using Kring": "Kring を続ける",
+  "Checking your face…": "確認中…",
   "We’ll notify you when it passes": "通ったらお知らせします",
   "Turn on the camera in 3 steps": "3ステップでカメラをオン",
   "Switch to Android": "Android に切り替え",

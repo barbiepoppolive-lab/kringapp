@@ -114,7 +114,7 @@ describe('client: switch, photo size, texts', () => {
     Object.values(CAM_FIX_STEPS).flat().forEach((k) => keys.add(k));
     expect(keys.size).toBeGreaterThan(40);
     for (const k of keys) for (const l of ['th', 'zh', 'hi', 'ja', 'ko']) expect(V5_L[l][k], `${l}: ${k}`).toBeTruthy();
-    expect(V5_L.th['Checking…']).toBeTruthy();
+    expect(V5_L.th['Checking your face…']).toBe('กำลังตรวจ…');
     expect(V5_L.th['Open in your browser |first']).toBe('เปิดในเบราว์เซอร์|ก่อนนะ');
   });
 });
@@ -149,6 +149,7 @@ describe('1A · 2B · 3C', () => {
     const go = vi.fn();
     const { rerender } = render(<FaceDoneScreen L={TH} state="checking" selfie={null} sent onContinue={go} onClose={() => undefined} />);
     expect(screen.getByText('ไม่ต้องรอหน้านี้ ออกไปเล่นต่อได้เลย')).toBeInTheDocument();
+    expect(document.querySelector('.kfg-h2')).toHaveTextContent('กำลังตรวจ…');
     expect(screen.getByText('ตรวจหน้า · ไม่ถึง 1 นาที')).toBeInTheDocument();
     expect(screen.getByText('ผ่านแล้วเราแจ้งเตือนให้')).toBeInTheDocument();
     fireEvent.click(screen.getByText('ใช้ Kring ต่อ'));

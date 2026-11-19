@@ -690,6 +690,7 @@ export const V5_L: Record<string, Record<string, string>> = {
     "Our team checks it": "ทีมงานกำลังตรวจ",
     "Face check · under 1 minute": "ตรวจหน้า · ไม่ถึง 1 นาที",
     "Keep using Kring": "ใช้ Kring ต่อ",
+    "Checking your face…": "กำลังตรวจ…",
     "We’ll notify you when it passes": "ผ่านแล้วเราแจ้งเตือนให้",
     "Turn on the camera in 3 steps": "เปิดกล้องใน 3 ขั้น",
     "Switch to Android": "เปลี่ยนเป็น Android",

@@ -166,7 +166,7 @@ export type DoneState = 'checking' | 'pass' | 'pending';
 export function FaceDoneScreen(props: { L: Tx; state: DoneState; selfie: string | null; sent: boolean; claim?: boolean; onContinue: () => void; onClose: () => void; id?: string }) {
   const { L, state } = props;
   const pass = state === 'pass';
-  const checking = L('Checking…');
+  const checking = L('Checking your face…');   // founder's 2B title: กำลังตรวจ…
   const title = pass ? L('Verified ✓') : checking.endsWith('…') ? `${checking.slice(0, -1)}|…` : checking;
   return (
     <div className="kfg kfg-done" id={props.id || (pass ? 'verifyPass' : state === 'pending' ? 'verifyReview' : 'verifyChecking')} data-done={state}>
