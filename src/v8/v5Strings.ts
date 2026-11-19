@@ -617,6 +617,8 @@ export const V5_L: Record<string, Record<string, string>> = {
     'No more tries today. Try again tomorrow.': 'วันนี้ลองครบแล้ว พรุ่งนี้ลองใหม่นะครับ',
     'Your face check is with our team. You can claim as soon as it passes. We’ll notify you.': 'ทีมงานกำลังตรวจใบหน้าของคุณ ผ่านแล้วกดรับรางวัลได้เลย เราจะแจ้งเตือนให้',
     'Post a Reel and get it approved to claim your prize.': 'โพสต์รีลและรอให้รีลผ่านการอนุมัติก่อน ถึงจะกดรับรางวัลได้',
+    'To claim the ฿100, post a Reel at a real place (add the place) and get it approved.': 'ถ้าจะรับ ฿100 ต้องโพสต์รีลที่ถ่ายในสถานที่จริง (ใส่ชื่อสถานที่) และผ่านการอนุมัติก่อนนะ',
+    'Your Reel is approved! The ฿100 can be claimed 24 hours after you posted it.': 'รีลของคุณผ่านแล้ว! กดรับ ฿100 ได้หลังโพสต์ครบ 24 ชั่วโมงนะ',
     'Live': 'สด',
     'Try again · {0} left today': 'ลองอีกครั้ง · วันนี้เหลือ {0} ครั้ง',
     'Change card photo': 'เปลี่ยนรูปบนการ์ด',
@@ -798,6 +800,8 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
     case 'VERIFY_FIRST': return ['Verify your face in 5 seconds to claim your prize.'];   // 0111: only a prize claim asks
     case 'VERIFY_PENDING': return ['Your face check is with our team. You can claim as soon as it passes. We’ll notify you.'];
     case 'NEED_REEL': return ['Post a Reel and get it approved to claim your prize.'];
+    case 'NEED_PLACE_REEL': return ['To claim the ฿100, post a Reel at a real place (add the place) and get it approved.'];
+    case 'REEL_WAIT': return ['Your Reel is approved! The ฿100 can be claimed 24 hours after you posted it.'];
     case 'NO_TEAM': return ['The team chat isn’t ready yet. Email ops@kringapp.com.'];
     case 'NO_LINKS': return ['For everyone’s safety, links can’t be sent in chat. Swap Instagram once you trust each other.'];
     case 'OWN_REEL': return ['That’s your own Reel.'];

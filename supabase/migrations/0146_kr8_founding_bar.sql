@@ -1,0 +1,2 @@
+-- 0146 (19 Nov, founder): applied live from bus/drop/m0157_founding_bar.sql. Founding ฿100 needs an approved, visible Reel with a
+-- place (venue) that has been up 24 h (claim_reel_needs_place, claim_reel_age_h); errors KR8_NEED_PLACE_REEL / KR8_REEL_WAIT.

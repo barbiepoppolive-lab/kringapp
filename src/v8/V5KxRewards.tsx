@@ -9,6 +9,7 @@ import { ago, BRAND_NAME, claimBrands, fmtN, tmPct, valueFor, type Brand } from 
 import { ringsRules } from './rewardsConfig';
 import { kxClaimPrize, kxMarkUsed, kxRecentClaims, type KxClaim, type KxClaimResult, type KxPrize, type KxRecent, type KxRewards, type KxWeekResult } from './v5Kx';
 import { v5ErrCode, v5LogClient, v5SignInLine, v5UploadClaimPhoto } from './v5Live';
+import { v5ErrText } from './v5Strings';
 import { ClaimFace, TE } from './V5ClaimFace';
 import { NeonCard, RingGlyph } from './V5KxCard';
 import { baht, ownRow } from './V5KxRanking';
@@ -189,6 +190,8 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
       if (c === 'FACE_NEEDED') { if (skipTried.current) v5LogClient('claim_face_skip', 'server_needs_face'); setStep('face'); return; }
       if (c === 'VERIFY_FIRST') { setStep('verify'); return; }   // 0111: the server asks for the face check first
       if (c === 'WEEK_REVIEW') { setWaitUntil('soon'); return; }
+      // 19 Nov: the prize rules (approved place Reel, 24 h, face check waiting) say exactly what is missing
+      if (c === 'NEED_REEL' || c === 'NEED_PLACE_REEL' || c === 'REEL_WAIT' || c === 'VERIFY_PENDING') { setErr(L(v5ErrText(c)[0])); return; }
       setErr(c === 'ONE_ACCOUNT' ? L('This phone already claimed for another account. One person, one account.')
         : c === 'NO_PRIZE' ? L('That prize isn’t here any more.')
         : c === 'OFFLINE' || c === 'NETWORK' ? L('Couldn’t reach Kring. Check your connection and try again.')
