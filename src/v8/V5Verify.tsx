@@ -487,7 +487,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
         <Panel L={L} onClose={close} icon="fail" title={L('Let’s try that again')} text={L(FAIL_TEXT[why])} id="verifyFail">
           {left === 0 ? <p className="kfv2-small">{L('That’s 3 tries for today. Try again tomorrow.')}</p> : (
             <button type="button" className="kfv2-cta" id="verifyRetry" onClick={() => void start()}>
-              {left !== null ? L('Try again · {0} left today').replace('{0}', String(left)) : L('Try again')}
+              {left !== null && left <= 5 ? L('Try again · {0} left today').replace('{0}', String(left)) : L('Try again')}
             </button>
           )}
           {why === 'mismatch'
