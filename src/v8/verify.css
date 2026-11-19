@@ -120,3 +120,8 @@
 }
 /* fix4: camera-blocked steps (plain numbered lines, no box) */
 .v8-app-root .kfv2-steps { margin: 0 0 6px; padding-left: 22px; text-align: left; display: grid; gap: 6px; color: rgba(255, 247, 236, 0.8); font-size: .9rem; line-height: 1.45; }
+/* face-fixes 19 Nov: LINE → "Open in browser" (a plain underlined text button) and the small face-privacy link (no box) */
+.v8-app-root .kfv2-out { color: #FFF7EC; text-decoration: underline; text-underline-offset: 3px; }
+.v8-app-root .kfv2-out:disabled { opacity: .5; }
+.v8-app-root .kfv2-privacy { display: inline-block; margin-top: 6px; padding: 6px 4px; color: rgba(255, 247, 236, 0.62); font-size: .8rem;
+  text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(255, 247, 236, 0.3); }

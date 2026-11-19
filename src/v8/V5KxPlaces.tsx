@@ -9,6 +9,7 @@ import { cleanPlaceName, distM, fmtDist, fmtN, isMapsLink, KX_AREAS, mapsUrl, pa
 import { kxAddPlace, kxMemberAddPlace, kxPhoton, kxPlacePage, kxSearchPlaces, placePhoto, type KxPlace, type KxPlacePage, type KxPlaceReel, type KxSavedReel } from './v5Kx';
 import { signReelPaths } from './v5Reel';
 import { kxArea } from './v5Strings';
+import { lineOut } from './invite';
 
 type Tx = (en: string) => string;
 type Txf = (en: string, a: string, b?: string) => string;
@@ -346,8 +347,9 @@ export function PlacePage(props: { L: Tx; Lf: Txf; lang: string; id: string; onB
     const url = props.shareUrl(p.id);
     if (props.shareLink) { props.shareLink(url, props.lang === 'th' ? (p.name_th || p.name_en) : p.name_en); return; }
     try {
-      if (navigator.share) { await navigator.share({ title: `${p.name_en} · Kring`, url }); return; }
-      await navigator.clipboard.writeText(url);
+      const out = lineOut(url);   // face-fixes: opened from LINE → the friend lands in the real browser
+      if (navigator.share) { await navigator.share({ title: `${p.name_en} · Kring`, url: out }); return; }
+      await navigator.clipboard.writeText(out);
       props.toast(L('Link copied'));
     } catch { /* closed */ }
   };

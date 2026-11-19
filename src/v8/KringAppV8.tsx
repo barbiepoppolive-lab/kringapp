@@ -130,6 +130,7 @@ import { shownGender } from './V5Gender';
 import { useChatTranslate } from './v5Translate';
 import { kxMyInvites, kxBreakdown, kxGenderShown, kxMemberReels, kxReelPeople, kxTagPeople, type KxGridReel, type KxMemberReels, type KxTagPerson } from './v5Kx';
 import { kxRules, kxSetWebReels, kxWebReelsGet, type KxWebReels } from './v5Kx';
+import { facePassedHere, markFacePassed, skipClaimFace } from './faceSkip';
 import { friendsLine, friendsParts, liveSeen, markLiveSeen, oneTapShare, pickLiveReel, refCode, shareText, withRef, type ShareKind, type ShareResult } from './invite';
 import { InviteHint } from './V5Invite';
 import { copyText } from './camGuard';
@@ -7168,7 +7169,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               if (afterVerifyRef.current) { afterVerifyRef.current = false; markReelNudgeSeen(v5LastUid.current || v5Uid); setTab('me'); }
             }}
             onSent={() => setVerifyPending(true)}
-            onVerified={() => { setVerifyPending(false); setFaceOkNow(true); setMeProfile((p) => (p ? { ...p, verified: true } : p)); }}
+            onVerified={() => { setVerifyPending(false); setFaceOkNow(true); markFacePassed(v5Uid); setMeProfile((p) => (p ? { ...p, verified: true } : p)); }}
             onAddPhoto={() => setSheet('v5card')} />
         )}
         {sheet === 'follow' && followFor && (
@@ -7235,6 +7236,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {sheet === 'claim' && live && (
           <ClaimPage L={L} Lf={Lf} lang={lang} data={kxRewards} prize={kxPrizeSel} toast={showToast} onBack={() => setSheet('rewards')}
             verified={!!(meProfile?.verified || v5Card?.verified || faceOkNow)}
+            skipFace={skipClaimFace({ verified: !!(meProfile?.verified || v5Card?.verified || faceOkNow), passedHere: faceOkNow || facePassedHere(v5Uid), approved: !!(meProfile?.verified || v5Card?.verified) })}
             verifyPending={verifyPending} onVerify={() => setClaimVerify(true)}
             onDone={(r: KxClaimResult) => {
               a2hsMoment('claim');   // J: install nudge after a claim (shows once the claim screen is closed)
@@ -7251,7 +7253,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <V5VerifySheet L={L} photo={v5Card.photo} errText={(e) => v5Msg(e)} mode="claim"
             onClose={() => { setClaimVerify(false); void loadMe(); }}
             onSent={() => setVerifyPending(true)}
-            onVerified={() => { setVerifyPending(false); setFaceOkNow(true); setMeProfile((p) => (p ? { ...p, verified: true } : p)); }}
+            onVerified={() => { setVerifyPending(false); setFaceOkNow(true); markFacePassed(v5Uid); setMeProfile((p) => (p ? { ...p, verified: true } : p)); }}
             onAddPhoto={() => { setClaimVerify(false); setSheet('v5card'); }} />
         )}
         {sheet === 'claimed' && live && (

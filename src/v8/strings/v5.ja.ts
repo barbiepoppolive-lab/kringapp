@@ -569,6 +569,9 @@ const T: Record<string, string> = {
   // 0081 instant face check
   'A 5-second face check on your phone. People reply more to verified members.': 'スマホで5秒の顔チェック。認証済みメンバーは返信をもらいやすくなります。',
   'Put your face in the oval': '顔を楕円の中に入れてください',
+  'Move your face into the oval': '顔を楕円の中に動かしてください',
+  'Too dark — face a light': '暗すぎます。明るい方を向いてください',
+  'How we protect your face': '顔データの守り方',
   'Only you in the picture': '写るのはあなた一人だけにしてください',
   'More light': 'もう少し明るく',
   'Move closer': 'もう少し近づいて',

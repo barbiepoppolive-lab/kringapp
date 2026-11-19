@@ -65,7 +65,8 @@ describe('one tap', () => {
   it('inside LINE: one tap opens line.me/R/share, never the share sheet', async () => {
     const d = deps({ ua: UA.line });
     expect(await oneTapShare(P, d)).toBe('line');
-    expect(d.open).toHaveBeenCalledWith(lineShareUrl(P.text, P.url));
+    // face-fixes 19 Nov: shared from LINE, the link opens in the friend's real browser (openExternalBrowser=1)
+    expect(d.open).toHaveBeenCalledWith(lineShareUrl(P.text, 'https://kringapp.com/r/abc2345?ref=k00184&openExternalBrowser=1'));
     expect(d.share).not.toHaveBeenCalled();
   });
   it('closing the share sheet is not a share (no copy, no toast)', async () => {

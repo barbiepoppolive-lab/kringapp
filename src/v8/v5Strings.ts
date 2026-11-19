@@ -581,6 +581,10 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Use your real face in front of the camera, not a photo or a screen.': 'ใช้หน้าจริงของคุณหน้ากล้องนะ ไม่ใช่รูปหรือหน้าจอ',
     'A 5-second face check on your phone. People reply more to verified members.': 'เช็กหน้า 5 วินาทีในมือถือ คนจะตอบแชตสมาชิกที่ยืนยันตัวตนแล้วมากกว่า',
     'Put your face in the oval': 'วางหน้าให้อยู่ในวงรี',
+    // face-fixes 19 Nov: live hints + face privacy link
+    'Move your face into the oval': 'ขยับหน้าให้อยู่ในวงรีนะ',
+    'Too dark — face a light': 'มืดไปนิด หันหน้าเข้าหาแสงหน่อยนะ',
+    'How we protect your face': 'เราปกป้องข้อมูลใบหน้าของคุณอย่างไร',
     'Only you in the picture': 'ขอแค่คุณคนเดียวในกล้องนะ',
     'More light': 'ขอแสงเพิ่มอีกนิด',
     'Move closer': 'ขยับเข้ามาใกล้อีกนิด',

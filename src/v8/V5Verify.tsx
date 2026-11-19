@@ -11,11 +11,12 @@ import { cosine, loadFaceEngine, readFace } from './faceEngine';
 import type { FaceRead } from './faceEngine';
 import { bestSampler, brightness, canvasJpeg, faceapiSampler, snap } from './v5Mp';
 import type { Sampler } from './v5Mp';
-import { checkPayload, clientVerdict, currentTurn, frontalScore, LIMITS_FAST, LIMITS_SLOW, liveStart, liveStepWith, progressOf, slowPhone, SLOW_FRAME_MS } from './verifyLive';
+import { checkPayload, clientVerdict, currentTurn, DARK, frontalScore, LIMITS_FAST, LIMITS_SLOW, liveStart, liveStepWith, progressOf, shownHint, slowPhone, SLOW_FRAME_MS } from './verifyLive';
 import type { FailWhy, Hint, LiveLimits, LiveState } from './verifyLive';
 import { v5ErrCode, v5HandoffCreate, v5LogClient, v5SaveFacePrint, v5VerifyInstant, v5VerifySimple } from './v5Live';
 import { allBlack, CAM_STEPS, camDenied, camFix, copyText, engineSupport, firstFrame, inAppBrowser, simpleWhy, withTimeout } from './camGuard';
 import type { CamFix } from './camGuard';
+import { lineExternal, targetUrl } from './escape';
 import type { V5FaceDecision } from './v5Live';
 import './verify.css';
 
@@ -29,7 +30,8 @@ const consentSaved = () => { try { return localStorage.getItem(CONSENT_KEY) === 
 const saveConsent = () => { try { localStorage.setItem(CONSENT_KEY, FACE_CONSENT_VERSION); } catch { /* private mode */ } };
 
 const HINT_TEXT: Record<Exclude<Hint, null>, string> = {
-  face: 'Put your face in the oval', one: 'Only you in the picture', light: 'More light', closer: 'Move closer', back: 'Move back a little',
+  // face-fixes 19 Nov: plainer live hints (light = what to do, face = after 2 s without a face)
+  face: 'Move your face into the oval', one: 'Only you in the picture', light: 'Too dark — face a light', closer: 'Move closer', back: 'Move back a little',
   centre: 'Centre your face', still: 'Hold still',
 };
 const FAIL_TEXT: Record<FailWhy, string> = {
@@ -49,7 +51,17 @@ export const CAM_BLACK_MS = 3000;     // frames still black this long after the 
 export const TRACKER_MS = 2000;       // tracker errors (or MediaPipe blind while face-api sees a face) this long = switch tracker
 export const ENGINE_MS = 20000;      // the face engine must load within this, or the simple path (one selfie → the founder looks)
 export const ENGINE_SLOW_MS = 45000; // fix4: the same on a slow phone (few cores / little memory, or after a timeout here)
-export const PHOTO_NOTE_MS = 1500;   // T-392: how long "We'll send this one photo to our team…" shows before the upload starts
+export const PHOTO_NOTE_MS = 1500;
+export const DARK_POLL_MS = 500;      // face-fixes: how often the scan screen samples the frame brightness (24×18 pixels)
+/** face-fixes (19 Nov): the website section that explains how Kring protects face data */
+export const FACE_PRIVACY_URL = 'https://kringapp.com/terms#face';
+/** face-fixes: inside LINE, the face check page again in the phone's own browser (LINE opens openExternalBrowser=1 links outside),
+ *  with ?open=verify (the check opens again) and the one-time sign-in code when we have one. */
+export function lineOutsideUrl(href: string, ho?: string | null): string {
+  const page = new URL(href);
+  page.searchParams.set('open', 'verify');
+  return lineExternal(targetUrl(page.toString(), { ho }));
+}   // T-392: how long "We'll send this one photo to our team…" shows before the upload starts
 // some phone-maker / X5 browsers take over a <video> with their own player (black picture, a "download" button): ask them not to
 const VIDEO_ATTRS = { 'x5-playsinline': 'true', 'webkit-playsinline': 'true', 'x5-video-player-type': 'h5-page', controlsList: 'nodownload nofullscreen noremoteplayback', disablePictureInPicture: true, disableRemotePlayback: true } as Record<string, unknown>;
 const device = () => (navigator.userAgent.match(/iPhone|iPad|Android|Mac|Windows|Linux/) || ['other'])[0];
@@ -78,6 +90,9 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
   const [ready, setReady] = useState(false);   // the tracker is loaded (the camera shows before it)
   const [pct, setPct] = useState(0);
   const [photoNote, setPhotoNote] = useState(false);   // T-392: the selfie is about to go to the team (need_photo)
+  const [dark, setDark] = useState(false);   // face-fixes: the picture is too dark (sampled every DARK_POLL_MS)
+  const noFaceRef = useRef(0);   // face-fixes: when the tracker last started seeing no face (0 = it sees one)
+  const [leaving, setLeaving] = useState(false);   // face-fixes: "Open in browser" (LINE) was tapped
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const runRef = useRef(0);
@@ -184,6 +199,28 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
     const t = window.setInterval(() => setPct((p) => Math.min(92, p + Math.max(0.6, (92 - p) * 0.07))), 200);
     return () => clearInterval(t);
   }, [stage, ready]);
+  // face-fixes 19 Nov: "Too dark" from a tiny sample of the picture every ~500 ms (before the tracker loads too, and on the
+  // simple path); two dark readings in a row, so the first black frames of a starting camera don't flash it
+  useEffect(() => {
+    if (stage !== 'camera') { setDark(false); return undefined; }
+    let low = 0;
+    const t = window.setInterval(() => {
+      const v = videoRef.current;
+      const b = v && v.readyState >= 2 ? brightness(v) : null;
+      if (b === null) return;
+      low = b < DARK ? low + 1 : 0;
+      setDark(low >= 2);
+    }, DARK_POLL_MS);
+    return () => clearInterval(t);
+  }, [stage]);
+  /** face-fixes: LINE's built-in browser → the same face check in the phone's own browser (one tap) */
+  const openOutside = async () => {
+    if (leaving) return;
+    setLeaving(true);
+    v5LogClient('verify_line_out', 'intro');
+    const ho = await withTimeout(v5HandoffCreate(), 2500).catch(() => null);
+    window.location.href = lineOutsideUrl(window.location.href, ho);
+  };
 
   /** stream → <video>, played at once; null (and "Camera blocked") when no frame arrives in time. Then watches for an all-black picture. */
   const attach = async (stream: MediaStream, run: number): Promise<HTMLVideoElement | null> => {
@@ -267,6 +304,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
           if (alt && run === runRef.current) { samplerRef.current = alt; sampler = alt; s = liveStart(); best = -9; v5LogClient('verify_tracker_switch', 'faceapi_probe', device()); setLive(s); continue; }
         }
       }
+      if (!f.found) noFaceRef.current ||= performance.now(); else noFaceRef.current = 0;
       if (s.step !== 'done') {
         const before = s.step;
         s = liveStepWith(s, f, lim);
@@ -386,7 +424,8 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
   const prompt = live.step === 'straight' ? L('Look straight at the camera')
     : turn === 'left' ? L('Turn your head slightly left') : turn === 'right' ? L('Turn your head slightly right')
     : live.step === 'blink' ? L('Now blink') : L('Hold still');
-  const hint = live.hint && !(live.step !== 'straight' && live.hint === 'centre') ? live.hint : null;
+  const hint = shownHint({ tracker: live.hint && !(live.step !== 'straight' && live.hint === 'centre') ? live.hint : null, tracking, dark: dark && stage === 'camera',
+    noFaceMs: noFaceRef.current ? performance.now() - noFaceRef.current : 0 });
   const prog = progressOf(live);
   const ringLen = 320;
   const tone = stage === 'checking' || live.step === 'done' ? 'ok' : hint ? 'warn' : 'go';
@@ -413,8 +452,8 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
             <b id="verifyStep" key={stage === 'camera' ? live.step + (turn || '') : stage}>
               {stage === 'loading' ? L('Getting the camera ready…') : stage === 'checking' ? L('Checking…') : !tracking ? L('Look straight at the camera') : prompt}
             </b>
-            <span className={`kfv2-hint${hint && tracking ? ' on' : ''}`} id="verifyHint" data-hint={hint || ''}>
-              {hint && tracking ? L(HINT_TEXT[hint]) : ' '}
+            <span className={`kfv2-hint${hint ? ' on' : ''}`} id="verifyHint" data-hint={hint || ''}>
+              {hint ? L(HINT_TEXT[hint]) : ' '}
             </span>
           </div>
           <div className="kfv2-foot">
@@ -431,7 +470,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
               ? <><p id="verifyPhotoNote">{L('We’ll send this one photo to our team to check, then delete it.')}</p><button type="button" className="kfv2-cta" id="verifySnap" onClick={takeSelfie}>{L('Take selfie')}</button></>
               : photoNote && stage === 'checking'
                 ? <p id="verifyPhotoNote" role="status">{L('We’ll send this one photo to our team to check, then delete it.')}</p>
-                : <p>{L('Checked on your phone · about 5 seconds')}</p>}
+                : <><p>{L('Checked on your phone · about 5 seconds')}</p><PrivacyLink L={L} /></>}
           </div>
         </div>
       )}
@@ -450,6 +489,8 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
             : props.nudge ? L('Do it once. It keeps your ✓ and your prizes safe.')
             : L('You only need it to claim a prize. Look at the camera, turn a little, blink.')}>
           {inApp && <p className="kfv2-small kfv2-inapp" id="verifyInApp" role="note">{L('You’re in an app’s built-in browser, where the camera often doesn’t work. If it doesn’t start, open this page in Chrome (or Safari).')}</p>}
+          {/* face-fixes 19 Nov: inside LINE, one tap opens this check in the phone's own browser (Instagram / TikTok: camGuard help) */}
+          {inApp === 'line' && <button type="button" className="kfv2-2nd kfv2-out" id="verifyOpenOutside" disabled={leaving} onClick={() => void openOutside()}>{L('Open in browser')}</button>}
           <details className="kfv2-consent" id="verifyConsent">
             <summary>{L('Your face data')}</summary>
             <ul>
@@ -467,6 +508,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
           <button type="button" className="kfv2-cta" id="verifyStart" disabled={!agree} onClick={() => { saveConsent(); void start(); }}>{L('Agree and start')}</button>
           {/* 0111: a clear second choice; skipping never blocks anything (only a prize claim asks again) */}
           <button type="button" className="kfv2-2nd" id="verifyLater" onClick={close}>{mode === 'claim' ? L('Not now') : L('Do it later')}</button>
+          <PrivacyLink L={L} />
         </Panel>
       )}
 
@@ -548,6 +590,11 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
       )}
     </div>
   );
+}
+
+/** face-fixes 19 Nov: small light link to the website section on face data (new tab) */
+function PrivacyLink({ L }: { L: Tx }) {
+  return <a className="kfv2-privacy" id="verifyPrivacy" href={FACE_PRIVACY_URL} target="_blank" rel="noopener noreferrer">{L('How we protect your face')}</a>;
 }
 
 /** fix4: short numbered steps (open in the real browser / allow the camera); plain text, no box */

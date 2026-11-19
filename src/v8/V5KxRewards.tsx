@@ -3,12 +3,12 @@
  * TrueMoney full value on live), the gold ticket with the code + Copy + Open, history with NEW / USED, the live claims line, and the week-close result.
  * Rings are a score, never money: prizes are baht. Every prize and every code is decided by the server (kr8_close_week / kr8_claim_prize).
  */
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import './kx.css';
 import { ago, BRAND_NAME, claimBrands, fmtN, tmPct, valueFor, type Brand } from './kxLogic';
 import { ringsRules } from './rewardsConfig';
 import { kxClaimPrize, kxMarkUsed, kxRecentClaims, type KxClaim, type KxClaimResult, type KxPrize, type KxRecent, type KxRewards, type KxWeekResult } from './v5Kx';
-import { v5ErrCode, v5SignInLine, v5UploadClaimPhoto } from './v5Live';
+import { v5ErrCode, v5LogClient, v5SignInLine, v5UploadClaimPhoto } from './v5Live';
 import { ClaimFace, TE } from './V5ClaimFace';
 import { NeonCard, RingGlyph } from './V5KxCard';
 import { baht, ownRow } from './V5KxRanking';
@@ -152,6 +152,8 @@ export function RewardsPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewar
 export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards | null; prize: KxPrize | null; onBack: () => void; onDone: (r: KxClaimResult) => void; toast: (m: string) => void;
   /** 0111: the face check is needed ONLY to claim a prize. false = not verified yet → the claim asks for it first (undefined = unknown: the server decides) */
   verified?: boolean; verifyPending?: boolean; onVerify?: () => void;
+  /** face-fixes 19 Nov: verified + this phone passed (or the team approved) → no second scan; FACE_NEEDED from the server → the scan */
+  skipFace?: boolean;
   /** preview harness only */ startStep?: 'pick' | 'face' | 'line' | 'verify'; faceDemo?: Parameters<typeof ClaimFace>[0]['demo'] }) {
   const { L, Lf, data, prize } = props;
   const R = ringsRules(data?.rules);
@@ -169,6 +171,7 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
   const [waitUntil, setWaitUntil] = useState<string | null>(null);
   const amount = prize?.amount ?? 0;
   const opensAt = prize?.opens_at && Date.parse(prize.opens_at) > Date.now() ? prize.opens_at : waitUntil;
+  const skipTried = useRef(false);   // face-fixes: the claim was sent once without the scan (a FACE_NEEDED answer then opens it)
   const send = async (face: Float32Array | null, photo?: Blob | null) => {
     if (busy || !prize) return;
     setBusy(true);
@@ -181,7 +184,7 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
       const c = v5ErrCode(e);
       setStep('pick');
       if (c === 'NEED_LINE') { setStep('line'); return; }
-      if (c === 'FACE_NEEDED') { setStep('face'); return; }
+      if (c === 'FACE_NEEDED') { if (skipTried.current) v5LogClient('claim_face_skip', 'server_needs_face'); setStep('face'); return; }
       if (c === 'VERIFY_FIRST') { setStep('verify'); return; }   // 0111: the server asks for the face check first
       if (c === 'WEEK_REVIEW') { setWaitUntil('soon'); return; }
       setErr(c === 'ONE_ACCOUNT' ? L('This phone already claimed for another account. One person, one account.')
@@ -195,6 +198,8 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
     if (data?.claim_needs_line && !data?.line_linked) { setStep('line'); return; }
     if (needsVerify) { setStep('verify'); props.onVerify?.(); return; }   // 0111: face check first, only here
     if (data?.claim_face_check !== true) { void send(null); return; }   // before 0066 the server doesn't ask for it
+    // face-fixes 19 Nov: already verified (and passed on this phone / approved by the team) → no second scan
+    if (props.skipFace && !skipTried.current) { skipTried.current = true; v5LogClient('claim_face_skip', 'verified'); void send(null); return; }
     setStep('face');
   };
   const linkLine = async () => {

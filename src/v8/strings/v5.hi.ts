@@ -569,6 +569,9 @@ const T: Record<string, string> = {
   // 0081 instant face check
   'A 5-second face check on your phone. People reply more to verified members.': 'आपके फ़ोन पर 5 सेकंड का फ़ेस चेक। वेरिफ़ाइड मेंबर्स को ज़्यादा जवाब मिलते हैं।',
   'Put your face in the oval': 'अपना चेहरा ओवल में रखें',
+  'Move your face into the oval': 'अपना चेहरा ओवल के अंदर लाएँ',
+  'Too dark — face a light': 'बहुत अँधेरा है, रोशनी की ओर मुँह करें',
+  'How we protect your face': 'हम आपके चेहरे का डेटा कैसे सुरक्षित रखते हैं',
   'Only you in the picture': 'तस्वीर में सिर्फ़ आप हों',
   'More light': 'थोड़ी और रोशनी',
   'Move closer': 'थोड़ा पास आएँ',

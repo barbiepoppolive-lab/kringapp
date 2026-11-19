@@ -10,7 +10,7 @@ import {
   type AskAnswer, type AskApi, type AskPerson, type AskQuestion, type AskReportReason, type AskThreadData,
 } from './askThai';
 import { initialAvatar } from './v8Data';
-import { withRef } from './invite';
+import { lineOut, withRef } from './invite';
 
 type LFn = (en: string) => string;
 /** A server refusal the member can act on (ghost mode, too many posts, banned words, no card) gets its own message;
@@ -446,7 +446,7 @@ export const AskThaiView: React.FC<AskThaiViewProps> = ({ L, api, me, areas, are
     api.vote('q', q.id, v).catch((e) => toast(askErrText(L, e, 'Something went wrong')));
   });
   const share = async (q: AskQuestion) => {
-    const url = withRef(typeof location !== 'undefined' ? location.origin + location.pathname : '', refCode);   // invite-1: my invite code
+    const url = lineOut(withRef(typeof location !== 'undefined' ? location.origin + location.pathname : '', refCode));   // invite-1: my invite code
     const text = `${q.body} · ${L('Ask a Thai')}`;
     if (shareLink) { shareLink(url, text); return; }
     try {

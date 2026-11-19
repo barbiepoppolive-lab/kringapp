@@ -569,6 +569,9 @@ const T: Record<string, string> = {
   // 0081 instant face check
   'A 5-second face check on your phone. People reply more to verified members.': '在手机上 5 秒完成刷脸验证。已验证的会员更容易收到回复。',
   'Put your face in the oval': '把脸放进椭圆框里',
+  'Move your face into the oval': '把脸移进椭圆框里',
+  'Too dark — face a light': '太暗了，请面向光源',
+  'How we protect your face': '我们如何保护你的面部信息',
   'Only you in the picture': '画面里只能有你一个人',
   'More light': '光线再亮一点',
   'Move closer': '靠近一点',

@@ -36,6 +36,19 @@ export function withRef(url: string, code: string | null | undefined): string {
   }
 }
 
+/** face-fixes (19 Nov): shared from inside LINE's built-in browser (UA " Line/"), a Kring link gets openExternalBrowser=1, so the
+ *  friend who taps it in a LINE chat lands in the phone's real browser (camera, sign-in and dings work there). Other params and the
+ *  #hash are kept; liff.line.me links (meant to open inside LINE), non-http links and other browsers are left as they are. */
+export function lineOut(url: string, ua: string = typeof navigator === 'undefined' ? '' : navigator.userAgent): string {
+  if (!url || inAppBrowser(ua) !== 'line') return url;
+  try {
+    const u = new URL(url);
+    if (!/^https?:$/.test(u.protocol) || /(^|\.)line\.me$/i.test(u.hostname)) return url;
+    u.searchParams.set('openExternalBrowser', '1');
+    return u.toString();
+  } catch { return url; }
+}
+
 /** LINE's official share picker with the text and the link. */
 export const lineShareUrl = (text: string, url: string) => `https://line.me/R/share?text=${encodeURIComponent(text ? `${text}\n${url}` : url)}`;
 
@@ -111,7 +124,8 @@ export interface SharePayload { title: string; text: string; url: string }
 export type ShareResult = ShareChannel | 'cancelled';
 
 /** ONE tap. Must be called straight from the tap (no awaits before it), so the phone allows the share sheet / copy. */
-export async function oneTapShare(p: SharePayload, d: ShareDeps): Promise<ShareResult> {
+export async function oneTapShare(p0: SharePayload, d: ShareDeps): Promise<ShareResult> {
+  const p = { ...p0, url: lineOut(p0.url, d.ua) };
   const ch = pickChannel(d.ua, typeof d.share === 'function');
   const copied = d.copied || (isTh(d.lang) ? 'คัดลอกลิงก์แล้ว' : 'Link copied');
   if (ch === 'line') { d.open(lineShareUrl(p.text, p.url)); return 'line'; }

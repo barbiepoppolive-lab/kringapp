@@ -109,6 +109,18 @@ export function frameHint(f: LiveFrame, prev: LiveFrame | null): Hint {
   return null;
 }
 
+/** face-fixes (19 Nov): no face for this long before "Move your face into the oval" shows (a blink of lost tracking says nothing) */
+export const NOFACE_MS = 2000;
+/** face-fixes: the ONE hint line the scan screen shows. `dark` = the frame brightness sampled every ~500 ms by the screen itself,
+ *  so "too dark" also shows while the tracker is still loading and on the simple path. Order: light first (no face is often
+ *  just a dark room), then the tracker's own hint, with "no face" only after NOFACE_MS. */
+export function shownHint(h: { tracker: Hint; tracking: boolean; dark: boolean; noFaceMs: number }): Hint {
+  if (h.dark) return 'light';
+  if (!h.tracking || !h.tracker) return null;
+  if (h.tracker === 'face') return h.noFaceMs >= NOFACE_MS ? 'face' : null;
+  return h.tracker;
+}
+
 /** true when f looks like a different face than prev (jump in place or size): the same person can't move that fast */
 export function swapped(prev: LiveFrame | null, f: LiveFrame): boolean {
   if (!prev || !prev.found || !f.found) return false;

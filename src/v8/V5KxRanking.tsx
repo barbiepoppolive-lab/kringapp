@@ -15,7 +15,7 @@ import { signReelPaths } from './v5Reel';
 import { RingToast, rulesVariant, WinSheet, winRules } from './V5KxRules';
 import { BackIcon, Crown, InfoIcon, Medal, PlusIcon, ShareIcon, type Tone } from './BoardArt';
 import { rankDelta, seenRankAtStart } from './prizeRace';
-import { refCode } from './invite';
+import { lineOut, refCode } from './invite';
 import { boardMoment, displayCode, cardBlob, cardCaption, cardLink, linkCopiedToast, shareCard, storyButtonLabel, storyFileName, type ShareCard } from './rankStory';
 
 type Tx = (en: string) => string;
@@ -391,7 +391,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
     if (!p || !storyIn) return;
     setStoryBusy(true);
     try {
-      await shareCard(await p, { name: storyFileName(storyIn.moment, storyIn.rank), caption: cardCaption(lang, storyIn.moment), link: storyLink,
+      await shareCard(await p, { name: storyFileName(storyIn.moment, storyIn.rank), caption: cardCaption(lang, storyIn.moment), link: lineOut(storyLink),
         copy: copyLink, toast: flash, copied: linkCopiedToast(lang) });
     } finally { setStoryBusy(false); }
   };
