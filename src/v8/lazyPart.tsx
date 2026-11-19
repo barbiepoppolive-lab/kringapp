@@ -5,7 +5,19 @@ import React, { Suspense, lazy } from 'react';
 const loaders: (() => Promise<unknown>)[] = [];
 export function lazyPart<P extends object>(load: () => Promise<React.ComponentType<P>>): React.FC<P> {
   let p: Promise<{ default: React.ComponentType<P> }> | null = null;
-  const get = () => (p ||= load().then((c) => ({ default: c })).catch((e) => { p = null; throw e; }));
+  // 19 Nov: after a deploy an open app may ask for a file that was replaced ("Failed to fetch dynamically imported module"):
+  // reload the page once (fresh files) instead of showing "Something went wrong"
+  const get = () => (p ||= load().then((c) => ({ default: c })).catch((e) => {
+    p = null;
+    const msg = String((e as Error)?.message || e);
+    if (/dynamically imported module|Importing a module script failed|error loading dynamically imported/i.test(msg)) {
+      try {
+        const k = 'kr8_chunk_reload_at', last = Number(sessionStorage.getItem(k) || 0);
+        if (Date.now() - last > 60000) { sessionStorage.setItem(k, String(Date.now())); location.reload(); }
+      } catch { /* private mode */ }
+    }
+    throw e;
+  }));
   loaders.push(get);
   const Lazy = lazy(get) as unknown as React.ComponentType<P>;
   const Part: React.FC<P> = (props) => (
