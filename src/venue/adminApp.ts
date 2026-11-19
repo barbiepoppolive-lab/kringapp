@@ -512,6 +512,8 @@ async function reelQueue() {
 /** [button, English the admin sees, Thai sent first]. The member / owner gets "Thai\nEnglish"; the admin screen shows English only. */
 type Chip = [label: string, en: string, th: string];
 const FACE_CHIPS: Chip[] = [
+  // 19 Nov (founder): one tap for the strict second-account warning
+  ['Second account · warning', 'Warning: this is a second account of someone who already has a Kring account. One person, one account, one prize. More duplicate accounts will get all linked accounts closed.', 'คำเตือน: บัญชีนี้เป็นบัญชีที่สองของคนที่มีบัญชี Kring อยู่แล้ว กติกาคือ 1 คน 1 บัญชี 1 รางวัล หากพบบัญชีซ้ำอีก เราจะปิดทุกบัญชีที่เกี่ยวข้องครับ'],
   ['Not the same person', 'The face in your profile photo and the selfie are not the same person.', 'ใบหน้าในรูปโปรไฟล์กับเซลฟี่ไม่ใช่คนเดียวกันครับ'],
   ['Selfie not clear', 'The selfie is not clear enough. Please try again in good light.', 'เซลฟี่ยังไม่ชัดพอ ลองถ่ายใหม่ในที่ที่มีแสงสว่างนะครับ'],
   ['Photo of a screen', 'The selfie looks like a photo of a screen. Please take a live selfie.', 'เซลฟี่ดูเหมือนถ่ายจากหน้าจอ รบกวนถ่ายเซลฟี่สดอีกครั้งนะครับ'],
