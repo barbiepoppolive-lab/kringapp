@@ -171,7 +171,7 @@ import { applyTrim, checkReel, createReel, makeAudio, prepareReel, ReelError, up
 import { GoTrim, WindowVideo } from './V5Trim';
 import { clock } from './reelTrim';
 import { isMemberId } from './deepLink';
-import { ADMIN_VIEW_NO_SHEETS, adminPanelHref, adminViewActive, adminViewWanted, setAdminViewActive } from './adminView';
+import { ADMIN_VIEW_NO_SHEETS, adminPanelHref, adminViewActive, adminViewWanted, mirrorActive, setAdminViewActive } from './adminView';
 const appBasePath = () => ((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.BASE_URL) || '/app/';
 import { AdminViewMe, AdminViewPill } from './V5AdminView';
 import { HELP_UI, HelpMeRow, HelpSheet } from './V5Help';
@@ -2695,6 +2695,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const photoAskedRef = useRef(false);
   useEffect(() => {
     if (!live || !v5Card) { setPhotoFix(false); return; }
+    // 19 Nov: the founder's View-as-member mirror and the admin view never get pushed into the card screen
+    if (mirrorActive() || adminViewRef.current) { setPhotoFix(false); return; }
     const src = v5Card.photo || '';
     const key = 'kr8_dp_ok2:' + src.split('?')[0];   // 17 Nov: v2 = stricter check (old 'ok' marks are ignored)
     let ok = false;
