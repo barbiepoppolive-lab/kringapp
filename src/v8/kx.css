@@ -1213,3 +1213,6 @@
 .v8-app-root .bx-live i { width: 8px; height: 8px; border-radius: 50%; background: #FF3B5C; box-shadow: 0 0 0 0 rgba(255,59,92,.7); animation: bx-live 1.6s ease-out infinite; }
 @keyframes bx-live { 0% { box-shadow: 0 0 0 0 rgba(255,59,92,.7); } 100% { box-shadow: 0 0 0 8px rgba(255,59,92,0); } }
 @media (prefers-reduced-motion: reduce) { .v8-app-root .bx-live i { animation: none; } }
+
+/* 19 Nov: the optional Instagram/TikTok ask is a quiet link, not a second big button */
+.v8-app-root .kx-fc-link { display: block; margin-top: 8px; padding: 4px 0; background: none; border: 0; color: rgba(255,255,255,.62); font-size: 14px; font-weight: 600; text-align: left; text-decoration: underline; text-underline-offset: 3px; }

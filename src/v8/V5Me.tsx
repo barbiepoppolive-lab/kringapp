@@ -125,7 +125,7 @@ export function FoundingChecklist(props: { L: Tx; Lf: Txf; kx: KxCardExtras | nu
       </button>
       {open ? <p className="kx-next-l" id="kxFoundingPaid">{L('Yours when Kring approves your Reel')}</p> : null}
       {!props.hasSocial ? (
-        <button type="button" className="kx-go" id="kxFoundingAdd" onClick={props.onLink} style={{ marginTop: 6 }}>{L('Optional: add Instagram or TikTok')}</button>
+        <button type="button" className="kx-fc-link" id="kxFoundingAdd" onClick={props.onLink}>{L('Optional: add Instagram or TikTok')} ›</button>
       ) : null}
     </div>
   );
@@ -249,7 +249,8 @@ export function MeView(props: MeViewProps) {
       </div>
       {props.reelsSlot ? null : <PerksCard />}
       {/* 16 Nov: a new member's first step is their first Reel; the face check shows once they have one (or already sent it) */}
-      {props.reelsSlot && !p.reels.length ? (
+      {/* 19 Nov founder: no second "Post your first Reel" when the Founding card already asks for it */}
+      {props.reelsSlot && !p.reels.length && !foundingDue(props.kx) ? (
         <button type="button" className="kme-first kme-first-top" id="meFirstReelTop" onClick={props.onPost}>
           <b>{L('Post your first Reel')}</b><small>{L('Your Reels show here and count towards your next level')}</small>
         </button>
