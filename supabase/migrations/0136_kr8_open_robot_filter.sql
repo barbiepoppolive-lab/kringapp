@@ -1,6 +1,7 @@
 -- 0136 (19 Nov): robot / VPN / foreign opens of Reel share links never count, decided when the open is recorded.
 -- This week the founder had to mark such opens by hand (ok = false, why = 'robot'). Every one of those 209 rows (16-19 Nov)
--- is caught by the two rules below; none of this week's 57 counted opens is caught by them (all were Thai phones).
+-- is caught by rules 1-2 below. Of this week's 58 counted opens only 3 would have been refused: two bare "Chrome" script opens
+-- on #74's Reels (19 Nov) and one real phone opening a second Reel of #16 the same day (rule 3). Board change: 0 Rings.
 --   1. robot browser: empty user agent, a known crawler / link-preview / script / headless browser, or any user agent that
 --      does not start with "Mozilla/" (every real phone browser and in-app browser does; e.g. the bare "Chrome" agent with a
 --      fake google.com referrer that opened #74's Reels on 19 Nov is a script).
