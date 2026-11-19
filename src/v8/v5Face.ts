@@ -335,7 +335,19 @@ export function photoVerdictMulti(perScale: { w: number; score: number }[][], im
   return vs.find((v) => v === 'group') || vs.find((v) => v === 'small') || 'none';
 }
 
+/** 19 Nov fix5: the card photo is checked by the server (AWS, ~1 s, no download, works on every phone). The on-phone finder
+ *  below is only the fallback when the server can't answer (it then still never blocks: 'error' = accepted, team looks). */
+export const PHOTO_SERVER_MS = 8000;
 export async function checkProfilePhoto(src: string): Promise<PhotoVerdict> {
+  try {
+    const { v5CardPhotoCheck } = await import('./v5Live');
+    const v = await v5CardPhotoCheck(src, PHOTO_SERVER_MS);
+    if (v === 'ok' || v === 'none' || v === 'small' || v === 'group') return v;
+  } catch { /* server down / signed out → fall through */ }
+  return 'error';
+}
+/** the old on-phone finder (kept for tests and the classic check; no longer used by the card screen) */
+export async function checkProfilePhotoOnPhone(src: string): Promise<PhotoVerdict> {
   try {
     const [faceapi, img] = await Promise.all([loadDetector(), loadImage(src)]);
     // the small finder misses some faces at one scale (glasses, soft light), so look at 3 scales and decide on all of them together

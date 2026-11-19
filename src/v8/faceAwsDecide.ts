@@ -46,7 +46,7 @@ export interface FaceAwsLimits {
 }
 export const AWS_LIMITS: FaceAwsLimits = {
   minConf: 90, otherFaceMinW: 0.12, minBright: 20, minSharp: 6, minBoxW: 0.16,
-  straightMaxYaw: 15, straightMaxPitch: 25, turnMinYaw: 10, turnMinGap: 20, yawSign: 0,
+  straightMaxYaw: 15, straightMaxPitch: 25, turnMinYaw: 7, turnMinGap: 14, yawSign: 0,
   cardMin: 80, dupMin: 95,
 };
 

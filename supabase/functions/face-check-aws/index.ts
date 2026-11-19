@@ -226,9 +226,31 @@ async function check(uid: string, body: Record<string, unknown>): Promise<Respon
   return json({ result: rec.result === 'pass' ? 'pass' : 'review', reasons: rec.reasons, verified: rec.verified, tries_left: rec.tries_left });
 }
 
+
+// ───────── card photo check (19 Nov fix5) ─────────
+// The card screen used to run a face finder ON the phone (a 1 MB model + WebGL). On many Android phones WebGL is broken, the
+// finder fell back to the CPU and members waited on a black "loading" screen, or a good photo was refused. Now the phone sends the
+// small card photo (≤ 384 px) here: one AWS DetectFaces call (~1 s, nothing stored). Same rules as before: ok · none · small · group.
+type Fd = { BoundingBox?: { Width?: number }; Confidence?: number };
+export function photoVerdictAws(faces: Fd[]): 'ok' | 'none' | 'small' | 'group' {
+  const f = (faces || []).filter((x) => (x.Confidence ?? 0) >= 90).map((x) => x.BoundingBox?.Width ?? 0).sort((a, b) => b - a);
+  if (!f.length || f[0] > 0.95) return 'none';
+  if (f[0] < 0.08) return 'small';
+  if (f.length > 1 && f[1] >= f[0] * 0.85) return 'group';
+  return 'ok';
+}
+async function photoCheck(body: Record<string, unknown>): Promise<Response> {
+  const b64 = frameB64(body.image);
+  if (!b64) return json({ verdict: 'error', why: 'bad_image' });
+  if (MOCK) return json({ verdict: typeof body.mock === 'string' ? body.mock : 'ok' });
+  const r = await rk<{ FaceDetails?: Fd[] }>('DetectFaces', { Image: img(b64), Attributes: ['DEFAULT'] });
+  return json({ verdict: photoVerdictAws(r.FaceDetails || []) });
+}
+
 // ───────── admin actions ─────────
-async function admin(jwt: string, body: Record<string, unknown>): Promise<Response> {
-  const ok = await rpc<boolean>('kr8_is_admin', {}, jwt).catch(() => false);
+async function admin(jwt: string, body: Record<string, unknown>, robot = false): Promise<Response> {
+  // 19 Nov fix2: the canary (service key) runs backfill every hour, so faces the team approves by hand get into AWS too
+  const ok = robot ? (body.action === 'backfill' || body.action === 'sweep') : await rpc<boolean>('kr8_is_admin', {}, jwt).catch(() => false);
   if (ok !== true) return json({ error: 'ADMIN_ONLY' }, 403);
   if (body.action === 'index') {
     const info = await rpc<{ user_id: string; selfie_path: string | null; status: string; aws: boolean } | null>('kr8_face_aws_index_info', { p_id: body.id });
@@ -264,11 +286,18 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST') return json({ error: 'METHOD' }, 405);
   if (!SUPA || !SR || !ANON) return json({ error: 'NOT_CONFIGURED' }, 500);
+  const robotKey = Deno.env.get('FACE_ROBOT_KEY') ?? '';
+  if (robotKey.length >= 32 && req.headers.get('x-kring-robot') === robotKey) {
+    let b: Record<string, unknown>;
+    try { b = await req.json(); } catch { return json({ error: 'BAD_BODY' }, 400); }
+    try { return await admin('', b, true); } catch (e) { log({ robot_error: String(e).slice(0, 300) }); return json({ error: 'SERVER' }, 500); }
+  }
   const who = await userOf(req);
   if (!who) return json({ error: 'SIGN_IN' }, 401);
   let body: Record<string, unknown>;
   try { body = await req.json(); } catch { return json({ error: 'BAD_BODY' }, 400); }
   try {
+    if (body.action === 'photo') return await photoCheck(body);
     return typeof body.action === 'string' ? await admin(who.jwt, body) : await check(who.id, body);
   } catch (e) {
     if (e instanceof DbError && STATUS[e.code]) return json({ error: e.code }, STATUS[e.code]);

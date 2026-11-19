@@ -112,15 +112,15 @@ const KR_LOWEND = typeof navigator !== 'undefined' && /Android/i.test(navigator.
 const FACE_GATE_AFTER_NO = 68;
 const FACE_GATE_ON = false;
 import { StayDo } from './V5StayDo';
-import { v5CardPrintOk, v5DeviceSeen, v5HandoffBoot, v5LogClient, v5MyVerification, v5SaveCardPrint, V5_AREAS } from './v5Live';
+import { v5DeviceSeen, v5HandoffBoot, v5LogClient, v5MyVerification, V5_AREAS } from './v5Live';
 import { v5AcceptTerms, v5PromoGet, v5SetPromo, V5_TERMS_VERSION, type V5Promo } from './v5Live';
 import { TermsAgreeText } from './V5Sheets';
 import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
 import type { V5Blocked, V5Card, V5FeedItem, V5Me, V5ReportReason, V5TagPlace, V5Thread } from './v5Live';
 import { V5_L, KX_L, kxArea, v5ErrText, loadV5Lang, v5LangReady } from './v5Strings';
 import { V5MintSheet } from './V5KxCard';
-import { checkProfilePhoto, faceDescriptor, loadImage, prefetchFaceApi } from './v5Face';
-import { ensureCardPrint } from './cardPrint';
+import { checkProfilePhoto, prefetchFaceApi } from './v5Face';
+// 19 Nov fix5: cardPrint (on-phone face code) retired
 import { afterStartIdle } from './idle';
 /** K-006: face work (card-photo check, card face code) starts this long after the page has loaded, when the phone is idle (once per photo per phone) */
 const FACE_IDLE_MS = 12000;
@@ -2705,7 +2705,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     let ok = false;
     try { ok = !!src && localStorage.getItem(key) === '1'; } catch { /* ignore */ }
     // 0076: the card photo's face code (one person, one account), once per photo, in the background
-    const cardPrint = () => { void ensureCardPrint(src, { describe: (u) => loadImage(u).then(faceDescriptor), save: v5SaveCardPrint, allowed: v5CardPrintOk }); };
+    // 19 Nov fix5: the on-phone face code (1.3 MB face-api, heavy on cheap Androids) is retired: AWS keeps one face per member now
+    const cardPrint = () => undefined;
     if (ok) { setPhotoFix(false); return afterStartIdle(cardPrint, FACE_IDLE_MS); }
     let gone = false;
     // K-006 (18 Nov): the photo check downloads and runs face-api (1.3 MB + model). It waits until the first screen is loaded and
@@ -2727,7 +2728,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     return () => { gone = true; stop(); };
   }, [live, v5Card?.photo]);   // eslint-disable-line react-hooks/exhaustive-deps
   // K-006: the face check's consent screen or a prize claim is open → fetch face-api's code while the member reads
-  useEffect(() => { if (sheet === 'verify' || sheet === 'claim') prefetchFaceApi(); }, [sheet]);
+  // 19 Nov fix5: only the classic on-phone check needs face-api; with the server check on, nothing is downloaded
+  useEffect(() => { if (sheet === 'verify' || sheet === 'claim') void import('./V5VerifyPick').then((m) => m.faceAwsFlag()).then((on) => { if (!on) prefetchFaceApi(); }).catch(() => undefined); }, [sheet]);
   const kxPostAt = (p?: PickedPlace) => {
     if (faceGateRef.current) { verifyFirstRef.current(); return; }   // 0093: face check first, no composer, no upload
     if (p) { setPostPlaces((prev) => (prev.some((x) => x.id === p.id) ? prev : [p, ...prev].slice(0, 2))); setPostArea((a) => a || p.kr_area || 'Bangkok'); }

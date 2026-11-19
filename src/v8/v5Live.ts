@@ -837,6 +837,26 @@ export async function v5FaceAwsCheck(frames: { straight: Blob; left: Blob; right
   if (!r.ok || !j || j.error) throw new V5Error(j?.error || (r.status === 401 ? 'SIGN_IN' : 'UNKNOWN'));
   return j;
 }
+/** 19 Nov fix5: the card photo → face-check-aws action "photo" (AWS DetectFaces, nothing stored). 'error' when it can't answer. */
+export async function v5CardPhotoCheck(dataUrl: string, timeoutMs = 8000): Promise<'ok' | 'none' | 'small' | 'group' | 'error'> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return 'error';
+  if (!/^data:image\/jpe?g;base64,/i.test(dataUrl)) return 'error';
+  const c = await v5Client();
+  const { data } = await c.auth.getSession();
+  if (!data.session) return 'error';
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), timeoutMs);
+  try {
+    const r = await fetch(`${SUPA_URL.replace(/\/$/, '')}/functions/v1/face-check-aws`, {
+      method: 'POST', signal: ctl.signal,
+      headers: { authorization: `Bearer ${data.session.access_token}`, apikey: SUPA_KEY, 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'photo', image: dataUrl }),
+    });
+    const j = await r.json().catch(() => null) as { verdict?: string } | null;
+    const v = j?.verdict;
+    return v === 'ok' || v === 'none' || v === 'small' || v === 'group' ? v : 'error';
+  } catch { return 'error'; } finally { clearTimeout(t); }
+}
 /** 0082: the simple path when the face engine can't run on this phone: ONE selfie → the founder's Face checks queue. */
 export async function v5VerifySimple(selfie: Blob, check: { why: string; device: string }, consent: string): Promise<V5FaceDecision> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new V5Error('OFFLINE');

@@ -50,9 +50,10 @@ describe('card photo face code (phone)', () => {
     expect(photoKey('https://x/a.jpg?t=1')).toBe(photoKey('https://x/a.jpg?t=2'));
     expect(photoKey(big)).not.toBe(photoKey(big + 'B'));
   });
-  it('the app runs it after the card photo check passes', () => {
+  it('19 Nov fix5: retired in the app (AWS keeps one face per member; face-api was too heavy for cheap Androids)', () => {
     const app = readFileSync('src/v8/KringAppV8.tsx', 'utf8');
-    expect(app).toMatch(/ensureCardPrint\(src, \{ describe: \(u\) => loadImage\(u\)\.then\(faceDescriptor\), save: v5SaveCardPrint, allowed: v5CardPrintOk \}\)/);
+    expect(app).not.toMatch(/ensureCardPrint\(/);
+    expect(app).toMatch(/const cardPrint = \(\) => undefined;/);
     // K-006: still run for an approved photo, but after the first screen has loaded and the phone is idle
     expect(app).toMatch(/if \(ok\) \{ setPhotoFix\(false\); return afterStartIdle\(cardPrint, FACE_IDLE_MS\); \}/);
   });
