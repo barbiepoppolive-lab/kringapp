@@ -224,17 +224,21 @@ async function makePoster(info: ReelInfo, vv: HTMLVideoElement | null): Promise<
 const scanOf = new WeakMap<Blob, Blob[]>();
 export const scanFramesOf = (poster: Blob): Blob[] => scanOf.get(poster) || [];
 export async function makeScanFrames(info: ReelInfo, vv: HTMLVideoElement | null, poster: Blob): Promise<Blob[]> {
-  if (!vv || !vv.videoWidth) return [];
   const from = info.trim ? info.trim.startMs / 1000 : 0;
   const len = info.durationMs / 1000;
   const out: Blob[] = [];
+  // 0150: when the <video> cannot give a frame (some iPhones / Safari), read the file with WebCodecs like the poster does
+  const grab = async (at: number): Promise<Blob | null> => {
+    if (vv && vv.videoWidth) { const b = await posterOf(vv, at).catch(() => null); if (b) return b; }
+    return (await import('./reelTranscode')).webCodecsPoster(info.file, at).catch(() => null);
+  };
   const work = (async () => {
     for (const at of [from + len * 0.5, from + Math.max(len - 0.5, len * 0.9)]) {
-      const b = await posterOf(vv, at).catch(() => null);
+      const b = await grab(at);
       if (b) out.push(b);
     }
   })();
-  await Promise.race([work, new Promise((r) => setTimeout(r, 4000))]);
+  await Promise.race([work, new Promise((r) => setTimeout(r, 5000))]);
   const got = out.slice(0, 2);
   if (got.length) scanOf.set(poster, got);
   return got;
