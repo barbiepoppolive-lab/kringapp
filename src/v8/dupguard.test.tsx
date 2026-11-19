@@ -246,7 +246,9 @@ describe('50-user audit P1-4: a new card is "local" unless the member picks Visi
   it('no language-based guess in either card form', () => {
     for (const f of ['src/v8/V5KxCard.tsx', 'src/v8/V5Sheets.tsx']) {
       const src = readFileSync(f, 'utf8');
-      expect(src).toContain("card?.who || 'local'");
+      // 0138 (19 Nov): the member can no longer pick traveller; the form only sends what the card already is
+      expect(src).toMatch(/whoToSave\(card\?\.who\)|card\?\.who === 'traveller' \? 'traveller' : 'local'/);
+      expect(src).not.toMatch(/setWho\('traveller'\)/);
       expect(src).not.toMatch(/uiLang === 'th'[^\n]*'traveller'/);
     }
   });

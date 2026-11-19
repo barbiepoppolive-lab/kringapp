@@ -2931,6 +2931,15 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [live, v5Uid, !!v5Card?.photo]);
+  // 0138: the traveller-check ding opens /app/?tab=me&open=traveller → the card screen with the traveller page on top
+  const [travDeep, setTravDeep] = useState(false);
+  useEffect(() => {
+    if (!live || !v5Uid || !v5Card || adminViewActive()) return;
+    let t = 0;
+    try { if (new URLSearchParams(location.search).get('open') === 'traveller') t = window.setTimeout(() => { if (!sheetRef.current) { setTravDeep(true); setSheet('v5card'); } }, 900); } catch { /* ignore */ }
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live, v5Uid, !!v5Card]);
   useEffect(() => {
     if (live && v5Uid && v5Card && tab === 'me') void loadMe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -5387,8 +5396,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             card={v5Card as never}
             uiLang={lang}
             photoFix={photoFix}
+            openTraveller={travDeep}
             toast={showToast}
-            onClose={() => setSheet(null)}
+            onClose={() => { setTravDeep(false); setSheet(null); }}
             onSaved={(me) => {
               v5JoinRef.current = false;
               try { sessionStorage.removeItem('kr8_join'); } catch { /* ignore */ }

@@ -11,7 +11,7 @@ import {
   ago, both, buildInbox, buildRobotReport, claimChip, clock, filterPeople, groupPeople, isSnapshot, money, noCard, peopleCounts, peopleHeadline,
   personFlags, personTrust, placeFlags, realPhoto, referrers, stepChip, who, withAdminLogins, faceStatusWords, liveSteps,
   INBOX_FILTERS, waitShort, moneyRobotVerdict, type Handled,
-  type Claim, type DupAuto, type FaceCheck, type InboxItem, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot, type Trust,
+  type Claim, type DupAuto, type FaceCheck, type InboxItem, type TravellerCase, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot, type Trust,
 } from './adminV2Logic';
 import {
   aiRulesFallback, capStatus, computeVoucherRunway, DEFAULT_VOUCHER_BUY_URL, fallbackAiSlotStatus, fallbackAutopilotState,
@@ -29,6 +29,7 @@ import { closeSheet, openSheet, sheetOpen, sheetRoute, xbtn, xlink, xrow, xsec, 
 import { alertSheetKind, alertUser, detailLines, flagSentence, flagWhy, giveWhy, isEx, linkVerdict, openWhy, ringsSentence, ringsSummary, selfieWords, trustWords, verdictSentence,
   type ExClaim, type ExCodes, type ExErrors, type ExPlace, type ExReel, type ExRings } from './tapLogic';
 import { codeMeaning, kindName, uaInfo } from './problemsAdmin';
+import { REFUSE_REASONS } from '../v8/travellerLogic';   // 0138: traveller tag refuse reasons
 import { photoOkButton } from './photoOk';   // 0122: one-tap Photo OK
 import { helpSection } from './adminHelp';   // 0097: Help cases (self-contained)
 import { helpPanelLeave, helpPanelView } from './helpPanel';   // 0120: full Help panel (#help, #help/<uid>)
@@ -97,10 +98,13 @@ export async function loadSnapshot(force = false): Promise<Snapshot | null> {
   const dups = rpc<DupAuto[]>('kr8_admin_dups_auto', { p_days: 14 }).catch(() => null);
   // 0099 M2: Morning Brief + unified Alert Centre (falls back to client synthesis before 0099 is applied)
   const mb = rpc<unknown>('kr8_admin_morning_brief', { p_include_test: includeTest }).catch(() => null);
-  loadingSnap = Promise.all([rpc<unknown>('kr8_admin_v2_snapshot', { p_include_test: includeTest }), auto, extra, dups, mb])
-    .then(([s, pa, ex, da, mbRaw]) => {
+  // 0138: passport checks for the traveller tag (empty before 0138)
+  const trav = rpc<TravellerCase[]>('kr8_admin_traveller_requests', { p_status: 'pending' }).catch(() => [] as TravellerCase[]);
+  loadingSnap = Promise.all([rpc<unknown>('kr8_admin_v2_snapshot', { p_include_test: includeTest }), auto, extra, dups, mb, trav])
+    .then(([s, pa, ex, da, mbRaw, tr]) => {
       if (!isSnapshot(s)) throw new Error('Admin v2 needs database update 0082');
       s.places_auto = Array.isArray(pa) ? pa : [];
+      s.traveller = Array.isArray(tr) ? tr : [];
       if (ex && ex.counts && ex.rows) s.extra = ex;
       if (!Array.isArray(s.dups_auto) && Array.isArray(da)) s.dups_auto = da;
       snap = withAdminLogins(s);
@@ -883,7 +887,7 @@ export function inboxView() {
     }
   }, header('Needs you'));
 }
-const KIND_LABEL: Record<InboxItem['kind'], [string, string]> = { held: ['Money', 'r'], lookalike: ['Look-alike', 'a'], check: ['Face check', 'b'], reel: ['Reel', 'p'], reports: ['Reports', 'a'] };
+const KIND_LABEL: Record<InboxItem['kind'], [string, string]> = { held: ['Money', 'r'], lookalike: ['Look-alike', 'a'], check: ['Face check', 'b'], traveller: ['Traveller check', 'b'], reel: ['Reel', 'p'], reports: ['Reports', 'a'] };
 function personRow(p: Person): HTMLElement {
   return el('a', { class: 'v2who', href: personLink(p), 'data-uid': p.user_id }, avatar(p, 52),
     el('div', { class: 'grow' }, el('b', {}, `${p.name || 'Member'} #${p.no ?? '–'}`), el('small', {}, `joined ${ago(p.joined_at)}`)));
@@ -907,6 +911,7 @@ function inboxCard(i: InboxItem, open?: InboxItem[]): HTMLElement {
   } else if (i.what[1]) card.append(el('small', { class: 'v2sub v2what2' }, i.what[1]));
   // 18 Nov (founder: "how do I decide if you don't show me the selfies"): every face decision shows the photos side by side, big
   if (i.kind === 'check' || i.kind === 'lookalike') card.append(comparePhotos(i));
+  if (i.kind === 'traveller') card.append(passportPhotos(i));
   card.append(actions(i));
   const rel = (i.related || []).filter((k) => !hiddenKeys.has(k) && (!open || open.some((o) => o.key === k)));
   if (rel.length) {
@@ -950,6 +955,52 @@ function comparePhotos(i: InboxItem): HTMLElement {
   })().catch(() => box.replaceChildren(el('small', { class: 'v2sub' }, 'Photos could not load. Open the member to see them.')));
   return box;
 }
+/** 0138: the passport photo page BIG next to the member's card photo. The passport file is signed for 10 minutes with the
+ *  admin's own sign-in (private kr8-passport bucket); tapping it opens the full-size photo. Nothing about it is logged. */
+const signPassport = async (path: string | null | undefined): Promise<string | null> => {
+  if (!path) return null;
+  try { const { data } = await (await v5Client()).storage.from('kr8-passport').createSignedUrl(path, 600); return data?.signedUrl || null; } catch { return null; }
+};
+export function passportPhotos(i: InboxItem, sign: (p: string | null | undefined) => Promise<string | null> = signPassport): HTMLElement {
+  const t = i.traveller; const p = i.people[0];
+  const box = el('div', { class: 'v2pp', id: 'v2Pass-' + (t?.id || i.key) }, el('small', { class: 'v2sub' }, 'Loading photos…'));
+  const ph = (src: string | null, cap: string, cls: string, link = false) => el('figure', { class: `v2pp-f ${cls}` },
+    src ? (link ? el('a', { href: src, target: '_blank', rel: 'noopener noreferrer', 'aria-label': 'Open the passport photo full size' }, el('img', { src, alt: '' })) : el('img', { src, alt: '' }))
+      : el('div', { class: 'v2pp-none' }, cls === 'v2pp-pass' ? (t?.passport_path ? 'Could not load' : 'Deleted') : 'No photo'),
+    el('figcaption', {}, cap));
+  void (async () => {
+    if (p) await loadPhotos([p.user_id]);
+    const pass = await sign(t?.passport_path);
+    // the passport full width (big, readable), the card photo right under it next to the three checks
+    box.replaceChildren(
+      ph(pass, 'Passport photo page · tap to zoom', 'v2pp-pass', true),
+      el('div', { class: 'v2pp-row' }, ph((p && photos.get(p.user_id)) || null, `${p?.name || 'Member'} #${p?.no ?? '–'} · card photo`, 'v2pp-card'),
+        el('ul', { class: 'v2pp-chk' }, el('li', {}, `Name on the passport = “${p?.name || t?.first_name || ''}”`), el('li', {}, 'Face in the passport = this card photo'), el('li', {}, 'NOT a Thai passport'))),
+      el('small', { class: 'v2sub v2pp-note' }, 'All three yes → Approve (the card gets the traveller tag, their likes and saves count ×2). Otherwise → Refuse and pick why; the member sees the reason in their language. The passport photo is deleted as soon as you decide (never shown to other members).'));
+  })().catch(() => box.replaceChildren(el('small', { class: 'v2sub' }, 'Photos could not load. Refresh and try again.')));
+  return box;
+}
+/** 0138: Refuse… opens the reasons; "Other" needs a short note (the member sees it as written). */
+function travellerRefuse(i: InboxItem, t: TravellerCase): HTMLElement {
+  const wrap = el('div', { class: 'v2pp-ref', id: 'v2TravRefuse-' + t.id, hidden: true });
+  let code = '';
+  const note = el('input', { type: 'text', maxlength: '200', placeholder: 'Short note (English-mode members see it; others get a standard line in their language)', class: 'v2pp-note-in', id: 'v2TravNote-' + t.id, hidden: true }) as HTMLInputElement;
+  const go = el('button', { type: 'button', class: 'v2btn bad solid', id: 'v2TravRefuseGo-' + t.id, disabled: true }, 'Refuse') as HTMLButtonElement;
+  const sync = () => { note.hidden = code !== 'other'; go.disabled = !code || (code === 'other' && !note.value.trim()); };
+  note.oninput = sync;
+  const opts = el('div', { class: 'v2pp-opts', role: 'radiogroup' }, ...REFUSE_REASONS.map((r) => {
+    const b = el('button', { type: 'button', class: 'v2chip', role: 'radio', 'aria-checked': 'false', 'data-code': r.code }, r.label);
+    b.onclick = () => { code = r.code; opts.querySelectorAll('[data-code]').forEach((x) => x.setAttribute('aria-checked', String(x === b))); opts.querySelectorAll('.v2chip').forEach((x) => x.classList.toggle('r', x === b)); sync(); if (code === 'other') note.focus(); };
+    return b;
+  }));
+  go.onclick = () => {
+    if (go.disabled) return;
+    const label = REFUSE_REASONS.find((r) => r.code === code)?.label || code;
+    later(i.key, `Traveller tag refused: ${label}`, () => rpc('kr8_admin_traveller_decide', { p_id: t.id, p_approve: false, p_reason_code: code, p_note: code === 'other' ? note.value.trim() : null }));
+  };
+  wrap.append(el('b', {}, 'Why? (the member sees this)'), opts, note, el('div', { class: 'v2acts' }, go));
+  return wrap;
+}
 function act(label: string, cls: string, id: string, fn: () => void): HTMLButtonElement {
   const b = el('button', { type: 'button', class: `v2btn ${cls}`, id }, label); b.onclick = fn; return b;
 }
@@ -972,6 +1023,14 @@ function actions(i: InboxItem): HTMLElement {
   } else if (i.kind === 'check') {
     box.append(act('Approve', 'ok', 'v2Approve-' + i.checkIds[0], () => later(i.key, `${who(i.people[0])} verified`, () => rpc('kr8_admin_review_verification', { p_id: i.checkIds[0], p_approve: true }))),
       el('a', { class: 'v2btn bad', href: '#q/faces', id: 'v2Reject-' + i.checkIds[0] }, 'Reject…'));
+  } else if (i.kind === 'traveller' && i.traveller) {
+    const t = i.traveller;
+    const ref = travellerRefuse(i, t);
+    const ok = act('Approve', 'ok', 'v2TravOk-' + t.id, () => later(i.key, `${who(i.people[0])} is now a traveller`, () => rpc('kr8_admin_traveller_decide', { p_id: t.id, p_approve: true })));
+    if (!t.passport_path) ok.disabled = true;
+    const no = act('Refuse…', 'bad', 'v2TravNo-' + t.id, () => { ref.hidden = !ref.hidden; no.setAttribute('aria-expanded', String(!ref.hidden)); });
+    box.append(ok, no);
+    return el('div', {}, box, ref);
   } else if (i.kind === 'reel') {
     box.append(act(i.reelIds.length > 1 ? `Approve all ${i.reelIds.length}` : 'Approve', 'ok', 'v2ReelOk-' + i.key, () => later(i.key, 'Approved', async () => { for (const id of i.reelIds) await rpc('kr8_admin_review_reel', { p_reel: id, p_status: 'approved' }); })),
       el('a', { class: 'v2btn', href: '#q/reels' }, 'Watch first'));
@@ -1408,6 +1467,19 @@ async function flushQueuedStorageDeletions(): Promise<{ verifyRemoved: number; o
       }
     }
   } catch { /* verify queue optional in offline unit tests */ }
+
+  // 0138: passport photos queued at the traveller decision (and expired / orphan ones), same pattern as the selfies
+  try {
+    const due = await rpc<{ id: string; passport_path: string }[]>('kr8_admin_passport_files_due');
+    if (Array.isArray(due) && due.length > 0) {
+      const paths = due.map((d) => d.passport_path).filter(Boolean);
+      const { error } = paths.length ? await cli.storage.from('kr8-passport').remove(paths) : { error: null };
+      if (!error) {
+        const n = await rpc<number>('kr8_admin_mark_passports_deleted', { p_ids: due.map((d) => d.id) });
+        verifyRemoved += typeof n === 'number' ? n : due.length;
+      }
+    }
+  } catch { /* before 0138 */ }
 
   try {
     const trash = await rpc<{ id: string; bucket: string; name: string }[]>('kr8_admin_storage_trash');

@@ -56,6 +56,14 @@ export interface Snapshot {
   extra?: PeopleExtra;
   /** 0095 kr8_admin_dups_auto: duplicates automatically ghosted by the duplicate robot (with Undo) */
   dups_auto?: DupAuto[];
+  /** 0138 kr8_admin_traveller_requests('pending'): passport checks for the traveller tag (missing before 0138) */
+  traveller?: TravellerCase[];
+}
+/** 0138: one "I'm a traveller" request (the passport photo stays in the private kr8-passport bucket; no passport number anywhere) */
+export interface TravellerCase {
+  id: string; user_id: string; member_no: number | null; first_name: string | null; who: string | null; verified: boolean;
+  passport_path: string | null; status: 'pending' | 'approved' | 'refused' | 'replaced' | 'expired'; reason_code: string | null; reason_note: string | null;
+  created_at: string; decided_at: string | null; file_deleted_at: string | null;
 }
 export interface PeopleExtraRow {
   real_photo: boolean;
@@ -242,7 +250,7 @@ export function personFlags(p: Person, all: Person[] = [], claims: Claim[] = [])
 }
 
 // ───────── Needs you: ONE decision about ONE person (or one pair) per card ─────────
-export type InboxKind = 'held' | 'lookalike' | 'check' | 'reel' | 'reports';
+export type InboxKind = 'held' | 'lookalike' | 'check' | 'traveller' | 'reel' | 'reports';
 /** r = money (red), a = needs a look (amber), f = FYI-level (Reels waiting) */
 export type InboxTone = 'r' | 'a' | 'f';
 export interface InboxItem {
@@ -260,10 +268,12 @@ export interface InboxItem {
   links: { a: string; b: string; reason: string; dist: number | null; sface_sim?: number | null }[];
   reelIds: string[]; checkIds: string[]; at: string; count?: number;
   verdict?: MoneyVerdict;
+  /** 0138: the traveller request behind a 'traveller' card */
+  traveller?: TravellerCase;
 }
 export const INBOX_FILTERS: { key: 'all' | InboxKind; label: string }[] = [
   { key: 'all', label: 'All' }, { key: 'held', label: 'Money' }, { key: 'lookalike', label: 'Look-alike' },
-  { key: 'check', label: 'Face check' }, { key: 'reel', label: 'Reels' }, { key: 'reports', label: 'Reports' },
+  { key: 'check', label: 'Face check' }, { key: 'traveller', label: 'Traveller' }, { key: 'reel', label: 'Reels' }, { key: 'reports', label: 'Reports' },
 ];
 /** "Very alike / Looks alike / Slightly alike / Same phone" — never a decimal on a card (decimals live on the member page) */
 export function alikeWord(dist: number | null | undefined, reason = 'face', sfaceSim?: number | null): string {
@@ -286,6 +296,13 @@ export interface Handled { key: string; at: string; text: string; undoDup?: stri
   who?: { user_id: string | null; no: number | null; name: string | null }[];
   why?: string; ref?: string }
 
+
+/** 0138: a stand-in Person for a traveller request whose member is not in the snapshot (test / hidden rows) */
+export function travellerPerson(t: TravellerCase): Person {
+  return { user_id: t.user_id, kind: 'real', no: t.member_no, name: t.first_name || 'Member', who: t.who, area: null, joined_at: t.created_at, last_active_at: null,
+    ref: null, src: null, verified: !!t.verified, ig: null, tt: null, has_photo: true, photo_check: null, email_hint: null, line: false, trust: null, check: null,
+    reels: null, claims: null, links: [], shared_net: 0, refs: 0, board: null, score: null };
+}
 
 /** Groups look-alike links into one card per set of accounts (union-find), the oldest account first. */
 export function linkGroups(people: Person[]): Person[][] {
@@ -349,6 +366,16 @@ export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[
     push({ key: 'v:' + v.id, kind: 'check', tone: 'a', rank: 70, at: v.at, people: [p], checkIds: [v.id],
       question: `Approve ${nameNo(p)}'s face check?`,
       what: [v.review?.length ? `Robot was not sure: ${v.review.slice(0, 2).join(', ').replace(/_/g, ' ')}` : 'Waiting for your yes / no'] });
+  }
+  // 3b) 0138 traveller tag: one card per passport check (a member missing from the snapshot, e.g. a test row, still gets a card)
+  for (const t of s.traveller || []) {
+    if (t.status !== 'pending') continue;
+    const p = byId.get(t.user_id) || travellerPerson(t);
+    const facts = [p.verified ? 'face-verified' : 'not face-verified yet', p.kind !== 'real' ? `${p.kind} account` : ''].filter(Boolean);
+    push({ key: 't:' + t.id, kind: 'traveller', tone: 'a', rank: 65, at: t.created_at, people: [p], traveller: t,
+      question: `Make ${nameNo({ name: p.name || t.first_name, no: p.no ?? t.member_no })} a traveller?`,
+      what: [t.passport_path ? 'Passport photo sent. Check: same name, same face, not a Thai passport.' : 'The passport photo is gone (deleted). Refuse and ask for a new one.',
+        `Asked ${ago(t.created_at)} · ${facts.join(' · ')}`] });
   }
   // 4) Reels waiting, one card per person
   const reelsBy = new Map<string, Snapshot['pending']['reels']>();

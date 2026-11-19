@@ -13,6 +13,7 @@ import { adminViewActive, adminViewBlocks, guardClient, mirrorActive } from './a
 import { sharedRead } from './rpcShare';
 import { deviceSeenDue, kr8DeviceId } from './deviceId';
 import type { V8ChatMessage, V8ChatThread, V8Deal, V8FeedItem, V8HelloRequest, V8Person } from './v8Data';
+import type { TravellerState } from './travellerLogic';
 
 const ENV = ((import.meta as unknown as { env?: Record<string, string | undefined> }).env || {}) as Record<string, string | undefined>;
 export const V5_AUTH_LIVE = ENV.VITE_AUTH_LIVE === '1';
@@ -892,6 +893,36 @@ export async function v5UploadClaimPhoto(photo: Blob | null | undefined): Promis
     }).catch(() => null);
     return up && up.ok ? path : null;
   } catch { return null; }
+}
+// ─────────────── traveller tag: passport check by the team (0138) ───────────────
+/** The member's traveller state, or null when signed out / the server has no 0138 yet. Never throws. */
+export async function v5MyTraveller(): Promise<TravellerState | null> {
+  try { return (await rpcRaw<TravellerState | null>('kr8_my_traveller')) || null; } catch { return null; }
+}
+/** A picked passport photo → a ~1200 px JPEG (same shrink as other uploads). */
+export async function v5PassportJpeg(file: File | string): Promise<Blob> {
+  const d = await v5CompressImage(file, 1200, 900_000);
+  const bin = atob(d.slice(d.indexOf(',') + 1));
+  const u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  return new Blob([u8], { type: 'image/jpeg' });
+}
+/** Uploads the passport photo page to the PRIVATE kr8-passport bucket (team-only) and files the request.
+ *  Nothing about the passport (no number, no name) is logged or sent anywhere else. */
+export async function v5RequestTraveller(photo: Blob): Promise<TravellerState> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new V5Error('OFFLINE');
+  if (adminViewActive()) throw new V5Error('ADMIN_VIEW');
+  if (!photo || !photo.size || photo.size > 3_000_000) throw new V5Error('BAD_PHOTO');
+  const c = await v5Client();
+  const { data } = await c.auth.getSession();
+  const uid = data.session?.user?.id;
+  if (!uid) throw new V5Error('SIGN_IN');
+  const path = `${uid}/${crypto.randomUUID()}.jpg`;
+  const up = await fetch(`${SUPA_URL.replace(/\/$/, '')}/storage/v1/object/kr8-passport/${path}`, {
+    method: 'POST', headers: { authorization: `Bearer ${data.session!.access_token}`, apikey: SUPA_KEY, 'content-type': 'image/jpeg', 'x-upsert': 'false' }, body: photo,
+  }).catch(() => null);
+  if (!up || !up.ok) throw new V5Error('UPLOAD');
+  return rpcRaw<TravellerState>('kr8_request_traveller', { p_path: path });
 }
 /** 0066: the face code (128 numbers, not a photo) from the face check; team-only on the server. Never throws. */
 export async function v5SaveFacePrint(desc: Float32Array | null): Promise<boolean> {

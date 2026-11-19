@@ -218,7 +218,7 @@ describe('T-370 Autopilot Step 1 DOM views', () => {
     expect(refuseCard.querySelector('.v2verdict2 .v2flags')?.textContent).toContain('−40 same face as #24');
     expect(refuseCard.textContent).not.toMatch(/0\.\d\d/);   // no similarity decimals on a card
     // filter chips with counts, and the collapsed robot section at the bottom
-    expect(document.getElementById('v2InboxFilters')?.textContent).toMatch(/All\d+Money\d+Look-alike\d+Face check\d+Reels\d+Reports\d+/);
+    expect(document.getElementById('v2InboxFilters')?.textContent).toMatch(/All\d+Money\d+Look-alike\d+Face check\d+Traveller\d+Reels\d+Reports\d+/);
     expect((document.getElementById('v2AutoBox') as HTMLDetailsElement).open).toBe(false);
     // Money filter shows only money cards; All brings everything back
     (document.querySelector('#v2InboxFilters [data-f="held"]') as HTMLButtonElement).click();

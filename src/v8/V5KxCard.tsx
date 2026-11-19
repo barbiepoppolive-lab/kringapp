@@ -11,10 +11,12 @@ import { GenderChip, GenderRow, genderPayload, isGender, type Gender } from './V
 import { kxNotePhotoCheck, kxSetGender } from './v5Kx';
 import { LEVEL_KEY, levelFor, memberNo, parseHandle, socialUrl, type Social } from './kxLogic';
 import { kxSetTiktok } from './v5Kx';
-import { v5AcceptTerms, v5CompressImage, v5ErrCode, v5LogClient, v5SaveCard, v5SetIgHandle, v5SetSocialsShown, v5TakeLinePrefill, V5_AREAS, V5_LANGS, V5_TERMS_VERSION } from './v5Live';
+import { v5AcceptTerms, v5CompressImage, v5ErrCode, v5LogClient, v5MyTraveller, v5SaveCard, v5SetIgHandle, v5SetSocialsShown, v5TakeLinePrefill, V5_AREAS, V5_LANGS, V5_TERMS_VERSION } from './v5Live';
 import type { V5Card, V5Me } from './v5Live';
 import { v5ErrText } from './v5Strings';
 import { CardConsentText } from './V5Sheets';
+import { TravellerPage, TravellerRow } from './V5Traveller';
+import { whoToSave, type TravellerState } from './travellerLogic';
 
 type Tx = (en: string) => string;
 type Txf = (en: string, a: string, b?: string) => string;
@@ -172,6 +174,10 @@ export function V5MintSheet(props: {
   onSaved: (me: V5Me) => void; onClose: () => void; toast: (m: string) => void; onAfter: (what: 'share' | 'reel' | 'close' | 'verify', no: number | null) => void;
   /** 16 Nov: the saved photo shows no clear face, so a new one is required before saving */
   photoFix?: boolean;
+  /** 0138: open the traveller page at once (a ding: /app/?tab=me&open=traveller) */
+  openTraveller?: boolean;
+  /** 0138: tests / harness only — replaces the server read of the traveller state */
+  loadTraveller?: () => Promise<TravellerState | null>;
 }) {
   const { L, Lf, card } = props;
   const isNew = !card;
@@ -188,7 +194,18 @@ export function V5MintSheet(props: {
   // optional, never pre-filled: a new card starts with nothing chosen and "show" off
   const [gender, setGender] = useState<Gender | null>(isGender(card?.gender) ? card.gender : null);
   const [showGender, setShowGender] = useState<boolean>(isGender(card?.gender) && card?.show_gender === true);
-  const [who, setWho] = useState<'local' | 'traveller'>(card?.who || 'local');
+  // 0138 (19 Nov, founder): members can no longer pick "traveller" themselves; the card keeps what it is and the traveller
+  // tag is asked for with a passport photo (TravellerPage). The server guard keeps who as it was anyway.
+  const who = whoToSave(card?.who);
+  const [trav, setTrav] = useState<TravellerState | null>(null);
+  const [travOpen, setTravOpen] = useState(!isNew && !!props.openTraveller);
+  useEffect(() => {
+    if (isNew) return;
+    let on = true;
+    void (props.loadTraveller || v5MyTraveller)().then((s) => { if (on) setTrav(s); }).catch(() => undefined);
+    return () => { on = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isNew]);
   const [photo, setPhoto] = useState<string | null>(null);
   /** did the face check run on `photo`? 'error' = it could not (old phone, model failed to load); 'review' = fix4 2nd refused
    *  photo, accepted anyway. Both are saved as unchecked, so the admin looks at them by eye. */
@@ -424,10 +441,8 @@ export function V5MintSheet(props: {
             <select id="v5Area" className="kx-txt" value={area} onChange={(e) => setArea(e.target.value)}>
               {V5_AREAS.map((a) => <option key={a} value={a}>{a === 'Bangkok' ? L('All Bangkok') : L(a)}</option>)}
             </select>
-            <div className="kx-who">
-              <button type="button" id="v5WhoTraveller" className={who === 'traveller' ? 'on' : ''} aria-pressed={who === 'traveller'} onClick={() => setWho('traveller')}>{L('✈ Visiting Bangkok')}</button>
-              <button type="button" id="v5WhoLocal" className={who === 'local' ? 'on' : ''} aria-pressed={who === 'local'} onClick={() => setWho('local')}>{L('🏠 I live here')}</button>
-            </div>
+            {isNew ? <p className="kx-gnote kt-hint" id="kxTravHint">{L('Visiting Bangkok? Once your card is made, ask for the traveller tag from your card.')}</p>
+              : <TravellerRow L={L} state={trav} cardWho={card?.who} onOpen={() => setTravOpen(true)} />}
           </div>
         )}
         {/* makecard-1: the two ticks (18+ and Terms) are one short line now. Still unticked by default, still required; the server
@@ -447,6 +462,7 @@ export function V5MintSheet(props: {
         </button>
       </div>
       {link && <LinkSheet L={L} kind={link} value={link === 'ig' ? ig : tt} onSave={(h) => saveHandle(link, h)} onClose={() => setLink(null)} />}
+      {travOpen && !isNew ? <TravellerPage L={L} state={trav} cardWho={card?.who} onClose={() => setTravOpen(false)} onSent={(s) => setTrav(s)} /> : null}
     </div>
   );
 }
