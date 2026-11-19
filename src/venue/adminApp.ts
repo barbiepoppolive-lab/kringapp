@@ -21,6 +21,7 @@ import './admin2.css';
 import { info, v2Flush, v2Route, v2TabFor, v2Tabbar, v2TestToggle } from './adminV2';
 import { photoOkButton } from './photoOk';   // 0122: one-tap Photo OK
 import { checkReasons, holdLines, isRetiredFaceLink } from './adminClean';   // 19 Nov clean-up (old on-phone face checker retired)
+import { copyLabel, feedLabel, feedOffReason, loadReelChecks, setReelFeed, type ReelCheck } from './reelChecks';   // 0145/0147
 
 // ───────────────────────────── types (same rows as v1) ─────────────────────────────
 type Reel = { id: string; author_id: string; author_name: string; ref_code: string | null; area: string; body: string; created_at: string;
@@ -476,13 +477,39 @@ function reelVideo(src: string, poster: string, chips: Kid[], overlay: Kid[]): H
   return box;
 }
 
+/** 0145/0147: the copied-watermark line + "Hide from feed / Show in feed" (one tap) for a Reel card. Null before 0147 is live. */
+export function reelCheckRow(id: string, c: ReelCheck | undefined): HTMLElement | null {
+  if (!c) return null;
+  const copy = copyLabel(c);
+  const line = el('span', { class: 'fact', 'data-feedline': id });
+  const b = el('button', { type: 'button', class: 'fact', id: 'reelFeed-' + id, style: 'cursor:pointer' }) as HTMLButtonElement;
+  const draw = () => {
+    const f = feedLabel(c);
+    line.replaceChildren(...(f ? [ic(c.feed_off ? 'eyeoff' : 'flag'), f] : []));
+    line.hidden = !f;
+    line.classList.toggle('red', !c.feed_off && (c.suggest ? c.suggest !== 'feed' : c.verdict === 'SUGGEST_FEED_OFF'));
+    b.replaceChildren(ic(c.feed_off ? 'eye' : 'eyeoff'), c.feed_off ? 'Move to Feed' : 'Profile only');
+  };
+  b.onclick = async () => {
+    const off = !c.feed_off;
+    b.disabled = true;
+    try { const r = await setReelFeed(rpc, id, off, off ? feedOffReason(c) : undefined); c.feed_off = r.feed_off; c.feed_off_reason = r.reason; draw(); toast(off ? 'Profile only · not in the public feed' : 'In the Feed', { ms: 1800 }); }
+    catch (e) { toast(errText(e)); }
+    b.disabled = false;
+  };
+  draw();
+  const held = c.author_held ? el('span', { class: 'fact red', 'data-held': id }, ic('flag'), 'May be under 18 · out of public feeds until you clear them (Autopilot)') : null;
+  return el('div', { class: 'facts', 'data-reelcheck': id }, copy ? el('span', { class: 'fact red', 'data-copied': id }, copy) : null, held, line, b);
+}
+
 async function reelQueue() {
   app.replaceChildren(el('div', { class: 'scr' }, loading()));
   let rows: Reel[];
   try { rows = await rpc<Reel[]>('kr8_admin_reels', { p_status: 'pending', p_limit: 100 }); } catch (e) { app.replaceChildren(el('div', { class: 'scr' }, errP(e))); return; }
-  const [urls, cnt] = await Promise.all([
+  const [urls, cnt, checks] = await Promise.all([
     signReelPaths(rows.flatMap((r) => [r.video_path, r.poster_path])).catch(() => ({} as Record<string, string>)),
     rows.length ? rpc<Counts[]>('kr8_admin_reel_counts', { p_ids: rows.map((r) => r.id) }).catch(() => [] as Counts[]) : Promise.resolve([] as Counts[]),
+    loadReelChecks(rpc, rows.map((r) => r.id)),
   ]);
   const cm = new Map(cnt.map((c) => [c.id, c]));
   // audit P3-2: label each Reel with the member's own "I live here / Visiting" (older databases: plain "Member")
@@ -492,10 +519,22 @@ async function reelQueue() {
   queue('Reels waiting', rows, (r, api) => {
     const c = cm.get(r.id);
     // audit P2-3: Hide asks why (same sheet as face checks); the member sees the reason on their Reel, in Activity and as a ding
-    api.actions(el('div', {}, el('div', { class: 'two' },
-      btn('out-bad big', [ic('eyeoff'), 'Hide'], () => rejectSheet('Why hide?', 'The member sees this reason on their Reel.', REEL_CHIPS, 'hideReel-' + r.id,
-        (why) => rpc('kr8_admin_review_reel', { p_reel: r.id, p_status: 'hidden', p_note: why }), api.next, { cta: 'Send · hide', done: 'Hidden · reason sent' }), { id: 'hideReel-' + r.id }),
-      btn('go big', [ic('check'), 'Approve'], () => api.done('Reel approved', rpcWrite('kr8_admin_review_reel', { p_reel: r.id, p_status: 'approved' })), { id: 'approveReel-' + r.id })), skipBtn(api)));
+    // 0150: the founder picks Feed or Profile only; the Feed quality bot's suggestion is the big button (Feed when it has no view)
+    const qc = checks.get(r.id);
+    const sugProfile = qc?.suggest === 'profile' || qc?.suggest === 'not_yet';
+    const approveTo = (feed: boolean) => api.done(feed ? 'Approved · in the Feed' : 'Approved · Profile only',
+      feed && !qc?.feed_off ? rpcWrite('kr8_admin_review_reel', { p_reel: r.id, p_status: 'approved' }) : async () => {
+        await rpcWrite('kr8_admin_review_reel', { p_reel: r.id, p_status: 'approved' })();
+        await setReelFeed(rpc, r.id, !feed, feed ? undefined : feedOffReason(qc));
+      });
+    api.actions(el('div', {},
+      el('div', { class: 'two' },
+        btn(sugProfile ? 'ghost big' : 'go big', [ic('check'), 'Approve · Feed'], () => approveTo(true), { id: 'approveReel-' + r.id }),
+        btn(sugProfile ? 'go big' : 'ghost big', [ic('users'), 'Approve · Profile only'], () => approveTo(false), { id: 'approveProfile-' + r.id })),
+      el('div', { class: 'two' },
+        btn('out-bad big', [ic('eyeoff'), 'Hide'], () => rejectSheet('Why hide?', 'The member sees this reason on their Reel.', REEL_CHIPS, 'hideReel-' + r.id,
+          (why) => rpc('kr8_admin_review_reel', { p_reel: r.id, p_status: 'hidden', p_note: why }), api.next, { cta: 'Send · hide', done: 'Hidden · reason sent' }), { id: 'hideReel-' + r.id }),
+        skipBtn(api))));
     return el('div', { 'data-reel': r.id },
       reelVideo(urls[r.video_path] || '', urls[r.poster_path] || '', [el('span', { class: 'chip' }, ic('play'), `${Math.round(r.duration_ms / 1000)} s`)],
         [el('b', {}, `${r.author_name} · ${r.author_who === 'traveller' ? 'Visiting Bangkok' : r.author_who === 'local' ? 'Kring Local' : 'Member'}`), el('p', { class: 'dim' }, `${r.area} · ${ago(r.created_at)}`), r.body ? el('p', {}, r.body) : null]),
@@ -504,7 +543,8 @@ async function reelQueue() {
         el('span', { class: 'fact' }, ic('check'), 'Approved before ', el('b', {}, String(r.author_approved))),
         c ? el('span', { class: 'fact', 'data-counts': r.id }, ic('eye'), el('b', {}, String(c.views)), ic('heart'), el('b', {}, String(c.likes)), ic('save'), el('b', {}, String(c.saves)), ic('share'), el('b', {}, String(c.shares))) : null,
         c?.open_reports ? el('span', { class: 'fact red' }, ic('flag'), el('b', {}, String(c.open_reports)), ' open reports') : null,
-        el('a', { class: 'fact', href: reelLink(r.id), target: '_blank', rel: 'noopener' }, ic('open'), 'Open Reel')));
+        el('a', { class: 'fact', href: reelLink(r.id), target: '_blank', rel: 'noopener' }, ic('open'), 'Open Reel')),
+      reelCheckRow(r.id, checks.get(r.id)));
   });
 }
 
@@ -1786,11 +1826,12 @@ async function historyView(kind: string) {
     if (kind === 'reels') {
       const st = histSeg.reels as Reel['status'];
       const rows = await rpc<Reel[]>('kr8_admin_reels', { p_status: st, p_limit: 100 });
-      const urls = await signReelPaths(rows.map((r) => r.poster_path)).catch(() => ({} as Record<string, string>));
+      const [urls, checks] = await Promise.all([signReelPaths(rows.map((r) => r.poster_path)).catch(() => ({} as Record<string, string>)), loadReelChecks(rpc, rows.map((r) => r.id))]);
       body.replaceChildren(...(rows.length ? rows.map((r) => {
         const row = el('div', { class: 'li', 'data-reel': r.id }, el('img', { class: 'thumb', src: urls[r.poster_path] || '', alt: '' }),
           el('span', { class: 'grow' }, el('b', {}, r.author_name), el('span', { class: 's' }, `${r.area} · ${ago(r.created_at)}`),
-            el('a', { class: 'link xs', href: reelLink(r.id), target: '_blank', rel: 'noopener', style: 'display:block;margin-top:4px' }, 'Open Reel')));
+            el('a', { class: 'link xs', href: reelLink(r.id), target: '_blank', rel: 'noopener', style: 'display:block;margin-top:4px' }, 'Open Reel'),
+            reelCheckRow(r.id, checks.get(r.id))));
         const acts = el('div', { style: 'display:flex;flex-direction:column;gap:6px' });
         const set = (s: 'approved' | 'hidden', label: string, cls: string) => btn(cls, [label], s === 'hidden'
           // 17 Nov: Hide here asks why too (same sheet as the Reel queue)

@@ -35,6 +35,8 @@ import { helpSection } from './adminHelp';   // 0097: Help cases (self-contained
 import { helpPanelLeave, helpPanelView } from './helpPanel';   // 0120: full Help panel (#help, #help/<uid>)
 import { bugSection, viewAsLeave, viewAsView } from './viewAs';   // 0110: View as member + Spot a bug cases
 import { farmAlertList, farmBoardMark, farmSection } from './farmCheck';   // 0123: Ring-farming check (self-contained)
+import { copyLabel, feedLabel, feedOffReason, loadReelChecks, setReelFeed, type ReelCheck } from './reelChecks';   // 0145/0147
+import { feedQualityBlock } from './feedQuality';   // 0150 Autopilot · Feed quality
 import { cleanSnapshot, hiddenAlert, holdLines, isAwsFacts, isRetiredFaceLink, plainAlertText, plainDetail, robotName } from './adminClean';   // 19 Nov clean-up
 
 type Kid = Node | string | null | undefined | false;
@@ -554,10 +556,25 @@ function reelWhy(r: ReelLite): string {
   if (r.board_off) return `This Reel is live in the feed but earns no board Rings${r.board_off_reason ? ` (${r.board_off_reason})` : ''}.`;
   return 'This Reel is live in the feed and on the board.';
 }
+/** 0145/0147: the red "Looks copied from TikTok" line, the feed line and one tap Hide from feed / Show in feed. */
+export function fillReelCheck(box: HTMLElement, id: string, c: ReelCheck): void {
+  const copy = copyLabel(c);
+  const draw = () => {
+    const f = feedLabel(c);
+    const b = xbtn(c.feed_off ? 'Show in feed' : 'Hide from feed', c.feed_off ? 'ok' : 'bad', 'xReelFeed', async () => {
+      const off = !c.feed_off;
+      try { const r = await setReelFeed(rpc, id, off, off ? feedOffReason(c) : undefined); c.feed_off = r.feed_off; c.feed_off_reason = r.reason; toast(off ? 'Hidden from feed · still on their profile' : 'Back in the feed'); draw(); }
+      catch (e) { toast(`Did not save: ${(e as Error).message}`); }
+    });
+    box.replaceChildren(...[copy ? xrow(copy, 'AWS read this on the clip', { tone: 'r', id: 'xReelCopied' }) : null, f ? xrow(f, c.feed_off ? 'Only the public feed: profile, Rings and saves stay' : 'From the 19 Nov clean-up check', { tone: c.feed_off ? '' : 'a' }) : null, b].filter((x): x is HTMLElement => !!x));
+  };
+  draw();
+}
 function openReelSheet(r0: ReelLite, after?: () => void): void {
   const p = personOf(r0.author || undefined);
   const k = 'reel:' + r0.id;
   const video = el('div', { class: 'xs-video' }, el('small', { class: 'xs-line' }, 'Loading the clip…'));
+  const checkBox = el('div', { id: 'xReelCheck' });   // 0145/0147: copied watermark + Hide from feed (filled in load)
   const reasons = el('div', { class: 'xs-chips', hidden: true }, ...HIDE_REASONS.map(([label, en, th], i) => xbtn(label, 'bad', `xHideWhy-${i}`,
     closeThen(() => { later(k, 'Reel hidden · reason sent', () => rpc('kr8_admin_review_reel', { p_reel: r0.id, p_status: 'hidden', p_note: `${th}\n${en}` })); after?.(); }))));
   const hidden = r0.hidden || r0.status === 'hidden';
@@ -567,7 +584,7 @@ function openReelSheet(r0: ReelLite, after?: () => void): void {
       : xbtn('Hide…', 'bad', 'xReelHide', () => { reasons.hidden = !reasons.hidden; }),
   ];
   openSheet({ kind: 'reel', id: r0.id, title: hidden ? 'Hidden Reel' : r0.status === 'pending' ? 'Reel waiting' : 'Live Reel', who: p ? [whoOf(p)] : [], why: reelWhy(r0),
-    evidence: [video, reasons, r0.likes != null ? xrow(`${r0.likes} likes · ${r0.saves ?? 0} saves · ${r0.shares ?? 0} shares`, `${r0.views ?? 0} views${r0.at ? ` · posted ${ago(r0.at)}` : ''}`) : null],
+    evidence: [video, checkBox, reasons, r0.likes != null ? xrow(`${r0.likes} likes · ${r0.saves ?? 0} saves · ${r0.shares ?? 0} shares`, `${r0.views ?? 0} views${r0.at ? ` · posted ${ago(r0.at)}` : ''}`) : null],
     actions,
     load: async () => {
       let vp = r0.video_path || snap?.pending.reels.find((x) => x.id === r0.id)?.video_path || null;
@@ -579,6 +596,8 @@ function openReelSheet(r0: ReelLite, after?: () => void): void {
       else if (pp && urls[pp]) video.replaceChildren(el('img', { src: urls[pp], alt: '' }), needsDb());
       else video.replaceChildren(el('small', { class: 'xs-line' }, 'The clip could not load.'), el('a', { class: 'xs-line', href: '#q/reels' }, 'Open the Reels queue'));
       if (places.length) video.after(xrow(`Place: ${places.map((x) => x.name).join(' · ')}`, places.some((x) => x.outside_bkk) ? 'outside Bangkok (no board Rings)' : 'Bangkok'));
+      const c = (await loadReelChecks(rpc, [r0.id])).get(r0.id);
+      if (c) fillReelCheck(checkBox, r0.id, c);
     } });
 }
 
@@ -1674,7 +1693,8 @@ export async function autopilotView() {
           capInput,
           capSave,
           runBtn)),
-      el('small', { class: `ap-last ${r.last_ok === false ? 'bad' : ''}` }, lastLine));
+      el('small', { class: `ap-last ${r.last_ok === false ? 'bad' : ''}` }, lastLine),
+      r.name === 'feed_quality' ? feedQualityBlock(rpc, (m) => toast(m)) : null);
   };
 
   const renderLogRow = (l: RobotLogRow): HTMLElement => {
