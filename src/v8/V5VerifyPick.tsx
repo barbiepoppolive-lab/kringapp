@@ -30,7 +30,7 @@ function forcedAws(): boolean {
 export function faceAwsFlag(): Promise<boolean> {
   if (forcedAws()) return Promise.resolve(true);
   if (known && Date.now() - known.at < KEEP_MS) return Promise.resolve(known.on);
-  return withTimeout(kxRules(), FLAG_MS).then(faceAwsOn, () => false).then((on) => { known = { on, at: Date.now() }; return on; });
+  return withTimeout(kxRules(), FLAG_MS).then(faceAwsOn, () => true)   // 19 Nov: the server check is live; a slow rules call no longer drops members onto the heavy phone check (FACE_AWS_OFF → onFallback).then((on) => { known = { on, at: Date.now() }; return on; });
 }
 /** test aid */
 export function resetFaceAwsFlag(): void { known = null; }
