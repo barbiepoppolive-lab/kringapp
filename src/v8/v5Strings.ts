@@ -790,6 +790,11 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
  */
 export const KX_L: Record<string, Record<string, string>> = {
   th: {
+    // 19 Nov Me tab A (card + one line)
+    'Ask Kring Helper': 'ถามผู้ช่วยกริ๊ง!',
+    'Friends joined': 'เพื่อนที่ชวนมา',
+    'Rank': 'อันดับ',
+    'Prize now': 'รางวัลตอนนี้',
     // 0111: the face check as the claim's one required step
     'Verify your face to claim': 'ยืนยันใบหน้าเพื่อรับรางวัล',
     '5 seconds, once. It keeps every prize one person, one account.': 'ใช้ 5 วินาที ทำครั้งเดียว ให้ทุกรางวัลเป็นของคนจริง หนึ่งคน หนึ่งบัญชี',

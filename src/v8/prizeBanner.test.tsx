@@ -278,10 +278,12 @@ describe('Me tab: the race card sits right under "This week"', () => {
         reelsSlot={<div id="slot" />} prizeSlot={<div id="prizeSlotProbe" />} />
     </div>
   );
-  it('17 Nov de-clutter: no big prize card on Me; Share is a small pill on the stats line', () => {
+  it('17 Nov de-clutter: no big prize card on Me; 19 Nov (A): Share card is one tap away in the ⋯ menu', () => {
     render(view(kx));
     expect(document.getElementById('prizeSlotProbe')).toBeNull();
-    expect(document.getElementById('meShare')!.closest('#meStats')).toBeTruthy();
+    expect(document.getElementById('meShare')).toBeNull();
+    fireEvent.click(document.getElementById('meMore')!);
+    expect(document.getElementById('meShare')!.closest('#meMoreList')).toBeTruthy();
   });
   it('one next step at a time: hidden while the Founding "Next step" card shows', () => {
     const fresh = { ...kx, founding_no: null, has_reel: false };
