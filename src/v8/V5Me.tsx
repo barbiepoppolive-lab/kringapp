@@ -335,10 +335,13 @@ export function MeView(props: MeViewProps) {
           <button type="button" id="statFollowing" onClick={() => props.onList('following')}><b>{fmtCount(p.following)}</b><span>{L('Following')}</span></button>
         </div>
       )} />
-      {props.lockSlot ? props.lockSlot : (<>
-      <MeLine L={L} Lf={Lf} kx={props.kx} hook={props.weekHook || { rank: props.weekRank ?? null, prize: props.weekPrize ?? 0, toLine: null, top: 0 }}
-        dot={!!props.ringsDot || (props.kx?.prizes ?? 0) > 0} onRings={props.onRings} onRanking={props.onRanking} onPost={props.onPost} />
-      {props.tasksSlot || null}</>)}
+      {/* 20 Nov (founder, Android): ONE compact glass strip: Rings + this week's place | daily-task ring + chevron */}
+      {props.lockSlot ? props.lockSlot : (
+      <div className={`rv5-mstrip${props.tasksSlot ? '' : ' solo'}`} id="meStrip">
+        <MeLine L={L} Lf={Lf} kx={props.kx} hook={props.weekHook || { rank: props.weekRank ?? null, prize: props.weekPrize ?? 0, toLine: null, top: 0 }}
+          dot={!!props.ringsDot || (props.kx?.prizes ?? 0) > 0} onRings={props.onRings} onRanking={props.onRanking} onPost={props.onPost} />
+        {props.tasksSlot || null}
+      </div>)}
       {actionStep && props.nextKind !== 'reel' && props.nextKind !== 'pending' ? props.nextSlot : null}
       {props.webAskSlot || null}
       {props.reelsSlot ? props.reelsSlot : (

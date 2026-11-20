@@ -430,6 +430,8 @@ const Compose: React.FC<{
 
 // ───────────────────────── the whole Ask a Thai view ─────────────────────────
 export interface AskThaiViewProps {
+  /** 20 Nov: Kring's daily "This or that" card, always the first card */
+  topSlot?: React.ReactNode;
   L: LFn;
   /** invite-1: the member's invite code, added to shared links */
   refCode?: string;
@@ -448,7 +450,7 @@ export interface AskThaiViewProps {
   openCompose?: boolean;
   composeText?: string;
 }
-export const AskThaiView: React.FC<AskThaiViewProps> = ({ L, api, me, areas, areaLabel, defaultArea = 'Bangkok', need, toast, openThread, openCompose, composeText, refCode, shareLink }) => {
+export const AskThaiView: React.FC<AskThaiViewProps> = ({ L, api, me, areas, areaLabel, defaultArea = 'Bangkok', need, toast, openThread, openCompose, composeText, refCode, shareLink, topSlot }) => {
   const [items, setItems] = useState<AskQuestion[] | null>(null);
   const [err, setErr] = useState(false);
   const [more, setMore] = useState(true);
@@ -513,6 +515,7 @@ export const AskThaiView: React.FC<AskThaiViewProps> = ({ L, api, me, areas, are
   return (
     <div className="at-root">
       <div className="at-list" ref={listRef} onScroll={onScroll} aria-busy={items === null}>
+        {topSlot || null}
         <button type="button" className="rva-askrow" aria-label={L('Ask')} onClick={() => need(() => setCompose(true))}>
           {me ? <Av p={me} s={36} /> : <span className="rva-rings sm" aria-hidden="true"><i /><i /></span>}
           <span className="rva-askph">{L('Ask Bangkok locals anything')}</span>

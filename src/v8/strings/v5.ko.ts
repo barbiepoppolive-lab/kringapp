@@ -764,5 +764,20 @@ const T: Record<string, string> = {
   'Anything we should know? (optional)': '알려 주실 내용이 있나요? (선택)',
   'Ask Kring to check my account': 'Kring에 계정 확인 요청하기',
   'Couldn’t send. Check your connection and try again.': '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.',
+  // 20 Nov: board / review lines
+  "Be Bangkok’s face of the week · #1 wins {0}": "이번 주 방콕의 얼굴이 되세요 · 1위 상금 {0}",
+  "You’re #{0} · {1} Rings to the prize line": "현재 #{0} · 상금 라인까지 {1} Ring",
+  "You’re #{0} · {1} this week 🏆": "현재 #{0} · 이번 주 {1} 🏆",
+  "You’re #{0} · {1}": "현재 #{0} · {1}",
+  "{0} Rings to unlock": "잠금 해제까지 {0} Ring",
+  "Accepted": "승인됨",
+  "Not accepted": "승인 안 됨",
+  "You · real place": "본인 · 실제 장소",
+  "Copied TikTok": "복사한 TikTok",
+  "Dark · at home": "어두움 · 집",
+  "Every Reel is checked by our team before it goes live.": "모든 Reel은 공개 전에 팀이 확인합니다.",
+  "Yours when Kring approves your Reel · claim 24 h after posting": "Kring이 Reel을 승인하면 받아요 · 게시 24시간 후 수령",
+  "To claim the ฿100, post a Reel at a real place (add the place) and get it approved.": "฿100을 받으려면 실제 장소에서 Reel을 올리고(장소 추가) 승인을 받으세요.",
+  "Your Reel is approved! The ฿100 can be claimed 24 hours after you posted it.": "Reel이 승인됐어요! 게시 24시간 후 ฿100을 받을 수 있어요.",
 };
 export default T;

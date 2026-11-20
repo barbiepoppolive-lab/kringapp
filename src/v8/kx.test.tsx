@@ -259,7 +259,7 @@ const ranking = (rows: KxRankRow[], extra: Partial<KxRanking> = {}): KxRanking =
   min_posters: 0, payout_on: true, open_seats: Math.max(0, 8 - rows.length), prizes: prizeLadder(), rows, me: null, gap: null, mine: null, ...extra });
 
 describe('Ranking screen', () => {
-  it('top 10: ฿ on the pedestals and on rows 4–8, PRIZE LINE under #8, #9–10 show "12 to #8", no prize in Rings anywhere', async () => {
+  it('top 10: ฿ on the pedestals and on rows 4–8, PRIZE LINE under #8, #9–10 show a progress line (rv5, founder 20 Nov), no prize in Rings anywhere', async () => {
     const rows = [312, 268, 241, 198, 176, 150, 131, 118, 107, 96].map((r, i) => row(i + 1, r, { is_me: i === 8 }));
     kxMock.kxRanking.mockResolvedValue(ranking(rows, { me: { rank: 9, all_rank: 9, rings: 107, prize: 0, move: null },
       gap: { state: 'board', rank: 9, rings: 107, floor: 25, prize_now: 0, target: { rank: 8, need: 12, prize: 100, open: false }, above: null, behind: null, top10_need: null } }));
@@ -267,7 +267,9 @@ describe('Ranking screen', () => {
     await waitFor(() => expect(document.querySelector('#kxPrizeLine')!.textContent).toBe('Prize line'));   // board-1 v3: a tiny chip on a dotted line
     expect([...document.querySelectorAll('#kxPodium [data-prize]')].map((e) => e.textContent)).toEqual(['฿900', '฿1,500', '฿600']);
     expect([...document.querySelectorAll('.kx-row .kx-pz')].map((e) => e.textContent)).toEqual(['฿500', '฿400', '฿250', '฿150', '฿100']);
-    expect([...document.querySelectorAll('.kx-row .kx-tl')].map((e) => e.textContent)).toEqual(['12 to #8', '23 to #8']);
+    // rv5 (founder 20 Nov): rows under the line show a thin blue→pink progress line instead of "12 to #8"
+    expect([...document.querySelectorAll('.kx-row .kx-tl')].map((e) => e.textContent).filter(Boolean)).toEqual([]);
+    expect(document.querySelectorAll('.kx-row .rv5-prog').length).toBeGreaterThanOrEqual(2);
     expect(document.querySelectorAll('[data-rank]').length).toBe(10);
     expect(document.querySelector('#kxMeNext')!.textContent).toBe('#9 · 12 Rings to #8');   // board-1 v3: one line
     expect(document.querySelector('.bx-tt h1')!.textContent).toBe('Weekly Ranking');
@@ -444,13 +446,13 @@ describe('Founding Local checklist on Me', () => {
     const { container } = render(<FoundingChecklist L={L} Lf={Lf} kx={{ ...kx, has_reel: true }} hasSocial onLink={() => undefined} onPost={() => undefined} />);
     expect(container.innerHTML).toBe('');
   });
-  it('gone once the member is a Founding Local; "3 steps to the board" when the spots are taken', () => {
+  it('gone once the member is a Founding Local; nothing when the spots are taken (20 Nov: seats gone, the weekly board instead)', () => {
     const { container } = render(<FoundingChecklist L={L} Lf={Lf} kx={{ ...kx, founding_no: 14 }} hasSocial onLink={() => undefined} onPost={() => undefined} />);
     expect(container.innerHTML).toBe('');
     cleanup();
-    render(<FoundingChecklist L={L} Lf={Lf} kx={{ ...kx, founding_left: 0 }} hasSocial={false} onLink={() => undefined} onPost={() => undefined} />);
-    expect(screen.getByText('3 steps to the board')).toBeTruthy();
-    expect(document.querySelector('#kxFounding')!.textContent).not.toContain('฿');
+    const r2 = render(<FoundingChecklist L={L} Lf={Lf} kx={{ ...kx, founding_left: 0 }} hasSocial={false} onLink={() => undefined} onPost={() => undefined} />);
+    expect(r2.container.innerHTML).toBe('');   // no "0 of 50", no ฿100 promise
+    expect(document.querySelector('#kxFounding')).toBeNull();
   });
 });
 

@@ -157,3 +157,56 @@
 /* 20 Nov: the watch-3 bar sits under the speaker button (top right), its "1/3 · +1" label on the left, so the two never touch */
 .v8-app-root .dt-wbar { top: calc(96px + env(safe-area-inset-top, 0px)); right: 16px; }
 .v8-app-root .dt-wbar b { order: -1; }
+
+/* ── 20 Nov · This or that (founder): big glass card, two picture halves, locked vote with a reveal ── */
+.v8-app-root .tot { position: relative; border-radius: 26px; padding: 14px 14px 12px; color: #fff; font-family: var(--rv-f, system-ui); box-sizing: border-box;
+  background: rgba(255, 255, 255, .06); -webkit-backdrop-filter: blur(22px) saturate(160%); backdrop-filter: blur(22px) saturate(160%); }
+.v8-app-root .tot.inline { margin: 4px 12px 14px; }
+.v8-app-root .tot-top { display: flex; align-items: center; justify-content: space-between; min-height: 26px; }
+.v8-app-root .tot-cap { display: inline-flex; align-items: center; gap: 6px; font: 700 11px var(--rv-f, system-ui); letter-spacing: .14em; text-transform: uppercase; color: #D8B477; }
+.v8-app-root .tot-x { width: 34px; height: 34px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .1); color: #fff; font-size: 22px; line-height: 1; }
+.v8-app-root .tot-q { margin: 6px 2px 12px; font: 800 21px/1.25 var(--rv-f, system-ui); letter-spacing: -.01em; text-wrap: balance; }
+.v8-app-root .tot-pair { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.v8-app-root .tot-side { position: relative; height: 236px; border: 0; padding: 0; border-radius: 20px; overflow: hidden; color: #fff; cursor: pointer; text-align: left;
+  background: #2a2340 center / cover no-repeat; transition: transform .2s ease, filter .35s ease, opacity .35s ease, box-shadow .35s ease; }
+.v8-app-root .tot-side:active:not(:disabled) { transform: scale(.97); }
+.v8-app-root .tot-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(8, 6, 16, .82)); }
+.v8-app-root .tot-nm { position: absolute; left: 12px; right: 12px; bottom: 12px; font: 800 17px/1.2 var(--rv-f, system-ui); text-shadow: 0 1px 4px rgba(0, 0, 0, .5); }
+.v8-app-root .tot.shown .tot-nm { bottom: 44px; }
+.v8-app-root .tot-or { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+  font: 800 13px var(--rv-f, system-ui); color: #fff; background: rgba(20, 16, 30, .55); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); pointer-events: none; }
+.v8-app-root .tot.shown .tot-or { opacity: 0; }
+/* the pick: glowing ring + a check that pops in; the other side dims */
+.v8-app-root .tot-side.mine { box-shadow: 0 0 0 3px #FF4FD8, 0 0 26px rgba(255, 79, 216, .65); }
+.v8-app-root .tot-side.other { filter: saturate(.4) brightness(.55); opacity: .82; }
+.v8-app-root .tot-check { position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font: 900 18px var(--rv-f, system-ui);
+  color: #fff; background: linear-gradient(135deg, #FF4FD8, #7b5cff); box-shadow: 0 4px 14px rgba(255, 79, 216, .55); animation: totPop .42s cubic-bezier(.2, 1.6, .4, 1) both; }
+.v8-app-root .tot-check.sm { position: static; width: 24px; height: 24px; font-size: 13px; flex: none; }
+.v8-app-root .tot-yours { position: absolute; top: 14px; left: 12px; padding: 4px 9px; border-radius: 999px; font: 700 11.5px var(--rv-f, system-ui); background: rgba(20, 16, 30, .6);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.v8-app-root .tot-yours.sm { position: static; margin-left: 8px; font-style: normal; background: rgba(255, 79, 216, .25); }
+.v8-app-root .tot-bar { position: absolute; left: 10px; right: 10px; bottom: 12px; height: 24px; border-radius: 999px; overflow: hidden; background: rgba(255, 255, 255, .16); display: flex; align-items: center; }
+.v8-app-root .tot-bar i, .v8-app-root .tot-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; background: linear-gradient(90deg, #5B8CFF, #FF4FD8); transition: width .9s cubic-bezier(.2, .8, .2, 1) .15s; }
+.v8-app-root .tot-side.other .tot-bar i { background: rgba(255, 255, 255, .45); }
+.v8-app-root .tot-bar b { position: relative; margin-left: auto; padding-right: 10px; font: 800 13px var(--rv-f, system-ui); }
+.v8-app-root .tot-pimg { height: 150px; border-radius: 18px; background: center / cover no-repeat; margin-bottom: 10px; }
+.v8-app-root .tot-opts { display: grid; gap: 8px; }
+.v8-app-root .tot-op { position: relative; overflow: hidden; display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 14px; border: 0; border-radius: 16px; color: #fff;
+  background: rgba(255, 255, 255, .08); font: 700 16px var(--rv-f, system-ui); text-align: left; transition: opacity .35s ease, box-shadow .35s ease; }
+.v8-app-root .tot-op > span, .v8-app-root .tot-op > b { position: relative; }
+.v8-app-root .tot-op > span { flex: 1; display: flex; align-items: center; }
+.v8-app-root .tot-op .tot-fill { opacity: .45; }
+.v8-app-root .tot-op.mine { box-shadow: inset 0 0 0 2px #FF4FD8, 0 0 20px rgba(255, 79, 216, .4); }
+.v8-app-root .tot-op.other { opacity: .6; }
+.v8-app-root .tot-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; min-height: 34px; margin-top: 10px; }
+.v8-app-root .tot-hint { width: 100%; text-align: center; font: 600 13.5px var(--rv-f, system-ui); color: rgba(255, 255, 255, .72); }
+.v8-app-root .tot-sum { font: 800 14.5px var(--rv-f, system-ui); }
+.v8-app-root .tot-chips { display: inline-flex; gap: 6px; }
+.v8-app-root .tot-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px; font: 700 12px var(--rv-f, system-ui); background: rgba(255, 255, 255, .1); color: rgba(255, 255, 255, .8); }
+.v8-app-root .tot-chip.ok { background: rgba(80, 220, 150, .2); color: #8ff0bf; animation: totPop .45s cubic-bezier(.2, 1.6, .4, 1) .5s both; }
+.v8-app-root .tot-chip.ring { background: linear-gradient(90deg, rgba(91, 140, 255, .35), rgba(255, 79, 216, .35)); color: #fff; animation: totPop .45s cubic-bezier(.2, 1.6, .4, 1) .7s both; }
+.v8-app-root .tot-scrim { position: fixed; inset: 0; z-index: 110; display: flex; align-items: flex-end; background: rgba(6, 4, 14, .3); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.v8-app-root .tot-sheet { width: 100%; padding: 12px 6px calc(16px + env(safe-area-inset-bottom, 0px)); border-radius: 28px 28px 0 0; }
+.v8-app-root .tot-sheet .tot { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+@keyframes totPop { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.18); opacity: 1; } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .v8-app-root :is(.tot-check, .tot-chip) { animation: none; } .v8-app-root :is(.tot-bar i, .tot-fill) { transition: none; } }

@@ -65,9 +65,10 @@ describe('caption hashtags', () => {
 describe('compose: one screen after the clip is picked', () => {
   const base = { L, Lf, lang: 'en', stage: 'idle', progress: 0, problem: '', onAddPlace: vi.fn(), onRemovePlace: vi.fn(), onPeople: vi.fn(), onPick: vi.fn(), onClose: vi.fn() };
   const reel = { file: new File(['x'], 'a.mp4', { type: 'video/mp4' }), url: 'blob:x', durationMs: 14000, width: 720, height: 1280 };
-  it('no clip yet: "Pick a clip" with the reassurance line, nothing else', () => {
+  it('no clip yet: "Film now" + "Pick from gallery" tiles with the reassurance line, nothing else', () => {
     render(<GoCompose {...base} reel={null} caption="" onCaption={vi.fn()} places={[]} people={[]} onPost={vi.fn()} />);
-    expect(screen.getAllByText('Pick a clip').length).toBeGreaterThan(0);
+    expect(screen.getByText('Film now')).toBeTruthy();
+    expect(screen.getByText('Pick from gallery')).toBeTruthy();
     expect(screen.getByText(/A clip you already posted on TikTok or IG is fine/)).toBeTruthy();
     expect(document.getElementById('goPlaceRow')).toBeNull();
   });

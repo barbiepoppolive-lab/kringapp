@@ -1,0 +1,12 @@
+# "This or that" photos (Wikimedia Commons). Attribution required by the licences below.
+tot-ari.jpg: File:Ari Station 20230903-1.jpg by Suikotei, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File:Ari_Station_20230903-1.jpg
+tot-bts.jpg: File:Bangkok skytrain sunset.jpg by User:Diliff, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File:Bangkok_skytrain_sunset.jpg
+tot-jodd-fairs.jpg: File:Train Night Market Ratchada (34144230042).jpg by aotaro from Yokohama, Japan, CC BY 2.0, https://commons.wikimedia.org/wiki/File:Train_Night_Market_Ratchada_(34144230042).jpg
+tot-mall-night.jpg: File:CentralWorld at night 20261105 (1).jpg by DvTor8303, CC0, https://commons.wikimedia.org/wiki/File:CentralWorld_at_night_20261105_(1).jpg
+tot-motorbike-taxi.jpg: File:Bangkok - the Win Motorcycle (motorcycle taxis) in Soi Ngam Du Phli, Bangkok (2026) - IMG 02.jpg by Chainwit., CC BY 4.0, https://commons.wikimedia.org/wiki/File:Bangkok_-_the_Win_Motorcycle_(motorcycle_taxis)_in_Soi_Ngam_Du_Phli,_Bangkok_(2026)_-_IMG_02.jpg
+tot-rooftop-bar.jpg: File:4Y1A0046 Bangkok (32818284245).jpg by Ninara from Helsinki, Finland, CC BY 2.0, https://commons.wikimedia.org/wiki/File:4Y1A0046_Bangkok_(32818284245).jpg
+tot-soi-party.jpg: File:Khao San Road at night by kevinpoh.jpg by Kevin Poh from Petaling Jaya, Malaysia, CC BY 2.0, https://commons.wikimedia.org/wiki/File:Khao_San_Road_at_night_by_kevinpoh.jpg
+tot-songkran.jpg: File:Le Songkran,Silom road , Bang Rak, Bangkok, Thái Lan - panoramio.jpg by trungydang, CC BY 3.0, https://commons.wikimedia.org/wiki/File:Le_Songkran,Silom_road_,_Bang_Rak,_Bangkok,_Th%C3%A1i_Lan_-_panoramio.jpg
+tot-stay-home.jpg: File:View from hotel window on Sukhumvit Road in Bangkok (14826596614).jpg by cloud.shepherd, CC BY 2.0, https://commons.wikimedia.org/wiki/File:View_from_hotel_window_on_Sukhumvit_Road_in_Bangkok_(14826596614).jpg
+tot-sukhumvit-night.jpg: File:Night Scene along Sukhumvit Road.jpg by Adam Jones, CC BY-SA 2.0, https://commons.wikimedia.org/wiki/File:Night_Scene_along_Sukhumvit_Road.jpg
+tot-temple-dawn.jpg: File:Wat Arun or the Temple of Dawn Photo Don Ramey Logan.jpg by Don Ramey Logan, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File:Wat_Arun_or_the_Temple_of_Dawn_Photo_Don_Ramey_Logan.jpg

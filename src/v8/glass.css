@@ -1,0 +1,53 @@
+/* 20 Nov · founder: "less opaque, less border" — ONE light-glass recipe for every bottom sheet, dialog and pop-up.
+   Low-opacity tint + strong blur, no borders, no divider lines: rows are separated by space only.
+   Loaded last so it wins over the older per-sheet backgrounds. Low-end Android keeps the glass (a lighter blur). */
+.v8-app-root {
+  --glass-bg: rgba(24, 20, 38, .46);
+  --glass-bg-2: rgba(255, 255, 255, .06);
+  --glass-blur: blur(26px) saturate(165%);
+}
+.v8-app-root :is(.v8-sheet, .go-sheet, .dt-sheet, .at-sheet, .kx-lsheet, .bx-sharesheet, .kme-a .kme-pop, .unv-sheet, .kx-psheet, .go-compose, .dt-vote, .tot-sheet) {
+  background: var(--glass-bg) !important;
+  border: 0 !important;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, .28) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  backdrop-filter: var(--glass-blur) !important;
+}
+.v8-app-root.kr-lowend :is(.v8-sheet, .go-sheet, .dt-sheet, .at-sheet, .kx-lsheet, .bx-sharesheet, .kme-a .kme-pop, .unv-sheet, .kx-psheet, .go-compose, .dt-vote, .tot-sheet) {
+  --glass-bg: rgba(24, 20, 38, .58);
+  -webkit-backdrop-filter: blur(14px) saturate(150%) !important;
+  backdrop-filter: blur(14px) saturate(150%) !important;
+}
+/* the dim layer behind a sheet: lighter, so the app shows through the glass */
+.v8-app-root :is(.sheet-backdrop, .kx-psheet-bg, .at-sheet-bg, .unv-scrim) { background: rgba(6, 4, 14, .28) !important; }
+/* rows: no divider lines, a little more air; tappable rows get a faint glass pill on press only */
+.v8-app-root .reel-share-list { gap: 4px; }
+.v8-app-root .reel-share { border: 0 !important; border-bottom: 0 !important; border-radius: 14px; padding: 13px 10px; background: transparent; }
+.v8-app-root .reel-share:active { background: var(--glass-bg-2); }
+.v8-app-root .reel-share:not(.line) .ic { background: rgba(255, 255, 255, .08); border-radius: 12px; }
+.v8-app-root .dt-row { box-shadow: none !important; padding: 10px 0; }
+.v8-app-root :is(.v8-sheet, .go-sheet, .dt-sheet, .at-sheet, .kx-lsheet, .bx-sharesheet) :is(hr, .sep, .divider) { display: none; }
+.v8-app-root :is(.v8-sheet, .go-sheet, .dt-sheet, .at-sheet, .kx-lsheet, .bx-sharesheet) .sh-head { border: 0 !important; box-shadow: none !important; background: transparent !important; }
+/* inner cards / inputs inside sheets: glass tiles, no outlines */
+.v8-app-root :is(.v8-sheet, .go-sheet, .dt-sheet, .at-sheet) :is(input[type="text"], textarea, .go-field, .at-in) {
+  background: rgba(255, 255, 255, .07) !important; border: 0 !important; box-shadow: none !important;
+}
+.v8-app-root .grab { background: rgba(255, 255, 255, .32); }
+
+/* ── Me: one compact glass strip (Rings · this week | daily tasks ring ›), less empty space above the Reels grid ── */
+.v8-app-root #s-me .rv5-mstrip { display: flex; align-items: center; gap: 6px; margin: 14px 16px 0; padding: 4px 6px 4px 14px; border-radius: 20px;
+  background: rgba(255, 255, 255, .06); -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%); }
+.v8-app-root #s-me .rv5-mstrip .rv4-mline { flex: 1; min-width: 0; margin: 0 !important; }
+.v8-app-root #s-me .rv5-mstrip .rv4-msep { margin: 0 10px; height: 22px; background: rgba(255, 255, 255, .14); }
+.v8-app-root #s-me .rv5-mstrip .rv4-mw span { font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.v8-app-root #s-me .rv5-mstrip .rv4-mw b { font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.v8-app-root #s-me .rv5-mstrip .rv4-mpost { height: 34px; margin-left: 8px; padding: 0 14px !important; font-size: 0.8125rem !important; }
+.v8-app-root #s-me .rv5-mstrip .dt-meline { flex: none; width: auto !important; margin: 0 !important; padding: 6px 8px 6px 10px !important; gap: 6px; border-radius: 16px; background: rgba(255, 255, 255, .06); }
+.v8-app-root #s-me .rv5-mstrip .dt-meline .t b { display: none; }
+.v8-app-root #s-me .rv5-mstrip .dt-meline .t small { font: 700 12.5px var(--rv-f, system-ui); color: #fff; white-space: nowrap; }
+.v8-app-root #s-me .rv5-mstrip .dt-meline .dt-ring { width: 28px !important; height: 28px !important; }
+.v8-app-root #s-me .rv5-mstrip .dt-meline .dt-btn.claim.sm { padding: 0 10px; height: 26px; font-size: 12px; }
+.v8-app-root #s-me .rv5-mstrip .dt-meline .go { font-size: 18px; }
+.v8-app-root #s-me .rv4-me .go-me { margin-top: 10px !important; }
+.v8-app-root #s-me .rv4-me .kme-verify { margin-top: 10px; }
+.v8-app-root #s-me .rv4-me .nx-cardwrap { margin-top: 10px; }

@@ -10,7 +10,7 @@ export interface TaskVote {
   kind: 'pair' | 'price'; q_en: string; q_th: string;
   a_en: string; a_th: string; a_img: string | null; b_en: string; b_th: string; b_img: string | null;
   c_en: string | null; c_th: string | null; img: string | null;
-  pick: 'a' | 'b' | 'c' | null; pct: Partial<Record<'a' | 'b' | 'c', number>> | null;
+  pick: 'a' | 'b' | 'c' | null; pct: (Partial<Record<'a' | 'b' | 'c', number>> & { n?: number }) | null;   // pct only after this member voted (0177)
 }
 export interface TaskRow {
   id: TaskId; rings: number; done?: boolean; claimed?: boolean; soon?: boolean;
@@ -86,8 +86,9 @@ const EN = {
     say: 'Say it in Thai', sayS: 'Voice clips are coming soon',
     tasksLeft: '{0} tasks left today', taskLeft: '1 task left today', dailyTasks: 'Daily tasks',
     faceT: 'Verify your face to collect your Rings', faceS: 'Takes 5 seconds. Your task stays done, collect it right after.', faceGo: 'Verify my face', later: 'Later',
-    quickVote: 'Quick vote', priceCheck: 'Price check', tapSide: 'Tap a side · see what locals picked', voted: '{0} members voted', next: 'Done',
-    pricePick: 'Locals’ answers show after you pick', welcome: 'Good to see you, {0}', checkin: 'Day {0} · check-in +1 Ring', collect: 'Collect',
+    quickVote: 'Quick vote', priceCheck: 'Price check', tapSide: 'Tap a side · see what everyone picked', voted: '{0} members voted', next: 'Done',
+    thisOrThat: 'This or that', tapVote: 'Tap to vote · results after you pick', counted: 'Vote counted ✓', ringPlus: '+1 Ring', yourPick: 'Your pick', votesN: '{0} votes', votes1: '1 vote', locked: 'One vote each · locked in',
+    pricePick: 'Results show after you pick', welcome: 'Good to see you, {0}', checkin: 'Day {0} · check-in +1 Ring', collect: 'Collect',
     watchBar: '{0}/{1} · +1', ringsShort: '+{0}', network: 'Couldn’t load your tasks. Try again.', claimFail: 'Couldn’t collect. Try again.',
     days: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], todayShort: 'Today', close: 'Close',
 };
@@ -101,8 +102,9 @@ const TH: TaskTx = {
     say: 'พูดเป็นภาษาไทย', sayS: 'คลิปเสียงมาเร็วๆ นี้',
     tasksLeft: 'เหลืออีก {0} ภารกิจวันนี้', taskLeft: 'เหลืออีก 1 ภารกิจวันนี้', dailyTasks: 'ภารกิจรายวัน',
     faceT: 'ยืนยันใบหน้าเพื่อรับริงของคุณ', faceS: 'ใช้เวลา 5 วินาที ภารกิจที่ทำแล้วยังอยู่ รับได้ทันทีหลังยืนยัน', faceGo: 'ยืนยันใบหน้า', later: 'ไว้ทีหลัง',
-    quickVote: 'โหวตด่วน', priceCheck: 'เช็กราคา', tapSide: 'แตะเลือก · ดูว่าคนไทยเลือกอะไร', voted: 'โหวตแล้ว {0} คน', next: 'เสร็จ',
-    pricePick: 'ผลโหวตของคนไทยจะขึ้นหลังคุณเลือก', welcome: 'ยินดีต้อนรับ {0}', checkin: 'วันที่ {0} · เช็กอิน +1 ริง', collect: 'รับเลย',
+    quickVote: 'โหวตด่วน', priceCheck: 'เช็กราคา', tapSide: 'แตะเลือก · ดูว่าทุกคนเลือกอะไร', voted: 'โหวตแล้ว {0} คน', next: 'เสร็จ',
+    thisOrThat: 'อันไหนดี', tapVote: 'แตะเพื่อโหวต · ดูผลหลังเลือก', counted: 'นับโหวตแล้ว ✓', ringPlus: '+1 ริง', yourPick: 'คุณเลือก', votesN: '{0} โหวต', votes1: '1 โหวต', locked: 'โหวตได้คนละครั้ง · ล็อกแล้ว',
+    pricePick: 'ผลโหวตจะขึ้นหลังคุณเลือก', welcome: 'ยินดีต้อนรับ {0}', checkin: 'วันที่ {0} · เช็กอิน +1 ริง', collect: 'รับเลย',
     watchBar: '{0}/{1} · +1', ringsShort: '+{0}', network: 'โหลดภารกิจไม่ได้ ลองอีกครั้ง', claimFail: 'รับไม่สำเร็จ ลองอีกครั้ง',
     days: ['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'], todayShort: 'วันนี้', close: 'ปิด',
 };

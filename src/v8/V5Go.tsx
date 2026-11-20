@@ -7,6 +7,7 @@
  *  · GoCoach        one-time coach marks (kept on the account, see goCoach.ts)
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { ReelCamera } from './V5Camera';
 import { rememberSound, soundHintWanted, soundWanted, SOUND_PREF_EVENT } from './reelSound';
 import './go.css';
 import { fmtN, isNotYetNote, reviewNoteText } from './kxLogic';
@@ -493,6 +494,7 @@ export function GoCompose(props: {
 }) {
   const { L, reel } = props;
   const [picker, setPicker] = useState(false);
+  const [cam, setCam] = useState(false);
   const [need, setNeed] = useState(false);
   const hl = useRef<HTMLDivElement>(null);
   const busy = ['preparing', 'uploading', 'saving'].includes(props.stage);
@@ -509,12 +511,24 @@ export function GoCompose(props: {
       onChange={(e) => { props.onPick(e.target.files?.[0]); e.target.value = ''; }} />
   );
   if (!reel) {
+    // 20 Nov (founder): two big glass tiles, "Film now" (in-app camera) and "Pick from gallery", plus one short tip
+    const gallery = () => (document.getElementById('reelFile') as HTMLInputElement | null)?.click();
     return (
       <div className="go-page go-compose" id="goCompose" data-step="pick">
-        <div className="go-hdr"><button type="button" className="go-bk" id="goComposeClose" aria-label={L('Close')} onClick={props.onClose}><IcClose /></button><h1>{L('Pick a clip')}</h1><span className="go-steps"><i className="on" /><i /></span></div>
-        <div className="go-hint">💡 {L('A clip you already posted on TikTok or IG is fine')}</div>
-        <label className="go-pick" id="addReelPicker"><span className="go-pickic"><IcPlus /></span><b>{L('Pick a clip')}</b><small>{L('Vertical video · 5–60 seconds')}</small>{file}</label>
+        <div className="go-hdr"><button type="button" className="go-bk" id="goComposeClose" aria-label={L('Close')} onClick={props.onClose}><IcClose /></button><h1>{L('New Reel')}</h1><span className="go-steps"><i className="on" /><i /></span></div>
+        <div className="go-pick2">
+          <button type="button" className="go-tile film" id="goFilmNow" onClick={() => setCam(true)}>
+            <span className="ti"><svg viewBox="0 0 24 24"><rect x="3" y="6.5" width="13" height="11" rx="2.6" /><path d="m16 10.5 5-3v9l-5-3" /></svg></span>
+            <b>{L('Film now')}</b><small>{L('Vertical · 5–60 seconds · front or back camera')}</small>
+          </button>
+          <label className="go-tile" id="addReelPicker">
+            <span className="ti"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="3" /><circle cx="9" cy="10" r="1.8" /><path d="m4 17 5-5 4 4 2.5-2.5L20 17" /></svg></span>
+            <b>{L('Pick from gallery')}</b><small>{L('A clip you already posted on TikTok or IG is fine')}</small>{file}
+          </label>
+        </div>
+        <p className="go-tip"><span aria-hidden="true">💡</span>{L('Film yourself at a real place in Bangkok. Your face in the clip puts it on the ranking.')}</p>
         {props.problem ? <div className="go-problem" id="reelProblem" role="alert">{props.problem}</div> : null}
+        {cam ? <ReelCamera L={L} onClose={() => setCam(false)} onGallery={() => { setCam(false); setTimeout(gallery, 60); }} onDone={(f) => { setCam(false); props.onPick(f); }} /> : null}
       </div>
     );
   }

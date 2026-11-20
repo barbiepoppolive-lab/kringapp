@@ -144,7 +144,7 @@ import { V5Qr, V5SignInSheet } from './V5Sheets';
 import { V5ShareCard } from './V5ShareCard';
 import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, showFirstReelChip } from './V5ReelNudge';
 import { V5ReelVideo, holdReels, reelsHeld, toggleReelSound } from './V5ReelVideo';
-import { TasksFeed, TasksFromMe, TasksMeLine } from './V5Tasks';
+import { TasksFeed, TasksFromMe, TasksMeLine, ThisOrThatCard } from './V5Tasks';
 import { FaceIntroSheet, LockIc, UnvMeLine, UnvPeopleWall } from './V5Unverified';
 import { restoredTab, rememberTab } from './tabMemory';
 import { AskSwitch } from './V5AskSwitch';
@@ -189,6 +189,7 @@ const appBasePath = () => ((import.meta as unknown as { env?: Record<string, str
 import { AdminViewMe, AdminViewPill } from './V5AdminView';
 import { HELP_UI, HelpSheet } from './V5Help';
 import { v5HelpEvent, v5HelpOpen } from './v5Live';
+import './glass.css';   // 20 Nov: light glass on every sheet; last so it wins
 
 const V9_L: Record<string, Record<string, string>> = {
   th: {
@@ -4235,7 +4236,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           )}
           <AskSwitch L={L} mode={feedMode} onMode={pickFeedMode} dot={!askSeen} />
           {feedMode === 'ask' && (
-            <AskThaiView key={askOpenThread || 'ask'} openThread={askOpenThread || undefined} L={L} api={askApi} me={askMeRef.current} areas={V5_AREAS} areaLabel={(a) => kxArea(lang, a, L)}
+            <AskThaiView key={askOpenThread || 'ask'} openThread={askOpenThread || undefined} L={L} api={askApi}
+              topSlot={live && signedIn && v5Card && !adminView ? <ThisOrThatCard lang={lang} inline /> : null} me={askMeRef.current} areas={V5_AREAS} areaLabel={(a) => kxArea(lang, a, L)}
               defaultArea={(live && v5Card?.area) || 'Bangkok'} need={requireSignInForAction} toast={showToast} refCode={getMyRef()}
               shareLink={(url, text) => void shareNow(url, text)} />
           )}

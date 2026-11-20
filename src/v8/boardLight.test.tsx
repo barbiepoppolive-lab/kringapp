@@ -131,7 +131,10 @@ describe('board-1: Share my rank (story card)', () => {
     expect(document.querySelector('#kxMeNext')!.textContent).toBe('You’re #1 · 54 Rings ahead');
     expect(document.querySelector('#kxMeBar')).toBeNull();                            // #1: nothing to chase
     expect([...document.querySelectorAll('.bx-row .bx-sc')].map((e) => e.textContent)).toEqual(['19', '14', '9', '6', '5', '3', '2']);
-    expect(document.querySelector('#kxRankList')!.textContent).not.toMatch(/Rings?\b/);
+    // the only Rings word in the rows is the founder's greyed "25 Rings to unlock" prize note (rv5)
+    const list = document.querySelector('#kxRankList')!.cloneNode(true) as HTMLElement;
+    list.querySelectorAll('.rv5-unlock').forEach((e) => e.remove());
+    expect(list.textContent).not.toMatch(/Rings?\b/);
   });
   it('live countdown: days, then the last 24 h (pink, pulsing), then the last hour (big mm:ss); Thai units in Thai', async () => {
     const { liveClock } = await import('./V5KxRanking');

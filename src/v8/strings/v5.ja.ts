@@ -764,5 +764,20 @@ const T: Record<string, string> = {
   'Anything we should know? (optional)': '伝えたいことはありますか？（任意）',
   'Ask Kring to check my account': 'Kring にアカウントの確認を依頼',
   'Couldn’t send. Check your connection and try again.': '送信できませんでした。接続を確認してもう一度お試しください。',
+  // 20 Nov: board / review lines
+  "Be Bangkok’s face of the week · #1 wins {0}": "今週のバンコクの顔になろう · 1位は {0}",
+  "You’re #{0} · {1} Rings to the prize line": "あなたは #{0} · 賞金ラインまであと {1} Ring",
+  "You’re #{0} · {1} this week 🏆": "あなたは #{0} · 今週 {1} 🏆",
+  "You’re #{0} · {1}": "あなたは #{0} · {1}",
+  "{0} Rings to unlock": "解除にはあと {0} Ring",
+  "Accepted": "承認済み",
+  "Not accepted": "未承認",
+  "You · real place": "あなた本人 · 実在の場所",
+  "Copied TikTok": "TikTokのコピー",
+  "Dark · at home": "暗い · 自宅",
+  "Every Reel is checked by our team before it goes live.": "すべての Reel は公開前にチームが確認します。",
+  "Yours when Kring approves your Reel · claim 24 h after posting": "Kring が Reel を承認したらあなたのもの · 投稿24時間後に受け取り",
+  "To claim the ฿100, post a Reel at a real place (add the place) and get it approved.": "฿100 を受け取るには、実在の場所で Reel を投稿（場所を追加）し、承認されてください。",
+  "Your Reel is approved! The ฿100 can be claimed 24 hours after you posted it.": "Reel が承認されました！投稿から24時間後に ฿100 を受け取れます。",
 };
 export default T;

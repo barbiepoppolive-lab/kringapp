@@ -40,13 +40,13 @@ describe('daily tasks logic (0171)', () => {
     for (const k of Object.keys(TX.en)) expect((TX.th as Record<string, unknown>)[k], k).toBeTruthy();
   });
   it('migration: claims need a face check, one claim per task per day, 6 Rings max, board counts task Rings, UNDO restores', () => {
-    const m = readFileSync('supabase/migrations/0171_daily_tasks.sql', 'utf8');
+    const m = readFileSync('supabase/migrations/0172_daily_tasks.sql', 'utf8');
     expect(m).toMatch(/KR8_TASK_FACE/);
     expect(m).toMatch(/on conflict \(member_id, reason, ref_id\) do nothing/);
     expect(m).toMatch(/reason = 'task'/);
     expect(m).toMatch(/\('task_ask', 3\), \('task_vote', 1\), \('task_watch', 1\), \('task_open', 1\)/);
     expect(m).toMatch(/0\.9/);
-    const u = readFileSync('supabase/migrations/0171_daily_tasks_UNDO.sql', 'utf8');
+    const u = readFileSync('supabase/migrations/0172_daily_tasks_UNDO.sql', 'utf8');
     for (const f of ['kr8_week_board', 'kr8_member_rings']) expect(u).toMatch(new RegExp(`function public\\.${f}\\(`));
     expect(u).toMatch(/not valid/);
   });

@@ -53,9 +53,9 @@ describe('Kring Team: database rules (0073)', () => {
 });
 
 describe('Kring Team: app', () => {
-  it('inbox marks team threads official (logo, "Official · ทางการ"), and tapping it never opens a member profile', () => {
+  it('inbox marks team threads official (logo, "Official" or "ทางการ", one language at a time), and tapping it never opens a member profile', () => {
     expect(live).toMatch(/const official = team\.has\(r0\.other_id\)/);
-    expect(live).toContain("other_area: 'Official · ทางการ'");
+    expect(live).toContain("const offLabel = readingThai() ? 'ทางการ' : 'Official';");   // 20 Nov: one language only
     expect(app).toContain("(await v5TeamIds().catch(() => [] as string[])).includes(id)) { setSheet('official'); return; }");
     const sheet = app.slice(app.indexOf("{sheet === 'official' && ("), app.indexOf("{sheet === 'blocked' && ("));
     expect(sheet).toContain("{lang === 'th' ? 'ทางการ' : 'Official'}");   // T-390 P2-01: one language at a time

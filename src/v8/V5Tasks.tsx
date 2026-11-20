@@ -322,55 +322,95 @@ function Count({ v, from }: { v: number; from: number | null }) {
 
 // ───────────── quick vote (A: this or that · price check) ─────────────
 const placeImg = (f: string | null) => (f ? `${((import.meta as unknown as { env?: Record<string, string> }).env?.BASE_URL) || '/'}media/places/${f}` : '');
-export function VoteSheet(props: { lang: string; onClose: () => void }) {
+/** 20 Nov (founder): "This or that": Kring-made, one a day, one locked vote per member. Shown as the FIRST card of Ask a Thai
+ *  (inline) and from the Daily tasks "Quick vote" row (sheet). Before voting: the two pictures only, no numbers (the server
+ *  doesn't send them either). After the vote: glow ring + check on the pick, the other side dims, bars fill, "Vote counted ✓". */
+export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?: () => void }) {
   const L = tLang(props.lang);
   const tx = TX[L];
   const { data } = useTasks();
+  useEffect(() => { if (!store.data) void tasksRefresh(); }, []);
   const t = data?.tasks?.find((x) => x.id === 'vote');
   const v = t?.vote;
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<'a' | 'b' | 'c' | null>(null);
+  const [fresh, setFresh] = useState(false);   // voted in this view → play the reveal
+  const [grow, setGrow] = useState(false);
+  useEffect(() => { if (v?.pick && v.pct) { const id = requestAnimationFrame(() => requestAnimationFrame(() => setGrow(true))); return () => cancelAnimationFrame(id); } setGrow(false); return undefined; }, [v?.pick, !!v?.pct]);   // eslint-disable-line react-hooks/exhaustive-deps
   if (!v) return null;
   const lab = (k: 'a' | 'b' | 'c') => (k === 'a' ? (L === 'th' ? v.a_th : v.a_en) : k === 'b' ? (L === 'th' ? v.b_th : v.b_en) : (L === 'th' ? v.c_th : v.c_en) || '');
+  const mine = v.pick || busy;
+  const shown = !!(v.pick && v.pct);
   const pick = async (k: 'a' | 'b' | 'c') => {
-    if (v.pick || busy) return;
-    setBusy(true);
-    try { tasksSet(await taskVote(k)); } catch { /* keep the sheet; they can tap again */ } finally { setBusy(false); }
+    if (mine) return;
+    setBusy(k);
+    try { navigator.vibrate?.(20); } catch { /* no haptics */ }
+    try { tasksSet(await taskVote(k)); setFresh(true); }
+    catch (e) { if ((e as { code?: string })?.code === 'ALREADY_VOTED') await tasksRefresh(); }
+    finally { setBusy(null); }
   };
-  const pct = (k: 'a' | 'b' | 'c') => (v.pct && typeof v.pct[k] === 'number' ? `${v.pct[k]}%` : '');
-  return (
-    <div className="dt-vote" role="dialog" aria-label={tx.quickVote} lang={L}>
-      <div className="dt-vtop">
-        <button type="button" className="x" aria-label={tx.close} onClick={props.onClose}>×</button>
-        <span className="dt-chip"><Rings s={14} />{tx.dailyTasks} · +{t?.rings ?? 1}</span>
+  const pc = (k: 'a' | 'b' | 'c') => (v.pct && typeof v.pct[k] === 'number' ? (v.pct[k] as number) : 0);
+  const keys = (v.kind === 'pair' ? ['a', 'b'] : ['a', 'b', 'c']) as ('a' | 'b' | 'c')[];
+  const n = v.pct?.n ?? 0;
+  const summary = shown ? `${keys.map((k) => `${pc(k)}%`).join(' · ')} · ${n === 1 ? tx.votes1 : fmt(tx.votesN, n)}` : '';
+  const earned = fresh && !!data?.verified && (t?.rings ?? 0) > 0;
+  const card = (
+    <div className={`tot${props.inline ? ' inline' : ''}${shown ? ' shown' : ''}${fresh ? ' fresh' : ''}`} id={props.inline ? 'totCard' : 'totSheetCard'} lang={L}>
+      <div className="tot-top">
+        <span className="tot-cap"><Rings s={13} />{v.kind === 'price' ? tx.priceCheck : tx.thisOrThat}</span>
+        {props.onClose ? <button type="button" className="tot-x" aria-label={tx.close} onClick={props.onClose}>×</button> : null}
       </div>
-      <span className="cap">{v.kind === 'price' ? tx.priceCheck : tx.quickVote}</span>
-      <h3>{L === 'th' ? v.q_th : v.q_en}</h3>
+      <h3 className="tot-q">{L === 'th' ? v.q_th : v.q_en}</h3>
       {v.kind === 'pair' ? (
-        <div className="dt-pair">
-          {(['a', 'b'] as const).map((k) => (
-            <button type="button" key={k} className={`ph${v.pick === k ? ' mine' : ''}${v.pick ? ' shown' : ''}`} disabled={busy} onClick={() => void pick(k)}
-              style={{ backgroundImage: `url('${placeImg(k === 'a' ? v.a_img : v.b_img)}')` }}>
-              {v.pick ? <b className="pc">{pct(k)}</b> : null}
-              <span className="nm">{lab(k)}</span>
-            </button>
-          ))}
+        <div className="tot-pair">
+          {keys.map((k) => {
+            const me = (v.pick || busy) === k;
+            return (
+              <button type="button" key={k} data-side={k} className={`tot-side${me ? ' mine' : mine ? ' other' : ''}`} disabled={!!mine}
+                aria-pressed={me} onClick={() => void pick(k)} style={{ backgroundImage: `url('${placeImg(k === 'a' ? v.a_img : v.b_img)}')` }}>
+                <span className="tot-shade" aria-hidden="true" />
+                {me ? <span className="tot-check" aria-hidden="true">✓</span> : null}
+                {me && v.pick ? <span className="tot-yours">{tx.yourPick}</span> : null}
+                <span className="tot-nm">{lab(k)}</span>
+                {shown ? <span className="tot-bar"><i style={{ width: grow ? `${pc(k)}%` : '0%' }} /><b>{pc(k)}%</b></span> : null}
+              </button>
+            );
+          })}
+          <span className="tot-or" aria-hidden="true">{L === 'th' ? 'หรือ' : 'or'}</span>
         </div>
       ) : (
         <>
-          {v.img ? <div className="dt-pimg" style={{ backgroundImage: `url('${placeImg(v.img)}')` }} /> : null}
-          <div className="dt-opts">
-            {(['a', 'b', 'c'] as const).map((k) => (
-              <button type="button" key={k} className={`op${v.pick === k ? ' mine' : ''}`} disabled={busy} onClick={() => void pick(k)}>
-                <span>{lab(k)}</span>{v.pick ? <b>{pct(k)}</b> : null}
-              </button>
-            ))}
+          {v.img ? <div className="tot-pimg" style={{ backgroundImage: `url('${placeImg(v.img)}')` }} /> : null}
+          <div className="tot-opts">
+            {keys.map((k) => {
+              const me = (v.pick || busy) === k;
+              return (
+                <button type="button" key={k} data-side={k} className={`tot-op${me ? ' mine' : mine ? ' other' : ''}`} disabled={!!mine} aria-pressed={me} onClick={() => void pick(k)}>
+                  {shown ? <i className="tot-fill" style={{ width: grow ? `${pc(k)}%` : '0%' }} /> : null}
+                  <span>{lab(k)}{me && v.pick ? <em className="tot-yours sm">{tx.yourPick}</em> : null}</span>
+                  {me ? <span className="tot-check sm" aria-hidden="true">✓</span> : null}
+                  {shown ? <b>{pc(k)}%</b> : null}
+                </button>
+              );
+            })}
           </div>
         </>
       )}
-      <p className="dt-vnote">{v.pick ? '' : v.kind === 'price' ? tx.pricePick : tx.tapSide}</p>
-      {v.pick ? <button type="button" className="dt-wide" onClick={props.onClose}>{tx.next}</button> : null}
+      <div className="tot-foot" role="status">
+        {shown ? (
+          <>
+            <span className="tot-sum" id="totSummary">{summary}</span>
+            <span className="tot-chips">{fresh ? <span className="tot-chip ok">{tx.counted}</span> : <span className="tot-chip">{tx.locked}</span>}{earned ? <span className="tot-chip ring"><Rings s={12} />{tx.ringPlus}</span> : null}</span>
+          </>
+        ) : <span className="tot-hint">{tx.tapVote}</span>}
+      </div>
     </div>
   );
+  if (props.inline) return card;
+  return <div className="tot-scrim" role="dialog" aria-label={tx.thisOrThat} onClick={props.onClose}><div className="tot-sheet" onClick={(e) => e.stopPropagation()}>{card}</div></div>;
+}
+/** the Daily tasks "Quick vote" row opens the same card */
+export function VoteSheet(props: { lang: string; onClose: () => void }) {
+  return <ThisOrThatCard lang={props.lang} onClose={props.onClose} />;
 }
 
 // ───────────── gentle face nudge (no gate: the task stays done) ─────────────

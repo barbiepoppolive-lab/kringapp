@@ -764,5 +764,20 @@ const T: Record<string, string> = {
   'Anything we should know? (optional)': '有什么想告诉我们的吗？（可选）',
   'Ask Kring to check my account': '请 Kring 核查我的账号',
   'Couldn’t send. Check your connection and try again.': '发送失败。请检查网络后重试。',
+  // 20 Nov: board / review lines
+  "Be Bangkok’s face of the week · #1 wins {0}": "成为本周曼谷之星 · 第1名赢得 {0}",
+  "You’re #{0} · {1} Rings to the prize line": "你排第 #{0} · 距奖励线还差 {1} 个 Ring",
+  "You’re #{0} · {1} this week 🏆": "你排第 #{0} · 本周 {1} 🏆",
+  "You’re #{0} · {1}": "你排第 #{0} · {1}",
+  "{0} Rings to unlock": "需 {0} 个 Ring 解锁",
+  "Accepted": "已接受",
+  "Not accepted": "未接受",
+  "You · real place": "你本人 · 真实地点",
+  "Copied TikTok": "复制的 TikTok",
+  "Dark · at home": "昏暗 · 在家",
+  "Every Reel is checked by our team before it goes live.": "每个 Reel 上线前都会经过我们团队审核。",
+  "Yours when Kring approves your Reel · claim 24 h after posting": "Kring 审核通过你的 Reel 后归你 · 发布 24 小时后可领取",
+  "To claim the ฿100, post a Reel at a real place (add the place) and get it approved.": "要领取 ฿100，请在真实地点发布 Reel（添加地点）并通过审核。",
+  "Your Reel is approved! The ฿100 can be claimed 24 hours after you posted it.": "你的 Reel 已通过审核！发布 24 小时后即可领取 ฿100。",
 };
 export default T;

@@ -50,11 +50,11 @@ describe('Board V2: prizes', () => {
     expect([...document.querySelectorAll('.bx-row .kx-pz')].map((e) => e.textContent)).toEqual(['฿500', '฿400', '฿250', '฿150', '฿100']);
     expect(document.querySelectorAll('.bx-row').length).toBe(5);
   });
-  it('#9 and below: plain rows with "X to #8", under the prize line', async () => {
+  it('#9 and below: plain rows with a progress line (rv5, founder 20 Nov), under the prize line', async () => {
     kx.kxRanking.mockResolvedValue(board([...TOP8, row(9, 20), row(10, 12)], { gap: gap({}) }));
     page();
     await waitFor(() => expect(document.querySelector('#kxPrizeLine')!.textContent).toBe('Prize line'));
-    expect([...document.querySelectorAll('.bx-row.plain .kx-tl')].map((e) => e.textContent)).toEqual(['6 to #8', '14 to #8']);
+    expect(document.querySelectorAll('.bx-row.plain .rv5-prog').length).toBe(2);
     expect(document.querySelector('.bx-row.plain .kx-pz')).toBeNull();
   });
   it('#1 is bigger and has a thin gold ring + crown, no laurel wreath', () => {

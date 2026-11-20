@@ -764,5 +764,20 @@ const T: Record<string, string> = {
   'Anything we should know? (optional)': 'कुछ बताना चाहेंगे? (वैकल्पिक)',
   'Ask Kring to check my account': 'Kring से मेरा अकाउंट जाँचने को कहें',
   'Couldn’t send. Check your connection and try again.': 'भेज नहीं पाए। कनेक्शन जाँचकर फिर कोशिश करें।',
+  // 20 Nov: board / review lines
+  "Be Bangkok’s face of the week · #1 wins {0}": "इस हफ़्ते बैंकॉक का चेहरा बनें · #1 जीतता है {0}",
+  "You’re #{0} · {1} Rings to the prize line": "आप #{0} पर हैं · इनाम लाइन तक {1} Ring",
+  "You’re #{0} · {1} this week 🏆": "आप #{0} पर हैं · इस हफ़्ते {1} 🏆",
+  "You’re #{0} · {1}": "आप #{0} पर हैं · {1}",
+  "{0} Rings to unlock": "अनलॉक के लिए {0} Ring",
+  "Accepted": "स्वीकृत",
+  "Not accepted": "स्वीकृत नहीं",
+  "You · real place": "आप · असली जगह",
+  "Copied TikTok": "कॉपी किया TikTok",
+  "Dark · at home": "अंधेरा · घर पर",
+  "Every Reel is checked by our team before it goes live.": "हर Reel लाइव होने से पहले हमारी टीम जाँचती है।",
+  "Yours when Kring approves your Reel · claim 24 h after posting": "Kring आपकी Reel मंज़ूर करे तो आपका · पोस्ट के 24 घंटे बाद क्लेम करें",
+  "To claim the ฿100, post a Reel at a real place (add the place) and get it approved.": "฿100 क्लेम करने के लिए किसी असली जगह पर Reel पोस्ट करें (जगह जोड़ें) और मंज़ूरी पाएँ।",
+  "Your Reel is approved! The ฿100 can be claimed 24 hours after you posted it.": "आपकी Reel मंज़ूर हो गई! पोस्ट करने के 24 घंटे बाद ฿100 क्लेम कर सकते हैं।",
 };
 export default T;

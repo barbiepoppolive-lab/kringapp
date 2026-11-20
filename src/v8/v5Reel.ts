@@ -151,7 +151,7 @@ export function applyTrim(info: ReelInfo, w: TrimWindow): ReelInfo {
   return { ...info, needsTrim: false, trim: { startMs: w.startMs, endMs: w.endMs }, fullMs, durationMs: w.endMs - w.startMs };
 }
 
-function pickMime(): string | null {
+export function pickMime(): string | null {
   if (typeof MediaRecorder === 'undefined') return null;
   const opts = ['video/mp4;codecs=avc1.4d002a,mp4a.40.2', 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a', 'video/mp4',
     'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
