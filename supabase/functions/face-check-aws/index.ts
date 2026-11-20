@@ -312,10 +312,38 @@ async function photoCheck(uid: string, body: Record<string, unknown>): Promise<R
   return json({ verdict: v });
 }
 
+// ───────── 0168 (20 Nov): "same phone" links settled by the robot, never a card for the founder ─────────
+// Compare the two card photos (AWS CompareFaces). < 80% different people → dismissed; >= 95% same person → second-account
+// rule (newer account: all-prizes ban + one polite warning); no clear face / in between → a quiet flag only.
+async function deviceLinks(limit: number): Promise<Record<string, unknown>> {
+  const todo = await rpc<{ a: string; b: string; photo_a: string | null; photo_b: string | null }[]>('kr8_device_links_todo', { p_limit: limit });
+  const out: Record<string, number> = {};
+  for (const t of todo || []) {
+    let sim: number | null = null; let note = '';
+    const [A, B] = await Promise.all([photoB64(t.photo_a), photoB64(t.photo_b)]);
+    if (!A || !B) note = 'card photo missing';
+    else {
+      try {
+        const r = await rk<{ FaceMatches?: { Similarity?: number }[]; UnmatchedFaces?: unknown[]; SourceImageFace?: unknown }>('CompareFaces',
+          { SourceImage: img(A), TargetImage: img(B), SimilarityThreshold: 0, QualityFilter: 'NONE' });
+        const best = Math.max(0, ...(r.FaceMatches || []).map((m) => m.Similarity ?? 0));
+        sim = (r.FaceMatches?.length || r.UnmatchedFaces?.length) ? Math.round(best * 10) / 10 : null;
+        if (sim == null) note = 'no clear face';
+      } catch (e) {
+        if (e instanceof AwsError && /InvalidParameter|InvalidImageFormat|ImageTooLarge/.test(e.type)) note = 'no clear face';
+        else { log({ device_links_error: String(e).slice(0, 200) }); continue; }   // AWS down: try again next run
+      }
+    }
+    const v = await rpc<string>('kr8_device_link_settle', { p_a: t.a, p_b: t.b, p_sim: sim, p_note: note || null });
+    out[v] = (out[v] || 0) + 1;
+  }
+  return { checked: (todo || []).length, ...out };
+}
+
 // ───────── admin actions ─────────
 async function admin(jwt: string, body: Record<string, unknown>, robot = false): Promise<Response> {
   // 19 Nov fix2: the canary (service key) runs backfill every hour, so faces the team approves by hand get into AWS too
-  const ok = robot ? (body.action === 'backfill' || body.action === 'sweep' || body.action === 'reel_copy_scan' || body.action === 'quality_scan') : await rpc<boolean>('kr8_is_admin', {}, jwt).catch(() => false);
+  const ok = robot ? (body.action === 'backfill' || body.action === 'sweep' || body.action === 'reel_copy_scan' || body.action === 'quality_scan' || body.action === 'device_links') : await rpc<boolean>('kr8_is_admin', {}, jwt).catch(() => false);
   if (ok !== true) return json({ error: 'ADMIN_ONLY' }, 403);
   if (body.action === 'index') {
     const info = await rpc<{ user_id: string; selfie_path: string | null; status: string; aws: boolean } | null>('kr8_face_aws_index_info', { p_id: body.id });
@@ -343,6 +371,7 @@ async function admin(jwt: string, body: Record<string, unknown>, robot = false):
     const n = await rpc<number>('kr8_face_aws_forgot', { p_face_ids: stale });
     return json({ removed: n });
   }
+  if (body.action === 'device_links') return json(await deviceLinks(Math.min(Number(body.limit) || 10, 25)));
   if (body.action === 'reel_copy_scan') return json(await reelCopyScan(Math.min(Number(body.limit) || 10, 20)));
   if (body.action === 'quality_scan') return json(await qualityScan(Math.min(Number(body.reels) || 6, 12), Math.min(Number(body.people) || 8, 20), body.post ? String(body.post) : null));
   return json({ error: 'BAD_ACTION' }, 400);

@@ -958,11 +958,17 @@ function inboxCard(i: InboxItem, open?: InboxItem[]): HTMLElement {
 /** Big side-by-side photos for a face decision. Face check: card photo | live selfie. Look-alike: each person's card photo and selfie. */
 function comparePhotos(i: InboxItem): HTMLElement {
   const box = el('div', { class: 'v2cmp', style: 'margin:10px 0 4px' }, el('small', { class: 'v2sub' }, 'Loading photos…'));
-  const tile = (src: string | null | undefined, cap: string) => el('figure', { style: 'margin:0;flex:1;min-width:0' },
-    src ? el('img', { src, alt: '', style: 'width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:14px;display:block' })
-      : el('div', { style: 'width:100%;aspect-ratio:3/4;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);font-size:13px;opacity:.7' }, 'No photo'),
-    el('figcaption', { style: 'font-size:13px;margin-top:4px;opacity:.85;text-align:center' }, cap));
-  const row = (...kids: HTMLElement[]) => el('div', { style: 'display:flex;gap:8px;margin-top:8px' }, ...kids);
+  // 20 Nov (founder: "Why there's no photo … how should I decide?"): never an empty "No photo" slot — a missing photo is left
+  // out and the row says in words what is missing (e.g. "#259 has not done the face check yet").
+  const tile = (src: string | null | undefined, cap: string): HTMLElement | null => src ? el('figure', { style: 'margin:0;flex:1;min-width:0' },
+    el('img', { src, alt: '', style: 'width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:14px;display:block' }),
+    el('figcaption', { style: 'font-size:13px;margin-top:4px;opacity:.85;text-align:center' }, cap)) : null;
+  const row = (...kids: (HTMLElement | null)[]) => {
+    const k = kids.filter((x): x is HTMLElement => !!x);
+    return k.length ? el('div', { style: 'display:flex;gap:8px;margin-top:8px' }, ...k) : el('span', {});
+  };
+  const missing = (p: Person, has: { card: boolean; selfie: boolean }) => !has.card && !has.selfie ? `#${p.no ?? '?'} has no photo yet`
+    : !has.selfie ? `#${p.no ?? '?'} has not done the face check yet (card photo only)` : !has.card ? `#${p.no ?? '?'} has no card photo` : '';
   void (async () => {
     const ppl = i.people.slice(0, 2);
     await loadPhotos(ppl.map((p) => p.user_id));
@@ -982,9 +988,11 @@ function comparePhotos(i: InboxItem): HTMLElement {
           ? `Same human as #${lk.no ?? '?'}? → Reject (one person, one account). Two different people → Approve.`
           : 'Real face, clear, not a photo of a screen? → Approve. Otherwise → Reject.'));
     } else {
+      const notes = ppl.map((p, k) => missing(p, { card: !!photos.get(p.user_id), selfie: !!selfieOf(k) })).filter(Boolean);
       box.replaceChildren(
         row(tile(photos.get(ppl[0].user_id), `${nm(ppl[0])} · profile`), tile(selfieOf(0), `${nm(ppl[0])} · selfie`)),
         ppl[1] ? row(tile(photos.get(ppl[1].user_id), `${nm(ppl[1])} · profile`), tile(selfieOf(1), `${nm(ppl[1])} · selfie`)) : el('span', {}),
+        notes.length ? el('small', { class: 'v2sub', style: 'display:block;margin-top:6px' }, notes.join(' · ')) : el('span', {}),
         el('small', { class: 'v2sub', style: 'display:block;margin-top:6px' }, 'Top row and bottom row the same human? → Same person (the newer account is hidden). Different humans → Different.'));
     }
   })().catch(() => box.replaceChildren(el('small', { class: 'v2sub' }, 'Photos could not load. Open the member to see them.')));
