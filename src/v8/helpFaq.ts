@@ -138,7 +138,8 @@ export function faqAnswer(f: HelpFaq, thai: boolean, server?: Record<string, num
   const r: RingsRules = server ? ringsRules(server) : { ...RINGS };
   const ladder = weeklyLadder(r);
   const best = Math.max(1, Math.round(r.best_reels));
-  const founding = r.founding_on === 1 && r.founding_slots > 0 && r.founding_thb > 0;
+  // 20 Nov: Founding Local seats are all taken; the answer stops promising ฿100 to new members while founding_promo_on is 0
+  const founding = r.founding_on === 1 && r.founding_slots > 0 && r.founding_thb > 0 && (server?.founding_promo_on ?? 1) === 1;
   const tok: Record<string, string> = {
     seats: String(ladder.length),
     total: fmtBaht(sumBaht(ladder)),

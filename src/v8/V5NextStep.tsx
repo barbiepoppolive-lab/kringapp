@@ -15,7 +15,10 @@ export function nextStepCopy(s: NextStep): { th: string; en: string; key: string
     case 'reel':
       return s.amount
         ? { th: `โพสต์รีลแรก รับ ${baht(s.amount)}`, en: `Post your first Reel, get ${baht(s.amount)}`, key: 'Post your first Reel, get {0}', arg: baht(s.amount), btnTh: 'โพสต์', btnEn: 'Post' }
-        : { th: 'โพสต์รีลแรกของคุณ', en: 'Post your first Reel', key: 'Post your first Reel', btnTh: 'โพสต์', btnEn: 'Post' };
+        : s.top
+          // 20 Nov founder: Founding ฿100 seats are gone, so the first-Reel step sells this week's board instead
+          ? { th: `มาเป็นหน้าเด่นของกรุงเทพฯ สัปดาห์นี้ · อันดับ 1 รับ ${baht(s.top)}`, en: `Be Bangkok’s face of the week · #1 wins ${baht(s.top)}`, key: 'Be Bangkok’s face of the week · #1 wins {0}', arg: baht(s.top), btnTh: 'โพสต์รีล', btnEn: 'Post a Reel' }
+          : { th: 'โพสต์รีลแรกของคุณ', en: 'Post your first Reel', key: 'Post your first Reel', btnTh: 'โพสต์', btnEn: 'Post' };
     case 'retry': return { th: 'ลองโพสต์ใหม่อีกครั้ง', en: 'Try again', key: 'Try again', btnTh: 'โพสต์ใหม่', btnEn: 'Post again' };
     case 'pending': return { th: 'กำลังตรวจรีลของคุณ', en: 'We’re checking your Reel', key: 'We’re checking your Reel' };
     case 'claim': return { th: `รับ ${baht(s.amount || 100)} ของคุณ`, en: `Claim your ${baht(s.amount || 100)}`, key: 'Claim your {0}', arg: baht(s.amount || 100), btnTh: 'กดรับ', btnEn: 'Claim' };

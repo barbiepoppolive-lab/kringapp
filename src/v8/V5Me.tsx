@@ -155,10 +155,40 @@ export function ReelStamps(props: { L: Tx }) {
  * "Founding Local · ฿100": three steps under the card, step 1 already ticked (mock m5). Shows until the member is a Founding Local;
  * when all the spots are taken it becomes "3 steps to the board" with no ฿. The spots-left number is the true count from the server.
  */
-export function FoundingChecklist(props: { L: Tx; Lf: Txf; kx: KxCardExtras | null | undefined; hasSocial: boolean; onLink: () => void; onPost: () => void }) {
+export type WeekHookData = { rank: number | null; prize: number; toLine: number | null; top: number };
+
+/**
+ * 20 Nov founder ("Remove those 0 of 50. We need put something catchy instead"): Founding Local seats are gone, so Me sells this
+ * week's board in one tappable line. Not on the board: "Be Bangkok's face of the week · #1 wins ฿1,500". On the board but outside the
+ * prizes: "You're #14 · 23 Rings to the prize line". In the prizes: "You're #3 · ฿600 this week 🏆". Tapping opens the weekly ranking.
+ */
+export function WeekHook(props: { L: Tx; Lf: Txf; hook: WeekHookData; onRanking?: () => void; onPost: () => void }) {
+  const { L, Lf, hook: h } = props;
+  const baht = (n: number) => `฿${fmtN(n)}`;
+  const inPrize = !!h.rank && h.prize > 0;
+  const onBoard = !!h.rank;
+  const line = inPrize ? Lf('You’re #{0} · {1} this week 🏆', String(h.rank), baht(h.prize))
+    : onBoard && h.toLine ? Lf('You’re #{0} · {1} Rings to the prize line', String(h.rank), fmtN(h.toLine))
+    : h.top ? Lf('Be Bangkok’s face of the week · #1 wins {0}', baht(h.top)) : L('Climb this week’s board');
+  return (
+    <div className={`kx-hook${inPrize ? ' won' : ''}`} id="kxWeekHook" data-state={inPrize ? 'prize' : onBoard ? 'board' : 'off'}>
+      <button type="button" className="kx-hook-t" id="kxWeekHookOpen" onClick={props.onRanking || props.onPost}>
+        <span className="ic" aria-hidden="true">{inPrize ? '🏆' : '✦'}</span><b>{line}</b><i aria-hidden="true">›</i>
+      </button>
+      {!onBoard ? <button type="button" className="kx-hook-go" id="kxWeekHookPost" onClick={props.onPost}>{L('Post a Reel')}</button> : null}
+    </div>
+  );
+}
+
+export function FoundingChecklist(props: { L: Tx; Lf: Txf; kx: KxCardExtras | null | undefined; hasSocial: boolean; onLink: () => void; onPost: () => void;
+  hook?: WeekHookData | null; onRanking?: () => void }) {
   const { L, Lf, kx } = props;
-  if (!kx || kx.founding_no || kx.founding_left === undefined) return null;
+  if (!kx || kx.founding_left === undefined) return null;
   const open = (kx.founding_left ?? 0) > 0;
+  // 20 Nov: seats gone. No "0 of 50", no ฿100 promise: the weekly-board hook instead (a member with no Reel yet sees it on the
+  // "Your next step" card at the top, so it is not repeated here).
+  if (!open) return kx.has_reel && props.hook ? <WeekHook L={L} Lf={Lf} hook={props.hook} onRanking={props.onRanking} onPost={props.onPost} /> : null;
+  if (kx.founding_no) return null;
   // polish #4: one "Next step" card: only the next thing to do; gone when everything is done
   if (kx.has_reel || (!open && kx.has_reel)) return null;
   const amt = `฿${fmtN(kx.founding_thb ?? 100)}`;
@@ -232,6 +262,8 @@ export type MeViewProps = {
   invites?: { friends: number; rings: number } | null;
   /** revamp Phase 1: my approved + pending Reel count for the stats row (falls back to the profile's list) */
   reelCount?: number;
+  /** 20 Nov: the weekly-board hook that replaced the Founding ฿100 card */
+  weekHook?: WeekHookData | null;
 };
 
 /**
@@ -288,7 +320,8 @@ export function MeView(props: MeViewProps) {
       <RingsBalance L={L} Lf={Lf} kx={props.kx} dot={!!props.ringsDot || (props.kx?.prizes ?? 0) > 0} onOpen={props.onRings} />
       {actionStep ? props.nextSlot : null}
       {props.webAskSlot || null}
-      <FoundingChecklist L={L} Lf={Lf} kx={props.kx} hasSocial={!!(props.kx?.ig_handle || props.kx?.tiktok_handle || p.ig_handle)} onLink={props.onLink || props.onEdit} onPost={props.onPost} />
+      <FoundingChecklist L={L} Lf={Lf} kx={props.kx} hasSocial={!!(props.kx?.ig_handle || props.kx?.tiktok_handle || p.ig_handle)} onLink={props.onLink || props.onEdit} onPost={props.onPost}
+        hook={props.weekHook} onRanking={props.onRanking} />
       {props.reelsSlot ? null : (
       <button type="button" className="kx-savedrow" id="kxSavedRow" onClick={props.onSavedReels || props.onSaved}>
         <span className="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4.5L5 21V4a1 1 0 0 1 1-1z" /></svg></span>

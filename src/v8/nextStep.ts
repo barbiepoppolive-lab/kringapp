@@ -17,6 +17,8 @@ export interface NextStepInput {
   /** Founding Local: seats left and the amount (the first-Reel line shows the amount only while seats are open) */
   foundingLeft?: number | null;
   foundingThb?: number | null;
+  /** 20 Nov (Founding closed): this week's #1 prize, for the "Be Bangkok's face of the week" hook */
+  topPrize?: number | null;
   /** this week's Rings and the prize-seat floor (25) */
   rings?: number | null;
   floor?: number | null;
@@ -32,6 +34,8 @@ export interface NextStep {
   rings?: number;
   floor?: number;
   gap?: number;
+  /** 20 Nov: #1 weekly prize shown on the first-Reel hook once Founding Local seats are gone */
+  top?: number;
 }
 
 const NOTE_MAX = 90;
@@ -47,7 +51,7 @@ export function pickNextStep(i: NextStepInput): NextStep | null {
   if (!i.reels) return null;
   if (i.reels.length === 0) {
     const open = (i.foundingLeft ?? 0) > 0;
-    return { kind: 'reel', dismissible: true, amount: open ? i.foundingThb || 100 : undefined };
+    return { kind: 'reel', dismissible: true, amount: open ? i.foundingThb || 100 : undefined, top: !open && i.topPrize ? i.topPrize : undefined };
   }
   const latest = [...i.reels].sort((a, b) => (a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0))[0];
   // 3. the latest Reel came back with a note from the team

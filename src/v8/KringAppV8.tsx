@@ -3006,6 +3006,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       verified: !!(meProfile?.verified || v5Card?.verified), verifyPending,
       foundingLeft: kxRewards?.founding_left ?? kxMe?.founding_left ?? 0, foundingThb: kxMe?.founding_thb ?? 100,
       rings: kxWeek?.me?.rings ?? kxMe?.week ?? 0, floor: kxWeek?.floor || kxRewards?.floor || 25,
+      topPrize: kxWeek?.prizes?.[0] || kxRewards?.ladder?.[0] || null,
     });
     void nextHideTick;
     return s && !nextStepHidden(v5Uid, s.kind) ? s : null;
@@ -4965,6 +4966,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               firstReelChip={showFirstReelChip(v5Uid, meProfile.reels.length > 0) ? <FirstReelChip onPost={() => { setTab('feed'); openCreate(); }} /> : null}
               kx={kxMe}
               weekRank={kxWeekRank}
+              weekHook={{ rank: kxWeek?.me?.rank ?? null, prize: kxWeek?.me?.prize ?? 0, toLine: kxWeek?.rows?.find((r) => r.is_me)?.to_line ?? (kxWeek?.me && kxWeek.rows?.find((r) => r.rank === (kxWeek.paid_ranks || 8)) ? Math.max(1, (kxWeek.rows.find((r) => r.rank === (kxWeek.paid_ranks || 8))?.rings ?? 0) - kxWeek.me.rings + 1) : null),
+                top: kxWeek?.prizes?.[0] || kxRewards?.ladder?.[0] || 0 }}
               onRings={() => { setKxReady(false); setSheet('rewards'); void kxLoadRewards(); }}
               ringsDot={kxReady}
               onRanking={() => setSheet('ranking')}
