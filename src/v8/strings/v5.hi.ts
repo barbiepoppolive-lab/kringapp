@@ -38,6 +38,9 @@ const T: Record<string, string> = {
     'People load again when you’re back online.': 'ऑनलाइन लौटते ही लोग फिर से लोड हो जाएँगे।',
     // 16 Nov audit P0-3 / P2-3
     'Your Reel was hidden': 'आपकी रील छिपा दी गई',
+    'Not yet': 'अभी नहीं',
+    'Not yet · tips for your next Reel': 'अभी नहीं · अगली Reel के लिए सुझाव',
+    'Post a new one': 'नई Reel पोस्ट करें',
     'Hidden': 'छिपी हुई',
     'Your card was deleted. Your admin sign-in is kept.': 'आपका कार्ड हटा दिया गया। आपका एडमिन साइन-इन बना रहेगा।',
     // 16 Nov audit P1-3 / P3-15: first-Reel nudge in one language, prize line from the live rules

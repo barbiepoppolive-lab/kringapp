@@ -12,7 +12,7 @@ import { PerksCard } from './V5Perks';
 import type { V5Activity, V5FollowRow, V5Level, V5Profile } from './v5Live';
 import { NeonCard, progLine, RingGlyph } from './V5KxCard';
 import { isStandalone, openInstallSheet } from './A2HS';
-import { fmtN, levelFor, reviewNoteText } from './kxLogic';
+import { fmtN, isNotYetNote, levelFor, reviewNoteText } from './kxLogic';
 import type { KxCardExtras } from './v5Kx';
 
 // ── pre-season (D-11NOV-G): the board ranks from day one; rewards start on kr8_settings.reward_start_at ──
@@ -430,6 +430,7 @@ export function ActivitySheet(props: { L: Tx; Lf: Txf; rows: V5Activity[] | null
       : a.kind === 'like' ? (a.n > 1 ? Lf('{0} and {1} others liked your Reel', a.actor_name || '', String(a.n - 1)) : Lf('{0} liked your Reel', a.actor_name || ''))
       : a.kind === 'gift' ? Lf('Your Reel is #{0} · {1}', String(a.rank || ''), a.prize || '')
       // audit P2-3: hidden by the team, with the reason (the prize column carries it)
+      : a.kind === 'hidden' && isNotYetNote(a.prize) ? [L('Not yet · tips for your next Reel'), reviewNoteText(a.prize)].filter(Boolean).join(' · ')
       : a.kind === 'hidden' ? [L('Your Reel was hidden'), reviewNoteText(a.prize)].filter(Boolean).join(' · ')
       : L('Your Reel is approved and live');
     const isNew = !seen || a.at > seen;

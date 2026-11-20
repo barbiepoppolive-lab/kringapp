@@ -7274,6 +7274,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {goPlayer && live && (
           <GoReelPlayer L={L} Lf={Lf} lang={lang} reels={goPlayer.reels} start={goPlayer.start} title={goPlayer.title} viewProfile={goPlayer.viewProfile}
             onClose={() => setGoPlayer(null)}
+            onPostNew={() => { setGoPlayer(null); kxPostAt(); }}
             onProfile={(id) => { setGoPlayer(null); void openProfile(id); }}
             onPlace={(id) => kxOpenPlace(id, null, true)}
             onMath={(id) => setKxMathFor(id)}

@@ -270,11 +270,15 @@ export const isMapsLink = (url: string) => /^https:\/\/([a-z0-9-]+\.)*(google\.[
 export const cleanPlaceName = (q: string) => q.replace(/\s+/g, ' ').trim().slice(0, 80);
 
 /** A team note on a hidden Reel is "Thai\nEnglish" (admin chips) or one typed line. Thai phones get the Thai line, others the English. */
+/** 20 Nov: a "Not yet" note (coaching tips, not a strike) starts with ⏳ on each language line. */
+export function isNotYetNote(note: string | null | undefined): boolean {
+  return (note || '').trimStart().startsWith('⏳');
+}
 export function reviewNoteText(note: string | null | undefined, lang?: string): string {
   const t = (note || '').trim();
   if (!t) return '';
-  const parts = t.split('\n').map((x) => x.trim()).filter(Boolean);
-  if (parts.length < 2) return t;
+  const parts = t.split('\n').map((x) => x.replace(/^⏳\s*/, '').trim()).filter(Boolean);
+  if (parts.length < 2) return parts[0] || '';
   let l = lang;
   if (!l) { try { l = localStorage.getItem('kr8_lang') || 'en'; } catch { l = 'en'; } }
   return l === 'th' ? parts[0] : parts[parts.length - 1];

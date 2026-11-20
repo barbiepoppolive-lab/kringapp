@@ -38,6 +38,9 @@ const T: Record<string, string> = {
     'People load again when you’re back online.': '다시 온라인이 되면 자동으로 다시 불러와요.',
     // 16 Nov audit P0-3 / P2-3
     'Your Reel was hidden': '내 릴스가 숨겨졌어요',
+    'Not yet': '아직이에요',
+    'Not yet · tips for your next Reel': '아직이에요 · 다음 릴을 위한 팁',
+    'Post a new one': '새 릴 올리기',
     'Hidden': '숨김',
     'Your card was deleted. Your admin sign-in is kept.': '카드가 삭제됐어요. 관리자 로그인은 그대로예요.',
     // 16 Nov audit P1-3 / P3-15: first-Reel nudge in one language, prize line from the live rules

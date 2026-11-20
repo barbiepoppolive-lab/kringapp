@@ -403,6 +403,10 @@ export const V5_L: Record<string, Record<string, string>> = {
     'a prize seat needs {0} Rings': 'ต้องมี {0} ริงขึ้นไปถึงจะได้รางวัล',
     'Weekly prizes': 'รางวัลประจำสัปดาห์',
     'Hidden': 'ซ่อนแล้ว',
+    // 20 Nov: "Not yet" (coaching tips, not a strike)
+    'Not yet': 'ยังไม่ผ่านรอบนี้',
+    'Not yet · tips for your next Reel': 'ยังไม่ผ่านรอบนี้ · มีคำแนะนำสำหรับรีลถัดไปครับ',
+    'Post a new one': 'โพสต์รีลใหม่',
     'Your Reels show here and count towards your next level': 'รีลของคุณจะแสดงที่นี่และนับเพื่อขึ้นเลเวลถัดไป',
     'Your face data': 'ข้อมูลใบหน้าของคุณ',
     'Your face is sensitive personal data under Thailand’s PDPA. We use it only to confirm you are a real person and that your profile photo is you.': 'ใบหน้าของคุณเป็นข้อมูลส่วนบุคคลที่อ่อนไหวตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล (PDPA) เราใช้เพื่อยืนยันว่าคุณเป็นคนจริงและรูปโปรไฟล์เป็นคุณเท่านั้น',

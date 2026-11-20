@@ -38,6 +38,9 @@ const T: Record<string, string> = {
     'People load again when you’re back online.': '恢复联网后，这里会自动重新加载。',
     // 16 Nov audit P0-3 / P2-3
     'Your Reel was hidden': '你的视频已被隐藏',
+    'Not yet': '还差一点',
+    'Not yet · tips for your next Reel': '还差一点 · 下一条 Reel 的小建议',
+    'Post a new one': '发一条新的',
     'Hidden': '已隐藏',
     'Your card was deleted. Your admin sign-in is kept.': '你的卡片已删除。你的管理员登录仍然保留。',
     // 16 Nov audit P1-3 / P3-15: first-Reel nudge in one language, prize line from the live rules

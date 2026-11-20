@@ -300,6 +300,13 @@
 /* audit P2-3: own Reel hidden by the team, with the reason */
 .v8-app-root .go-gw.rv.hid { background: #ff5d6c; color: #fff; max-width: calc(100% - 12px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .v8-app-root .go-score.rv.hid { color: #ff8a95; white-space: normal; }
+/* 20 Nov: "Not yet" (coaching tips, not a strike): warm amber, the tips and a "Post a new one" button under the name */
+.v8-app-root .go-gw.rv.ny { background: #ffb020; color: #1a1200; }
+.v8-app-root .go-score.rv.ny { color: #ffc24d; }
+.v8-app-root .go-notyet { margin: 6px 0 8px; padding: 10px 12px; border-radius: 14px; background: rgba(0,0,0,.55); border: 1px solid rgba(255,176,32,.55); color: #fff; font-size: 13.5px; line-height: 1.4; max-height: 38vh; overflow: auto; }
+.v8-app-root .go-notyet p { margin: 0 0 8px; }
+.v8-app-root .go-ny-post { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: #ffb020; color: #1a1200; font-weight: 800; font-size: 14px; }
+.v8-app-root .go-ny-post svg { width: 16px; height: 16px; }
 
 /* 17 Nov: "My Reel stats" (owner only) */
 .v8-app-root .go-stats-wrap { position: absolute; inset: 0; z-index: 30; background: rgba(6,5,12,.45); display: flex; align-items: flex-end; }

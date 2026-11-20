@@ -38,6 +38,9 @@ const T: Record<string, string> = {
     'People load again when you’re back online.': 'オンラインに戻ると自動でもう一度読み込みます。',
     // 16 Nov audit P0-3 / P2-3
     'Your Reel was hidden': 'あなたのリールは非表示になりました',
+    'Not yet': 'まだです',
+    'Not yet · tips for your next Reel': 'まだです · 次のリールへのヒント',
+    'Post a new one': '新しいリールを投稿',
     'Hidden': '非表示',
     'Your card was deleted. Your admin sign-in is kept.': 'カードを削除しました。管理者のログインはそのまま使えます。',
     // 16 Nov audit P1-3 / P3-15: first-Reel nudge in one language, prize line from the live rules

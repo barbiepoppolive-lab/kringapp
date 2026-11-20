@@ -4,6 +4,7 @@
  * Members (sources, recruiter checklist + CSV, Kring Locals by recruiter); Listings (Stay/Do stepper, Venues → detail); More (history, rules, sign out).
  * Every RPC and its parameters are the same as v1 (reelsAdmin / verifyAdmin / socialAdmin / stayAdmin / admin.ts).
  */
+import { NOT_YET_GROUPS, NOT_YET_MAX, NOT_YET_RULE_BREAKS, chipsFromReasons, notYetEnglish, notYetNote } from './notYet';
 import { V5_AREAS, v5VerifyCode } from '../v8/v5Live';
 import { signReelPaths } from '../v8/v5Reel';
 import { basePath, bkkTime, el, rpc, rpcWrite, sendKeepalive, staffLink, v5Client, type RpcWrite } from './shared';
@@ -527,14 +528,17 @@ async function reelQueue() {
         await rpcWrite('kr8_admin_review_reel', { p_reel: r.id, p_status: 'approved' })();
         await setReelFeed(rpc, r.id, !feed, feed ? undefined : feedOffReason(qc));
       });
+    // 20 Nov (founder): "Not yet" = kind tips, the Reel stays with the member only, not a strike; rule breaks go to Hide
+    const hideReel = (ready?: string) => rejectSheet('Why hide?', 'The member sees this reason on their Reel.', REEL_CHIPS, 'hideReel-' + r.id,
+      (why) => rpc('kr8_admin_review_reel', { p_reel: r.id, p_status: 'hidden', p_note: why }), api.next, { cta: 'Send · hide', done: 'Hidden · reason sent', ready });
     api.actions(el('div', {},
       el('div', { class: 'two' },
         btn(sugProfile ? 'ghost big' : 'go big', [ic('check'), 'Approve · Feed'], () => approveTo(true), { id: 'approveReel-' + r.id }),
         btn(sugProfile ? 'go big' : 'ghost big', [ic('users'), 'Approve · Profile only'], () => approveTo(false), { id: 'approveProfile-' + r.id })),
       el('div', { class: 'two' },
-        btn('out-bad big', [ic('eyeoff'), 'Hide'], () => rejectSheet('Why hide?', 'The member sees this reason on their Reel.', REEL_CHIPS, 'hideReel-' + r.id,
-          (why) => rpc('kr8_admin_review_reel', { p_reel: r.id, p_status: 'hidden', p_note: why }), api.next, { cta: 'Send · hide', done: 'Hidden · reason sent' }), { id: 'hideReel-' + r.id }),
-        skipBtn(api))));
+        btn('ghost big', [ic('clock'), 'Not yet'], () => notYetSheet(r.id, qc?.reasons || [], hideReel, api.next), { id: 'notYetReel-' + r.id }),
+        btn('out-bad big', [ic('eyeoff'), 'Hide'], () => hideReel() /* = rejectSheet('Why hide?', …, REEL_CHIPS) */, { id: 'hideReel-' + r.id })),
+      el('div', { class: 'two' }, skipBtn(api))));
     return el('div', { 'data-reel': r.id },
       reelVideo(urls[r.video_path] || '', urls[r.poster_path] || '', [el('span', { class: 'chip' }, ic('play'), `${Math.round(r.duration_ms / 1000)} s`)],
         [el('b', {}, `${r.author_name} · ${r.author_who === 'traveller' ? 'Visiting Bangkok' : r.author_who === 'local' ? 'Kring Local' : 'Member'}`), el('p', { class: 'dim' }, `${r.area} · ${ago(r.created_at)}`), r.body ? el('p', {}, r.body) : null]),
@@ -566,7 +570,56 @@ export const REEL_CHIPS: Chip[] = [
   ['Wrong place pinned', 'The pinned place doesn’t match the Reel. Pin the right place and post again.', 'หมุดสถานที่ไม่ตรงกับรีล ปักหมุดให้ถูกแล้วโพสต์ใหม่ได้เลยครับ'],
   ['Not their own clip', 'This clip looks copied. Please post a Reel you filmed yourself.', 'คลิปนี้ดูเหมือนก๊อปมา รบกวนโพสต์รีลที่คุณถ่ายเองนะครับ'],
   ['Fake engagement', 'This Reel was hidden for fake engagement (bought views or many accounts).', 'รีลนี้ถูกซ่อนเพราะยอดไม่จริง (ซื้อวิวหรือใช้หลายบัญชี) ครับ'],
+  ['Not right for Kring', 'This Reel doesn’t fit Kring’s community, so it won’t be shown.', 'รีลนี้ไม่เหมาะกับคอมมูนิตี้ของกริ๊ง! จึงจะไม่แสดงครับ'],
 ];
+/**
+ * 20 Nov (founder): "Not yet" sheet. Tip chips under 3 headings, up to 3; the Autopilot's reasons come preselected.
+ * The founder sees and can edit the English; Thai follows the chips. Rule-break chips close this and open Hide.
+ */
+export function notYetSheet(reelId: string, botReasons: readonly string[], hide: (ready?: string) => void, onDone: () => void) {
+  const pre = chipsFromReasons(botReasons);
+  const sel: string[] = [...pre.tips];
+  let edited = false;
+  const idBase = 'notYet-' + reelId;
+  const ta = el('textarea', { rows: '4', maxlength: '700', id: idBase + 'Why' }) as HTMLTextAreaElement;
+  const out = el('div', {});
+  const count = el('p', { class: 'faint xs', style: 'margin:6px 0 0', id: idBase + 'Count' });
+  const btns = new Map<string, HTMLButtonElement>();
+  const paint = () => {
+    if (!edited) ta.value = notYetEnglish(sel);
+    for (const [id, b] of btns) { b.classList.toggle('on', sel.includes(id)); b.disabled = !sel.includes(id) && sel.length >= NOT_YET_MAX; }
+    count.textContent = `${sel.length} of ${NOT_YET_MAX} tips · sent in their language (Thai or English) · Founding ฿100 line added if their chance is open · not a strike`;
+  };
+  ta.oninput = () => { edited = true; };
+  const groups = NOT_YET_GROUPS.map((g) => el('div', {}, el('p', { class: 'dim xs', style: 'margin:10px 0 4px;font-weight:700' }, g.title),
+    el('div', { class: 'chips2' }, ...g.chips.map((c) => {
+      const b = el('button', { type: 'button', 'data-chip': c.id, id: idBase + '-' + c.id }, c.label) as HTMLButtonElement;
+      b.onclick = () => { const i = sel.indexOf(c.id); if (i >= 0) sel.splice(i, 1); else if (sel.length < NOT_YET_MAX) sel.push(c.id); edited = false; paint(); };
+      btns.set(c.id, b); return b;
+    }))));
+  const rb = el('div', {}, el('p', { class: 'dim xs', style: 'margin:10px 0 4px;font-weight:700' }, 'Breaks the rules → Hide'),
+    el('div', { class: 'chips2' }, ...NOT_YET_RULE_BREAKS.map((label) => {
+      const ch = REEL_CHIPS.find((x) => x[0] === label);
+      const b = el('button', { type: 'button', class: pre.ruleBreak === label ? 'sug' : '', 'data-rulebreak': label, style: 'border-color:#d33' }, (pre.ruleBreak === label ? '⚠ ' : '') + label);
+      b.onclick = () => { sh.close(); hide(ch ? ch[1] : undefined); };
+      return b;
+    })));
+  const go = btn('go big full rs-go', [ic('send'), 'Send · not yet'], undefined, { id: idBase + 'Send' });
+  const sh = sheet(el('h3', {}, 'Not yet · tips for their next Reel'),
+    el('p', { class: 'dim', style: 'margin:4px 0 0' }, 'Only the member sees this Reel, with your tips and a “Post a new one” button.'),
+    pre.ruleBreak ? el('p', { class: 'err', style: 'margin:6px 0 0' }, `Autopilot: ${pre.ruleBreak} — use Hide`) : null,
+    el('div', { class: 'stack rs' }, ...groups, rb, el('label', { class: 'f' }, 'What they read (English) · you can edit', ta, count), out, go));
+  sh.box.classList.add('rsheet'); sh.box.id = idBase + 'Sheet';
+  paint();
+  go.onclick = async () => {
+    if (!sel.length) { out.replaceChildren(el('p', { class: 'err' }, 'Pick at least one tip.')); return; }
+    flushWrite(); go.disabled = true;
+    try {
+      await rpc('kr8_admin_review_reel', { p_reel: reelId, p_status: 'not_yet', p_note: notYetNote(sel, edited ? ta.value : undefined) });
+      sh.close(); toast('Not yet · tips sent', { ms: 2500 }); onDone();
+    } catch (e) { go.disabled = false; out.replaceChildren(errP(e)); }
+  };
+}
 /** Removing a reported Reel / Ask a Thai post or answer (only what the published rules say). */
 export const REPORT_CHIPS: Chip[] = [
   ['Spam or scam', 'Removed: spam or a scam is not allowed on Kring.', 'ลบแล้ว: ห้ามสแปมหรือหลอกลวงบนกริ๊ง! ครับ'],
