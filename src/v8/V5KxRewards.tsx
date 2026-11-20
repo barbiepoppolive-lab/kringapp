@@ -230,10 +230,18 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
         <h1 className="sm">{L('Claim')}</h1>
         <span style={{ width: 40 }} />
       </div>
+      {/* rv4 (founder pick Claim C): a calm gold coin with the amount, "฿100 · TrueMoney", what the prize is for,
+          three steps (Reel approved ✓ · Face check · Claim) and one pink button. Same claim logic underneath. */}
       {prize ? (
-        <div className="kx-clp" id="kxClaimPrize">
+        <div className="kx-clp rv4-cl" id="kxClaimPrize">
+          <div className="rv4-coin" aria-hidden="true"><b>{baht(valueFor(brand, amount, pct))}</b></div>
+          <b className="rv4-clt" data-amount={amount}>{baht(valueFor(brand, amount, pct))} · {BRAND_NAME[brand]}</b>
           <small>{prizeTitle(L, Lf, props.lang, prize)}</small>
-          <b data-amount={amount}>{baht(amount)}</b>
+          <ol className="rv4-steps" aria-label={L('Claim')}>
+            <li className="d"><i aria-hidden="true">✓</i><span>{L('Reel approved')}</span></li>
+            <li className={props.verified === true || props.skipFace ? 'd' : ''}><i aria-hidden="true">{props.verified === true || props.skipFace ? '✓' : '2'}</i><span>{L('Face check')}</span></li>
+            <li className="c"><i aria-hidden="true">3</i><span>{L('Claim')}</span></li>
+          </ol>
         </div>
       ) : null}
       {step === 'line' ? (
@@ -258,8 +266,8 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
           <TE th={`รางวัลของคุณปลอดภัย กดรับได้${opensAt === 'soon' ? 'ภายใน 24 ชั่วโมง' : ` ${openTime('th', opensAt)}`}`} en={`Your prize is safe. You can claim it ${opensAt === 'soon' ? 'within 24 hours' : openTime('en', opensAt)}`} />
         </div>
       ) : null}
-      <p className="kx-one" id="kxClaimOne">{L(brands.length > 1 ? 'Choose one. This prize can be claimed once.' : 'This prize can be claimed once.')}</p>
-      <div className="kx-pays" role="radiogroup" aria-label={L('Get it on')}>
+      {brands.length > 1 ? <p className="kx-one" id="kxClaimOne">{L('Choose one. This prize can be claimed once.')}</p> : null}
+      <div className="kx-pays" role="radiogroup" aria-label={L('Get it on')} hidden={brands.length < 2}>
         {brands.map((b, i) => (
           <Fragment key={b}>
             {i > 0 ? <div className="kx-or" aria-hidden="true">{L('OR')}</div> : null}
@@ -273,10 +281,12 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
         ))}
       </div>
       <div className="kx-cl-foot">
-        {err ? <p className="kx-err center" role="alert" id="kxClaimErr">{err}</p> : <p className="kx-inst">{L('Your code shows in My prizes as soon as it’s ready.')}</p>}
-        <button type="button" className="kx-btn tall" id="kxClaimGo" disabled={busy || !prize || !!opensAt || step === 'line' || step === 'verify'} onClick={go}>
-          <b>{busy ? '…' : Lf('Claim with {0} · {1}', BRAND_NAME[brand], baht(valueFor(brand, amount, pct)))}</b>
+        {err ? <p className="kx-err center" role="alert" id="kxClaimErr">{err}</p> : null}
+        <button type="button" className="kx-btn tall rv4-reveal" id="kxClaimGo" aria-label={Lf('Claim with {0} · {1}', BRAND_NAME[brand], baht(valueFor(brand, amount, pct)))}
+          disabled={busy || !prize || !!opensAt || step === 'line' || step === 'verify'} onClick={go}>
+          <b>{busy ? '…' : L('Reveal my code')}</b>
         </button>
+        {err ? null : <p className="kx-inst">{brands.length > 1 ? null : `${L('This prize can be claimed once.')} · `}{L('Your code shows in My prizes as soon as it’s ready.')}</p>}
       </div>
     </div>
   );

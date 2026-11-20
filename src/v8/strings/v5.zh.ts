@@ -521,6 +521,13 @@ const T: Record<string, string> = {
     "Know this one? Your answer helps.": "知道答案吗？你的回答很有帮助。",
     "Ask Bangkok locals anything": "向曼谷本地人提任何问题",
     "Be the first to ask Bangkok.": "第一个向曼谷提问吧。",
+    "Chats": "聊天",
+    "Say hi first": "先打个招呼",
+    "Reveal my code": "查看我的兑换码",
+    "Reel approved": "Reel 已通过",
+    "Face check": "人脸验证",
+    "Your prize": "你的奖励",
+    "Unread": "未读",
       // T-301 (T301-007): Weather sheet
     'Feels like {0}°': '体感 {0}°',
     'Tropical shower likely this afternoon': '今天下午可能有阵雨',

@@ -556,6 +556,14 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Know this one? Your answer helps.': 'รู้เรื่องนี้ไหม? คำตอบของคุณช่วยได้เยอะ',
     'Ask Bangkok locals anything': 'ถามคนกรุงเทพฯ ได้ทุกเรื่อง',
     'Be the first to ask Bangkok.': 'มาเป็นคนแรกที่ถามคนกรุงเทพฯ',
+    // rv4 (20 Nov): founder's picks
+    'Chats': 'แชต',
+    'Say hi first': 'ทักทายก่อนเลย',
+    'Reveal my code': 'ดูโค้ดของฉัน',
+    'Reel approved': 'รีลผ่านแล้ว',
+    'Face check': 'ยืนยันใบหน้า',
+    'Your prize': 'รางวัลของคุณ',
+    'Unread': 'ยังไม่ได้อ่าน',
     // T-301 (T301-007): Weather sheet
     'Feels like {0}°': 'รู้สึกเหมือน {0}°',
     'Tropical shower likely this afternoon': 'บ่ายนี้มีแนวโน้มฝนตก',
@@ -847,6 +855,10 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
  */
 export const KX_L: Record<string, Record<string, string>> = {
   th: {
+    // rv4 (20 Nov) Claim C
+    'Reel approved': 'รีลผ่านแล้ว',
+    'Face check': 'ยืนยันใบหน้า',
+    'Reveal my code': 'ดูโค้ดของฉัน',
     // 19 Nov Me tab A (card + one line)
     'Ask Kring Helper': 'ถามผู้ช่วยกริ๊ง!',
     'Friends joined': 'เพื่อนที่ชวนมา',

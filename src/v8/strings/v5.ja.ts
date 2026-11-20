@@ -521,6 +521,13 @@ const T: Record<string, string> = {
     "Know this one? Your answer helps.": "知っていますか？あなたの回答が役に立ちます。",
     "Ask Bangkok locals anything": "バンコクの地元の人に何でも質問",
     "Be the first to ask Bangkok.": "最初に質問してみよう。",
+    "Chats": "チャット",
+    "Say hi first": "先にあいさつしよう",
+    "Reveal my code": "コードを表示",
+    "Reel approved": "リール承認済み",
+    "Face check": "顔チェック",
+    "Your prize": "あなたの賞品",
+    "Unread": "未読",
       // T-301 (T301-007): Weather sheet
     'Feels like {0}°': '体感 {0}°',
     'Tropical shower likely this afternoon': '今日の午後はにわか雨がありそう',

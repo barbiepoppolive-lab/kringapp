@@ -656,7 +656,7 @@ export async function v5Inbox(): Promise<{ threads: V5Thread[]; requests: V8Hell
       requests.push({ id: r.thread_id, name: r.other_name, meta: `${r.other_area} · ${(r.other_langs || []).join(' · ')}`, img: r.other_photo || initialAvatar(r.other_name), msg: r.last_body || '', verified: r.other_verified === true, ...(official ? { meta: 'Official · ทางการ', official: true } : {}) });
     }
     threads.push({ id: r.thread_id, personId: r.other_id, name: r.other_name, avatar: r.other_photo || initialAvatar(r.other_name), langs: (r.other_langs || []).join(' · '), verified: r.other_verified === true,
-      lastPreview: r.last_body || '', timeLabel: v5TimeLabel(r.last_at), unread: r.unread > 0, messages: [], v5Status: r.status, v5OpenedByMe: r.opened_by_me, area: r.other_area, ...(official ? { official: true } : {}) });
+      lastPreview: r.last_body || '', timeLabel: v5TimeLabel(r.last_at), unread: r.unread > 0, unreadN: r.unread, messages: [], v5Status: r.status, v5OpenedByMe: r.opened_by_me, area: r.other_area, ...(official ? { official: true } : {}) });
   }
   return { threads, requests };
 }

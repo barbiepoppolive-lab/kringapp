@@ -153,6 +153,11 @@ import { NextStepCard } from './V5NextStep';
 import { hideNextStep, hideVerifyRow, nextStepHidden, pickNextStep, verifyRowHidden } from './nextStep';
 import './kx.css';
 import './rv2.css';
+import './rv4.css';
+/** rv4 (20 Nov, founder pick Feed A): the next-step pill no longer floats over Reels */
+const RV4_FEED_PILL = false;
+/** rv4: the thin outline pin of the Feed A mock-up (replaces the 📍 emoji on Reels) */
+const RvPin = () => <svg className="rv4-pin" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.3" /></svg>;
 import { rvArea, rvLangs } from './rvLabels';
 import { fmtN as kxFmtN } from './kxLogic';
 // 16 Nov perf 2: not needed for the first screen, so downloaded separately (see lazyPart)
@@ -4211,9 +4216,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               defaultArea={(live && v5Card?.area) || 'Bangkok'} need={requireSignInForAction} toast={showToast} refCode={getMyRef()}
               shareLink={(url, text) => void shareNow(url, text)} />
           )}
-          {postedShare && tab === 'feed' ? null /* audit 18 Nov: the post-success share takes this spot (it overlapped the pill) */ : feedMode !== 'ask' && nextStep ? (
+          {/* rv4 (founder pick Feed A): no floating "next step" pill over the Reel (e.g. "We're checking your Reel"); that status lives on Me */}
+          {postedShare && tab === 'feed' ? null /* audit 18 Nov: the post-success share takes this spot (it overlapped the pill) */ : RV4_FEED_PILL && feedMode !== 'ask' && nextStep ? (
             <NextStepCard step={nextStep} variant="pill" lang={lang} L={L} Lf={Lf} onGo={() => nextGo('feed')} onHide={nextHide} />
-          ) : PRIZE_TICKER_ON_FEED && feedMode !== 'ask' && live && signedIn && v5Card && v5Uid && kxWeek ? (
+          ) : PRIZE_TICKER_ON_FEED && !nextStep && feedMode !== 'ask' && live && signedIn && v5Card && v5Uid && kxWeek ? (
             <PrizeBanner variant="ticker" lang={lang} uid={v5Uid} week={kxWeek} hideTick={prizeHideTick} onHide={() => setPrizeHideTick((n) => n + 1)}
               onOpen={() => { setTab('me'); setSheet('ranking'); }} />
           ) : null}
@@ -4307,10 +4313,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                           <svg viewBox="0 0 24 24">
                             <path d="M12 21s-7.5-4.6-9.5-9.2C1.2 8.7 3.1 5 6.7 5c2.1 0 3.6 1.1 4.3 2.4h2C13.7 6.1 15.2 5 17.3 5c3.6 0 5.5 3.7 4.2 6.8C19.5 16.4 12 21 12 21z" />
                           </svg>
-                          <span className="lbl">{p.likes ? p.likes : L('Like')}</span>
+                          <span className="lbl">{p.likes ? p.likes : p.video ? '' : L('Like')}</span>
                         </button>
                       )}
-                      {!(p.video && (p as V5FeedItem).mine) && (
+                      {!p.video && (
                       <button
                         type="button"
                         className="rail hi"
@@ -4349,14 +4355,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                         <svg viewBox="0 0 24 24">
                           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                         </svg>
-                        <span className="lbl">{isSaved ? t.saved : t.save}</span>
+                        {p.video ? null : <span className="lbl">{isSaved ? t.saved : t.save}</span>}
                       </button>
                       {p.video && !p.reelPending && (
                         <button type="button" className="rail" data-act="share" aria-label={L('Share')} onPointerDown={() => prefetchReelLink(p.id)} onClick={() => void shareReel(p)}>
                           <svg viewBox="0 0 24 24">
                             <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v14" />
                           </svg>
-                          <span className="lbl">{L('Share')}</span>
                         </button>
                       )}
                       {p.video && !(p as V5FeedItem).mine && (
@@ -4397,6 +4402,18 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                           {/* S (15 Nov): handles + languages left the Reel overlay (they are on the profile, one tap on the name) */}
                           {!p.video ? <div className="langs">{p.langs}</div> : null}
                         </div>
+                        {p.video && !(p as V5FeedItem).mine && !p.reelPending ? (
+                          <button type="button" className="rv4-hi" data-act="hi" aria-label={t.sayHi}
+                            onClick={(e) => { e.stopPropagation(); openSayHi(
+                              p.name || 'Member',
+                              p.av || initialAvatar(p.name),
+                              `${Lf('Replying to {0} post', kxArea(lang, p.area || 'Bangkok', L))} · ${Lf('Speaks {0}', langWords(p.langs || 'TH · EN'))}`,
+                              (p as { authorId?: string }).authorId,
+                              true
+                            ); }}>
+                            <span className="rv-hi-rings" aria-hidden="true"><i /><i /></span>{t.sayHi}
+                          </button>
+                        ) : null}
                         {!p.video && p.area && <span className="atag">{p.area}</span>}
                         {p.here && <span className="here">{t.hereNow}</span>}
                         {p.bestOfWeek && (
@@ -4409,15 +4426,15 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                         if (kp) return (
                           <button type="button" className="reel-pin" data-act="place" data-place-chip={kp.id} onClick={(e) => { e.stopPropagation(); kxOpenPlace(kp.id, { name_en: kp.name_en, name_th: kp.name_th, area: kp.area }, true); }}>
                             {/* polish #12: one language per pin (Thai UI: Thai name · Thai area; a place with no Thai name stays all English) */}
-                            <span aria-hidden="true">📍</span><b>{lang === 'th' && kp.name_th ? kp.name_th : kp.name_en}</b>{kp.area ? <span> · {lang === 'th' && !kp.name_th ? kp.area : kxArea(lang, kp.area, L)}</span> : null}
+                            <RvPin /><b>{lang === 'th' && kp.name_th ? kp.name_th : kp.name_en}</b>{kp.area ? <span> · {lang === 'th' && !kp.name_th ? kp.area : kxArea(lang, kp.area, L)}</span> : null}
                           </button>
                         );
                         if (p.place) return (
                           <button type="button" className="reel-pin" data-act="place" aria-label={`${p.place.name} · ${L('See place')}`} onClick={(e) => { e.stopPropagation(); openReelPlace(p.place!); }}>
-                            <span aria-hidden="true">📍</span><b>{lang === 'th' && p.place.nameTh ? p.place.nameTh : p.place.name}</b>{p.area ? <span> · {lang === 'th' && !p.place.nameTh ? p.area : kxArea(lang, p.area, L)}</span> : null}
+                            <RvPin /><b>{lang === 'th' && p.place.nameTh ? p.place.nameTh : p.place.name}</b>{p.area ? <span> · {lang === 'th' && !p.place.nameTh ? p.area : kxArea(lang, p.area, L)}</span> : null}
                           </button>
                         );
-                        return p.area ? <span className="reel-pin area" data-act="area"><span aria-hidden="true">📍</span><b>{kxArea(lang, p.area, L)}</b></span> : null;
+                        return p.area ? <span className="reel-pin area" data-act="area"><RvPin /><b>{kxArea(lang, p.area, L)}</b></span> : null;
                       })() : null}
                       {p.video ? <ReelCaption text={p.cap || ''} L={L} /> : <div className="cap">{p.cap}</div>}
                       {p.video && goPeople[p.id]?.length ? (
@@ -6154,18 +6171,33 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         )}
 
         {sheet === 'inbox' && (
-          <div className="v8-sheet full" id="sh-inbox">
-            <div className="grab" />
-            <div className="sh-head">
-              <h3>{t.messages}</h3>
-              <button
-                type="button"
-                className="xbtn"
-                onClick={() => setSheet(null)}
-              >
-                ✕
+          <div className="v8-sheet full rv4-chats" id="sh-inbox">
+            {/* rv4 (founder pick Chats A): ‹ Chats · a row of people to say hi to first · clean conversations with faces and pink unread counts */}
+            <div className="rv4-chd">
+              <button type="button" className="rv4-cbk" aria-label={L('Back')} onClick={() => setSheet(null)}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
               </button>
+              <h3>{L('Chats')}</h3>
             </div>
+            {(() => {
+              // people you haven't chatted with yet (People order: verified, photo, Reels first); real members only
+              const talked = new Set(threads.map((th) => th.personId));
+              const first = live ? people.filter((p) => /^[0-9a-f-]{36}$/.test(p.id) && p.img && !talked.has(p.id) && p.id !== v5Uid).slice(0, 12) : [];
+              if (!first.length) return null;
+              return (
+                <div className="rv4-new" id="chatSayHiFirst">
+                  <div className="rv4-newh">{L('Say hi first')}</div>
+                  <div className="rv4-newr">
+                    {first.map((p) => (
+                      <button type="button" key={p.id} className="rv4-nav" onClick={() => openSayHi(p.name, p.img, `${p.who === 'traveller' ? L('Traveller') : L('Thai local')} · ${Lf('Speaks {0}', p.langs)}`, p.id)}>
+                        <span className="ph" style={{ backgroundImage: `url('${p.img}')` }} />
+                        <span className="nm">{p.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             {threads[0]?.plan && (
               <div
@@ -6266,6 +6298,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     </div>
                     <div className="r">
                       <div className="tm">{th.timeLabel}</div>
+                      {th.unread ? <span className="rv4-un" aria-label={L('Unread')}>{th.unreadN && th.unreadN > 0 ? (th.unreadN > 9 ? '9+' : th.unreadN) : ''}</span> : null}
                     </div>
                   </div>
                 ))}

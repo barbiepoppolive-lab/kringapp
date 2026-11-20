@@ -1,0 +1,223 @@
+/* ==========================================================================
+   Revamp 4 (20 Nov) — the founder's ticked picks from the revamp picker:
+   Feed A · People A · member Profile B · Deals A · Ask a Thai A (more vibrant) · Chats A · prize Claim C.
+   Built on the rv2 foundation tokens (--rv-*). Visual only; Me and the weekly ranking are not touched here.
+   ========================================================================== */
+
+/* ---------- 0. Bottom tabs (every mock-up): a quiet dark bar; the active tab is a soft violet pill with a white line icon ---------- */
+.v8-app-root .dock { background: #0E0F19 !important; border: 0 !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.06) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+.v8-app-root .dock button { color: #8C8A9E !important; font-family: var(--rv-f) !important; font-weight: 500 !important; }
+.v8-app-root .dock button.active { color: #fff !important; font-weight: 600 !important; }
+.v8-app-root .dock button.active::after, .v8-app-root .dock button.active::before { display: none !important; }
+.v8-app-root .dock .dk-pill { display: grid; place-items: center; width: 54px; height: 32px; border-radius: 12px; transition: background .2s var(--rv-ez); }
+.v8-app-root .dock button.active .dk-pill { background: #2B2342 !important; box-shadow: none !important; }
+.v8-app-root .dock button.active .dk-ic * { fill: none !important; stroke: #fff !important; }
+.v8-app-root .dock button.active[data-tab="deals"] .dk-ic path:last-child { fill: #fff !important; }
+
+/* ---------- 1. Feed A — clean minimal ---------- */
+/* top: "☀ 34°" plain on the left, Reels · Ask a Thai centred with a white underline, a plain chat icon on the right */
+.v8-app-root #s-feed .spill.kp-wx { left: 16px !important; right: auto !important; top: calc(env(safe-area-inset-top, 0px) + 14px) !important; height: 30px !important; padding: 0 !important;
+  background: none !important; border: 0 !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  font: 600 0.9375rem var(--rv-f) !important; color: #fff !important; text-shadow: 0 1px 6px rgba(0,0,0,.5); }
+.v8-app-root #s-feed:not(.at-on) .at-sw button { font: 600 1.0625rem var(--rv-f) !important; color: rgba(255,255,255,.72) !important; text-shadow: 0 1px 8px rgba(0,0,0,.45); }
+.v8-app-root #s-feed:not(.at-on) .at-sw button.on { color: #fff !important; }
+.v8-app-root #s-feed:not(.at-on) .at-sw button.on::after { background: #fff !important; box-shadow: none !important; height: 2px !important; border-radius: 2px; }
+.v8-app-root .chat-fab { background: none !important; border-color: transparent !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+.v8-app-root .chat-fab svg { width: 22px !important; height: 22px !important; filter: drop-shadow(0 1px 4px rgba(0,0,0,.45)); }
+.v8-app-root #s-feed.at-on ~ .chat-fab, .v8-app-root .chat-fab.at-solid { filter: none; }
+/* sound: one small round button under the chat icon (no "Tap for sound" words over the Reel) */
+.v8-app-root #s-feed .reel-sound, .v8-app-root #s-feed .reel-sound.has-hint { width: 34px !important; height: 34px !important; padding: 0 !important; border-radius: 50% !important; display: grid !important; place-items: center;
+  top: calc(env(safe-area-inset-top, 0px) + 54px) !important; right: 14px !important; background: rgba(14,15,25,.45) !important; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.v8-app-root #s-feed .reel-sound-hint { display: none !important; }
+/* right rail: line icons with their counts, no circles, no words */
+.v8-app-root #s-feed .slide.has-reel .rails { right: 10px !important; gap: 18px !important; bottom: 120px !important; align-items: center; }
+.v8-app-root #s-feed .slide.has-reel .rail { width: 44px !important; height: auto !important; min-height: 40px; padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important;
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important; display: flex !important; flex-direction: column; align-items: center; gap: 4px; color: #fff; }
+.v8-app-root #s-feed .slide.has-reel .rail svg { width: 30px !important; height: 30px !important; fill: none; stroke: #fff; stroke-width: 1.7; filter: drop-shadow(0 1px 5px rgba(0,0,0,.5)); }
+.v8-app-root #s-feed .slide.has-reel .rail.like.on svg { fill: var(--rv-pk); stroke: var(--rv-pk); }
+.v8-app-root #s-feed .slide.has-reel .rail .lbl { position: static !important; display: block; max-width: none; font: 600 0.8125rem var(--rv-f) !important; color: #fff; text-shadow: 0 1px 5px rgba(0,0,0,.55); }
+.v8-app-root #s-feed .slide.has-reel .rail .lbl:empty { display: none; }
+.v8-app-root #s-feed .slide.has-reel .rail.more { min-height: 26px; }
+.v8-app-root #s-feed .slide.has-reel .rail.more svg { width: 24px !important; height: 24px !important; fill: #fff; stroke: none; }
+/* bottom: face · name ✓ · pink Say hi pill, then the place with a thin pin, then the caption */
+.v8-app-root #s-feed .slide.has-reel .reel-meta { left: 16px !important; right: 74px !important; bottom: 20px !important; font-family: var(--rv-f); }
+.v8-app-root #s-feed .slide.has-reel .reel-meta .who { display: flex !important; align-items: center; gap: 10px !important; margin-bottom: 10px !important; flex-wrap: nowrap; }
+.v8-app-root #s-feed .slide.has-reel .reel-meta .av { width: 34px !important; height: 34px !important; border: 1.5px solid rgba(255,255,255,.85) !important; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+.v8-app-root #s-feed .slide.has-reel .reel-meta .who > div { min-width: 0; }
+.v8-app-root #s-feed .slide.has-reel .reel-meta .nm { display: flex; align-items: center; gap: 6px; font: 700 1.0625rem var(--rv-f) !important; color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.5); white-space: nowrap; }
+.v8-app-root #s-feed .slide.has-reel .reel-meta .nm .reel-author { overflow: hidden; text-overflow: ellipsis; max-width: 9.5em; }
+.v8-app-root #s-feed .slide.has-reel .reel-meta .nm .v { width: 17px; height: 17px; flex: none; border-radius: 50% !important; background: var(--rv-bl) !important; color: #fff !important; font: 700 0.625rem/17px var(--rv-f) !important; text-align: center; text-shadow: none; }
+.v8-app-root .rv4-hi { flex: none; display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 14px 0 11px; border: 0; border-radius: 16px; cursor: pointer;
+  background: linear-gradient(180deg, #F054BF, #DB3AA6); color: #fff; font: 600 0.875rem var(--rv-f); box-shadow: 0 6px 18px -6px rgba(236,70,182,.75); transition: transform .16s var(--rv-ez); }
+.v8-app-root .rv4-hi:active { transform: scale(.95); }
+.v8-app-root .rv4-hi .rv-hi-rings { width: 20px; height: 12px; }
+.v8-app-root .rv4-hi .rv-hi-rings i { width: 12px; height: 12px; border-width: 1.8px; }
+.v8-app-root .rv4-hi .rv-hi-rings i:first-child { border-color: #B8BDFF; }
+.v8-app-root .rv4-hi .rv-hi-rings i:last-child { left: 8px; border-color: #fff; }
+.v8-app-root #s-feed .reel-pin { margin: 0 0 6px !important; padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  gap: 6px !important; font: 500 0.9375rem var(--rv-f) !important; color: #fff !important; text-shadow: 0 1px 6px rgba(0,0,0,.55); }
+.v8-app-root #s-feed .reel-pin b { font-weight: 500 !important; }
+.v8-app-root #s-feed .reel-pin > span:last-child:not([aria-hidden]) { opacity: 1 !important; }
+.v8-app-root .rv4-pin { width: 16px; height: 16px; flex: none; fill: none; stroke: #fff; stroke-width: 2; stroke-linejoin: round; filter: drop-shadow(0 1px 3px rgba(0,0,0,.5)); }
+.v8-app-root #s-feed .slide.has-reel .reel-meta :is(.cap, .reel-cap, .kx-rcap) { font: 400 0.9375rem/1.4 var(--rv-f) !important; color: rgba(255,255,255,.92) !important; text-shadow: 0 1px 6px rgba(0,0,0,.55); }
+
+/* ---------- 2. People A — 2-column portrait grid ---------- */
+.v8-app-root #s-people .rv-ptop { padding-right: 0 !important; justify-content: space-between !important; }
+.v8-app-root #s-people .rv-ptop .ppl-title { font: 700 1.75rem var(--rv-f) !important; }
+.v8-app-root #s-people .rv-sic { width: 40px !important; height: 40px !important; background: none !important; box-shadow: inset 0 0 0 1px rgba(255,255,255,.22) !important; }
+.v8-app-root #s-people .rv-seg button { font-size: 1rem !important; }
+.v8-app-root #s-people .rv-fchips button { height: 36px; padding: 0 16px; font-size: 0.875rem; }
+.v8-app-root #pplGrid { gap: 12px !important; }
+.v8-app-root #pplGrid .pcard.rv-pc { aspect-ratio: 352 / 524; border-radius: 22px !important; }
+.v8-app-root #pplGrid .rv-pc .rv-ph::after { background: linear-gradient(to top, rgba(10,10,18,.88) 0%, rgba(10,10,18,.55) 22%, rgba(10,10,18,0) 46%); }
+.v8-app-root #pplGrid .rv-pc .info { left: 11px !important; right: 11px !important; bottom: 12px !important; }
+.v8-app-root #pplGrid .rv-pc .nm { font: 700 1.125rem/1.2 var(--rv-f) !important; }
+.v8-app-root #pplGrid .rv-pc .v { width: 17px; height: 17px; margin-left: 6px; font: 700 0.625rem/17px var(--rv-f) !important; }
+.v8-app-root #pplGrid .rv-pc .langs { font: 500 0.8125rem/1.35 var(--rv-f) !important; color: rgba(255,255,255,.8) !important; margin-top: 3px !important; }
+.v8-app-root #pplGrid .rv-pc .rv-tags { margin-top: 9px; gap: 6px; }
+.v8-app-root #pplGrid .rv-pc .rv-tags span { padding: 4px 10px; border-radius: 12px; font: 500 0.75rem var(--rv-f); background: rgba(255,255,255,.16); }
+/* Say hi = the rings alone in a small dark round button (the words move to its label) */
+.v8-app-root #pplGrid .rv-pc .hibtn { width: 34px !important; height: 34px !important; padding: 0 !important; border-radius: 50% !important; justify-content: center; gap: 0 !important; background: rgba(14,15,25,.55) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12) !important; }
+.v8-app-root #pplGrid .rv-pc .hibtn .rv-hi-t { display: none; }
+.v8-app-root #pplGrid .rv-pc .hibtn .rv-hi-rings { width: 20px; height: 12px; }
+.v8-app-root #pplGrid .rv-pc .hibtn .rv-hi-rings i { width: 12px; height: 12px; border-width: 2px; }
+.v8-app-root #pplGrid .rv-pc .hibtn .rv-hi-rings i:first-child { border-color: #9AA0FF; }
+.v8-app-root #pplGrid .rv-pc .hibtn .rv-hi-rings i:last-child { left: 8px; border-color: #FF7FD0; }
+
+/* ---------- 3. Profile B — classic social profile ---------- */
+.v8-app-root #profileView.go-prof { padding-left: 0 !important; padding-right: 0 !important; }
+.v8-app-root #profileView.go-prof .go-hdr { padding: 0 16px; }
+.v8-app-root #profileView.go-prof .go-hdr h1 { font: 600 1.0625rem var(--rv-f); text-align: center; }
+.v8-app-root .rv4-phd { padding: 8px 20px 0; font-family: var(--rv-f); }
+.v8-app-root .rv4-ptop { display: flex; align-items: center; gap: 18px; }
+.v8-app-root .rv4-pav { flex: none; width: 96px; height: 96px; border-radius: 50%; background: var(--rv-surf) center 25% / cover no-repeat; box-shadow: 0 0 0 2px var(--rv-mid), 0 0 0 3.5px var(--rv-gd); display: grid; place-items: center; }
+.v8-app-root .rv4-pav span { font: 600 2rem var(--rv-f); color: var(--rv-mu); }
+.v8-app-root .rv4-pst { flex: 1; min-width: 0; display: flex; justify-content: space-between; gap: 4px; }
+.v8-app-root .rv4-pst > * { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0; background: none; border: 0; color: inherit; cursor: pointer; }
+.v8-app-root .rv4-pst > div { cursor: default; }
+.v8-app-root .rv4-pst b { font: 700 1.3125rem/1.15 var(--rv-f); color: #fff; }
+.v8-app-root .rv4-pst span { font: 500 0.8125rem var(--rv-f); color: var(--rv-mu); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.v8-app-root .rv4-pnm { display: flex; align-items: center; margin: 18px 0 0; font: 700 1.5rem/1.15 var(--rv-f); letter-spacing: -.02em; color: #fff; }
+.v8-app-root .rv4-pnm .rv-chk { width: 20px; height: 20px; margin-left: 8px; }
+.v8-app-root .rv4-psub { margin: 5px 0 0; font: 500 0.875rem/1.4 var(--rv-f); color: var(--rv-mu); }
+.v8-app-root .rv4-pbio { margin: 10px 0 0; font: 400 0.9375rem/1.5 var(--rv-f); color: #ECEAF4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.v8-app-root .rv4-ptags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.v8-app-root .rv4-ptags span { padding: 5px 12px; border-radius: 14px; font: 500 0.8125rem var(--rv-f); color: var(--rv-gd); box-shadow: inset 0 0 0 1px rgba(216,180,119,.55); }
+.v8-app-root .rv4-phd .rv-idx { margin-top: 12px; }
+.v8-app-root #profileView .rv4-acts { margin: 22px 20px 0 !important; }
+.v8-app-root #profileView .rv4-acts .rv-hi { flex: 2.4; height: 48px; }
+.v8-app-root #profileView .rv4-acts .rv-fol { flex: 1; height: 48px; }
+.v8-app-root #profileView .rv4-wk { width: calc(100% - 40px) !important; margin: 16px 20px 0 !important; padding: 10px 0 !important; box-shadow: inset 0 1px 0 var(--rv-ln) !important; font-size: 0.8125rem !important; }
+.v8-app-root #profileView .go-grid { margin: 14px 0 0 !important; padding: 0 !important; gap: 2px !important; grid-template-columns: repeat(3, 1fr) !important; }
+.v8-app-root #profileView .go-grid .go-gt { border-radius: 0 !important; aspect-ratio: 3 / 4.4; box-shadow: none !important; }
+.v8-app-root #profileView .go-grid .go-gs { left: 8px; bottom: 8px; font: 600 0.8125rem var(--rv-f); text-shadow: 0 1px 4px rgba(0,0,0,.6); background: none !important; padding: 0 !important; }
+.v8-app-root #profileView #profileNoReels { padding: 28px 20px; }
+
+/* ---------- 4. Deals A — photo-led ---------- */
+.v8-app-root #forYourTrip .ktrip-head .ktrip-title { font: 700 1.5rem var(--rv-f) !important; letter-spacing: -.015em; color: #fff; }
+.v8-app-root #forYourTrip .ktrip-info { width: 34px; height: 34px; background: none; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.75); border: 0; color: #fff; }
+.v8-app-root #forYourTrip .ktrip-feat { border-radius: 26px !important; min-height: 330px; border: 0 !important; box-shadow: none !important; overflow: hidden; }
+.v8-app-root #forYourTrip .ktrip-feat::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,10,18,.9) 0%, rgba(10,10,18,.55) 35%, rgba(10,10,18,.05) 65%); pointer-events: none; }
+.v8-app-root #forYourTrip .ktrip-feat > * { position: relative; z-index: 1; }
+.v8-app-root #forYourTrip .ktrip-feat > .ktrip-photo { position: absolute; z-index: 0; }
+.v8-app-root #forYourTrip .kf-label { top: 14px; left: 14px; padding: 6px 12px; border-radius: 14px; background: rgba(14,15,25,.55) !important; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  font: 600 0.8125rem var(--rv-f) !important; color: #fff !important; letter-spacing: 0 !important; text-transform: none !important; }
+.v8-app-root #forYourTrip .kf-title { font: 700 2rem/1.1 var(--rv-f) !important; letter-spacing: -.02em; color: #fff; }
+.v8-app-root #forYourTrip .kf-sub { font: 500 0.9375rem/1.4 var(--rv-f) !important; color: rgba(255,255,255,.82) !important; }
+.v8-app-root #forYourTrip .kf-row { align-items: center; margin-top: 14px; }
+.v8-app-root #forYourTrip .kf-price { font: 500 1rem var(--rv-f) !important; color: rgba(255,255,255,.85) !important; }
+.v8-app-root #forYourTrip .kf-price b { font: 700 1.5rem var(--rv-f) !important; color: var(--rv-gd) !important; margin-left: 6px; }
+.v8-app-root #forYourTrip .kf-btn { height: 42px; padding: 0 20px; border-radius: 21px; background: linear-gradient(180deg, #F054BF, #DB3AA6) !important; color: #fff !important;
+  font: 600 0.9375rem var(--rv-f) !important; box-shadow: 0 8px 22px -10px rgba(236,70,182,.85) !important; border: 0 !important; }
+.v8-app-root #forYourTrip .kf-btn i { display: none; }
+.v8-app-root #forYourTrip .ktrip-grid { gap: 12px !important; grid-template-columns: 1fr 1fr !important; }
+.v8-app-root #forYourTrip .ktrip-card { min-height: 0 !important; aspect-ratio: 352 / 276; border-radius: 20px !important; border: 0 !important; box-shadow: none !important; padding: 0 12px 12px !important; justify-content: flex-end; }
+.v8-app-root #forYourTrip .ktrip-card::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(to top, rgba(10,10,18,.85) 0%, rgba(10,10,18,.35) 40%, rgba(10,10,18,0) 65%); pointer-events: none; }
+.v8-app-root #forYourTrip .ktrip-card > :not(.ktrip-photo) { position: relative; z-index: 1; }
+.v8-app-root #forYourTrip .ktrip-card .ktrip-badge, .v8-app-root #forYourTrip .ktrip-card .ktrip-go { display: none !important; }
+.v8-app-root #forYourTrip .ktrip-name { font: 700 1rem/1.2 var(--rv-f) !important; color: #fff !important; text-shadow: 0 1px 6px rgba(0,0,0,.45); }
+.v8-app-root #forYourTrip .ktrip-sub { font: 500 0.75rem/1.3 var(--rv-f) !important; color: rgba(255,255,255,.8) !important; margin-top: 2px; }
+.v8-app-root #forYourTrip .ktrip-disc { font: 500 0.75rem/1.45 var(--rv-f) !important; color: var(--rv-mu) !important; }
+
+/* ---------- 5. Ask a Thai A — "Bangkok notes", more vibrant ---------- */
+.v8-app-root .rv4-q { position: relative; isolation: isolate; overflow: hidden; padding: 22px 20px 16px !important; border-bottom: 0 !important; }
+.v8-app-root .rv4-q + .rv4-q { margin-top: 2px; }
+/* a real Bangkok street photo behind every question, tinted pink / blue / gold / teal card to card */
+.v8-app-root .rv4-scene { position: absolute; inset: 0; z-index: -2; background-size: cover; background-position: center; opacity: .55; filter: saturate(1.25) contrast(1.05); }
+.v8-app-root .rv4-q::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(180deg, rgba(14,15,25,.55) 0%, rgba(14,15,25,.78) 45%, rgba(14,15,25,.96) 100%), var(--rv4-tint); }
+.v8-app-root .rv4-q.t-pk { --rv4-tint: linear-gradient(120deg, rgba(236,70,182,.42), rgba(236,70,182,0) 60%); --rv4-acc: #FF8AD8; }
+.v8-app-root .rv4-q.t-bl { --rv4-tint: linear-gradient(120deg, rgba(115,123,255,.45), rgba(115,123,255,0) 60%); --rv4-acc: #A9AEFF; }
+.v8-app-root .rv4-q.t-gd { --rv4-tint: linear-gradient(120deg, rgba(216,180,119,.40), rgba(216,180,119,0) 60%); --rv4-acc: #E8C98E; }
+.v8-app-root .rv4-q.t-tl { --rv4-tint: linear-gradient(120deg, rgba(56,200,190,.38), rgba(56,200,190,0) 60%); --rv4-acc: #7FE3D8; }
+.v8-app-root .rv4-qwho { gap: 8px !important; }
+.v8-app-root .rv4-qwho .rva-meta { font: 500 0.875rem var(--rv-f) !important; color: rgba(255,255,255,.78) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .rv4-qwho .rva-meta b { font-weight: 600; color: #fff; }
+.v8-app-root .rv4-qwho .rva-meta em { font-style: normal; margin-left: 6px; padding: 1px 7px; border-radius: 8px; background: rgba(216,180,119,.18); color: var(--rv-gd); font-size: 0.75rem; font-weight: 600; }
+.v8-app-root .rv4-q .at-tw-q { margin-top: 12px !important; font: 700 1.375rem/1.32 var(--rv-f) !important; letter-spacing: -.015em; color: #fff !important; text-shadow: 0 1px 12px rgba(0,0,0,.35); }
+.v8-app-root .rv4-ans { display: flex !important; align-items: flex-start; gap: 10px; margin-top: 16px !important; padding: 0 !important; background: none !important; box-shadow: none !important; }
+.v8-app-root .rv4-ans > .at-av { flex: none; width: 40px !important; height: 40px !important; box-shadow: 0 0 0 2px var(--rv4-acc, var(--rv-pk)); }
+.v8-app-root .rv4-bub { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 4px 18px 18px 18px; background: rgba(28,26,44,.72); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+.v8-app-root .rv4-bub .t { font: 400 0.9375rem/1.45 var(--rv-f) !important; color: #F2F0F8 !important; -webkit-line-clamp: 3 !important; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+.v8-app-root .rv4-bub .h { display: flex !important; align-items: center; flex-wrap: wrap; gap: 5px !important; margin: 7px 0 0 !important; font: 500 0.8125rem var(--rv-f) !important; color: var(--rv-gd) !important; }
+.v8-app-root .rv4-bub .h b { font-weight: 600; color: var(--rv-gd); }
+.v8-app-root .rv4-up { display: inline-flex; align-items: center; gap: 3px; }
+.v8-app-root .rv4-q .at-tw-f { margin-top: 16px !important; gap: 14px !important; }
+.v8-app-root .rv4-q .at-tw-f .rva-vote, .v8-app-root .rv4-q .at-tw-f .rva-cnt { color: rgba(255,255,255,.82) !important; font: 500 0.9375rem var(--rv-f) !important; }
+.v8-app-root .rv4-q .at-tw-f .rva-vote.on { color: var(--rv-pk) !important; }
+.v8-app-root .rv4-q .rva-ans { height: 38px; padding: 0 18px !important; border-radius: 19px; font: 600 0.9375rem var(--rv-f) !important; box-shadow: inset 0 0 0 1.5px var(--rv4-acc, rgba(236,70,182,.7)); background: rgba(14,15,25,.35); }
+.v8-app-root .rva-askrow { background: rgba(255,255,255,.07) !important; }
+
+/* ---------- 6. Chats A ---------- */
+.v8-app-root #sh-inbox.rv4-chats { background: var(--rv-mid) !important; font-family: var(--rv-f); padding-top: calc(env(safe-area-inset-top, 0px) + 6px) !important; }
+.v8-app-root .rv4-chd { display: flex; align-items: center; gap: 12px; min-height: 48px; margin: 0 0 6px; }
+.v8-app-root .rv4-cbk { width: 36px; height: 36px; display: grid; place-items: center; margin-left: -8px; border: 0; background: none; color: #fff; cursor: pointer; }
+.v8-app-root .rv4-cbk svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.v8-app-root .rv4-chd h3 { margin: 0; font: 700 1.75rem var(--rv-f); letter-spacing: -.02em; color: #fff; }
+.v8-app-root .rv4-new { margin: 6px 0 4px; }
+.v8-app-root .rv4-newh { font: 600 0.875rem var(--rv-f); color: var(--rv-gd); letter-spacing: .01em; margin-bottom: 10px; }
+.v8-app-root .rv4-newr { display: flex; gap: 14px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px 6px; }
+.v8-app-root .rv4-newr::-webkit-scrollbar { display: none; }
+.v8-app-root .rv4-nav { flex: none; width: 70px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; border: 0; background: none; color: #fff; cursor: pointer; }
+.v8-app-root .rv4-nav .ph { width: 64px; height: 64px; border-radius: 50%; background: var(--rv-surf) center / cover no-repeat; box-shadow: 0 0 0 2.5px var(--rv-mid), 0 0 0 4.5px var(--rv-pk); }
+.v8-app-root .rv4-nav .nm { max-width: 70px; font: 500 0.8125rem var(--rv-f); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .rv4-chats .chat-list { margin-top: 8px; }
+.v8-app-root .rv4-chats .crow { display: flex !important; align-items: center; gap: 14px; padding: 12px 0 !important; background: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: inset 0 -1px 0 var(--rv-ln) !important; }
+.v8-app-root .rv4-chats .crow > img { width: 52px !important; height: 52px !important; border-radius: 50% !important; object-fit: cover; border: 0 !important; }
+.v8-app-root .rv4-chats .crow .m { flex: 1; min-width: 0; }
+.v8-app-root .rv4-chats .crow .nm { font: 600 1rem var(--rv-f) !important; color: #fff !important; }
+.v8-app-root .rv4-chats .crow .last { margin-top: 3px; font: 400 0.9062rem var(--rv-f) !important; color: var(--rv-mu) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .rv4-chats .crow .r { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.v8-app-root .rv4-chats .crow .tm { font: 500 0.8125rem var(--rv-f) !important; color: var(--rv-mu) !important; }
+.v8-app-root .rv4-un { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; display: inline-grid; place-items: center; background: var(--rv-pk); color: #fff; font: 700 0.75rem var(--rv-f); }
+.v8-app-root .rv4-un:empty { min-width: 10px; width: 10px; height: 10px; padding: 0; }
+.v8-app-root .rv4-chats .req-banner, .v8-app-root .rv4-chats .plan-pin { background: rgba(255,255,255,.05) !important; border: 0 !important; box-shadow: inset 0 0 0 1px var(--rv-ln) !important; border-radius: 16px !important; }
+
+/* ---------- 7. Claim C — the gold coin moment ---------- */
+.v8-app-root #kxClaim { font-family: var(--rv-f); background: radial-gradient(120% 60% at 50% 32%, rgba(120,60,110,.28), rgba(14,15,25,0) 60%), var(--rv-mid) !important; }
+.v8-app-root #kxClaim .rv4-cl { display: flex !important; flex-direction: column; align-items: center; text-align: center; gap: 0; margin: 18px 20px 0 !important; padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important; }
+.v8-app-root .rv4-coin { position: relative; width: 150px; height: 150px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, #2A2433, #15131D 72%);
+  box-shadow: inset 0 0 0 1.5px rgba(216,180,119,.85), 0 0 60px 6px rgba(216,180,119,.22); animation: rv4Coin 3.6s ease-in-out infinite; }
+.v8-app-root .rv4-coin b { font: 700 2.5rem var(--rv-f) !important; letter-spacing: -.02em; color: var(--rv-gd) !important; }
+@keyframes rv4Coin { 0%, 100% { box-shadow: inset 0 0 0 1.5px rgba(216,180,119,.85), 0 0 50px 4px rgba(216,180,119,.18); } 50% { box-shadow: inset 0 0 0 1.5px rgba(216,180,119,.95), 0 0 70px 10px rgba(216,180,119,.28); } }
+.v8-app-root #kxClaim .rv4-clt { margin-top: 28px; font: 700 1.625rem var(--rv-f) !important; color: #fff !important; letter-spacing: -.015em; }
+.v8-app-root #kxClaim .rv4-cl > small { margin-top: 8px; font: 500 0.9375rem var(--rv-f) !important; color: var(--rv-mu) !important; letter-spacing: 0 !important; text-transform: none !important; }
+.v8-app-root .rv4-steps { list-style: none; display: flex; justify-content: center; gap: 0; width: 100%; max-width: 320px; margin: 28px 0 0; padding: 0; }
+.v8-app-root .rv4-steps li { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; font: 500 0.8125rem var(--rv-f); color: var(--rv-mu); }
+.v8-app-root .rv4-steps li + li::before { content: ''; position: absolute; top: 15px; right: 50%; width: 100%; height: 1px; background: rgba(216,180,119,.45); z-index: 0; }
+.v8-app-root .rv4-steps li i { position: relative; z-index: 1; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 700 0.8125rem var(--rv-f); font-style: normal;
+  background: var(--rv-mid); color: var(--rv-mu); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.2); }
+.v8-app-root .rv4-steps li.d i { background: var(--rv-gd); color: #1d1606; box-shadow: none; }
+.v8-app-root .rv4-steps li.c i { color: var(--rv-pk); box-shadow: inset 0 0 0 1.5px var(--rv-pk); }
+.v8-app-root .rv4-steps li.c span { color: #fff; }
+.v8-app-root #kxClaim .kx-cl-foot { background: none !important; border: 0 !important; box-shadow: none !important; }
+.v8-app-root #kxClaim .rv4-reveal { height: 52px !important; border-radius: 26px !important; background: linear-gradient(180deg, #F054BF, #DB3AA6) !important; box-shadow: 0 12px 30px -12px rgba(236,70,182,.85) !important; border: 0 !important; }
+.v8-app-root #kxClaim .rv4-reveal b { font: 600 1.0625rem var(--rv-f) !important; color: #fff !important; }
+.v8-app-root #kxClaim .kx-inst { font: 500 0.8125rem/1.45 var(--rv-f) !important; color: var(--rv-mu) !important; text-align: center; margin-top: 12px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .v8-app-root .rv4-coin { animation: none; }
+  .v8-app-root :is(.rv4-hi, .dock .dk-pill) { transition: none; }
+}

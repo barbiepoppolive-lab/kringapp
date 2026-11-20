@@ -129,33 +129,48 @@ function useMedia(onErr: (m: string) => void, L: LFn) {
 }
 
 // ───────────────────────── timeline ─────────────────────────
-const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onAnswer: () => void; onVote: (v: 1) => void; onShare: () => void; areaLabel: (a: string) => string }> = ({ q, L, onOpen, onAnswer, onVote, onShare, areaLabel }) => (
-  <article className="at-tw rva-card" data-ask-id={q.id}>
+/** rv4 (founder pick Ask A, "but make page more vibrant"): every question sits over a real Bangkok street photo (Kring's own
+ *  place photos, picked from the question id so it never jumps) with a colour tint that changes card to card. No boxes. */
+const RV4_SCENES = ['charoen-krung', 'khao-san-road', 'siam-square', 'thonglor', 'sampeng-lane', 'lhong-1919', 'asiatique-the-riverfront', 'talat-phlu',
+  'phra-athit-road', 'silom-road', 'ekkamai', 'giant-swing', 'chatuchak-weekend-market', 'pak-khlong-talat'];
+const RV4_TINTS = ['pk', 'bl', 'gd', 'tl'];
+function rv4Pick(id: string): { scene: string; tint: string } {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return { scene: RV4_SCENES[h % RV4_SCENES.length], tint: RV4_TINTS[(h >>> 4) % RV4_TINTS.length] };
+}
+const RV4_BASE = ((import.meta as unknown as { env?: { BASE_URL?: string } }).env?.BASE_URL || '/app/');
+const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onAnswer: () => void; onVote: (v: 1) => void; onShare: () => void; areaLabel: (a: string) => string }> = ({ q, L, onOpen, onAnswer, onVote, onShare, areaLabel }) => {
+  const pick = rv4Pick(q.id);
+  return (
+  <article className={`at-tw rva-card rv4-q t-${pick.tint}`} data-ask-id={q.id}>
+    <span className="rv4-scene" aria-hidden="true" style={{ backgroundImage: `url('${RV4_BASE}media/places/${pick.scene}.jpg')` }} />
     <button type="button" className="at-tw-open" onClick={onOpen}>
-      <div className="rva-who">
-        <Av p={q.by} s={36} />
-        <div className="rva-whot">
-          <div className="rva-nm"><b>{q.by.name}</b>{who(q.by, L)}</div>
-          <span className="rva-meta">{areaLabel(q.area)} · {askTime(L, q.at)}</span>
-        </div>
+      <div className="rva-who rv4-qwho">
+        <Av p={q.by} s={22} />
+        <span className="rva-meta"><b>{q.by.name}</b>{q.by.official ? null : q.by.local ? <em>{L('Thai Local')}</em> : null} · {areaLabel(q.area)} · {askTime(L, q.at)}</span>
       </div>
       <div className="at-tw-q">{q.body}</div>
       {q.media && <Media m={q.media} cls="at-tw-img" />}
       {q.top && (
-        <div className="at-tw-ans">
-          <div className="h"><Av p={q.top.by} s={22} /><b>{q.top.by.name}</b>{who(q.top.by, L)}</div>
-          {q.top.body && <div className="t">{q.top.body}</div>}
+        <div className="at-tw-ans rv4-ans">
+          <Av p={q.top.by} s={40} />
+          <div className="rv4-bub">
+            {q.top.body && <div className="t">“{q.top.body}”</div>}
+            <div className="h"><b>{q.top.by.name}</b>{q.top.by.local ? <><i aria-hidden="true">·</i><span>{L('Thai Local')}</span></> : null}{q.top.score > 0 ? <><i aria-hidden="true">·</i><span className="rv4-up"><Ic d={IC.up} s={12} />{fmtCount(q.top.score)}</span></> : null}</div>
+          </div>
         </div>
       )}
     </button>
     <div className="at-tw-f">
       <button type="button" className={`rva-vote${q.myVote === 1 ? ' on' : ''}`} aria-label={`${fmtCount(q.score)} ${L('Upvote')}`} aria-pressed={q.myVote === 1} onClick={() => onVote(1)}><Ic d={IC.up} s={18} />{fmtCount(q.score)}</button>
-      <button type="button" className="rva-cnt" aria-label={`${fmtCount(q.answers)} ${L('Answers')}`} onClick={onOpen}><Ic d={IC.chat} s={18} />{q.answers === 1 ? L('1 answer') : L('{0} answers').replace('{0}', fmtCount(q.answers))}</button>
+      <button type="button" className="rva-cnt" aria-label={`${fmtCount(q.answers)} ${L('Answers')}`} onClick={onOpen}>{q.answers === 1 ? L('1 answer') : L('{0} answers').replace('{0}', fmtCount(q.answers))}</button>
       <button type="button" className="rva-share" aria-label={L('Share')} onClick={onShare}><Ic d={IC.share} s={17} /></button>
-      <button type="button" className="rva-ans" data-ask-answer={q.id} onClick={onAnswer}><Ic d={IC.pen} s={15} />{L('Answer')}</button>
+      <button type="button" className="rva-ans" data-ask-answer={q.id} onClick={onAnswer}>{L('Answer')}</button>
     </div>
   </article>
-);
+  );
+};
 
 // ───────────────────────── thread (screen 03) ─────────────────────────
 const VoteRow: React.FC<{ L: LFn; score: number; my: -1 | 0 | 1; onVote: (v: -1 | 1) => void; hot?: boolean }> = ({ L, score, my, onVote, hot }) => (

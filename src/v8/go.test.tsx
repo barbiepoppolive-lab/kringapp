@@ -191,7 +191,7 @@ describe('profile grid and Me tabs', () => {
     const onOpen = vi.fn();
     render(<GoProfilePage {...pbase} p={profile()} reels={{ user_id: 'u9', mine: false, best: 'r1', reels: [grid('r1'), grid('r2', { this_week: false }), grid('r3')] }} onOpen={onOpen} />);
     expect(document.querySelectorAll('#goGrid .go-gt').length).toBe(3);
-    expect(document.querySelector('.go-cnt')!.textContent).toBe('3Reels12Followers3Following');
+    expect(document.getElementById('profileStats')!.textContent).toBe('3Reels12Followers3Following');
     expect(document.querySelectorAll('.go-gw').length).toBe(2);
     fireEvent.click(document.querySelector('[data-go-tile="r2"]')!);
     expect(onOpen).toHaveBeenCalledWith(1);
@@ -223,7 +223,9 @@ describe('profile grid and Me tabs', () => {
 describe('claim: choose ONE', () => {
   it('TrueMoney only (19 Nov founder decision): one card, no OR, one confirm', () => {
     render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards()} prize={prize({ kind: 'weekly', rank: 8, founding_no: null, week: '2026-11-09' })} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
-    expect(document.getElementById('kxClaimOne')!.textContent).toBe('This prize can be claimed once.');
+    // rv4 Claim C: one brand → no "choose one" line; the once-only note sits under the button
+    expect(document.getElementById('kxClaimOne')).toBeNull();
+    expect(document.querySelector('#kxClaim .kx-inst')!.textContent).toContain('This prize can be claimed once.');
     expect([...document.querySelectorAll('[role="radio"]')].map((r) => r.getAttribute('data-brand'))).toEqual(['truemoney']);
     expect(document.querySelectorAll('.kx-or').length).toBe(0);
     expect(document.querySelector('[data-brand="grab"]')).toBeNull();
@@ -246,7 +248,7 @@ describe('claim: choose ONE', () => {
     expect(radios.map((r) => r.getAttribute('data-brand'))).toEqual(['truemoney']);
     expect(radios[0].getAttribute('aria-checked')).toBe('true');
     expect(document.querySelectorAll('.kx-or').length).toBe(0);
-    expect(document.getElementById('kxClaimGo')!.textContent).toBe('Claim with TrueMoney · ฿75');
+    expect(document.getElementById('kxClaimGo')!.getAttribute('aria-label')).toBe('Claim with TrueMoney · ฿75');
   });
   it('weekly prize: TrueMoney only too', () => {
     render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards()} prize={prize({ kind: 'weekly', rank: 4, amount: 500 })} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
@@ -259,7 +261,7 @@ describe('claim: choose ONE', () => {
     expect(tm.textContent).toContain('TrueMoney ฿100');
     expect(tm.textContent).toContain('Full value');
     expect(document.getElementById('kxClaim')!.textContent).not.toMatch(/75|25%|keeps/);
-    expect(document.getElementById('kxClaimGo')!.textContent).toBe('Claim with TrueMoney · ฿100');
+    expect(document.getElementById('kxClaimGo')!.getAttribute('aria-label')).toBe('Claim with TrueMoney · ฿100');
     cleanup();
     render(<ClaimPage L={L} Lf={Lf} lang="en" data={full} prize={prize({ kind: 'weekly', rank: 1, amount: 1500 })} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
     expect(document.querySelector('[data-brand="truemoney"]')!.textContent).toContain('TrueMoney ฿1,500');
@@ -416,8 +418,9 @@ describe('strings of the go-live screens', () => {
   });
   it('Thai screens: compose and claim read in Thai', () => {
     render(<ClaimPage L={TH} Lf={THf} lang="th" data={rewards()} prize={prize({ kind: 'weekly', rank: 8, founding_no: null, week: '2026-11-09' })} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
-    expect(document.getElementById('kxClaimOne')!.textContent).toBe('รางวัลนี้กดรับได้ครั้งเดียว');
-    expect(document.getElementById('kxClaimGo')!.textContent).toContain('TrueMoney');
+    expect(document.querySelector('#kxClaim .kx-inst')!.textContent).toContain('รางวัลนี้กดรับได้ครั้งเดียว');
+    expect(document.getElementById('kxClaimGo')!.textContent).toBe('ดูโค้ดของฉัน');
+    expect(document.getElementById('kxClaimGo')!.getAttribute('aria-label')).toContain('TrueMoney');
     expect(document.querySelector('.kx-or')).toBeNull();
   });
 });

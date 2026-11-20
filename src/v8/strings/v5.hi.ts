@@ -521,6 +521,13 @@ const T: Record<string, string> = {
     "Know this one? Your answer helps.": "जानते हैं? आपका जवाब मदद करेगा।",
     "Ask Bangkok locals anything": "बैंकॉक के लोकल्स से कुछ भी पूछें",
     "Be the first to ask Bangkok.": "बैंकॉक से पूछने वाले पहले बनें।",
+    "Chats": "चैट",
+    "Say hi first": "पहले हाय कहें",
+    "Reveal my code": "मेरा कोड देखें",
+    "Reel approved": "रील स्वीकृत",
+    "Face check": "चेहरा जाँच",
+    "Your prize": "आपका इनाम",
+    "Unread": "अपठित",
       // T-301 (T301-007): Weather sheet
     'Feels like {0}°': 'महसूस {0}°',
     'Tropical shower likely this afternoon': 'आज दोपहर बारिश की संभावना',

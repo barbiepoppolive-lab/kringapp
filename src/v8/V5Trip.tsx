@@ -71,7 +71,8 @@ function TripFeature(props: { L: Tx; base: string }) {
           </span>
         ) : null}
         <b className="kf-title">{t(f.title)}</b>
-        <span className="kf-sub">{t(f.sub)}</span>
+        {/* rv4 Deals A: the three highlights are named on the hero ("5 top spots · 3 days · Mahanakhon SkyWalk, Chao Phraya boat, Tuk-tuk ride") */}
+        <span className="kf-sub"><span lang={THAI.test(L(f.sub)) ? 'th' : undefined}>{[L(f.sub), f.thumbs.map((x) => L(x.name)).join(', ')].join(' · ')}</span></span>
         {look === 'b' ? <span className="kf-glass">{row}</span> : row}
       </span>
     </a>
@@ -123,7 +124,8 @@ export function TripPerks(props: { L: Tx }) {
             <span className="ktrip-badge" role="img" aria-label={L(p.need)}>
               <svg viewBox="0 0 24 24" aria-hidden="true">{ICONS[p.icon]}</svg>
             </span>
-            <b className="ktrip-name">{p.name}</b>
+            {/* rv4 Deals A: the need is the title ("Thailand eSIM"), the value line under it; the partner's name stays on the link (aria) */}
+            <b className="ktrip-name" aria-label={`${L(p.need)} · ${p.name}`}>{L(p.need).split(' · ')[0]}</b>
             <TwoLine L={L} en={p.sub} className="ktrip-sub" />
             {/* Kring Light 3a: the whole photo card is the link; a tiny corner arrow replaces the big button */}
             <span className="ktrip-go" aria-hidden="true">↗</span>

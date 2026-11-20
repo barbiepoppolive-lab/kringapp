@@ -128,6 +128,8 @@ export interface V8ChatThread {
   lastPreview: string;
   timeLabel: string;
   unread: boolean;
+  /** rv4 Chats A: how many unread messages (kr8_inbox.unread) for the pink count badge */
+  unreadN?: number;
   plan?: {
     title: string;
     venue: string;

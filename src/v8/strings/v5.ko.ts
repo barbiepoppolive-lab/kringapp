@@ -521,6 +521,13 @@ const T: Record<string, string> = {
     "Know this one? Your answer helps.": "알고 있나요? 답변이 큰 도움이 돼요.",
     "Ask Bangkok locals anything": "방콕 현지인에게 무엇이든 물어보세요",
     "Be the first to ask Bangkok.": "방콕에 처음으로 질문해 보세요.",
+    "Chats": "채팅",
+    "Say hi first": "먼저 인사하기",
+    "Reveal my code": "내 코드 보기",
+    "Reel approved": "릴 승인됨",
+    "Face check": "얼굴 확인",
+    "Your prize": "내 상품",
+    "Unread": "읽지 않음",
       // T-301 (T301-007): Weather sheet
     'Feels like {0}°': '체감 {0}°',
     'Tropical shower likely this afternoon': '오늘 오후 소나기 가능성',
