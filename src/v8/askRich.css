@@ -1,0 +1,71 @@
+/* Ask BKK rich replies, reactions and the share-card sheet (20 Nov, 0185). Light translucent glass, no opaque boxes. */
+
+/* ── reactions ── */
+.v8-app-root .ar-bar { position: relative; display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.v8-app-root .ar-chip { display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 9px 0 7px; border-radius: 999px; border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.06); color: rgba(255,255,255,.85); font: inherit; font-size: .75rem; font-weight: 800; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: transform .15s ease, background .15s ease; }
+.v8-app-root .ar-chip .ar-e { font-size: .95rem; line-height: 1; }
+.v8-app-root .ar-chip.on { border-color: rgba(255,79,216,.55); background: linear-gradient(90deg, rgba(91,140,255,.22), rgba(255,79,216,.22)); color: #fff; }
+.v8-app-root .ar-chip:active, .v8-app-root .ar-pick button:active { transform: scale(.9); }
+.v8-app-root .ar-plus { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 28px; border-radius: 999px; border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.04); color: rgba(255,255,255,.6); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.v8-app-root .ar-plus svg path { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
+.v8-app-root .ar-plus i { position: absolute; right: 2px; top: -1px; font-style: normal; font-size: .7rem; font-weight: 900; }
+.v8-app-root .ar-plus.on { color: #fff; border-color: rgba(255,255,255,.25); }
+.v8-app-root .ar-pick { position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 30; display: flex; gap: 2px; padding: 6px; border-radius: 999px;
+  background: rgba(28,24,48,.72); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  backdrop-filter: blur(18px) saturate(1.3); -webkit-backdrop-filter: blur(18px) saturate(1.3); animation: ar-pop .18s ease-out; }
+.v8-app-root .ar-pick button { width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; font-size: 1.6rem; cursor: pointer; transition: transform .12s ease; }
+.v8-app-root .ar-pick button.on { background: rgba(255,255,255,.14); }
+@keyframes ar-pop { from { opacity: 0; transform: translateY(6px) scale(.92); } to { opacity: 1; transform: none; } }
+
+/* ── big emoji (1–3 emoji only) ── */
+.v8-app-root .at-c .t.ar-big, .v8-app-root .ar-big { font-size: 2.6rem !important; line-height: 1.15 !important; letter-spacing: 2px; }
+
+/* ── photo check (author only) ── */
+.v8-app-root .ar-check { display: inline-flex; align-items: center; gap: 7px; margin-top: 8px; padding: 5px 11px; border-radius: 999px; font-size: .75rem; font-weight: 700;
+  color: rgba(255,255,255,.8); background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1); }
+.v8-app-root .ar-check i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(255,255,255,.25); border-top-color: #ff4fd8; animation: ar-spin .8s linear infinite; }
+.v8-app-root .ar-check.bad { color: #ffb4c8; border-color: rgba(255,120,150,.3); }
+.v8-app-root .ar-media-wait { position: relative; }
+.v8-app-root .ar-media-wait .img { filter: blur(6px) brightness(.7); }
+@keyframes ar-spin { to { transform: rotate(360deg); } }
+
+/* ── fuller emoji picker ── */
+.v8-app-root .ar-emojis { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 2px; max-height: 176px; overflow-y: auto; padding: 6px;
+  border-radius: 16px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); scrollbar-width: none; }
+.v8-app-root .ar-emojis::-webkit-scrollbar { display: none; }
+.v8-app-root .ar-emojis button { height: 40px; border: 0; border-radius: 10px; background: transparent; font-size: 1.45rem; cursor: pointer; }
+.v8-app-root .ar-emojis button:active { background: rgba(255,255,255,.12); transform: scale(.92); }
+
+/* ── answer share button ── */
+.v8-app-root .ar-sharebtn { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 30px; margin-left: auto; border: 0; border-radius: 999px;
+  background: transparent; color: rgba(255,255,255,.62); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.v8-app-root .ar-sharebtn svg path { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.v8-app-root .ar-sharebtn:active { color: #fff; }
+
+/* ── share sheet ── */
+.v8-app-root .ar-share-bg { align-items: flex-end; z-index: 95; }
+.v8-app-root .ar-share { width: 100%; max-height: 94dvh; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  border-radius: 26px 26px 0 0; background: rgba(24,20,42,.62); border-top: 1px solid rgba(255,255,255,.14);
+  backdrop-filter: blur(26px) saturate(1.35); -webkit-backdrop-filter: blur(26px) saturate(1.35); animation: ar-up .22s ease-out; }
+@keyframes ar-up { from { transform: translateY(24px); opacity: .4; } to { transform: none; opacity: 1; } }
+.v8-app-root .ar-share-top { width: 100%; display: flex; align-items: center; justify-content: space-between; color: #fff; font-size: 1rem; }
+.v8-app-root .ar-x { width: 36px; height: 36px; border: 0; border-radius: 50%; background: rgba(255,255,255,.08); color: #fff; font-size: 1.4rem; line-height: 1; cursor: pointer; }
+.v8-app-root .ar-prev { position: relative; display: flex; align-items: center; justify-content: center; border-radius: 18px; overflow: hidden;
+  background: rgba(255,255,255,.04); box-shadow: 0 18px 50px rgba(0,0,0,.45); }
+.v8-app-root .ar-prev.story { height: min(56dvh, 520px); aspect-ratio: 9 / 16; }
+.v8-app-root .ar-prev.post { height: min(46dvh, 430px); aspect-ratio: 4 / 5; }
+.v8-app-root .ar-prev img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.v8-app-root .ar-making { color: rgba(255,255,255,.6); font-size: .8rem; font-weight: 700; padding: 12px; text-align: center; }
+.v8-app-root .ar-sizes { display: flex; gap: 8px; }
+.v8-app-root .ar-sizes button { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.05); color: rgba(255,255,255,.75); font: inherit; font-size: .8125rem; font-weight: 800; cursor: pointer; }
+.v8-app-root .ar-sizes button.on { color: #fff; border-color: rgba(255,79,216,.55); background: linear-gradient(90deg, rgba(91,140,255,.2), rgba(255,79,216,.2)); }
+.v8-app-root .ar-sizes i { display: inline-block; border: 2px solid currentColor; border-radius: 3px; }
+.v8-app-root .ar-sizes i.story { width: 9px; height: 16px; }
+.v8-app-root .ar-sizes i.post { width: 12px; height: 15px; }
+.v8-app-root .ar-go { width: 100%; max-width: 420px; height: 52px; border: 0; border-radius: 999px; color: #fff; font: inherit; font-size: 1rem; font-weight: 800; cursor: pointer;
+  background: linear-gradient(90deg, #5b8cff, #ff4fd8); box-shadow: 0 10px 28px rgba(255,79,216,.35); }
+.v8-app-root .ar-go:disabled { opacity: .5; }

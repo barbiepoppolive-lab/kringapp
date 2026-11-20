@@ -1455,9 +1455,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // ── V5 live mode (VITE_AUTH_LIVE=1): real Supabase account + member card. Demo builds keep their examples.
   const live = V5_AUTH_LIVE && !isDemo;
   // Ask BKK (16 Nov, founder-approved Screen 2): Feed top switch. Reels stays the default.
-  const [feedMode, setFeedMode] = useState<'reels' | 'ask'>(() => (typeof location !== 'undefined' && /[?&]feed=ask\b/.test(location.search) ? 'ask' : 'reels'));
+  // 0185: /q/<short> "Join Kring to answer" → /app/?ask=<question id> opens that Ask BKK thread
+  const askLink = (() => { try { const v = new URLSearchParams(location.search).get('ask'); return v && /^[0-9a-f-]{36}$/.test(v) ? v : null; } catch { return null; } })();
+  const [feedMode, setFeedMode] = useState<'reels' | 'ask'>(() => (typeof location !== 'undefined' && (/[?&]feed=ask\b/.test(location.search) || !!askLink) ? 'ask' : 'reels'));
   // 0171 daily tasks: the Ask BKK question to open from the task sheet, and the sheet opened from Me
-  const [askOpenThread, setAskOpenThread] = useState<string | null>(null);
+  const [askOpenThread, setAskOpenThread] = useState<string | null>(askLink);
   const [meTasks, setMeTasks] = useState(false);
   useEffect(() => { if (feedMode !== 'ask') setAskOpenThread(null); }, [feedMode]);
   const askMeRef = useRef<AskPerson | null>(null);

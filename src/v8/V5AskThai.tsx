@@ -13,6 +13,8 @@ import {
 import { initialAvatar } from './v8Data';
 import { AskText } from './askTr';
 import { lineOut, withRef } from './invite';
+// 0185: share-an-answer card, rich replies (big emoji, photo check), quick reactions
+import { AnswerShareSheet, EmojiGrid, MediaNote, ReactBar, applyReact, askCheckPhoto, askReact, askShareShort, bigEmoji, nextReact, useLongPress, type React4 } from './askRich';
 
 type LFn = (en: string) => string;
 /** A server refusal the member can act on (ghost mode, too many posts, banned words, no card) gets its own message;
@@ -28,7 +30,6 @@ export function askErrText(L: LFn, e: unknown, fallback: string): string {
   const m = /KR8_([A-Z_]+)/.exec(String((e as { message?: string } | null)?.message ?? e ?? ''));
   return L((m && ASK_ERR[m[1]]) || fallback);
 }
-const EMOJI = ['😊', '😂', '😍', '🙏', '👍', '🔥', '🤯', '😋', '🥹', '❤️', '🌅', '📸', '🏮', '🛺', '☕', '🌧️'];
 
 const Ic: React.FC<{ d: string; s?: number; className?: string }> = ({ d, s = 22, className }) => (
   <svg className={`at-ic ${className || ''}`} viewBox="0 0 24 24" width={s} height={s} aria-hidden="true"><path d={d} /></svg>
@@ -199,7 +200,9 @@ const Thread: React.FC<{
   onReportedQ: (id: string) => void;
   /** rv3: opened from a card's "Answer" button → the answer box gets focus once the thread is on screen */
   focusAnswer?: boolean;
-}> = ({ L, api, id, me, areaLabel, onClose, onShare, need, toast, onChanged, onReportedQ, focusAnswer }) => {
+  /** 0185: the sharer's invite code on the answer's /q/ link */
+  refCode?: string;
+}> = ({ L, api, id, me, areaLabel, onClose, onShare, need, toast, onChanged, onReportedQ, focusAnswer, refCode }) => {
   const [rep, setRep] = useState<{ kind: 'q' | 'a'; id: string } | null>(null);
   const report = (r: AskReportReason) => {
     const target = rep;
@@ -224,11 +227,38 @@ const Thread: React.FC<{
   const photoIn = useRef<HTMLInputElement>(null);
   const gifIn = useRef<HTMLInputElement>(null);
   const inp = useRef<HTMLInputElement>(null);
+  const rechecked = useRef(false);
   const load = useCallback(() => {
     setErr(false);
-    api.thread(id).then((d) => { setData(d); onChanged(d.q); }).catch(() => setErr(true));
+    api.thread(id).then((d) => {
+      setData(d); onChanged(d.q);
+      // 0185: my photo still waiting for its check (app closed early, AWS busy) → ask the checker again, once per open
+      const wait = d.answers.filter((x) => x.mediaCheck === 'pending');
+      if (wait.length && !rechecked.current && api.mode() === 'live') {
+        rechecked.current = true;
+        void Promise.all(wait.map((x) => askCheckPhoto(x.id))).then((r) => { if (r.some((v) => v !== 'pending')) load(); });
+      }
+    }).catch(() => setErr(true));
   }, [api, id, onChanged]);
   useEffect(load, [load]);
+  const [reactOpen, setReactOpen] = useState<string | null>(null);
+  const [shareA, setShareA] = useState<AskAnswer | null>(null);
+  const react = (a: AskAnswer, e: React4) => need(() => {
+    if (!data) return;
+    const cur = (a.myReact || null) as React4 | null;
+    const nx = nextReact(cur, e);
+    setData((d) => (d ? { ...d, answers: d.answers.map((x) => (x.id === a.id ? { ...x, myReact: nx, reacts: applyReact(x.reacts || {}, cur, nx) } : x)) } : d));
+    if (api.mode() !== 'live') return;
+    askReact(a.id, nx)
+      .then((r) => setData((d) => (d ? { ...d, answers: d.answers.map((x) => (x.id === a.id ? { ...x, myReact: r.mine, reacts: r.reacts || {} } : x)) } : d)))
+      .catch((err) => toast(askErrText(L, err, 'Something went wrong')));
+  });
+  const shareLinkFor = useCallback(async (aid: string) => {
+    const origin = typeof location !== 'undefined' ? location.origin : 'https://kringapp.com';
+    const short = api.mode() === 'live' ? await askShareShort(aid) : 'demo7q2';
+    return `${origin}/q/${short}${refCode ? `?ref=${encodeURIComponent(refCode)}` : ''}`;
+  }, [api, refCode]);
+  const shareGet = useCallback(() => (shareA ? shareLinkFor(shareA.id) : Promise.reject(new Error('none'))), [shareA, shareLinkFor]);
   const focused = useRef(false);
   useEffect(() => {
     if (focusAnswer && data && me && !focused.current) { focused.current = true; setTimeout(() => inp.current?.focus(), 60); }
@@ -252,9 +282,12 @@ const Thread: React.FC<{
     if (!data || busy || (!text.trim() && !media.file)) return;
     setBusy(true);
     try {
-      await api.answer(data.q.id, replyTo ? replyTo.parentId || replyTo.id : null, text.slice(0, ASK_MAX_TEXT), media.file);
+      const hadFile = !!media.file;
+      const aid = await api.answer(data.q.id, replyTo ? replyTo.parentId || replyTo.id : null, text.slice(0, ASK_MAX_TEXT), media.file);
       setText(''); media.clear(); setReplyTo(null); setEmoji(false);
       load();
+      // 0185: the photo / GIF stays hidden from others until the automatic check passes (the author sees "Checking photo…")
+      if (hadFile && aid && api.mode() === 'live') void askCheckPhoto(aid).then((v) => { if (v !== 'pending') load(); });
     } catch (e) {
       toast(askErrText(L, e, 'Couldn’t post · try again'));
     } finally {
@@ -293,20 +326,24 @@ const Thread: React.FC<{
           </div>
         )}
         {answers.map((a) => (
-          <div key={a.id} className={`at-c${a.parentId ? ' reply' : ''}`} data-answer-id={a.id}>
+          <AnswerRow key={a.id} className={`at-c${a.parentId ? ' reply' : ''}`} id={a.id} onLong={() => setReactOpen(a.id)}>
             <div className="h">
               <PersonBtn p={a.by} className="at-pa"><Av p={a.by} s={26} />{a.by.name}</PersonBtn>
               {a.by.official || a.by.local ? who(a.by, L) : <small>· {L('traveller')}</small>}
               {a.best && <span className="star">{L('★ Best')}</span>}
               {!mine(a.by) && <MoreBtn L={L} id={a.id} onClick={() => setRep({ kind: 'a', id: a.id })} />}
             </div>
-            {a.body && <AskText L={L} kind="a" id={a.id} text={a.body} className="t" toggle />}
-            {a.media && <Media m={a.media} cls="img" />}
+            {a.body && (bigEmoji(a.body) ? <p className="t ar-big" data-big-emoji="1">{a.body}</p> : <AskText L={L} kind="a" id={a.id} text={a.body} className="t" toggle />)}
+            {a.media && <div className={a.mediaCheck && a.mediaCheck !== 'ok' ? 'ar-media-wait' : undefined}><Media m={a.media} cls="img" /></div>}
+            <MediaNote L={L} check={a.mediaCheck || null} />
             <div className="f">
               <VoteRow L={L} score={a.score} my={a.myVote} onVote={(v) => voteA(a, v)} />
               <button type="button" className="at-reply" onClick={() => need(() => { setReplyTo(a); inp.current?.focus(); })}>{L('Reply')}</button>
+              <ReactBar L={L} reacts={a.reacts || {}} mine={(a.myReact || null) as React4 | null} onReact={(e) => react(a, e)}
+                open={reactOpen === a.id} setOpen={(o) => (o ? need(() => setReactOpen(a.id)) : setReactOpen(null))} />
+              {!a.parentId && a.body && <button type="button" className="ar-sharebtn" aria-label={L('Share')} data-ask-share-answer={a.id} onClick={() => need(() => setShareA(a))}><Ic d={IC.share} s={17} /></button>}
             </div>
-          </div>
+          </AnswerRow>
         ))}
         {data && answers.length === 0 && (
           <div className="rva-noans">
@@ -333,11 +370,7 @@ const Thread: React.FC<{
                 <button type="button" aria-label={L('Remove photo')} onClick={media.clear}><Ic d={IC.x} s={14} /></button>
               </div>
             )}
-            {emoji && (
-              <div className="at-emoji">
-                {EMOJI.map((e) => <button type="button" key={e} onClick={() => setText((t) => (t + e).slice(0, ASK_MAX_TEXT))}>{e}</button>)}
-              </div>
-            )}
+            {emoji && <EmojiGrid onPick={(e) => setText((t) => (t + e).slice(0, ASK_MAX_TEXT))} />}
           </div>
         )}
         <div className="at-composer">
@@ -361,8 +394,17 @@ const Thread: React.FC<{
         <input ref={gifIn} type="file" accept="image/gif" hidden onChange={(e) => { media.pick(e.target.files?.[0]); e.target.value = ''; }} />
       </div>
       {rep && <AskReportSheet L={L} onPick={report} onClose={() => setRep(null)} />}
+      {shareA && q && (
+        <AnswerShareSheet L={L} q={{ id: q.id, body: q.body }} a={{ id: shareA.id, body: shareA.body, by: shareA.by }} base={RV4_BASE}
+          getLink={shareGet} toast={toast} onClose={() => setShareA(null)} />
+      )}
     </div>
   );
+};
+/** 0185: an answer row; long-press opens its reactions */
+const AnswerRow: React.FC<{ className: string; id: string; onLong: () => void; children: React.ReactNode }> = ({ className, id, onLong, children }) => {
+  const lp = useLongPress(onLong);
+  return <div className={className} data-answer-id={id} {...lp}>{children}</div>;
 };
 
 // ───────────────────────── Ask sheet (screen 04) ─────────────────────────
@@ -421,7 +463,7 @@ const Compose: React.FC<{
         )}
       </div>
       <div className="at-tools-wrap">
-        {emoji && <div className="at-emoji">{EMOJI.map((e) => <button type="button" key={e} onClick={() => addEmoji(e)}>{e}</button>)}</div>}
+        {emoji && <EmojiGrid onPick={addEmoji} />}
         <div className="at-tools">
           <label className="at-chip2 at-area">
             <Ic d={IC.pin} s={16} />{areaLabel(area)}
@@ -555,7 +597,7 @@ export const AskThaiView: React.FC<AskThaiViewProps> = (props) => {
         <div className="at-pad" />
       </div>
       {thread && (
-        <Thread L={L} api={api} id={thread} me={me} areaLabel={areaLabel} need={need} toast={toast} onChanged={patch} focusAnswer={answerNow}
+        <Thread L={L} api={api} id={thread} me={me} areaLabel={areaLabel} need={need} toast={toast} onChanged={patch} focusAnswer={answerNow} refCode={refCode}
           onClose={() => { setThread(null); }} onShare={(q) => void share(q)}
           onReportedQ={(qid) => { setThread(null); setItems((cur) => (cur ? cur.filter((x) => x.id !== qid) : cur)); }} />
       )}

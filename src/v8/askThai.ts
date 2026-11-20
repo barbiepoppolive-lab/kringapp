@@ -13,6 +13,8 @@ export interface AskMedia { url: string; gif: boolean }
 export interface AskAnswer {
   id: string; parentId: string | null; by: AskPerson; body: string; media: AskMedia | null;
   score: number; myVote: -1 | 0 | 1; at: string; best?: boolean;
+  /** 0185: quick reactions (no Rings), the viewer's own one, and the photo check state (author only) */
+  reacts?: Partial<Record<'😂' | '❤️' | '🔥' | '💯', number>>; myReact?: '😂' | '❤️' | '🔥' | '💯' | null; mediaCheck?: 'ok' | 'pending' | 'refused' | null;
 }
 export interface AskQuestion {
   id: string; by: AskPerson; area: string; body: string; details: string; media: AskMedia | null;
@@ -42,7 +44,7 @@ export const ASK_MAX_FILE = 5 * 1024 * 1024;
 /** a phone photo may be bigger before it is re-saved on the phone (the upload is always the small re-saved copy) */
 export const ASK_MAX_PHOTO_IN = 30 * 1024 * 1024;
 /** longest side of an uploaded photo */
-export const ASK_PHOTO_SIDE = 1600;
+export const ASK_PHOTO_SIDE = 1280;   // 0185: ≤1280 px
 export const ASK_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 /** Thread order: best answer first (top-level, highest score above 0), then the rest by score; replies right under their answer. */
@@ -79,7 +81,7 @@ export function checkAskFile(f: File): 'type' | 'size' | null {
 }
 
 // ─────────────── photo clean-up (security audit H3): no GPS / camera data ever leaves the phone ───────────────
-// Every photo is drawn onto a canvas and saved again as a new JPEG (quality 0.85, longest side 1600 px). A canvas copy
+// Every photo is drawn onto a canvas and saved again as a new JPEG (quality 0.85, longest side 1280 px). A canvas copy
 // carries pixels only, so the EXIF block (GPS location, camera, time) of the original is gone. As a second lock, the
 // JPEG bytes are walked and every APP1–APP15 (EXIF / XMP / ICC / maker notes) and comment segment is cut out. A GIF keeps
 // its frames but loses every comment / text / application block except the loop setting. The original File is never uploaded.
@@ -140,7 +142,7 @@ export const bytesOf = async (f: Blob): Promise<Uint8Array> => {
   return new Promise((ok, bad) => { const r = new FileReader(); r.onload = () => ok(new Uint8Array(r.result as ArrayBuffer)); r.onerror = () => bad(new Error('KR8_BAD_FILE')); r.readAsArrayBuffer(f); });
 };
 
-/** Draws the photo on a canvas (longest side 1600 px, white behind see-through parts) and saves it as JPEG 0.85. */
+/** Draws the photo on a canvas (longest side 1280 px, white behind see-through parts) and saves it as JPEG 0.85. */
 export async function askReencodePhoto(f: Blob): Promise<Blob> {
   let src: CanvasImageSource; let w: number; let h: number; let done = () => {};
   if (typeof createImageBitmap === 'function') {
@@ -282,7 +284,8 @@ function localApi(me: () => AskPerson | null): Omit<AskApi, 'mode'> {
 
 // ─────────────── live (0057) ───────────────
 interface RawPerson { name: string; photo: string | null; local: boolean; official?: boolean }
-interface RawA { id: string; parent_id: string | null; author_id: string; body: string; media_path: string | null; media_kind: string | null; score: number; my_vote: number; created_at: string }
+interface RawA { id: string; parent_id: string | null; author_id: string; body: string; media_path: string | null; media_kind: string | null; score: number; my_vote: number; created_at: string;
+  reacts?: Record<string, number> | null; my_react?: string | null; media_check?: string | null }
 interface RawQ { id: string; author_id: string; area: string; body: string; details: string | null; media_path: string | null; media_kind: string | null; score: number; my_vote: number;
   answers: number; top: RawA | null; created_at: string }
 
@@ -311,6 +314,7 @@ function liveApi(gate?: () => boolean): Omit<AskApi, 'mode'> {
   const mapA = async (a: RawA, P: (id: string) => AskPerson): Promise<AskAnswer> => ({
     id: a.id, parentId: a.parent_id, by: P(a.author_id), body: a.body || '', media: await media(a.media_path, a.media_kind),
     score: a.score || 0, myVote: (Math.sign(a.my_vote || 0) as -1 | 0 | 1), at: a.created_at,
+    reacts: (a.reacts || {}) as AskAnswer['reacts'], myReact: (a.my_react || null) as AskAnswer['myReact'], mediaCheck: (a.media_check || null) as AskAnswer['mediaCheck'],
   });
   // 20 Nov: Kring Team questions carry an English question + its Thai version in details → show ONE language only.
   const oneLang = (by: AskPerson, body: string, details: string): { body: string; details: string } => {

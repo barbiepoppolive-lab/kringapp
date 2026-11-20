@@ -3,6 +3,7 @@
  * watch-3 B (thin top bar), check-in A (soft toast), reminder A (bubble, no border), Me line B (mini ring). Poppo workflow, not its look.
  * The server decides everything (v5Tasks.ts); this file only shows state and asks.
  */
+import { TotHero } from './totHero';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import './tasks.css';
 import {
@@ -353,6 +354,15 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
   const n = v.pct?.n ?? 0;
   const summary = shown ? `${keys.map((k) => `${pc(k)}%`).join(' · ')} · ${n === 1 ? tx.votes1 : fmt(tx.votesN, n)}` : '';
   const earned = fresh && !!data?.verified && (t?.rings ?? 0) > 0;
+  // 20 Nov (founder): at the top of Ask BKK the pair question is a full-bleed hero that folds into a slim strip after the vote
+  if (props.inline && v.kind === 'pair') {
+    return (
+      <TotHero th={L === 'th'} q={L === 'th' ? v.q_th : v.q_en} imgs={{ a: placeImg(v.a_img), b: placeImg(v.b_img) }} lab={lab} pct={pc}
+        pick={(v.pick as 'a' | 'b' | null) || null} busy={(busy as 'a' | 'b' | null) || null} shown={shown} grow={grow} fresh={fresh}
+        onPick={(k) => void pick(k)} summary={summary} counted={tx.counted} locked={tx.locked} cap={<><Rings s={13} />{tx.thisOrThat}</>}
+        ringChip={earned ? <span className="toth-chip ring"><Rings s={12} />{tx.ringPlus}</span> : null} />
+    );
+  }
   const card = (
     <div className={`tot${props.inline ? ' inline' : ''}${shown ? ' shown' : ''}${fresh ? ' fresh' : ''}`} id={props.inline ? 'totCard' : 'totSheetCard'} lang={L}>
       <div className="tot-top">

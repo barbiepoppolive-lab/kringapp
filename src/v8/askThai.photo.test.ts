@@ -115,7 +115,7 @@ describe('Ask BKK photos lose their GPS location before upload', () => {
         expect(u.path).toMatch(/^11111111-1111-4111-8111-111111111111\/[0-9a-f-]{36}\.jpg$/);
         expect(hasExifGps(await bytes(u.body))).toBe(false);
       }
-      expect(drawn).toEqual([1600, 1200]);   // longest side 1600 px
+      expect(drawn).toEqual([1280, 960]);   // 0185: longest side 1280 px
       expect(live.rpcs.map((r) => [r.fn, r.args.p_media_kind])).toEqual([['kr8_ask_create', 'photo'], ['kr8_ask_answer', 'photo']]);
     } finally {
       g.createImageBitmap = orig.cib;

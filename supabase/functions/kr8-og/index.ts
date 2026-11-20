@@ -73,6 +73,7 @@ Deno.serve(async (req) => {
 });
 async function handle(req: Request): Promise<Response> {
   const q = new URL(req.url).searchParams;
+  if (/^[a-z0-9]{6,10}$/.test((q.get('q') || '').toLowerCase())) return await askCard((q.get('q') || '').toLowerCase(), q.get('sq') === '1');   // 0185
   const r = (q.get('r') || '').toLowerCase(), u = (q.get('u') || '').toLowerCase();
   const sq = q.get('sq') === '1';
   const CW = sq ? 600 : 1200, CH = sq ? 600 : 630;
@@ -112,5 +113,54 @@ async function handle(req: Request): Promise<Response> {
   const jpg = jpeg.encode({ data: rgba, width: im.width, height: im.height }, 82).data;
   const path = `${kind === 'reel' ? 'r' : 'u'}/${id}${sq ? '-sq' : ''}.jpg`;
   await fetch(`${SUPA}/storage/v1/object/kr8-og/${path}`, { method: 'POST', headers: { ...H, 'Content-Type': 'image/jpeg', 'x-upsert': 'true', 'cache-control': '86400' }, body: jpg });
+  return new Response(jpg, { headers: { 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=3600' } });
+}
+
+// ───────── 0185: Ask BKK answer card (/q/<short>): the question, the answer, the answerer, on a Bangkok-night sky ─────────
+const cut = (t: string, n: number) => { const s = String(t || '').replace(/\s+/g, ' ').trim(); return s.length > n ? `${s.slice(0, n - 1).trimEnd()}…` : s; };
+let sky: string | null = null;
+async function askCard(short: string, sq: boolean): Promise<Response> {
+  const d = await rpc('kr8_ask_card', { p_short: short, p_key: null });
+  if (!d || !d.q) return new Response('no card', { status: 404 });
+  if (!fonts) {
+    const [a, b] = await Promise.all([bin(`${SITE}/assets/og/kanit-700.ttf`), bin(`${SITE}/assets/og/kanit-500.ttf`)]);
+    if (!a || !b) return new Response('fonts', { status: 503 });
+    fonts = [a, b];
+  }
+  if (logo === null) { const l = await bin(`${SITE}/icon-192.png`); logo = l ? `data:image/png;base64,${b64(l)}` : ''; }
+  if (sky === null) { const s = await bin(`${SITE}/app/media/places/rv4-me-sky.jpg`); sky = s ? `data:image/jpeg;base64,${b64(s)}` : ''; }
+  const W = sq ? 600 : 1200, H2 = sq ? 600 : 630, k = sq ? 0.56 : 1;
+  const face = /^data:image\/(jpeg|png|webp);base64,/.test(d.photo || '') ? d.photo : null;
+  const th = /[฀-๿]/.test(d.q || '');
+  const node = h('div', { display: 'flex', position: 'relative', width: W, height: H2, fontFamily: 'Kanit', color: '#fff', background: '#0B0A16', overflow: 'hidden' }, [
+    ...(sky ? [img(sky, { position: 'absolute', left: 0, top: 0, width: W, height: H2, objectFit: 'cover' })] : []),
+    h('div', { position: 'absolute', left: 0, top: 0, width: W, height: H2, display: 'flex',
+      backgroundImage: 'linear-gradient(180deg, rgba(9,7,22,.62) 0%, rgba(9,7,22,.8) 50%, rgba(8,6,18,.96) 100%)' }),
+    h('div', { position: 'absolute', left: 0, top: 0, width: W, height: H2, display: 'flex',
+      backgroundImage: 'radial-gradient(circle at 92% 8%, rgba(255,79,216,.35) 0%, rgba(255,79,216,0) 45%), radial-gradient(circle at 0% 100%, rgba(91,140,255,.32) 0%, rgba(91,140,255,0) 50%)' }),
+    h('div', { position: 'absolute', left: 0, top: 0, width: W, height: H2, display: 'flex', flexDirection: 'column', padding: `${40 * k}px ${56 * k}px` }, [
+      h('div', { display: 'flex', alignItems: 'center', justifyContent: 'space-between' }, [
+        h('div', { display: 'flex', alignItems: 'center', gap: 12 * k, padding: `${6 * k}px ${20 * k}px ${6 * k}px ${6 * k}px`, borderRadius: 999, background: 'rgba(255,255,255,.12)', border: '1.5px solid rgba(255,255,255,.18)' },
+          [logo ? img(logo, { width: 40 * k, height: 40 * k, borderRadius: 10 * k }) : ring, h('div', { fontSize: 24 * k, fontWeight: 700 }, 'Kring · กริ๊ง!')]),
+        h('div', { display: 'flex', padding: `${6 * k}px ${18 * k}px`, borderRadius: 999, fontSize: 22 * k, fontWeight: 700, backgroundImage: 'linear-gradient(90deg, #5B8CFF, #FF4FD8)' }, th ? 'ถาม BKK' : 'Ask BKK'),
+      ]),
+      h('div', { display: 'flex', marginTop: 26 * k, fontSize: sq ? 30 : 46, fontWeight: 700, lineHeight: 1.15, textShadow: '0 2px 16px rgba(0,0,0,.5)' }, cut(d.q, sq ? 80 : 110)),
+      h('div', { display: 'flex', flexDirection: 'column', marginTop: 'auto', padding: `${20 * k}px ${24 * k}px`, borderRadius: 26 * k, background: 'rgba(255,255,255,.1)', border: '1.5px solid rgba(255,255,255,.18)' }, [
+        h('div', { display: 'flex', alignItems: 'center', gap: 14 * k }, [
+          face ? h('div', { display: 'flex', width: 58 * k, height: 58 * k, borderRadius: 29 * k, overflow: 'hidden', border: `${3 * k}px solid #FF4FD8` }, [img(face, { width: 58 * k, height: 58 * k, objectFit: 'cover' })])
+            : h('div', { display: 'flex', width: 58 * k, height: 58 * k, borderRadius: 29 * k, background: '#3A3355', alignItems: 'center', justifyContent: 'center', fontSize: 26 * k, fontWeight: 700 }, (d.name || '?').charAt(0)),
+          h('div', { display: 'flex', fontSize: 26 * k, fontWeight: 700 }, d.name || ''),
+          ...(d.local ? [h('div', { display: 'flex', padding: `${3 * k}px ${12 * k}px`, borderRadius: 999, fontSize: 18 * k, fontWeight: 700, color: '#F3D98B', border: '1.5px solid rgba(233,196,106,.55)', background: 'rgba(233,196,106,.16)' }, th ? 'คนกรุงเทพฯ' : 'BKK Local')] : []),
+        ]),
+        h('div', { display: 'flex', marginTop: 12 * k, fontSize: 25 * k, fontWeight: 500, lineHeight: 1.35, color: 'rgba(255,255,255,.94)' }, `“${cut(d.a, sq ? 90 : 150)}”`),
+      ]),
+    ]),
+  ]);
+  const res = new ImageResponse(node, { width: W, height: H2,
+    fonts: [{ name: 'Kanit', data: fonts[0], weight: 700, style: 'normal' }, { name: 'Kanit', data: fonts[1], weight: 500, style: 'normal' }] });
+  const png = await res.arrayBuffer();
+  const im = UPNG.decode(png);
+  const jpg = jpeg.encode({ data: new Uint8Array(UPNG.toRGBA8(im)[0]), width: im.width, height: im.height }, 84).data;
+  await fetch(`${SUPA}/storage/v1/object/kr8-og/q/${short}${sq ? '-sq' : ''}.jpg`, { method: 'POST', headers: { ...H, 'Content-Type': 'image/jpeg', 'x-upsert': 'true', 'cache-control': '86400' }, body: jpg });
   return new Response(jpg, { headers: { 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=3600' } });
 }
