@@ -145,6 +145,7 @@ import { V5ShareCard } from './V5ShareCard';
 import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, showFirstReelChip } from './V5ReelNudge';
 import { V5ReelVideo, holdReels, reelsHeld, toggleReelSound } from './V5ReelVideo';
 import { TasksFeed, TasksFromMe, TasksMeLine } from './V5Tasks';
+import { FaceIntroSheet, LockIc, UnvMeLine, UnvPeopleWall } from './V5Unverified';
 import { restoredTab, rememberTab } from './tabMemory';
 import { AskSwitch } from './V5AskSwitch';
 import { createAskApi, type AskPerson } from './askThai';
@@ -1216,9 +1217,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // opens, so no video / thumbnail is ever uploaded for the server to refuse. The kr8_posts trigger stays the real guard.
   const faceGateRef = useRef(false);
   const verifyFirstRef = useRef<() => void>(() => undefined);
+  /** 20 Nov (variant A): no passed face check (and not a team / admin account) → People, Say hi and chat open the Quick face check */
+  const unvRef = useRef(false);
+  const [faceIntro, setFaceIntro] = useState(false);
   const setSheet = useCallback((v: SheetId | ((cur: SheetId) => SheetId)) => {
     if (adminViewRef.current && typeof v !== 'function' && v && ADMIN_VIEW_NO_SHEETS.has(v)) { adminNoRef.current(); return; }
     if (v === 'post' && faceGateRef.current) { verifyFirstRef.current(); return; }
+    if ((v === 'hi' || v === 'inbox') && unvRef.current) { setFaceIntro(true); return; }
     setSheetRaw((cur) => {
       const next = typeof v === 'function' ? v(cur) : v;
       return adminViewRef.current && next && ADMIN_VIEW_NO_SHEETS.has(next) ? cur : next;
@@ -1245,6 +1250,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   useEffect(() => {
     const on = () => {
       if (sheetRef.current === 'claim') { setClaimVerify(true); return; }
+      if (unvRef.current && sheetRef.current !== 'verify') { setFaceIntro(true); return; }
       if (sheetRef.current !== 'verify') setTimeout(() => { setVerifyMode('me'); setSheet('verify'); }, 80);
     };
     window.addEventListener('kr8-verify-first', on);
@@ -2003,6 +2009,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     const q = searchQuery.trim().toLowerCase();
     const list = people.filter((p) => {
       if (blockedIds.includes(p.id) || blockedIds.includes(p.name)) return false;
+      if (live && !adminView && !p.verified) return false;   // 20 Nov: People lists face-verified members only
       const matchQuery =
         !q ||
         p.name.toLowerCase().includes(q) ||
@@ -2019,7 +2026,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     // revamp Phase 1: verified members first, then Kring Locals (Thai members lead), server order otherwise; no-photo cards stay last
     const key = (p: V8Person) => (p.img === NEUTRAL_IMG ? 4 : 0) + (p.verified ? 0 : 2) + (p.who === 'traveller' ? 1 : 0);
     return list.map((p, i) => [p, i] as const).sort((a, b) => key(a[0]) - key(b[0]) || a[1] - b[1]).map((x) => x[0]);
-  }, [people, blockedIds, searchQuery, filterLang, filterWho, filterOnline, pplNear, myArea, filterInt]);
+  }, [people, blockedIds, searchQuery, filterLang, filterWho, filterOnline, pplNear, myArea, filterInt, live, adminView]);
   const pplLangs = useMemo(() => {
     const n = new Map<string, number>();
     for (const p of people) for (const c of p.langCodes || []) { const k = langCode(c); if (k) n.set(k, (n.get(k) || 0) + 1); }
@@ -2104,6 +2111,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // audit P2-9: friendly first lines, never a meet-up ask (founder: "make new friends", no meet wording)
   const openSayHi = (name: string, img: string, context: string, id?: string, fromReel = false) => {
     if (adminViewRef.current) { adminNoRef.current(); return; }
+    if (unvRef.current) { setFaceIntro(true); return; }   // 20 Nov: Say hi needs the face check
     // T301-022: one hello per person. If we already have a chat with them, open it instead of a second hello (the server says no with a 400).
     const had = live && id ? threads.find((t) => t.personId === id) : undefined;
     if (had) {
@@ -3043,6 +3051,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     const no = myMemberNo ?? kxMe?.member_no ?? null;
     faceGateRef.current = FACE_GATE_ON && live && !!v5Card && !adminView && !(v5Card.verified || meProfile?.verified || faceOkNow)
       && !v5Ghost && no != null && Number(no) > FACE_GATE_AFTER_NO;
+    unvRef.current = live && !!v5Card && !adminView && !v5Ghost && !(v5Card.verified || meProfile?.verified || faceOkNow);
     verifyFirstRef.current = () => {
       showToast(L('Verify your face in 5 seconds to post and chat. One person, one account.'));
       try { window.dispatchEvent(new CustomEvent('kr8-verify-first')); } catch { /* ignore */ }
@@ -4127,6 +4136,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
         {/* Chat Bubble Top-Right on Feed & People ONLY (HIDDEN on Deals & Me). T-301 (T301-004): hidden whenever ANY sheet or the
             Reel player is open (a member's card 'persondetail', a profile, …), so their ⋯ Report/Block and close buttons are never covered */}
+        {faceIntro ? <FaceIntroSheet lang={lang} onClose={() => setFaceIntro(false)} onStart={() => { setFaceIntro(false); setVerifyMode('me'); setSheet('verify'); }} /> : null}
         {(tab === 'feed' || tab === 'people') && !sheet && !goPlayer && (
           <button
             type="button"
@@ -4138,7 +4148,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <svg viewBox="0 0 24 24">
               <path d="M21 12a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-2.9-.4-4.1-1.1L3 21l1.6-5.2A8.4 8.4 0 0 1 3.5 12 8.5 8.5 0 0 1 12 3.5 8.5 8.5 0 0 1 21 12Z" />
             </svg>
-            {hasUnreadChat && <span className="badge" id="chatBadge" />}
+            {hasUnreadChat && !unvRef.current && <span className="badge" id="chatBadge" />}
+            {unvRef.current ? <LockIc className="unv-fl" /> : null}
           </button>
         )}
 
@@ -4235,7 +4246,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           ) : null}
 
           {/* 0171 daily tasks (founder 20 Nov): orb A on the left edge, check-in toast, watch-3 bar, reminder bubble; signed-in members only */}
-          {tab === 'feed' && feedMode !== 'ask' && live && signedIn && v5Card && v5Uid && !adminView && !sheet && (
+          {tab === 'feed' && feedMode !== 'ask' && live && signedIn && v5Card && v5Uid && !adminView && !sheet && !unvRef.current && (
             <TasksFeed lang={lang} name={v5Card.first_name || ''} verified={!!(meProfile?.verified || v5Card.verified || faceOkNow)} scrollEl={feedScrollRef.current}
               onAsk={(q) => { setAskOpenThread(q); pickFeedMode('ask'); }}
               onVerify={() => { setVerifyMode('me'); setSheet('verify'); }} />
@@ -4420,7 +4431,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                           {!p.video ? <div className="langs">{p.langs}</div> : null}
                         </div>
                         {p.video && !(p as V5FeedItem).mine && !p.reelPending ? (
-                          <button type="button" className="rv4-hi" data-act="hi" aria-label={t.sayHi}
+                          <button type="button" className={`rv4-hi${unvRef.current ? ' locked' : ''}`} data-act="hi" aria-label={t.sayHi}
                             onClick={(e) => { e.stopPropagation(); openSayHi(
                               p.name || 'Member',
                               p.av || initialAvatar(p.name),
@@ -4428,7 +4439,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                               (p as { authorId?: string }).authorId,
                               true
                             ); }}>
-                            <span className="rv-hi-rings" aria-hidden="true"><i /><i /></span>{t.sayHi}
+                            {unvRef.current ? <LockIc className="unv-hl" /> : <span className="rv-hi-rings" aria-hidden="true"><i /><i /></span>}{t.sayHi}
                           </button>
                         ) : null}
                         {!p.video && p.area && <span className="atag">{p.area}</span>}
@@ -4487,6 +4498,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
                 </button>
               </div>
+              {unvRef.current ? null : (<>
               <div className="go-fch rv-seg" id="goPeopleChips" role="tablist">
                 {([['', L('Everyone')], ['local', L('Kring Locals')], ['traveller', L('Travellers')]] as const).map(([k, label]) => (
                   <button type="button" role="tab" key={k || 'all'} data-who={k || 'all'} className={filterWho === k ? 'on' : ''} aria-pressed={filterWho === k} onClick={() => setFilterWho(k)}>{label}</button>
@@ -4506,7 +4518,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   onClick={() => setPplPanel((x) => (x === 'int' ? '' : 'int'))}>
                   {filterInt && INTEREST[filterInt] ? L(INTEREST[filterInt][1]) : L('Interests')}<i aria-hidden="true">▾</i>
                 </button>
-              </div>
+              </div></>)}
               {pplPanel === 'lang' ? (
                 <div className="rv-fsub" id="pplLangRow">
                   {['', ...pplLangs].map((k) => (
@@ -4610,7 +4622,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             )}
           </div>
 
-          {peopleLoading ? (
+          {unvRef.current ? (
+            <UnvPeopleWall lang={lang} stills={people.map((p) => p.img).filter((u) => !!u && u !== NEUTRAL_IMG).concat(peopleStills).slice(0, 8)} onVerify={() => setFaceIntro(true)} />
+          ) : peopleLoading ? (
             <div
               style={{
                 padding: '48px 24px',
@@ -4984,6 +4998,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               kx={kxMe}
               weekRank={kxWeekRank}
               weekHook={kxWeekHook(kxWeek, kxRewards?.ladder?.[0] || 0)}
+              lockSlot={unvRef.current ? <UnvMeLine lang={lang} onVerify={() => setFaceIntro(true)} /> : null}
               onRings={() => { setKxReady(false); setSheet('rewards'); void kxLoadRewards(); }}
               ringsDot={kxReady}
               onRanking={() => setSheet('ranking')}

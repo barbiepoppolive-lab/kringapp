@@ -61,10 +61,14 @@ const Ic: Record<TaskId, React.ReactNode> = {
 };
 const Check = () => <svg viewBox="0 0 24 24" className="dt-ck" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" /></svg>;
 
+const askLine = (q: { body: string; details?: string | null }, lang: 'th' | 'en'): string => {
+  const d = q.details || ''; const en = /[A-Za-z]/.test(q.body) && (q.body.match(/[A-Za-z]/g) || []).length > (q.body.match(/[\u0E00-\u0E7F]/g) || []).length;
+  return lang === 'th' && en && /[\u0E00-\u0E7F]/.test(d) ? d : q.body;   // one language only: the Thai version for Thai readers
+};
 function rowText(t: TaskRow, tx: TaskTx, lang: 'th' | 'en'): { title: string; sub: string } {
   switch (t.id) {
     case 'open': return { title: tx.open, sub: t.claimed ? tx.openDone : tx.openS };
-    case 'ask': return { title: tx.ask, sub: t.done ? tx.askDone : t.question ? `“${t.question.body}”` : tx.askNone };
+    case 'ask': return { title: tx.ask, sub: t.done ? tx.askDone : t.question ? `“${askLine(t.question, lang)}”` : tx.askNone };
     case 'vote': {
       const v = t.vote;
       if (v && v.pick) { const lab = v.pick === 'a' ? (lang === 'th' ? v.a_th : v.a_en) : v.pick === 'b' ? (lang === 'th' ? v.b_th : v.b_en) : (lang === 'th' ? v.c_th : v.c_en) || ''; return { title: tx.vote, sub: fmt(tx.voteDone, lab) }; }

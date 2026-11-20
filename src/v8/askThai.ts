@@ -19,6 +19,9 @@ export interface AskQuestion {
   score: number; myVote: -1 | 0 | 1; answers: number; top: AskAnswer | null; at: string;
 }
 export interface AskThreadData { q: AskQuestion; answers: AskAnswer[] }
+// one language only (20 Nov): an English question may quote a Thai word (เกรงใจ), so count letters, not "any Thai".
+export const hasThai = (s: string): boolean => /[\u0E00-\u0E7F]/.test(s || '');
+export const mostlyEnglish = (s: string): boolean => ((s || '').match(/[A-Za-z]/g) || []).length > ((s || '').match(/[\u0E00-\u0E7F]/g) || []).length;
 export interface AskDraft { body: string; details?: string; area?: string | null; file?: File | null }
 export interface AskApi {
   /** 'live' = database; 'local' = this tab only (migration not applied yet, or a demo build) */
@@ -311,8 +314,7 @@ function liveApi(gate?: () => boolean): Omit<AskApi, 'mode'> {
   });
   // 20 Nov: Kring Team questions carry an English question + its Thai version in details → show ONE language only.
   const oneLang = (by: AskPerson, body: string, details: string): { body: string; details: string } => {
-    const TH = /[\u0E00-\u0E7F]/;
-    if (!by.official || !details || TH.test(body) || !TH.test(details)) return { body, details };
+    if (!by.official || !details || !mostlyEnglish(body) || !hasThai(details)) return { body, details };
     let th = false; try { th = (localStorage.getItem('kr8_lang') || 'en') === 'th'; } catch { /* default English */ }
     return th ? { body: details, details: '' } : { body, details: '' };
   };

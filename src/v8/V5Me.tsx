@@ -283,6 +283,8 @@ export type MeViewProps = {
   weekHook?: WeekHookData | null;
   /** 0171: the daily-tasks line (mini ring · N of 4 · streak · Claim) */
   tasksSlot?: React.ReactNode;
+  /** 20 Nov: no passed face check → one Verify line in place of the weekly ranking + daily rewards */
+  lockSlot?: React.ReactNode;
 };
 
 /**
@@ -333,9 +335,10 @@ export function MeView(props: MeViewProps) {
           <button type="button" id="statFollowing" onClick={() => props.onList('following')}><b>{fmtCount(p.following)}</b><span>{L('Following')}</span></button>
         </div>
       )} />
+      {props.lockSlot ? props.lockSlot : (<>
       <MeLine L={L} Lf={Lf} kx={props.kx} hook={props.weekHook || { rank: props.weekRank ?? null, prize: props.weekPrize ?? 0, toLine: null, top: 0 }}
         dot={!!props.ringsDot || (props.kx?.prizes ?? 0) > 0} onRings={props.onRings} onRanking={props.onRanking} onPost={props.onPost} />
-      {props.tasksSlot || null}
+      {props.tasksSlot || null}</>)}
       {actionStep && props.nextKind !== 'reel' && props.nextKind !== 'pending' ? props.nextSlot : null}
       {props.webAskSlot || null}
       {props.reelsSlot ? props.reelsSlot : (
@@ -351,7 +354,7 @@ export function MeView(props: MeViewProps) {
         </>
       )}
       {/* 0111 (founder 18 Nov): a gentle nudge, not a gate. The face check is needed only to claim a prize; the row can be hidden. */}
-      {props.verifyState !== 'verified' && (p.reels.length > 0 || props.verifyState === 'pending' || !props.reelsSlot)
+      {!props.lockSlot && props.verifyState !== 'verified' && (p.reels.length > 0 || props.verifyState === 'pending' || !props.reelsSlot)
         && !(props.verifyState === 'none' && props.verifyHidden) && (
         <div className={`kme-verify${props.verifyState === 'pending' ? ' wait' : ''}`} id="meVerify">
           <button type="button" className="kme-vmain" id="meVerifyGo" onClick={props.onVerify} disabled={props.verifyState === 'pending'}>

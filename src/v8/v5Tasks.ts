@@ -14,7 +14,7 @@ export interface TaskVote {
 }
 export interface TaskRow {
   id: TaskId; rings: number; done?: boolean; claimed?: boolean; soon?: boolean;
-  progress?: number; goal?: number; question?: { id: string; body: string } | null; min_chars?: number; vote?: TaskVote | null;
+  progress?: number; goal?: number; question?: { id: string; body: string; details?: string | null } | null; min_chars?: number; vote?: TaskVote | null;
 }
 export interface TasksToday {
   on: boolean; day?: string; resets_at?: string; verified?: boolean; max?: number; rings_today?: number;
