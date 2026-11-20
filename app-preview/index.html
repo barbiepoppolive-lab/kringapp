@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://static.cloudflareinsights.com https://static.line-scdn.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: https://*.supabase.co; font-src 'self' data:; connect-src 'self' https://api.line.me https://access.line.me https://liffsdk.line-scdn.net https://static.line-scdn.net https://cloudflareinsights.com https://*.supabase.co wss://*.supabase.co https://photon.komoot.io https://api.open-meteo.com https://*.ingest.us.sentry.io; base-uri 'self'; form-action 'self';" />
+    <meta name="theme-color" content="#0B0A12" />
+    <meta name="description" content="Kring · มาเที่ยว ได้เพื่อนใหม่ · Explore Bangkok, make new friends. Short Reels of real Bangkok spots, new friends and partner-café treats for travellers and Thai locals." />
+    <!-- share preview (LINE, Instagram, WhatsApp, X): every join link shows a picture and a title -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Kring · กริ๊ง!" />
+    <meta property="og:title" content="Kring · กริ๊ง! Share your Bangkok" />
+    <meta property="og:description" content="ทำการ์ด โพสต์รีล ได้เพื่อนใหม่ในกรุงเทพฯ · Make a card. Post a Reel. Make new friends in Bangkok." />
+    <meta property="og:url" content="https://kringapp.com/app/" />
+    <meta property="og:image" content="https://kringapp.com/assets/home/og.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="th_TH" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Kring · กริ๊ง! Share your Bangkok" />
+    <meta name="twitter:description" content="Make a card. Post a Reel. Make new friends in Bangkok." />
+    <meta name="twitter:image" content="https://kringapp.com/assets/home/og.jpg" />
+    <link rel="preconnect" href="https://pedxoxpammnyfnizljyj.supabase.co" crossorigin />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="กริ๊ง!" />
+    <meta name="application-name" content="กริ๊ง! Kring" />
+    <link rel="icon" type="image/png" sizes="48x48" href="icon-48.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <title>Kring · กริ๊ง! Make new friends in Bangkok</title>
+    <link rel="canonical" href="https://kringapp.com/app/" />
+    <script>
+      // 18 Nov "View as member" (admin → More): when the admin page frames this app with ?mirror=1, the app gets its OWN in-memory
+      // storage (held by the admin page), so the mirror sign-in, language and "seen" flags never touch this browser's real Kring
+      // storage or the admin's sign-in. Only works inside /app/admin.html on the same site; anywhere else nothing changes.
+      (function () { try {
+        if (!/[?&]mirror=1(&|$)/.test(location.search) || window.parent === window) return;
+        var P = window.parent, seed = P.__kr8MirrorSeed;
+        if (!seed || !seed.store || !/\/admin(\.html)?$/.test(P.location.pathname)) return;
+        var mk = function (d) { var has = function (k) { return Object.prototype.hasOwnProperty.call(d, k); };
+          return { getItem: function (k) { return has(k) ? String(d[k]) : null; }, setItem: function (k, v) { d[k] = String(v); },
+            removeItem: function (k) { delete d[k]; }, clear: function () { for (var k in d) if (has(k)) delete d[k]; },
+            key: function (i) { return Object.keys(d)[i] || null; }, get length() { return Object.keys(d).length; } }; };
+        var L = mk(seed.store), S = mk(seed.session || (seed.session = {}));
+        Object.defineProperty(window, 'localStorage', { configurable: true, get: function () { return L; } });
+        Object.defineProperty(window, 'sessionStorage', { configurable: true, get: function () { return S; } });
+        if (window.localStorage === L && window.sessionStorage === S) window.__kr8Mirror = { persona: seed.persona || 'visitor' };
+        else window.__kr8MirrorBroken = true;
+      } catch (e) { window.__kr8MirrorBroken = true; } })();
+    </script>
+    <script>
+      // 13 Nov funnel fix: LINE links stay inside LINE. LINE Login is one tap there (auto login); bouncing to Chrome/Safari
+      // made people type a LINE email + password they mostly never set. "Open in browser" is still offered after first value (A2HS).
+      // 16 Nov perf (2): the feed with its Reel links already signed comes from our own edge (/feed0, kept 60 s at Cloudflare),
+      // asked for the moment the page starts, for everyone (a signed-in member sees it first, then their own feed). The first
+      // Reel's poster is shown on this loading screen as soon as it arrives, before the app code has even run.
+      (function () { try { if (/[?&](demo|place|reel)=/.test(location.search)) return; var p = null;
+        if (/(^|\.)kringapp\.com$|\.pages\.dev$/.test(location.hostname)) p = fetch('/feed0', { credentials: 'omit' }).then(function (r) { return r.ok ? r.json() : null; });
+        else if (!localStorage.getItem('kr8-v5-auth')) { var K = 'sb_publishable_SaAf7mILfPPpCeAEvj79bA_Vz8JnCBN';
+          p = fetch('https://pedxoxpammnyfnizljyj.supabase.co/rest/v1/rpc/kr8_feed', { method: 'POST', credentials: 'omit', headers: { apikey: K, Authorization: 'Bearer ' + K, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ p_area: null, p_limit: 60 }) }).then(function (r) { return r.ok ? r.json() : null; }).then(function (rows) { return rows ? { rows: rows, signed: null } : null; }); }
+        if (!p) return; p = p.catch(function () { return null; }); window.__kr8Feed0 = p;
+        p.then(function (d) { if (!d || !d.signed || !d.rows) return; var first = null;
+          for (var i = 0; i < d.rows.length && !first; i++) { var r = d.rows[i]; if (r.kind === 'ask') continue; if (r.kind === 'reel') { if (d.signed[r.video_path]) first = d.signed[r.poster_path] || ''; } else first = r.photo || ''; }
+          if (!first) return; window.__kr8Poster0 = first; var l = document.createElement('link'); l.rel = 'preload'; l.as = 'image'; l.href = first; l.setAttribute('fetchpriority', 'high'); document.head.appendChild(l);
+          var show = function () { var b = document.getElementById('kr-boot'); if (!b) return; var im = new Image(); im.onload = function () { if (!b.isConnected) return; window.__kr8Poster0At = Math.round(performance.now());
+            b.style.background = "linear-gradient(180deg,rgba(11,10,18,0) 55%,rgba(11,10,18,.75)), url('" + first + "') center/cover no-repeat #0B0A12"; b.className = 'kr-boot-poster'; }; im.src = first; };
+          if (document.getElementById('kr-boot')) show(); else document.addEventListener('DOMContentLoaded', show); }); } catch (e) {} })();
+      // keep the install offer for later (Add to home screen)
+      // 16 Nov: keep the browser's install offer for our Install button. No preventDefault: if we never use it, Chrome's own
+      // one-tap mini-infobar can still appear. The app is told the moment it arrives (it often comes a few seconds after load).
+      window.addEventListener('beforeinstallprompt', function (e) { window.__kr8Install = e; window.__kr8BipAt = Math.round(performance.now()); try { window.dispatchEvent(new Event('kr8-bip')); } catch (x) {} });
+      // J: count installs (one anonymous row in link_visits, ref "pwa-install", same anonymous phone id as the visit counter)
+      window.addEventListener('appinstalled', function () { try { window.__kr8Install = null; window.__kr8Installed = true; var s = null; try { s = localStorage.getItem('kr_vid'); } catch (e) {} if (s && !/^[a-z0-9]{1,40}$/.test(s)) s = null; var K = 'sb_publishable_SaAf7mILfPPpCeAEvj79bA_Vz8JnCBN';
+        fetch('https://pedxoxpammnyfnizljyj.supabase.co/rest/v1/link_visits', { method: 'POST', keepalive: true, credentials: 'omit', headers: { apikey: K, Authorization: 'Bearer ' + K, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+          body: JSON.stringify({ ref: 'pwa-install', path: '/app/', referrer: null, session_id: s }) }).catch(function () {}); } catch (e) {} });
+    </script>
+    <script type="module" crossorigin src="/app-preview/assets/main-fnHBeMyc.js"></script>
+    <link rel="modulepreload" crossorigin href="/app-preview/assets/vendor-DPE4V0T6.js">
+    <link rel="modulepreload" crossorigin href="/app-preview/assets/v5Live-BwgwWv8U.js">
+    <link rel="modulepreload" crossorigin href="/app-preview/assets/chunkGuard-FwRbDaV8.js">
+    <link rel="modulepreload" crossorigin href="/app-preview/assets/helpFaq-Btfm05gQ.js">
+    <link rel="modulepreload" crossorigin href="/app-preview/assets/v5Strings-C7lgqnEm.js">
+    <link rel="modulepreload" crossorigin href="/app-preview/assets/v5Reel-TLxnAs7V.js">
+    <link rel="stylesheet" crossorigin href="/app-preview/assets/main-xr5rZRnj.css">
+    <link rel="stylesheet" crossorigin href="/app-preview/assets/fonts-v8-CfQ7kKzj.css">
+  </head>
+  <body class="antialiased" style="background:#0B0A12;margin:0">
+    <div id="root"><!-- L (15 Nov): shown at once, before the app code arrives (slow 3G inside LINE showed 5–10 s of black). React replaces it. -->
+      <div id="kr-boot" role="status" aria-live="polite" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#0B0A12;color:#cfcbe6;font:600 15px/1.4 system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans Thai',sans-serif;text-align:center">
+        <svg width="96" height="64" viewBox="0 0 96 64" aria-hidden="true"><circle cx="36" cy="32" r="22" fill="none" stroke="#7381FF" stroke-width="7"/><circle cx="60" cy="32" r="22" fill="none" stroke="#FF4FA3" stroke-width="7"/></svg>
+        <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:.01em">กริ๊ง! Kring</div>
+        <div>กำลังโหลด… · Loading…</div>
+        <div style="width:120px;height:3px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden"><i style="display:block;width:40%;height:100%;border-radius:2px;background:linear-gradient(90deg,#7381FF,#FF4FA3);animation:krboot 1.1s ease-in-out infinite alternate"></i></div>
+        <style>@keyframes krboot{from{transform:translateX(-30%)}to{transform:translateX(180%)}}#kr-boot.kr-boot-poster{justify-content:flex-end!important;padding-bottom:calc(84px + env(safe-area-inset-bottom))}#kr-boot.kr-boot-poster>svg,#kr-boot.kr-boot-poster>div:nth-of-type(1){display:none}</style>
+      </div>
+    </div>
+    <script>/* T-398 boot watchdog: a script/style that fails to load before the app starts -> clear Kring caches + reload once, then show a reload button; log to kr8_log_boot_fail. A slow boot (20 s) is only logged, never reloaded. */(function(){var sent=0;function log(code,d){if(sent)return;sent=1;try{var K='sb_publishable_SaAf7mILfPPpCeAEvj79bA_Vz8JnCBN';fetch('https://pedxoxpammnyfnizljyj.supabase.co/rest/v1/rpc/kr8_log_boot_fail',{method:'POST',keepalive:true,credentials:'omit',headers:{apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json'},body:JSON.stringify({p_page:'app',p_code:code,p_detail:String(d||'').slice(0,200),p_ua:navigator.userAgent.slice(0,140)})}).catch(function(){})}catch(e){}}
+      window.addEventListener('error',function(e){var t=e&&e.target;if(!t||window.__KR8_BOOTED__||(t.tagName!=='SCRIPT'&&t.tagName!=='LINK'))return;var u=t.src||t.href||'';if(u.indexOf('/app/assets/')<0)return;log('asset_load_fail',u);try{if(!sessionStorage.getItem('kr_boot_retry')&&'caches' in window){sessionStorage.setItem('kr_boot_retry','1');caches.keys().then(function(ks){return Promise.all(ks.filter(function(k){return k.indexOf('kring-')===0}).map(function(k){return caches.delete(k)}))}).then(function(){location.reload()},function(){location.reload()});return}}catch(x){}var b=document.getElementById('kr-boot');if(b)b.innerHTML='<button onclick="location.reload()" style="padding:12px 22px;border-radius:999px;border:0;background:#7381FF;color:#fff;font:700 15px system-ui;cursor:pointer">'+(/^th/i.test(navigator.language||'')?'โหลดใหม่':'Reload')+'</button>'},true);
+      setTimeout(function(){if(!window.__KR8_BOOTED__)log('boot_slow_20s',location.pathname)},20000)})();</script>
+    <script>
+      if ('serviceWorker' in navigator && navigator.serviceWorker && !window.__kr8Mirror) {
+        window.addEventListener('load', () => {
+          // updateViaCache 'none': the browser never uses its HTTP cache for the worker file, whatever cache header the CDN puts on it
+          navigator.serviceWorker?.register?.('sw.js', { updateViaCache: 'none' })?.then?.((r) => r.update?.())?.catch(() => {});
+        });
+      }
+    </script>
+    <script>/* Kring link-visit counter (supabase 0043_link_visits): 1 row per phone per Bangkok day per ?ref= (anonymous random id kr_vid in localStorage), no cookies, no personal data */(function(){try{if(/[?&](admin|mirror)=1(&|$)/.test(location.search))return;try{if(localStorage.getItem('kr8_admin_view')==='1')return}catch(e){}var r=(new URLSearchParams(location.search).get('ref')||'').toLowerCase();if(!/^[a-z0-9_-]{1,40}$/.test(r))r=null;var s=null;try{s=localStorage.getItem('kr_vid')}catch(e){}if(!s||!/^[a-z0-9]{4,40}$/.test(s)){s=(Math.random().toString(36).slice(2,12)+Math.random().toString(36).slice(2,8))||'x';try{localStorage.setItem('kr_vid',s)}catch(e){try{var s2=sessionStorage.getItem('kr_vid');if(s2)s=s2;else sessionStorage.setItem('kr_vid',s)}catch(e2){}}}if(navigator.webdriver&&s.indexOf('zztest')!==0)s=('zztest'+s).slice(0,40);var dy=new Date(Date.now()+252e5).toISOString().slice(0,10),k='kr_lv:'+dy+':'+(r||'');try{if(localStorage.getItem(k))return;for(var i=localStorage.length-1;i>=0;i--){var kk=localStorage.key(i);if(kk&&kk.indexOf('kr_lv:')===0&&kk.indexOf('kr_lv:'+dy)!==0)localStorage.removeItem(kk)}localStorage.setItem(k,'1')}catch(e){try{if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1')}catch(e2){}}var h='';try{h=document.referrer?new URL(document.referrer).host:''}catch(e){}var K='sb_publishable_SaAf7mILfPPpCeAEvj79bA_Vz8JnCBN';setTimeout(function(){try{fetch('https://pedxoxpammnyfnizljyj.supabase.co/rest/v1/link_visits',{method:'POST',keepalive:true,credentials:'omit',headers:{apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({ref:r,path:(location.pathname||'/').slice(0,200),referrer:h.slice(0,200)||null,session_id:s})}).catch(function(){})}catch(e){}},0)}catch(e){}})();</script>
+  </body>
+</html>
