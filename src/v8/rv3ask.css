@@ -1,0 +1,114 @@
+/* ==========================================================================
+   Revamp 3 (20 Nov) — Ask a Thai, visual only, per the ChatGPT direction:
+   people-first, editorial, breathing room, no neon borders, one primary action (Ask),
+   glow only on the primary button. Same data, same logic.
+   ========================================================================== */
+.v8-app-root .at-root, .v8-app-root .at-page { --rva-f: var(--rv-f, 'RvInter', 'Noto Sans Thai', system-ui, sans-serif); font-family: var(--rva-f); }
+.v8-app-root #s-feed.at-on { background: #0E0F19; }
+.v8-app-root .at-page { background: #0E0F19; }
+.v8-app-root .at-list { top: calc(var(--at-top) + 52px); }
+
+/* ask row: the one primary action, at the top of the list */
+.v8-app-root .rva-askrow { display: flex; align-items: center; gap: 12px; width: calc(100% - 40px); margin: 6px 20px 8px; padding: 8px 8px 8px 10px; border: 0; border-radius: 28px;
+  background: rgba(255,255,255,.05); box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); color: #fff; font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.v8-app-root .rva-askrow .at-av { width: 36px; height: 36px; }
+.v8-app-root .rva-askph { flex: 1; min-width: 0; font: 500 0.9375rem var(--rva-f); color: #A6A4B5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .rva-askbtn { flex: none; height: 38px; padding: 0 18px; border-radius: 19px; display: inline-flex; align-items: center; background: linear-gradient(180deg, #F054BF, #DB3AA6);
+  color: #fff; font: 600 0.9375rem var(--rva-f); box-shadow: 0 8px 22px -10px rgba(236,70,182,.8); }
+.v8-app-root .rva-askrow:active .rva-askbtn { transform: scale(.95); }
+.v8-app-root .at-fab { display: none; }
+
+/* the brand rings (empty states, signed-out ask row) */
+.v8-app-root .rva-rings { position: relative; display: inline-block; width: 46px; height: 28px; flex: none; }
+.v8-app-root .rva-rings i { position: absolute; top: 0; width: 28px; height: 28px; border-radius: 50%; border: 3px solid; box-sizing: border-box; }
+.v8-app-root .rva-rings i:first-child { left: 0; border-color: #737BFF; }
+.v8-app-root .rva-rings i:last-child { left: 18px; border-color: #EC46B6; }
+.v8-app-root .rva-rings.sm { width: 36px; height: 22px; margin: 0 0 0 2px; }
+.v8-app-root .rva-rings.sm i { width: 22px; height: 22px; border-width: 2.5px; }
+.v8-app-root .rva-rings.sm i:last-child { left: 14px; }
+
+/* question card: no box, hairline between, the person first */
+.v8-app-root .at-tw.rva-card { display: block; padding: 18px 20px 14px; border-bottom: 1px solid rgba(255,255,255,.07); }
+.v8-app-root .rva-who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.v8-app-root .rva-who .at-av { box-shadow: 0 0 0 1px rgba(255,255,255,.08); }
+.v8-app-root .rva-whot { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.v8-app-root .rva-nm { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.v8-app-root .rva-nm b { font: 600 0.9375rem var(--rva-f); color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .rva-meta { font: 500 0.75rem var(--rva-f); color: #A6A4B5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .rva-card .at-tw-q { margin-top: 12px; font: 600 1.0625rem/1.42 var(--rva-f); letter-spacing: -.005em; color: #fff; }
+.v8-app-root .rva-card .at-tw-img { height: 180px; border: 0; border-radius: 16px; margin-top: 12px; }
+/* top answer: a soft quote with the answerer's face, no neon bar */
+.v8-app-root .rva-card .at-tw-ans { margin-top: 12px; padding: 12px 14px; border: 0; border-radius: 16px; background: rgba(255,255,255,.04); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); color: #E9E6F2; font: 400 0.9062rem/1.45 var(--rva-f); }
+.v8-app-root .rva-card .at-tw-ans .h { gap: 7px; font: 600 0.8125rem var(--rva-f); margin-bottom: 5px; }
+.v8-app-root .rva-card .at-tw-ans .h .at-av { width: 22px; height: 22px; }
+.v8-app-root .rva-card .at-tw-ans .t { -webkit-line-clamp: 2; }
+/* badges: quiet, no neon */
+.v8-app-root .at-root .at-badge, .v8-app-root .at-page .at-badge { padding: 2px 7px; border: 0; border-radius: 8px; background: rgba(216,180,119,.14); color: #D8B477; font: 600 0.6562rem var(--rva-f); }
+.v8-app-root .at-root .at-badge.at-official, .v8-app-root .at-page .at-badge.at-official { background: rgba(115,123,255,.16); color: #B9BEFF; }
+/* footer: up · answers · share … Answer */
+.v8-app-root .rva-card .at-tw-f { display: flex; align-items: center; gap: 18px; margin-top: 14px; }
+.v8-app-root .rva-card .at-tw-f button { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; color: #A6A4B5; font: 500 0.8125rem var(--rva-f); }
+.v8-app-root .rva-card .at-tw-f .rva-vote.on { color: #EC46B6; }
+.v8-app-root .rva-card .at-tw-f .rva-share { margin-right: auto; }
+.v8-app-root .rva-ans { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px !important; border: 0; border-radius: 17px; background: none; color: #fff !important;
+  box-shadow: inset 0 0 0 1px rgba(236,70,182,.55); font: 600 0.8125rem var(--rva-f) !important; cursor: pointer; }
+.v8-app-root .rva-ans .at-ic { color: #EC46B6; }
+.v8-app-root .rva-ans:active { transform: scale(.95); }
+.v8-app-root .rva-ans.big { height: 44px; padding: 0 22px !important; border-radius: 22px; font-size: 0.9375rem !important; margin-top: 6px; }
+
+/* empty states */
+.v8-app-root .rva-empty, .v8-app-root .rva-noans { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 48px 28px; text-align: center; }
+.v8-app-root .rva-empty b, .v8-app-root .rva-noans b { font: 600 1.0625rem var(--rva-f); color: #fff; margin-top: 8px; }
+.v8-app-root .rva-empty span:not(.rva-rings), .v8-app-root .rva-noans > span:not(.rva-rings) { font: 400 0.875rem/1.45 var(--rva-f); color: #A6A4B5; }
+.v8-app-root .rva-noans { padding: 40px 28px 24px; }
+
+/* thread */
+.v8-app-root .at-page .at-top { height: 48px; margin-top: calc(var(--at-top) + 4px); padding: 0 20px; }
+.v8-app-root .at-thread .at-q { padding: 4px 20px 0; }
+.v8-app-root .at-thread .at-q h1 { margin: 14px 0 0; font: 600 1.375rem/1.35 var(--rva-f); letter-spacing: -.015em; }
+.v8-app-root .at-thread .at-q p { font: 400 0.9375rem/1.55 var(--rva-f); color: #D9D6E6; margin-top: 10px; }
+.v8-app-root .at-thread .at-q .img { height: 190px; margin-top: 14px; }
+.v8-app-root .at-thread .at-q .qa { margin-top: 16px; padding-bottom: 16px; gap: 20px; font: 500 0.8125rem var(--rva-f); color: #A6A4B5; border-bottom: 1px solid rgba(255,255,255,.07); }
+.v8-app-root .at-thread .rva-cnt { display: inline-flex; align-items: center; gap: 6px; }
+.v8-app-root .at-thread .at-votes { gap: 6px; padding: 4px 10px; border-radius: 16px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); }
+.v8-app-root .at-thread .at-votes.hot { color: #fff; }
+.v8-app-root .at-thread .at-votes.voted { color: #EC46B6; box-shadow: inset 0 0 0 1px rgba(236,70,182,.5); }
+.v8-app-root .at-thread .at-c { padding: 16px 20px 0; }
+.v8-app-root .at-thread .at-c .h { gap: 9px; font: 600 0.875rem var(--rva-f); }
+.v8-app-root .at-thread .at-c .h .at-av { width: 32px; height: 32px; }
+.v8-app-root .at-thread .at-c .h small { font: 500 0.75rem var(--rva-f); }
+.v8-app-root .at-thread .at-c .star { color: #D8B477; font: 600 0.75rem var(--rva-f); }
+.v8-app-root .at-thread .at-c .t { margin: 8px 0 0 41px; font: 400 0.9375rem/1.55 var(--rva-f); color: #EDEBF5; }
+.v8-app-root .at-thread .at-c .img { margin-left: 41px; }
+.v8-app-root .at-thread .at-c .f { margin-left: 41px; padding-bottom: 16px; font: 500 0.8125rem var(--rva-f); border-bottom-color: rgba(255,255,255,.07); }
+.v8-app-root .at-thread .at-c.reply { padding-left: 61px; }
+/* composer: my face, a calm field, svg tools */
+.v8-app-root .at-bar { padding-top: 8px; box-shadow: 0 -1px 0 rgba(255,255,255,.06); background: #0E0F19; }
+.v8-app-root .at-composer { height: 52px; gap: 12px; padding: 0 8px 0 8px; border-radius: 26px; background: rgba(255,255,255,.05); border: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+.v8-app-root .at-composer .at-av { width: 34px; height: 34px; }
+.v8-app-root .at-composer input { font: 500 0.9375rem var(--rva-f); }
+.v8-app-root .at-composer input::placeholder { font-size: 0.9375rem; color: #A6A4B5; }
+.v8-app-root .at-tool { color: #A6A4B5; display: grid; place-items: center; }
+.v8-app-root .at-tool.on { color: #EC46B6; filter: none; }
+.v8-app-root .at-tool.at-gif { border: 1.5px solid #A6A4B5; color: #A6A4B5; font: 700 0.625rem var(--rva-f); padding: 2px 4px; margin-right: 4px; }
+.v8-app-root .at-go { background: linear-gradient(180deg, #F054BF, #DB3AA6); box-shadow: 0 6px 16px -8px rgba(236,70,182,.9); }
+.v8-app-root .at-replying { font: 500 0.8125rem var(--rva-f); }
+
+/* Ask sheet */
+.v8-app-root .at-compose .rva-ttl { flex: 1; text-align: center; font: 600 1rem var(--rva-f); color: #fff; }
+.v8-app-root .at-compose .at-post { margin-left: 0; height: 38px; padding: 0 20px; background: linear-gradient(180deg, #F054BF, #DB3AA6); font: 600 0.9375rem var(--rva-f); box-shadow: 0 8px 22px -10px rgba(236,70,182,.8); }
+.v8-app-root .at-compose .at-post:disabled { opacity: 1; background: rgba(255,255,255,.08); color: #6E6C80; box-shadow: none; }
+.v8-app-root .rva-cwho { margin: 10px 20px 4px; }
+.v8-app-root .at-compose .at-ti { width: calc(100% - 40px); margin: 14px 20px 0; font: 600 1.375rem/1.35 var(--rva-f); letter-spacing: -.015em; }
+.v8-app-root .at-compose .at-bdy { width: calc(100% - 40px); margin: 12px 20px 0; font: 400 0.9375rem/1.55 var(--rva-f); color: #D9D6E6; }
+.v8-app-root .at-compose .at-cimg { margin: 14px 20px 0; }
+.v8-app-root .at-tools-wrap { border-top: 1px solid rgba(255,255,255,.07); padding: 12px 20px calc(env(safe-area-inset-bottom, 0px) + 22px); }
+.v8-app-root .at-chip2 { height: 38px; padding: 0 14px; background: none; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); color: #E9E6F2; font: 500 0.8438rem var(--rva-f); }
+.v8-app-root .at-chip2 .at-ic { color: #A6A4B5; }
+.v8-app-root .at-chip2.on { box-shadow: inset 0 0 0 1px rgba(236,70,182,.6); }
+.v8-app-root .at-chip2.at-gifchip { font: 700 0.6875rem var(--rva-f); }
+.v8-app-root .at-emoji button { background: rgba(255,255,255,.06); }
+
+/* report sheet in the same calm style */
+.v8-app-root .at-sheet { background: #1A1B2C; }
+.v8-app-root .at-sheet-row { background: rgba(255,255,255,.05); font: 500 0.9375rem var(--rva-f); }

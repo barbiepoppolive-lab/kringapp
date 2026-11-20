@@ -206,3 +206,24 @@ html[lang="th"] .v8-app-root #s-me .rv-found .rv-fk { letter-spacing: 0; text-tr
   .v8-app-root .rv-chk path { animation: none; stroke-dashoffset: 0; }
   .v8-app-root :is(.rv-hi, .rv-fol, .rv-pc .hibtn, .rv-hi-rings i, #pplGrid .rv-pc .rv-ph .img) { transition: none; }
 }
+
+/* ---------- 5. Revamp 3 (20 Nov): no wasted space at the top of any tab ----------
+   founder: "Why there are lot of empty spaces on upper side on all the tabs?"
+   Every tab's first row now sits on the same line as the chat button (safe area + 6px, 44px row). */
+.v8-app-root #s-people { padding-top: calc(env(safe-area-inset-top, 0px) + 6px) !important; }
+.v8-app-root #s-people .ppl-head { padding-top: 0 !important; margin-bottom: 0 !important; }
+.v8-app-root #s-people .rv-phead { padding-top: 0 !important; }
+.v8-app-root #s-people .rv-ptop { min-height: 44px; }
+.v8-app-root #s-people .rv-ptop .ppl-title { font-size: 1.375rem !important; }
+.v8-app-root #s-people .rv-seg { margin-top: 2px !important; }
+.v8-app-root #s-people .rv-seg button { height: 36px !important; }
+.v8-app-root #s-people .rv-fchips { margin-top: 8px; }
+.v8-app-root #pplGrid { margin-top: 12px !important; }
+/* Deals: no big title + sentence; "For your trip" is the first row */
+.v8-app-root #s-deals { padding-top: calc(env(safe-area-inset-top, 0px) + 12px) !important; }
+.v8-app-root #s-deals #goDealsHead { display: none !important; }
+.v8-app-root #s-deals > .ktrip:first-of-type, .v8-app-root #s-deals #forYourTrip { margin-top: 0; }
+.v8-app-root #s-deals #forYourTrip .ktrip-head { align-items: center; min-height: 34px; }
+/* Me: the YOUR KRING row lines up with the other tabs */
+.v8-app-root #s-me .kme-top { padding-top: calc(env(safe-area-inset-top, 0px) + 10px) !important; }
+.v8-app-root #s-me .kme > .rv-id, .v8-app-root #s-me .rv-id#meIdentity { margin-top: 8px; }

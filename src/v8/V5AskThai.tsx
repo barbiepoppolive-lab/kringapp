@@ -5,6 +5,7 @@
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import './askThai.css';
+import './rv3ask.css';
 import {
   ASK_MAX_Q, ASK_MAX_TEXT, askAge, checkAskFile, fmtCount, nextVote,
   type AskAnswer, type AskApi, type AskPerson, type AskQuestion, type AskReportReason, type AskThreadData,
@@ -39,6 +40,11 @@ const IC = {
   pin: 'M12 21s-6-5.6-6-10.5A6 6 0 0118 10.5C18 15.4 12 21 12 21zM12 8.3a2.2 2.2 0 100 4.4 2.2 2.2 0 000-4.4z',
   send: 'M5 12h13M13 6l6 6-6 6',
   more: 'M5 12h.01M12 12h.01M19 12h.01',
+  up: 'M6 14l6-6 6 6',
+  chat: 'M5 6h14v9H10l-4 3.5V15H5z',
+  photo: 'M4 6h16v12H4zM8.5 10.5a1.5 1.5 0 100-.01M20 15l-5-5-8 8',
+  smile: 'M12 3a9 9 0 100 18 9 9 0 000-18zM8.5 14.5s1.2 1.8 3.5 1.8 3.5-1.8 3.5-1.8M9 9.5h.01M15 9.5h.01',
+  pen: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
 };
 
 /** ⋯ → Report → reason (same reasons and words as the Reel report). 'block' also blocks the person. */
@@ -123,26 +129,30 @@ function useMedia(onErr: (m: string) => void, L: LFn) {
 }
 
 // ───────────────────────── timeline ─────────────────────────
-const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onVote: (v: 1) => void; onShare: () => void; areaLabel: (a: string) => string }> = ({ q, L, onOpen, onVote, onShare, areaLabel }) => (
-  <article className="at-tw" data-ask-id={q.id}>
-    <Av p={q.by} s={40} />
-    <div className="at-tw-main">
-      <button type="button" className="at-tw-open" onClick={onOpen}>
-        <div className="at-tw-h"><b>{q.by.name}</b>{who(q.by, L)}<span>· {areaLabel(q.area)} · {askTime(L, q.at)}</span></div>
-        <div className="at-tw-q">{q.body}</div>
-        {q.media && <Media m={q.media} cls="at-tw-img" />}
-        {q.top && (
-          <div className="at-tw-ans">
-            <div className="h"><Av p={q.top.by} s={20} />{q.top.by.name}{who(q.top.by, L)}</div>
-            {q.top.body && <div className="t">{q.top.body}</div>}
-          </div>
-        )}
-      </button>
-      <div className="at-tw-f">
-        <button type="button" className={q.myVote === 1 ? 'on' : ''} aria-label={`${fmtCount(q.score)} ${L('Upvote')}`} aria-pressed={q.myVote === 1} onClick={() => onVote(1)}>▲ {fmtCount(q.score)}</button>
-        <button type="button" aria-label={`${fmtCount(q.answers)} ${L('Answers')}`} onClick={onOpen}>💬 {fmtCount(q.answers)}</button>
-        <button type="button" aria-label={L('Share')} onClick={onShare}>↗</button>
+const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onAnswer: () => void; onVote: (v: 1) => void; onShare: () => void; areaLabel: (a: string) => string }> = ({ q, L, onOpen, onAnswer, onVote, onShare, areaLabel }) => (
+  <article className="at-tw rva-card" data-ask-id={q.id}>
+    <button type="button" className="at-tw-open" onClick={onOpen}>
+      <div className="rva-who">
+        <Av p={q.by} s={36} />
+        <div className="rva-whot">
+          <div className="rva-nm"><b>{q.by.name}</b>{who(q.by, L)}</div>
+          <span className="rva-meta">{areaLabel(q.area)} · {askTime(L, q.at)}</span>
+        </div>
       </div>
+      <div className="at-tw-q">{q.body}</div>
+      {q.media && <Media m={q.media} cls="at-tw-img" />}
+      {q.top && (
+        <div className="at-tw-ans">
+          <div className="h"><Av p={q.top.by} s={22} /><b>{q.top.by.name}</b>{who(q.top.by, L)}</div>
+          {q.top.body && <div className="t">{q.top.body}</div>}
+        </div>
+      )}
+    </button>
+    <div className="at-tw-f">
+      <button type="button" className={`rva-vote${q.myVote === 1 ? ' on' : ''}`} aria-label={`${fmtCount(q.score)} ${L('Upvote')}`} aria-pressed={q.myVote === 1} onClick={() => onVote(1)}><Ic d={IC.up} s={18} />{fmtCount(q.score)}</button>
+      <button type="button" className="rva-cnt" aria-label={`${fmtCount(q.answers)} ${L('Answers')}`} onClick={onOpen}><Ic d={IC.chat} s={18} />{q.answers === 1 ? L('1 answer') : L('{0} answers').replace('{0}', fmtCount(q.answers))}</button>
+      <button type="button" className="rva-share" aria-label={L('Share')} onClick={onShare}><Ic d={IC.share} s={17} /></button>
+      <button type="button" className="rva-ans" data-ask-answer={q.id} onClick={onAnswer}><Ic d={IC.pen} s={15} />{L('Answer')}</button>
     </div>
   </article>
 );
@@ -160,7 +170,9 @@ const Thread: React.FC<{
   L: LFn; api: AskApi; id: string; me: AskPerson | null; areaLabel: (a: string) => string;
   onClose: () => void; onShare: (q: AskQuestion) => void; need: (after: () => void) => void; toast: (m: string) => void; onChanged: (q: AskQuestion) => void;
   onReportedQ: (id: string) => void;
-}> = ({ L, api, id, me, areaLabel, onClose, onShare, need, toast, onChanged, onReportedQ }) => {
+  /** rv3: opened from a card's "Answer" button → the answer box gets focus once the thread is on screen */
+  focusAnswer?: boolean;
+}> = ({ L, api, id, me, areaLabel, onClose, onShare, need, toast, onChanged, onReportedQ, focusAnswer }) => {
   const [rep, setRep] = useState<{ kind: 'q' | 'a'; id: string } | null>(null);
   const report = (r: AskReportReason) => {
     const target = rep;
@@ -190,6 +202,10 @@ const Thread: React.FC<{
     api.thread(id).then((d) => { setData(d); onChanged(d.q); }).catch(() => setErr(true));
   }, [api, id, onChanged]);
   useEffect(load, [load]);
+  const focused = useRef(false);
+  useEffect(() => {
+    if (focusAnswer && data && me && !focused.current) { focused.current = true; setTimeout(() => inp.current?.focus(), 60); }
+  }, [focusAnswer, data, me]);
 
   const voteQ = (tap: -1 | 1) => need(() => {
     if (!data) return;
@@ -233,13 +249,19 @@ const Thread: React.FC<{
         {err && <button type="button" className="at-retry" onClick={load}>{L('Try again')}</button>}
         {q && (
           <div className="at-q">
-            <div className="m">{q.by.name}{(q.by.local || q.by.official) && <> {who(q.by, L)}</>} · {areaLabel(q.area)} · {askTime(L, q.at)}</div>
+            <div className="rva-who">
+              <Av p={q.by} s={40} />
+              <div className="rva-whot">
+                <div className="rva-nm"><b>{q.by.name}</b>{who(q.by, L)}</div>
+                <span className="rva-meta">{areaLabel(q.area)} · {askTime(L, q.at)}</span>
+              </div>
+            </div>
             <h1>{q.body}</h1>
             {q.details && <p>{q.details}</p>}
             {q.media && <Media m={q.media} cls="img" />}
             <div className="qa">
               <VoteRow L={L} score={q.score} my={q.myVote} onVote={voteQ} hot />
-              <span>💬 {answers.length === 1 ? L('1 answer') : L('{0} answers').replace('{0}', fmtCount(answers.length))}</span>
+              <span className="rva-cnt"><Ic d={IC.chat} s={17} />{answers.length === 1 ? L('1 answer') : L('{0} answers').replace('{0}', fmtCount(answers.length))}</span>
             </div>
           </div>
         )}
@@ -259,6 +281,14 @@ const Thread: React.FC<{
             </div>
           </div>
         ))}
+        {data && answers.length === 0 && (
+          <div className="rva-noans">
+            <span className="rva-rings" aria-hidden="true"><i /><i /></span>
+            <b>{L('No answers yet')}</b>
+            <span>{L('Know this one? Your answer helps.')}</span>
+            <button type="button" className="rva-ans big" onClick={() => need(() => inp.current?.focus())}><Ic d={IC.pen} s={16} />{L('Answer')}</button>
+          </div>
+        )}
         <div className="at-pad" />
       </div>
       <div className="at-bar">
@@ -284,6 +314,7 @@ const Thread: React.FC<{
           </div>
         )}
         <div className="at-composer">
+          {me && <Av p={me} s={30} />}
           <input
             ref={inp}
             value={text}
@@ -294,8 +325,8 @@ const Thread: React.FC<{
             onFocus={() => { if (!me) { inp.current?.blur(); need(() => inp.current?.focus()); } }}
             onKeyDown={(e) => { if (e.key === 'Enter' && canSend) send(); }}
           />
-          <button type="button" className="at-tool" aria-label={L('Photo')} onClick={() => need(() => photoIn.current?.click())}>🖼️</button>
-          <button type="button" className={`at-tool${emoji ? ' on' : ''}`} aria-label={L('Emoji')} onClick={() => setEmoji((x) => !x)}>😊</button>
+          <button type="button" className="at-tool" aria-label={L('Photo')} onClick={() => need(() => photoIn.current?.click())}><Ic d={IC.photo} s={20} /></button>
+          <button type="button" className={`at-tool${emoji ? ' on' : ''}`} aria-label={L('Emoji')} onClick={() => setEmoji((x) => !x)}><Ic d={IC.smile} s={20} /></button>
           <button type="button" className="at-tool at-gif" aria-label={L('GIF')} onClick={() => need(() => gifIn.current?.click())}>{L('GIF')}</button>
           {canSend && <button type="button" className="at-go" aria-label={L('Post')} disabled={busy} onClick={send}><Ic d={IC.send} s={18} /></button>}
         </div>
@@ -310,8 +341,8 @@ const Thread: React.FC<{
 // ───────────────────────── Ask sheet (screen 04) ─────────────────────────
 const Compose: React.FC<{
   L: LFn; api: AskApi; areas: readonly string[]; areaLabel: (a: string) => string; defaultArea: string;
-  onClose: () => void; onDone: (id: string) => void; toast: (m: string) => void; initial?: string;
-}> = ({ L, api, areas, areaLabel, defaultArea, onClose, onDone, toast, initial }) => {
+  onClose: () => void; onDone: (id: string) => void; toast: (m: string) => void; initial?: string; me?: AskPerson | null;
+}> = ({ L, api, areas, areaLabel, defaultArea, onClose, onDone, toast, initial, me }) => {
   const [body, setBody] = useState(initial || '');
   const [details, setDetails] = useState('');
   const [area, setArea] = useState(defaultArea);
@@ -342,9 +373,16 @@ const Compose: React.FC<{
     <div className="at-page at-compose" role="dialog" aria-label={L('Ask')}>
       <div className="at-top">
         <button type="button" className="at-iconbtn" aria-label={L('Close')} onClick={onClose}><Ic d={IC.x} /></button>
+        <b className="rva-ttl">{L('Ask a Thai')}</b>
         <button type="button" className="at-post" disabled={!ok} onClick={post}>{L('Post')}</button>
       </div>
       <div className="at-scroll at-cbody">
+        {me && (
+          <div className="rva-who rva-cwho">
+            <Av p={me} s={36} />
+            <div className="rva-whot"><div className="rva-nm"><b>{me.name}</b></div><span className="rva-meta">{areaLabel(area)}</span></div>
+          </div>
+        )}
         <textarea ref={ta} className="at-ti" rows={1} value={body} maxLength={ASK_MAX_Q} placeholder={L('Your question')} aria-label={L('Your question')}
           onFocus={() => setFocus('q')} onChange={(e) => setBody(e.target.value.replace(/\n/g, ' '))} />
         <textarea className="at-bdy" rows={3} value={details} maxLength={ASK_MAX_TEXT} placeholder={L('Add details (optional)')} aria-label={L('Add details (optional)')}
@@ -364,8 +402,8 @@ const Compose: React.FC<{
               {areas.map((a) => <option key={a} value={a}>{areaLabel(a)}</option>)}
             </select>
           </label>
-          <button type="button" className="at-chip2" onClick={() => photoIn.current?.click()}>🖼️ {L('Photo')}</button>
-          <button type="button" className={`at-chip2${emoji ? ' on' : ''}`} aria-label={L('Emoji')} onClick={() => setEmoji((x) => !x)}>😊</button>
+          <button type="button" className="at-chip2" onClick={() => photoIn.current?.click()}><Ic d={IC.photo} s={16} />{L('Photo')}</button>
+          <button type="button" className={`at-chip2${emoji ? ' on' : ''}`} aria-label={L('Emoji')} onClick={() => setEmoji((x) => !x)}><Ic d={IC.smile} s={16} /></button>
           <button type="button" className="at-chip2 at-gifchip" onClick={() => gifIn.current?.click()}>{L('GIF')}</button>
         </div>
       </div>
@@ -401,6 +439,7 @@ export const AskThaiView: React.FC<AskThaiViewProps> = ({ L, api, me, areas, are
   const [more, setMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [thread, setThread] = useState<string | null>(openThread || null);
+  const [answerNow, setAnswerNow] = useState(false);
   const [compose, setCompose] = useState(!!openCompose);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -459,22 +498,33 @@ export const AskThaiView: React.FC<AskThaiViewProps> = ({ L, api, me, areas, are
   return (
     <div className="at-root">
       <div className="at-list" ref={listRef} onScroll={onScroll} aria-busy={items === null}>
+        <button type="button" className="rva-askrow" aria-label={L('Ask')} onClick={() => need(() => setCompose(true))}>
+          {me ? <Av p={me} s={36} /> : <span className="rva-rings sm" aria-hidden="true"><i /><i /></span>}
+          <span className="rva-askph">{L('Ask Bangkok locals anything')}</span>
+          <span className="rva-askbtn" aria-hidden="true">{L('Ask')}</span>
+        </button>
         {err && <button type="button" className="at-retry" onClick={refresh}>{L('Try again')}</button>}
         {items === null && !err && [0, 1, 2].map((i) => <div key={i} className="at-tw at-skel"><span className="at-av" /><div className="at-tw-main"><i /><i /><i /></div></div>)}
-        {items && items.length === 0 && <div className="at-empty">{L('No questions yet')}</div>}
+        {items && items.length === 0 && (
+          <div className="at-empty rva-empty">
+            <span className="rva-rings" aria-hidden="true"><i /><i /></span>
+            <b>{L('No questions yet')}</b>
+            <span>{L('Be the first to ask Bangkok.')}</span>
+          </div>
+        )}
         {items && items.map((q) => (
-          <Post key={q.id} q={q} L={L} areaLabel={areaLabel} onOpen={() => setThread(q.id)} onVote={() => vote(q)} onShare={() => void share(q)} />
+          <Post key={q.id} q={q} L={L} areaLabel={areaLabel} onOpen={() => { setAnswerNow(false); setThread(q.id); }}
+            onAnswer={() => need(() => { setAnswerNow(true); setThread(q.id); })} onVote={() => vote(q)} onShare={() => void share(q)} />
         ))}
         <div className="at-pad" />
       </div>
-      <button type="button" className="at-fab" onClick={() => need(() => setCompose(true))}><Ic d={IC.ask} s={20} />{L('Ask')}</button>
       {thread && (
-        <Thread L={L} api={api} id={thread} me={me} areaLabel={areaLabel} need={need} toast={toast} onChanged={patch}
+        <Thread L={L} api={api} id={thread} me={me} areaLabel={areaLabel} need={need} toast={toast} onChanged={patch} focusAnswer={answerNow}
           onClose={() => { setThread(null); }} onShare={(q) => void share(q)}
           onReportedQ={(qid) => { setThread(null); setItems((cur) => (cur ? cur.filter((x) => x.id !== qid) : cur)); }} />
       )}
       {compose && (
-        <Compose L={L} api={api} areas={areas} areaLabel={areaLabel} defaultArea={defaultArea} toast={toast} initial={composeText}
+        <Compose L={L} api={api} me={me} areas={areas} areaLabel={areaLabel} defaultArea={defaultArea} toast={toast} initial={composeText}
           onClose={() => setCompose(false)}
           onDone={(id) => { setCompose(false); refresh(); listRef.current?.scrollTo({ top: 0 }); setThread(id); }} />
       )}

@@ -551,6 +551,11 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Use a photo or GIF': 'ใช้ได้เฉพาะรูปหรือ GIF',
     'Couldn’t post · try again': 'โพสต์ไม่สำเร็จ · ลองใหม่อีกครั้ง',
     'No questions yet': 'ยังไม่มีคำถาม',
+    'Answer': 'ตอบ',
+    'No answers yet': 'ยังไม่มีคำตอบ',
+    'Know this one? Your answer helps.': 'รู้เรื่องนี้ไหม? คำตอบของคุณช่วยได้เยอะ',
+    'Ask Bangkok locals anything': 'ถามคนกรุงเทพฯ ได้ทุกเรื่อง',
+    'Be the first to ask Bangkok.': 'มาเป็นคนแรกที่ถามคนกรุงเทพฯ',
     // T-301 (T301-007): Weather sheet
     'Feels like {0}°': 'รู้สึกเหมือน {0}°',
     'Tropical shower likely this afternoon': 'บ่ายนี้มีแนวโน้มฝนตก',
