@@ -301,7 +301,7 @@ export function V5MintSheet(props: {
         if (linkErr) props.toast(linkErr);
         if (!showSocials && (ig || tt)) { try { const r = await v5SetSocialsShown(false); if (me.card) me.card = { ...me.card, ...r } as V5Card; } catch { /* stays shown; the switch is in Edit profile */ } }
         props.onSaved(me);
-        // 17 Nov (founder): the 5-second face check comes right after the card photo, while the member is still here
+        // 17 Nov (founder): the 3-second face check comes right after the card photo, while the member is still here
         const no = (me.card as (V5Card & { member_no?: number }) | null)?.member_no ?? null;
         if (photo && me.card?.photo) { props.toast(L('Card saved · กริ๊ง!')); props.onAfter('verify', no); }
         else setMinted({ no });

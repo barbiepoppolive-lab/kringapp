@@ -1,5 +1,5 @@
 /**
- * "Get verified ✓", instant version (0081, 17 Nov). Tap Verify → full-screen front camera with an oval, about 5 seconds,
+ * "Get verified ✓", instant version (0081, 17 Nov). Tap Verify → full-screen front camera with an oval, about 3 seconds,
  * no shutter button: look straight → turn your head a little left / right (random order) → blink. The best straight frame is
  * taken automatically. MediaPipe on the phone (face-api fallback) checks it is a live person; face-api compares the selfie with
  * the card photo; the SERVER compares the face with every other member and decides at once: ✓ verified / "we're checking" /
@@ -478,7 +478,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
               ? <><p id="verifyPhotoNote">{L('We’ll send this one photo to our team to check, then delete it.')}</p><button type="button" className="kfv2-cta" id="verifySnap" onClick={takeSelfie}>{L('Take selfie')}</button></>
               : photoNote && stage === 'checking'
                 ? <p id="verifyPhotoNote" role="status">{L('We’ll send this one photo to our team to check, then delete it.')}</p>
-                : <><p>{L('Checked on your phone · about 5 seconds')}</p><PrivacyLink L={L} /></>}
+                : <><p>{L('Checked on your phone · about 3 seconds')}</p><PrivacyLink L={L} /></>}
           </div>
         </div>
       )}
@@ -492,8 +492,8 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
 
       {stage === 'intro' && (
         <Panel L={L} onClose={close} icon="intro" id="verifyIntro"
-          title={mode === 'claim' ? L('One quick step to get your prize') : props.nudge ? L('New: 5-second face check') : L('Verify in 5 seconds')}
-          text={mode === 'claim' ? L('A 5-second face check keeps every prize one person, one account.')
+          title={mode === 'claim' ? L('One quick step to get your prize') : props.nudge ? L('New: 3-second face check') : L('Verify in 3 seconds')}
+          text={mode === 'claim' ? L('A 3-second face check keeps every prize one person, one account.')
             : props.nudge ? L('Do it once. It keeps your ✓ and your prizes safe.')
             : L('You only need it to claim a prize. Look at the camera, turn a little, blink.')}>
           {inApp && <p className="kfv2-small kfv2-inapp" id="verifyInApp" role="note">{L('You’re in an app’s built-in browser, where the camera often doesn’t work. If it doesn’t start, open this page in Chrome (or Safari).')}</p>}

@@ -271,7 +271,7 @@ export type MeViewProps = {
   webAskSlot?: React.ReactNode;
   /** 17 Nov: "Your next step" card, at the top. 19 Nov (A): shown only for a step that asks for an action (see nextKind) */
   nextSlot?: React.ReactNode; nextKind?: string | null;
-  /** 0111: the gentle "Verify your face in 5 seconds" row can be hidden (×) for a while; it never blocks anything */
+  /** 0111: the gentle "Verify your face in 3 seconds" row can be hidden (×) for a while; it never blocks anything */
   verifyHidden?: boolean; onVerifyHide?: () => void;
   /** 19 Nov (A): Ask Kring Helper lives in the ⋯ menu; the week line shows this week's prize at my rank (0 = none) */
   onHelp?: () => void; weekPrize?: number | null;
@@ -363,7 +363,7 @@ export function MeView(props: MeViewProps) {
           <button type="button" className="kme-vmain" id="meVerifyGo" onClick={props.onVerify} disabled={props.verifyState === 'pending'}>
             <span className="ic" aria-hidden="true">✓</span>
             <span className="t">
-              <b>{props.verifyState === 'pending' ? L('We’re checking · usually within a day') : L('Verify your face in 5 seconds')}</b>
+              <b>{props.verifyState === 'pending' ? L('We’re checking · usually within a day') : L('Verify your face in 3 seconds')}</b>
               <small>{props.verifyState === 'pending' ? L('You’ll see ✓ verified on your card when it’s done') : L('Be ready to claim your prize the moment you win.')}</small>
             </span>
             {props.verifyState === 'pending' ? null : <span className="go" aria-hidden="true">›</span>}

@@ -359,11 +359,11 @@ describe('Rewards screen (simplified)', () => {
 });
 
 describe('Claim a prize', () => {
-  it('TrueMoney only: a 75% config shows "75% of the prize value"; no Grab, no ShopeePay', () => {
+  it('TrueMoney only: a 75% config shows the voucher amount only, no percent; no Grab, no ShopeePay', () => {
     render(<ClaimPage L={L} Lf={Lf} lang="en" data={rewards()} prize={prize({ amount: 1500, rank: 1 })} onBack={() => undefined} onDone={() => undefined} toast={() => undefined} />);
     const tm = document.querySelector('[data-brand="truemoney"]')!;
     expect(tm.textContent).toContain('฿1,125');
-    expect(tm.textContent).toContain('75% of the prize value');
+    expect(tm.textContent).not.toMatch(/%|of the prize/);
     expect(document.querySelector('[data-brand="grab"]')).toBeNull();
     expect(document.querySelector('[data-brand="shopeepay"]')).toBeNull();
     expect(screen.getByLabelText('Claim with TrueMoney · ฿1,125')).toBeTruthy();

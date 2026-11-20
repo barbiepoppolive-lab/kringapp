@@ -241,7 +241,7 @@ export function V5VerifyAws(props: { L: Tx; photo: string | null; nudge?: boolea
             <div className="kfv2-dots" aria-hidden="true">
               {AWS_STEPS.map((k, i) => <i key={k} className={shot > i ? 'on' : shot === i ? 'now' : ''} />)}
             </div>
-            <p>{L('Checked securely · about 5 seconds')}</p>
+            <p>{L('Checked securely · about 3 seconds')}</p>
             <PrivacyLink L={L} />
           </div>
         </div>
@@ -256,8 +256,8 @@ export function V5VerifyAws(props: { L: Tx; photo: string | null; nudge?: boolea
 
       {stage === 'intro' && (
         <Panel L={L} onClose={close} icon="intro" id="verifyIntro"
-          title={mode === 'claim' ? L('One quick step to get your prize') : L('Verify in 5 seconds')}
-          text={mode === 'claim' ? L('A 5-second face check keeps every prize one person, one account.')
+          title={mode === 'claim' ? L('One quick step to get your prize') : L('Verify in 3 seconds')}
+          text={mode === 'claim' ? L('A 3-second face check keeps every prize one person, one account.')
             : L('You only need it to claim a prize. Look at the camera, then turn a little left and right.')}>
           <details className="kfv2-consent" id="verifyConsent">
             <summary>{L('Your face data')}</summary>

@@ -117,7 +117,7 @@ export class V5Error extends Error {
   constructor(code: string) {
     super(code);
     this.code = code;
-    // 0093: a new member tried to post / chat before the face check → the app opens the 5-second check
+    // 0093: a new member tried to post / chat before the face check → the app opens the 3-second check
     if (code === 'VERIFY_FIRST' && typeof window !== 'undefined') { try { window.dispatchEvent(new CustomEvent('kr8-verify-first')); } catch { /* ignore */ } }
   }
 }
@@ -926,7 +926,7 @@ export async function v5VerifySimple(selfie: Blob, check: { why: string; device:
   if (!up || !up.ok) throw new V5Error('UPLOAD');
   return rpc<V5FaceDecision>('kr8_verify_simple', { p_selfie_path: path, p_consent_version: consent, p_check: check });
 }
-/** 0081: does this member still need the new 5-second check? null = not signed in / no card / server without 0081 */
+/** 0081: does this member still need the new 3-second check? null = not signed in / no card / server without 0081 */
 export interface V5FaceStatus { verified: boolean; new_check: boolean; pending: boolean; blocked: boolean; tries_left: number }
 export async function v5MyFaceStatus(): Promise<V5FaceStatus | null> {
   try { return (await rpc<V5FaceStatus | null>('kr8_my_face_status')) || null; } catch { return null; }

@@ -148,7 +148,7 @@ export function RewardsPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewar
   );
 }
 
-/** Claim a prize: pick the app → one tap. Grab = full value, TrueMoney = truemoney_payout_pct of it (100% on live; a lower value would show as "N% of the prize value",
+/** Claim a prize: pick the app → one tap. Grab = full value, TrueMoney = truemoney_payout_pct of it (100% on live). 20 Nov founder: no percent or fee is ever shown, only "Voucher" and the amount you get;
  *  audit P2-6: the 25% is the loss on Kring's own top-up stock, not a TrueMoney fee, so the app no longer says "TrueMoney keeps 25%"). */
 export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards | null; prize: KxPrize | null; onBack: () => void; onDone: (r: KxClaimResult) => void; toast: (m: string) => void;
   /** 0111: the face check is needed ONLY to claim a prize. false = not verified yet → the claim asks for it first (undefined = unknown: the server decides) */
@@ -164,7 +164,7 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   // 0066: 'face' = the 3-second face check before the claim; 'line' = LINE must be linked first (switch claim_needs_line)
-  // 0111: 'verify' = not face-verified yet: the 5-second check is the required step before the claim (opened on top by the app)
+  // 0111: 'verify' = not face-verified yet: the 3-second check is the required step before the claim (opened on top by the app)
   const [step, setStep] = useState<'pick' | 'face' | 'line' | 'verify'>(props.startStep || 'pick');
   const needsVerify = props.verified === false && !props.verifyPending && !!props.onVerify;
   // verified (or sent for the team's look) while the step was showing → back to the choice, ready to claim
@@ -256,7 +256,7 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
         <div className="kx-step kx-step-vfy" id="kxClaimVerify">
           <span className="vf" aria-hidden="true">✓</span>
           <b>{L('Verify your face to claim')}</b>
-          <small>{L('5 seconds, once. It keeps every prize one person, one account.')}</small>
+          <small>{L('3 seconds, once. It keeps every prize one person, one account.')}</small>
           <button type="button" className="kx-btn" id="kxClaimVerifyGo" onClick={() => props.onVerify?.()}>{L('Verify my face')}</button>
         </div>
       ) : null}
@@ -275,7 +275,7 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
               <span className="rd" aria-hidden="true" />
               <BrandLogo b={b} />
               <span className="n"><span data-value={valueFor(b, amount, pct)}>{BRAND_NAME[b]} {baht(valueFor(b, amount, pct))}</span>
-                <small>{b === 'truemoney' && pct < 100 ? Lf('{0}% of the prize value', String(pct)) : L('Full value')}</small></span>
+                <small>{L('Voucher')}</small></span>
             </button>
           </Fragment>
         ))}

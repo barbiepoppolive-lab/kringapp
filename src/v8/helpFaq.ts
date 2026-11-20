@@ -24,8 +24,8 @@ export const HELP_FAQS: HelpFaq[] = [
   // ── start ──
   { id: 'face_why', cat: 'start', qTh: 'ทำไมต้องยืนยันใบหน้า?', qEn: 'Why do I need the face check?', chipTh: 'ทำไมต้องยืนยันใบหน้า?', chipEn: 'Why the face check?',
     // 0111 (founder 18 Nov): the face check is needed only to claim a prize
-    aTh: 'ต้องยืนยันใบหน้าเฉพาะตอนรับรางวัลเท่านั้นครับ เพื่อให้กริ๊ง! เป็นของคนจริง หนึ่งคน หนึ่งบัญชี และรางวัลไม่ถูกรับซ้ำ ส่วนอย่างอื่นใช้ได้เลยโดยไม่ต้องยืนยัน ทั้งทำการ์ด ขึ้นในหน้าผู้คน โพสต์รีล และแชท ใช้เวลาแค่ราว 5 วินาทีครับ',
-    aEn: 'Only to claim a prize. Kring is for real people, one person, one account, so the same person can’t claim a prize twice. Everything else works without it: your card, People, posting Reels and chat. It takes about 5 seconds.',
+    aTh: 'ต้องยืนยันใบหน้าเฉพาะตอนรับรางวัลเท่านั้นครับ เพื่อให้กริ๊ง! เป็นของคนจริง หนึ่งคน หนึ่งบัญชี และรางวัลไม่ถูกรับซ้ำ ส่วนอย่างอื่นใช้ได้เลยโดยไม่ต้องยืนยัน ทั้งทำการ์ด ขึ้นในหน้าผู้คน โพสต์รีล และแชท ใช้เวลาแค่ราว 3 วินาทีครับ',
+    aEn: 'Only to claim a prize. Kring is for real people, one person, one account, so the same person can’t claim a prize twice. Everything else works without it: your card, People, posting Reels and chat. It takes about 3 seconds.',
     th: [['ยืนยันใบหน้า', 3], ['สแกนหน้า', 3], ['ทำไมต้องยืนยัน', 3], ['ยืนยันตัวตน', 2], ['ยืนยัน', 1], ['เซลฟี่', 1], ['ใบหน้า', 1]],
     en: [['why verify', 3], ['why face', 3], ['why the face', 3], ['why do i have to verif', 3], ['why do i need', 2], ['face check', 2], ['face scan', 2], ['verif', 1], ['selfie', 1]] },
   { id: 'face_privacy', cat: 'start', qTh: 'รูปหน้าของฉันถูกส่งออกจากมือถือไหม?', qEn: 'Does my face photo leave my phone?',
