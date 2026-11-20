@@ -6,7 +6,7 @@
 --   * kr8_share_open (server GET) stores the open as 'pending' (ok = false). Robots, LINE, non-Thai networks and repeats are decided
 --     there as before and never become pending.
 --   * kr8_share_open_confirm (called by the site function /r/ok, which the app calls after the page was VISIBLE for 2 seconds) turns
---     a pending open into a counted one, only when: same browser cookie and same network as the GET, at least 1.5 s after it and
+--     a pending open into a counted one, only when: same browser cookie and same network (or IP range) as the GET, at least 1.5 s after it and
 --     within 30 min, no webdriver/headless signal, not the owner's (or a linked account's) phone, not a repeat (cookie, network or
 --     phone id), and no burst (12 counted per Reel per hour; 3 counted for one member's Reels from one IP range in 10 minutes).
 --   * Pending opens that never get the beacon never count (curl, link-preview fetchers, scripts that don't run the page).
@@ -115,7 +115,9 @@ begin
   v_age := now() - o.created_at;
   begin v_vis := coalesce((p_sig ->> 'vis')::int, 0); exception when others then v_vis := 0; end;
   v_why := case
-    when coalesce(p_session, '') <> o.session or coalesce(p_device, '') <> o.device then 'mismatch'     -- other browser / other network
+    -- other browser, or another network outside the GET's IP range (a phone's carrier may switch the exact address between calls)
+    when coalesce(p_session, '') <> o.session then 'mismatch'
+    when coalesce(p_device, '') <> o.device and (v_rng is null or o.net_range is null or v_rng <> o.net_range) then 'mismatch'
     when v_age < interval '1500 milliseconds' then 'fast'
     when v_age > interval '30 minutes' then 'late'
     when coalesce(p_sig ->> 'wd', '') <> '0' or v_vis < 2000 then 'headless'                               -- webdriver on / no visible time
