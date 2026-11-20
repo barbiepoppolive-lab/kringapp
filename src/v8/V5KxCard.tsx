@@ -165,6 +165,8 @@ const Confetti = () => (
  */
 /** 20 Nov (founder): a card photo must show one clear face — no objects, scenery, screenshots or group photos, never "used anyway" */
 export const PHOTO_FACE_MSG = 'Use a clear photo of your face 🙂';
+/** 20 Nov (founder): AWS reads the card photo's face as under 18 */
+export const PHOTO_CHILD_MSG = 'Please use a clear photo of yourself — Kring is for adults 18+.';
 
 export function V5MintSheet(props: {
   L: Tx; Lf: Txf; card: (V5Card & { tiktok_handle?: string | null; member_no?: number | null; gender?: string | null; show_gender?: boolean | null }) | null; uiLang: string;
@@ -252,7 +254,7 @@ export function V5MintSheet(props: {
       if (v === 'ok' || v === 'error') { setPhoto(d); setPhotoVerdict(v); setPhotoMsg(''); setPhotoNote(''); setNotice(''); }
       else {
         photoFails.current++;
-        setPhotoMsg(PHOTO_FACE_MSG); setPhotoNote('');
+        setPhotoMsg(v === 'child' ? PHOTO_CHILD_MSG : PHOTO_FACE_MSG); setPhotoNote('');
         v5LogClient('card_photo_no', v, `try${photoFails.current}${isNew ? '' : ' edit'}`);
       }
     } catch (e) { setNotice(errText(e)); } finally { setChecking(false); }

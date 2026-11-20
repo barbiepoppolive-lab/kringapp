@@ -293,7 +293,7 @@ function loadDetector(): Promise<FaceApi> {
 }
 
 /** 'ok' | 'none' (no face: helmet, scenery, fireworks, pets, cartoons) | 'small' (face too far away) | 'group' (no clear main person) | 'error' (could not check: let it through) */
-export type PhotoVerdict = 'ok' | 'none' | 'small' | 'group' | 'text' | 'error';   // 20 Nov: 'text' = a screenshot / poster
+export type PhotoVerdict = 'ok' | 'none' | 'small' | 'group' | 'text' | 'child' | 'error';   // 20 Nov: 'text' = a screenshot / poster; 'child' = AWS reads the face as under 18
 // fix4 (19 Nov, live: card_photo_no 19× for 9 new members): a smaller face is fine now (8 % of the width, was 14 %), and a photo
 // with other people passes when one face is clearly the biggest (the second face under 85 % of it, was 70 %)
 export const PHOTO_MIN_FACE = 0.08;   // face box at least 8 % of the photo's width
@@ -342,7 +342,7 @@ export async function checkProfilePhoto(src: string): Promise<PhotoVerdict> {
   try {
     const { v5CardPhotoCheck } = await import('./v5Live');
     const v = await v5CardPhotoCheck(src, PHOTO_SERVER_MS);
-    if (v === 'ok' || v === 'none' || v === 'small' || v === 'group' || v === 'text') return v;
+    if (v === 'ok' || v === 'none' || v === 'small' || v === 'group' || v === 'text' || v === 'child') return v;
   } catch { /* server down / signed out → fall through */ }
   return 'error';
 }

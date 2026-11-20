@@ -27,6 +27,10 @@ import { AWS_LIMITS, cardSimilarity, decide, liveCheck, pickOther, summarize, ty
 import { signV4 } from './sigv4.ts';
 import { ageVerdict, copyHits, copySummary, scanFramePaths, type CopyHit, type TextDet } from './copyscan.ts';
 import { dataUrlB64, frameFeatures, type FacesResp, type FrameF, type LabelsResp, type TextResp } from './quality.ts';
+import { dhashRGBA, otherMemberInReel, type FaceHit } from './reelprint.ts';
+import { photoVerdictAws, type Fd, type PhotoV } from './photoverdict.ts';
+export { photoVerdictAws, PHOTO_TEXT_WORDS, PHOTO_CHILD_HIGH } from './photoverdict.ts';
+import jpeg from 'npm:jpeg-js@0.4.4';
 
 const SUPA = (Deno.env.get('SUPABASE_URL') ?? '').replace(/\/$/, '');
 const ANON = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
@@ -274,17 +278,6 @@ async function check(uid: string, body: Record<string, unknown>): Promise<Respon
 // The card screen used to run a face finder ON the phone (a 1 MB model + WebGL). On many Android phones WebGL is broken, the
 // finder fell back to the CPU and members waited on a black "loading" screen, or a good photo was refused. Now the phone sends the
 // small card photo (≤ 384 px) here: one AWS DetectFaces call (~1 s, nothing stored). Same rules as before: ok · none · small · group.
-type Fd = { BoundingBox?: { Width?: number }; Confidence?: number };
-/** 20 Nov (founder): a card photo must show ONE clear face. 'text' = a screenshot / poster (lots of words) even if a face shows. */
-export const PHOTO_TEXT_WORDS = 25;
-export function photoVerdictAws(faces: Fd[], words = 0): 'ok' | 'none' | 'small' | 'group' | 'text' {
-  const f = (faces || []).filter((x) => (x.Confidence ?? 0) >= 90).map((x) => x.BoundingBox?.Width ?? 0).sort((a, b) => b - a);
-  if (!f.length || f[0] > 0.95) return 'none';
-  if (f[0] < 0.08) return 'small';
-  if (f.length > 1 && f[1] >= f[0] * 0.85) return 'group';
-  if (words >= PHOTO_TEXT_WORDS) return 'text';
-  return 'ok';
-}
 async function sha256Hex(s: string): Promise<string> {
   const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
   return Array.from(new Uint8Array(d)).map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -301,10 +294,10 @@ async function photoCheck(uid: string, body: Record<string, unknown>): Promise<R
     if (v === 'ok') await pass('ok');
     return json({ verdict: v });
   }
-  let v: 'ok' | 'none' | 'small' | 'group' | 'text';
+  let v: PhotoV;
   try {
     const [r, t] = await Promise.all([
-      rk<{ FaceDetails?: Fd[] }>('DetectFaces', { Image: img(b64), Attributes: ['DEFAULT'] }),
+      rk<{ FaceDetails?: Fd[] }>('DetectFaces', { Image: img(b64), Attributes: ['DEFAULT', 'AGE_RANGE'] }),
       rk<{ TextDetections?: { Type?: string; Confidence?: number }[] }>('DetectText', { Image: img(b64) }).catch(() => null),
     ]);
     const words = (t?.TextDetections || []).filter((x) => x.Type === 'WORD' && (x.Confidence ?? 0) >= 80).length;
@@ -397,6 +390,17 @@ async function pictureFeatures(at: string, b64: string): Promise<FrameF> {
   if (!lb && !fc && !tx) throw new Error('AWS gave no answer');
   return frameFeatures(at, lb, fc, tx);
 }
+/** 0165: picture fingerprint of one JPEG frame (reelprint.ts dHash) */
+function frameHash(b64: string): string {
+  const d = jpeg.decode(b64ToBytes(b64), { useTArray: true, formatAsRGBA: true, maxMemoryUsageInMB: 256 });
+  return dhashRGBA(d.data, d.width, d.height);
+}
+/** 0165: members' faces AWS found in one frame → [{user, sim}] */
+function faceHits(resp: unknown): FaceHit[] {
+  return ((resp as { FaceMatches?: { Similarity?: number; Face?: { ExternalImageId?: string } }[] } | null)?.FaceMatches || [])
+    .filter((m) => m?.Face?.ExternalImageId && typeof m.Similarity === 'number')
+    .map((m) => ({ user: m.Face!.ExternalImageId as string, sim: Math.round((m.Similarity as number) * 10) / 10 }));
+}
 export async function qualityScan(nReels: number, nPeople: number, only: string | null): Promise<{ reels: number; people: number; errors: number; last_error?: string }> {
   const todo = await rpc<{ reels: { id: string; video_path: string | null; poster_path: string | null }[]; people: { user_id: string; photo: string | null; md5: string }[] }>(
     'kr8_quality_todo', { p_reels: nReels, p_people: nPeople, p_post: only });
@@ -407,6 +411,7 @@ export async function qualityScan(nReels: number, nPeople: number, only: string 
     if (t.poster_path) paths.push(['poster', t.poster_path]);
     if (t.video_path) scanFramePaths(t.video_path).forEach((p, i) => paths.push([i === 0 ? 'middle' : 'end', p]));
     const frames: FrameF[] = []; const hits: CopyHit[] = [];
+    const prints: { at: string; h: string }[] = []; const faceFrames: { at: string; hits: FaceHit[] }[] = [];   // 0165
     for (const [at, path] of paths) {
       const b64 = await download(path, REELS);
       if (!b64) continue;
@@ -414,8 +419,15 @@ export async function qualityScan(nReels: number, nPeople: number, only: string 
         const f = await pictureFeatures(at, b64);
         frames.push(f);
         hits.push(...copyHits(f.text.map((x) => ({ DetectedText: x, Type: 'LINE', Confidence: 99 }) as TextDet), at));
+        // 0165: someone else's face in it? (only a big, clear face is searched in the members' faces)
+        if (f.faces.some((x) => x.conf >= 95 && x.a >= 0.02)) faceFrames.push({ at, hits: faceHits(await search(b64).catch(() => null)) });
       } catch (e) { err(e); log({ q_reel_error: String(e).slice(0, 200), post: t.id }); }
+      try { prints.push({ at, h: frameHash(b64) }); } catch (e) { log({ q_print_error: String(e).slice(0, 160), post: t.id }); }
     }
+    // 0165: same clip as another member's video / another member's face → kr8_reel_reuse (a "looks copied" reason; never hides)
+    const author = (t.video_path || '').split('/')[0];
+    try { await rpc('kr8_reel_reuse_check', { p_post: t.id, p_prints: prints, p_face: author ? otherMemberInReel(author, faceFrames) : null }); }
+    catch (e) { log({ q_reuse_error: String(e).slice(0, 200), post: t.id }); }
     const s = copySummary(hits);
     try {
       await rpc('kr8_reel_quality_record', { p_post: t.id, p_features: { frames, v: 1 }, p_copy: { ...s, evidence: hits.slice(0, 20) } });

@@ -880,6 +880,7 @@ export const KX_L: Record<string, Record<string, string>> = {
     'Checking photo…': 'กำลังตรวจรูป…',
     // 20 Nov: card photos must show one clear face (objects, scenery, screenshots and group photos are refused)
     'Use a clear photo of your face 🙂': 'ใช้รูปที่เห็นหน้าคุณชัด ๆ นะครับ 🙂',
+    'Please use a clear photo of yourself — Kring is for adults 18+.': 'กรุณาใช้รูปของคุณเองที่เห็นหน้าชัด ๆ นะครับ Kring สำหรับผู้ที่อายุ 18 ปีขึ้นไปครับ',
     'Take a selfie now': 'ถ่ายเซลฟี่ตอนนี้',
     'Choose another photo': 'เลือกรูปอื่น',
     'Choose from gallery': 'เลือกจากแกลเลอรี',
