@@ -112,6 +112,16 @@ const Badge: React.FC<{ L: LFn }> = ({ L }) => <span className="at-badge">{L('Th
 /** 0073: the Kring Team account: "Kring Team · Official" instead of the Thai Local badge */
 const Official: React.FC<{ L: LFn }> = ({ L }) => <span className="at-badge at-official" data-official="1">{L('Official')}</span>;
 const who = (p: AskPerson, L: LFn) => (p.official ? <Official L={L} /> : p.local ? <Badge L={L} /> : null);
+/** 20 Nov (founder): a member's name / photo opens their profile (the Kring Team opens its official card); 44 px tap area */
+const PersonCtx = React.createContext<((p: AskPerson) => void) | null>(null);
+const PersonBtn: React.FC<{ p: AskPerson; className?: string; children: React.ReactNode }> = ({ p, className, children }) => {
+  const open = React.useContext(PersonCtx);
+  if (!open || !p.id) return <span className={className}>{children}</span>;
+  return (
+    <button type="button" className={`at-pbtn${className ? ` ${className}` : ''}`} data-person={p.id} aria-label={p.name}
+      onClick={(e) => { e.stopPropagation(); open(p); }}>{children}</button>
+  );
+};
 
 /** Photo / GIF / emoji pickers shared by the answer bar and the Ask sheet */
 function useMedia(onErr: (m: string) => void, L: LFn) {
@@ -146,11 +156,11 @@ const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onAnswer: () 
   return (
   <article className={`at-tw rva-card rv4-q t-${pick.tint}`} data-ask-id={q.id}>
     <span className="rv4-scene" aria-hidden="true" style={{ backgroundImage: `url('${RV4_BASE}media/places/${pick.scene}.jpg')` }} />
+    <div className="rva-who rv4-qwho">
+      <PersonBtn p={q.by} className="at-pq"><Av p={q.by} s={22} /><b className="at-pnm">{q.by.name}</b></PersonBtn>
+      <span className="rva-meta">{q.by.official ? <Official L={L} /> : q.by.local ? <em>{L('Thai Local')}</em> : null} · {areaLabel(q.area)} · {askTime(L, q.at)}</span>
+    </div>
     <button type="button" className="at-tw-open" onClick={onOpen}>
-      <div className="rva-who rv4-qwho">
-        <Av p={q.by} s={22} />
-        <span className="rva-meta"><b>{q.by.name}</b>{q.by.official ? <Official L={L} /> : q.by.local ? <em>{L('Thai Local')}</em> : null} · {areaLabel(q.area)} · {askTime(L, q.at)}</span>
-      </div>
       <AskText L={L} kind="q" id={q.id} text={q.body} skip={!!q.by.official} className="at-tw-q" />
       {q.media && <Media m={q.media} cls="at-tw-img" />}
       {q.top && (
@@ -266,9 +276,9 @@ const Thread: React.FC<{
         {q && (
           <div className="at-q">
             <div className="rva-who">
-              <Av p={q.by} s={40} />
+              <PersonBtn p={q.by}><Av p={q.by} s={40} /></PersonBtn>
               <div className="rva-whot">
-                <div className="rva-nm"><b>{q.by.name}</b>{who(q.by, L)}</div>
+                <div className="rva-nm"><PersonBtn p={q.by}><b>{q.by.name}</b></PersonBtn>{who(q.by, L)}</div>
                 <span className="rva-meta">{areaLabel(q.area)} · {askTime(L, q.at)}</span>
               </div>
             </div>
@@ -284,7 +294,7 @@ const Thread: React.FC<{
         {answers.map((a) => (
           <div key={a.id} className={`at-c${a.parentId ? ' reply' : ''}`} data-answer-id={a.id}>
             <div className="h">
-              <Av p={a.by} s={26} />{a.by.name}
+              <PersonBtn p={a.by} className="at-pa"><Av p={a.by} s={26} />{a.by.name}</PersonBtn>
               {a.by.official || a.by.local ? who(a.by, L) : <small>· {L('traveller')}</small>}
               {a.best && <span className="star">{L('★ Best')}</span>}
               {!mine(a.by) && <MoreBtn L={L} id={a.id} onClick={() => setRep({ kind: 'a', id: a.id })} />}
@@ -431,6 +441,8 @@ const Compose: React.FC<{
 
 // ───────────────────────── the whole Ask a Thai view ─────────────────────────
 export interface AskThaiViewProps {
+  /** 20 Nov: tap a name / photo → that member's profile (or the Kring Team card) */
+  onPerson?: (p: AskPerson) => void;
   /** 20 Nov: Kring's daily "This or that" card, always the first card */
   topSlot?: React.ReactNode;
   L: LFn;
@@ -451,7 +463,8 @@ export interface AskThaiViewProps {
   openCompose?: boolean;
   composeText?: string;
 }
-export const AskThaiView: React.FC<AskThaiViewProps> = ({ L, api, me, areas, areaLabel, defaultArea = 'Bangkok', need, toast, openThread, openCompose, composeText, refCode, shareLink, topSlot }) => {
+export const AskThaiView: React.FC<AskThaiViewProps> = (props) => {
+  const { L, api, me, areas, areaLabel, defaultArea = 'Bangkok', need, toast, openThread, openCompose, composeText, refCode, shareLink, topSlot } = props;
   const [items, setItems] = useState<AskQuestion[] | null>(null);
   const [err, setErr] = useState(false);
   const [more, setMore] = useState(true);
@@ -513,7 +526,10 @@ export const AskThaiView: React.FC<AskThaiViewProps> = ({ L, api, me, areas, are
     } catch { /* closed the share sheet */ }
   };
 
+  // a profile / card opens above the Feed: close the open thread first so nothing is hidden under it (the Ask list stays)
+  const openPerson = props.onPerson ? (p: AskPerson) => { setThread(null); props.onPerson?.(p); } : null;
   return (
+    <PersonCtx.Provider value={openPerson}>
     <div className="at-root">
       <div className="at-list" ref={listRef} onScroll={onScroll} aria-busy={items === null}>
         {topSlot || null}
@@ -548,6 +564,7 @@ export const AskThaiView: React.FC<AskThaiViewProps> = ({ L, api, me, areas, are
           onDone={(id) => { setCompose(false); refresh(); listRef.current?.scrollTo({ top: 0 }); setThread(id); }} />
       )}
     </div>
+    </PersonCtx.Provider>
   );
 };
 export default AskThaiView;

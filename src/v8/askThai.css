@@ -146,3 +146,11 @@
 .v8-app-root .at-tr { display: inline-block; margin: 4px 0 0; padding: 0; border: 0; background: none; font: 500 0.75rem/1.3 var(--rv-f, system-ui); color: rgba(255, 255, 255, .55); cursor: pointer; }
 .v8-app-root button.at-tr { min-height: 28px; text-decoration: underline; text-decoration-color: rgba(255, 255, 255, .25); text-underline-offset: 2px; }
 .v8-app-root .at-tr-s { display: block; margin-top: 2px; font-size: 0.6875rem; text-decoration: none; }
+/* 20 Nov: names and photos open the profile: a 44 px tap area that doesn't move the layout */
+.v8-app-root .at-pbtn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; min-width: 44px; margin: -10px 0; padding: 0; border: 0; background: none;
+  color: inherit; font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; max-width: 100%; }
+.v8-app-root .at-pbtn.at-pq { flex: none; max-width: 60%; }
+.v8-app-root .at-pbtn .at-pnm { font: 600 0.875rem var(--rv-f, system-ui); color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .at-c .h .at-pbtn.at-pa { gap: inherit; font-weight: inherit; }
+.v8-app-root .at-thread .at-c .at-tr { margin-left: 41px; }
+.v8-app-root .at-c.reply .at-tr { margin-left: 41px; }

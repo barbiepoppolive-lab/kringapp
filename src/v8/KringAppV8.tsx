@@ -3083,6 +3083,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       setTab('me');
       return;
     }
+    // 20 Nov (variant A): no passed face check → the Quick face check instead of a locked profile
+    if (live && unvRef.current) { setFaceIntro(true); return; }
     try {
       const p = await v5Profile(id);
       setOtherProfile(p);
@@ -4247,7 +4249,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <AskThaiView key={askOpenThread || 'ask'} openThread={askOpenThread || undefined} L={L} api={askApi}
               topSlot={live && signedIn && v5Card && !adminView ? <ThisOrThatCard lang={lang} inline /> : null} me={askMeRef.current} areas={V5_AREAS} areaLabel={(a) => kxArea(lang, a, L)}
               defaultArea={(live && v5Card?.area) || 'Bangkok'} need={requireSignInForAction} toast={showToast} refCode={getMyRef()}
-              shareLink={(url, text) => void shareNow(url, text)} />
+              shareLink={(url, text) => void shareNow(url, text)}
+              onPerson={(p) => (p.official ? setSheet('official') : void openProfile(p.id))} />
           )}
           {/* rv4 (founder pick Feed A): no floating "next step" pill over the Reel (e.g. "We're checking your Reel"); that status lives on Me */}
           {postedShare && tab === 'feed' ? null /* audit 18 Nov: the post-success share takes this spot (it overlapped the pill) */ : RV4_FEED_PILL && feedMode !== 'ask' && nextStep ? (
@@ -6427,11 +6430,14 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               >
                 ‹
               </button>
-              <img src={activeThread.avatar} alt={activeThread.name} className={activeThread.official ? 'kt-logo' : undefined}
-                onClick={activeThread.official ? () => setSheet('official') : undefined} />
+              {/* 20 Nov (founder): the photo and the name open the profile (the Kring Team opens its official card) */}
+              <button type="button" className="th-av" data-person={activeThread.personId} aria-label={activeThread.name}
+                onClick={() => (activeThread.official ? setSheet('official') : void openProfile(activeThread.personId))}>
+                <img src={activeThread.avatar} alt="" className={activeThread.official ? 'kt-logo' : undefined} />
+              </button>
               <div className="who">
                 <div className="nm">
-                  {activeThread.name}{' '}
+                  <button type="button" className="th-nm" onClick={() => (activeThread.official ? setSheet('official') : void openProfile(activeThread.personId))}>{activeThread.name}</button>{' '}
                   {activeThread.official && <span className="kt-official" data-official="1">{lang === 'th' ? 'ทางการ' : 'Official'}</span>}
                   {activeThread.verified === true && !activeThread.official && (
                   <button

@@ -82,3 +82,7 @@
 .v8-app-root .bx .bx-pin .bx-cta .tx { font-size: 1rem; text-shadow: 0 1px 4px rgba(120, 0, 70, .35); }
 .v8-app-root .bx.lth .bx-pin .bx-cta .tx { font-size: 1.0625rem; }
 .v8-app-root .bx .bx-pin .bx-cta .ic svg { width: 20px; height: 20px; }
+
+/* 20 Nov (founder): chat header photo + name open the profile (44 px tap areas) */
+.v8-app-root .th-head .th-av { flex: none; display: grid; place-items: center; min-width: 44px; min-height: 44px; margin: -4px 0; padding: 0; border: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.v8-app-root .th-head .th-nm { display: inline-flex; align-items: center; min-height: 44px; margin: -12px 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; text-align: left; }
