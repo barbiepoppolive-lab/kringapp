@@ -5,7 +5,8 @@ const esc = (s) => String(s || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 export async function profileCard(ctx) {
   const url = new URL(ctx.request.url);
   const u = (url.searchParams.get('u') || '').toLowerCase();
-  if (!/^[0-9a-f-]{36}$/.test(u) || url.searchParams.has('_h') || !ROBOT.test(ctx.request.headers.get('user-agent') || '')) return ctx.next();
+  const robot = ROBOT.test(ctx.request.headers.get('user-agent') || '');
+  if (!/^[0-9a-f-]{36}$/.test(u) || url.searchParams.has('_h') || !robot) return robot ? appCard(ctx) : ctx.next();
   // LINE / TikTok / Instagram use one name for the preview robot and the in-app browser: a person is sent on by a script
   const go = new URL(url.href); go.searchParams.set('_h', '1');
   const img = `${url.origin}/og/u/${u}.jpg`;
@@ -20,4 +21,17 @@ export async function profileCard(ctx) {
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="${esc(img)}"><meta name="robots" content="noindex"></head>
 <body><a href="${esc(go.href)}">${esc(title)}</a><script>location.replace(${JSON.stringify(go.href).replace(/</g, '\\u003c')})</script></body></html>`;
   return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } });
+}
+
+// Robots asking for the plain app page: point og:image at a versioned URL (the edge still caches the old pre-launch card under
+// the bare path for up to a day) and add the 600x600 square card. People get the app page untouched.
+const OG = '/assets/home/og.jpg?v=3', OG_SQ = '/assets/home/og-sq.jpg?v=3';
+async function appCard(ctx) {
+  const res = await ctx.next();
+  if (!(res.headers.get('content-type') || '').includes('text/html')) return res;
+  const o = new URL(ctx.request.url).origin;
+  return new HTMLRewriter()
+    .on('meta[property="og:image"], meta[name="twitter:image"]', { element(e) { if (/\/assets\/home\/og\.jpg/.test(e.getAttribute('content') || '')) e.setAttribute('content', o + OG); } })
+    .on('meta[property="og:image:height"]', { element(e) { e.after(`<meta property="og:image" content="${o + OG_SQ}" /><meta property="og:image:width" content="600" /><meta property="og:image:height" content="600" />`, { html: true }); } })
+    .transform(res);
 }

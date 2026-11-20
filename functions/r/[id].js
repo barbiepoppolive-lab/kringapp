@@ -72,8 +72,8 @@ export async function onRequestGet({ request, params, env }) {
     const title = found ? `${out.name || 'Kring'} · ${out.area || 'Bangkok'} · Kring · กริ๊ง!` : 'A Bangkok Reel on Kring · กริ๊ง!';
     const desc = out.body || 'Share your Bangkok. Make new friends.';
     // 20 Nov: the Reel's own picture card (poster frame, name, place, Kring mark), rendered by /og/r/<short>.png
-    const img = found ? `${url.origin}/og/r/${short}.jpg` : `${url.origin}/assets/home/og.jpg`;
-    const sqImg = found ? `${url.origin}/og/r/${short}-sq.jpg` : `${url.origin}/assets/home/og-sq.jpg`;
+    const img = found ? `${url.origin}/og/r/${short}.jpg` : `${url.origin}/assets/home/og.jpg?v=3`;
+    const sqImg = found ? `${url.origin}/og/r/${short}-sq.jpg` : `${url.origin}/assets/home/og-sq.jpg?v=3`;
     const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(title)}</title>
 <meta property="og:type" content="video.other"><meta property="og:site_name" content="Kring"><meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${esc(url.origin + url.pathname)}">
