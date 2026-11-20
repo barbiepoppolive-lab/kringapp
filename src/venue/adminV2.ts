@@ -38,6 +38,7 @@ import { farmAlertList, farmBoardMark, farmSection } from './farmCheck';
 import { accountCheckSection } from './accountChecks';   // 0171: refused duplicate faces → one-tap account checks   // 0123: Ring-farming check (self-contained)
 import { copyLabel, feedLabel, feedOffReason, loadReelChecks, setReelFeed, type ReelCheck } from './reelChecks';   // 0145/0147
 import { feedQualityBlock } from './feedQuality';   // 0150 Autopilot · Feed quality
+import { memberTilesRow } from './memberTiles';   // 0176: Real / Face-verified / Not verified / Tried tiles
 import { cleanSnapshot, hiddenAlert, holdLines, isAwsFacts, isRetiredFaceLink, plainAlertText, plainDetail, robotName } from './adminClean';   // 19 Nov clean-up
 
 type Kid = Node | string | null | undefined | false;
@@ -1155,6 +1156,7 @@ export function peopleView() {
     const fbtn = el('button', { type: 'button', class: `v2fbtn ${active ? 'on' : ''}`, id: 'v2FiltBtn', 'aria-label': 'Filters', 'aria-expanded': String(peopleFiltOpen) }, ic('more'));
     fbtn.onclick = () => { peopleFiltOpen = !peopleFiltOpen; panel.hidden = !peopleFiltOpen; fbtn.setAttribute('aria-expanded', String(peopleFiltOpen)); };
     screen('people', header('People', peopleHeadline(pc)),
+      memberTilesRow(),
       el('div', { class: 'v2srow' }, el('label', { class: 'v2search' }, ic('search'), q), fbtn),
       panel,
       grid(s));
