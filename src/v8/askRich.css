@@ -1,7 +1,9 @@
 /* Ask BKK rich replies, reactions and the share-card sheet (20 Nov, 0185). Light translucent glass, no opaque boxes. */
 
 /* ── reactions ── */
-.v8-app-root .ar-bar { position: relative; display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.v8-app-root .ar-bar { position: relative; display: inline-flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+.v8-app-root .at-c .f { flex-wrap: wrap; row-gap: 8px; }
+.v8-app-root .at-c .f .at-reply { white-space: nowrap; }
 .v8-app-root .ar-chip { display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 9px 0 7px; border-radius: 999px; border: 1px solid rgba(255,255,255,.1);
   background: rgba(255,255,255,.06); color: rgba(255,255,255,.85); font: inherit; font-size: .75rem; font-weight: 800; cursor: pointer; -webkit-tap-highlight-color: transparent;
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: transform .15s ease, background .15s ease; }
@@ -13,8 +15,8 @@
 .v8-app-root .ar-plus svg path { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
 .v8-app-root .ar-plus i { position: absolute; right: 2px; top: -1px; font-style: normal; font-size: .7rem; font-weight: 900; }
 .v8-app-root .ar-plus.on { color: #fff; border-color: rgba(255,255,255,.25); }
-.v8-app-root .ar-pick { position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 30; display: flex; gap: 2px; padding: 6px; border-radius: 999px;
-  background: rgba(28,24,48,.72); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 10px 30px rgba(0,0,0,.35);
+.v8-app-root .ar-pick { position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 30; display: flex; gap: 2px; padding: 6px; border-radius: 999px;
+  background: rgba(30,26,52,.9); border: 1px solid rgba(255,255,255,.16); box-shadow: 0 12px 34px rgba(0,0,0,.5);
   backdrop-filter: blur(18px) saturate(1.3); -webkit-backdrop-filter: blur(18px) saturate(1.3); animation: ar-pop .18s ease-out; }
 .v8-app-root .ar-pick button { width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; font-size: 1.6rem; cursor: pointer; transition: transform .12s ease; }
 .v8-app-root .ar-pick button.on { background: rgba(255,255,255,.14); }

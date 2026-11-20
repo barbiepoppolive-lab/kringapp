@@ -248,28 +248,29 @@ export async function drawAnswerCard(p: CardInput): Promise<HTMLCanvasElement> {
   // ── the question
   const top0 = y + 60;
   const qSize = S ? 78 : 62;
+  const qLH = /[\u0E00-\u0E7F]/.test(p.q) ? 1.34 : 1.16;   // Thai marks stack above and below: more room between lines
   g.font = `800 ${qSize}px ${FONT}`;
   g.textBaseline = 'alphabetic';
   const qLines = wrapLines((s) => g.measureText(s).width, p.q, W - pad * 2, S ? 5 : 3);
   // measure the answer first so the whole block sits centred between the top row and the call to action
   {
-    const aS = S ? 50 : 42, lh = aS * 1.38, ipx = S ? 52 : 44, hh = S ? 132 : 112, gap = S ? 76 : 48, bottom = H - (S ? 330 : 230);
+    const aS = S ? 50 : 42, lh = aS * (/[\u0E00-\u0E7F]/.test(p.a) ? 1.46 : 1.38), ipx = S ? 52 : 44, hh = S ? 132 : 112, gap = S ? 76 : 48, bottom = H - (S ? 330 : 230);
     g.font = `500 ${aS}px ${FONT}`;
-    const maxA = Math.max(2, Math.min(S ? 9 : 5, Math.floor((bottom - top0 - qLines.length * qSize * 1.16 - gap - ipx * 2 - hh - (S ? 30 : 22)) / lh)));
+    const maxA = Math.max(2, Math.min(S ? 9 : 5, Math.floor((bottom - top0 - qLines.length * qSize * qLH - gap - ipx * 2 - hh - (S ? 30 : 22)) / lh)));
     const nA = wrapLines((s) => g.measureText(s).width, p.a, W - (pad - 12) * 2 - ipx * 2, maxA).length;
-    const block = qLines.length * qSize * 1.16 + gap + ipx * 2 + hh + (S ? 30 : 22) + nA * lh;
+    const block = qLines.length * qSize * qLH + gap + ipx * 2 + hh + (S ? 30 : 22) + nA * lh;
     y = top0 + Math.max(0, (bottom - top0 - block) / 2) - (S ? 10 : 0);
     g.font = `800 ${qSize}px ${FONT}`;
   }
   g.fillStyle = '#fff';
   g.shadowColor = 'rgba(0,0,0,.45)'; g.shadowBlur = 24;
-  for (const l of qLines) { y += qSize * 1.16; g.fillText(l, pad, y); }
+  for (const l of qLines) { y += qSize * qLH; g.fillText(l, pad, y); }
   g.shadowBlur = 0; g.shadowColor = 'transparent';
 
   // ── the answer, on light glass
   y += S ? 76 : 48;
   const cx = pad - 12, cw = W - (pad - 12) * 2, ip = S ? 52 : 44;
-  const aSize = S ? 50 : 42, aLH = aSize * 1.38;
+  const aSize = S ? 50 : 42, aLH = aSize * (/[\u0E00-\u0E7F]/.test(p.a) ? 1.46 : 1.38);
   const bottomBlock = S ? 300 : 210;
   const headH = S ? 132 : 112;
   g.font = `500 ${aSize}px ${FONT}`;

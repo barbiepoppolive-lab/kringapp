@@ -19,12 +19,15 @@ export const TOT_FOLD_MS = 2000;
 
 export function TotHero(p: TotHeroProps) {
   const [folded, setFolded] = useState(p.shown && !p.fresh);
+  // voted in this view (set on tap, before the store update re-renders us) → play the reveal, fold 2 s later
+  const [here, setHere] = useState(false);
+  const fresh = p.fresh || here;
   useEffect(() => {
     if (!p.shown) { setFolded(false); return undefined; }
-    if (!p.fresh) { setFolded(true); return undefined; }
+    if (!fresh) { setFolded(true); return undefined; }
     const t = setTimeout(() => setFolded(true), TOT_FOLD_MS);
     return () => clearTimeout(t);
-  }, [p.shown, p.fresh]);
+  }, [p.shown, fresh]);
   const mine = p.pick || p.busy;
   const chosen = (p.pick || p.busy || 'a') as K;
   return (
@@ -44,7 +47,7 @@ export function TotHero(p: TotHeroProps) {
             const me = mine === k;
             return (
               <button type="button" key={k} data-side={k} className={`toth-side${me ? ' mine' : mine ? ' other' : ''}`} disabled={!!mine} aria-pressed={me}
-                tabIndex={folded ? -1 : 0} onClick={() => p.onPick(k)}>
+                tabIndex={folded ? -1 : 0} onClick={() => { setHere(true); p.onPick(k); }}>
                 <img src={p.imgs[k]} alt="" draggable={false} />
                 <span className="toth-bfade" aria-hidden="true" />
                 {me ? <span className="toth-check" aria-hidden="true">✓</span> : null}
@@ -63,7 +66,7 @@ export function TotHero(p: TotHeroProps) {
           {p.shown ? (
             <div className="toth-foot" role="status">
               <span className="toth-sum">{p.summary}</span>
-              <span className="toth-chip ok">{p.fresh ? p.counted : p.locked}</span>{p.ringChip}
+              <span className="toth-chip ok">{fresh ? p.counted : p.locked}</span>{p.ringChip}
             </div>
           ) : null}
           {p.shown && !folded ? <button type="button" className="toth-fold" aria-label="⌃" onClick={() => setFolded(true)}>⌃</button> : null}
