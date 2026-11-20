@@ -264,6 +264,8 @@ export type MeViewProps = {
   reelCount?: number;
   /** 20 Nov: the weekly-board hook that replaced the Founding ฿100 card */
   weekHook?: WeekHookData | null;
+  /** 0171: the daily-tasks line (mini ring · N of 4 · streak · Claim) */
+  tasksSlot?: React.ReactNode;
 };
 
 /**
@@ -318,6 +320,7 @@ export function MeView(props: MeViewProps) {
         <button type="button" id="statFollowing" onClick={() => props.onList('following')}><b>{fmtCount(p.following)}</b><span>{L('Following')}</span></button>
       </div>
       <RingsBalance L={L} Lf={Lf} kx={props.kx} dot={!!props.ringsDot || (props.kx?.prizes ?? 0) > 0} onOpen={props.onRings} />
+      {props.tasksSlot || null}
       {actionStep ? props.nextSlot : null}
       {props.webAskSlot || null}
       <FoundingChecklist L={L} Lf={Lf} kx={props.kx} hasSocial={!!(props.kx?.ig_handle || props.kx?.tiktok_handle || p.ig_handle)} onLink={props.onLink || props.onEdit} onPost={props.onPost}
