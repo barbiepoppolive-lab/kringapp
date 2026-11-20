@@ -30,6 +30,18 @@ async function sbGet<T = any>(pathAndQuery: string): Promise<T | null> {
   return r.json();
 }
 
+// 0178: Kring rules for the Help bot, one short fact per row, { "kb_04_tasks": { en, th } }
+async function loadKb(): Promise<Record<string, { en?: string; th?: string }>> {
+  const rows = await sbGet<{ key: string; lang: string; value_text: string }[]>("ob_kb?key=like.kb_*&select=key,lang,value_text&order=key.asc");
+  const out: Record<string, { en?: string; th?: string }> = {};
+  for (const r of rows ?? []) {
+    const m = String(r.key || "").match(/^(kb_.+)_(en|th)$/);
+    if (!m || !r.value_text) continue;
+    (out[m[1]] ||= {})[m[2] as "en" | "th"] = r.value_text;
+  }
+  return out;
+}
+
 async function getDailyCap(): Promise<number> {
   const rows = await sbGet<{ value: number }[]>("kr8_rings_config?key=eq.help_ai_daily_cap&select=value&limit=1");
   const v = Number(rows?.[0]?.value ?? HARD_DAILY_CAP);
@@ -134,6 +146,8 @@ async function processSingleMessage(
   // 19 Nov (founder): the member's real state, so the reply is right (face check, prize/claim, Reels, rank)
   const factsR = await fetch(`${SB}/rest/v1/rpc/kr8_help_facts`, { method: "POST", headers: { ...SRH, "Content-Type": "application/json" }, body: JSON.stringify({ p_user: uid }) });
   const facts: any = factsR.ok ? await factsR.json().catch(() => null) : null;
+  // 20 Nov (founder, after the revamp): the bot's rule book lives in public.ob_kb (kb_* rows, EN + TH), editable without a deploy (0178)
+  const kb = await loadKb();
   const mem = mems?.[0] ?? {};
   const history = (histRows ?? [])
     .slice()
@@ -177,6 +191,8 @@ async function processSingleMessage(
       used_at: c.used_at != null,
     })),
     facts: facts ? { ...facts, do_not_autosend: undefined } : null,
+    today_bangkok: new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10),
+    kring_rules: kb,
     conversation_up_to_message: history,
     target_message: { id: msg.id, raw_body: msg.body, clean_text: cleanText || "Talk to the team" },
   };
@@ -191,16 +207,19 @@ async function processSingleMessage(
     "Rules for translation_en:",
     "- Translate target_message.clean_text faithfully into 1 short, natural plain-English sentence (note: Thai ใก้ is a common phone typo for ให้ meaning 'for me'; if clean_text is 'Talk to the team', write 'Opened Help chat with Kring Team').",
     "Rules for suggested_reply:",
-    "- Write in the SAME language the member used in target_message (if Thai, write natural, warm, short Thai and end politely with ครับ).",
-    "- Keep it short (1 to 2 sentences, <= 280 characters), warm, human, and reassuring, speaking as Kring Team.",
+    "- Write in the SAME language the member used in target_message (if Thai, write natural, warm, short Thai and end politely with ครับ). If the message has no clear language (e.g. 'Talk to the team'), use the language of the member's earlier messages, else English.",
+    "- Keep it short (1 to 3 sentences, <= 320 characters), warm, human, and reassuring, speaking as Kring Team.",
     "- Use the member's context accurately (e.g. if they ask to check their clip and their newest post is already status='approved' and hidden=false, let them know warmly that their latest Reel is approved and live on the feed; if a clip is still pending, say the team is checking it shortly; if an earlier clip was hidden with a review_note, acknowledge gently without harshness; if recent_client_failures show video pick/size errors, offer a brief friendly tip).",
-    "- ALWAYS answer from `facts` (the member's real state) — never guess. Kring rules (true, you may state them):",
-    "  · Founding Local: the first 50 members who post an approved Reel get ฿100 TrueMoney (facts.founding_seats_left seats left). To claim: an approved Reel AND a passed face check (5 seconds, in the app).",
-    "  · Weekly prizes every week: the top 8 on the Weekly Ranking with at least 25 Rings win TrueMoney (฿1,500 / 900 / 600 / 500 / 400 / 250 / 150 / 100). The week ends Sunday 23:59 Bangkok time; prizes open after a results check of up to 24 hours.",
-    "  · Rings: like +1, save +3, someone opening your shared Reel link +5 (max 30/day), invite a friend who posts an approved Reel or passes the face check +10 for both. Only your best Reel counts. Comments give no Rings.",
-    "  · Prizes are paid as TrueMoney codes in the app (Me → Rewards). One person, one account.",
+    "- ALWAYS answer from `facts` (the member's own real state) and `kring_rules` (the ONLY true Kring rules, each in English and Thai; quote numbers exactly as written there). If kring_rules is empty, treat every rules question as unsure.",
+    "- When you write Thai, reuse the Thai wording of kring_rules (the app's own Thai labels).",
+    "- `today_bangkok` is today's date in Bangkok; use it for anything that depends on dates (e.g. a rule that starts on a given Monday).",
     "  · If facts.face_check is 'not_done', the next step is the face check in the app. If 'waiting_for_team', the team checks it, usually within a day.",
     "  · If a prize claim is held (facts.prizes[].claim.held), say warmly the team is checking it and will confirm soon — never say why it is held.",
+    "  · Founding Local ฿100 is full and closed: never offer it, and ignore facts.founding_seats_left.",
+    "- IF UNSURE: if the answer is not clearly in kring_rules or facts, say kindly that the team will check and get back to them, and use <send>founder</send>. NEVER invent or guess rules, dates, times, amounts, limits or features.",
+    "- ONE LANGUAGE: suggested_reply is ONLY in the member's language — all Thai or all English, never mixed (no English words in a Thai reply except app/brand names like Kring, Reels, Grab, TrueMoney, LINE, Instagram, TikTok, and the @194hsqbc / ops@kringapp.com contacts; no Thai in an English reply).",
+    "- Thai replies are from a male team member: end politely with ครับ (never ค่ะ).",
+    "- NEVER promise or predict a win, a rank, a prize, a payout, or any payout/approval date or time. You may explain the published rules (e.g. the results check of up to 24 hours) without promising when this member will be paid.",
     "- <send>: write 'auto' ONLY for safe answers: a greeting, how the app/rules work, how to do something, or the member's own status read from facts. Write 'founder' for anything about paying/refusing a prize, account problems, bans, duplicate accounts, complaints, anything you are not sure about, or anything that needs a human decision.",
     "- STRICT SAFETY RULES: NEVER promise money, vouchers, prizes, rankings, or exact payout/approval dates. NEVER reveal internal system details (internal error codes, flags, ghost status, IP/device checks, or raw admin database fields). NEVER mention AI, bots, Claude, or automated drafting.",
   ].join("\n");
@@ -302,6 +321,25 @@ async function translateForMember(req: Request, body: any, apiKey: string, model
   if (!chk.ok || (await chk.json().catch(() => false)) !== true) return json({ ok: false, reason: "admin_only" }, 403);
   const text = String(body?.text_en || "").trim().slice(0, 600);
   if (!text) return json({ ok: false, reason: "empty" }, 400);
+  if (body?.mode === "translate_note") {
+    // 0171: a member's note (often Thai) shown to the founder in English (the admin is English only)
+    if (!/[\u0E00-\u0E7F]/.test(text)) return json({ ok: true, text });
+    const r2 = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify({
+        model, max_tokens: 400,
+        ...(/-5(?:-|$)/.test(model) ? { thinking: { type: "between_tools" }, output_config: { effort: "low" } } : {}),
+        system: "Translate this Kring app member's short note into plain, natural English for the founder. Keep the meaning exactly; no extra content. Return ONLY the English inside <en></en>.",
+        messages: [{ role: "user", content: text }],
+      }),
+    });
+    if (!r2.ok) return json({ ok: false, reason: `anthropic_http_${r2.status}` }, 502);
+    const d2 = await r2.json();
+    const o2 = (Array.isArray(d2?.content) ? d2.content.filter((b: any) => b?.type === "text").map((b: any) => b.text).join("\n") : "");
+    const en = (o2.match(/<en>([\s\S]*?)<\/en>/i)?.[1] || o2).trim().slice(0, 600);
+    return en ? json({ ok: true, text: en }) : json({ ok: false, reason: "empty_output" }, 502);
+  }
   const target = String(body?.lang || "th") === "en" ? "en" : "th";
   if (target === "en") return json({ ok: true, text });
   const isV5 = /-5(?:-|$)/.test(model);
@@ -331,7 +369,7 @@ Deno.serve(async (req) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
     if (req.headers.get("x-hook-secret") !== HOOK) {
       const b = await req.clone().json().catch(() => ({}));
-      if (b?.mode === "translate_reply") {
+      if (b?.mode === "translate_reply" || b?.mode === "translate_note") {
         const k = (Deno.env.get("ANTHROPIC_API_KEY") || "").trim();
         if (!k) return withCors(json({ ok: false, reason: "missing_key" }, 503));
         return withCors(await translateForMember(req, b, k, await pickNewestSonnet(k)));
