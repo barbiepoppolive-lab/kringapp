@@ -66,6 +66,8 @@ describe('compose: one screen after the clip is picked', () => {
   const base = { L, Lf, lang: 'en', stage: 'idle', progress: 0, problem: '', onAddPlace: vi.fn(), onRemovePlace: vi.fn(), onPeople: vi.fn(), onPick: vi.fn(), onClose: vi.fn() };
   const reel = { file: new File(['x'], 'a.mp4', { type: 'video/mp4' }), url: 'blob:x', durationMs: 14000, width: 720, height: 1280 };
   it('camera-first: no clip yet → straight into the camera when the browser already allows it (record, flip, gallery bottom-left)', async () => {
+    const stream = { getTracks: () => [], getAudioTracks: () => [] };
+    Object.defineProperty(navigator, 'mediaDevices', { value: { getUserMedia: vi.fn().mockResolvedValue(stream) }, configurable: true });
     render(<GoCompose {...base} reel={null} caption="" onCaption={vi.fn()} places={[]} people={[]} onPost={vi.fn()} camAccess={async () => 'granted'} />);
     await waitFor(() => expect(document.getElementById('camRec')).toBeTruthy());
     expect(document.getElementById('camFlip')).toBeTruthy();
