@@ -53,4 +53,32 @@
 .v8-app-root #s-me .rv4-me .nx-cardwrap { margin-top: 10px; }
 /* the strip stays one tight row: the "Post" pill lives on the grid's + tile, the week line gets the room */
 .v8-app-root #s-me .rv5-mstrip .rv4-mpost { display: none; }
-.v8-app-root #s-me .rv5-mstrip .rv4-mw b { overflow: visible; }
+/* 20 Nov live bug (Android 412 px): the week line ran under the daily-tasks pill. Now nothing can overlap: the line and the pill wrap
+   onto two rows when they don't both fit (and always at <= 400 px); both week lines are one line with an ellipsis. */
+.v8-app-root #s-me .rv5-mstrip { flex-wrap: wrap; row-gap: 4px; }
+.v8-app-root #s-me .rv5-mstrip .rv4-mline { flex: 1 1 auto; min-width: 0; max-width: 100%; }
+.v8-app-root #s-me .rv5-mstrip .rv4-mw { min-width: 0; overflow: hidden; }
+.v8-app-root #s-me .rv5-mstrip .rv4-mw > * { display: block; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v8-app-root #s-me .rv5-mstrip .dt-meline { flex: 1 0 auto; min-width: 0; max-width: 100%; justify-content: flex-start; }
+.v8-app-root #s-me .rv5-mstrip .dt-meline .t { flex: 1; min-width: 0; text-align: left; }
+.v8-app-root #s-me .rv5-mstrip .dt-meline .t small { display: block; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 400px) { .v8-app-root #s-me .rv5-mstrip .dt-meline { flex-basis: 100%; } }
+
+/* 20 Nov (founder): Ranking bottom dock matches the page: no solid purple block, a soft see-through fade (city + rows show through),
+   a glass "#33 · …" bar with a thin progress line, and a slimmer "Post a Reel" (48 px, softer pink, low glow, no white outline). */
+.v8-app-root .bx-pin { background: linear-gradient(to bottom, rgba(79, 63, 168, 0) 0%, rgba(79, 63, 168, .28) 45%, rgba(79, 63, 168, .6) 100%) !important;
+  padding-top: 22px !important; isolation: isolate; }
+.v8-app-root .bx-pin::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 60%); mask-image: linear-gradient(to bottom, transparent 0, #000 60%); }
+.v8-app-root .bx-pin .bx-you { background: rgba(255, 255, 255, .07) !important; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .1) !important;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.v8-app-root .bx-pin .bx-you .l1 { text-shadow: 0 1px 6px rgba(14, 8, 40, .55); }
+.v8-app-root .bx-pin .bx-bar { height: 3px; margin-top: 6px; background: rgba(255, 255, 255, .14); }
+.v8-app-root .bx-pin .bx-bar i { box-shadow: none; }
+.v8-app-root .bx .bx-pin .bx-cta { height: 48px; min-height: 48px; background: linear-gradient(180deg, #F25CC4 0%, #DE43A8 100%);
+  box-shadow: 0 6px 16px -8px rgba(236, 70, 182, .55); }
+.v8-app-root .bx .bx-pin .bx-cta::before { top: 2px; height: 16px; background: linear-gradient(180deg, rgba(255, 255, 255, .22), rgba(255, 255, 255, 0)); }
+.v8-app-root .bx .bx-pin .bx-cta .tx { font-size: 1rem; text-shadow: 0 1px 4px rgba(120, 0, 70, .35); }
+.v8-app-root .bx.lth .bx-pin .bx-cta .tx { font-size: 1.0625rem; }
+.v8-app-root .bx .bx-pin .bx-cta .ic svg { width: 20px; height: 20px; }

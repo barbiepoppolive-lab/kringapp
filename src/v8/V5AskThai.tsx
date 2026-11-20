@@ -11,6 +11,7 @@ import {
   type AskAnswer, type AskApi, type AskPerson, type AskQuestion, type AskReportReason, type AskThreadData,
 } from './askThai';
 import { initialAvatar } from './v8Data';
+import { AskText } from './askTr';
 import { lineOut, withRef } from './invite';
 
 type LFn = (en: string) => string;
@@ -150,13 +151,13 @@ const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onAnswer: () 
         <Av p={q.by} s={22} />
         <span className="rva-meta"><b>{q.by.name}</b>{q.by.official ? <Official L={L} /> : q.by.local ? <em>{L('Thai Local')}</em> : null} · {areaLabel(q.area)} · {askTime(L, q.at)}</span>
       </div>
-      <div className="at-tw-q">{q.body}</div>
+      <AskText L={L} kind="q" id={q.id} text={q.body} skip={!!q.by.official} className="at-tw-q" />
       {q.media && <Media m={q.media} cls="at-tw-img" />}
       {q.top && (
         <div className="at-tw-ans rv4-ans">
           <Av p={q.top.by} s={40} />
           <div className="rv4-bub">
-            {q.top.body && <div className="t">“{q.top.body}”</div>}
+            {q.top.body && <AskText L={L} kind="a" id={q.top.id} text={q.top.body} className="t" wrap={(t) => `“${t}”`} />}
             <div className="h"><b>{q.top.by.name}</b>{q.top.by.official ? <><i aria-hidden="true">·</i><Official L={L} /></> : q.top.by.local ? <><i aria-hidden="true">·</i><span>{L('Thai Local')}</span></> : null}{q.top.score > 0 ? <><i aria-hidden="true">·</i><span className="rv4-up"><Ic d={IC.up} s={12} />{fmtCount(q.top.score)}</span></> : null}</div>
           </div>
         </div>
@@ -271,8 +272,8 @@ const Thread: React.FC<{
                 <span className="rva-meta">{areaLabel(q.area)} · {askTime(L, q.at)}</span>
               </div>
             </div>
-            <h1>{q.body}</h1>
-            {q.details && <p>{q.details}</p>}
+            <AskText L={L} kind="q" id={q.id} text={q.body} skip={!!q.by.official} as="h1" toggle />
+            {q.details && <AskText L={L} kind="qd" id={q.id} text={q.details} skip={!!q.by.official} as="p" toggle />}
             {q.media && <Media m={q.media} cls="img" />}
             <div className="qa">
               <VoteRow L={L} score={q.score} my={q.myVote} onVote={voteQ} hot />
@@ -288,7 +289,7 @@ const Thread: React.FC<{
               {a.best && <span className="star">{L('★ Best')}</span>}
               {!mine(a.by) && <MoreBtn L={L} id={a.id} onClick={() => setRep({ kind: 'a', id: a.id })} />}
             </div>
-            {a.body && <div className="t">{a.body}</div>}
+            {a.body && <AskText L={L} kind="a" id={a.id} text={a.body} className="t" toggle />}
             {a.media && <Media m={a.media} cls="img" />}
             <div className="f">
               <VoteRow L={L} score={a.score} my={a.myVote} onVote={(v) => voteA(a, v)} />
