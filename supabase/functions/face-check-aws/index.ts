@@ -27,6 +27,8 @@ import { AWS_LIMITS, cardSimilarity, decide, liveCheck, pickOther, summarize, ty
 import { signV4 } from './sigv4.ts';
 import { ageVerdict, copyHits, copySummary, scanFramePaths, type CopyHit, type TextDet } from './copyscan.ts';
 import { dataUrlB64, frameFeatures, type FacesResp, type FrameF, type LabelsResp, type TextResp } from './quality.ts';
+import { dhashRGBA, otherMemberInReel, type FaceHit } from './reelprint.ts';
+import jpeg from 'npm:jpeg-js@0.4.4';
 
 const SUPA = (Deno.env.get('SUPABASE_URL') ?? '').replace(/\/$/, '');
 const ANON = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
@@ -397,6 +399,17 @@ async function pictureFeatures(at: string, b64: string): Promise<FrameF> {
   if (!lb && !fc && !tx) throw new Error('AWS gave no answer');
   return frameFeatures(at, lb, fc, tx);
 }
+/** 0165: picture fingerprint of one JPEG frame (reelprint.ts dHash) */
+function frameHash(b64: string): string {
+  const d = jpeg.decode(b64ToBytes(b64), { useTArray: true, formatAsRGBA: true, maxMemoryUsageInMB: 256 });
+  return dhashRGBA(d.data, d.width, d.height);
+}
+/** 0165: members' faces AWS found in one frame → [{user, sim}] */
+function faceHits(resp: unknown): FaceHit[] {
+  return ((resp as { FaceMatches?: { Similarity?: number; Face?: { ExternalImageId?: string } }[] } | null)?.FaceMatches || [])
+    .filter((m) => m?.Face?.ExternalImageId && typeof m.Similarity === 'number')
+    .map((m) => ({ user: m.Face!.ExternalImageId as string, sim: Math.round((m.Similarity as number) * 10) / 10 }));
+}
 export async function qualityScan(nReels: number, nPeople: number, only: string | null): Promise<{ reels: number; people: number; errors: number; last_error?: string }> {
   const todo = await rpc<{ reels: { id: string; video_path: string | null; poster_path: string | null }[]; people: { user_id: string; photo: string | null; md5: string }[] }>(
     'kr8_quality_todo', { p_reels: nReels, p_people: nPeople, p_post: only });
@@ -407,6 +420,7 @@ export async function qualityScan(nReels: number, nPeople: number, only: string 
     if (t.poster_path) paths.push(['poster', t.poster_path]);
     if (t.video_path) scanFramePaths(t.video_path).forEach((p, i) => paths.push([i === 0 ? 'middle' : 'end', p]));
     const frames: FrameF[] = []; const hits: CopyHit[] = [];
+    const prints: { at: string; h: string }[] = []; const faceFrames: { at: string; hits: FaceHit[] }[] = [];   // 0165
     for (const [at, path] of paths) {
       const b64 = await download(path, REELS);
       if (!b64) continue;
@@ -414,8 +428,15 @@ export async function qualityScan(nReels: number, nPeople: number, only: string 
         const f = await pictureFeatures(at, b64);
         frames.push(f);
         hits.push(...copyHits(f.text.map((x) => ({ DetectedText: x, Type: 'LINE', Confidence: 99 }) as TextDet), at));
+        // 0165: someone else's face in it? (only a big, clear face is searched in the members' faces)
+        if (f.faces.some((x) => x.conf >= 95 && x.a >= 0.02)) faceFrames.push({ at, hits: faceHits(await search(b64).catch(() => null)) });
       } catch (e) { err(e); log({ q_reel_error: String(e).slice(0, 200), post: t.id }); }
+      try { prints.push({ at, h: frameHash(b64) }); } catch (e) { log({ q_print_error: String(e).slice(0, 160), post: t.id }); }
     }
+    // 0165: same clip as another member's video / another member's face → kr8_reel_reuse (a "looks copied" reason; never hides)
+    const author = (t.video_path || '').split('/')[0];
+    try { await rpc('kr8_reel_reuse_check', { p_post: t.id, p_prints: prints, p_face: author ? otherMemberInReel(author, faceFrames) : null }); }
+    catch (e) { log({ q_reuse_error: String(e).slice(0, 200), post: t.id }); }
     const s = copySummary(hits);
     try {
       await rpc('kr8_reel_quality_record', { p_post: t.id, p_features: { frames, v: 1 }, p_copy: { ...s, evidence: hits.slice(0, 20) } });
