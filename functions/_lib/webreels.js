@@ -246,7 +246,8 @@ export function reelPage(r, more, lang) {
 <meta content="#07060c" name="theme-color"/><link href="/icon-192.png" rel="icon" sizes="192x192" type="image/png"/>
 <meta content="video.other" property="og:type"/><meta content="Kring" property="og:site_name"/><meta content="${th ? 'th_TH' : 'en_US'}" property="og:locale"/>
 <meta content="${url}" property="og:url"/><meta content="${esc(title)}" property="og:title"/><meta content="${esc(desc)}" property="og:description"/>
-<meta content="${poster}" property="og:image"/><meta content="${w}" property="og:image:width"/><meta content="${h}" property="og:image:height"/>
+<meta content="${ORIGIN}/og/r/${r.short}.jpg" property="og:image"/><meta content="image/jpeg" property="og:image:type"/><meta content="1200" property="og:image:width"/><meta content="630" property="og:image:height"/>
+<meta content="${ORIGIN}/og/r/${r.short}-sq.jpg" property="og:image"/><meta content="600" property="og:image:width"/><meta content="600" property="og:image:height"/><meta content="${ORIGIN}/og/r/${r.short}.jpg" name="twitter:image"/>
 <meta content="summary_large_image" name="twitter:card"/>
 <link as="image" href="${posterPath(r.short)}" rel="preload"/>
 <script type="application/ld+json">${ldJson(ld)}</script>
