@@ -154,3 +154,6 @@
 .v8-app-root .at-c .h .at-pbtn.at-pa { gap: inherit; font-weight: inherit; }
 .v8-app-root .at-thread .at-c .at-tr { margin-left: 41px; }
 .v8-app-root .at-c.reply .at-tr { margin-left: 41px; }
+/* the top answer's bubble is its own button (opens the thread); the photo beside it opens the profile */
+.v8-app-root .at-bubbtn { display: block; width: auto; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.v8-app-root .at-pbtn.at-pav { flex: none; align-self: flex-start; margin: -2px 0 0; }

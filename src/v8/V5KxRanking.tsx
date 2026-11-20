@@ -144,7 +144,8 @@ export function ownRow(L: Tx, Lf: Txf, gap: KxGap | null | undefined, mine: KxRa
   }
   // no Rings yet this week
   if (mine && mine.live > 0 && t) return { n: '–', l1: you(g), l2: t.open ? `${Lf('Seat #{0} is open', String(t.rank))} · ${baht(t.prize)} · ${Lf('reach {0}', rt(g.floor))}` : toRank(t), btn: 'share', key: 'zero' };
-  if (mine && mine.pending > 0) return { n: '–', l1: <>{L('You')} · {L('in review')}</>, l2: L('Usually under 2 hours'), btn: null, key: 'review' };
+  // 20 Nov: short enough for one line at 320–360 px ("You · in review · Usually under 2 hours" was cut off)
+  if (mine && mine.pending > 0) return { n: '–', l1: <>{L('In review')}</>, l2: L('usually < 2 h'), btn: null, key: 'review' };
   if (t && t.open && t.prize > 0) return { n: '–', l1: <>{Lf('Seat #{0} is open', String(t.rank))} · {baht(t.prize)}</>, l2: `${L('Post a Reel')} · ${Lf('reach {0}', rt(Math.max(1, g.floor)))}`, btn: 'post', key: 'open' };
   return { n: '–', l1: L('Not on the board yet'), l2: L('Post 1 Reel'), btn: 'post', key: 'none' };
 }

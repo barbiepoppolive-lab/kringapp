@@ -163,16 +163,17 @@ const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onAnswer: () 
     <button type="button" className="at-tw-open" onClick={onOpen}>
       <AskText L={L} kind="q" id={q.id} text={q.body} skip={!!q.by.official} className="at-tw-q" />
       {q.media && <Media m={q.media} cls="at-tw-img" />}
-      {q.top && (
+    </button>
+    {q.top && (
         <div className="at-tw-ans rv4-ans">
-          <Av p={q.top.by} s={40} />
-          <div className="rv4-bub">
+          {/* 20 Nov: the answerer's photo opens their profile; the bubble opens the thread */}
+          <PersonBtn p={q.top.by} className="at-pav"><Av p={q.top.by} s={40} /></PersonBtn>
+          <button type="button" className="rv4-bub at-bubbtn" onClick={onOpen}>
             {q.top.body && <AskText L={L} kind="a" id={q.top.id} text={q.top.body} className="t" wrap={(t) => `“${t}”`} />}
             <div className="h"><b>{q.top.by.name}</b>{q.top.by.official ? <><i aria-hidden="true">·</i><Official L={L} /></> : q.top.by.local ? <><i aria-hidden="true">·</i><span>{L('Thai Local')}</span></> : null}{q.top.score > 0 ? <><i aria-hidden="true">·</i><span className="rv4-up"><Ic d={IC.up} s={12} />{fmtCount(q.top.score)}</span></> : null}</div>
-          </div>
+          </button>
         </div>
-      )}
-    </button>
+    )}
     <div className="at-tw-f">
       <button type="button" className={`rva-vote${q.myVote === 1 ? ' on' : ''}`} aria-label={`${fmtCount(q.score)} ${L('Upvote')}`} aria-pressed={q.myVote === 1} onClick={() => onVote(1)}><Ic d={IC.up} s={18} />{fmtCount(q.score)}</button>
       <button type="button" className="rva-cnt" aria-label={`${fmtCount(q.answers)} ${L('Answers')}`} onClick={onOpen}>{q.answers === 1 ? L('1 answer') : L('{0} answers').replace('{0}', fmtCount(q.answers))}</button>

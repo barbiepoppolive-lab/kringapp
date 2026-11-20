@@ -408,3 +408,6 @@ button.tile.wide { font: inherit; cursor: pointer; }
 .post-btns .post-x { background: #000; color: #fff; border: 1px solid var(--line2); }
 .post-btns .btn.done { box-shadow: inset 0 0 0 3px var(--go2); }
 .post-ok { background: rgba(0, 0, 0, 0.35); color: var(--go2); font-size: 14px; font-weight: 700; padding: 6px 10px; border-radius: 10px; }
+/* 20 Nov: the name is a link to the member page (44 px tap area) */
+.ml-name.ml-open { min-height: 44px; align-items: center; color: inherit; text-decoration: none; -webkit-tap-highlight-color: transparent; }
+.ml-name.ml-open .ml-go { margin-left: auto; font-size: 22px; line-height: 1; color: var(--dim, #8a8a99); }

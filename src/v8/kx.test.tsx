@@ -236,7 +236,7 @@ describe('the pinned own row: next step in Rings and what it pays', () => {
     expect(ownRow(L, Lf, gap({ state: 'paid', rank: 4, rings: 198, prize_now: 500, target: { rank: 3, need: 44, prize: 600, open: false } }), null).l2).toBe('฿500 now · 44 Rings to pass #3 · ฿600');
     expect(ownRow(L, Lf, gap({ state: 'paid', rank: 8, rings: 118, prize_now: 100, target: { rank: 7, need: 14, prize: 150, open: false }, behind: { rank: 9, diff: 11 } }), null).l2).toBe('฿100 now · #9 is 11 behind you');
     expect(ownRow(L, Lf, gap({ state: 'far', rank: 37, rings: 14, above: { rank: 36, name: 'Fern', need: 3 }, top10_need: 82 }), null)).toMatchObject({ l2: '3 Rings to pass Fern · 82 to top 10', btn: 'share' });
-    expect(ownRow(L, Lf, gap({ state: 'off', rank: null, rings: 0 }), { pending: 1, live: 0, no_place: 0 })).toMatchObject({ l2: 'Usually under 2 hours', btn: null, key: 'review' });
+    expect(ownRow(L, Lf, gap({ state: 'off', rank: null, rings: 0 }), { pending: 1, live: 0, no_place: 0 })).toMatchObject({ l2: 'usually < 2 h', btn: null, key: 'review' });
     expect(ownRow(L, Lf, gap({ state: 'off', rank: null, rings: 0 }), { pending: 0, live: 0, no_place: 0 })).toMatchObject({ l1: 'Not on the board yet', l2: 'Post 1 Reel', btn: 'post' });
     expect(ownRow(L, Lf, gap({ state: 'off', rank: null, rings: 0, target: { rank: 6, need: 25, prize: 250, open: true } }), null)).toMatchObject({ l2: 'Post a Reel · reach 25 Rings', btn: 'post', key: 'open' });
     expect(ownRow(L, Lf, gap({ state: 'floor', rank: 5, rings: 18, target: { rank: 5, need: 7, prize: 400, open: false } }), null).l2).toBe('7 Rings to take ฿400');

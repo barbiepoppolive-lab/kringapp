@@ -104,3 +104,12 @@ describe('0122 Help "No reply needed"', () => {
     expect(code).not.toMatch(/function public\.kr8_admin_help_cases|function public\.kr8_robot_self_fix_run/);
   });
 });
+
+describe('20 Nov: a member row opens the admin member page', () => {
+  it('the name is a link to #m/<user id>', () => {
+    const row = memberRow({ ...member, photo_check: 'ok' });
+    const a = row.querySelector<HTMLAnchorElement>('a.ml-open')!;
+    expect(a.getAttribute('href')).toBe('#m/u-0122');
+    expect(a.textContent).toContain('Ploy');
+  });
+});

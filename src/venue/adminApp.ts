@@ -1186,7 +1186,9 @@ export function memberRow(m: MemberRow, onPhoto: (m: MemberRow) => void = photoS
   return el('div', { class: 'ml-row', 'data-member': m.user_id, 'data-no': String(m.member_no ?? '') },
     el('div', { class: 'ml-top' }, ph,
       el('div', { class: 'ml-main' },
-        el('div', { class: 'ml-name' }, el('b', {}, name), el('span', { class: 'faint' }, `#${m.member_no ?? '–'}`), m.is_test ? pill('test', 'a') : null),
+        // 20 Nov (founder): the name opens the member page (#m/…), like every other member link in the admin
+        el('a', { class: 'ml-name ml-open', href: `#m/${m.user_id}`, 'data-open-member': m.user_id, 'aria-label': `Open member ${name}` },
+          el('b', {}, name), el('span', { class: 'faint' }, `#${m.member_no ?? '–'}`), m.is_test ? pill('test', 'a') : null, el('span', { class: 'ml-go', 'aria-hidden': 'true' }, '›')),
         el('div', { class: 'dim xs' }, memberJoined(m.joined_at)),
         el('div', { class: 'xs ml-via' }, memberVia(m)),
         el('div', { class: 'sm ml-facts' }, facts.join(' · '), gender ? ' · ' : '', gender),
