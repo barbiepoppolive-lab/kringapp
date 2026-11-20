@@ -283,3 +283,4 @@
 .v8-app-root #s-me .rv4-me .dt-meline .dt-ring { width: 32px; height: 32px; }
 .v8-app-root #sh-inbox.rv4-chats { top: 0 !important; bottom: 0 !important; max-height: none !important; height: 100% !important; border-radius: 0 !important; }
 .v8-app-root .dt-ring .in { position: relative; z-index: 1; display: grid; place-items: center; width: 100%; height: 100%; } .v8-app-root .dt-ring .in > svg.dt-rings { position: static; inset: auto; width: 15px; height: 9px; }
+.v8-app-root #s-me .rv4-mhd .rv4-pav { background-size: cover !important; background-position: center 30% !important; background-repeat: no-repeat !important; }
