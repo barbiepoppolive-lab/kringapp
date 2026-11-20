@@ -130,7 +130,7 @@ export function ownRow(L: Tx, Lf: Txf, gap: KxGap | null | undefined, mine: KxRa
   const rt = (n: number) => ringsText(L, Lf, n);
   const you = (g: KxGap) => `${L('You')} · ${rt(g.rings)}`;
   const toRank = (t: NonNullable<KxGap['target']>) => `${Lf('{0} to pass #{1}', rt(t.need), String(t.rank))}${t.prize > 0 ? ` · ${baht(t.prize)}` : ''}`;
-  if (!gap) return { n: '–', l1: L('Not on the board yet'), l2: L('One Reel at a place puts you on it'), btn: 'post', key: 'none' };
+  if (!gap) return { n: '–', l1: L('Not on the board yet'), l2: L('Post 1 Reel'), btn: 'post', key: 'none' };
   const g = gap, t = g.target;
   if (g.state === 'top') return { n: '1', l1: you(g), l2: `${Lf('{0} now', baht(g.prize_now))}${g.behind ? ` · ${Lf('#{0} is {1} behind you', String(g.behind.rank), fmtN(g.behind.diff))}` : ''}`, btn: 'math', key: 'top' };
   if (g.state === 'paid' && t) {
@@ -146,7 +146,7 @@ export function ownRow(L: Tx, Lf: Txf, gap: KxGap | null | undefined, mine: KxRa
   if (mine && mine.live > 0 && t) return { n: '–', l1: you(g), l2: t.open ? `${Lf('Seat #{0} is open', String(t.rank))} · ${baht(t.prize)} · ${Lf('reach {0}', rt(g.floor))}` : toRank(t), btn: 'share', key: 'zero' };
   if (mine && mine.pending > 0) return { n: '–', l1: <>{L('You')} · {L('in review')}</>, l2: L('Usually under 2 hours'), btn: null, key: 'review' };
   if (t && t.open && t.prize > 0) return { n: '–', l1: <>{Lf('Seat #{0} is open', String(t.rank))} · {baht(t.prize)}</>, l2: `${L('Post a Reel')} · ${Lf('reach {0}', rt(Math.max(1, g.floor)))}`, btn: 'post', key: 'open' };
-  return { n: '–', l1: L('Not on the board yet'), l2: L('One Reel at a place puts you on it'), btn: 'post', key: 'none' };
+  return { n: '–', l1: L('Not on the board yet'), l2: L('Post 1 Reel'), btn: 'post', key: 'none' };
 }
 
 /** Last 6 h of the week (Sun 18:00 → 24:00 Bangkok): the closing line turns pink. */

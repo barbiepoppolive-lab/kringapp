@@ -3051,7 +3051,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     const no = myMemberNo ?? kxMe?.member_no ?? null;
     faceGateRef.current = FACE_GATE_ON && live && !!v5Card && !adminView && !(v5Card.verified || meProfile?.verified || faceOkNow)
       && !v5Ghost && no != null && Number(no) > FACE_GATE_AFTER_NO;
-    unvRef.current = live && !!v5Card && !adminView && !v5Ghost && !(v5Card.verified || meProfile?.verified || faceOkNow);
+    // 20 Nov (founder): same rule as the server's kr8_face_gate: members #68 and below keep chat without a face check
+    unvRef.current = live && !!v5Card && !adminView && !v5Ghost && !(v5Card.verified || meProfile?.verified || faceOkNow)
+      && no != null && Number(no) > FACE_GATE_AFTER_NO;
     verifyFirstRef.current = () => {
       showToast(L('Verify your face in 5 seconds to post and chat. One person, one account.'));
       try { window.dispatchEvent(new CustomEvent('kr8-verify-first')); } catch { /* ignore */ }
@@ -7360,7 +7362,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {sheet === 'claimed' && live && (
           <ClaimedPage key={kxClaimFocus.id || 'h'} L={L} Lf={Lf} lang={lang} data={kxRewards} focus={kxClaimFocus.id} fresh={kxClaimFocus.fresh} toast={showToast}
             onClose={() => setSheet('rewards')} onChanged={() => void kxLoadRewards()}
-            needsVerify={!!meProfile && !meProfile.verified && !verifyPending} onVerify={() => setSheet('verify')} />
+            needsVerify={!!meProfile && !(meProfile.verified || v5Card?.verified || faceOkNow) && !v5Ghost && !verifyPending} onVerify={() => setSheet('verify')} />
         )}
         {goPlayer && live && (
           <GoReelPlayer L={L} Lf={Lf} lang={lang} reels={goPlayer.reels} start={goPlayer.start} title={goPlayer.title} viewProfile={goPlayer.viewProfile}
@@ -7395,7 +7397,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <RankingPage L={L} Lf={Lf} lang={lang} myArea={v5Card?.area || null} myPhoto={v5Card?.photo || null} myName={v5Card?.first_name || ''} myId={v5Card ? v5Uid || null : null}
             onBack={() => setSheet(null)} onPerson={(id) => void goOpenBest(id)} onPost={() => requireSignInForAction(() => kxPostAt())}
             onShare={(reel) => void kxShareReelId(reel)} onShareDown={prefetchReelLink}
-            needsVerify={!!meProfile && !meProfile.verified && !verifyPending} onVerify={() => setSheet('verify')} />
+            needsVerify={!!meProfile && !(meProfile.verified || v5Card?.verified || faceOkNow) && !v5Ghost && !verifyPending} onVerify={() => setSheet('verify')} />
         )}
         {sheet === 'result' && live && kxResult && (
           <ResultPage L={L} Lf={Lf} lang={lang} r={kxResult} photo={v5Card?.photo || null} name={v5Card?.first_name || ''} level={kxMe?.level ?? 1} no={kxMe?.member_no ?? (v5Card as { member_no?: number } | null)?.member_no ?? null}

@@ -1051,6 +1051,7 @@ export const KX_L: Record<string, Record<string, string>> = {
     'See my math': 'ดูคะแนนฉัน',
     'Not on the board yet': 'ยังไม่ติดกระดาน',
     'One Reel at a place puts you on it': 'โพสต์ 1 รีลพร้อมปักหมุดสถานที่ ก็ติดแล้ว',
+    'Post 1 Reel': 'โพสต์ 1 รีลก็ติด',
     '{0} now': 'ตอนนี้ได้ {0}',
     '#{0} is {1} behind you': 'อันดับ {0} ตามมา {1} ริง',
     '{0} to #{1}': 'อีก {0} ถึงอันดับ {1}',
