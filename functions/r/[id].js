@@ -1,10 +1,14 @@
 // kringapp.com/r/<short> : the share link of one Reel.
-// 1. logs the open (Reel, referrer, browser, session, country, time) through the database function kr8_share_open,
+// 1. logs the open (Reel, referrer, browser, session, country, time) through the database function kr8_share_open. Since 0182 (20 Nov)
+//    the open is only 'pending' here: it counts when the app has been VISIBLE for 2 seconds and calls /r/ok (functions/r/ok.js),
+//    so curl, link-preview robots and a faked "Referer: instagram.com" never earn Rings.
+// (old note) logs the open,
 // 2. sends the visitor into the app at that Reel (/app/?reel=<id>&so=<open id>).
 // The poster earns Rings for opens from outside (Instagram, TikTok, …); LINE opens, link-preview robots, repeats and the
 // poster's own opens are stored but never count (decided in the database, not here).
 // Needs the Pages secret SHARE_OPEN_KEY (same value as the database vault secret "share_open_key"). Without it the link still
 // works, it just cannot log opens. No IP address is stored: only a one-way hash of secret + IP + browser, to count a device once a day.
+import { ipRange } from '../_lib/opennet.js';
 const SUPA = 'https://pedxoxpammnyfnizljyj.supabase.co';
 const ANON = 'sb_publishable_SaAf7mILfPPpCeAEvj79bA_Vz8JnCBN';   // public key, the same one the app ships
 const ROBOT = /bot|crawl|spider|facebookexternalhit|meta-external|preview|whatsapp|telegram|slack|discord|embed|curl|wget|python|okhttp|headless|lighthouse|monitor|scan/i;
@@ -49,13 +53,15 @@ export async function onRequestGet({ request, params, env }) {
       // that changes its browser name can't farm opens). IPv6: one /64 = one home or phone.
       const net = ip.includes(':') ? ip.split(':').slice(0, 4).join(':') : ip;
       const device = hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${key}|${net}`)));
+      // 0182: the wider IP range (IPv4 /24, IPv6 /48), hashed the same way, so a burst of opens from one range is flagged, not counted
+      const range = hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${key}|range|${ipRange(ip)}`)));
       const ctl = new AbortController();
       const timer = setTimeout(() => ctl.abort(), 3000);
       const r = await fetch(`${SUPA}/rest/v1/rpc/kr8_share_open`, {
         method: 'POST', signal: ctl.signal,
         headers: { apikey: ANON, Authorization: `Bearer ${ANON}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ p_short: short, p_ref: ref.slice(0, 300), p_ua: ua.slice(0, 300), p_session: sid, p_device: device,
-          p_country: (request.cf && request.cf.country) || null, p_key: key }),
+          p_country: (request.cf && request.cf.country) || null, p_key: key, p_range: range }),
       });
       clearTimeout(timer);
       if (r.ok) out = await r.json();
@@ -81,7 +87,8 @@ export async function onRequestGet({ request, params, env }) {
 <meta property="og:image" content="${esc(sqImg)}"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="600"><meta property="og:image:height" content="600">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(desc)}"><meta name="twitter:image" content="${esc(img)}">
 <meta name="robots" content="noindex"><link rel="canonical" href="${esc(to)}"></head><body><a href="${esc(to)}">${esc(title)}</a><script>location.replace(${JSON.stringify(to).replace(/</g, '\\u003c')})</script></body></html>`;
-    return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Referrer-Policy': 'strict-origin-when-cross-origin', ...SEC } });
+    // 0182: the browser cookie is set here too, so the in-app browser's beacon (/r/ok) matches this open
+    return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'Referrer-Policy': 'strict-origin-when-cross-origin', ...SEC, ...(cookie ? { 'Set-Cookie': cookie } : {}) } });
   }
   return go(to, cookie);
 }
