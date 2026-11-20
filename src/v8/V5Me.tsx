@@ -261,6 +261,8 @@ export type MeViewProps = {
   reelCount?: number;
   /** 20 Nov: the weekly-board hook that replaced the Founding ฿100 card */
   weekHook?: WeekHookData | null;
+  /** 0171: the daily-tasks line (mini ring · N of 4 · streak · Claim) */
+  tasksSlot?: React.ReactNode;
 };
 
 /**
@@ -313,6 +315,7 @@ export function MeView(props: MeViewProps) {
       )} />
       <MeLine L={L} Lf={Lf} kx={props.kx} hook={props.weekHook || { rank: props.weekRank ?? null, prize: props.weekPrize ?? 0, toLine: null, top: 0 }}
         dot={!!props.ringsDot || (props.kx?.prizes ?? 0) > 0} onRings={props.onRings} onRanking={props.onRanking} onPost={props.onPost} />
+      {props.tasksSlot || null}
       {actionStep && props.nextKind !== 'reel' && props.nextKind !== 'pending' ? props.nextSlot : null}
       {props.webAskSlot || null}
       {props.reelsSlot ? props.reelsSlot : (

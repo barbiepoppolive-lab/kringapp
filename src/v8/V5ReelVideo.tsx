@@ -57,7 +57,7 @@ export function toggleReelSound(e: { target: EventTarget | null; currentTarget: 
   if (v.paused) void v.play().catch(() => undefined);
 }
 
-export function V5ReelVideo({ src, poster, label, pending, onViewed, first, soundHint }: { src: string; poster?: string; label: string; pending?: string; onViewed?: () => void; first?: boolean; soundHint?: string }) {
+export function V5ReelVideo({ src, poster, label, pending, onViewed, first, soundHint, postId }: { src: string; poster?: string; label: string; pending?: string; onViewed?: () => void; first?: boolean; soundHint?: string; postId?: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const barRef = useRef<HTMLElement>(null);
   const viewedRef = useRef(false);
@@ -131,7 +131,14 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed, first, soun
     const onSound = () => setMuted(v.muted);
     // a view = 3 seconds actually played on screen (counted once per Reel per day on the server)
     let played = 0; let last = -1;
+    // 0171 daily task "Watch 3 Reels to the end": tell the tasks layer when this Reel starts and when it reaches 90% (the server checks the time)
+    let wStart = false; let wEnd = false;
+    const watch = (phase: 'start' | 'end') => { if (!postId) return; try { window.dispatchEvent(new CustomEvent('kr8-reel-watch', { detail: { post: postId, phase } })); } catch { /* ignore */ } };
     const onTime = () => {
+      if (postId && v.duration > 0 && Number.isFinite(v.duration)) {
+        if (!wStart && v.currentTime > 0.2 && v.currentTime < v.duration * 0.5) { wStart = true; watch('start'); }
+        else if (wStart && !wEnd && v.currentTime >= v.duration * 0.9) { wEnd = true; watch('end'); }
+      }
       // 16 Nov (founder): a thin progress line at the bottom of the Reel, always above the tab bar
       const bar = barRef.current;
       if (bar && v.duration > 0 && Number.isFinite(v.duration)) bar.style.transform = `scaleX(${Math.min(1, v.currentTime / v.duration)})`;

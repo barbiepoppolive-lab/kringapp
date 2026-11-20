@@ -144,6 +144,7 @@ import { V5Qr, V5SignInSheet } from './V5Sheets';
 import { V5ShareCard } from './V5ShareCard';
 import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, showFirstReelChip } from './V5ReelNudge';
 import { V5ReelVideo, holdReels, reelsHeld, toggleReelSound } from './V5ReelVideo';
+import { TasksFeed, TasksFromMe, TasksMeLine } from './V5Tasks';
 import { restoredTab, rememberTab } from './tabMemory';
 import { AskSwitch } from './V5AskSwitch';
 import { createAskApi, type AskPerson } from './askThai';
@@ -1442,6 +1443,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const live = V5_AUTH_LIVE && !isDemo;
   // Ask a Thai (16 Nov, founder-approved Screen 2): Feed top switch. Reels stays the default.
   const [feedMode, setFeedMode] = useState<'reels' | 'ask'>(() => (typeof location !== 'undefined' && /[?&]feed=ask\b/.test(location.search) ? 'ask' : 'reels'));
+  // 0171 daily tasks: the Ask a Thai question to open from the task sheet, and the sheet opened from Me
+  const [askOpenThread, setAskOpenThread] = useState<string | null>(null);
+  const [meTasks, setMeTasks] = useState(false);
+  useEffect(() => { if (feedMode !== 'ask') setAskOpenThread(null); }, [feedMode]);
   const askMeRef = useRef<AskPerson | null>(null);
   const [askSeen, setAskSeen] = useState<boolean>(() => { try { return localStorage.getItem('kr8_ask_seen') === '1'; } catch { return true; } });
   const pickFeedMode = (m: 'reels' | 'ask') => {
@@ -4213,7 +4218,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           )}
           <AskSwitch L={L} mode={feedMode} onMode={pickFeedMode} dot={!askSeen} />
           {feedMode === 'ask' && (
-            <AskThaiView L={L} api={askApi} me={askMeRef.current} areas={V5_AREAS} areaLabel={(a) => kxArea(lang, a, L)}
+            <AskThaiView key={askOpenThread || 'ask'} openThread={askOpenThread || undefined} L={L} api={askApi} me={askMeRef.current} areas={V5_AREAS} areaLabel={(a) => kxArea(lang, a, L)}
               defaultArea={(live && v5Card?.area) || 'Bangkok'} need={requireSignInForAction} toast={showToast} refCode={getMyRef()}
               shareLink={(url, text) => void shareNow(url, text)} />
           )}
@@ -4225,6 +4230,12 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onOpen={() => { setTab('me'); setSheet('ranking'); }} />
           ) : null}
 
+          {/* 0171 daily tasks (founder 20 Nov): orb A on the left edge, check-in toast, watch-3 bar, reminder bubble; signed-in members only */}
+          {tab === 'feed' && feedMode !== 'ask' && live && signedIn && v5Card && v5Uid && !adminView && !sheet && (
+            <TasksFeed lang={lang} name={v5Card.first_name || ''} verified={!!(meProfile?.verified || v5Card.verified || faceOkNow)} scrollEl={feedScrollRef.current}
+              onAsk={(q) => { setAskOpenThread(q); pickFeedMode('ask'); }}
+              onVerify={() => { setVerifyMode('me'); setSheet('verify'); }} />
+          )}
           {/* Vertical Snap Feed or Redesigned V9 Feed Hub */}
           {feedItems.length === 0 ? (
             <div className="feed-scroll" id="feedScroll" ref={feedScrollRef}>
@@ -4289,6 +4300,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   <div className={`slide${p.video ? ' has-reel' : ''}`} key={p.id || idx} data-post-id={p.id} onClick={p.video ? (e) => handleReelTap(e, p) : undefined}>
                     {p.video ? (
                       <V5ReelVideo src={p.video} poster={p.poster} first={idx === 0} label={`Reel · ${p.name || ''} · ${p.area || ''}`} soundHint={L('Tap for sound')}
+                        postId={live && p.id && !p.reelPending && !(p as V5FeedItem).mine ? (p.id as string) : undefined}
                         pending={p.reelPending ? L('Waiting for a quick check · only you see this') : undefined}
                         onViewed={live && !adminView && !adminWantedRef.current && p.id && !p.reelPending && !(p as V5FeedItem).mine ? () => void v5LogView(p.id as string) : undefined} />
                     ) : (
@@ -4922,6 +4934,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           ) : live && signedIn && v5Card && meProfile ? (
             <MeView
               L={L}
+              tasksSlot={live && v5Card && v5Uid && !adminView ? <TasksMeLine lang={lang} onOpen={() => setMeTasks(true)} /> : null}
               reelCount={goMine ? goMine.length : undefined}
               Lf={Lf}
               ghost={v5Ghost}
@@ -7355,6 +7368,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             }} />
         )}
         {coachSpot && live && <GoCoach L={L} spot={coachSpot} onDone={() => { coachMark(coachRef.current, coachSpot.key as CoachKey, !!v5Uid && !!v5Card); setCoachSpot(null); }} />}
+        {meTasks && live && v5Card && !sheet && (
+          <TasksFromMe lang={lang} onClose={() => setMeTasks(false)}
+            onAsk={(q) => { setMeTasks(false); setTab('feed'); setAskOpenThread(q); pickFeedMode('ask'); }}
+            onVerify={() => { setMeTasks(false); setVerifyMode('me'); setSheet('verify'); }} />
+        )}
         {sheet === 'ranking' && live && (
           <RankingPage L={L} Lf={Lf} lang={lang} myArea={v5Card?.area || null} myPhoto={v5Card?.photo || null} myName={v5Card?.first_name || ''} myId={v5Card ? v5Uid || null : null}
             onBack={() => setSheet(null)} onPerson={(id) => void goOpenBest(id)} onPost={() => requireSignInForAction(() => kxPostAt())}
