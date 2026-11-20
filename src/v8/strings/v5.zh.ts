@@ -747,5 +747,10 @@ const T: Record<string, string> = {
   'Choose from gallery': '从相册选择',
   'Change photo': '更换照片',
   'Checking photo…': '正在检查照片…',
+  'Kring is one person, one account, so this account can’t be verified or win prizes.': 'Kring 规定一人一号，所以这个账号无法认证，也不能领奖。',
+  'Sent ✓ Our team will check your account and reply in your Kring messages.': '已发送 ✓ 我们的团队会核查你的账号，并在 Kring 消息里回复你。',
+  'Anything we should know? (optional)': '有什么想告诉我们的吗？（可选）',
+  'Ask Kring to check my account': '请 Kring 核查我的账号',
+  'Couldn’t send. Check your connection and try again.': '发送失败。请检查网络后重试。',
 };
 export default T;

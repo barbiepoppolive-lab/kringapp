@@ -747,5 +747,10 @@ const T: Record<string, string> = {
   'Choose from gallery': '갤러리에서 선택',
   'Change photo': '사진 바꾸기',
   'Checking photo…': '사진 확인 중…',
+  'Kring is one person, one account, so this account can’t be verified or win prizes.': 'Kring은 한 사람당 한 계정이라 이 계정은 인증하거나 상품을 받을 수 없어요.',
+  'Sent ✓ Our team will check your account and reply in your Kring messages.': '보냈어요 ✓ 팀이 계정을 확인하고 Kring 메시지로 답할게요.',
+  'Anything we should know? (optional)': '알려 주실 내용이 있나요? (선택)',
+  'Ask Kring to check my account': 'Kring에 계정 확인 요청하기',
+  'Couldn’t send. Check your connection and try again.': '보내지 못했어요. 연결을 확인하고 다시 시도해 주세요.',
 };
 export default T;

@@ -807,7 +807,7 @@ export async function v5VerifyInstant(selfie: Blob | null, check: Record<string,
   }
 }
 /** 0125 server face check (AWS Rekognition, edge function face-check-aws): what the server answered. */
-export interface V5FaceAwsResult { result: 'pass' | 'review' | 'retry'; why?: string; reasons?: string[]; verified?: boolean; tries_left?: number; again?: boolean }
+export interface V5FaceAwsResult { result: 'pass' | 'review' | 'retry' | 'refused'; why?: string; reasons?: string[]; verified?: boolean; tries_left?: number; again?: boolean }
 const blobB64 = (b: Blob) => new Promise<string>((ok, bad) => {
   const r = new FileReader();
   r.onload = () => ok(String(r.result).replace(/^data:[^,]*,/, ''));
@@ -839,6 +839,14 @@ export async function v5FaceAwsCheck(frames: { straight: Blob; left: Blob; right
   const j = await r.json().catch(() => null) as (V5FaceAwsResult & { error?: string }) | null;
   if (!r.ok || !j || j.error) throw new V5Error(j?.error || (r.status === 401 ? 'SIGN_IN' : 'UNKNOWN'));
   return j;
+}
+/** 0171 (20 Nov): after a "same face as another account" refusal, the member's one tap "Ask Kring to check my account"
+ *  (optional short note). 'SENT' · 'ALREADY_SENT' (one open request at a time) · 'NOTHING_TO_CHECK'. */
+export async function v5AccountCheckRequest(note?: string): Promise<'SENT' | 'ALREADY_SENT' | 'NOTHING_TO_CHECK'> {
+  if (adminViewActive()) throw new V5Error('ADMIN_VIEW');
+  const r = await rpcRaw<{ ok?: boolean; code?: string } | null>('kr8_account_check_request', { p_note: (note || '').trim() || null });
+  const code = r?.code;
+  return code === 'ALREADY_SENT' || code === 'NOTHING_TO_CHECK' ? code : 'SENT';
 }
 /** 19 Nov fix5: the card photo → face-check-aws action "photo" (AWS DetectFaces, nothing stored). 'error' when it can't answer. */
 export async function v5CardPhotoCheck(dataUrl: string, timeoutMs = 8000): Promise<'ok' | 'none' | 'small' | 'group' | 'text' | 'child' | 'error'> {

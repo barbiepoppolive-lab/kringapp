@@ -747,5 +747,10 @@ const T: Record<string, string> = {
   'Choose from gallery': 'ギャラリーから選ぶ',
   'Change photo': '写真を変更',
   'Checking photo…': '写真を確認中…',
+  'Kring is one person, one account, so this account can’t be verified or win prizes.': 'Kring は 1 人 1 アカウントのため、このアカウントは認証も賞品の受け取りもできません。',
+  'Sent ✓ Our team will check your account and reply in your Kring messages.': '送信しました ✓ チームがアカウントを確認し、Kring のメッセージで返信します。',
+  'Anything we should know? (optional)': '伝えたいことはありますか？（任意）',
+  'Ask Kring to check my account': 'Kring にアカウントの確認を依頼',
+  'Couldn’t send. Check your connection and try again.': '送信できませんでした。接続を確認してもう一度お試しください。',
 };
 export default T;

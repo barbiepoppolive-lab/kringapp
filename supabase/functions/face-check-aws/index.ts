@@ -4,7 +4,8 @@
 //
 // Member call (Supabase JWT required; deploy WITH JWT verification):
 //   POST { consent, device?, frames: { straight, left, right } }   frames = base64 JPEG (~480 px, a "data:" prefix is fine)
-//   → { result: 'pass' | 'review' | 'retry', why?, reasons?, verified, tries_left }
+//   → { result: 'pass' | 'review' | 'retry' | 'refused', why?, reasons?, verified, tries_left }
+//     refused = 0171: the same face as another account → refused automatically (warning once, all-prizes ban, appeal button)
 //     pass   = ✓ now (kr8_verifications approved, kr8_members.verified = true, the straight frame indexed in kring-members)
 //     review = "Done ✓, we'll confirm shortly" (pending row → founder's Face checks; look-alike → founder alert)
 //     retry  = no clear live face (no_face, many_faces, too_dark, too_blurry, too_far, eyes_closed, sunglasses, look_straight,
@@ -196,7 +197,7 @@ function mockRk(target: string, p: Record<string, unknown>): unknown {
 
 // ───────── the member's check ─────────
 type Gate = { again: boolean; verified: boolean; photo?: string | null; tries_left?: number; card_min?: number; dup_min?: number; auto_on?: number };
-type Rec = { result: 'pass' | 'review' | 'fail'; reasons: string[]; verified: boolean; tries_left: number; verification_id?: string };
+type Rec = { result: 'pass' | 'review' | 'fail' | 'block'; reasons: string[]; verified: boolean; tries_left: number; verification_id?: string };
 
 async function check(uid: string, body: Record<string, unknown>): Promise<Response> {
   const t0 = Date.now();
@@ -270,6 +271,9 @@ async function check(uid: string, body: Record<string, unknown>): Promise<Respon
     catch (e) { log({ index_error: String(e).slice(0, 300) }); }   // the ✓ stays; the next sweep / backfill can add it
   }
   log({ check: rec.result, reasons: rec.reasons, ms: Date.now() - t0 });
+  // 0171 (20 Nov, founder): the same face as another account is refused straight away (no founder card); the app shows the
+  // "one person, one account" screen with "Ask Kring to check my account". The other account is never named to the member.
+  if (rec.result === 'block') return json({ result: 'refused', reasons: rec.reasons, verified: false, tries_left: rec.tries_left });
   return json({ result: rec.result === 'pass' ? 'pass' : 'review', reasons: rec.reasons, verified: rec.verified, tries_left: rec.tries_left });
 }
 
