@@ -28,6 +28,8 @@ import { signV4 } from './sigv4.ts';
 import { ageVerdict, copyHits, copySummary, scanFramePaths, type CopyHit, type TextDet } from './copyscan.ts';
 import { dataUrlB64, frameFeatures, type FacesResp, type FrameF, type LabelsResp, type TextResp } from './quality.ts';
 import { dhashRGBA, otherMemberInReel, type FaceHit } from './reelprint.ts';
+import { photoVerdictAws, type Fd, type PhotoV } from './photoverdict.ts';
+export { photoVerdictAws, PHOTO_TEXT_WORDS, PHOTO_CHILD_HIGH } from './photoverdict.ts';
 import jpeg from 'npm:jpeg-js@0.4.4';
 
 const SUPA = (Deno.env.get('SUPABASE_URL') ?? '').replace(/\/$/, '');
@@ -276,17 +278,6 @@ async function check(uid: string, body: Record<string, unknown>): Promise<Respon
 // The card screen used to run a face finder ON the phone (a 1 MB model + WebGL). On many Android phones WebGL is broken, the
 // finder fell back to the CPU and members waited on a black "loading" screen, or a good photo was refused. Now the phone sends the
 // small card photo (≤ 384 px) here: one AWS DetectFaces call (~1 s, nothing stored). Same rules as before: ok · none · small · group.
-type Fd = { BoundingBox?: { Width?: number }; Confidence?: number };
-/** 20 Nov (founder): a card photo must show ONE clear face. 'text' = a screenshot / poster (lots of words) even if a face shows. */
-export const PHOTO_TEXT_WORDS = 25;
-export function photoVerdictAws(faces: Fd[], words = 0): 'ok' | 'none' | 'small' | 'group' | 'text' {
-  const f = (faces || []).filter((x) => (x.Confidence ?? 0) >= 90).map((x) => x.BoundingBox?.Width ?? 0).sort((a, b) => b - a);
-  if (!f.length || f[0] > 0.95) return 'none';
-  if (f[0] < 0.08) return 'small';
-  if (f.length > 1 && f[1] >= f[0] * 0.85) return 'group';
-  if (words >= PHOTO_TEXT_WORDS) return 'text';
-  return 'ok';
-}
 async function sha256Hex(s: string): Promise<string> {
   const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
   return Array.from(new Uint8Array(d)).map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -303,10 +294,10 @@ async function photoCheck(uid: string, body: Record<string, unknown>): Promise<R
     if (v === 'ok') await pass('ok');
     return json({ verdict: v });
   }
-  let v: 'ok' | 'none' | 'small' | 'group' | 'text';
+  let v: PhotoV;
   try {
     const [r, t] = await Promise.all([
-      rk<{ FaceDetails?: Fd[] }>('DetectFaces', { Image: img(b64), Attributes: ['DEFAULT'] }),
+      rk<{ FaceDetails?: Fd[] }>('DetectFaces', { Image: img(b64), Attributes: ['DEFAULT', 'AGE_RANGE'] }),
       rk<{ TextDetections?: { Type?: string; Confidence?: number }[] }>('DetectText', { Image: img(b64) }).catch(() => null),
     ]);
     const words = (t?.TextDetections || []).filter((x) => x.Type === 'WORD' && (x.Confidence ?? 0) >= 80).length;
