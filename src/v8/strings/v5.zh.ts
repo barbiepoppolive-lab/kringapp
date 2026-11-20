@@ -516,6 +516,11 @@ const T: Record<string, string> = {
     "Use a photo or GIF": "请使用图片或 GIF",
     "Couldn’t post · try again": "发布失败 · 请重试",
     "No questions yet": "还没有问题",
+    "Answer": "回答",
+    "No answers yet": "还没有回答",
+    "Know this one? Your answer helps.": "知道答案吗？你的回答很有帮助。",
+    "Ask Bangkok locals anything": "向曼谷本地人提任何问题",
+    "Be the first to ask Bangkok.": "第一个向曼谷提问吧。",
       // T-301 (T301-007): Weather sheet
     'Feels like {0}°': '体感 {0}°',
     'Tropical shower likely this afternoon': '今天下午可能有阵雨',

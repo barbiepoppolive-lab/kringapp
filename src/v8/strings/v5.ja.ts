@@ -516,6 +516,11 @@ const T: Record<string, string> = {
     "Use a photo or GIF": "写真か GIF を選んでください",
     "Couldn’t post · try again": "投稿できませんでした · もう一度お試しください",
     "No questions yet": "まだ質問はありません",
+    "Answer": "回答する",
+    "No answers yet": "まだ回答はありません",
+    "Know this one? Your answer helps.": "知っていますか？あなたの回答が役に立ちます。",
+    "Ask Bangkok locals anything": "バンコクの地元の人に何でも質問",
+    "Be the first to ask Bangkok.": "最初に質問してみよう。",
       // T-301 (T301-007): Weather sheet
     'Feels like {0}°': '体感 {0}°',
     'Tropical shower likely this afternoon': '今日の午後はにわか雨がありそう',

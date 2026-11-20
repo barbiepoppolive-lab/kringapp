@@ -516,6 +516,11 @@ const T: Record<string, string> = {
     "Use a photo or GIF": "फ़ोटो या GIF चुनें",
     "Couldn’t post · try again": "पोस्ट नहीं हुआ · फिर से कोशिश करें",
     "No questions yet": "अभी कोई सवाल नहीं",
+    "Answer": "जवाब दें",
+    "No answers yet": "अभी कोई जवाब नहीं",
+    "Know this one? Your answer helps.": "जानते हैं? आपका जवाब मदद करेगा।",
+    "Ask Bangkok locals anything": "बैंकॉक के लोकल्स से कुछ भी पूछें",
+    "Be the first to ask Bangkok.": "बैंकॉक से पूछने वाले पहले बनें।",
       // T-301 (T301-007): Weather sheet
     'Feels like {0}°': 'महसूस {0}°',
     'Tropical shower likely this afternoon': 'आज दोपहर बारिश की संभावना',

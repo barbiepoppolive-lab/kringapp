@@ -516,6 +516,11 @@ const T: Record<string, string> = {
     "Use a photo or GIF": "사진이나 GIF를 선택해 주세요",
     "Couldn’t post · try again": "게시하지 못했어요 · 다시 시도해 주세요",
     "No questions yet": "아직 질문이 없어요",
+    "Answer": "답변하기",
+    "No answers yet": "아직 답변이 없어요",
+    "Know this one? Your answer helps.": "알고 있나요? 답변이 큰 도움이 돼요.",
+    "Ask Bangkok locals anything": "방콕 현지인에게 무엇이든 물어보세요",
+    "Be the first to ask Bangkok.": "방콕에 처음으로 질문해 보세요.",
       // T-301 (T301-007): Weather sheet
     'Feels like {0}°': '체감 {0}°',
     'Tropical shower likely this afternoon': '오늘 오후 소나기 가능성',
