@@ -115,6 +115,7 @@ const FACE_GATE_ON = true;   // 19 Nov (founder): face check right after the car
 import { StayDo } from './V5StayDo';
 import { v5MarkThreadRead } from './v5Live';
 import { v5DeviceSeen, v5HandoffBoot, v5LogClient, v5MyVerification, V5_AREAS } from './v5Live';
+import { founderGhostBoot, mountFounderGhostScreen } from './founderGhost';
 import { v5AcceptTerms, v5PromoGet, v5SetPromo, V5_TERMS_VERSION, type V5Promo } from './v5Live';
 import { TermsAgreeText } from './V5Sheets';
 import type { V5Activity, V5FollowRow, V5Profile } from './v5Live';
@@ -1765,6 +1766,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       // arrived from an in-app browser with a one-time hand-off code (?ho=): signed in here before anything reads the session
       await v5HandoffBoot().catch(() => 'failed');
       if (cancelled) return;
+      // 20 Nov founder bookmark (?me=ghost): signed in as #117 here → Feed; otherwise the founder sign-in screen (founderGhost.ts)
+      const fg = await founderGhostBoot();
+      if (cancelled) return;
+      if (fg !== 'none') {
+        setTab('feed');
+        if (fg === 'need') mountFounderGhostScreen(() => { setSheet(null); setTab('feed'); });
+      }
       if (import.meta.env.VITE_LIFF_ID) {
         try {
           const r = await import('./v5Liff').then((m) => m.v5LiffBoot());

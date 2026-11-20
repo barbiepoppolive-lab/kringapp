@@ -19,7 +19,7 @@ export const ADMIN_VIEW_READS: ReadonlySet<string> = new Set([
   'kr8_weekly_ranking', 'kr8_top10', 'kr8_score_breakdown', 'kr8_rings_rules', 'kr8_reward_start', 'kr8_recent_claims',
   'kr8_treats_live', 'kr8_listings_live', 'kr8_stand_info', 'kr8_team_ids', 'kr8_gender_shown', 'kr8_card_extras',
   'kr8_my_rewards', 'kr8_my_saves', 'kr8_my_saved_reels', 'kr8_my_activity', 'kr8_my_blocks', 'kr8_my_ghost',
-  'kr8_coach_state', 'kr8_social_status', 'kr8_ref_name', 'kr8_card_print_ok',
+  'kr8_coach_state', 'kr8_social_status', 'kr8_ref_name', 'kr8_card_print_ok', 'kr8_am_founder',
 ]);
 
 /**
