@@ -309,8 +309,15 @@ function liveApi(gate?: () => boolean): Omit<AskApi, 'mode'> {
     id: a.id, parentId: a.parent_id, by: P(a.author_id), body: a.body || '', media: await media(a.media_path, a.media_kind),
     score: a.score || 0, myVote: (Math.sign(a.my_vote || 0) as -1 | 0 | 1), at: a.created_at,
   });
+  // 20 Nov: Kring Team questions carry an English question + its Thai version in details → show ONE language only.
+  const oneLang = (by: AskPerson, body: string, details: string): { body: string; details: string } => {
+    const TH = /[\u0E00-\u0E7F]/;
+    if (!by.official || !details || TH.test(body) || !TH.test(details)) return { body, details };
+    let th = false; try { th = (localStorage.getItem('kr8_lang') || 'en') === 'th'; } catch { /* default English */ }
+    return th ? { body: details, details: '' } : { body, details: '' };
+  };
   const mapQ = async (q: RawQ, P: (id: string) => AskPerson): Promise<AskQuestion> => ({
-    id: q.id, by: P(q.author_id), area: q.area || 'Bangkok', body: q.body || '', details: q.details || '', media: await media(q.media_path, q.media_kind),
+    id: q.id, by: P(q.author_id), area: q.area || 'Bangkok', ...oneLang(P(q.author_id), q.body || '', q.details || ''), media: await media(q.media_path, q.media_kind),
     score: q.score || 0, myVote: (Math.sign(q.my_vote || 0) as -1 | 0 | 1), answers: q.answers || 0, top: q.top ? await mapA(q.top, P) : null, at: q.created_at,
   });
   const upload = async (f?: File | null): Promise<{ path: string | null; kind: string | null }> => {

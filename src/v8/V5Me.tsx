@@ -154,7 +154,26 @@ export function ReelStamps(props: { L: Tx }) {
  * "Founding Local · ฿100": three steps under the card, step 1 already ticked (mock m5). Shows until the member is a Founding Local;
  * when all the spots are taken it becomes "3 steps to the board" with no ฿. The spots-left number is the true count from the server.
  */
-export type WeekHookData = { rank: number | null; prize: number; toLine: number | null; top: number };
+export type WeekHookData = { rank: number | null; prize: number; toLine: number | null; top: number; needs?: number | null };
+
+/**
+ * 20 Nov fix ("You're #1 ฿900" for a test member): the board's me.rank is the rank inside the loaded scope (area / friends / with
+ * blocked members hidden), but the prize is paid on the city-wide rank. The Me line now reads the city-wide rank (all_rank) and that
+ * rank's prize, so #1 always reads ฿1,500. A seat under the Rings floor shows its prize greyed with "25 Rings to unlock".
+ */
+export function kxWeekHook(w: { me: { rank: number; all_rank?: number; rings: number; prize: number } | null; rows?: { all_rank?: number; rank: number; rings: number; is_me: boolean; to_line: number | null; needs?: number | null }[];
+  paid_ranks?: number; prizes?: number[]; floor?: number } | null | undefined, ladderTop = 0): WeekHookData {
+  const me = w?.me || null;
+  const rank = me ? (me.all_rank || me.rank) : null;
+  const paid = w?.paid_ranks || 8;
+  const prize = rank && rank <= paid ? (w?.prizes?.[rank - 1] ?? me?.prize ?? 0) : 0;
+  const row = w?.rows?.find((r) => r.is_me);
+  const lineRow = w?.rows?.find((r) => (r.all_rank || r.rank) === paid);
+  const toLine = rank && rank > paid ? (row?.to_line ?? (lineRow && me ? Math.max(1, lineRow.rings - me.rings + 1) : null)) : null;
+  const flr = w?.floor ?? 25;
+  const needs = prize > 0 && me && me.rings < flr ? flr : null;
+  return { rank, prize, toLine, top: w?.prizes?.[0] || ladderTop || 0, needs };
+}
 
 /**
  * 20 Nov founder ("Remove those 0 of 50. We need put something catchy instead"): Founding Local seats are gone, so Me sells this
@@ -165,12 +184,13 @@ export function WeekHook(props: { L: Tx; Lf: Txf; hook: WeekHookData; onRanking?
   const { L, Lf, hook: h } = props;
   const baht = (n: number) => `฿${fmtN(n)}`;
   const inPrize = !!h.rank && h.prize > 0;
+  const locked = inPrize && !!h.needs;
   const onBoard = !!h.rank;
-  const line = inPrize ? Lf('You’re #{0} · {1} this week 🏆', String(h.rank), baht(h.prize))
+  const line = inPrize ? (h.needs ? `${Lf('You’re #{0} · {1}', String(h.rank), baht(h.prize))} · ${Lf('{0} Rings to unlock', fmtN(h.needs))}` : Lf('You’re #{0} · {1} this week 🏆', String(h.rank), baht(h.prize)))
     : onBoard && h.toLine ? Lf('You’re #{0} · {1} Rings to the prize line', String(h.rank), fmtN(h.toLine))
     : h.top ? Lf('Be Bangkok’s face of the week · #1 wins {0}', baht(h.top)) : L('Climb this week’s board');
   return (
-    <div className={`kx-hook${inPrize ? ' won' : ''}`} id="kxWeekHook" data-state={inPrize ? 'prize' : onBoard ? 'board' : 'off'}>
+    <div className={`kx-hook${inPrize && !locked ? ' won' : locked ? ' locked' : ''}`} id="kxWeekHook" data-state={inPrize ? 'prize' : onBoard ? 'board' : 'off'}>
       <button type="button" className="kx-hook-t" id="kxWeekHookOpen" onClick={props.onRanking || props.onPost}>
         <span className="ic" aria-hidden="true">{inPrize ? '★' : '✦'}</span><b>{line}</b><i aria-hidden="true">›</i>
       </button>
@@ -380,14 +400,15 @@ function MeLine(props: { L: Tx; Lf: Txf; kx: KxCardExtras | null | undefined; ho
   const total = kx ? kx.lifetime ?? 0 : null;
   const baht = (n: number) => `฿${fmtN(n)}`;
   const inPrize = !!h.rank && h.prize > 0;
+  const locked = inPrize && !!h.needs;
   const onBoard = !!h.rank;
-  const line = inPrize ? Lf('You’re #{0} · {1} this week 🏆', String(h.rank), baht(h.prize))
+  const line = inPrize ? (h.needs ? `${Lf('You’re #{0} · {1}', String(h.rank), baht(h.prize))} · ${Lf('{0} Rings to unlock', fmtN(h.needs))}` : Lf('You’re #{0} · {1} this week 🏆', String(h.rank), baht(h.prize)))
     : onBoard && h.toLine ? Lf('You’re #{0} · {1} Rings to the prize line', String(h.rank), fmtN(h.toLine))
     : h.top ? Lf('Be Bangkok’s face of the week · #1 wins {0}', baht(h.top)) : L('Climb this week’s board');
   const cut = line.indexOf(' · ');
   const [a, b] = cut > 0 ? [line.slice(0, cut), line.slice(cut + 3)] : [line, ''];
   return (
-    <div className={`rv4-mline${inPrize ? ' won' : ''}`} id="kxWeekHook" data-state={inPrize ? 'prize' : onBoard ? 'board' : 'off'}>
+    <div className={`rv4-mline${inPrize && !locked ? ' won' : locked ? ' locked' : ''}`} id="kxWeekHook" data-state={inPrize ? 'prize' : onBoard ? 'board' : 'off'}>
       <button type="button" className="rv4-mr" id="meRings" aria-label={`${L('Your Rings')} · ${total === null ? '…' : fmtN(total)}`} onClick={props.onRings}>
         <RingGlyph /><b>{total === null ? '…' : fmtN(total)}</b>{props.dot ? <i className="kx-tdot" aria-label={L('New')} /> : null}
       </button>

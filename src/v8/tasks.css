@@ -153,3 +153,7 @@
   .v8-app-root .dt-orb, .v8-app-root .dt-sheet, .v8-app-root .dt-bubble, .v8-app-root .dt-toast { animation: none; }
   .v8-app-root .dt-row.pop .dt-burst .dt-rings, .v8-app-root .dt-row.pop .dt-btn.claim { animation: none; }
 }
+
+/* 20 Nov: the watch-3 bar sits under the speaker button (top right), its "1/3 · +1" label on the left, so the two never touch */
+.v8-app-root .dt-wbar { top: calc(96px + env(safe-area-inset-top, 0px)); right: 16px; }
+.v8-app-root .dt-wbar b { order: -1; }

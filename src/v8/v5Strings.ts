@@ -592,6 +592,8 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Be Bangkok’s face of the week · #1 wins {0}': 'มาเป็นหน้าเด่นของกรุงเทพฯ สัปดาห์นี้ · อันดับ 1 รับ {0}',
     'You’re #{0} · {1} Rings to the prize line': 'คุณอยู่อันดับ {0} · อีก {1} Rings ถึงรอบรับรางวัล',
     'You’re #{0} · {1} this week 🏆': 'คุณอยู่อันดับ {0} · รับ {1} สัปดาห์นี้ 🏆',
+    'You’re #{0} · {1}': 'คุณอยู่อันดับ {0} · {1}',
+    '{0} Rings to unlock': 'ต้องมี {0} ริงถึงจะได้ครับ',
     'See board': 'ดูอันดับ',
     'Post': 'โพสต์',
     '{0} Rings · {1} more to {2}': '{0} ริง · อีก {1} ริงถึง {2}',

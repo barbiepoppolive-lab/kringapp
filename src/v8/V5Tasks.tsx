@@ -128,7 +128,13 @@ export function TasksFeed(props: TasksFeedProps) {
     let seen = '';
     try { seen = localStorage.getItem('kr8_dt_toast') || ''; } catch { /* private mode */ }
     if (o && !o.claimed && seen !== data.day) {
-      const t = window.setTimeout(() => { setToast(true); try { localStorage.setItem('kr8_dt_toast', data.day || ''); } catch { /* ignore */ } }, 1800);
+      // 20 Nov: never together with the Feed tip ("A save gives…"): while a tip is up, the toast waits for it to close
+      let t = 0;
+      const show = () => {
+        if (document.getElementById('goCoach')) { t = window.setTimeout(show, 1200); return; }
+        setToast(true); try { localStorage.setItem('kr8_dt_toast', data.day || ''); } catch { /* ignore */ }
+      };
+      t = window.setTimeout(show, 1800);
       return () => window.clearTimeout(t);
     }
     let b = '';

@@ -329,6 +329,10 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   const share = latest !== null;
   // board-1 (Kring Light): "X more Rings to be eligible" only on MY row; other rows under the floor show a dimmed prize (the prize line says why)
   const elig = (r: KxRankRow) => (r.needs && r.is_me ? <em className="rka-elig">{Lf('{0} more Rings to be eligible', fmtN(Math.max(1, r.needs - r.rings)))}</em> : null);
+  // 20 Nov (founder): a prize seat under the Rings floor shows its prize greyed with "25 Rings to unlock" (payout needs the floor too)
+  const unlock = (r: KxRankRow | undefined) => (r && r.needs && !r.paid ? <small className="rv5-unlock">{lang === 'th' ? `ต้องมี ${fmtN(r.needs)} ริง` : `${fmtN(r.needs)} Rings to unlock`}</small> : null);
+  // 20 Nov: one thin blue→pink line per row = my Rings against the rank just above me
+  const progLine = (r: KxRankRow) => { const up = rows.find((x) => x.rank === r.rank - 1); const pct = up && up.rings > 0 ? Math.max(4, Math.min(100, Math.round((r.rings * 100) / up.rings))) : 100; return <i className="rv5-prog" aria-hidden="true"><b style={{ width: `${pct}%` }} /></i>; };
   // plain render functions (not components): the countdown re-render must not remount rows
   const Score = ({ r, cls }: { r: KxRankRow; cls: string }) => (
     <button type="button" className={cls} data-score={r.rings} aria-label={L('See the math')} title={ringsText(L, Lf, r.rings)} onClick={(e) => { e.stopPropagation(); setMath(r.user_id); }}>
@@ -344,10 +348,11 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
       <span className="bx-rt">
         <button type="button" className="t" onClick={() => props.onPerson(r.user_id)}>{r.is_me ? L('You') : r.first_name}{r.is_new && !r.is_me ? <i className="nw">{L('NEW')}</i> : null}</button>
         {Score({ r, cls: 'kx-sc bx-sc' })}
+        {progLine(r)}
       </span>
       {r.prize > 0 && r.all_rank <= paid
-        ? <span className={`kx-pz${r.paid ? '' : ' off'}`} data-prize={r.prize}>{baht(r.prize)}</span>
-        : <span className="kx-tl">{r.to_line ? Lf('{0} to #{1}', fmtN(r.to_line), String(paid)) : ''}</span>}
+        ? <span className={`kx-pz${r.paid ? '' : ' off'}`} data-prize={r.prize}>{baht(r.prize)}{unlock(r)}</span>
+        : <span className="kx-tl" />}
     </div>
   );
   const Seat = ({ rank }: { rank: number }) => (
@@ -413,7 +418,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   const delta = props.myId && data?.gap?.rank ? rankDelta(seenRankAtStart(props.myId), data.week_start, data.gap.rank) : null;
   const TONE: Record<number, Tone> = { 1: 'gold', 2: 'blue', 3: 'rose' };
   return (
-    <div className={`kx-page kx-rk bx${low ? ' lowfx' : ''}${lang === 'th' ? ' lth' : ''}`} id="kxRanking" lang={lang}>
+    <div className={`kx-page kx-rk bx rv5${low ? ' lowfx' : ''}${lang === 'th' ? ' lth' : ''}`} id="kxRanking" lang={lang}>
       <div className="bx-bg" aria-hidden="true" />
       <div className="bx-top">
         <button type="button" className="kx-bk bx-bk" aria-label={L('Back')} onClick={props.onBack}><BackIcon /></button>
@@ -450,7 +455,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
                   </div>
                   <span className="bx-nm">{r ? (r.is_me ? L('You') : r.first_name) : L('Your spot?')}</span>
                   {r ? Score({ r, cls: 'bx-r' }) : <span className="bx-r none">&nbsp;</span>}
-                  {pz > 0 ? <b className={`bx-pz${r && !r.paid ? ' off' : ''}`} data-prize={pz}>{baht(pz)}</b> : <b className="bx-pz none">&nbsp;</b>}
+                  {pz > 0 ? <b className={`bx-pz${r && !r.paid ? ' off' : ''}`} data-prize={pz}>{baht(pz)}{unlock(r)}</b> : <b className="bx-pz none">&nbsp;</b>}
                   <i className={`bx-pool p${rank}`} aria-hidden="true" />
                 </div>
               );

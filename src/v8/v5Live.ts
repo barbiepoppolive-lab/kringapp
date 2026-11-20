@@ -68,6 +68,24 @@ export async function v5MirrorSession(email: string, password: string): Promise<
   return JSON.stringify(data.session);
 }
 
+/**
+ * 20 Nov (founder could not see the preview signed in on his laptop): ONLY in the /app-preview/ build, a one-time sign-in
+ * link `/app-preview/?pk=<token_hash>` (made by Kring for the founder, single use, expires in 1 hour) signs that browser in
+ * with verifyOtp, then the parameter is removed from the address bar. The live /app/ build ignores it.
+ */
+async function previewLinkSignIn(cl: SupabaseClient): Promise<void> {
+  try {
+    const base = (import.meta.env.BASE_URL || '/');
+    if (typeof window === 'undefined' || !/app-preview/.test(base)) return;
+    const u = new URL(window.location.href);
+    const th = u.searchParams.get('pk');
+    if (!th || !/^[A-Za-z0-9_-]{20,128}$/.test(th)) return;
+    u.searchParams.delete('pk');
+    window.history.replaceState(null, '', u.pathname + (u.search || '') + u.hash);
+    await cl.auth.verifyOtp({ token_hash: th, type: 'magiclink' });
+  } catch { /* an expired or used link just leaves the visitor signed out */ }
+}
+
 let clientP: Promise<SupabaseClient> | null = null;
 export function v5Client(): Promise<SupabaseClient> {
   if (!clientP) {
@@ -78,9 +96,10 @@ export function v5Client(): Promise<SupabaseClient> {
       const mod = (typeof m?.createClient === 'function' ? m : (m as unknown as { default?: typeof m })?.default) as typeof m | undefined;
       if (!mod || typeof mod.createClient !== 'function') throw new V5Error('NETWORK');
       // 17 Nov admin view: the client refuses every write / log call while the admin view is on (adminView.ts)
-      return guardClient(mod.createClient(SUPA_URL, SUPA_KEY, {
+      const cl = mod.createClient(SUPA_URL, SUPA_KEY, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: !mirrorActive(), flowType: 'pkce', storageKey: v5AuthKey() },
-      }));
+      });
+      return previewLinkSignIn(cl).then(() => guardClient(cl));
     });
     clientP = p;
     p.catch(() => { if (clientP === p) clientP = null; });
@@ -642,18 +661,32 @@ export function v5TeamIds(): Promise<string[]> {
   return teamIdsP;
 }
 /** for tests */ export const _resetTeamIds = () => { teamIdsP = null; };
+/** 0173 (20 Nov): Kring Team messages are written in Thai; members reading in any other language get the English version. */
+function readingThai(): boolean { try { return (localStorage.getItem('kr8_lang') || 'en') === 'th'; } catch { return false; } }
+async function teamEnglish(): Promise<{ byMsg: Map<string, string>; lastByThread: Map<string, string> }> {
+  const byMsg = new Map<string, string>(); const lastByThread = new Map<string, string>();
+  if (readingThai()) return { byMsg, lastByThread };
+  try {
+    const rows = await rpc<{ thread_id: string; message_id: number; body_en: string; is_last: boolean }[]>('kr8_my_team_en', {});
+    for (const r of rows || []) { byMsg.set(String(r.message_id), r.body_en); if (r.is_last) lastByThread.set(r.thread_id, r.body_en); }
+  } catch { /* before 0173 or offline: keep the original text */ }
+  return { byMsg, lastByThread };
+}
 export async function v5Inbox(): Promise<{ threads: V5Thread[]; requests: V8HelloRequest[] }> {
   const teamP = v5TeamIds();
   const rows = await rpcLite<InboxRow>('kr8_inbox', {}, ['thread_id', 'status', 'opened_by_me', 'other_id', 'other_name', 'other_photo', 'other_langs', 'other_verified',
     'other_area', 'last_body', 'last_sender_me', 'last_at', 'unread'], [{ id: 'other_id', photo: 'other_photo' }]);
   const team = new Set(await teamP);
+  const en = team.size ? await teamEnglish() : null;
   const threads: V5Thread[] = [];
   const requests: V8HelloRequest[] = [];
   for (const r0 of rows || []) {
     const official = team.has(r0.other_id);
-    const r = official ? { ...r0, other_name: KRING_TEAM_NAME, other_photo: kringTeamLogo(), other_area: 'Official · ทางการ', other_langs: [] as string[] } : r0;
+    const offLabel = readingThai() ? 'ทางการ' : 'Official';
+    const lastEn = official && !r0.last_sender_me ? en?.lastByThread.get(r0.thread_id) : undefined;
+    const r = official ? { ...r0, other_name: KRING_TEAM_NAME, other_photo: kringTeamLogo(), other_area: offLabel, other_langs: [] as string[], last_body: lastEn || r0.last_body } : r0;
     if (r.status === 'pending' && !r.opened_by_me) {
-      requests.push({ id: r.thread_id, name: r.other_name, meta: `${r.other_area} · ${(r.other_langs || []).join(' · ')}`, img: r.other_photo || initialAvatar(r.other_name), msg: r.last_body || '', verified: r.other_verified === true, ...(official ? { meta: 'Official · ทางการ', official: true } : {}) });
+      requests.push({ id: r.thread_id, name: r.other_name, meta: `${r.other_area} · ${(r.other_langs || []).join(' · ')}`, img: r.other_photo || initialAvatar(r.other_name), msg: r.last_body || '', verified: r.other_verified === true, ...(official ? { meta: offLabel, official: true } : {}) });
     }
     threads.push({ id: r.thread_id, personId: r.other_id, name: r.other_name, avatar: r.other_photo || initialAvatar(r.other_name), langs: (r.other_langs || []).join(' · '), verified: r.other_verified === true,
       lastPreview: r.last_body || '', timeLabel: v5TimeLabel(r.last_at), unread: r.unread > 0, unreadN: r.unread, messages: [], v5Status: r.status, v5OpenedByMe: r.opened_by_me, area: r.other_area, ...(official ? { official: true } : {}) });
@@ -664,8 +697,8 @@ interface MsgRow { id: number; mine: boolean; body: string; created_at: string }
 /** 0160 (20 Nov): the member opened this thread, so its unread dot stays off after a reload (server-side read marker). */
 export const v5MarkThreadRead = (thread: string) => rpcRaw<void>('kr8_mark_thread_read', { p_thread: thread }).catch(() => undefined);
 export async function v5Messages(thread: string): Promise<V8ChatMessage[]> {
-  const rows = await rpc<MsgRow[]>('kr8_thread_messages', { p_thread: thread, p_after: 0 });
-  return (rows || []).map((m) => ({ id: String(m.id), sender: m.mine ? 'me' : 'them', text: m.body, createdAt: v5TimeLabel(m.created_at) }));
+  const [rows, en] = await Promise.all([rpc<MsgRow[]>('kr8_thread_messages', { p_thread: thread, p_after: 0 }), teamEnglish()]);
+  return (rows || []).map((m) => ({ id: String(m.id), sender: m.mine ? 'me' : 'them', text: (!m.mine && en.byMsg.get(String(m.id))) || m.body, createdAt: v5TimeLabel(m.created_at) }));
 }
 /**
  * Live updates: Supabase Realtime on kr8_messages / kr8_threads (RLS limits rows to my own threads).

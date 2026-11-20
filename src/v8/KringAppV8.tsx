@@ -93,7 +93,7 @@ import {
   v5SyncAttribution,
   v5StoredRef,
 } from './v5Live';
-import { ActivitySheet, FollowSheet, INTEREST, InterestsSheet, LANG_NAME, MeView } from './V5Me';
+import { ActivitySheet, FollowSheet, INTEREST, InterestsSheet, LANG_NAME, MeView, kxWeekHook } from './V5Me';
 import { rvHeroFrom } from './rvMotion';
 import { inAppBrowser, A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip, openInstallSheet, takeInstallAsk } from './A2HS';
 import { parsePushLink, pushConfigured, pushDisable, pushEnable, pushMoment, pushResync, pushState, type PushLink, type PushState } from './push';
@@ -2870,8 +2870,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // Feed coach marks: Save on the first Reel (mark 1); from the second visit, "+" for members with no Reel yet (mark 2)
   useEffect(() => {
     if (!live || !v5Card || tab !== 'feed' || sheet || goPlayer || coachSpot) return;
-    const t = setTimeout(() => {
+    let t = 0;
+    const tryCoach = () => {
       if (sheetRef.current || document.querySelector('.kx-page, .go-page, .v8-sheet, .kx-shbg')) return;
+      // 20 Nov: never on top of the daily check-in toast: wait until it is gone, then show the tip
+      if (document.querySelector('.dt-toast')) { t = window.setTimeout(tryCoach, 1500); return; }
       const slides = [...document.querySelectorAll<HTMLElement>('#s-feed .slide.has-reel')];
       const cur = slides.find((el) => { const r = el.getBoundingClientRect(); return r.top > -80 && r.top < window.innerHeight / 2; });
       const due: CoachKey[] = [];
@@ -2880,7 +2883,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       coachTry(due, (k) => (k === 'post'
         ? { el: document.querySelector('#s-feed .kp-plus'), text: L('Post your first Reel here') }
         : { el: cur?.querySelector('[data-act="save"]'), text: Lf('A save gives {0} 3 Rings. A like gives 1.', cur?.querySelector('.reel-author')?.textContent?.trim().split(/\s/)[0] || L('the poster')) }));
-    }, 2600);
+    };
+    t = window.setTimeout(tryCoach, 2600);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [live, !!v5Card, tab, sheet, !!goPlayer, feedItems.length, kxMe?.has_reel]);
@@ -4301,7 +4305,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     {p.video ? (
                       <V5ReelVideo src={p.video} poster={p.poster} first={idx === 0} label={`Reel · ${p.name || ''} · ${p.area || ''}`} soundHint={L('Tap for sound')}
                         postId={live && p.id && !p.reelPending && !(p as V5FeedItem).mine ? (p.id as string) : undefined}
-                        pending={p.reelPending ? L('Waiting for a quick check · only you see this') : undefined}
+                        pending={undefined /* 20 Nov founder: no 'waiting for a quick check' label on the Feed; the status lives in Me/Activity */}
                         onViewed={live && !adminView && !adminWantedRef.current && p.id && !p.reelPending && !(p as V5FeedItem).mine ? () => void v5LogView(p.id as string) : undefined} />
                     ) : (
                     <div
@@ -4979,8 +4983,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               firstReelChip={showFirstReelChip(v5Uid, meProfile.reels.length > 0) ? <FirstReelChip onPost={() => { setTab('feed'); openCreate(); }} /> : null}
               kx={kxMe}
               weekRank={kxWeekRank}
-              weekHook={{ rank: kxWeek?.me?.rank ?? null, prize: kxWeek?.me?.prize ?? 0, toLine: kxWeek?.rows?.find((r) => r.is_me)?.to_line ?? (kxWeek?.me && kxWeek.rows?.find((r) => r.rank === (kxWeek.paid_ranks || 8)) ? Math.max(1, (kxWeek.rows.find((r) => r.rank === (kxWeek.paid_ranks || 8))?.rings ?? 0) - kxWeek.me.rings + 1) : null),
-                top: kxWeek?.prizes?.[0] || kxRewards?.ladder?.[0] || 0 }}
+              weekHook={kxWeekHook(kxWeek, kxRewards?.ladder?.[0] || 0)}
               onRings={() => { setKxReady(false); setSheet('rewards'); void kxLoadRewards(); }}
               ringsDot={kxReady}
               onRanking={() => setSheet('ranking')}

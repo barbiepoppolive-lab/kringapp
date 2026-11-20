@@ -1272,3 +1272,50 @@
 .v8-app-root .kx-hook-t i { font-style: normal; color: rgba(255,255,255,.55); font-size: 1.1rem; }
 .v8-app-root .kx-hook.won .kx-hook-t b { color: #FFD36B; }
 .v8-app-root .kx-hook-go { flex: none; border: 0; border-radius: 999px; padding: 9px 14px; font: 700 0.8125rem var(--kx-u); color: #fff; background: linear-gradient(90deg, #4D6BFF, #FF4FA3); cursor: pointer; }
+
+/* ───────── rv5 (20 Nov, founder's final board): Bangkok night skyline, top 3 low in clear glass cylinders, borderless rows ───────── */
+.v8-app-root .bx.rv5 { background: #0B0A16; }
+.v8-app-root .bx.rv5 .bx-bg { filter: none; background:
+  linear-gradient(180deg, rgba(11,10,22,.18) 0%, rgba(11,10,22,.05) 22%, rgba(11,10,22,.35) 46%, rgba(11,10,22,.92) 62%, #0B0A16 72%),
+  url('/media/board/skyline.jpg') center top / auto 66% no-repeat, #0B0A16; }
+.v8-app-root .bx.rv5 .bx-bg::after { content: none; }
+.v8-app-root .bx.rv5 .bx-tt h1 { background: none; -webkit-background-clip: initial; background-clip: initial; color: #fff; filter: drop-shadow(0 2px 10px rgba(0,0,0,.55)); }
+.v8-app-root .bx.rv5 .bx-tcr { display: none; }
+.v8-app-root .bx.rv5 .bx-sub { filter: drop-shadow(0 1px 6px rgba(0,0,0,.7)); }
+/* top 3 sit low so the skyline breathes */
+.v8-app-root .bx.rv5 .bx-pod { padding-top: 34vh; padding-top: 34svh; align-items: flex-end; }
+.v8-app-root .bx.rv5 .bx-aura, .v8-app-root .bx.rv5 .bx-pool, .v8-app-root .bx.rv5 .bx-disc { display: none !important; }
+.v8-app-root .bx.rv5 .bx-pc.p2 .bx-crown, .v8-app-root .bx.rv5 .bx-pc.p3 .bx-crown { display: none; }
+.v8-app-root .bx.rv5 .bx-pc { padding-bottom: 14px; }
+.v8-app-root .bx.rv5 .bx-pc > *:not(.bx-beam) { position: relative; z-index: 1; }
+/* the clear glass cylinder: rises from the floor up to the middle of the photo */
+.v8-app-root .bx.rv5 .bx-beam { display: block; clip-path: none; left: 9%; right: 9%; bottom: 0; top: 46px; height: auto;
+  border-radius: 50% / 16px; background: linear-gradient(to top, rgba(var(--rv5-t),.20), rgba(var(--rv5-t),.07) 55%, rgba(var(--rv5-t),.02));
+  box-shadow: inset 1.5px 0 0 rgba(255,255,255,.34), inset -1.5px 0 0 rgba(255,255,255,.34), inset 10px 0 18px -10px rgba(255,255,255,.22), inset -10px 0 18px -10px rgba(255,255,255,.22), 0 0 22px rgba(var(--rv5-t),.18);
+  -webkit-backdrop-filter: blur(1.2px) saturate(1.15); backdrop-filter: blur(1.2px) saturate(1.15); }
+.v8-app-root .bx.rv5 .bx-beam::before, .v8-app-root .bx.rv5 .bx-beam::after { content: ''; position: absolute; left: 0; right: 0; height: 32px; border-radius: 50%; }
+.v8-app-root .bx.rv5 .bx-beam::before { top: -16px; border: 1.5px solid rgba(255,255,255,.38); background: rgba(var(--rv5-t),.08); }
+.v8-app-root .bx.rv5 .bx-beam::after { bottom: -16px; border: 1.5px solid rgba(255,255,255,.28); background: radial-gradient(closest-side, rgba(var(--rv5-t),.35), rgba(var(--rv5-t),0)); filter: blur(.3px); }
+.v8-app-root .bx.rv5 .bx-pc.p1 { --rv5-t: 255,206,110; } .v8-app-root .bx.rv5 .bx-pc.p2 { --rv5-t: 120,160,255; } .v8-app-root .bx.rv5 .bx-pc.p3 { --rv5-t: 255,120,200; }
+.v8-app-root .bx.rv5 .bx-pc.p1 .bx-beam { top: 54px; }
+.v8-app-root .bx.rv5 .bx-pc.p2 { margin-right: 2%; } .v8-app-root .bx.rv5 .bx-pc.p3 { margin-left: 2%; }
+.v8-app-root .bx.rv5 .bx-pc { flex-basis: 30%; } .v8-app-root .bx.rv5 .bx-pc.p1 { flex-basis: 34%; padding-bottom: 26px; }
+/* borderless gold prizes; under the Rings floor: greyed with "25 Rings to unlock" */
+.v8-app-root .bx.rv5 .bx-pz, .v8-app-root .bx.rv5 .bx-row .kx-pz { display: inline-flex; flex-direction: column; align-items: center; border: 0; background: none;
+  background-image: linear-gradient(180deg, #FFE7A6, #F3C25A 60%, #D99A2B); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; filter: drop-shadow(0 0 8px rgba(255,190,70,.38)); }
+.v8-app-root .bx.rv5 .bx-row .kx-pz { align-items: flex-end; }
+.v8-app-root .bx.rv5 .bx-pz.off, .v8-app-root .bx.rv5 .bx-row .kx-pz.off { background-image: none; color: rgba(255,255,255,.38); filter: none; }
+.v8-app-root .bx.rv5 .rv5-unlock { display: block; margin-top: 2px; font: 600 0.625rem/1.2 var(--kx-j); color: rgba(255,255,255,.62); -webkit-text-fill-color: rgba(255,255,255,.62); letter-spacing: .01em; white-space: nowrap; }
+/* rows float on the night: no box, hairlines only, one blue→pink line */
+.v8-app-root .bx.rv5 .kx-list.bx-list { background: none; border: 0; box-shadow: none; margin-top: 10px; }
+.v8-app-root .bx.rv5 .bx-row { border-top: 1px solid rgba(255,255,255,.08); background: none; }
+.v8-app-root .bx.rv5 .bx-rt { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.v8-app-root .bx.rv5 .rv5-prog { display: block; width: 100%; max-width: 150px; height: 3px; border-radius: 3px; background: rgba(255,255,255,.1); overflow: hidden; }
+.v8-app-root .bx.rv5 .rv5-prog b { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #737BFF, #EC46B6); box-shadow: 0 0 6px rgba(236,70,182,.55); }
+.v8-app-root .bx.rv5 .bx-row .kx-tl { display: none; }
+.v8-app-root .bx.rv5 .bx-line { border: 0; }
+.v8-app-root .bx.rv5 .bx-line span { color: #E9C77A; letter-spacing: .14em; font-size: 0.6875rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .v8-app-root .bx.rv5 .bx-beam { animation: rv5-breathe 6s ease-in-out infinite; }
+  @keyframes rv5-breathe { 0%,100% { opacity: .9; } 50% { opacity: 1; } }
+}
