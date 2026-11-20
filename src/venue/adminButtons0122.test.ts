@@ -34,33 +34,42 @@ const helpCase: HelpCase = {
 
 beforeEach(() => { calls.length = 0; fail = null; document.body.replaceChildren(); });
 
-describe('0122 Photo OK', () => {
-  it('shows a Photo OK button only next to "Photo needs a look", and one tap calls the admin RPC and clears the flag', async () => {
-    expect(memberRow({ ...member, photo_check: 'ok' }).querySelector('[data-photo-ok]')).toBeNull();
-    expect(memberRow({ ...member, photo_check: null }).querySelector('[data-photo-ok]')).toBeNull();
-    const row = memberRow({ ...member });
+describe('0162 one honest photo label (was "Photo needs a look" + "Photo OK" side by side)', () => {
+  const labels = (row: HTMLElement) => Array.from(row.querySelectorAll('[data-photo-check]')).map((n) => n.textContent);
+  it('ok / null: nothing · unchecked: "Photo being checked" (no button) · no_face: red, no button · look: ONE tap-if-fine button', () => {
+    expect(labels(memberRow({ ...member, photo_check: 'ok' }))).toEqual([]);
+    expect(labels(memberRow({ ...member, photo_check: null }))).toEqual([]);
+    const un = memberRow({ ...member, photo_check: 'unchecked' });
+    expect(labels(un)).toEqual(['Photo being checked']);
+    expect(un.querySelector('[data-photo-ok]')).toBeNull();
+    const nf = memberRow({ ...member, photo_check: 'no_face' });
+    expect(labels(nf)).toEqual(['No face in photo · hidden from People']);
+    expect(nf.querySelector('[data-photo-ok]')).toBeNull();
+    const lk = memberRow({ ...member, photo_check: 'look' });
+    expect(labels(lk)).toEqual(['Photo: check by eye · tap if fine']);
+    expect(lk.querySelectorAll('[data-photo-ok]').length).toBe(1);
+    expect(lk.textContent).not.toContain('Photo needs a look');
+  });
+  it('one tap on "check by eye" calls the admin RPC and shows ✓ Photo OK', async () => {
+    const row = memberRow({ ...member, photo_check: 'look' });
     document.body.append(row);
     const b = row.querySelector<HTMLButtonElement>('[data-photo-ok="u-0122"]')!;
-    expect(b.textContent).toBe('Photo OK');
-    expect(row.querySelector('[data-photo-check="unchecked"]')).not.toBeNull();
     b.click(); await flush();
     expect(calls).toEqual([{ fn: 'kr8_admin_photo_ok', args: { p_user: 'u-0122' } }]);
     expect(b.textContent).toBe('✓ Photo OK');
     expect(b.disabled).toBe(true);
-    expect(row.querySelector('[data-photo-check="unchecked"]')).toBeNull();
   });
-  it('a failed save keeps the flag and lets the admin tap again', async () => {
+  it('a failed save lets the admin tap again', async () => {
     fail = 'KR8_ADMIN_ONLY';
-    const row = memberRow({ ...member });
+    const row = memberRow({ ...member, photo_check: 'look' });
     document.body.append(row);
     const b = row.querySelector<HTMLButtonElement>('[data-photo-ok]')!;
     b.click(); await flush();
     expect(b.disabled).toBe(false);
-    expect(b.dataset.error).toBe('KR8_ADMIN_ONLY');
-    expect(row.querySelector('[data-photo-check="unchecked"]')).not.toBeNull();
+    expect(b.title).toContain('KR8_ADMIN_ONLY');
   });
-  it('the photo sheet (tap on the photo) also has Photo OK', async () => {
-    const row = memberRow({ ...member });
+  it('the photo sheet (tap on the photo) shows the same single label', async () => {
+    const row = memberRow({ ...member, photo_check: 'look' });
     document.body.append(row);
     row.querySelector<HTMLButtonElement>('button.ml-ph')!.click();
     const inSheet = document.querySelector<HTMLButtonElement>('.sheet [data-photo-ok="u-0122"]');
@@ -68,7 +77,6 @@ describe('0122 Photo OK', () => {
     inSheet!.click(); await flush();
     expect(calls.map((c) => c.fn)).toEqual(['kr8_admin_photo_ok']);
     expect(row.querySelector<HTMLButtonElement>('[data-photo-ok]')!.textContent).toBe('✓ Photo OK');
-    expect(document.querySelector('[data-photo-check="unchecked"]')).toBeNull();
   });
 });
 

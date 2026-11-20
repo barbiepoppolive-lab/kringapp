@@ -275,19 +275,48 @@ async function check(uid: string, body: Record<string, unknown>): Promise<Respon
 // finder fell back to the CPU and members waited on a black "loading" screen, or a good photo was refused. Now the phone sends the
 // small card photo (≤ 384 px) here: one AWS DetectFaces call (~1 s, nothing stored). Same rules as before: ok · none · small · group.
 type Fd = { BoundingBox?: { Width?: number }; Confidence?: number };
-export function photoVerdictAws(faces: Fd[]): 'ok' | 'none' | 'small' | 'group' {
+/** 20 Nov (founder): a card photo must show ONE clear face. 'text' = a screenshot / poster (lots of words) even if a face shows. */
+export const PHOTO_TEXT_WORDS = 25;
+export function photoVerdictAws(faces: Fd[], words = 0): 'ok' | 'none' | 'small' | 'group' | 'text' {
   const f = (faces || []).filter((x) => (x.Confidence ?? 0) >= 90).map((x) => x.BoundingBox?.Width ?? 0).sort((a, b) => b - a);
   if (!f.length || f[0] > 0.95) return 'none';
   if (f[0] < 0.08) return 'small';
   if (f.length > 1 && f[1] >= f[0] * 0.85) return 'group';
+  if (words >= PHOTO_TEXT_WORDS) return 'text';
   return 'ok';
 }
-async function photoCheck(body: Record<string, unknown>): Promise<Response> {
+async function sha256Hex(s: string): Promise<string> {
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(d)).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+/** 20 Nov: the database only takes a card photo that passed here (kr8_photo_passes, checked by the kr8_members photo trigger).
+ *  AWS down → the photo is let in as 'unchecked' and the 5-minute photo robot checks it again (kr8_photo_audit_run). */
+async function photoCheck(uid: string, body: Record<string, unknown>): Promise<Response> {
   const b64 = frameB64(body.image);
-  if (!b64) return json({ verdict: 'error', why: 'bad_image' });
-  if (MOCK) return json({ verdict: typeof body.mock === 'string' ? body.mock : 'ok' });
-  const r = await rk<{ FaceDetails?: Fd[] }>('DetectFaces', { Image: img(b64), Attributes: ['DEFAULT'] });
-  return json({ verdict: photoVerdictAws(r.FaceDetails || []) });
+  if (!b64 || typeof body.image !== 'string') return json({ verdict: 'error', why: 'bad_image' });
+  const sha = await sha256Hex(body.image);
+  const pass = (verdict: 'ok' | 'unchecked') => rpc('kr8_photo_pass_add', { p_user: uid, p_sha: sha, p_verdict: verdict }).catch((e) => log({ pass_error: String(e).slice(0, 200) }));
+  if (MOCK) {
+    const v = typeof body.mock === 'string' ? body.mock : 'ok';
+    if (v === 'ok') await pass('ok');
+    return json({ verdict: v });
+  }
+  let v: 'ok' | 'none' | 'small' | 'group' | 'text';
+  try {
+    const [r, t] = await Promise.all([
+      rk<{ FaceDetails?: Fd[] }>('DetectFaces', { Image: img(b64), Attributes: ['DEFAULT'] }),
+      rk<{ TextDetections?: { Type?: string; Confidence?: number }[] }>('DetectText', { Image: img(b64) }).catch(() => null),
+    ]);
+    const words = (t?.TextDetections || []).filter((x) => x.Type === 'WORD' && (x.Confidence ?? 0) >= 80).length;
+    v = photoVerdictAws(r.FaceDetails || [], words);
+  } catch (e) {
+    log({ photo_aws_error: String(e).slice(0, 200) });
+    await pass('unchecked');
+    return json({ verdict: 'error', why: 'aws' });
+  }
+  if (v === 'ok') await pass('ok');
+  log({ photo_verdict: v });
+  return json({ verdict: v });
 }
 
 // ───────── admin actions ─────────
@@ -426,7 +455,7 @@ Deno.serve(async (req) => {
   let body: Record<string, unknown>;
   try { body = await req.json(); } catch { return json({ error: 'BAD_BODY' }, 400); }
   try {
-    if (body.action === 'photo') return await photoCheck(body);
+    if (body.action === 'photo') return await photoCheck(who.id, body);
     return typeof body.action === 'string' ? await admin(who.jwt, body) : await check(who.id, body);
   } catch (e) {
     if (e instanceof DbError && STATUS[e.code]) return json({ error: e.code }, STATUS[e.code]);

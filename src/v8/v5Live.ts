@@ -841,7 +841,7 @@ export async function v5FaceAwsCheck(frames: { straight: Blob; left: Blob; right
   return j;
 }
 /** 19 Nov fix5: the card photo → face-check-aws action "photo" (AWS DetectFaces, nothing stored). 'error' when it can't answer. */
-export async function v5CardPhotoCheck(dataUrl: string, timeoutMs = 8000): Promise<'ok' | 'none' | 'small' | 'group' | 'error'> {
+export async function v5CardPhotoCheck(dataUrl: string, timeoutMs = 8000): Promise<'ok' | 'none' | 'small' | 'group' | 'text' | 'error'> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return 'error';
   if (!/^data:image\/jpe?g;base64,/i.test(dataUrl)) return 'error';
   const c = await v5Client();
@@ -857,7 +857,7 @@ export async function v5CardPhotoCheck(dataUrl: string, timeoutMs = 8000): Promi
     });
     const j = await r.json().catch(() => null) as { verdict?: string } | null;
     const v = j?.verdict;
-    return v === 'ok' || v === 'none' || v === 'small' || v === 'group' ? v : 'error';
+    return v === 'ok' || v === 'none' || v === 'small' || v === 'group' || v === 'text' ? v : 'error';
   } catch { return 'error'; } finally { clearTimeout(t); }
 }
 /** 0082: the simple path when the face engine can't run on this phone: ONE selfie → the founder's Face checks queue. */

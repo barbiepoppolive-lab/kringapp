@@ -6,7 +6,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './kx.css';
 import './go.css';
-import { checkProfilePhoto, photoDecision } from './v5Face';
+import { checkProfilePhoto } from './v5Face';
 import { GenderChip, GenderRow, genderPayload, isGender, type Gender } from './V5Gender';
 import { kxNotePhotoCheck, kxSetGender } from './v5Kx';
 import { LEVEL_KEY, levelFor, memberNo, parseHandle, socialUrl, type Social } from './kxLogic';
@@ -163,11 +163,8 @@ const Confetti = () => (
  * Make / edit your card. New members: photo + first name + IG/TikTok + 18+ → "Mint my card" → "Card minted!".
  * Editing: same live card, plus the optional fields, "Save my card".
  */
-const PHOTO_MSG: Record<'none' | 'small' | 'group', string> = {
-  none: 'We can’t see a face in this photo. Use a photo where your face is clearly visible.',
-  small: 'Your face is too small in this photo. Use a closer one.',
-  group: 'This looks like a group photo. Use a photo of just you.',
-};
+/** 20 Nov (founder): a card photo must show one clear face — no objects, scenery, screenshots or group photos, never "used anyway" */
+export const PHOTO_FACE_MSG = 'Use a clear photo of your face 🙂';
 
 export function V5MintSheet(props: {
   L: Tx; Lf: Txf; card: (V5Card & { tiktok_handle?: string | null; member_no?: number | null; gender?: string | null; show_gender?: boolean | null }) | null; uiLang: string;
@@ -251,18 +248,12 @@ export function V5MintSheet(props: {
     try {
       const d = await v5CompressImage(f, 384, 110000);
       const v = await checkProfilePhoto(d);
-      const dec = photoDecision(v, photoFails.current);
+      // 'error' = the server could not answer (outage): accepted, the server checks it again later
       if (v === 'ok' || v === 'error') { setPhoto(d); setPhotoVerdict(v); setPhotoMsg(''); setPhotoNote(''); setNotice(''); }
-      else if (dec.use) {
-        // fix4: 2nd refused photo → use it, the team takes a quick look (never a dead end)
+      else {
         photoFails.current++;
-        setPhoto(d); setPhotoVerdict('review'); setPhotoMsg(''); setNotice('');
-        setPhotoNote('Thanks! Your photo is in. Our team will take a quick look.');
-        v5LogClient('card_photo_review', v, `try${photoFails.current}${isNew ? '' : ' edit'}`);
-      } else {
-        photoFails.current++;
-        setPhotoMsg(PHOTO_MSG[v]); setPhotoNote('');
-        if (isNew) v5LogClient('card_photo_no', v, `try${photoFails.current}`);
+        setPhotoMsg(PHOTO_FACE_MSG); setPhotoNote('');
+        v5LogClient('card_photo_no', v, `try${photoFails.current}${isNew ? '' : ' edit'}`);
       }
     } catch (e) { setNotice(errText(e)); } finally { setChecking(false); }
   };
@@ -323,7 +314,9 @@ export function V5MintSheet(props: {
         props.onAfter(photo && !card?.verified ? 'verify' : 'close', card?.member_no ?? null);
       }
     } catch (e) {
-      setNotice(errText(e));
+      // 20 Nov: the server refuses a photo that was never face-checked (or failed): ask for a new one, not a dead end
+      if (v5ErrCode(e) === 'PHOTO_FACE') { setPhoto(''); setPhotoVerdict(null); setPhotoMsg(PHOTO_FACE_MSG); setNotice(''); }
+      else setNotice(errText(e));
     } finally {
       busyRef.current = false;
       setBusy(false);
@@ -386,14 +379,15 @@ export function V5MintSheet(props: {
       {isNew && !props.photoFix ? (
         // makecard-1: the empty card already says "Add photo", so a new member sees no extra box; only a short plain line when
         // the photo is being checked or was refused (no face / too small / group)
-        checking || photoMsg ? <p className="kx-photo-line" id="kxPhotoNeed" role="status" aria-live="polite">{checking ? L('Checking photo…') : L(photoMsg)}</p> : null
-      ) : (checking || photoMsg || ((isNew || props.photoFix) && !photo)) ? (
+        checking && !photoMsg ? <p className="kx-photo-line" id="kxPhotoNeed" role="status" aria-live="polite">{L('Checking photo…')}</p> : null
+      ) : null}
+      {(isNew && !props.photoFix) && !photoMsg ? null : (checking || photoMsg || ((isNew || props.photoFix) && !photo)) ? (
         <div className="kx-photo-need" id="kxPhotoNeed" role="status" aria-live="polite">
           <p>{checking ? L('Checking photo…') : L(photoMsg || 'Add a photo where your face is clearly visible.')}</p>
           {!checking ? (
             <div className="kx-photo-btns">
-              <label className="kx-btn" id="kxPhotoGallery">{L('Choose from gallery')}<input type="file" accept="image/*" onChange={(e) => { void pick(e.target.files?.[0]); e.currentTarget.value = ''; }} /></label>
-              <label className="kx-btn ghost" id="kxPhotoCamera">{L('Take a photo')}<input type="file" accept="image/*" capture="user" onChange={(e) => { void pick(e.target.files?.[0]); e.currentTarget.value = ''; }} /></label>
+              <label className="kx-btn" id="kxPhotoSelfie">{L('Take a selfie now')}<input type="file" accept="image/*" capture="user" onChange={(e) => { void pick(e.target.files?.[0]); e.currentTarget.value = ''; }} /></label>
+              <label className="kx-btn ghost" id="kxPhotoGallery">{L('Choose another photo')}<input type="file" accept="image/*" onChange={(e) => { void pick(e.target.files?.[0]); e.currentTarget.value = ''; }} /></label>
             </div>
           ) : null}
         </div>

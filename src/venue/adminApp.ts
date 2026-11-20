@@ -19,7 +19,7 @@ import { awsLookalikes, buildClusters, flagText, isLookCardMap, joinDate, lookal
   type DupCluster, type DupFlagged, type DupHeld, type DupMember, type WeekReview } from './dupAdmin';
 import './admin2.css';
 import { info, v2Flush, v2Route, v2TabFor, v2Tabbar, v2TestToggle } from './adminV2';
-import { photoOkButton } from './photoOk';   // 0122: one-tap Photo OK
+import { photoStateChip } from './photoOk';   // 0122: one-tap Photo OK
 import { checkReasons, holdLines, isRetiredFaceLink } from './adminClean';   // 19 Nov clean-up (old on-phone face checker retired)
 import { copyLabel, feedLabel, feedOffReason, loadReelChecks, setReelFeed, type ReelCheck } from './reelChecks';   // 0145/0147
 
@@ -1077,7 +1077,7 @@ export type MemberRow = { user_id: string; member_no: number | null; first_name:
   ref_code: string | null; src_code: string | null; who: string | null; area: string | null; langs: string[] | null; gender: string | null; show_gender: boolean;
   ig_handle: string | null; tiktok_handle: string | null; bio: string | null; interests: string[] | null; verified: boolean; age_ok: boolean; terms_ok: boolean;
   last_active_at: string | null; reels_approved: number; reels_waiting: number; reels_hidden: number; card_complete: boolean; is_test: boolean;
-  /** 0070: 'unchecked' = the phone could not run the face check on this card photo (audit P1-1) → look by eye */ photo_check?: 'ok' | 'unchecked' | null };
+  /** 0070: 'unchecked' = the phone could not run the face check on this card photo (audit P1-1) → look by eye */ photo_check?: 'ok' | 'unchecked' | 'no_face' | 'look' | null };
 export type MemberList = { total: number; test_hidden: number; members: MemberRow[] };
 export function isMemberList(v: unknown): v is MemberList {
   const o = v as MemberList | null;
@@ -1110,9 +1110,8 @@ function photoChecked(m: MemberRow) {
 function photoSheet(m: MemberRow) {
   const s = sheet(el('img', { class: 'ml-big', src: m.photo || '', alt: `Photo of ${m.first_name || 'member'}` }),
     el('h3', { style: 'margin-top:12px' }, m.first_name || 'No name yet'), el('p', { class: 'dim sm', style: 'margin:2px 0 0' }, `#${m.member_no ?? '–'} · ${memberJoined(m.joined_at)}`),
-    m.photo_check === 'unchecked' && !m.verified ? el('div', { class: 'ml-pcheck', style: 'display:flex;gap:8px;align-items:center;margin-top:10px' },
-      el('span', { class: 'pill a', 'data-photo-check': 'unchecked' }, 'Photo needs a look'),
-      photoOkButton(m.user_id, () => photoChecked(m))) : null,
+    m.photo_check && m.photo_check !== 'ok' ? el('div', { class: 'ml-pcheck', style: 'display:flex;gap:8px;align-items:center;margin-top:10px' },
+      photoStateChip(m.user_id, m.photo_check, 'pill', () => photoChecked(m))) : null,
     el('button', { class: 'btn ghost', type: 'button', id: 'photoClose', style: 'width:100%;margin-top:14px' }, 'Close'));
   (s.box.querySelector('#photoClose') as HTMLButtonElement).onclick = s.close;
 }
@@ -1140,9 +1139,8 @@ export function memberRow(m: MemberRow, onPhoto: (m: MemberRow) => void = photoS
     m.interests?.length ? el('div', { class: 'ml-int' }, ...m.interests.map((t) => pill(t))) : null,
     el('div', { class: 'ml-ticks' }, tick(m.verified, 'Verified', 'Not verified'),
       el('span', { class: 'pill ' + (miss.length ? 'a' : 'g'), 'data-complete': miss.length ? '0' : '1' }, miss.length ? `Card missing ${miss.join(', ')}` : '✓ Card complete'),
-      m.photo_check === 'unchecked' && !m.verified ? el('span', { class: 'pill a', 'data-photo-check': 'unchecked', title: 'The face check could not run on this photo. Look at the photo.' }, 'Photo needs a look') : null,
-      // 0122: one tap clears the flag (no "Not OK": there is no hide / ask-for-a-new-photo flow for card photos yet)
-      m.photo_check === 'unchecked' && !m.verified ? photoOkButton(m.user_id, () => photoChecked(m)) : null),
+      // 0162: one honest photo label (no face → hidden automatically · unclear → tap if fine · unchecked → being checked)
+      photoStateChip(m.user_id, m.photo_check, 'pill', () => photoChecked(m))),
     el('div', { class: 'ml-foot xs dim' },
       el('span', { 'data-reels': `${m.reels_approved}/${m.reels_waiting}/${m.reels_hidden}` }, `Reels: ${m.reels_approved} live · ${m.reels_waiting} waiting · ${m.reels_hidden} hidden`),
       el('span', {}, `Last seen ${ago(m.last_active_at)}`)));

@@ -30,7 +30,7 @@ import { alertSheetKind, alertUser, detailLines, flagSentence, flagWhy, giveWhy,
   type ExClaim, type ExCodes, type ExErrors, type ExPlace, type ExReel, type ExRings } from './tapLogic';
 import { codeMeaning, kindName, uaInfo } from './problemsAdmin';
 import { REFUSE_REASONS } from '../v8/travellerLogic';   // 0138: traveller tag refuse reasons
-import { photoOkButton } from './photoOk';   // 0122: one-tap Photo OK
+import { photoStateChip } from './photoOk';   // 0122: one-tap Photo OK
 import { helpSection } from './adminHelp';   // 0097: Help cases (self-contained)
 import { helpPanelLeave, helpPanelView } from './helpPanel';   // 0120: full Help panel (#help, #help/<uid>)
 import { bugSection, viewAsLeave, viewAsView } from './viewAs';   // 0110: View as member + Spot a bug cases
@@ -1257,8 +1257,8 @@ export async function memberView(uid: string) {
           c?.verified ? chip('✓ verified', 'g') : chip('not verified', ''),
           // 0122: the card photo could not be face-checked (or a 2nd refused photo was let through) → look, then one tap
           // 19 Nov: a verified member's card photo needs nothing from the founder (a mismatch gets an automatic message)
-          c?.photo_check === 'unchecked' && !c.verified ? el('span', { class: 'v2chip a', 'data-photo-check': 'unchecked', id: 'v2PhotoLook' }, 'Photo needs a look') : null,
-          c?.photo_check === 'unchecked' && !c.verified ? photoOkButton(uid, () => { c.photo_check = 'ok'; document.getElementById('v2PhotoLook')?.remove(); if (snapP) snapP.photo_check = 'ok'; }, 'v2chip g photo-ok') : null,
+          // 0162: one honest photo label (no more "Photo needs a look" + "Photo OK" side by side)
+          c ? photoStateChip(uid, c.photo_check, 'v2', () => { c.photo_check = 'ok'; if (snapP) snapP.photo_check = 'ok'; }) : null,
           tr ? tapIn(el('span', { class: `v2chip ${trustWords(tr).tone}`, id: 'v2MemberTrustChip' }, trustWords(tr).text, el('small', { class: 'v2faint' }, ` · ${trustWords(tr).detail}`)),
             () => openTrustSheet({ user_id: uid, no: c?.no ?? null, name: c?.name ?? null }, tr)) : null),
         el('h2', {}, c?.name || m.email_hint || 'Account without a card'),

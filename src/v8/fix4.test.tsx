@@ -55,26 +55,31 @@ describe('fix4 · 1 card photo: two strikes', () => {
   });
 });
 
-describe('fix4 · 1 card photo on the Make-your-card screen', () => {
-  it('1st refused photo: friendly "use another"; 2nd: the photo is on the card + "our team will take a quick look"', async () => {
+describe('0162 · card photo on the Make-your-card screen (20 Nov: a photo without one clear face is never used)', () => {
+  it('every refused photo: "Use a clear photo of your face 🙂" + Take a selfie now / Choose another photo; the photo is never put on the card', async () => {
     liveMock.v5LogClient.mockClear();
-    faceMock.checkProfilePhoto.mockResolvedValue('small');
+    faceMock.checkProfilePhoto.mockResolvedValue('none');
     const L = (s: string) => s;
     const { container } = render(<V5MintSheet L={L} Lf={(s) => s} card={null} uiLang="en" onSaved={() => undefined} onClose={() => undefined} toast={() => undefined} onAfter={() => undefined} />);
     const pick = async () => {
       const input = container.querySelector<HTMLInputElement>('#v5Photo')!;
-      await act(async () => { fireEvent.change(input, { target: { files: [new File(['x'], 'me.jpg', { type: 'image/jpeg' })] } }); });
+      await act(async () => { fireEvent.change(input, { target: { files: [new File(['x'], 'saw.jpg', { type: 'image/jpeg' })] } }); });
       await act(async () => { await new Promise((ok) => setTimeout(ok, 0)); });
     };
+    for (const n of [1, 2, 3]) {
+      await pick();
+      expect(container.querySelector('#kxPhotoNeed p')?.textContent).toBe('Use a clear photo of your face 🙂');
+      expect(container.querySelector('#kxPhotoSelfie')?.textContent).toContain('Take a selfie now');
+      expect(container.querySelector('#kxPhotoSelfie input')?.getAttribute('capture')).toBe('user');
+      expect(container.querySelector('#kxPhotoGallery')?.textContent).toContain('Choose another photo');
+      expect(container.querySelector('#kxPhotoReview')).toBeNull();
+      expect(container.querySelector<HTMLElement>('.kx-n2')?.style.backgroundImage || '').not.toContain('data:image/jpeg;base64,xx');
+      expect(liveMock.v5LogClient).toHaveBeenCalledWith('card_photo_no', 'none', `try${n}`);
+    }
+    // a screenshot ('text') is refused the same way
+    faceMock.checkProfilePhoto.mockResolvedValue('text');
     await pick();
-    expect(container.querySelector('#kxPhotoNeed')?.textContent).toBe('Your face is too small in this photo. Use a closer one.');
-    expect(container.querySelector('#kxPhotoReview')).toBeNull();
-    expect(liveMock.v5LogClient).toHaveBeenCalledWith('card_photo_no', 'small', 'try1');
-    await pick();
-    expect(container.querySelector('#kxPhotoNeed')).toBeNull();
-    expect(container.querySelector('#kxPhotoReview')?.textContent).toBe('Thanks! Your photo is in. Our team will take a quick look.');
-    expect(container.querySelector<HTMLElement>('.kx-n2')?.style.backgroundImage).toContain('data:image/jpeg;base64,xx');
-    expect(liveMock.v5LogClient).toHaveBeenCalledWith('card_photo_review', 'small', 'try2');
+    expect(container.querySelector('#kxPhotoNeed p')?.textContent).toBe('Use a clear photo of your face 🙂');
   });
 });
 

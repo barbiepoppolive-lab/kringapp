@@ -827,6 +827,7 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
     case 'GOOGLE_OFF': return ['Google sign-in isn’t switched on yet. Use an email code for now.'];
     case 'GHOST': return ['This account is paused. Please use your main Kring account.'];
     case 'PHOTO_NEEDED': return ['Add a photo where your face is clearly visible.'];   // 0070: a new card needs an uploaded photo
+    case 'PHOTO_FACE': return ['Use a clear photo of your face 🙂'];   // 20 Nov: the server only takes a face-checked photo
     default: return ['Something went wrong. Try again.'];
   }
 }
@@ -868,6 +869,10 @@ export const KX_L: Record<string, Record<string, string>> = {
     // fix4 (19 Nov): the 2nd refused photo is used anyway and the team looks at it
     'Thanks! Your photo is in. Our team will take a quick look.': 'ขอบคุณครับ ใช้รูปนี้ได้เลย ทีมงานจะช่วยดูให้อีกทีครับ',
     'Checking photo…': 'กำลังตรวจรูป…',
+    // 20 Nov: card photos must show one clear face (objects, scenery, screenshots and group photos are refused)
+    'Use a clear photo of your face 🙂': 'ใช้รูปที่เห็นหน้าคุณชัด ๆ นะครับ 🙂',
+    'Take a selfie now': 'ถ่ายเซลฟี่ตอนนี้',
+    'Choose another photo': 'เลือกรูปอื่น',
     'Choose from gallery': 'เลือกจากแกลเลอรี',
     'Take a photo': 'ถ่ายรูป',
     'or take a photo': 'หรือถ่ายรูป',
