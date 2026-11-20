@@ -542,8 +542,6 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Reply': 'ตอบกลับ',
     'Replying to {0}': 'ตอบกลับ {0}',
     'Add an answer': 'เขียนคำตอบ',
-    'Be the first to answer': 'มาตอบเป็นคนแรกกัน',
-    'Café perks': 'สิทธิพิเศษคาเฟ่',
     'Your question': 'คำถามของคุณ',
     'Add details (optional)': 'เพิ่มรายละเอียด (ไม่บังคับ)',
     'Emoji': 'อีโมจิ',

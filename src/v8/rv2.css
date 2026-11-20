@@ -75,14 +75,14 @@ html[lang="th"] .v8-app-root { --rv-f: 'Noto Sans Thai', 'RvInter', system-ui, s
 .v8-app-root .rv-sech span { font: 500 0.75rem var(--rv-f); color: var(--rv-mu); white-space: nowrap; }
 
 /* ---------- 2. People ---------- */
-.v8-app-root #s-people .rv-phead { padding: max(18px, env(safe-area-inset-top)) 4px 0 !important; }
-.v8-app-root #s-people .rv-ptop { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-right: 48px; }
+.v8-app-root #s-people .rv-phead { padding: max(2px, env(safe-area-inset-top)) 0 0 !important; }
+.v8-app-root #s-people .rv-ptop { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding-right: 50px; }
 .v8-app-root #s-people .rv-ptop .ppl-title { font: 700 1.5rem var(--rv-f) !important; letter-spacing: -.02em; margin: 0 !important; color: #fff; }
 .v8-app-root #s-people .rv-sic { width: 40px; height: 40px; border-radius: 50%; border: 0; display: grid; place-items: center; background: rgba(255,255,255,.06); color: #E9E6F2; cursor: pointer; }
 .v8-app-root #s-people .rv-sic.on { background: rgba(255,255,255,.12); }
 .v8-app-root #s-people .rv-sic svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 /* segments: plain words, the active one gets a small pink underline (no filled pills) */
-.v8-app-root #s-people .rv-seg { display: flex !important; gap: 22px !important; margin: 14px 0 0 !important; padding: 0 !important; overflow: visible; box-shadow: inset 0 -1px 0 var(--rv-ln); }
+.v8-app-root #s-people .rv-seg { display: flex !important; gap: 22px !important; margin: 12px 0 0 !important; padding: 0 !important; overflow: visible; }
 .v8-app-root #s-people .rv-seg button { height: 38px !important; padding: 0 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; color: var(--rv-mu) !important; font: 600 0.9375rem var(--rv-f) !important; position: relative; }
 .v8-app-root #s-people .rv-seg button.on { color: #fff !important; }
 .v8-app-root #s-people .rv-seg button.on::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; border-radius: 2px; background: var(--rv-pk); box-shadow: 0 0 8px rgba(236,70,182,.55); }
@@ -157,7 +157,7 @@ html[lang="th"] .v8-app-root { --rv-f: 'Noto Sans Thai', 'RvInter', system-ui, s
 .v8-app-root #s-me .rv-rings .rv-rsub { grid-column: 1; grid-row: 2; font: 500 0.75rem var(--rv-f); color: var(--rv-gd); margin-top: 2px; }
 .v8-app-root #s-me .rv-rings .rv-rnum { grid-column: 2; grid-row: 1 / span 2; display: inline-flex; align-items: center; gap: 8px; font: 600 1.75rem/1 var(--rv-f); letter-spacing: -.02em; }
 .v8-app-root #s-me .rv-rings .rv-rnum svg { width: 26px; height: 17px; }
-.v8-app-root #s-me .rv-rings > svg, .v8-app-root #s-me .rv-rings > :last-child:not(span):not(i) { grid-column: 3; grid-row: 1 / span 2; color: var(--rv-mu); width: 14px; height: 14px; }
+.v8-app-root #s-me .rv-rings .kme-chev { grid-column: 3; grid-row: 1 / span 2; font-style: normal; color: var(--rv-mu); font-size: 1.2rem; }
 .v8-app-root #s-me .rv-rings .kx-tdot { position: absolute; top: 12px; right: 0; }
 /* next-step card and the Founding milestone sit on the page, not in heavy boxes */
 .v8-app-root #s-me .rv-found { margin: 24px 20px 0 !important; padding: 18px 18px 14px !important; border-radius: 24px !important;
@@ -191,6 +191,16 @@ html[lang="th"] .v8-app-root #s-me .rv-found .rv-fk { letter-spacing: 0; text-tr
 .v8-app-root #s-me .rv-week .rv-wline b { font: 600 1.25rem var(--rv-f) !important; height: 28px !important; }
 .v8-app-root #s-me .rv-week .rv-wline .gd { color: var(--rv-gd) !important; }
 .v8-app-root #s-me .rv-week .rv-wline b svg { width: 22px; height: 14px; }
+
+/* Me: the next-step card and the New Reel tile — lighter, no neon outline */
+.v8-app-root #s-me .nx-cardwrap { padding: 20px 20px 0 !important; }
+.v8-app-root #s-me .nx-card { background: linear-gradient(135deg, rgba(115,123,255,.10), rgba(236,70,182,.06)) !important; box-shadow: inset 0 0 0 1px var(--rv-ln2) !important; border-radius: 20px !important; font-family: var(--rv-f); }
+.v8-app-root #s-me .nx-card::before { display: none !important; }
+.v8-app-root #s-me .nx-card .nx-cap { font-family: var(--rv-f); }
+.v8-app-root #s-me .nx-card .nx-main { font: 600 1rem/1.3 var(--rv-f) !important; }
+.v8-app-root #s-me .go-gt.add { box-shadow: inset 0 0 0 1px var(--rv-ln2) !important; color: #E9E6F2 !important; background: rgba(255,255,255,.03) !important; font-family: var(--rv-f); font-weight: 600; }
+.v8-app-root #s-me .go-gt.add span { color: #E9E6F2 !important; }
+.v8-app-root #s-me .go-gt.add svg { color: var(--rv-pk); }
 
 @media (prefers-reduced-motion: reduce) {
   .v8-app-root .rv-chk path { animation: none; stroke-dashoffset: 0; }
