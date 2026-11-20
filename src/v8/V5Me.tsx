@@ -142,7 +142,7 @@ export function WeekHook(props: { L: Tx; Lf: Txf; hook: WeekHookData; onRanking?
   return (
     <div className={`kx-hook${inPrize ? ' won' : ''}`} id="kxWeekHook" data-state={inPrize ? 'prize' : onBoard ? 'board' : 'off'}>
       <button type="button" className="kx-hook-t" id="kxWeekHookOpen" onClick={props.onRanking || props.onPost}>
-        <span className="ic" aria-hidden="true">{inPrize ? '🏆' : '✦'}</span><b>{line}</b><i aria-hidden="true">›</i>
+        <span className="ic" aria-hidden="true">{inPrize ? '★' : '✦'}</span><b>{line}</b><i aria-hidden="true">›</i>
       </button>
       {!onBoard ? <button type="button" className="kx-hook-go" id="kxWeekHookPost" onClick={props.onPost}>{L('Post a Reel')}</button> : null}
     </div>
