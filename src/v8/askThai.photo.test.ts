@@ -1,5 +1,5 @@
 /**
- * Security audit H3: an Ask a Thai photo must never reach storage with its GPS location inside.
+ * Security audit H3: an Ask BKK photo must never reach storage with its GPS location inside.
  * __fixtures__/gps.jpg is a real JPEG with an EXIF block (camera "TestCam", GPS 13°44'N 100°30'E) and a comment.
  * jsdom has no real canvas, so the canvas step is replaced by the WORST case: an encoder that hands back the original
  * bytes unchanged. The byte-level clean-up must still remove every bit of EXIF / GPS. (The real canvas path is checked in
@@ -33,7 +33,7 @@ function hasExifGps(b: Uint8Array): boolean {
 const leakyEncoder = async (b: Blob) => b;   // worst case: "re-encoding" that keeps the original bytes
 const bytes = (b: Blob) => bytesOf(b);
 
-describe('Ask a Thai photos lose their GPS location before upload', () => {
+describe('Ask BKK photos lose their GPS location before upload', () => {
   beforeEach(() => { live.uploads.length = 0; live.rpcs.length = 0; });
 
   it('the fixture really carries EXIF GPS (so the test means something)', () => {

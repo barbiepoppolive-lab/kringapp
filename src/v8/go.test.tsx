@@ -6,7 +6,7 @@ import { KX_L, V5_L } from './v5Strings';
 
 const kxMock = vi.hoisted(() => ({ kxClaimPrize: vi.fn(), kxRecentClaims: vi.fn(), kxTagCandidates: vi.fn(), kxCoachSeen: vi.fn(), kxCoachState: vi.fn(), kxCoachReset: vi.fn() }));
 vi.mock('./v5Kx', async (orig) => ({ ...(await orig<typeof import('./v5Kx')>()), ...kxMock }));
-vi.mock('./v5Reel', () => ({ signReelPaths: vi.fn().mockImplementation(async (p: string[]) => Object.fromEntries(p.map((x) => [x, `https://signed/${x}`]))) }));
+vi.mock('./v5Reel', () => ({ REEL_MAX_MS: 60000, REEL_MIN_MS: 5000, pickMime: () => 'video/webm', signReelPaths: vi.fn().mockImplementation(async (p: string[]) => Object.fromEntries(p.map((x) => [x, `https://signed/${x}`]))) }));
 import { addTag, CAPTION_MAX, GoCoach, GoCompose, GoMeReels, GoProfilePage, GoReelPlayer, GO_TAGS, gridToGo, hashtagsOf, hlTags, PeoplePicker, type GoReel } from './V5Go';
 import { COACH_ORDER, coachDue, coachLocal, coachMark, coachPick, coachReplay, coachSync, newCoachState } from './goCoach';
 import { ClaimedPage, ClaimPage, isLink } from './V5KxRewards';
@@ -65,12 +65,28 @@ describe('caption hashtags', () => {
 describe('compose: one screen after the clip is picked', () => {
   const base = { L, Lf, lang: 'en', stage: 'idle', progress: 0, problem: '', onAddPlace: vi.fn(), onRemovePlace: vi.fn(), onPeople: vi.fn(), onPick: vi.fn(), onClose: vi.fn() };
   const reel = { file: new File(['x'], 'a.mp4', { type: 'video/mp4' }), url: 'blob:x', durationMs: 14000, width: 720, height: 1280 };
-  it('no clip yet: "Film now" + "Pick from gallery" tiles with the reassurance line, nothing else', () => {
-    render(<GoCompose {...base} reel={null} caption="" onCaption={vi.fn()} places={[]} people={[]} onPost={vi.fn()} />);
-    expect(screen.getByText('Film now')).toBeTruthy();
-    expect(screen.getByText('Pick from gallery')).toBeTruthy();
-    expect(screen.getByText(/A clip you already posted on TikTok or IG is fine/)).toBeTruthy();
+  it('camera-first: no clip yet → straight into the camera when the browser already allows it (record, flip, gallery bottom-left)', async () => {
+    render(<GoCompose {...base} reel={null} caption="" onCaption={vi.fn()} places={[]} people={[]} onPost={vi.fn()} camAccess={async () => 'granted'} />);
+    await waitFor(() => expect(document.getElementById('camRec')).toBeTruthy());
+    expect(document.getElementById('camFlip')).toBeTruthy();
+    expect(document.querySelector('#camGallery input#reelFile')).toBeTruthy();
+    expect(document.getElementById('camGate')).toBeNull();
     expect(document.getElementById('goPlaceRow')).toBeNull();
+  });
+  it('camera-first: no permission yet → ONE compact screen, "Allow camera to film" + a smaller "Pick from gallery"; nothing asks by itself', async () => {
+    const gum = vi.fn();
+    Object.defineProperty(navigator, 'mediaDevices', { value: { getUserMedia: gum }, configurable: true });
+    render(<GoCompose {...base} reel={null} caption="" onCaption={vi.fn()} places={[]} people={[]} onPost={vi.fn()} camAccess={async () => 'prompt'} />);
+    await waitFor(() => expect(document.getElementById('camGate')).toBeTruthy());
+    expect(document.getElementById('camAllow')!.textContent).toBe('Allow camera to film');
+    expect(document.querySelector('#camToGallery input#reelFile')).toBeTruthy();
+    expect(screen.getAllByText('Pick from gallery').length).toBeGreaterThan(0);
+    expect(gum).not.toHaveBeenCalled();
+  });
+  it('camera-first: a refused clip ("too short") shows over the camera', async () => {
+    render(<GoCompose {...base} problem="That clip is too short" reel={null} caption="" onCaption={vi.fn()} places={[]} people={[]} onPost={vi.fn()} camAccess={async () => 'none'} />);
+    await waitFor(() => expect(document.getElementById('reelProblem')!.textContent).toBe('That clip is too short'));
+    expect(document.getElementById('camAllow')).toBeNull();
   });
   it('clip picked: caption, hashtag chips, Add place, Tag people and Post on the same screen; no "Where was this filmed" step', () => {
     const onCaption = vi.fn();
@@ -401,7 +417,7 @@ const goKeys = () => {
   for (const k of ['People', 'Make new friends in Bangkok. Tap a card to see their Reels.', 'Everyone', 'Travellers', 'Deals', 'Perks at Bangkok places for Kring members, plus trusted partners for travellers.',
     'For Locals', 'For travellers', 'Place perks', 'Show your Kring card', 'Replay intro', 'Intro is on again', 'Choose one. This prize can be claimed once.', 'OR', 'Claim with {0} · {1}',
     'Claimed with {0} · {1}', 'Redeem into TrueMoney', 'Your redeem link', 'Copy link', 'Link copied', 'A save gives {0} 3 Rings. A like gives 1.', 'the poster', 'Post your first Reel here', 'Tap to see where your Rings came from',
-    'Share to IG or TikTok. Each person who opens the link = +5 Rings.', 'with', 'All']) keys.add(k);
+    'Share to IG, TikTok or Facebook. Each person who opens the link = +5 Rings.', 'with', 'All']) keys.add(k);
   return [...keys];
 };
 describe('strings of the go-live screens', () => {

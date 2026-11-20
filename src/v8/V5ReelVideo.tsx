@@ -67,7 +67,12 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed, first, soun
   // 17 Nov: "Tap for sound" stays on the badge until the member taps once (any Reel)
   const [hint, setHint] = useState(soundHintWanted);
   useEffect(() => {
-    const off = () => setHint(soundHintWanted());
+    // 20 Nov: sound turned on (first tap anywhere) → the Reel playing now unmutes too (still inside the tap, so it is allowed)
+    const off = () => {
+      setHint(soundHintWanted());
+      const v = ref.current;
+      if (v && !v.paused && v.muted === soundWanted()) { v.muted = !soundWanted(); setMuted(v.muted); }
+    };
     window.addEventListener(SOUND_PREF_EVENT, off);
     return () => window.removeEventListener(SOUND_PREF_EVENT, off);
   }, []);
@@ -172,7 +177,7 @@ export function V5ReelVideo({ src, poster, label, pending, onViewed, first, soun
       />
       {/* polish #13: a small white speaker (no red emoji); a tap on the video toggles sound, a double tap still likes */}
       <span className={`reel-sound${muted && hint && soundHint ? ' has-hint' : ''}`} aria-hidden="true" data-muted={muted ? '1' : '0'}>
-        <svg viewBox="0 0 24 24"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" />{muted ? <path d="M16 9.5l5 5M21 9.5l-5 5" /> : <path d="M16 9a4.2 4.2 0 0 1 0 6M18.6 6.5a7.8 7.8 0 0 1 0 11" />}</svg>
+        {muted && hint && soundHint ? null : <svg viewBox="0 0 24 24"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" />{muted ? <path d="M16 9.5l5 5M21 9.5l-5 5" /> : <path d="M16 9a4.2 4.2 0 0 1 0 6M18.6 6.5a7.8 7.8 0 0 1 0 11" />}</svg>}
         {muted && hint && soundHint ? <b className="reel-sound-hint">{soundHint}</b> : null}
       </span>
       {pending ? <span className="reel-pending">{pending}</span> : null}

@@ -130,7 +130,7 @@
   .v8-app-root .kpz-ods, .v8-app-root .kpz-rings .kpz-rp, .v8-app-root .kpz-wk > i, .v8-app-root .kpz-x svg { transition: none; }
 }
 
-/* 17 Nov release: the Feed top row now holds weather · "Reels · Ask a Thai" · chat, so the ticker takes the line right under it, centred */
+/* 17 Nov release: the Feed top row now holds weather · "Reels · Ask BKK" · chat, so the ticker takes the line right under it, centred */
 .v8-app-root #s-feed.at-has-sw .kpz-tick { top: calc(env(safe-area-inset-top) + 52px); left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100% - 24px); }
 /* T-301 (T301-002): the centred ticker spans the full width at 52–88px (+6px tap edge), right where the "Tap for sound" badge sat
    (56px). The badge moves to its own row under the ticker (>= 8px gap) at every width 360–430, Thai and English alike, so a tap

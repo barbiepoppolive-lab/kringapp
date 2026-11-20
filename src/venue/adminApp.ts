@@ -623,7 +623,7 @@ export function notYetSheet(reelId: string, botReasons: readonly string[], hide:
     } catch (e) { go.disabled = false; out.replaceChildren(errP(e)); }
   };
 }
-/** Removing a reported Reel / Ask a Thai post or answer (only what the published rules say). */
+/** Removing a reported Reel / Ask BKK post or answer (only what the published rules say). */
 export const REPORT_CHIPS: Chip[] = [
   ['Spam or scam', 'Removed: spam or a scam is not allowed on Kring.', 'ลบแล้ว: ห้ามสแปมหรือหลอกลวงบนกริ๊ง! ครับ'],
   ['Unsafe or adult', 'Removed: unsafe, adult or harassing content is not allowed on Kring.', 'ลบแล้ว: ห้ามเนื้อหาไม่ปลอดภัย ผู้ใหญ่ หรือคุกคามบนกริ๊ง! ครับ'],
@@ -644,7 +644,7 @@ export function bilingualReason(text: string, chips: Chip[]): string {
   return c ? `${c[2]}\n${c[1]}` : t;
 }
 /**
- * The one reason sheet for EVERY reject in admin (face checks, Reels, venues, reports, Ask a Thai, Same person? Refuse).
+ * The one reason sheet for EVERY reject in admin (face checks, Reels, venues, reports, Ask BKK, Same person? Refuse).
  * Ready chips fill the text; the send button is sticky at the bottom of the sheet so it is always visible on a 390 px phone,
  * even with all chips showing (17 Nov: the founder could not find where to send a face-check reject).
  */
@@ -842,7 +842,7 @@ function reportBody(r: Report, urls: Record<string, string>): HTMLElement {
       [el('b', {}, r.target_name || '–'), r.post_body ? el('p', {}, r.post_body) : null]) : null,
     el('div', { class: 'card', style: 'margin-top:12px' },
       el('div', { class: 'row' }, el('span', { class: 'icb', style: 'background:rgba(255,90,107,.14);color:var(--bad)' }, ic('flag')),
-        el('div', { class: 'grow' }, el('b', { style: 'font-size:17px;display:block' }, cat || 'Report about a person'), el('span', { class: 'dim sm' }, r.post_kind === 'ask' ? 'Ask a Thai question' : r.post_id ? 'Reel report' : isAskAnswer(r) ? 'Ask a Thai answer' : 'Chat or profile')),
+        el('div', { class: 'grow' }, el('b', { style: 'font-size:17px;display:block' }, cat || 'Report about a person'), el('span', { class: 'dim sm' }, r.post_kind === 'ask' ? 'Ask BKK question' : r.post_id ? 'Reel report' : isAskAnswer(r) ? 'Ask BKK answer' : 'Chat or profile')),
         r.resolution ? pill(RES[r.resolution]?.[0] || r.resolution, RES[r.resolution]?.[1] || '') : null),
       !cat || r.reason ? el('p', { style: 'margin:12px 0 0' }, `“${r.reason}”`) : null,
       el('div', { class: 'facts' },
@@ -851,8 +851,8 @@ function reportBody(r: Report, urls: Record<string, string>): HTMLElement {
         el('span', { class: 'fact' }, 'By ', el('b', {}, r.reporter_name || '–'), ' · ', ago(r.created_at)))),
     r.post_id ? el('div', { class: 'tip' }, ic('info'), 'A Reel reported by 3 different people hides itself until you decide.') : null);
 }
-/** Ask a Thai answer reports (0057/0064): no post_id, reason starts "Ask a Thai answer"; Keep / Remove via kr8_admin_ask_answer */
-const isAskAnswer = (r: Report) => !r.post_id && /^Ask a Thai answer/.test(r.reason || '');
+/** Ask BKK answer reports (0057/0064): no post_id, reason starts "Ask BKK answer"; Keep / Remove via kr8_admin_ask_answer */
+const isAskAnswer = (r: Report) => !r.post_id && /^Ask BKK answer/.test(r.reason || '');
 async function reportQueue() {
   app.replaceChildren(el('div', { class: 'scr' }, loading()));
   let rows: Report[];
@@ -866,7 +866,7 @@ async function reportQueue() {
       ? el('div', { class: 'two' }, btn('out-bad big', [ic('trash'), 'Remove'], () => rejectSheet('Why remove?', r.post_id && r.post_kind !== 'ask' ? 'The member sees this reason on their Reel.' : 'Kept with the report.',
           REPORT_CHIPS, 'reportRemove-' + r.id, async (why) => {
             await w('remove')();
-            // a removed Reel carries the reason like a hidden one (kr8_admin_review_reel p_note); Ask a Thai keeps it with the report
+            // a removed Reel carries the reason like a hidden one (kr8_admin_review_reel p_note); Ask BKK keeps it with the report
             if (r.post_id && r.post_kind !== 'ask') await rpc('kr8_admin_review_reel', { p_reel: r.post_id, p_status: 'hidden', p_note: why }).catch(() => undefined);
           }, api.next, { cta: 'Send · remove', done: 'Removed · reason sent' }), { id: 'report-remove-' + r.id }),
         btn('go big', [ic('check'), 'Keep'], () => api.done('Kept · shown again', w('keep')), { id: 'report-keep-' + r.id }))

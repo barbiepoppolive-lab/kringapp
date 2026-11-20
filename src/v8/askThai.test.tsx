@@ -13,7 +13,7 @@ const P = (id: string, local = false): AskPerson => ({ id, name: id, photo: '', 
 const A = (id: string, score: number, parentId: string | null = null, at = '2026-11-16T10:00:00Z'): AskAnswer =>
   ({ id, parentId, by: P(id), body: id, media: null, score, myVote: 0, at });
 
-describe('Ask a Thai logic', () => {
+describe('Ask BKK logic', () => {
   it('orders the thread: best answer first, replies under their answer', () => {
     const o = orderThread([A('a', 3), A('b', 9), A('r1', 1, 'a', '2026-11-16T11:00:00Z'), A('c', 0), A('r0', 5, 'b')]);
     expect(o.map((x) => x.id)).toEqual(['b', 'r0', 'a', 'r1', 'c']);
@@ -38,7 +38,7 @@ describe('Ask a Thai logic', () => {
   });
 });
 
-describe('Ask a Thai local store (no table yet / demo)', () => {
+describe('Ask BKK local store (no table yet / demo)', () => {
   beforeEach(() => resetAskLocal());
   it('live build without demo starts empty, never with example posts', async () => {
     const api = createAskApi({ live: false, demo: false, me: () => me });
@@ -66,23 +66,23 @@ describe('Ask a Thai local store (no table yet / demo)', () => {
   });
 });
 
-describe('Ask a Thai screens', () => {
+describe('Ask BKK screens', () => {
   beforeEach(() => resetAskLocal());
-  it('switch: Reels is the default, tapping Ask a Thai switches', () => {
+  it('switch: Reels is the default, tapping Ask BKK switches', () => {
     let mode: 'reels' | 'ask' = 'reels';
     const { rerender } = render(<div className="v8-app-root"><AskSwitch L={L} mode={mode} onMode={(m) => { mode = m; }} dot /></div>);
     expect(screen.getByRole('tab', { name: 'Reels' }).getAttribute('aria-selected')).toBe('true');
-    fireEvent.click(screen.getByRole('tab', { name: /Ask a Thai/ }));
+    fireEvent.click(screen.getByRole('tab', { name: /Ask BKK/ }));
     expect(mode).toBe('ask');
     rerender(<div className="v8-app-root"><AskSwitch L={L} mode={mode} onMode={() => {}} dot /></div>);
-    expect(screen.getByRole('tab', { name: 'Ask a Thai' }).getAttribute('aria-selected')).toBe('true');
+    expect(screen.getByRole('tab', { name: 'Ask BKK' }).getAttribute('aria-selected')).toBe('true');
   });
-  it('timeline shows posts, Thai Local badge, top answer; a tap opens the thread with "Best"', async () => {
+  it('timeline shows posts, BKK Local badge, top answer; a tap opens the thread with "Best"', async () => {
     const api = createAskApi({ live: false, demo: true, me: () => me });
     const need = (f: () => void) => f();
     render(<div className="v8-app-root"><AskThaiView L={L} api={api} me={me} areas={['Bangkok', 'Ari']} areaLabel={(a) => a} need={need} toast={() => {}} /></div>);
     await screen.findByText(/Best time to visit So Heng Tai/);
-    expect(screen.getAllByText('Thai Local').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('BKK Local').length).toBeGreaterThan(0);
     expect(screen.getByText(/Weekday, 9–10am/)).toBeTruthy();
     fireEvent.click(screen.getByText(/Best time to visit So Heng Tai/));
     await screen.findByText('★ Best');
@@ -105,7 +105,7 @@ describe('Ask a Thai screens', () => {
   });
 });
 
-describe('Ask a Thai report (⋯ → Report → reason)', () => {
+describe('Ask BKK report (⋯ → Report → reason)', () => {
   beforeEach(() => resetAskLocal());
   it('reporting an answer removes it (and its replies) for the reporter; own posts have no ⋯', async () => {
     const api = createAskApi({ live: false, demo: true, me: () => me });
@@ -134,9 +134,9 @@ describe('Ask a Thai report (⋯ → Report → reason)', () => {
   });
 });
 
-describe('Ask a Thai copy rules', () => {
+describe('Ask BKK copy rules', () => {
   const read = (f: string) => fs.readFileSync(path.join(__dirname, f), 'utf8');
-  const keys = ['Ask a Thai', 'Ask', 'Thai Local', 'traveller', 'Upvote', 'Downvote', 'Answers', '1 answer', '{0} answers', '★ Best', 'Reply', 'Replying to {0}',
+  const keys = ['Ask BKK', 'Ask', 'BKK Local', 'traveller', 'Upvote', 'Downvote', 'Answers', '1 answer', '{0} answers', '★ Best', 'Reply', 'Replying to {0}',
     'Add an answer', 'Your question', 'Add details (optional)', 'Emoji', 'GIF', 'Remove photo', 'Photo is too big · up to 5 MB', 'Use a photo or GIF',
     'Couldn’t post · try again', 'No questions yet', 'Now', '{0}m', '{0}h', '{0}d', 'Reels', 'Photo', 'Post', 'Share', 'Back', 'Close', 'Try again',
     'Something went wrong', 'Link copied', 'Area', 'Feed', 'More', 'Report', 'Why are you reporting it?', 'Spam or scam', 'Unsafe, adult or harassment',
@@ -144,7 +144,7 @@ describe('Ask a Thai copy rules', () => {
   it('every visible string has Thai', () => {
     for (const k of keys) expect(V5_L.th[k] || KX_L.th[k], k).toBeTruthy();
   });
-  it('no banned words in the Ask a Thai screens or their strings', () => {
+  it('no banned words in the Ask BKK screens or their strings', () => {
     const banned = /\b(meet|guide|tour|host|creator|reviews|hidden gem|alcohol|gift|wallet|credit|lucky|draw|temples)\b/i;
     const text = ['V5AskThai.tsx', 'V5AskSwitch.tsx', 'askThai.ts'].map(read).join('\n').replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
     const literals = text.match(/'[^'\n]*'|`[^`\n]*`|>[^<>{}\n]+</g) || [];
@@ -152,7 +152,7 @@ describe('Ask a Thai copy rules', () => {
   });
 });
 
-describe('Ask a Thai server refusals', () => {
+describe('Ask BKK server refusals', () => {
   it('shows the ghost / slow-down / text messages, and the fallback for anything else', () => {
     expect(askErrText(L, { message: 'KR8_GHOST' }, 'x')).toMatch(/^This account is paused/);
     expect(askErrText(L, new Error('KR8_SLOW_DOWN'), 'x')).toBe('Slow down a little and try again soon.');

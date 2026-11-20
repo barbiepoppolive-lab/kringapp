@@ -1,5 +1,5 @@
 /**
- * 20 Nov (founder: "one language at a time"): Ask a Thai texts written by members show in the reader's app language.
+ * 20 Nov (founder: "one language at a time"): Ask BKK texts written by members show in the reader's app language.
  * The Edge Function kr8-ask-translate translates each text ONCE (cheap Gemini flash-lite, kept in kr8_ask_tr); this file asks for
  * the texts on screen in one batch and keeps the answers for the session. The original shows until a translation is ready, so
  * nothing ever waits on it. Under a translated text: "Translated · See original" (TH: "แปลแล้ว · ดูต้นฉบับ").
@@ -7,7 +7,8 @@
 import { useEffect, useState } from 'react';
 import { hasThai, mostlyEnglish } from './askThai';
 
-export type TrKind = 'q' | 'qd' | 'a';
+/** q / qd / a = Ask BKK texts; b (0183) = a member's bio (id = the member's user_id) */
+export type TrKind = 'q' | 'qd' | 'a' | 'b';
 type Entry = { text: string | null; done: boolean };
 const cache = new Map<string, Entry>();
 const subs = new Set<() => void>();
@@ -15,7 +16,7 @@ const retries = new Map<string, number>();
 let queue: { kind: TrKind; id: string; target: 'en' | 'th' }[] = [];
 let timer: ReturnType<typeof setTimeout> | null = null;
 
-/** the app language for Ask a Thai: Thai mode reads Thai; every other language reads English */
+/** the app language for Ask BKK: Thai mode reads Thai; every other language reads English */
 export function askTarget(): 'en' | 'th' {
   try { return (localStorage.getItem('kr8_lang') || 'en') === 'th' ? 'th' : 'en'; } catch { return 'en'; }
 }

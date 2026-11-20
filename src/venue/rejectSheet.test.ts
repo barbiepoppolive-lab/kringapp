@@ -1,5 +1,5 @@
 /**
- * 17 Nov: EVERY reject in admin (face checks, Reels, venues, reports / Ask a Thai, Same person? Refuse, Reel history Hide)
+ * 17 Nov: EVERY reject in admin (face checks, Reels, venues, reports / Ask BKK, Same person? Refuse, Reel history Hide)
  * opens the same reason sheet: ready chips, an editable text, and a send button that stays visible (sticky) on a 390 px phone.
  */
 import { describe, expect, it, beforeEach } from 'vitest';

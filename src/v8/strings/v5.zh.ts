@@ -487,14 +487,14 @@ const T: Record<string, string> = {
     'Ghost mode · nobody can see you': '隐身模式 · 没有人能看到你',
     'Ghost mode is on: likes, saves, follows, hellos and posts are off.': '隐身模式已开启：点赞、收藏、关注、打招呼和发帖已关闭。',
     'This account is paused. Please use your main Kring account.': '此账号已暂停，请使用你的主 Kring 账号。',
-    // Ask a Thai (16 Nov)
+    // Ask BKK (16 Nov)
     "Feed": "动态",
-    "Ask a Thai": "问问泰国人",
+    "Ask BKK": "问 BKK",
     "Block this person": "屏蔽此人",
     "Thanks · we’ll check it. You won’t see it again.": "谢谢 · 我们会核查。你不会再看到它。",
     "Ask": "提问",
     "Now": "刚刚",
-    "Thai Local": "泰国本地人",
+    "BKK Local": "曼谷本地人",
     'Translated': '已翻译',
     'See original': '查看原文',
     'See translation': '查看翻译',

@@ -6,7 +6,7 @@ import { AskThaiView } from './V5AskThai';
 const me: AskPerson = { id: 'me', name: 'Mint', photo: '/x.jpg', local: true };
 const L = (en: string) => en;
 
-describe('Ask a Thai: a name or photo opens the profile (20 Nov)', () => {
+describe('Ask BKK: a name or photo opens the profile (20 Nov)', () => {
   it('question author on the card and answer authors in the thread call onPerson; the card itself still opens the thread', async () => {
     resetAskLocal?.();
     const api = createAskApi({ live: false, demo: true, me: () => me });

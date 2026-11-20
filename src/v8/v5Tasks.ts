@@ -1,6 +1,6 @@
 /**
  * Daily tasks (0171, founder 20 Nov). Every Ring is decided on the server (kr8_task_*): the app only shows state and asks.
- *   ask (+3) answer 1 Ask a Thai · vote (+1) quick vote · watch (+1) 3 Reels to the end · open (+1) daily check-in · say = "coming soon".
+ *   ask (+3) answer 1 Ask BKK · vote (+1) quick vote · watch (+1) 3 Reels to the end · open (+1) daily check-in · say = "coming soon".
  * Only face-verified members can claim; others get KR8_TASK_FACE → the app shows "Verify your face to collect your Rings".
  */
 import { v5Client, V5Error, v5ErrCode } from './v5Live';
@@ -81,7 +81,7 @@ const EN = {
     today: 'Today', allDone: 'All done', of: '{0} of {1}', ofN: 'of {0}', ofDone: '{0} of {1} done', resets: 'Resets in {0}h {1}m', ringsToday: "Today's Rings",
     seeTomorrow: 'see you tomorrow', streak: '{0}-day streak', go: 'Go', claim: 'Claim', done: 'Done', soon: 'Coming soon',
     open: 'Open Kring', openS: 'Daily check-in', openDone: 'Checked in',
-    ask: 'Answer 1 Ask a Thai', askDone: 'Answer posted', askNone: 'Answer any question',
+    ask: 'Answer 1 Ask BKK', askDone: 'Answer posted', askNone: 'Answer any question',
     vote: 'Quick vote', voteDone: 'You picked {0}', watch: 'Watch 3 Reels', watchS: 'To the end · {0} of {1}',
     say: 'Say it in Thai', sayS: 'Voice clips are coming soon',
     tasksLeft: '{0} tasks left today', taskLeft: '1 task left today', dailyTasks: 'Daily tasks',
@@ -97,7 +97,7 @@ const TH: TaskTx = {
     today: 'วันนี้', allDone: 'ครบแล้ว', of: '{0} จาก {1}', ofN: 'จาก {0}', ofDone: 'ทำแล้ว {0} จาก {1}', resets: 'รีเซ็ตใน {0} ชม. {1} นาที', ringsToday: 'ริงวันนี้',
     seeTomorrow: 'เจอกันพรุ่งนี้', streak: 'ต่อเนื่อง {0} วัน', go: 'ไป', claim: 'รับ', done: 'เสร็จ', soon: 'เร็วๆ นี้',
     open: 'เปิดกริ๊ง!', openS: 'เช็กอินรายวัน', openDone: 'เช็กอินแล้ว',
-    ask: 'ตอบ 1 คำถาม ถามคนไทย', askDone: 'ตอบแล้ว', askNone: 'ตอบคำถามไหนก็ได้',
+    ask: 'ตอบ 1 คำถามใน ถาม BKK', askDone: 'ตอบแล้ว', askNone: 'ตอบคำถามไหนก็ได้',
     vote: 'โหวตด่วน', voteDone: 'คุณเลือก {0}', watch: 'ดูรีล 3 อัน', watchS: 'ดูจนจบ · {0} จาก {1}',
     say: 'พูดเป็นภาษาไทย', sayS: 'คลิปเสียงมาเร็วๆ นี้',
     tasksLeft: 'เหลืออีก {0} ภารกิจวันนี้', taskLeft: 'เหลืออีก 1 ภารกิจวันนี้', dailyTasks: 'ภารกิจรายวัน',

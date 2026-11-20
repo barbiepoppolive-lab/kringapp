@@ -1,5 +1,5 @@
 /**
- * Ask a Thai (founder-approved "Screen 2", 16 Nov): the plain Twitter-style timeline under Feed › Ask a Thai,
+ * Ask BKK (founder-approved "Screen 2", 16 Nov): the plain Twitter-style timeline under Feed › Ask BKK,
  * the full thread (best answer first) and the Ask sheet. Look copied from ask2/final.html screens 02–04.
  * No explainer text anywhere. Every visible word goes through L().
  */
@@ -108,8 +108,8 @@ const Media: React.FC<{ m: { url: string; gif?: boolean }; cls: string }> = ({ m
   const ok = useImgOk(m.url);
   return ok ? <div className={`${cls}${m.gif ? ' gif' : ''}`} style={{ backgroundImage: `url("${ok}")` }} /> : null;
 };
-const Badge: React.FC<{ L: LFn }> = ({ L }) => <span className="at-badge">{L('Thai Local')}</span>;
-/** 0073: the Kring Team account: "Kring Team · Official" instead of the Thai Local badge */
+const Badge: React.FC<{ L: LFn }> = ({ L }) => <span className="at-badge">{L('BKK Local')}</span>;
+/** 0073: the Kring Team account: "Kring Team · Official" instead of the BKK Local badge */
 const Official: React.FC<{ L: LFn }> = ({ L }) => <span className="at-badge at-official" data-official="1">{L('Official')}</span>;
 const who = (p: AskPerson, L: LFn) => (p.official ? <Official L={L} /> : p.local ? <Badge L={L} /> : null);
 /** 20 Nov (founder): a member's name / photo opens their profile (the Kring Team opens its official card); 44 px tap area */
@@ -158,7 +158,7 @@ const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onAnswer: () 
     <span className="rv4-scene" aria-hidden="true" style={{ backgroundImage: `url('${RV4_BASE}media/places/${pick.scene}.jpg')` }} />
     <div className="rva-who rv4-qwho">
       <PersonBtn p={q.by} className="at-pq"><Av p={q.by} s={22} /><b className="at-pnm">{q.by.name}</b></PersonBtn>
-      <span className="rva-meta">{q.by.official ? <Official L={L} /> : q.by.local ? <em>{L('Thai Local')}</em> : null} · {areaLabel(q.area)} · {askTime(L, q.at)}</span>
+      <span className="rva-meta">{q.by.official ? <Official L={L} /> : q.by.local ? <em>{L('BKK Local')}</em> : null} · {areaLabel(q.area)} · {askTime(L, q.at)}</span>
     </div>
     <button type="button" className="at-tw-open" onClick={onOpen}>
       <AskText L={L} kind="q" id={q.id} text={q.body} skip={!!q.by.official} className="at-tw-q" />
@@ -170,7 +170,7 @@ const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onAnswer: () 
           <PersonBtn p={q.top.by} className="at-pav"><Av p={q.top.by} s={40} /></PersonBtn>
           <button type="button" className="rv4-bub at-bubbtn" onClick={onOpen}>
             {q.top.body && <AskText L={L} kind="a" id={q.top.id} text={q.top.body} className="t" wrap={(t) => `“${t}”`} />}
-            <div className="h"><b>{q.top.by.name}</b>{q.top.by.official ? <><i aria-hidden="true">·</i><Official L={L} /></> : q.top.by.local ? <><i aria-hidden="true">·</i><span>{L('Thai Local')}</span></> : null}{q.top.score > 0 ? <><i aria-hidden="true">·</i><span className="rv4-up"><Ic d={IC.up} s={12} />{fmtCount(q.top.score)}</span></> : null}</div>
+            <div className="h"><b>{q.top.by.name}</b>{q.top.by.official ? <><i aria-hidden="true">·</i><Official L={L} /></> : q.top.by.local ? <><i aria-hidden="true">·</i><span>{L('BKK Local')}</span></> : null}{q.top.score > 0 ? <><i aria-hidden="true">·</i><span className="rv4-up"><Ic d={IC.up} s={12} />{fmtCount(q.top.score)}</span></> : null}</div>
           </button>
         </div>
     )}
@@ -266,7 +266,7 @@ const Thread: React.FC<{
   const canSend = !!(text.trim() || media.file);
 
   return (
-    <div className="at-page at-thread" role="dialog" aria-label={L('Ask a Thai')}>
+    <div className="at-page at-thread" role="dialog" aria-label={L('Ask BKK')}>
       <div className="at-top">
         <button type="button" className="at-iconbtn" aria-label={L('Back')} onClick={onClose}><Ic d={IC.back} /></button>
         {q && <button type="button" className="at-iconbtn at-r" aria-label={L('Share')} onClick={() => onShare(q)}><Ic d={IC.share} /></button>}
@@ -400,7 +400,7 @@ const Compose: React.FC<{
     <div className="at-page at-compose" role="dialog" aria-label={L('Ask')}>
       <div className="at-top">
         <button type="button" className="at-iconbtn" aria-label={L('Close')} onClick={onClose}><Ic d={IC.x} /></button>
-        <b className="rva-ttl">{L('Ask a Thai')}</b>
+        <b className="rva-ttl">{L('Ask BKK')}</b>
         <button type="button" className="at-post" disabled={!ok} onClick={post}>{L('Post')}</button>
       </div>
       <div className="at-scroll at-cbody">
@@ -440,7 +440,7 @@ const Compose: React.FC<{
   );
 };
 
-// ───────────────────────── the whole Ask a Thai view ─────────────────────────
+// ───────────────────────── the whole Ask BKK view ─────────────────────────
 export interface AskThaiViewProps {
   /** 20 Nov: tap a name / photo → that member's profile (or the Kring Team card) */
   onPerson?: (p: AskPerson) => void;
@@ -518,7 +518,7 @@ export const AskThaiView: React.FC<AskThaiViewProps> = (props) => {
   });
   const share = async (q: AskQuestion) => {
     const url = lineOut(withRef(typeof location !== 'undefined' ? location.origin + location.pathname : '', refCode));   // invite-1: my invite code
-    const text = `${q.body} · ${L('Ask a Thai')}`;
+    const text = `${q.body} · ${L('Ask BKK')}`;
     if (shareLink) { shareLink(url, text); return; }
     try {
       if (typeof navigator !== 'undefined' && navigator.share) { await navigator.share({ text, url }); return; }

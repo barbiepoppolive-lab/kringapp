@@ -1282,8 +1282,8 @@
 .v8-app-root .bx.rv5 .bx-tt h1 { background: none; -webkit-background-clip: initial; background-clip: initial; color: #fff; filter: drop-shadow(0 2px 10px rgba(0,0,0,.55)); }
 .v8-app-root .bx.rv5 .bx-tcr { display: none; }
 .v8-app-root .bx.rv5 .bx-sub { filter: drop-shadow(0 1px 6px rgba(0,0,0,.7)); }
-/* top 3 sit low so the skyline breathes */
-.v8-app-root .bx.rv5 .bx-pod { padding-top: 34vh; padding-top: 34svh; align-items: flex-end; }
+/* top 3 sit low so the skyline breathes (20 Nov evening, founder: a little higher — the crowns sit about a quarter of the screen down, so a quarter of sky shows above them; the header + crown take ~83px) */
+.v8-app-root .bx.rv5 .bx-pod { padding-top: max(56px, calc(25vh - 83px)); padding-top: max(56px, calc(25svh - 83px)); align-items: flex-end; }
 .v8-app-root .bx.rv5 .bx-aura, .v8-app-root .bx.rv5 .bx-pool, .v8-app-root .bx.rv5 .bx-disc { display: none !important; }
 .v8-app-root .bx.rv5 .bx-pc.p2 .bx-crown, .v8-app-root .bx.rv5 .bx-pc.p3 .bx-crown { display: none; }
 .v8-app-root .bx.rv5 .bx-pc { padding-bottom: 14px; }
@@ -1319,3 +1319,50 @@
   .v8-app-root .bx.rv5 .bx-beam { animation: rv5-breathe 6s ease-in-out infinite; }
   @keyframes rv5-breathe { 0%,100% { opacity: .9; } 50% { opacity: 1; } }
 }
+
+/* ───────── 0183 batch (20 Nov, founder): "Your Kring card" edit screen — no neon frame. Photo full-bleed on top with a soft fade
+   into the page, the name over the photo's bottom, quiet LV / member-number chips, then plain borderless fields. ───────── */
+.v8-app-root .kx-mint.kx-edit { background: #0B0A16; padding-bottom: 120px; }
+.v8-app-root .kx-cover { position: relative; height: min(58vh, 520px); height: min(58svh, 520px); background: #15122a center 30% / cover no-repeat; }
+.v8-app-root .kx-cover::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(11,10,22,.42) 0%, rgba(11,10,22,0) 22%, rgba(11,10,22,0) 48%, rgba(11,10,22,.55) 76%, #0B0A16 100%); }
+.v8-app-root .kx-cover.empty { background: radial-gradient(70% 60% at 50% 40%, #2a2350, #0B0A16); }
+.v8-app-root .kx-cover-ph { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); font: 800 5rem var(--kx-u); color: rgba(255,255,255,.22); }
+.v8-app-root .kx-cover-top { position: absolute; z-index: 2; left: 0; right: 0; top: 0; display: flex; align-items: center; justify-content: space-between;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 14px 0; }
+.v8-app-root .kx-cover-top h1 { margin: 0; font: 700 0.9375rem var(--kx-j); color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.55); }
+.v8-app-root .kx-gl { position: relative; width: 42px; height: 42px; border-radius: 50%; border: 0; display: grid; place-items: center; color: #fff; cursor: pointer;
+  font-size: 1rem; background: rgba(20,16,30,.32); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.v8-app-root .kx-gl input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.v8-app-root .kx-cover-b { position: absolute; z-index: 2; left: 22px; right: 22px; bottom: 14px; }
+.v8-app-root .kx-cover-nm { font: 800 2rem/1.1 var(--kx-u); letter-spacing: -.02em; color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,.45); overflow-wrap: anywhere; }
+.v8-app-root .kx-cover-chips { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.v8-app-root .kx-cover-chips span { padding: 4px 10px; border-radius: 999px; font: 600 0.6875rem var(--kx-m); letter-spacing: .06em; color: rgba(255,255,255,.78);
+  background: rgba(255,255,255,.1); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.v8-app-root .kx-cover-chips span.thai { font-family: var(--kx-j); letter-spacing: 0; }
+.v8-app-root .kx-edit .kx-photo-need { margin: 12px 22px 0; }
+.v8-app-root .kx-eform { padding: 8px 22px 0; display: flex; flex-direction: column; }
+.v8-app-root .kx-ef { display: block; position: relative; padding: 14px 0 12px; border: 0; border-bottom: 1px solid rgba(255,255,255,.08); background: none; color: #fff; text-align: left; width: 100%; font: inherit; }
+.v8-app-root .kx-ef > small { display: flex; justify-content: space-between; font: 600 0.75rem var(--kx-j); color: rgba(255,255,255,.5); margin-bottom: 4px; }
+.v8-app-root .kx-ef > small i { font-style: normal; font-variant-numeric: tabular-nums; color: rgba(255,255,255,.35); }
+.v8-app-root .kx-ef input, .v8-app-root .kx-ef select { width: 100%; background: none; border: 0; outline: 0; padding: 2px 0; color: #fff; font: 600 1.0625rem var(--kx-j); caret-color: #FF4FD8; -webkit-appearance: none; appearance: none; }
+.v8-app-root .kx-ef select option { color: #111; }
+.v8-app-root .kx-ef input::placeholder { color: rgba(255,255,255,.3); font-weight: 500; }
+.v8-app-root .kx-ef:focus-within { border-bottom-color: rgba(255,79,216,.55); }
+.v8-app-root .kx-ef.bad { border-bottom-color: rgba(255,120,160,.7); }
+.v8-app-root .kx-ef-err { margin: 6px 0 0; }
+.v8-app-root .kx-ef-row { cursor: pointer; padding-right: 22px; }
+.v8-app-root .kx-ef-row .v { display: flex; align-items: center; gap: 9px; min-height: 26px; font: 600 1rem var(--kx-j); }
+.v8-app-root .kx-ef-row .v em { font-style: normal; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v8-app-root .kx-ef-row .v em.ph { color: rgba(255,255,255,.4); font-weight: 500; }
+.v8-app-root .kx-ef-row .v .kx-ig, .v8-app-root .kx-ef-row .v .kx-tt { border-radius: 6px; flex: none; }
+.v8-app-root .kx-ef-row > b { position: absolute; right: 2px; top: 50%; transform: translateY(-20%); color: rgba(255,255,255,.4); font-weight: 400; font-size: 1.2rem; }
+.v8-app-root .kx-ef-row .v.tags { flex-wrap: wrap; gap: 6px; }
+.v8-app-root .kx-ef-row .v.tags i { font-style: normal; font: 600 0.8125rem var(--kx-j); padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.08); }
+.v8-app-root .kx-ef-chips { margin-top: 6px; }
+.v8-app-root .kx-ef-plain .kx-lab { margin-top: 0; font: 600 0.75rem var(--kx-j); color: rgba(255,255,255,.5); }
+.v8-app-root .kx-ef-plain .kx-gender { display: flex; flex-direction: column; gap: 8px; }
+.v8-app-root .kx-ef-plain .kx-lr { background: none; box-shadow: none; height: auto; padding: 0; border-radius: 0; }
+.v8-app-root .kx-ef-sw { margin: 10px 0 2px; }
+.v8-app-root .kx-edit .kx-cta { background: linear-gradient(180deg, rgba(11,10,22,0), #0B0A16 45%); }
+.v8-app-root #sh-interests { z-index: 96; }

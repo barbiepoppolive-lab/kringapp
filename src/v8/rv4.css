@@ -1,6 +1,6 @@
 /* ==========================================================================
    Revamp 4 (20 Nov) — the founder's ticked picks from the revamp picker:
-   Feed A · People A · member Profile B · Deals A · Ask a Thai A (more vibrant) · Chats A · prize Claim C.
+   Feed A · People A · member Profile B · Deals A · Ask BKK A (more vibrant) · Chats A · prize Claim C.
    Built on the rv2 foundation tokens (--rv-*). Visual only; Me and the weekly ranking are not touched here.
    ========================================================================== */
 
@@ -15,7 +15,7 @@
 .v8-app-root .dock button.active[data-tab="deals"] .dk-ic path:last-child { fill: #fff !important; }
 
 /* ---------- 1. Feed A — clean minimal ---------- */
-/* top: "☀ 34°" plain on the left, Reels · Ask a Thai centred with a white underline, a plain chat icon on the right */
+/* top: "☀ 34°" plain on the left, Reels · Ask BKK centred with a white underline, a plain chat icon on the right */
 .v8-app-root #s-feed .spill.kp-wx { left: 16px !important; right: auto !important; top: calc(env(safe-area-inset-top, 0px) + 14px) !important; height: 30px !important; padding: 0 !important;
   background: none !important; border: 0 !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
   font: 600 0.9375rem var(--rv-f) !important; color: #fff !important; text-shadow: 0 1px 6px rgba(0,0,0,.5); }
@@ -140,7 +140,7 @@
 .v8-app-root #forYourTrip .ktrip-sub { font: 500 0.75rem/1.3 var(--rv-f) !important; color: rgba(255,255,255,.8) !important; margin-top: 2px; }
 .v8-app-root #forYourTrip .ktrip-disc { font: 500 0.75rem/1.45 var(--rv-f) !important; color: var(--rv-mu) !important; }
 
-/* ---------- 5. Ask a Thai A — "Bangkok notes", more vibrant ---------- */
+/* ---------- 5. Ask BKK A — "Bangkok notes", more vibrant ---------- */
 .v8-app-root .rv4-q { position: relative; isolation: isolate; overflow: hidden; padding: 22px 20px 16px !important; border-bottom: 0 !important; }
 .v8-app-root .rv4-q + .rv4-q { margin-top: 2px; }
 /* a real Bangkok street photo behind every question, tinted pink / blue / gold / teal card to card */
@@ -286,3 +286,16 @@
 .v8-app-root #s-me .rv4-mhd .rv4-pav { background-size: cover !important; background-position: center 30% !important; background-repeat: no-repeat !important; }
 /* 20 Nov: a prize seat under the Rings floor reads greyed with "25 Rings to unlock" */
 .v8-app-root .rv4-mline.locked .rv4-mw b, .v8-app-root .kx-hook.locked b { color: rgba(255,255,255,.5); }
+
+/* 0183 (20 Nov): the bio sits right under the name (Me + profiles); "Translated · See original" is a quiet text toggle */
+.v8-app-root .rv4-phd .rv4-pbio { margin: 6px 0 0; }
+.v8-app-root .rv4-biow { margin: 0; }
+.v8-app-root .rv4-biow .at-tr { display: inline-block; margin: 2px 0 0; padding: 0; min-height: 28px; border: 0; background: none; cursor: pointer;
+  font: 500 0.75rem/1.3 var(--rv-f, system-ui); color: rgba(255, 255, 255, .55); text-decoration: underline; text-decoration-color: rgba(255, 255, 255, .25); text-underline-offset: 2px; }
+.v8-app-root .rv4-phd .rv4-pbio + .rv4-psub, .v8-app-root .rv4-biow + .rv4-psub { margin-top: 4px; }
+.v8-app-root .rv4-addbio { display: inline-block; margin: 6px 0 0; padding: 4px 0; min-height: 32px; border: 0; background: none; cursor: pointer;
+  font: 500 0.875rem/1.3 var(--rv-f, system-ui); color: rgba(255, 255, 255, .5); }
+/* 20 Nov (founder): the first time only, the round sound button is a small glass pill "Tap for sound 🔊"; after the member's
+   first tap anywhere the sound is on and it is the round button again */
+.v8-app-root #s-feed .reel-sound.has-hint.has-hint { width: auto !important; height: 32px !important; padding: 0 12px !important; border-radius: 16px !important; display: flex !important; align-items: center; }
+.v8-app-root #s-feed .reel-sound.has-hint .reel-sound-hint { display: inline !important; font: 600 0.75rem/1 var(--rv-f, system-ui); color: #fff; text-shadow: none; }

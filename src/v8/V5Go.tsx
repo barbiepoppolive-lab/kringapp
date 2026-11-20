@@ -7,7 +7,7 @@
  *  · GoCoach        one-time coach marks (kept on the account, see goCoach.ts)
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ReelCamera } from './V5Camera';
+import { ReelCamera, type CamAccess } from './V5Camera';
 import { rememberSound, soundHintWanted, soundWanted, SOUND_PREF_EVENT } from './reelSound';
 import './go.css';
 import { fmtN, isNotYetNote, reviewNoteText } from './kxLogic';
@@ -19,6 +19,7 @@ import { rvArea, rvLangs } from './rvLabels';
 import { rvHeroIn } from './rvMotion';
 import { RingGlyph, SocialPills } from './V5KxCard';
 import { GenderChip } from './V5Gender';
+import { AskText } from './askTr';
 import { FriendVerifyNote, fvMarkShown, fvShownToday } from './V5Unverified';
 import type { V5Profile } from './v5Live';
 import type { PickedPlace } from './V5KxPlaces';
@@ -120,7 +121,12 @@ function GoVideo(props: { src?: string; poster?: string; active: boolean; label:
   const [muted, setMuted] = useState(() => !soundWanted());
   const [hint, setHint] = useState(soundHintWanted);
   useEffect(() => {
-    const off = () => setHint(soundHintWanted());
+    // 20 Nov: sound turned on (first tap anywhere) → the Reel playing now unmutes too
+    const off = () => {
+      setHint(soundHintWanted());
+      const v = ref.current;
+      if (v && !v.paused && v.muted === soundWanted()) { v.muted = !soundWanted(); setMuted(v.muted); }
+    };
     window.addEventListener(SOUND_PREF_EVENT, off);
     return () => window.removeEventListener(SOUND_PREF_EVENT, off);
   }, []);
@@ -138,7 +144,7 @@ function GoVideo(props: { src?: string; poster?: string; active: boolean; label:
       onClick={(e) => { if ((e.target as HTMLElement).closest('button,a')) return; const v = ref.current; if (v) { v.muted = !v.muted; setMuted(v.muted); rememberSound(!v.muted); } }}>
       {props.poster ? <img className="go-vposter" src={props.poster} alt="" /> : null}
       {props.src ? <video ref={ref} src={props.active ? props.src : undefined} poster={props.poster} muted loop playsInline preload="metadata" aria-label={props.label} /> : null}
-      {props.active && props.src ? <span className={`go-snd${muted && hint && props.hint ? ' has-hint' : ''}`} aria-hidden="true">{muted ? '🔇' : '🔊'}{muted && hint && props.hint ? <b>{props.hint}</b> : null}</span> : null}
+      {props.active && props.src ? <span className={`go-snd${muted && hint && props.hint ? ' has-hint' : ''}`} aria-hidden="true">{muted && hint && props.hint ? <b>{props.hint}</b> : muted ? '🔇' : '🔊'}</span> : null}
     </div>
   );
 }
@@ -223,7 +229,7 @@ export function GoReelPlayer(props: {
           const pending = r.status === 'pending' || r.status === 'hidden';
           return (
             <section className="go-reel" key={r.id} data-reel-id={r.id} data-active={i === idx ? '1' : undefined}>
-              <GoVideo src={Math.abs(i - idx) <= 1 ? urls[r.video_path] : undefined} poster={urls[r.poster_path]} active={i === idx} label={a?.name || 'Reel'} hint={L('Tap for sound')} />
+              <GoVideo src={Math.abs(i - idx) <= 1 ? urls[r.video_path] : undefined} poster={urls[r.poster_path]} active={i === idx} label={a?.name || 'Reel'} hint={L('Tap for sound 🔊')} />
               <div className="go-grad" />
               <div className="go-rail">
                 <button type="button" className={`go-rb like${r.liked ? ' act' : ''}${pop === `l${r.id}` ? ' pop' : ''}`} data-go="like" aria-label={L('Like')} aria-pressed={!!r.liked} disabled={pending} onClick={() => void like(r)}>
@@ -376,7 +382,7 @@ export function GoMeReels(props: {
 // ───────────── member profile ─────────────
 /** rv4 Profile B: the head of a member's profile. Round photo (thin gold ring) + the stats row beside it, then name ✓,
  *  area · languages, short bio and up to 3 interest tags with a gold hairline. Real data only: no bio / no interests → no line. */
-function ProfileHead(props: { L: Tx; p: V5Profile; stats: React.ReactNode; extra?: React.ReactNode }) {
+function ProfileHead(props: { L: Tx; p: V5Profile; stats: React.ReactNode; extra?: React.ReactNode; note?: React.ReactNode }) {
   const { L, p } = props;
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => { rvHeroIn(ref.current); }, []);
@@ -391,9 +397,11 @@ function ProfileHead(props: { L: Tx; p: V5Profile; stats: React.ReactNode; extra
         </div>
         {props.stats}
       </div>
+      {props.note}
       <h2 className="rv4-pnm">{p.first_name}{p.verified ? <RvCheck L={L} /> : null}</h2>
+      {/* 0183: the bio sits right under the name, in the reader's language ("Translated · See original") */}
+      {p.bio ? <div className="rv4-biow" id="profileBio"><AskText L={L} kind="b" id={p.user_id} text={p.bio} skip={p.mine} as="p" className="rv4-pbio" toggle /></div> : null}
       <p className="rv4-psub">{[where, langs].filter(Boolean).join(' · ')}</p>
-      {p.bio ? <p className="rv4-pbio">{p.bio}</p> : null}
       {tags.length ? <div className="rv4-ptags">{tags.map((k) => <span key={k}>{L(INTEREST[k][1])}</span>)}</div> : null}
       {props.extra}
     </section>
@@ -406,9 +414,16 @@ export function GoProfilePage(props: {
   onList: (k: 'followers' | 'following') => void; onOpen: (i: number) => void; onMath: () => void; gender?: string | null;
   /** founder 18 Nov: my own profile's ⋯ menu has "Show my QR" (the QR card was lost from the Me tab) */
   onQr?: () => void;
+  /** 0184: the admin (View as member) still opens private lists */
+  adminSees?: boolean;
 }) {
   const { L, p } = props;
   const [menu, setMenu] = useState(false);
+  // 0184: "Only me" lists: the counts stay, a tap shows a small glass note instead of the list (the server refuses it too)
+  const locked = !!p.lists_private && !p.mine && !props.adminSees;
+  const [privNote, setPrivNote] = useState(false);
+  useEffect(() => { if (!privNote) return undefined; const t = setTimeout(() => setPrivNote(false), 3200); return () => clearTimeout(t); }, [privNote]);
+  const openList = (k: 'followers' | 'following') => (locked ? setPrivNote(true) : props.onList(k));
   const list = props.reels?.reels || [];
   const handle = props.kx?.ig_handle || p.ig_handle;
   return (
@@ -431,10 +446,10 @@ export function GoProfilePage(props: {
       <ProfileHead L={L} p={p} stats={
         <div className="rv4-pst" id="profileStats">
           <div><b>{fmtN(list.length || p.reels.length)}</b><span>{L('Reels')}</span></div>
-          <button type="button" onClick={() => props.onList('followers')}><b id="profileFollowers">{fmtN(p.followers)}</b><span>{L('Followers')}</span></button>
-          <button type="button" onClick={() => props.onList('following')}><b id="profileFollowing">{fmtN(p.following)}</b><span>{L('Following')}</span></button>
+          <button type="button" data-locked={locked ? '1' : undefined} onClick={() => openList('followers')}><b id="profileFollowers">{fmtN(p.followers)}</b><span>{L('Followers')}</span></button>
+          <button type="button" data-locked={locked ? '1' : undefined} onClick={() => openList('following')}><b id="profileFollowing">{fmtN(p.following)}</b><span>{L('Following')}</span></button>
         </div>
-      } extra={(props.gender || handle || props.kx?.tiktok_handle) ? (
+      } note={privNote ? <p className="rv4-lpriv" id="profileListPrivate" role="status"><span aria-hidden="true">🔒</span>{L('This member keeps their list private')}</p> : null} extra={(props.gender || handle || props.kx?.tiktok_handle) ? (
           <div className="rv-idx">
             {props.gender ? <span className="go-pg" id="profileGender"><GenderChip L={L} gender={props.gender} /></span> : null}
             {handle || props.kx?.tiktok_handle ? <SocialPills ig={handle} tt={props.kx?.tiktok_handle ?? null} compact /> : null}
@@ -500,10 +515,11 @@ export function GoCompose(props: {
   caption: string; onCaption: (s: string) => void; places: PickedPlace[]; onAddPlace: () => void; onRemovePlace: (id: string) => void;
   people: KxTagPerson[]; onPeople: (list: KxTagPerson[]) => void; onPick: (f: File | undefined) => void; onPost: () => void; onClose: () => void;
   loadPeople?: (q: string) => Promise<KxTagPerson[]>;
+  /** tests only: what the browser says about the camera */
+  camAccess?: () => Promise<CamAccess>;
 }) {
   const { L, reel } = props;
   const [picker, setPicker] = useState(false);
-  const [cam, setCam] = useState(false);
   const [need, setNeed] = useState(false);
   const hl = useRef<HTMLDivElement>(null);
   const busy = ['preparing', 'uploading', 'saving'].includes(props.stage);
@@ -520,24 +536,14 @@ export function GoCompose(props: {
       onChange={(e) => { props.onPick(e.target.files?.[0]); e.target.value = ''; }} />
   );
   if (!reel) {
-    // 20 Nov (founder): two big glass tiles, "Film now" (in-app camera) and "Pick from gallery", plus one short tip
-    const gallery = () => (document.getElementById('reelFile') as HTMLInputElement | null)?.click();
+    // 20 Nov (founder, camera-first): Post opens straight into the in-app camera (full screen, record, flip, gallery bottom-left).
+    // No camera permission yet / no camera: one compact glass screen inside the same view ("Allow camera to film" + "Pick from gallery").
+    const gallery = (cls: string, label: React.ReactNode, id: string) => (
+      <label className={cls} id={id} aria-label={L('Pick from gallery')}>{label}{file}</label>
+    );
     return (
       <div className="go-page go-compose" id="goCompose" data-step="pick">
-        <div className="go-hdr"><button type="button" className="go-bk" id="goComposeClose" aria-label={L('Close')} onClick={props.onClose}><IcClose /></button><h1>{L('New Reel')}</h1><span className="go-steps"><i className="on" /><i /></span></div>
-        <div className="go-pick2">
-          <button type="button" className="go-tile film" id="goFilmNow" onClick={() => setCam(true)}>
-            <span className="ti"><svg viewBox="0 0 24 24"><rect x="3" y="6.5" width="13" height="11" rx="2.6" /><path d="m16 10.5 5-3v9l-5-3" /></svg></span>
-            <b>{L('Film now')}</b><small>{L('Vertical · 5–60 seconds · front or back camera')}</small>
-          </button>
-          <label className="go-tile" id="addReelPicker">
-            <span className="ti"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="3" /><circle cx="9" cy="10" r="1.8" /><path d="m4 17 5-5 4 4 2.5-2.5L20 17" /></svg></span>
-            <b>{L('Pick from gallery')}</b><small>{L('A clip you already posted on TikTok or IG is fine')}</small>{file}
-          </label>
-        </div>
-        <p className="go-tip"><span aria-hidden="true">💡</span>{L('Film yourself at a real place in Bangkok. Your face in the clip puts it on the ranking.')}</p>
-        {props.problem ? <div className="go-problem" id="reelProblem" role="alert">{props.problem}</div> : null}
-        {cam ? <ReelCamera L={L} onClose={() => setCam(false)} onGallery={() => { setCam(false); setTimeout(gallery, 60); }} onDone={(f) => { setCam(false); props.onPick(f); }} /> : null}
+        <ReelCamera L={L} problem={props.problem} gallery={gallery} access={props.camAccess} onClose={props.onClose} onDone={(f) => props.onPick(f)} />
       </div>
     );
   }

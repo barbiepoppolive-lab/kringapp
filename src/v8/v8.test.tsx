@@ -256,7 +256,7 @@ describe('Kring 6 Nov 2026 Locked Build (v8)', () => {
     expect(document.getElementById('sh-signin')).toBeTruthy();
     fireEvent.click(document.querySelector('#sh-signin .xbtn') as HTMLElement);
     fireEvent.click(screen.getByLabelText('Create post'));
-    expect(document.querySelectorAll('#sh-choose button.choice').length).toBe(1);   // 15 Nov: "Ask a Thai" removed
+    expect(document.querySelectorAll('#sh-choose button.choice').length).toBe(1);   // 15 Nov: "Ask BKK" removed
   });
 
   it('Deals placeholder shows no percentages or quiet-hours wording (9 Nov rule check)', () => {

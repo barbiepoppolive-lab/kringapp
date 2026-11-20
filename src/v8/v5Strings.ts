@@ -522,14 +522,14 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Ghost mode · nobody can see you': 'โหมดล่องหน · ไม่มีใครเห็นคุณ',
     'Ghost mode is on: likes, saves, follows, hellos and posts are off.': 'โหมดล่องหนเปิดอยู่: กดถูกใจ บันทึก ติดตาม ทักทาย และโพสต์ถูกปิดไว้',
     'This account is paused. Please use your main Kring account.': 'บัญชีนี้ถูกพักไว้ กรุณาใช้บัญชีกริ๊ง!หลักของคุณครับ',
-    // Ask a Thai (16 Nov)
+    // Ask BKK (16 Nov)
     'Feed': 'ฟีด',
-    'Ask a Thai': 'ถามคนไทย',
+    'Ask BKK': 'ถาม BKK',
     'Block this person': 'บล็อกคนนี้',
     'Thanks · we’ll check it. You won’t see it again.': 'ขอบคุณ · เราจะตรวจสอบ คุณจะไม่เห็นโพสต์นี้อีก',
     'Ask': 'ถาม',
     'Now': 'เมื่อกี้',
-    'Thai Local': 'คนท้องถิ่น',
+    'BKK Local': 'คนกรุงเทพฯ',
     'Translated': 'แปลแล้ว',
     'See original': 'ดูต้นฉบับ',
     'See translation': 'ดูคำแปล',
@@ -820,6 +820,7 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
     case 'AGE_CONFIRM': return ['Please confirm you are 18 or older.'];
     case 'BAD_NAME': return ['Add your first name.'];
     case 'BAD_LANGS': return ['Pick at least one language.'];
+    case 'LIST_PRIVATE': return ['This member keeps their list private'];
     case 'BAD_BIO': case 'BAD_TEXT': return ['Keep it short, with no phone numbers, links or LINE IDs.'];
     case 'BAD_PHOTO': return ['That photo didn’t work. Try another one.'];
     case 'THEY_SAID_HI': return ['{0} already said hi to you. Reply in Messages.', name];
@@ -870,6 +871,27 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
  */
 export const KX_L: Record<string, Record<string, string>> = {
   th: {
+    // 0183 (20 Nov): profile bio + card editor + camera-first posting
+    '+ Add a short bio': '+ เพิ่มแนะนำตัวสั้น ๆ',
+    'Bio': 'แนะนำตัว',
+    'One short line about you': 'แนะนำตัวสั้น ๆ หนึ่งบรรทัด',
+    'Keep it to 80 characters': 'ไม่เกิน 80 ตัวอักษร',
+    'No phone numbers in your bio': 'ใส่เบอร์โทรในแนะนำตัวไม่ได้',
+    'No links in your bio': 'ใส่ลิงก์ในแนะนำตัวไม่ได้',
+    'No LINE IDs or @usernames in your bio': 'ใส่ไอดีไลน์หรือ @ชื่อผู้ใช้ในแนะนำตัวไม่ได้',
+    'Add interests': 'เพิ่มความสนใจ',
+    'Edit': 'แก้ไข',
+    'Allow camera to film': 'อนุญาตกล้องเพื่อถ่ายคลิป',
+    'Film your Reel right here. Kring only uses the camera while this screen is open.': 'ถ่ายรีลได้ที่นี่เลย กริ๊ง! ใช้กล้องเฉพาะตอนเปิดหน้านี้เท่านั้น',
+    'Camera is off for kringapp.com. Turn it on in your browser settings, or pick a clip.': 'กล้องของ kringapp.com ถูกปิดอยู่ เปิดได้ในการตั้งค่าเบราว์เซอร์ หรือเลือกคลิปแทน',
+    'Tap for sound 🔊': 'แตะเพื่อเปิดเสียง 🔊',
+    // 0184: followers / following privacy
+    'Who can see my followers & following': 'ใครเห็นผู้ติดตามและกำลังติดตามของฉันได้',
+    'Only me': 'เฉพาะฉัน',
+    'The numbers stay on your profile. Only you see who is in the lists.': 'ตัวเลขยังโชว์บนโปรไฟล์ แต่มีแค่คุณที่เห็นรายชื่อ',
+    'This member keeps their list private': 'สมาชิกคนนี้ตั้งรายชื่อเป็นส่วนตัว',
+    'Keep it short, with no phone numbers, links or LINE IDs.': 'แนะนำตัวสั้น ๆ และห้ามใส่เบอร์โทร ลิงก์ หรือไอดีไลน์',
+    'Interests': 'ความสนใจ',
     // rv4 (20 Nov) Claim C
     'Reel approved': 'รีลผ่านแล้ว',
     'Face check': 'ยืนยันใบหน้า',
@@ -1029,7 +1051,7 @@ export const KX_L: Record<string, Record<string, string>> = {
     'New': 'ใหม่',
     // LOCKED rules 15 Nov: Rings = the weekly score; prizes in baht; share links; Founding Local; saved Reels
     'How Rings work': 'ริงคิดยังไง',
-    'Bangkok’s best Reels, chosen by the people who love the city. A like is 1 Ring. A save is 3. Each person who opens your Reel from Instagram or TikTok is 5. When a visitor to Bangkok likes or saves your Reel, it counts double, because you showed someone the real city. Only your best Reel of the week counts. Tap any score to see how it adds up.': 'รีลกรุงเทพฯ ที่ดีที่สุด คนที่รักเมืองนี้เป็นคนเลือก ไลก์ = 1 ริง เซฟ = 3 ริง ทุกคนที่กดเปิดรีลของคุณจาก Instagram หรือ TikTok = 5 ริง ถ้าคนที่มาเที่ยวกรุงเทพฯ ไลก์หรือเซฟรีลของคุณ นับเป็นสองเท่า เพราะคุณพาเขาไปเห็นกรุงเทพฯ ของจริง นับเฉพาะรีลที่ได้ริงมากที่สุดของคุณ 1 รีลในสัปดาห์นั้น แตะที่คะแนนไหนก็ได้ ดูได้เลยว่าคิดยังไง',
+    'Bangkok’s best Reels, chosen by the people who love the city. A like is 1 Ring. A save is 3. Each person who opens your Reel from Instagram, TikTok, Facebook or another app is 5. When a visitor to Bangkok likes or saves your Reel, it counts double, because you showed someone the real city. Only your best Reel of the week counts. Tap any score to see how it adds up.': 'รีลกรุงเทพฯ ที่ดีที่สุด คนที่รักเมืองนี้เป็นคนเลือก ไลก์ = 1 ริง เซฟ = 3 ริง ทุกคนที่กดเปิดรีลของคุณจาก Instagram, TikTok, Facebook หรือแอปอื่น = 5 ริง ถ้าคนที่มาเที่ยวกรุงเทพฯ ไลก์หรือเซฟรีลของคุณ นับเป็นสองเท่า เพราะคุณพาเขาไปเห็นกรุงเทพฯ ของจริง นับเฉพาะรีลที่ได้ริงมากที่สุดของคุณ 1 รีลในสัปดาห์นั้น แตะที่คะแนนไหนก็ได้ ดูได้เลยว่าคิดยังไง',
     'Got it': 'เข้าใจแล้ว',
     '1 Ring': '1 ริง',
     '{0} Rings': '{0} ริง',
@@ -1254,7 +1276,7 @@ export const KX_L: Record<string, Record<string, string>> = {
     'the poster': 'เจ้าของคลิป',
     'Post your first Reel here': 'โพสต์รีลแรกตรงนี้',
     'Tap to see where your Rings came from': 'แตะดูว่าริงมาจากไหน',
-    'Share to IG or TikTok. Each person who opens the link = +5 Rings.': 'แชร์ลง IG/TikTok มีคนเปิดลิงก์ = +5 ริง',
+    'Share to IG, TikTok or Facebook. Each person who opens the link = +5 Rings.': 'แชร์ลง IG, TikTok หรือ Facebook มีคนเปิดลิงก์ = +5 ริง',
     'People': 'ผู้คน',
     'Make new friends in Bangkok. Tap a card to see their Reels.': 'หาเพื่อนใหม่ในกรุงเทพฯ แตะการ์ดเพื่อดูรีลของเขา',
     'Everyone': 'ทุกคน',

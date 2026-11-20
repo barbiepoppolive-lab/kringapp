@@ -17,6 +17,7 @@ import { v5ErrText } from './v5Strings';
 import { CardConsentText } from './V5Sheets';
 import { TravellerPage, TravellerRow } from './V5Traveller';
 import { whoToSave, type TravellerState } from './travellerLogic';
+import { BIO_MAX, BIO_MSG, bioProblem } from './bioRules';
 
 type Tx = (en: string) => string;
 type Txf = (en: string, a: string, b?: string) => string;
@@ -177,6 +178,12 @@ export function V5MintSheet(props: {
   openTraveller?: boolean;
   /** 0138: tests / harness only — replaces the server read of the traveller state */
   loadTraveller?: () => Promise<TravellerState | null>;
+  /** 0183 batch: interests on the edit screen (chips + "Edit" opens the interests sheet on top) */
+  interests?: string[];
+  interestLabel?: (k: string) => string;
+  onInterests?: () => void;
+  /** the member's level (LV chip on the edit screen) */
+  level?: number;
 }) {
   const { L, Lf, card } = props;
   const isNew = !card;
@@ -184,6 +191,8 @@ export function V5MintSheet(props: {
   const [name, setName] = useState(card?.first_name || '');
   const [langs, setLangs] = useState<string[]>(card?.langs?.length ? card.langs : [defaultLang]);
   const [bio, setBio] = useState(card?.bio || '');
+  const [bioErr, setBioErr] = useState('');
+  const onBio = (v: string) => { setBio(v); if (bioErr) { const bp = bioProblem(v); setBioErr(bp ? L(BIO_MSG[bp]) : ''); } };
   // 0090: while "show on my card" is off the handles live in *_hidden; the owner still sees and edits them
   const [ig, setIg] = useState<string | null>(card?.ig_handle || card?.ig_handle_hidden || null);
   const [tt, setTt] = useState<string | null>(card?.tiktok_handle || card?.tiktok_handle_hidden || null);
@@ -274,6 +283,8 @@ export function V5MintSheet(props: {
     if (checking) return;
     if ((isNew || props.photoFix) && !photo) { setPhotoMsg(photoMsg || 'Add a photo where your face is clearly visible.'); return setNotice(''); }
     if (!name.trim()) return setNotice(L('Add your first name.'));
+    // 0183: no phone numbers, links or LINE IDs in the bio (the server checks the same)
+    { const bp = bioProblem(bio); if (bp) { setMore(true); setBioErr(L(BIO_MSG[bp])); setTimeout(() => document.getElementById('v5Bio')?.focus(), 30); return setNotice(''); } }
     if (!langs.length) return setNotice(L('Pick at least one language.'));
     // makecard-1: one tick on a new card covers both (18+ and Terms); both are still sent / recorded separately below
     if (isNew && (!ageOk || !termsOk)) return setNotice(L('Please confirm you’re 18+ and agree to the Terms.'));
@@ -318,6 +329,7 @@ export function V5MintSheet(props: {
     } catch (e) {
       // 20 Nov: the server refuses a photo that was never face-checked (or failed): ask for a new one, not a dead end
       if (v5ErrCode(e) === 'PHOTO_FACE') { setPhoto(''); setPhotoVerdict(null); setPhotoMsg(PHOTO_FACE_MSG); setNotice(''); }
+      else if (v5ErrCode(e) === 'BAD_BIO') { setMore(true); setBioErr(L('Keep it short, with no phone numbers, links or LINE IDs.')); setNotice(''); }
       else setNotice(errText(e));
     } finally {
       busyRef.current = false;
@@ -347,6 +359,102 @@ export function V5MintSheet(props: {
   }
 
   const lv = 1;
+  const card0 = card;   // the new-card screen below still reads it (TS narrows `card` after the edit branch)
+  if (!isNew) {
+    // 0183 batch (founder): "Your Kring card" edit screen. No neon frame: the photo full-bleed on top (soft fade into the page),
+    // the name over the photo's bottom with quiet LV / member-number chips, then plain borderless fields.
+    const lvN = props.level ?? lv;
+    const tags = (props.interests || []).slice(0, 8);
+    const err = (m: string) => <p className="kx-err">{m}</p>;
+    return (
+      <div className="kx-page kx-mint kx-edit" id="sh-v5card" data-v5="card">
+        <div className={`kx-cover${shownPhoto ? '' : ' empty'}`} id="kxCover" style={shownPhoto ? { backgroundImage: `url('${shownPhoto}')` } : undefined}>
+          {!shownPhoto ? <span className="kx-cover-ph" aria-hidden="true">{(name || '?').trim().charAt(0).toUpperCase() || '?'}</span> : null}
+          <div className="kx-cover-top">
+            <button type="button" className="kx-gl" aria-label={L('Close')} onClick={closeNew}>✕</button>
+            <h1>{L('Your Kring card')}</h1>
+            <label className="kx-gl" aria-label={shownPhoto ? L('Change photo') : L('Add photo')}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></svg>
+              <input type="file" accept="image/*" id="v5Photo" onChange={(e) => { void pick(e.target.files?.[0]); e.currentTarget.value = ''; }} />
+            </label>
+          </div>
+          <div className="kx-cover-b">
+            <div className="kx-cover-nm">{name.trim() || L('Your first name')}</div>
+            <div className="kx-cover-chips"><span className={TH_RE.test(levelLabel(L, lvN)) ? 'thai' : ''}>⚡ {levelLabel(L, lvN)}</span>{card?.member_no ? <span>{memberNo(card.member_no)}</span> : null}</div>
+          </div>
+        </div>
+        {(checking || photoMsg) ? (
+          <div className="kx-photo-need" id="kxPhotoNeed" role="status" aria-live="polite">
+            <p>{checking ? L('Checking photo…') : L(photoMsg)}</p>
+            {!checking ? (
+              <div className="kx-photo-btns">
+                <label className="kx-btn" id="kxPhotoSelfie">{L('Take a selfie now')}<input type="file" accept="image/*" capture="user" onChange={(e) => { void pick(e.target.files?.[0]); e.currentTarget.value = ''; }} /></label>
+                <label className="kx-btn ghost" id="kxPhotoGallery">{L('Choose another photo')}<input type="file" accept="image/*" onChange={(e) => { void pick(e.target.files?.[0]); e.currentTarget.value = ''; }} /></label>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+        {!checking && !photoMsg && photoNote ? <p className="kx-photo-line" id="kxPhotoReview" role="status" aria-live="polite">{L(photoNote)}</p> : null}
+        <div className="kx-eform">
+          <label className="kx-ef">
+            <small>{L('First name')}</small>
+            <input id="v5Name" maxLength={30} autoComplete="given-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={L('Your first name')} aria-label={L('First name')} />
+          </label>
+          <label className={`kx-ef${bioErr ? ' bad' : ''}`}>
+            <small>{L('Bio')}<i>{bio.trim().length}/{BIO_MAX}</i></small>
+            <input id="v5Bio" maxLength={BIO_MAX} value={bio} onChange={(e) => onBio(e.target.value)} placeholder={L('One short line about you')} aria-label={L('Bio')} aria-invalid={!!bioErr} />
+          </label>
+          {bioErr ? <p className="kx-err kx-ef-err" id="v5BioErr" role="alert">{bioErr}</p> : null}
+          {(['ig', 'tt'] as Social[]).map((k) => {
+            const h = k === 'ig' ? ig : tt;
+            return (
+              <button type="button" key={k} className={`kx-ef kx-ef-row${h ? ' on' : ''}`} id={k === 'ig' ? 'kxIgRow' : 'kxTtRow'} onClick={() => setLink(k)}>
+                <small>{k === 'ig' ? 'Instagram' : 'TikTok'}</small>
+                <span className="v"><SocialIcon kind={k} size={20} />{h ? <em>@{h}</em> : <em className="ph">{L('Link')}</em>}</span><b aria-hidden="true">›</b>
+              </button>
+            );
+          })}
+          {ig || tt ? (
+            <label className="kx-gshow kx-sshow kx-ef-sw" id="kxSocialsShow">
+              <input type="checkbox" id="kxSocialsShowBox" checked={showSocials} disabled={busy} onChange={(e) => setShowSocials(e.target.checked)} />
+              <i aria-hidden="true" /><span>{L('Show my Instagram & TikTok on my card')}</span>
+            </label>
+          ) : null}
+          {(ig || tt) && !showSocials ? <p className="kx-gnote" id="kxSocialsNote">{L('Off: only you can see them.')}</p> : null}
+          {props.onInterests ? (
+            <button type="button" className="kx-ef kx-ef-row" id="kxInterestsRow" onClick={props.onInterests}>
+              <small>{L('Interests')}</small>
+              <span className="v tags">{tags.length ? tags.map((k) => <i key={k}>{props.interestLabel ? props.interestLabel(k) : k}</i>) : <em className="ph">{L('Add interests')}</em>}</span><b aria-hidden="true">›</b>
+            </button>
+          ) : null}
+          <div className="kx-ef">
+            <small>{L('Languages you speak')}</small>
+            <div className="kx-chips kx-ef-chips" role="group">
+              {V5_LANGS.map((l) => (
+                <button key={l} type="button" data-lang={l} aria-pressed={langs.includes(l)} className={langs.includes(l) ? 'on' : ''} onClick={() => toggleLang(l)}>{l}</button>
+              ))}
+            </div>
+          </div>
+          <label className="kx-ef">
+            <small>{L('Your area')}</small>
+            <select id="v5Area" value={area} onChange={(e) => setArea(e.target.value)}>
+              {V5_AREAS.map((a) => <option key={a} value={a}>{a === 'Bangkok' ? L('All Bangkok') : L(a)}</option>)}
+            </select>
+          </label>
+          <div className="kx-ef kx-ef-plain"><GenderRow L={L} value={gender} show={showGender} disabled={busy} onChange={(g, sh) => { setGender(g); setShowGender(sh); }} /></div>
+          <div className="kx-ef kx-ef-plain"><TravellerRow L={L} state={trav} cardWho={card?.who} onOpen={() => setTravOpen(true)} /></div>
+          {notice && err(notice)}
+        </div>
+        <div className="kx-cta">
+          <button type="button" className="kx-btn" id="v5SaveCard" disabled={busy || checking} aria-busy={checking || busy} onClick={() => void save()}>
+            {busy ? L('Saving…') : checking ? L('Checking photo…') : L('Save my card')}
+          </button>
+        </div>
+        {link && <LinkSheet L={L} kind={link} value={link === 'ig' ? ig : tt} onSave={(h) => saveHandle(link, h)} onClose={() => setLink(null)} />}
+        {travOpen ? <TravellerPage L={L} state={trav} cardWho={card?.who} onClose={() => setTravOpen(false)} onSent={(s) => setTrav(s)} /> : null}
+      </div>
+    );
+  }
   return (
     <div className="kx-page kx-mint" id="sh-v5card" data-v5="card">
       <div className="kx-hd">
@@ -355,7 +463,7 @@ export function V5MintSheet(props: {
         <span className="kx-st">{isNew ? '2/3' : ''}</span>
       </div>
       <div className="kx-mint-card">
-        <NeonCard L={L} photo={shownPhoto || null} name={name.trim()} level={lv} no={card?.member_no ?? null} ig={ig} tt={tt} size="mint"
+        <NeonCard L={L} photo={shownPhoto || null} name={name.trim()} level={lv} no={card0?.member_no ?? null} ig={ig} tt={tt} size="mint"
           slot={!ig || !tt ? (
             <button type="button" className="kx-slot" onClick={() => setLink(!ig ? 'ig' : 'tt')}>{Lf('+ Add {0}', !ig ? 'Instagram' : 'TikTok')}</button>
           ) : null} />
@@ -432,13 +540,14 @@ export function V5MintSheet(props: {
               ))}
             </div>
             <label className="kx-lab" htmlFor="v5Bio">{L('One line about you')}</label>
-            <input id="v5Bio" className="kx-txt" maxLength={80} value={bio} onChange={(e) => setBio(e.target.value)} placeholder={L('e.g. Coffee walks, street food, sunset spots')} />
+            <input id="v5Bio" className="kx-txt" maxLength={BIO_MAX} value={bio} onChange={(e) => onBio(e.target.value)} placeholder={L('e.g. Coffee walks, street food, sunset spots')} aria-invalid={!!bioErr} />
+            {bioErr ? <p className="kx-err" id="v5BioErr" role="alert">{bioErr}</p> : null}
             <label className="kx-lab" htmlFor="v5Area">{L('Your area')}</label>
             <select id="v5Area" className="kx-txt" value={area} onChange={(e) => setArea(e.target.value)}>
               {V5_AREAS.map((a) => <option key={a} value={a}>{a === 'Bangkok' ? L('All Bangkok') : L(a)}</option>)}
             </select>
             {isNew ? <p className="kx-gnote kt-hint" id="kxTravHint">{L('Visiting Bangkok? Once your card is made, ask for the traveller tag from your card.')}</p>
-              : <TravellerRow L={L} state={trav} cardWho={card?.who} onOpen={() => setTravOpen(true)} />}
+              : <TravellerRow L={L} state={trav} cardWho={card0?.who} onOpen={() => setTravOpen(true)} />}
           </div>
         )}
         {/* makecard-1: the two ticks (18+ and Terms) are one short line now. Still unticked by default, still required; the server
@@ -458,7 +567,7 @@ export function V5MintSheet(props: {
         </button>
       </div>
       {link && <LinkSheet L={L} kind={link} value={link === 'ig' ? ig : tt} onSave={(h) => saveHandle(link, h)} onClose={() => setLink(null)} />}
-      {travOpen && !isNew ? <TravellerPage L={L} state={trav} cardWho={card?.who} onClose={() => setTravOpen(false)} onSent={(s) => setTrav(s)} /> : null}
+      {travOpen && !isNew ? <TravellerPage L={L} state={trav} cardWho={card0?.who} onClose={() => setTravOpen(false)} onSent={(s) => setTrav(s)} /> : null}
     </div>
   );
 }

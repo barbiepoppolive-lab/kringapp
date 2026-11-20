@@ -487,14 +487,14 @@ const T: Record<string, string> = {
     'Ghost mode · nobody can see you': 'ゴーストモード · 誰からも見えません',
     'Ghost mode is on: likes, saves, follows, hellos and posts are off.': 'ゴーストモード中：いいね・保存・フォロー・あいさつ・投稿はオフです。',
     'This account is paused. Please use your main Kring account.': 'このアカウントは一時停止中です。メインの Kring アカウントをご利用ください。',
-    // Ask a Thai (16 Nov)
+    // Ask BKK (16 Nov)
     "Feed": "フィード",
-    "Ask a Thai": "タイ人に聞く",
+    "Ask BKK": "BKKに聞く",
     "Block this person": "この人をブロック",
     "Thanks · we’ll check it. You won’t see it again.": "ありがとうございます · 確認します。今後は表示されません。",
     "Ask": "質問する",
     "Now": "たった今",
-    "Thai Local": "タイの地元民",
+    "BKK Local": "バンコクの地元民",
     'Translated': '翻訳済み',
     'See original': '原文を見る',
     'See translation': '翻訳を見る',

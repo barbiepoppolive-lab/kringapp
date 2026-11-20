@@ -7,7 +7,7 @@ const invoke = vi.fn(async (_fn: string, o: { body: { items: { kind: string; id:
 vi.mock('./v5Live', () => ({ v5Client: async () => ({ functions: { invoke } }) }));
 const L = (s: string) => s;
 
-describe('Ask a Thai in one language (20 Nov)', () => {
+describe('Ask BKK in one language (20 Nov)', () => {
   it('knows when a text is already in the reader’s language', () => {
     expect(inTarget('How do Thais say no?', 'en')).toBe(true);
     expect(inTarget('What does เกรงใจ look like in everyday life?', 'en')).toBe(true);   // one quoted Thai word

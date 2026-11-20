@@ -142,7 +142,7 @@ export async function reportsView(body: HTMLElement, onCount?: (n: number) => vo
   for (const r of rows) {
     const msg = el('div', {});
     const cat = r.category && CAT[r.category];
-    const askAnswer = !r.post_id && /^Ask a Thai answer/.test(r.reason || '');   // 0057/0064: Keep / Remove via kr8_admin_ask_answer
+    const askAnswer = !r.post_id && /^Ask BKK answer/.test(r.reason || '');   // 0057/0064: Keep / Remove via kr8_admin_ask_answer
     const card = el('div', { class: 'card reel-card', 'data-report': r.id, 'data-post': r.post_id || '' },
       r.video_path ? el('video', { class: 'reel-admin-video', src: urls[r.video_path] || '', poster: urls[r.poster_path || ''] || '', controls: true, playsinline: true, preload: 'none', muted: true, loop: true }) : null,
       el('div', { class: 'row' }, el('b', { class: 'grow' }, cat ? tx(cat) : tx(R.person)),

@@ -322,7 +322,7 @@ function Count({ v, from }: { v: number; from: number | null }) {
 
 // ───────────── quick vote (A: this or that · price check) ─────────────
 const placeImg = (f: string | null) => (f ? `${((import.meta as unknown as { env?: Record<string, string> }).env?.BASE_URL) || '/'}media/places/${f}` : '');
-/** 20 Nov (founder): "This or that": Kring-made, one a day, one locked vote per member. Shown as the FIRST card of Ask a Thai
+/** 20 Nov (founder): "This or that": Kring-made, one a day, one locked vote per member. Shown as the FIRST card of Ask BKK
  *  (inline) and from the Daily tasks "Quick vote" row (sheet). Before voting: the two pictures only, no numbers (the server
  *  doesn't send them either). After the vote: glow ring + check on the pick, the other side dims, bars fill, "Vote counted ✓". */
 export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?: () => void }) {

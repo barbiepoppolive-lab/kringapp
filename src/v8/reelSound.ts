@@ -25,5 +25,28 @@ export function rememberSound(on: boolean): void {
   try { window.localStorage.setItem(KEY, mem); } catch { /* storage blocked: this page still remembers */ }
   try { window.dispatchEvent(new Event(SOUND_PREF_EVENT)); } catch { /* no window */ }
 }
+/**
+ * 20 Nov (founder): sound turns ON after the member's FIRST tap anywhere in the app (browsers only allow sound after a tap), then
+ * stays on for every Reel and is remembered. Reels still start muted before that tap, with "Tap for sound 🔊". A tap on a Reel
+ * itself toggles sound there (that tap is the first tap), and the mute button's choice is remembered as before.
+ * Runs after the tap's own handlers (bubble phase on window), so a tap that already chose sound on or off is left alone.
+ */
+let armed = false;
+export function armFirstTapSound(): () => void {
+  if (armed || typeof window === 'undefined') return () => undefined;
+  armed = true;
+  const on = () => {
+    if (soundNeverTapped()) rememberSound(true);   // SOUND_PREF_EVENT: the Reel on screen unmutes inside this tap
+    off();
+  };
+  const off = () => {
+    window.removeEventListener('click', on);
+    window.removeEventListener('keydown', on);
+    armed = false;
+  };
+  window.addEventListener('click', on);
+  window.addEventListener('keydown', on);
+  return off;
+}
 /** tests only */
 export const _resetSound = () => { mem = null; };

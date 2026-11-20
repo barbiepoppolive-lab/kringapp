@@ -380,6 +380,7 @@ export function MeView(props: MeViewProps) {
 
 /** rv4 Me A head: skyline band (CSS), round photo with a thin gold ring (tap = edit card), stats beside it, name ✓ and area. */
 function MeHead(props: { L: Tx; p: V5Profile; stats: React.ReactNode; onEdit: () => void }) {
+  // 0183: the bio under the name (own text, never translated); none yet → one quiet "+ Add a short bio" that opens the card editor
   const { L, p } = props;
   const ref = useRef<HTMLButtonElement>(null);
   useEffect(() => { rvHeroIn(ref.current); }, []);
@@ -395,6 +396,8 @@ function MeHead(props: { L: Tx; p: V5Profile; stats: React.ReactNode; onEdit: ()
         {props.stats}
       </div>
       <h2 className="rv4-pnm">{p.first_name}{p.verified ? <RvCheck L={L} /> : null}</h2>
+      {p.bio ? <p className="rv4-pbio" id="meBio">{p.bio}</p>
+        : <button type="button" className="rv4-addbio" id="meAddBio" onClick={props.onEdit}>{L('+ Add a short bio')}</button>}
       {where ? <p className="rv4-psub">{where}</p> : null}
     </section>
   );

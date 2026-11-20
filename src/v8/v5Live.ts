@@ -107,7 +107,7 @@ export function v5Client(): Promise<SupabaseClient> {
   return clientP;
 }
 
-/** Public storage object link (Ask a Thai photos and GIFs live in the public kr8-ask bucket, 0057). */
+/** Public storage object link (Ask BKK photos and GIFs live in the public kr8-ask bucket, 0057). */
 export function v5PublicObjectUrl(bucket: string, path: string): string {
   return viaEdgeUrls(`${SUPA_URL.replace(/\/$/, '')}/storage/v1/object/public/${bucket}/${path.split('/').map(encodeURIComponent).join('/')}`);
 }
@@ -742,6 +742,8 @@ export const v5MySaves = () => rpc<string[]>('kr8_my_saves');
 export const v5NotInterested = (post: string) => rpc<void>('kr8_not_interested', { p_post: post });
 export type V5ReportReason = 'spam' | 'unsafe' | 'stolen' | 'wrong_place' | 'block';
 export const v5ReportReel = (post: string, reason: V5ReportReason) => rpc<void>('kr8_report_reel', { p_post: post, p_reason: reason, p_note: null });
+/** 0183: save just the bio (server checks: max 80, no phone numbers / links / LINE IDs) */
+export const v5SetBio = (bio: string) => rpc<string>('kr8_set_bio', { p_bio: bio });
 export const v5SetIgHandle = (h: string) => rpc<string | null>('kr8_set_ig_handle', { p_handle: h });
 export interface V5TagPlace { venue_id: string; name: string; name_th: string | null; area: string; deal_id: string | null; deal_en: string | null; deal_th: string | null }
 export const v5TagPlaces = () => rpc<V5TagPlace[]>('kr8_tag_places');
@@ -764,8 +766,12 @@ export interface V5Profile {
   verified: boolean; ig_handle: string | null; interests: string[]; member_no: string; online: boolean; here: boolean; mine: boolean;
   level: V5LevelInfo; followers: number; following: number; likes: number; gifts: number; i_follow: boolean; follows_me: boolean;
   reels: { id: string; poster_path: string; likes: number; status: string }[];
+  /** 0184: the member shows the followers / following lists to nobody (the counts stay) */
+  lists_private?: boolean;
 }
 export const v5Profile = (user?: string | null) => rpc<V5Profile>('kr8_profile', { p_user: user || null });
+/** 0184: Settings → Privacy → "Who can see my followers & following" (true = Only me) */
+export const v5SetListsPrivate = (on: boolean) => rpc<boolean>('kr8_set_lists_private', { p_private: on });
 export const v5Follow = (user: string) => rpc<boolean>('kr8_follow', { p_user: user });
 export const v5Unfollow = (user: string) => rpc<boolean>('kr8_unfollow', { p_user: user });
 export interface V5FollowRow { user_id: string; first_name: string; photo: string | null; ig_handle: string | null; who: string; verified: boolean; i_follow: boolean; follows_me: boolean }

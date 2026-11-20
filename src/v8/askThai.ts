@@ -1,6 +1,6 @@
 /**
- * Ask a Thai (16 Nov, founder-approved "Screen 2"): an open question-and-answer timeline on the Feed tab.
- * Anyone (a member, 18+) can ask; anyone can answer; Thai locals carry a "Thai Local" badge. Text, photos, emoji and GIFs.
+ * Ask BKK (16 Nov, founder-approved "Screen 2"): an open question-and-answer timeline on the Feed tab.
+ * Anyone (a member, 18+) can ask; anyone can answer; Thai locals carry a "BKK Local" badge. Text, photos, emoji and GIFs.
  *
  * Live: the kr8_ask_* RPCs from supabase/migrations/0057_kr8_ask_a_thai.sql (SECURITY DEFINER, no direct table writes).
  * Until that migration is applied (function missing), or in demo / harness builds, everything runs on a local store in

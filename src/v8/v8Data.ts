@@ -31,7 +31,7 @@ export interface V8FeedItem {
   views?: number;
   ig?: string;
   place?: { venueId: string; name: string; nameTh?: string; dealId?: string; dealEn?: string; dealTh?: string };
-  // Ask a Thai card fields
+  // Ask BKK card fields
   q?: string;
   asker?: string;
   answers?: V8Answer[];
