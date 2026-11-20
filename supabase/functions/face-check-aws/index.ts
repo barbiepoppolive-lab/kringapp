@@ -206,6 +206,8 @@ async function check(uid: string, body: Record<string, unknown>): Promise<Respon
   const fr = (body.frames || {}) as Record<string, unknown>;
   const frames = { straight: frameB64(fr.straight), left: frameB64(fr.left), right: frameB64(fr.right) };
   if (!frames.straight || !frames.left || !frames.right) return json({ error: 'BAD_FRAMES' }, 400);
+  // 20 Nov: newer apps add a 2nd straight frame (eyes) and an earlier frame of each turn (the bigger turn counts); optional
+  const more = { straight2: frameB64(fr.straight2), left2: frameB64(fr.left2), right2: frameB64(fr.right2) };
   if (MOCK) mockCase = typeof body.mock === 'string' ? body.mock : 'pass';
 
   const gate = await rpc<Gate>('kr8_face_aws_gate', { p_user: uid, p_consent: consent });
@@ -233,7 +235,11 @@ async function check(uid: string, body: Record<string, unknown>): Promise<Respon
     age = ageOf(raw[0]);
     const det = raw.map(summarize);
     yaws = det.map((fs) => (fs[0] ? Math.round(fs[0].yaw * 10) / 10 : null));
-    live = liveCheck({ straight: det[0], left: det[1], right: det[2] }, lim);
+    const extraKeys = (['straight2', 'left2', 'right2'] as const).filter((k) => !MOCK && more[k]);
+    const extraDet = await Promise.all(extraKeys.map((k) => detect(more[k]!).then(summarize).catch(() => [] as ReturnType<typeof summarize>)));
+    const extra: Record<string, ReturnType<typeof summarize>> = {};
+    extraKeys.forEach((k, i) => { extra[k] = extraDet[i]; yaws.push(extraDet[i][0] ? Math.round(extraDet[i][0].yaw * 10) / 10 : null); });
+    live = liveCheck({ straight: det[0], left: det[1], right: det[2] }, lim, extra);
     if (live.ok) {
       const cardB64 = await photoB64(gate.photo);
       const [cmp, srch] = await Promise.all([

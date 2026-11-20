@@ -859,13 +859,16 @@ const blobB64 = (b: Blob) => new Promise<string>((ok, bad) => {
 });
 /** 0125: the 3 frames (straight · left · right, small JPEGs) → the server decides in 1–2 s. Errors are V5Error codes
  *  (SLOW_DOWN, CONSENT_REQUIRED, FACE_AWS_OFF, SIGN_IN, NETWORK…). */
-export async function v5FaceAwsCheck(frames: { straight: Blob; left: Blob; right: Blob }, consent: string, device: string, timeoutMs = 25000): Promise<V5FaceAwsResult> {
+export async function v5FaceAwsCheck(frames: { straight: Blob; left: Blob; right: Blob; straight2?: Blob; left2?: Blob; right2?: Blob }, consent: string, device: string, timeoutMs = 25000): Promise<V5FaceAwsResult> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new V5Error('OFFLINE');
   if (adminViewActive()) throw new V5Error('ADMIN_VIEW');
   const c = await v5Client();
   const { data } = await c.auth.getSession();
   if (!data.session) throw new V5Error('SIGN_IN');
   const [straight, left, right] = await Promise.all([blobB64(frames.straight), blobB64(frames.left), blobB64(frames.right)]);
+  // 20 Nov: optional extra photos (a 2nd straight one for the eyes, an earlier one of each turn); older servers ignore them
+  const more: Record<string, string> = {};
+  for (const k of ['straight2', 'left2', 'right2'] as const) { const b = frames[k]; if (b) { try { more[k] = await blobB64(b); } catch { /* skip */ } } }
   let mock: string | undefined;
   try { mock = localStorage.getItem('kr8_face_aws_mock') || undefined; } catch { /* private mode */ }   // test aid (server FACE_AWS_MOCK=1 only)
   const ctl = new AbortController();
@@ -875,7 +878,7 @@ export async function v5FaceAwsCheck(frames: { straight: Blob; left: Blob; right
     r = await fetch(`${SUPA_URL.replace(/\/$/, '')}/functions/v1/face-check-aws`, {
       method: 'POST', signal: ctl.signal,
       headers: { authorization: `Bearer ${data.session.access_token}`, apikey: SUPA_KEY, 'content-type': 'application/json' },
-      body: JSON.stringify({ consent, device, frames: { straight, left, right }, mock }),
+      body: JSON.stringify({ consent, device, frames: { straight, left, right, ...more }, mock }),
     }).catch(() => null);
   } finally { clearTimeout(t); }
   if (!r) throw new V5Error('NETWORK');

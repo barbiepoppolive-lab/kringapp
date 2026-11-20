@@ -33,23 +33,37 @@ describe('decision rules (faceAwsDecide)', () => {
     expect(liveCheck({ ...good, straight: [face(1, { brightness: 9 })] })).toEqual({ ok: false, why: 'too_dark' });
     expect(liveCheck({ ...good, straight: [face(1, { sharpness: 2 })] })).toEqual({ ok: false, why: 'too_blurry' });
     expect(liveCheck({ ...good, straight: [face(1, { boxW: 0.08 })] })).toEqual({ ok: false, why: 'too_far' });
-    expect(liveCheck({ ...good, straight: [face(1, { eyesOpen: false })] })).toEqual({ ok: false, why: 'eyes_closed' });
     expect(liveCheck({ ...good, straight: [face(1, { sunglasses: true })] })).toEqual({ ok: false, why: 'sunglasses' });
     expect(liveCheck({ ...good, straight: [face(30)] })).toEqual({ ok: false, why: 'look_straight' });
     expect(liveCheck({ ...good, left: [] })).toEqual({ ok: false, why: 'turn_left_missing' });
-    // 19 Nov: a small left turn passes when the right turn is big and opposite (gap ≥ 20°); both small still retries
+    // 20 Nov: a small left turn still passes when the right turn is a clear 15°+; both small retries
     expect(liveCheck({ ...good, left: [face(4)] }).ok).toBe(true);
     expect(liveCheck({ ...good, left: [face(4)], right: [face(-8)] })).toEqual({ ok: false, why: 'turn_left_missing' });
-    expect(liveCheck({ ...good, right: [face(4)] })).toEqual({ ok: false, why: 'turn_right_missing' });
+    expect(liveCheck({ ...good, left: [face(4)], right: [face(6)] })).toEqual({ ok: false, why: 'turn_left_missing' });
   });
-  it('a held-up photo (same yaw in all 3) or both turns the same way is not live', () => {
+  it('a held-up photo (same yaw in all 3) is not live; the direction of a turn no longer matters (mirrored cameras)', () => {
     expect(liveCheck({ straight: [face(2)], left: [face(2)], right: [face(2)] }).ok).toBe(false);
-    expect(liveCheck({ straight: [face(0)], left: [face(22)], right: [face(25)] })).toEqual({ ok: false, why: 'turn_right_missing' });
+    // real fails on 20 Nov: #14 yaws [-0.2, 1.5, -0.1] (no turn in the photos) still retries
+    expect(liveCheck({ straight: [face(-0.2)], left: [face(1.5)], right: [face(-0.1)] })).toEqual({ ok: false, why: 'turn_left_missing' });
+    // both turns the same way (left/right mixed up, or a mirrored camera) now passes
+    expect(liveCheck({ straight: [face(0)], left: [face(22)], right: [face(25)] }).ok).toBe(true);
+    // real fails on 20 Nov that now pass: [-1.4, 0, 17.9] (one clear turn) and [0.5, 12.1, -1.1] → retry still (12 < 15, other 1.6)
+    expect(liveCheck({ straight: [face(-1.4)], left: [face(0)], right: [face(17.9)] }).ok).toBe(true);
+    expect(liveCheck({ straight: [face(0.5)], left: [face(12.1)], right: [face(-1.1)] })).toEqual({ ok: false, why: 'turn_right_missing' });
+    // a calibrated sign is ignored
+    expect(liveCheck(good, { ...AWS_LIMITS, yawSign: -1 }).ok).toBe(true);
   });
-  it('a calibrated sign checks the direction', () => {
-    const lim = { ...AWS_LIMITS, yawSign: -1 };
-    expect(liveCheck(good, lim)).toEqual({ ok: false, why: 'turn_left_missing' });
-    expect(liveCheck({ straight: [face(0)], left: [face(-20)], right: [face(21)] }, lim).ok).toBe(true);
+  it('the earlier photo of a turn counts when it turned more', () => {
+    expect(liveCheck({ straight: [face(0)], left: [face(1)], right: [face(-2)] }, AWS_LIMITS, { left2: [face(20)], right2: [face(-18)] }))
+      .toEqual({ ok: true, yaw: { straight: 0, left: 20, right: -18 } });
+  });
+  it('eyes: one blink never fails; closed in every frame does', () => {
+    const shut = { eyesOpen: false };
+    // #371's eyes_closed fails had big turns with the eyes open in the turn frames
+    expect(liveCheck({ ...good, straight: [face(1, shut)] }).ok).toBe(true);
+    expect(liveCheck({ ...good, straight: [face(1, shut)] }, AWS_LIMITS, { straight2: [face(1)] }).ok).toBe(true);
+    expect(liveCheck({ straight: [face(1, shut)], left: [face(24, shut)], right: [face(-22, shut)] }, AWS_LIMITS, { straight2: [face(1, shut)] }))
+      .toEqual({ ok: false, why: 'eyes_closed' });
   });
   it('pass / review', () => {
     expect(decide({ card: 97, other: null, autoOn: true })).toEqual({ result: 'pass', reasons: [], cardFix: null });

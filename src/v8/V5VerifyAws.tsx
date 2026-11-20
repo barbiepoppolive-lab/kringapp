@@ -52,8 +52,9 @@ export const AWS_RETRY_TEXT: Record<string, string> = {
   eyes_closed: 'Keep your eyes open and look at the camera.',
   sunglasses: 'Take off your sunglasses and try again.',
   look_straight: 'Look straight at the camera',
-  turn_left_missing: 'Turn your head a little more to the left.',
-  turn_right_missing: 'Turn your head a little more to the right.',
+  // 20 Nov: either direction counts and some phones mirror the preview, so the retry never names a side
+  turn_left_missing: 'Turn your head a little more to the side.',
+  turn_right_missing: 'Turn your head a little more to the side.',
   network: 'No connection. Try again in a moment.',
 };
 export const retryText = (why: string | null | undefined) => AWS_RETRY_TEXT[why || ''] || AWS_RETRY_TEXT.no_face;
@@ -170,6 +171,9 @@ export function V5VerifyAws(props: { L: Tx; photo: string | null; nudge?: boolea
   /** look straight → left → right: each photo after a 3-2-1 that pauses while the picture is too dark */
   const capture = async (v: HTMLVideoElement, run: number) => {
     const blobs: Partial<Record<AwsStep, Blob>> = {};
+    // 20 Nov: one more photo per step half-way through the 3-2-1 (the server keeps the bigger turn and checks eyes on both
+    // straight photos), so a member who turns early or blinks once is not sent back
+    const extra: Partial<Record<'straight2' | 'left2' | 'right2', Blob>> = {};
     for (const s of AWS_STEPS) {
       if (run !== runRef.current) return;
       setStep(s); setCount(null);
@@ -181,6 +185,7 @@ export function V5VerifyAws(props: { L: Tx; photo: string | null; nudge?: boolea
         setCount(n);
         await wait(TICK_MS);
         n--;
+        if (n === 1 && !extra[`${s}2` as const]) { try { extra[`${s}2` as const] = await grab(v); } catch { /* the main photo still counts */ } }
       }
       if (run !== runRef.current) return;
       setCount(null);
@@ -190,10 +195,10 @@ export function V5VerifyAws(props: { L: Tx; photo: string | null; nudge?: boolea
     if (run !== runRef.current) return;
     stop();
     if (!blobs.straight || !blobs.left || !blobs.right) { setWhy('no_face'); setStage('retry'); return; }
-    await send({ straight: blobs.straight, left: blobs.left, right: blobs.right });
+    await send({ straight: blobs.straight, left: blobs.left, right: blobs.right, ...extra });
   };
 
-  const send = async (frames: { straight: Blob; left: Blob; right: Blob }) => {
+  const send = async (frames: { straight: Blob; left: Blob; right: Blob; straight2?: Blob; left2?: Blob; right2?: Blob }) => {
     setSelfie((old) => { if (old) URL.revokeObjectURL(old); try { return URL.createObjectURL(frames.straight); } catch { return null; } });
     setStage('sending');
     try {
@@ -214,7 +219,8 @@ export function V5VerifyAws(props: { L: Tx; photo: string | null; nudge?: boolea
     }
   };
 
-  const prompt = step === 'straight' ? L('Look straight at the camera') : step === 'left' ? L('Turn your head slightly left') : L('Turn your head slightly right');
+  // 20 Nov (founder: the text said "right" while his preview went left): the words never name a side; the arrow on screen shows it
+  const prompt = step === 'straight' ? L('Look straight at the camera') : L('Turn your head toward the arrow');
   return (
     <div className="kfv2 kfa" id="sh-verify" data-stage={stage} data-step={step} data-engine="aws" role="dialog" aria-modal="true" aria-label={L('Get verified ✓')}>
       {stage === 'camera' && (

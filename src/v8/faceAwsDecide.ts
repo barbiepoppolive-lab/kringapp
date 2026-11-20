@@ -38,8 +38,7 @@ export interface FaceAwsLimits {
   straightMaxPitch: number;
   turnMinYaw: number;     // each turn at least this many degrees away from the straight frame
   turnMinGap: number;     // left and right at least this far apart
-  /** +1 / -1: the sign Rekognition gives a turn to the member's own LEFT (raw, un-mirrored front-camera frame).
-   *  0 = direction not checked (only "the two turns are opposite"). Set once a real test shows the sign. */
+  /** kept for the settings shape only: since 20 Nov the turn direction is never checked (mirrored cameras, left/right mix-ups) */
   yawSign: number;
   cardMin: number;        // CompareFaces similarity with the own card photo for an automatic ✓
   dupMin: number;         // SearchFacesByImage similarity with ANOTHER member that sends it to the founder
@@ -73,9 +72,11 @@ export function summarize(resp: unknown): AwsFace[] {
 }
 
 export type FrameResult = { ok: true; face: AwsFace } | { ok: false; why: RetryWhy };
-/** one frame: exactly one clear face, light, sharpness, size (+ eyes and facing the camera on the straight frame) */
+/** one frame: exactly one clear face, light, sharpness, size (+ facing the camera on the straight frame).
+ *  20 Nov: eyes are checked across frames in liveCheck (one blink never fails a member); a turned face is detected a little less
+ *  surely, so the turn frames accept a slightly lower confidence. */
 export function checkFrame(step: FaceStep, faces: AwsFace[], lim: FaceAwsLimits = AWS_LIMITS): FrameResult {
-  const sure = faces.filter((f) => f.confidence >= lim.minConf);
+  const sure = faces.filter((f) => f.confidence >= (step === 'straight' ? lim.minConf : Math.min(lim.minConf, 80)));
   if (!sure.length) return { ok: false, why: step === 'straight' ? 'no_face' : step === 'left' ? 'turn_left_missing' : 'turn_right_missing' };
   if (sure.filter((f) => f.boxW >= lim.otherFaceMinW).length > 1) return { ok: false, why: 'many_faces' };
   const f = sure[0];
@@ -84,30 +85,50 @@ export function checkFrame(step: FaceStep, faces: AwsFace[], lim: FaceAwsLimits 
   if (step === 'straight') {
     if (f.sharpness !== null && f.sharpness < lim.minSharp) return { ok: false, why: 'too_blurry' };
     if (f.sunglasses) return { ok: false, why: 'sunglasses' };
-    if (f.eyesOpen === false && f.eyesConf >= 80) return { ok: false, why: 'eyes_closed' };
     if (Math.abs(f.yaw) > lim.straightMaxYaw || Math.abs(f.pitch) > lim.straightMaxPitch) return { ok: false, why: 'look_straight' };
   }
   return { ok: true, face: f };
 }
+const closed = (f: AwsFace) => f.eyesOpen === false && f.eyesConf >= 80;
+const open = (f: AwsFace) => f.eyesOpen === true;
+/** a clear single turn this big (either way) is enough on its own: a held-up photo cannot turn 15° */
+export const ONE_TURN_YAW = 15;
 
+/** extra frames the app may send (20 Nov): a 2nd straight frame (eyes) and an earlier frame of each turn (the bigger turn counts) */
+export type ExtraFrames = Partial<Record<'straight2' | 'left2' | 'right2', AwsFace[]>>;
 export type LiveResult = { ok: true; yaw: Record<FaceStep, number> } | { ok: false; why: RetryWhy };
-/** the 3 frames together: each frame fine, and the two turns real and opposite */
-export function liveCheck(frames: Record<FaceStep, AwsFace[]>, lim: FaceAwsLimits = AWS_LIMITS): LiveResult {
+/**
+ * the frames together. 20 Nov (founder: real members failed 3–6 times): the turn DIRECTION is no longer checked (some phones mirror
+ * the front camera, and people mix up left and right); each turn counts by its size only. Pass when both turns are at least
+ * turnMinYaw, or one turn is a clear ONE_TURN_YAW. Eyes count as closed only when every frame that shows eyes says closed.
+ */
+export function liveCheck(frames: Record<FaceStep, AwsFace[]>, lim: FaceAwsLimits = AWS_LIMITS, extra: ExtraFrames = {}): LiveResult {
   const s = checkFrame('straight', frames.straight, lim);
   if (!s.ok) return s;
-  const l = checkFrame('left', frames.left, lim);
+  const y0 = s.face.yaw;
+  const best = (step: 'left' | 'right', lists: (AwsFace[] | undefined)[]): FrameResult => {
+    let first: FrameResult | null = null, top: AwsFace | null = null;
+    for (const l of lists) {
+      if (!l) continue;
+      const r = checkFrame(step, l, lim);
+      if (!first) first = r;
+      if (r.ok && (!top || Math.abs(r.face.yaw - y0) > Math.abs(top.yaw - y0))) top = r.face;
+    }
+    return top ? { ok: true, face: top } : (first || { ok: false, why: step === 'left' ? 'turn_left_missing' : 'turn_right_missing' });
+  };
+  const l = best('left', [frames.left, extra.left2]);
   if (!l.ok) return l;
-  const r = checkFrame('right', frames.right, lim);
+  const r = best('right', [frames.right, extra.right2]);
   if (!r.ok) return r;
-  const y0 = s.face.yaw, yl = l.face.yaw - y0, yr = r.face.yaw - y0;
-  // with a known sign, each turn must go its own way; without one, the two must at least be opposite
-  const wantL = lim.yawSign === 0 ? Math.sign(yl) || 1 : lim.yawSign;
-  // 19 Nov (live yaws, e.g. #152 [8.5, 11.1, -18.6]): one small turn is fine when the two turns are clearly opposite and far apart
-  // (a held-up photo can't move 20°); both turns small still asks again.
-  const bigGap = Math.sign(yl) === -Math.sign(yr) && Math.abs(yl - yr) >= 20;
-  if ((Math.abs(yl) < lim.turnMinYaw && !bigGap) || (lim.yawSign !== 0 && Math.sign(yl) !== wantL)) return { ok: false, why: 'turn_left_missing' };
-  if ((Math.abs(yr) < lim.turnMinYaw && !bigGap) || Math.sign(yr) !== -wantL) return { ok: false, why: 'turn_right_missing' };
-  if (Math.abs(yl - yr) < lim.turnMinGap) return { ok: false, why: 'turn_right_missing' };
+  // eyes: the straight frame says closed, and no other frame shows them open
+  if (closed(s.face)) {
+    const others = [extra.straight2, frames.left, frames.right, extra.left2, extra.right2]
+      .map((x) => (x || []).filter((f) => f.confidence >= 80)[0]).filter((f): f is AwsFace => !!f && f.eyesOpen !== null);
+    if (!others.some(open)) return { ok: false, why: 'eyes_closed' };
+  }
+  const a = Math.abs(l.face.yaw - y0), b = Math.abs(r.face.yaw - y0);
+  const turned = (a >= lim.turnMinYaw && b >= lim.turnMinYaw) || Math.max(a, b) >= ONE_TURN_YAW;
+  if (!turned) return { ok: false, why: a < lim.turnMinYaw ? 'turn_left_missing' : 'turn_right_missing' };
   return { ok: true, yaw: { straight: round1(s.face.yaw), left: round1(l.face.yaw), right: round1(r.face.yaw) } };
 }
 const round1 = (x: number) => Math.round(x * 10) / 10;
