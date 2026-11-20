@@ -51,7 +51,7 @@ export function pickNextStep(i: NextStepInput): NextStep | null {
   }
   const latest = [...i.reels].sort((a, b) => (a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0))[0];
   // 3. the latest Reel came back with a note from the team
-  if (latest.status === 'hidden' && latest.note && latest.note.trim()) return { kind: 'retry', dismissible: true, note: shortNote(latest.note) };
+  if (latest.status === 'hidden' && latest.note && latest.note.trim()) return { kind: 'retry', dismissible: true, note: latest.note.trim() };   // 20 Nov: raw "th\nen" note; the card picks one language, then shortens
   // 4. the latest Reel is waiting for its check
   if (latest.status === 'pending') return { kind: 'pending', dismissible: true };
   if (!i.prizes || !i.claims) return null;

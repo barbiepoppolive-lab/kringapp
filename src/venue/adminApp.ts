@@ -436,6 +436,9 @@ function queue<T extends { id: string }>(title: string, items: T[], renderItem: 
   const act = el('div', { class: 'qact' }, el('div', {}));
   const s = el('div', { class: 'scr q' }, top, note || null, body);
   app.replaceChildren(s, act);
+  // 20 Nov: the fixed action bar can be 3 rows (Approve ×2 / Not yet + Hide / Skip): keep the card's last line above it
+  const fit = () => { s.style.paddingBottom = `${act.offsetHeight + 12}px`; };
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(fit).observe(act);
   const show = () => {
     window.scrollTo(0, 0);
     cnt.textContent = list.length ? `${Math.min(doneN + 1, total)} / ${total}` : `${total} / ${total}`;

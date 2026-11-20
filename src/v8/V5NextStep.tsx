@@ -2,7 +2,8 @@
    Me = the same step as a card at the top. Thai phones: one Thai line with small English under; other languages: one line in their language. */
 import type { ReactNode } from 'react';
 import './nextStep.css';
-import type { NextStep, NextStepKind } from './nextStep';
+import { shortNote, type NextStep, type NextStepKind } from './nextStep';
+import { isNotYetNote, reviewNoteText } from './kxLogic';
 
 type Tx = (en: string) => string;
 type Txf = (en: string, ...a: string[]) => string;
@@ -51,7 +52,9 @@ function Meter({ rings, floor }: { rings: number; floor: number }) {
 export function NextStepCard(props: { step: NextStep; variant: 'pill' | 'card'; lang?: string; L: Tx; Lf: Txf; onGo: () => void; onHide: () => void }) {
   const { step: s, L, Lf } = props;
   const thai = !props.lang || props.lang === 'th';
-  const c = nextStepCopy(s);
+  const c0 = nextStepCopy(s);
+  // 20 Nov: a "Not yet" Reel (tips, not a strike): "Not yet" + "Post a new one"
+  const c = s.kind === 'retry' && isNotYetNote(s.note) ? { ...c0, th: 'ยังไม่ผ่านรอบนี้', en: 'Not yet', key: 'Not yet', btnTh: 'โพสต์รีลใหม่', btnEn: 'Post a new one' } : c0;
   const main = thai ? c.th : c.arg ? Lf(c.key, c.arg) : L(c.key);
   const sub = '';   // audit 18 Nov (founder rule): one language at a time. Thai mode had an English line under the Thai one.
   const ringsLine = s.kind === 'climb' && s.floor
@@ -60,7 +63,7 @@ export function NextStepCard(props: { step: NextStep; variant: 'pill' | 'card'; 
     : null;
   // the pill has two lines: Thai + (English · note / Rings); the card has room for one more
   const pill = props.variant === 'pill';
-  const extra = s.kind === 'retry' && s.note ? s.note : ringsLine ? (thai ? ringsLine.th : ringsLine.k) : '';
+  const extra = s.kind === 'retry' && s.note ? shortNote(reviewNoteText(s.note, thai ? 'th' : props.lang || 'en')) : ringsLine ? (thai ? ringsLine.th : ringsLine.k) : '';
   const btn = c.btnEn ? (thai ? c.btnTh : L(c.btnEn)) : '';
   const label = `${thai ? 'ขั้นต่อไปของคุณ' : L('Your next step')}: ${main}${extra ? ` · ${extra}` : ''}`;
   const subLine = pill ? [sub, extra].filter(Boolean).join(' · ') : sub;

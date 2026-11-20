@@ -26,7 +26,7 @@ describe('next step: order', () => {
   it('2 wins even before rewards load', () => { expect(pickNextStep(base({ prizes: null, claims: null }))!.kind).toBe('reel'); });
   it('3. latest Reel hidden with a note: try again + the note', () => {
     const s = pickNextStep(base({ reels: [reel('approved', '2026-11-10'), reel('hidden', '2026-11-15', '  Too dark —\n film in daylight ')] }))!;
-    expect(s).toMatchObject({ kind: 'retry', note: 'Too dark — film in daylight', dismissible: true });
+    expect(s).toMatchObject({ kind: 'retry', note: 'Too dark —\n film in daylight', dismissible: true });   // 20 Nov: raw "th\nen"; the card shows one line (reviewNoteText)
     expect(nextStepCopy(s)).toMatchObject({ th: 'ลองโพสต์ใหม่อีกครั้ง', en: 'Try again', btnEn: 'Post again' });
   });
   it('3. a hidden Reel without a note does not ask to try again', () => {
@@ -34,6 +34,10 @@ describe('next step: order', () => {
   });
   it('3. only the LATEST Reel counts', () => {
     expect(pickNextStep(base({ reels: [reel('hidden', '2026-11-10', 'blurry'), reel('approved', '2026-11-15')] }))!.kind).toBe('climb');
+  });
+  it('3. a Not yet Reel keeps its ⏳ note for the card', () => {
+    const s = pickNextStep(base({ reels: [reel('hidden', '2026-11-20', '⏳ มืดไปหน่อยครับ\n⏳ A bit too dark.')] }))!;
+    expect(s).toMatchObject({ kind: 'retry', note: '⏳ มืดไปหน่อยครับ\n⏳ A bit too dark.' });
   });
   it('3. long notes are kept short', () => { expect(shortNote('a'.repeat(200)).length).toBe(90); });
   it('4. latest Reel pending: info only, no button', () => {
