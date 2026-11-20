@@ -51,3 +51,6 @@
 .v8-app-root #s-me .rv4-me .go-me { margin-top: 10px !important; }
 .v8-app-root #s-me .rv4-me .kme-verify { margin-top: 10px; }
 .v8-app-root #s-me .rv4-me .nx-cardwrap { margin-top: 10px; }
+/* the strip stays one tight row: the "Post" pill lives on the grid's + tile, the week line gets the room */
+.v8-app-root #s-me .rv5-mstrip .rv4-mpost { display: none; }
+.v8-app-root #s-me .rv5-mstrip .rv4-mw b { overflow: visible; }
