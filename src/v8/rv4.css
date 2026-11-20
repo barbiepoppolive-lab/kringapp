@@ -144,13 +144,13 @@
 .v8-app-root .rv4-q { position: relative; isolation: isolate; overflow: hidden; padding: 22px 20px 16px !important; border-bottom: 0 !important; }
 .v8-app-root .rv4-q + .rv4-q { margin-top: 2px; }
 /* a real Bangkok street photo behind every question, tinted pink / blue / gold / teal card to card */
-.v8-app-root .rv4-scene { position: absolute; inset: 0; z-index: -2; background-size: cover; background-position: center; opacity: .55; filter: saturate(1.25) contrast(1.05); }
+.v8-app-root .rv4-scene { position: absolute; inset: 0; z-index: -2; background-size: cover; background-position: center; opacity: .85; filter: saturate(1.4) contrast(1.08); }
 .v8-app-root .rv4-q::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-  background: linear-gradient(180deg, rgba(14,15,25,.55) 0%, rgba(14,15,25,.78) 45%, rgba(14,15,25,.96) 100%), var(--rv4-tint); }
-.v8-app-root .rv4-q.t-pk { --rv4-tint: linear-gradient(120deg, rgba(236,70,182,.42), rgba(236,70,182,0) 60%); --rv4-acc: #FF8AD8; }
-.v8-app-root .rv4-q.t-bl { --rv4-tint: linear-gradient(120deg, rgba(115,123,255,.45), rgba(115,123,255,0) 60%); --rv4-acc: #A9AEFF; }
-.v8-app-root .rv4-q.t-gd { --rv4-tint: linear-gradient(120deg, rgba(216,180,119,.40), rgba(216,180,119,0) 60%); --rv4-acc: #E8C98E; }
-.v8-app-root .rv4-q.t-tl { --rv4-tint: linear-gradient(120deg, rgba(56,200,190,.38), rgba(56,200,190,0) 60%); --rv4-acc: #7FE3D8; }
+  background: linear-gradient(180deg, rgba(14,15,25,.30) 0%, rgba(14,15,25,.62) 50%, rgba(14,15,25,.90) 100%), var(--rv4-tint); }
+.v8-app-root .rv4-q.t-pk { --rv4-tint: linear-gradient(120deg, rgba(236,70,182,.62), rgba(236,70,182,.08) 70%); --rv4-acc: #FF8AD8; }
+.v8-app-root .rv4-q.t-bl { --rv4-tint: linear-gradient(120deg, rgba(115,123,255,.65), rgba(115,123,255,.08) 70%); --rv4-acc: #A9AEFF; }
+.v8-app-root .rv4-q.t-gd { --rv4-tint: linear-gradient(120deg, rgba(230,170,80,.6), rgba(230,170,80,.08) 70%); --rv4-acc: #E8C98E; }
+.v8-app-root .rv4-q.t-tl { --rv4-tint: linear-gradient(120deg, rgba(40,210,190,.58), rgba(40,210,190,.08) 70%); --rv4-acc: #7FE3D8; }
 .v8-app-root .rv4-qwho { gap: 8px !important; }
 .v8-app-root .rv4-qwho .rva-meta { font: 500 0.875rem var(--rv-f) !important; color: rgba(255,255,255,.78) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .v8-app-root .rv4-qwho .rva-meta b { font-weight: 600; color: #fff; }
@@ -276,3 +276,10 @@
 .v8-app-root .rv4-chats .rv4-cempty { padding: 40px 28px 24px; text-align: center; font-family: var(--rv-f); }
 .v8-app-root .rv4-chats .rv4-cempty b { display: block; font: 600 1rem var(--rv-f); color: #fff; margin-bottom: 6px; }
 .v8-app-root .rv4-chats .rv4-cempty span { display: block; font: 500 0.8125rem/1.5 var(--rv-f); color: var(--rv-mu); }
+
+/* rv4 check fixes (20 Nov): Me edge to edge on the mock's colour; tasks line spacing; Chats as a full page */
+.v8-app-root #s-me:has(.rv4-me) { padding-left: 0; padding-right: 0; background: var(--rv-mid); }
+.v8-app-root #s-me .rv4-me .dt-meline { margin: 8px 20px 0; width: calc(100% - 40px); padding: 10px 0; }
+.v8-app-root #s-me .rv4-me .dt-meline .dt-ring { width: 32px; height: 32px; }
+.v8-app-root #sh-inbox.rv4-chats { top: 0 !important; bottom: 0 !important; max-height: none !important; height: 100% !important; border-radius: 0 !important; }
+.v8-app-root .dt-ring .in { position: relative; z-index: 1; display: grid; place-items: center; width: 100%; height: 100%; } .v8-app-root .dt-ring .in > svg.dt-rings { position: static; inset: auto; width: 15px; height: 9px; }
