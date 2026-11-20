@@ -34,7 +34,8 @@ import { photoStateChip } from './photoOk';   // 0122: one-tap Photo OK
 import { helpSection } from './adminHelp';   // 0097: Help cases (self-contained)
 import { helpPanelLeave, helpPanelView } from './helpPanel';   // 0120: full Help panel (#help, #help/<uid>)
 import { bugSection, viewAsLeave, viewAsView } from './viewAs';   // 0110: View as member + Spot a bug cases
-import { farmAlertList, farmBoardMark, farmSection } from './farmCheck';   // 0123: Ring-farming check (self-contained)
+import { farmAlertList, farmBoardMark, farmSection } from './farmCheck';
+import { accountCheckSection } from './accountChecks';   // 0171: refused duplicate faces → one-tap account checks   // 0123: Ring-farming check (self-contained)
 import { copyLabel, feedLabel, feedOffReason, loadReelChecks, setReelFeed, type ReelCheck } from './reelChecks';   // 0145/0147
 import { feedQualityBlock } from './feedQuality';   // 0150 Autopilot · Feed quality
 import { cleanSnapshot, hiddenAlert, holdLines, isAwsFacts, isRetiredFaceLink, plainAlertText, plainDetail, robotName } from './adminClean';   // 19 Nov clean-up
@@ -169,11 +170,13 @@ export type V2Tab = 'growth' | 'today' | 'inbox' | 'people' | 'board' | 'money' 
 /** 0097: members waiting in Help also count in the Needs you badge (last known count, refreshed by helpSection) */
 let helpWaiting = 0;
 let bugsWaiting = 0;   // 0110: open "Spot a bug" cases also count in the Needs you badge
+let acctWaiting = 0;   // 0171: open "Account check" requests (refused duplicate faces) count in the badge too
+function setAcctWaiting(n: number) { acctWaiting = n; setHelpWaiting(helpWaiting); }
 function decisionsCount(): number { return snap ? buildInbox(snap).items.filter((i) => !hiddenKeys.has(i.key)).length : 0; }
 function setBugsWaiting(n: number) { const was = bugsWaiting; bugsWaiting = n; setHelpWaiting(helpWaiting); if (was !== n && location.hash === '#inbox') rerender?.(); }
 function setHelpWaiting(n: number) {
   helpWaiting = n;
-  const total = decisionsCount() + helpWaiting + bugsWaiting;
+  const total = decisionsCount() + helpWaiting + bugsWaiting + acctWaiting;
   const tab = document.getElementById('tab-inbox');
   let b = document.getElementById('inboxBadge');
   if (!total) { b?.remove(); return; }
@@ -181,7 +184,7 @@ function setHelpWaiting(n: number) {
   if (b) b.textContent = String(total);
 }
 export function v2Tabbar(active: V2Tab): HTMLElement {
-  const n = decisionsCount() + helpWaiting + bugsWaiting;
+  const n = decisionsCount() + helpWaiting + bugsWaiting + acctWaiting;
   // 18 Nov (0113): Growth first (the page admin opens on); Board lives in More so the dock stays at 5
   const items: [V2Tab, string, string, string][] = [['growth', 'growth', 'Growth', '#growth'], ['today', 'today', 'Today', '#today'], ['inbox', 'inbox', 'Needs you', '#inbox'],
     ['people', 'people', 'People', '#people'], ['more', 'more', 'More', '#more']];
@@ -877,6 +880,7 @@ export function inboxView() {
   const help = helpSection(setHelpWaiting);   // 0097: created once per visit, so a half-typed reply survives the 30 s refresh
   const bugs = bugSection(setBugsWaiting);    // 0110: "Spot a bug" notes from View as member, one case per card
   const farm = farmSection();                 // 0123: Ring-farming check cards, top of Needs you
+  const acct = accountCheckSection(setAcctWaiting);   // 0171: refused duplicate faces asking for a check, top of Needs you
   void withSnap('inbox', (s) => {
     const { items, handled, preview } = buildInbox(s);
     const open = items.filter((i) => !hiddenKeys.has(i.key));
@@ -896,6 +900,7 @@ export function inboxView() {
     const redN = alerts.filter((a) => a.severity === 'red').length;
     const filterName = INBOX_FILTERS.find((f) => f.key === inboxFilter)?.label || 'All';
     screen('inbox', header('Needs you', open.length + bugsWaiting ? `${open.length + bugsWaiting} decision${open.length + bugsWaiting === 1 ? '' : 's'}` : 'Inbox zero'),
+      acct,
       farm,
       // 6 alert boxes → one status line (opens to the same Alert centre)
       fold('v2AlertFold', foldHead(alerts.length ? `${alerts.length} robot alert${alerts.length === 1 ? '' : 's'}` : 'All robots OK', redN ? `${redN} broken` : alerts.length ? 'none broken' : '0 alerts', redN ? 'r' : alerts.length ? 'a' : 'g'),
@@ -903,7 +908,7 @@ export function inboxView() {
       help,
       bugs,
       open.length ? fold('v2FilterFold', foldHead(`Showing ${filterName.toLowerCase()} · ${shown.length}`, 'Filter'), [chips], 'lt-filter') : null,
-      open.length || bugsWaiting ? null : el('div', { class: 'v2zero', id: 'v2Zero' }, ic('check'), el('b', {}, 'Nothing needs you'), el('span', {}, 'Everything else was handled automatically.')),
+      open.length || bugsWaiting || acctWaiting ? null : el('div', { class: 'v2zero', id: 'v2Zero' }, ic('check'), el('b', {}, 'Nothing needs you'), el('span', {}, 'Everything else was handled automatically.')),
       el('div', { id: 'v2Inbox' }, ...shown.map((i) => inboxCard(i, open))),
       handledBox(handled, preview));
     if (focusCase) {

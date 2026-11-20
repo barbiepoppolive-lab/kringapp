@@ -9,7 +9,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { brightness } from './v5Mp';
 import { DARK } from './verifyLive';
-import { v5ErrCode, v5FaceAwsCheck, v5HandoffCreate, v5LogClient } from './v5Live';
+import { v5AccountCheckRequest, v5ErrCode, v5FaceAwsCheck, v5HandoffCreate, v5LogClient } from './v5Live';
 import { CAM_STEPS, camDenied, camFix, copyText, firstFrame, inAppBrowser, withTimeout } from './camGuard';
 import type { CamFix } from './camGuard';
 import { CamFixCarousel, FaceDoneScreen, OpenInBrowserGuide, guideApp } from './faceGuides';
@@ -18,7 +18,7 @@ import './verify.css';
 import './verifyAws.css';
 
 type Tx = (en: string) => string;
-type Stage = 'needphoto' | 'intro' | 'camera' | 'sending' | 'pass' | 'review' | 'retry' | 'limit' | 'error';
+type Stage = 'needphoto' | 'intro' | 'camera' | 'sending' | 'pass' | 'review' | 'retry' | 'limit' | 'error' | 'refused';
 export type AwsStep = 'straight' | 'left' | 'right';
 export const AWS_STEPS: readonly AwsStep[] = ['straight', 'left', 'right'];
 
@@ -201,6 +201,7 @@ export function V5VerifyAws(props: { L: Tx; photo: string | null; nudge?: boolea
       setLeft(typeof r.tries_left === 'number' ? r.tries_left : null);
       if (r.result === 'pass') { setStage('pass'); props.onVerified?.(); }
       else if (r.result === 'review') { setStage('review'); props.onSent(); }
+      else if (r.result === 'refused') { v5LogClient('verify_aws_refused', 'same_face'); setStage('refused'); }
       else { v5LogClient('verify_aws_retry', r.why || 'retry'); setWhy(r.why || 'no_face'); setStage('retry'); }
     } catch (e) {
       const code = v5ErrCode(e);
@@ -294,6 +295,9 @@ export function V5VerifyAws(props: { L: Tx; photo: string | null; nudge?: boolea
         </Panel>
       )}
 
+      {/* 0171 (20 Nov, founder): the same face is already on another account → refused automatically, with a one-tap appeal */}
+      {stage === 'refused' && <RefusedPanel L={L} onClose={close} />}
+
       {stage === 'limit' && (
         <Panel L={L} onClose={close} icon="fail" title={L('That’s 3 tries for today')} text={L('Try again tomorrow, in good light.')} id="verifyLimit">
           <button type="button" className="kfv2-cta" onClick={close}>{L('OK')}</button>
@@ -350,5 +354,35 @@ function Panel(props: { L: Tx; onClose: () => void; icon: 'photo' | 'intro' | 'f
       {props.text ? <p className="kfv2-text">{props.text}</p> : null}
       <div className="kfv2-acts">{props.children}</div>
     </div>
+  );
+}
+
+/** 0171: "one person, one account" refusal. One tap sends an account check request to Kring (optional short note). */
+export function RefusedPanel({ L, onClose, send = v5AccountCheckRequest }: { L: Tx; onClose: () => void; send?: (note?: string) => Promise<string> }) {
+  const [note, setNote] = useState('');
+  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const ask = async () => {
+    setState('sending');
+    try { await send(note); setState('sent'); v5LogClient('verify_aws_appeal', 'sent'); }
+    catch { setState('error'); }
+  };
+  return (
+    <Panel L={L} onClose={onClose} icon="fail" id="verifyRefused" title={L('This face is already on another Kring account')}
+      text={L('Kring is one person, one account, so this account can’t be verified or win prizes.')}>
+      {state === 'sent' ? (
+        <p className="kfv2-small" id="verifyAppealSent" role="status">{L('Sent ✓ Our team will check your account and reply in your Kring messages.')}</p>
+      ) : (
+        <>
+          <label className="kfv2-small" htmlFor="verifyAppealNote" style={{ display: 'block', textAlign: 'left' }}>{L('Anything we should know? (optional)')}</label>
+          <textarea id="verifyAppealNote" className="kfv2-note" maxLength={300} rows={2} value={note} onChange={(e) => setNote(e.target.value)}
+            style={{ width: '100%', boxSizing: 'border-box', borderRadius: 12, padding: '10px 12px', font: 'inherit', background: 'rgba(255,255,255,.06)', color: 'inherit', border: '1px solid rgba(255,255,255,.18)' }} />
+          <button type="button" className="kfv2-cta" id="verifyAppeal" disabled={state === 'sending'} onClick={() => void ask()}>
+            {state === 'sending' ? L('Sending…') : L('Ask Kring to check my account')}
+          </button>
+          {state === 'error' && <p className="kfv2-small" role="alert">{L('Couldn’t send. Check your connection and try again.')}</p>}
+        </>
+      )}
+      <button type="button" className="kfv2-2nd" id="verifyRefusedOk" onClick={onClose}>{L('OK')}</button>
+    </Panel>
   );
 }

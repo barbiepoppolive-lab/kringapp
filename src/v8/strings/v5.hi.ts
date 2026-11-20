@@ -759,5 +759,10 @@ const T: Record<string, string> = {
   'Choose from gallery': 'गैलरी से चुनें',
   'Change photo': 'फ़ोटो बदलें',
   'Checking photo…': 'फ़ोटो जाँची जा रही है…',
+  'Kring is one person, one account, so this account can’t be verified or win prizes.': 'Kring में एक व्यक्ति, एक अकाउंट का नियम है, इसलिए यह अकाउंट वेरिफ़ाई नहीं हो सकता और इनाम नहीं जीत सकता।',
+  'Sent ✓ Our team will check your account and reply in your Kring messages.': 'भेज दिया ✓ हमारी टीम आपका अकाउंट जाँचेगी और Kring मैसेज में जवाब देगी।',
+  'Anything we should know? (optional)': 'कुछ बताना चाहेंगे? (वैकल्पिक)',
+  'Ask Kring to check my account': 'Kring से मेरा अकाउंट जाँचने को कहें',
+  'Couldn’t send. Check your connection and try again.': 'भेज नहीं पाए। कनेक्शन जाँचकर फिर कोशिश करें।',
 };
 export default T;
