@@ -1,0 +1,198 @@
+/* ==========================================================================
+   Revamp 2 (20 Nov) — ChatGPT "visual redesign direction", applied as BEAUTIFYING, not a redesign.
+   Founder rules: dark only (no cream) · keep each screen recognisable · no heavy/opaque boxes ·
+   one language at a time · Feed and Deals untouched (every rule below is scoped to People,
+   a member's profile or Me).
+   1. Foundation: tokens, type scale, spacing, one shared button + photo-card style.
+   2. People  3. Member profile  4. Me
+   ========================================================================== */
+
+@font-face { font-family: 'RvInter'; font-style: normal; font-weight: 400; font-display: swap; src: url('./rvfonts/inter-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'RvInter'; font-style: normal; font-weight: 500; font-display: swap; src: url('./rvfonts/inter-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'RvInter'; font-style: normal; font-weight: 600; font-display: swap; src: url('./rvfonts/inter-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'RvInter'; font-style: normal; font-weight: 700; font-display: swap; src: url('./rvfonts/inter-latin-700-normal.woff2') format('woff2'); }
+
+/* ---------- 1. Foundation ---------- */
+.v8-app-root {
+  --rv-mid: #0E0F19; --rv-surf: #1A1B2C; --rv-pk: #EC46B6; --rv-bl: #737BFF; --rv-mu: #A6A4B5; --rv-gd: #D8B477;
+  --rv-ln: rgba(255,255,255,.08); --rv-ln2: rgba(255,255,255,.14); --rv-gdl: rgba(216,180,119,.28);
+  --rv-f: 'RvInter', 'Noto Sans Thai', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --rv-ez: cubic-bezier(.22,1,.36,1);
+}
+html[lang="th"] .v8-app-root { --rv-f: 'Noto Sans Thai', 'RvInter', system-ui, sans-serif; }
+
+/* type scale: screen title 24 · section 18 · card title 16 · body 15 · meta 12 */
+.v8-app-root :is(#s-people, #s-me, #profileView) :is(.rv-phead, .rv-pc, .rv-id, .rv-stats, .rv-acts, .rv-wk, .rv-rings, .rv-week, .rv-found, .rv-rh) {
+  font-family: var(--rv-f);
+}
+
+/* the shared primary button (soft pink glow) and the shared quiet button */
+.v8-app-root .rv-hi {
+  height: 52px; border-radius: 26px; border: 0; padding: 0 22px; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  background: linear-gradient(180deg, #F054BF, #DB3AA6); color: #fff; font: 600 1rem var(--rv-f); letter-spacing: -.005em;
+  box-shadow: 0 10px 26px -12px rgba(236,70,182,.8); cursor: pointer; transition: transform .16s var(--rv-ez);
+}
+.v8-app-root .rv-fol {
+  height: 52px; border-radius: 26px; padding: 0 22px; background: transparent; color: #fff; font: 600 1rem var(--rv-f);
+  box-shadow: inset 0 0 0 1px var(--rv-ln2); border: 0; cursor: pointer; transition: transform .16s var(--rv-ez);
+}
+.v8-app-root .rv-fol.on { color: var(--rv-mu); }
+.v8-app-root :is(.rv-hi, .rv-fol, .rv-pc .hibtn):active { transform: scale(.95); }
+/* Say hi = the brand rings, which slide together when pressed (motion table: "Say hi → button gently compresses") */
+.v8-app-root .rv-hi-rings { position: relative; width: 22px; height: 14px; flex: none; display: inline-block; }
+.v8-app-root .rv-hi-rings i { position: absolute; top: 0; width: 14px; height: 14px; border-radius: 50%; border: 2px solid; box-sizing: border-box; transition: transform .2s var(--rv-ez); }
+.v8-app-root .rv-hi-rings i:first-child { left: 0; border-color: #C3C8FF; }
+.v8-app-root .rv-hi-rings i:last-child { left: 8px; border-color: #FFC2E8; }
+.v8-app-root :is(.rv-hi, .rv-pc .hibtn):active .rv-hi-rings i:first-child { transform: translateX(2px); }
+.v8-app-root :is(.rv-hi, .rv-pc .hibtn):active .rv-hi-rings i:last-child { transform: translateX(-2px); }
+
+/* ✓ that draws itself once */
+.v8-app-root .rv-chk { width: .82em; height: .82em; margin-left: .3em; vertical-align: -.06em; flex: none; }
+.v8-app-root .rv-chk circle { fill: var(--rv-bl); }
+.v8-app-root .rv-chk path { fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 14; stroke-dashoffset: 14; animation: rvChk .5s .15s var(--rv-ez) forwards; }
+@keyframes rvChk { to { stroke-dashoffset: 0; } }
+
+/* the hairline stat row (Reels · Followers · Following) — no box */
+.v8-app-root .rv-stats { display: flex !important; align-items: stretch; margin: 20px 0 0 !important; padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important; gap: 0 !important; }
+.v8-app-root .rv-stats > * { flex: 1; display: flex !important; flex-direction: column; align-items: center; gap: 3px; padding: 2px 0 !important; background: none !important; border: 0 !important; border-radius: 0 !important; min-width: 0; color: inherit; }
+.v8-app-root .rv-stats > * + * { box-shadow: inset 1px 0 0 var(--rv-ln) !important; }
+.v8-app-root .rv-stats b { font: 600 1.25rem/1.15 var(--rv-f) !important; color: #fff; letter-spacing: -.01em; display: block; }
+.v8-app-root .rv-stats > * > span { font: 500 0.75rem var(--rv-f) !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--rv-mu) !important; white-space: nowrap; }
+
+/* identity: photo, name ✓, area · languages, short bio (Me and a member's profile share it) */
+.v8-app-root .rv-id { margin: 0; padding: 0; }
+.v8-app-root .rv-idph { position: relative; width: 100%; aspect-ratio: 4 / 3; max-height: 300px; border-radius: 24px; background: var(--rv-surf) center 30% / cover no-repeat; overflow: hidden; }
+.v8-app-root .rv-idph::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); pointer-events: none; }
+.v8-app-root .rv-idini { position: absolute; inset: 0; display: grid; place-items: center; font: 600 3rem var(--rv-f); color: var(--rv-mu); }
+.v8-app-root .rv-idnm { display: flex; align-items: center; margin: 16px 0 0; font: 700 1.625rem/1.15 var(--rv-f); letter-spacing: -.02em; color: #fff; }
+.v8-app-root .rv-idsub { margin: 4px 0 0; font: 500 0.875rem/1.4 var(--rv-f); color: var(--rv-mu); }
+.v8-app-root .rv-idbio { margin: 10px 0 0; font: 400 0.9375rem/1.5 var(--rv-f); color: #E9E6F2; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.v8-app-root .rv-idx { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+
+/* section heading (18) */
+.v8-app-root .rv-sech { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 0 0 12px; }
+.v8-app-root .rv-sech b { font: 600 1.125rem var(--rv-f); color: #fff; letter-spacing: -.01em; }
+.v8-app-root .rv-sech span { font: 500 0.75rem var(--rv-f); color: var(--rv-mu); white-space: nowrap; }
+
+/* ---------- 2. People ---------- */
+.v8-app-root #s-people .rv-phead { padding: max(18px, env(safe-area-inset-top)) 4px 0 !important; }
+.v8-app-root #s-people .rv-ptop { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-right: 48px; }
+.v8-app-root #s-people .rv-ptop .ppl-title { font: 700 1.5rem var(--rv-f) !important; letter-spacing: -.02em; margin: 0 !important; color: #fff; }
+.v8-app-root #s-people .rv-sic { width: 40px; height: 40px; border-radius: 50%; border: 0; display: grid; place-items: center; background: rgba(255,255,255,.06); color: #E9E6F2; cursor: pointer; }
+.v8-app-root #s-people .rv-sic.on { background: rgba(255,255,255,.12); }
+.v8-app-root #s-people .rv-sic svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+/* segments: plain words, the active one gets a small pink underline (no filled pills) */
+.v8-app-root #s-people .rv-seg { display: flex !important; gap: 22px !important; margin: 14px 0 0 !important; padding: 0 !important; overflow: visible; box-shadow: inset 0 -1px 0 var(--rv-ln); }
+.v8-app-root #s-people .rv-seg button { height: 38px !important; padding: 0 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; color: var(--rv-mu) !important; font: 600 0.9375rem var(--rv-f) !important; position: relative; }
+.v8-app-root #s-people .rv-seg button.on { color: #fff !important; }
+.v8-app-root #s-people .rv-seg button.on::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; border-radius: 2px; background: var(--rv-pk); box-shadow: 0 0 8px rgba(236,70,182,.55); }
+/* filter chips: hairline outline, no fill */
+.v8-app-root #s-people .rv-fchips { display: flex; gap: 8px; margin: 14px 0 0; overflow-x: auto; scrollbar-width: none; }
+.v8-app-root #s-people .rv-fchips::-webkit-scrollbar { display: none; }
+.v8-app-root #s-people .rv-fchips button { flex: none; height: 34px; padding: 0 14px; border-radius: 17px; border: 0; display: inline-flex; align-items: center; gap: 6px; background: none; color: #E9E6F2; font: 500 0.8125rem var(--rv-f); box-shadow: inset 0 0 0 1px var(--rv-ln2); cursor: pointer; white-space: nowrap; }
+.v8-app-root #s-people .rv-fchips button svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
+.v8-app-root #s-people .rv-fchips button i { font-style: normal; font-size: .7em; opacity: .7; }
+.v8-app-root #s-people .rv-fchips button.on { color: #fff; background: rgba(236,70,182,.14); box-shadow: inset 0 0 0 1px rgba(236,70,182,.5); }
+.v8-app-root #s-people .rv-fchips button.open { box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
+.v8-app-root #s-people .rv-fchips button:disabled { opacity: .45; }
+.v8-app-root #s-people .rv-fsub { display: flex; gap: 8px; margin: 10px 0 0; overflow-x: auto; scrollbar-width: none; }
+.v8-app-root #s-people .rv-fsub::-webkit-scrollbar { display: none; }
+.v8-app-root #s-people .rv-fsub button { flex: none; height: 32px; padding: 0 13px; border-radius: 16px; border: 0; background: rgba(255,255,255,.05); color: #E9E6F2; font: 500 0.8125rem var(--rv-f); cursor: pointer; white-space: nowrap; }
+.v8-app-root #s-people .rv-fsub button.on { background: #fff; color: #0E0F19; }
+.v8-app-root #s-people .rv-fnone { font: 500 0.8125rem var(--rv-f); color: var(--rv-mu); padding: 6px 0; }
+.v8-app-root #s-people .search-row { margin-top: 12px; }
+
+/* member cards: a natural portrait, no neon frame, no glow; name ✓ and area · languages sit softly on the photo */
+.v8-app-root #pplGrid { gap: 12px !important; margin-top: 16px !important; }
+.v8-app-root #pplGrid .pcard.rv-pc { position: relative; height: auto !important; aspect-ratio: 3 / 4.15; border: 0 !important; border-radius: 16px !important; box-shadow: none !important; background: var(--rv-surf) !important; overflow: hidden; }
+.v8-app-root #pplGrid .rv-pc .rv-ph { position: absolute; inset: 0; }
+.v8-app-root #pplGrid .rv-pc .rv-ph .img { position: absolute; inset: 0; background-size: cover; background-position: center 30%; transition: transform .5s var(--rv-ez); }
+.v8-app-root #pplGrid .rv-pc .rv-ph::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,10,18,.82) 0%, rgba(10,10,18,.5) 18%, rgba(10,10,18,0) 40%); pointer-events: none; }
+.v8-app-root #pplGrid .rv-pc .odot { position: absolute; z-index: 2; left: 10px; top: 10px; width: 8px; height: 8px; border-radius: 50%; background: #6EE7A8; box-shadow: 0 0 0 2px rgba(10,10,18,.5); }
+.v8-app-root #pplGrid .rv-pc .info { position: absolute !important; z-index: 2; left: 12px !important; right: 12px !important; bottom: 12px !important; padding: 0 !important; background: none !important; border: 0 !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; text-shadow: 0 1px 6px rgba(0,0,0,.45); }
+.v8-app-root #pplGrid .rv-pc .top { display: flex !important; align-items: center; min-width: 0; }
+.v8-app-root #pplGrid .rv-pc .nm { font: 600 1rem/1.2 var(--rv-f) !important; letter-spacing: -.01em; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.45) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root #pplGrid .rv-pc .v { flex: none; width: 15px; height: 15px; margin-left: 5px; padding: 0 !important; border-radius: 50%; border: 0 !important; background: var(--rv-bl) !important; color: #fff !important; font: 700 0.5625rem/15px var(--rv-f) !important; text-align: center; text-shadow: none; }
+.v8-app-root #pplGrid .rv-pc .langs { display: block !important; margin: 2px 0 0 !important; font: 500 0.75rem/1.35 var(--rv-f) !important; color: rgba(255,255,255,.78) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root #pplGrid .rv-pc .langs::before { content: none !important; }
+.v8-app-root #pplGrid .rv-pc .rv-area::after { content: ' · '; }
+.v8-app-root #pplGrid .rv-pc .rv-tags { display: flex; gap: 5px; margin-top: 7px; overflow: hidden; }
+.v8-app-root #pplGrid .rv-pc .rv-tags span { flex: none; padding: 3px 8px; border-radius: 10px; font: 500 0.6875rem var(--rv-f); color: #fff; background: rgba(255,255,255,.14); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); text-shadow: none; }
+/* Say hi: one soft pill in the corner of every card (pink rings + words), glass, not a glowing button */
+.v8-app-root #pplGrid .rv-pc .hibtn { position: absolute !important; z-index: 3; top: 10px !important; right: 10px !important; left: auto !important; bottom: auto !important; width: auto !important; height: 32px !important; padding: 0 12px 0 10px !important; border-radius: 16px !important; display: inline-flex !important; align-items: center; gap: 6px;
+  background: rgba(14,15,25,.5) !important; border: 0 !important; box-shadow: inset 0 0 0 1px rgba(255,255,255,.16) !important; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #fff !important; transition: transform .16s var(--rv-ez); }
+.v8-app-root #pplGrid .rv-pc .hibtn .rv-hi-t { font: 600 0.75rem var(--rv-f); }
+.v8-app-root #pplGrid .rv-pc .hibtn .rv-hi-rings { width: 18px; height: 11px; }
+.v8-app-root #pplGrid .rv-pc .hibtn .rv-hi-rings i { width: 11px; height: 11px; border-width: 1.8px; }
+.v8-app-root #pplGrid .rv-pc .hibtn .rv-hi-rings i:first-child { border-color: #AAB0FF; }
+.v8-app-root #pplGrid .rv-pc .hibtn .rv-hi-rings i:last-child { left: 7px; border-color: #FF8CD6; }
+@media (hover: hover) { .v8-app-root #pplGrid .rv-pc:hover .rv-ph .img { transform: scale(1.03); } }
+
+/* ---------- 3. A member's profile ---------- */
+.v8-app-root #profileView.go-prof { padding-left: 20px; padding-right: 20px; }
+.v8-app-root #profileView .rv-id { margin-top: 10px; }
+.v8-app-root #profileView .rv-acts { display: flex !important; flex-direction: row !important; gap: 10px; margin: 20px 0 0; }
+.v8-app-root #profileView .rv-acts .rv-hi { flex: 1.5; }
+.v8-app-root #profileView .rv-acts .rv-fol { flex: 1; }
+/* Rings this week: a quiet line, not a badge */
+.v8-app-root #profileView .rv-wk { display: flex; align-items: center; gap: 8px; width: 100%; margin: 18px 0 0; padding: 12px 0; background: none; border: 0; border-radius: 0;
+  box-shadow: inset 0 1px 0 var(--rv-ln), inset 0 -1px 0 var(--rv-ln); color: #fff; font: 500 0.875rem var(--rv-f); cursor: pointer; text-align: left; }
+.v8-app-root #profileView .rv-wk b { font: 600 1rem var(--rv-f); }
+.v8-app-root #profileView .rv-wk span { color: var(--rv-mu); flex: 1; }
+.v8-app-root #profileView .rv-wk i { font-style: normal; color: var(--rv-mu); font-size: 1.1rem; }
+.v8-app-root #profileView .rv-wk svg { width: 20px; height: 14px; }
+.v8-app-root #profileView .rv-rh { margin-top: 8px !important; }
+.v8-app-root #profileView .rv-rh button { font-family: var(--rv-f); }
+.v8-app-root #profileView .rv-rh button.on { box-shadow: inset 0 -2px 0 var(--rv-pk) !important; }
+
+/* ---------- 4. Me ---------- */
+.v8-app-root #s-me .kme > .rv-id, .v8-app-root #s-me .rv-id#meIdentity { margin: 12px 20px 0; }
+.v8-app-root #s-me .rv-pencil { position: absolute !important; z-index: 2; right: 12px !important; top: auto !important; bottom: 12px !important; left: auto !important; width: 38px !important; height: 38px !important;
+  border-radius: 50%; border: 0 !important; background: rgba(14,15,25,.5) !important; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.v8-app-root #s-me #meStats.rv-stats { margin: 20px 20px 0 !important; }
+/* 3 · Rings balance: prominent, calm. One line between two hairlines; the number carries it. */
+.v8-app-root #s-me .rv-rings { position: relative; display: grid; grid-template-columns: 1fr auto 14px; grid-template-rows: auto auto; align-items: center; column-gap: 10px; width: calc(100% - 40px); margin: 20px 20px 0; padding: 14px 0;
+  background: none; border: 0; border-radius: 0; box-shadow: inset 0 1px 0 var(--rv-ln), inset 0 -1px 0 var(--rv-ln); color: #fff; text-align: left; cursor: pointer; }
+.v8-app-root #s-me .rv-rings .rv-rl { grid-column: 1; grid-row: 1; font: 500 0.875rem var(--rv-f); color: var(--rv-mu); }
+.v8-app-root #s-me .rv-rings .rv-rsub { grid-column: 1; grid-row: 2; font: 500 0.75rem var(--rv-f); color: var(--rv-gd); margin-top: 2px; }
+.v8-app-root #s-me .rv-rings .rv-rnum { grid-column: 2; grid-row: 1 / span 2; display: inline-flex; align-items: center; gap: 8px; font: 600 1.75rem/1 var(--rv-f); letter-spacing: -.02em; }
+.v8-app-root #s-me .rv-rings .rv-rnum svg { width: 26px; height: 17px; }
+.v8-app-root #s-me .rv-rings > svg, .v8-app-root #s-me .rv-rings > :last-child:not(span):not(i) { grid-column: 3; grid-row: 1 / span 2; color: var(--rv-mu); width: 14px; height: 14px; }
+.v8-app-root #s-me .rv-rings .kx-tdot { position: absolute; top: 12px; right: 0; }
+/* next-step card and the Founding milestone sit on the page, not in heavy boxes */
+.v8-app-root #s-me .rv-found { margin: 24px 20px 0 !important; padding: 18px 18px 14px !important; border-radius: 24px !important;
+  background: linear-gradient(160deg, rgba(216,180,119,.09), rgba(216,180,119,0) 55%) !important; box-shadow: inset 0 0 0 1px var(--rv-gdl) !important; font-family: var(--rv-f); }
+.v8-app-root #s-me .rv-found .rv-fk { display: block; font: 600 0.6875rem var(--rv-f); letter-spacing: .08em; text-transform: uppercase; color: var(--rv-gd); margin-bottom: 6px; }
+html[lang="th"] .v8-app-root #s-me .rv-found .rv-fk { letter-spacing: 0; text-transform: none; font-size: 0.8125rem; }
+.v8-app-root #s-me .rv-found .h b { font: 700 1.125rem var(--rv-f) !important; color: #fff; }
+.v8-app-root #s-me .rv-found .h span { font: 500 0.75rem var(--rv-f) !important; color: var(--rv-mu) !important; }
+.v8-app-root #s-me .rv-found .rv-fbar { height: 3px !important; margin: 12px 0 6px !important; background: rgba(255,255,255,.1) !important; }
+.v8-app-root #s-me .rv-found .rv-fbar i { background: var(--rv-gd) !important; }
+.v8-app-root #s-me .rv-fsteps { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; }
+.v8-app-root #s-me .rv-fsteps li { display: flex; align-items: center; gap: 12px; min-height: 44px; font: 500 0.9375rem var(--rv-f); color: #E9E6F2; }
+.v8-app-root #s-me .rv-fsteps li + li { box-shadow: inset 0 1px 0 var(--rv-ln); }
+.v8-app-root #s-me .rv-fsteps li > b { width: 26px; height: 26px; flex: none; border-radius: 50%; display: grid; place-items: center; font: 600 0.75rem var(--rv-f); color: var(--rv-mu); box-shadow: inset 0 0 0 1px var(--rv-ln2); }
+.v8-app-root #s-me .rv-fsteps li.d > b { background: var(--rv-gd); color: #1d1606; box-shadow: none; }
+.v8-app-root #s-me .rv-fsteps li.d > span { color: var(--rv-mu); }
+.v8-app-root #s-me .rv-fsteps li.c { padding: 0; }
+.v8-app-root #s-me .rv-fsteps li.c .st { min-height: 44px !important; font: 600 0.9375rem var(--rv-f) !important; color: #fff !important; }
+.v8-app-root #s-me .rv-fsteps li.c .st > i { width: 26px !important; height: 26px !important; box-shadow: inset 0 0 0 1.5px var(--rv-pk) !important; color: #fff !important; font: 600 0.75rem var(--rv-f) !important; }
+.v8-app-root #s-me .rv-fsteps li.c .st em { color: var(--rv-gd) !important; font: 600 0.9375rem var(--rv-f) !important; }
+.v8-app-root #s-me .rv-found #kxFoundingPaid { font: 500 0.75rem/1.45 var(--rv-f) !important; color: var(--rv-mu) !important; margin: 6px 0 0 !important; }
+.v8-app-root #s-me .rv-fguide { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 10px; padding: 10px 0 4px; background: none; border: 0; box-shadow: inset 0 1px 0 var(--rv-ln); color: #fff; font: 600 0.875rem var(--rv-f); cursor: pointer; }
+.v8-app-root #s-me .rv-fguide i { font-style: normal; color: var(--rv-gd); font-size: 1.1rem; }
+.v8-app-root #s-me .rv-found .kx-fc-link { font: 500 0.8125rem var(--rv-f) !important; color: var(--rv-mu) !important; }
+/* 5 · weekly ranking & rewards: a titled section with one hairline row */
+.v8-app-root #s-me .rv-week { margin: 28px 20px 0; }
+.v8-app-root #s-me .rv-week .rv-wline { margin: 0 !important; border-top: 0 !important; border-bottom: 0 !important; box-shadow: inset 0 1px 0 var(--rv-ln), inset 0 -1px 0 var(--rv-ln); }
+.v8-app-root #s-me .rv-week .rv-wline .c { padding: 14px 4px !important; }
+.v8-app-root #s-me .rv-week .rv-wline .c + .c { border-left: 0 !important; box-shadow: inset 1px 0 0 var(--rv-ln); }
+.v8-app-root #s-me .rv-week .rv-wline small { font: 500 0.75rem var(--rv-f) !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--rv-mu) !important; }
+.v8-app-root #s-me .rv-week .rv-wline b { font: 600 1.25rem var(--rv-f) !important; height: 28px !important; }
+.v8-app-root #s-me .rv-week .rv-wline .gd { color: var(--rv-gd) !important; }
+.v8-app-root #s-me .rv-week .rv-wline b svg { width: 22px; height: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .v8-app-root .rv-chk path { animation: none; stroke-dashoffset: 0; }
+  .v8-app-root :is(.rv-hi, .rv-fol, .rv-pc .hibtn, .rv-hi-rings i, #pplGrid .rv-pc .rv-ph .img) { transition: none; }
+}
