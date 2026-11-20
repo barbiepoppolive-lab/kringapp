@@ -44,10 +44,15 @@ describe('Me tab A: card + one line', () => {
     me({ weekPrize: 0 });
     expect(document.getElementById('kxPrizeNow')!.textContent).toContain('Rewards');
   });
-  it('stats line has followers, following, likes and friends joined; no Share pill, no helper box, no Install chip on screen', () => {
+  it('revamp Phase 1 (ChatGPT): stats are Reels · Followers · Following; friends joined sits on the weekly rewards entry; no Share pill, helper box or Install chip', () => {
     me();
     const s = document.getElementById('meStats')!.textContent || '';
-    for (const t of ['214', 'Followers', '88', 'Following', '1.3k', 'Likes', '3', 'Friends joined']) expect(s).toContain(t);
+    for (const t of ['1', 'Reels', '214', 'Followers', '88', 'Following']) expect(s).toContain(t);
+    expect(s).not.toContain('Likes');
+    expect(document.getElementById('meFriends')!.textContent).toContain('3 friends joined');
+    // identity first, then stats, then the Rings balance, then the weekly entry
+    const order = ['meIdentity', 'meStats', 'meRings', 'kxTiles'].map((id) => document.getElementById(id)!);
+    for (let i = 1; i < order.length; i++) expect(order[i - 1].compareDocumentPosition(order[i]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(document.getElementById('meShare')).toBeNull();
     expect(document.getElementById('meHelpRow')).toBeNull();
     expect(document.getElementById('installChip')).toBeNull();
@@ -80,10 +85,12 @@ describe('Me tab A: card + one line', () => {
   it('Thai mode: Thai only (no English words on the line, stats or menu)', () => {
     me({}, TH);
     fireEvent.click(document.getElementById('meMore')!);
-    const t = [document.getElementById('kxTiles')!, document.getElementById('meStats')!, document.getElementById('meMoreList')!].map((e) => e.textContent).join(' ');
+    const t = [document.getElementById('kxTiles')!, document.getElementById('meStats')!, document.getElementById('meMoreList')!, document.getElementById('meRings')!,
+      document.getElementById('meFriends')!].map((e) => e.textContent).join(' ');
     expect(t).toContain('สัปดาห์นี้');
-    expect(t).toContain('รางวัลตอนนี้');
+    expect(t).toContain('บัตรกำนัลตอนนี้');
     expect(t).toContain('เพื่อนที่ชวนมา');
+    expect(t).toContain('ริงของคุณ');
     expect(t).toContain('ถามผู้ช่วยกริ๊ง!');
     expect(t.replace(/k\b/g, '')).not.toMatch(/[A-Za-z]{2,}/);
   });

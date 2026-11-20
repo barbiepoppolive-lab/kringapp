@@ -451,7 +451,7 @@ export const v5SetHere = (on: boolean) => rpc<void>('kr8_set_here', { p_on: on }
 interface PersonRow { user_id: string; first_name: string; photo: string | null; langs: string[]; bio: string; area: string; who: 'local' | 'traveller'; here: boolean; verified: boolean }
 export async function v5People(): Promise<V8Person[]> {
   const rows = await rpcLite<PersonRow>('kr8_people', { p_limit: adminViewActive() ? 200 : 60 }, ['user_id', 'first_name', 'photo', 'langs', 'bio', 'area', 'who', 'here', 'verified'], [{ id: 'user_id', photo: 'photo' }]);
-  return photoFirst((rows || []).map((r) => ({
+  const list: V8Person[] = photoFirst((rows || []).map((r) => ({
     id: r.user_id,
     name: r.first_name,
     langs: (r.langs || []).join(' · '),
@@ -465,6 +465,16 @@ export async function v5People(): Promise<V8Person[]> {
     area: r.area,
     here: r.here === true,
   })));
+  // 0170 (revamp Phase 1): interest tags + Reel counts for the cards; additive, the list still shows if this call fails
+  try {
+    const ids = list.map((p) => p.id).filter((id) => /^[0-9a-f-]{36}$/.test(id)).slice(0, 200);
+    if (ids.length) {
+      const ex = await rpcRaw<{ user_id: string; interests: string[] | null; reels: number | null }[] | null>('kr8_people_extras', { p_ids: ids });
+      const by = new Map((ex || []).map((e) => [e.user_id, e] as const));
+      for (const p of list) { const e = by.get(p.id); if (e) { p.interests = e.interests || []; p.reels = e.reels ?? 0; } }
+    }
+  } catch { /* the cards simply show without tags */ }
+  return list;
 }
 export interface FeedRow { id: string; kind: 'photo' | 'plan' | 'ask' | 'reel'; area: string; body: string; photo: string | null; event_id: string | null; here: boolean; created_at: string;
   video_path?: string | null; poster_path?: string | null; reel_status?: 'pending' | 'approved' | null;

@@ -66,6 +66,9 @@ export interface V8Person {
   tags: string;
   area?: string;
   here?: boolean;
+  /** 0170 (revamp Phase 1): interest keys + approved Reel count, from kr8_people_extras (missing when the call fails) */
+  interests?: string[];
+  reels?: number;
 }
 
 export interface V8Deal {

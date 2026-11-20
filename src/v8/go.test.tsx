@@ -191,7 +191,7 @@ describe('profile grid and Me tabs', () => {
     const onOpen = vi.fn();
     render(<GoProfilePage {...pbase} p={profile()} reels={{ user_id: 'u9', mine: false, best: 'r1', reels: [grid('r1'), grid('r2', { this_week: false }), grid('r3')] }} onOpen={onOpen} />);
     expect(document.querySelectorAll('#goGrid .go-gt').length).toBe(3);
-    expect(document.querySelector('.go-cnt')!.textContent).toBe('3Reels12Followers40Likes');
+    expect(document.querySelector('.go-cnt')!.textContent).toBe('3Reels12Followers3Following');
     expect(document.querySelectorAll('.go-gw').length).toBe(2);
     fireEvent.click(document.querySelector('[data-go-tile="r2"]')!);
     expect(onOpen).toHaveBeenCalledWith(1);

@@ -93,7 +93,8 @@ import {
   v5SyncAttribution,
   v5StoredRef,
 } from './v5Live';
-import { ActivitySheet, FollowSheet, InterestsSheet, LANG_NAME, MeView } from './V5Me';
+import { ActivitySheet, FollowSheet, INTEREST, InterestsSheet, LANG_NAME, MeView } from './V5Me';
+import { rvHeroFrom } from './rvMotion';
 import { inAppBrowser, A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip, openInstallSheet, takeInstallAsk } from './A2HS';
 import { parsePushLink, pushConfigured, pushDisable, pushEnable, pushMoment, pushResync, pushState, type PushLink, type PushState } from './push';
 import { PUSH_ASK_LINE, PushAskCard } from './V5Push';
@@ -151,6 +152,8 @@ import { PrizeBanner } from './V5PrizeBanner';
 import { NextStepCard } from './V5NextStep';
 import { hideNextStep, hideVerifyRow, nextStepHidden, pickNextStep, verifyRowHidden } from './nextStep';
 import './kx.css';
+import './rv2.css';
+import { rvArea, rvLangs } from './rvLabels';
 import { fmtN as kxFmtN } from './kxLogic';
 // 16 Nov perf 2: not needed for the first screen, so downloaded separately (see lazyPart)
 // 0125: V5VerifyPick opens the server face check (face_aws_on = 1) or the on-phone one (V5Verify, unchanged)
@@ -1306,6 +1309,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [filterLang, setFilterLang] = useState<string>('');
   const [filterWho, setFilterWho] = useState<string>('');
   const [filterOnline, setFilterOnline] = useState<boolean>(false);
+  // revamp Phase 1 (ChatGPT direction): People chips Nearby / Language / Interests, all client-side on data we already have
+  const [pplNear, setPplNear] = useState<boolean>(false);
+  const [filterInt, setFilterInt] = useState<string>('');
+  const [pplPanel, setPplPanel] = useState<'' | 'lang' | 'int'>('');
+  const [pplSearchOpen, setPplSearchOpen] = useState<boolean>(false);
   const [blockedIds, setBlockedIds] = useState<string[]>(() => {
     try {
       const raw = localStorage.getItem('kr8_blocked');
@@ -1980,9 +1988,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   };
 
   const peopleStills = feedItems.map((f) => f.poster || (f.video ? f.img : '')).filter((u): u is string => !!u).slice(0, 6);
+  const myArea = (v5Card?.area || '').trim().toLowerCase();
   const filteredPeople = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return people.filter((p) => {
+    const list = people.filter((p) => {
       if (blockedIds.includes(p.id) || blockedIds.includes(p.name)) return false;
       const matchQuery =
         !q ||
@@ -1993,9 +2002,24 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       const matchLang = !filterLang || p.langCodes.some((c) => langCode(c) === filterLang);
       const matchWho = !filterWho || p.who === filterWho;
       const matchOnline = !filterOnline || p.online;
-      return matchQuery && matchLang && matchWho && matchOnline;
+      const matchNear = !pplNear || !myArea || (p.area || '').trim().toLowerCase() === myArea;
+      const matchInt = !filterInt || (p.interests || []).includes(filterInt);
+      return matchQuery && matchLang && matchWho && matchOnline && matchNear && matchInt;
     });
-  }, [people, blockedIds, searchQuery, filterLang, filterWho, filterOnline]);
+    // revamp Phase 1: verified members first, then Kring Locals (Thai members lead), server order otherwise; no-photo cards stay last
+    const key = (p: V8Person) => (p.img === NEUTRAL_IMG ? 4 : 0) + (p.verified ? 0 : 2) + (p.who === 'traveller' ? 1 : 0);
+    return list.map((p, i) => [p, i] as const).sort((a, b) => key(a[0]) - key(b[0]) || a[1] - b[1]).map((x) => x[0]);
+  }, [people, blockedIds, searchQuery, filterLang, filterWho, filterOnline, pplNear, myArea, filterInt]);
+  const pplLangs = useMemo(() => {
+    const n = new Map<string, number>();
+    for (const p of people) for (const c of p.langCodes || []) { const k = langCode(c); if (k) n.set(k, (n.get(k) || 0) + 1); }
+    return [...n.entries()].sort((a, b) => b[1] - a[1]).map(([k]) => k).slice(0, 10);
+  }, [people]);
+  const pplInts = useMemo(() => {
+    const n = new Map<string, number>();
+    for (const p of people) for (const k of p.interests || []) n.set(k, (n.get(k) || 0) + 1);
+    return [...n.entries()].sort((a, b) => b[1] - a[1]).map(([k]) => k);
+  }, [people]);
 
   const filteredDeals = useMemo(() => {
     if (dealCat === 'all') return deals;
@@ -4420,13 +4444,51 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         >
           <div className="ppl-head">
             {live ? (
-            <div className="go-tabh" style={{ padding: 0 }}>
-              <h1 className="ppl-title" id="goPeopleTitle">{L('People')}</h1>
-              <div className="go-fch" id="goPeopleChips">
+            <div className="go-tabh rv-phead" style={{ padding: 0 }}>
+              {/* revamp Phase 1 (ChatGPT): "People" + a search icon; segments; then Nearby / Language / Interests */}
+              <div className="rv-ptop">
+                <h1 className="ppl-title" id="goPeopleTitle">{L('People')}</h1>
+                <button type="button" className={`rv-sic${pplSearchOpen || searchQuery ? ' on' : ''}`} id="pplSearchBtn" aria-label={L('Search')} aria-expanded={pplSearchOpen}
+                  onClick={() => { setPplSearchOpen((o) => !o); if (pplSearchOpen) setSearchQuery(''); else setTimeout(() => document.getElementById('pplSearch')?.focus(), 30); }}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+                </button>
+              </div>
+              <div className="go-fch rv-seg" id="goPeopleChips" role="tablist">
                 {([['', L('Everyone')], ['local', L('Kring Locals')], ['traveller', L('Travellers')]] as const).map(([k, label]) => (
-                  <button type="button" key={k || 'all'} data-who={k || 'all'} className={filterWho === k ? 'on' : ''} aria-pressed={filterWho === k} onClick={() => setFilterWho(k)}>{label}</button>
+                  <button type="button" role="tab" key={k || 'all'} data-who={k || 'all'} className={filterWho === k ? 'on' : ''} aria-pressed={filterWho === k} onClick={() => setFilterWho(k)}>{label}</button>
                 ))}
               </div>
+              <div className="rv-fchips" id="pplChips">
+                <button type="button" data-chip="near" className={pplNear ? 'on' : ''} aria-pressed={pplNear} disabled={!myArea}
+                  onClick={() => { setPplNear((n) => !n); setPplPanel(''); }}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.3" /></svg>
+                  {pplNear && v5Card?.area ? rvArea(v5Card.area) : L('Nearby')}
+                </button>
+                <button type="button" data-chip="lang" className={filterLang ? 'on' : pplPanel === 'lang' ? 'open' : ''} aria-expanded={pplPanel === 'lang'}
+                  onClick={() => setPplPanel((x) => (x === 'lang' ? '' : 'lang'))}>
+                  {filterLang ? rvLangs([filterLang]) : L('Language')}<i aria-hidden="true">▾</i>
+                </button>
+                <button type="button" data-chip="int" className={filterInt ? 'on' : pplPanel === 'int' ? 'open' : ''} aria-expanded={pplPanel === 'int'}
+                  onClick={() => setPplPanel((x) => (x === 'int' ? '' : 'int'))}>
+                  {filterInt && INTEREST[filterInt] ? L(INTEREST[filterInt][1]) : L('Interests')}<i aria-hidden="true">▾</i>
+                </button>
+              </div>
+              {pplPanel === 'lang' ? (
+                <div className="rv-fsub" id="pplLangRow">
+                  {['', ...pplLangs].map((k) => (
+                    <button type="button" key={k || 'any'} data-lang={k || 'any'} className={filterLang === k ? 'on' : ''}
+                      onClick={() => { setFilterLang(k); setPplPanel(''); }}>{k ? rvLangs([k]) : L('Any language')}</button>
+                  ))}
+                </div>
+              ) : null}
+              {pplPanel === 'int' ? (
+                <div className="rv-fsub" id="pplIntRow">
+                  {pplInts.length ? ['', ...pplInts].map((k) => (
+                    <button type="button" key={k || 'any'} data-int={k || 'any'} className={filterInt === k ? 'on' : ''}
+                      onClick={() => { setFilterInt(k); setPplPanel(''); }}>{k ? `${INTEREST[k]?.[0] || ''} ${L(INTEREST[k]?.[1] || k)}`.trim() : L('All interests')}</button>
+                  )) : <span className="rv-fnone">{L('Members are still adding their interests')}</span>}
+                </div>
+              ) : null}
             </div>
             ) : (
               <>
@@ -4434,6 +4496,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <p className="ppl-sub">{L('People into the same things')}</p>
               </>
             )}
+            {(!live || pplSearchOpen || searchQuery) ? (
             <div className="search-row">
               <div className="sbox">
                 <svg viewBox="0 0 24 24">
@@ -4463,6 +4526,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   </button>
                 )}
               </div>
+              {live ? null : (
               <button
                 type="button"
                 className="fbtn"
@@ -4474,9 +4538,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 </svg>
                 {t.filter}
               </button>
+              )}
             </div>
+            ) : null}
 
-            {(filterLang || filterWho || filterOnline) && (
+            {!live && (filterLang || filterWho || filterOnline) && (
               <div className="active-chips" id="activeChips">
                 {filterLang && (
                   <button
@@ -4530,16 +4596,18 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           ) : filteredPeople.length === 0 ? (
             <div className="kp-empty">
               <div className="kp-empty-t">
-                {(filterLang || filterWho || filterOnline || searchQuery) ? t.emptyPeopleTitle : L('People appear here as they join')}
+                {(filterLang || filterWho || filterOnline || searchQuery || pplNear || filterInt) ? t.emptyPeopleTitle : L('People appear here as they join')}
               </div>
               <div className="kp-empty-s">
-                {(filterLang || filterWho || filterOnline || searchQuery) ? t.emptyPeopleSub : (signedIn ? (live ? L('You’re one of the first. Post a Reel so people can find you.') : L('You’re one of the first. Post a photo so people can find you.')) : L('Sign in and make your card to see people and say hi.'))}
+                {(filterLang || filterWho || filterOnline || searchQuery || pplNear || filterInt) ? t.emptyPeopleSub : (signedIn ? (live ? L('You’re one of the first. Post a Reel so people can find you.') : L('You’re one of the first. Post a photo so people can find you.')) : L('Sign in and make your card to see people and say hi.'))}
               </div>
-              {(filterLang || filterWho || filterOnline || searchQuery) ? (
+              {(filterLang || filterWho || filterOnline || searchQuery || pplNear || filterInt) ? (
                 <button
                   type="button"
                   className="kp-empty-btn"
                   onClick={() => {
+                    setPplNear(false);
+                    setFilterInt('');
                     setFilterLang('');
                     setFilterWho('');
                     setFilterOnline(false);
@@ -4560,7 +4628,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   {signedIn ? (live ? L('Post a Reel') : L('Post a photo')) : L('Join the community now')}
                 </button>
               )}
-              {!(filterLang || filterWho || filterOnline || searchQuery) && (() => {
+              {!(filterLang || filterWho || filterOnline || searchQuery || pplNear || filterInt) && (() => {
                 // polish #1: real Reel stills, blurred, behind one Join button (no grey placeholder cards)
                 const stills = peopleStills;
                 if (!stills.length) return null;
@@ -4580,13 +4648,21 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             </div>
           ) : (
             <div className="ppl-grid" id="pplGrid">
-              {filteredPeople.map((p) => (
+              {filteredPeople.map((p) => {
+                const tags = (p.interests || []).filter((k) => INTEREST[k]).slice(0, 2);
+                const hi = (e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  openSayHi(p.name, p.img, `${p.who === 'traveller' ? L('Traveller') : L('Thai local')} · ${Lf('Speaks {0}', p.langs)}`, p.id);
+                };
+                return (
                 <div
-                  className="pcard"
+                  className="pcard rv-pc"
                   data-who={p.who}
+                  data-verified={p.verified ? '1' : '0'}
                   key={p.id}
-                  onClick={() => {
+                  onClick={(e) => {
                     if (live && /^[0-9a-f-]{36}$/.test(p.id)) {
+                      rvHeroFrom((e.currentTarget as HTMLElement).querySelector('.img'), p.img);
                       void openProfile(p.id);
                       return;
                     }
@@ -4594,66 +4670,31 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     setSheet('persondetail');
                   }}
                 >
-                  <div
-                    className="img"
-                    style={{ backgroundImage: `url('${p.img}')` }}
-                  />
-                  <div className="scrim" />
-                  <button
-                    type="button"
-                    className="hibtn"
-                    aria-label={Lf('Say hi to {0}', p.name)}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openSayHi(
-                        p.name,
-                        p.img,
-                        `${
-                          p.who === 'traveller' ? L('Traveller') : L('Thai local')
-                        } · ${Lf('Speaks {0}', p.langs)}`,
-                p.id
-              );
-                    }}
-                  >
-                    <svg viewBox="0 0 24 24">
-                      <path d="M7.5 12.5V6.8a1.4 1.4 0 0 1 2.8 0v4.7M10.3 11V4.9a1.4 1.4 0 0 1 2.8 0V11M13.1 11V5.8a1.4 1.4 0 0 1 2.8 0v6.4M15.9 10.6V8.6a1.4 1.4 0 0 1 2.8 0v5.2c0 4.1-2.7 7.2-6.5 7.2-2.6 0-4.1-1.1-5.6-3.3l-2.3-3.6a1.45 1.45 0 0 1 2.3-1.75l1 1.25M3.2 6.2c.4-1.4 1.3-2.6 2.6-3.3M19.6 3.3c1.2.7 2 1.8 2.3 3.1" />
-                    </svg>
-                  </button>
+                  {/* revamp Phase 1: a natural portrait with nothing printed on it; the words sit under the photo */}
+                  <div className="rv-ph">
+                    <div className="img" style={{ backgroundImage: `url('${p.img}')` }} />
+                    {p.online ? <span className="odot" aria-label={L('Online')} /> : null}
+                  </div>
                   <div className="info">
                     <div className="top">
-                      {p.online && <span className="odot" />}
                       <span className="nm">{p.name}</span>
                       {p.verified === true && (
-                        <button
-                          type="button"
-                          className="v"
-                          aria-label={L('verified')}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSheet('verified');
-                          }}
-                          style={{
-                            background: 'none',
-                            border: 0,
-                            padding: '0 0 0 4px',
-                            color: '#6EE7A8',
-                            fontWeight: 800,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          ✓
-                        </button>
+                        <button type="button" className="v" aria-label={L('verified')}
+                          onClick={(e) => { e.stopPropagation(); setSheet('verified'); }}>✓</button>
                       )}
                     </div>
-                    <div className="langs">{p.langs}</div>
-                    <span
-                      className={`hook ${p.who === 'traveller' ? 'trav' : ''}`}
-                    >
-                      {p.hook}
-                    </span>
+                    <div className="langs">{p.area ? <span className="rv-area">{rvArea(p.area)}</span> : null}{p.langCodes?.length ? rvLangs(p.langCodes) : p.langs}</div>
+                    {tags.length ? (
+                      <div className="rv-tags">{tags.map((k) => <span key={k}>{L(INTEREST[k][1])}</span>)}</div>
+                    ) : live ? null : <span className={`hook ${p.who === 'traveller' ? 'trav' : ''}`}>{p.hook}</span>}
                   </div>
+                  <button type="button" className="hibtn" aria-label={Lf('Say hi to {0}', p.name)} onClick={hi}>
+                    <span className="rv-hi-rings" aria-hidden="true"><i /><i /></span>
+                    <span className="rv-hi-t">{L('Say hi')}</span>
+                  </button>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
@@ -4863,6 +4904,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           ) : live && signedIn && v5Card && meProfile ? (
             <MeView
               L={L}
+              reelCount={goMine ? goMine.length : undefined}
               Lf={Lf}
               ghost={v5Ghost}
               onHelp={() => setSheet('help')}

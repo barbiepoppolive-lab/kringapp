@@ -13,7 +13,7 @@ import { fmtN, isNotYetNote, reviewNoteText } from './kxLogic';
 import { kxTagCandidates, type KxCardExtras, type KxGridReel, type KxMemberReels, type KxSavedReel, type KxTagPerson } from './v5Kx';
 import { signReelPaths, type ReelInfo } from './v5Reel';
 import { WindowVideo } from './V5Trim';
-import { KxMemberCard } from './V5Me';
+import { RvIdentity } from './V5Me';
 import { RingGlyph, SocialPills } from './V5KxCard';
 import { GenderChip } from './V5Gender';
 import type { V5Profile } from './v5Live';
@@ -383,33 +383,30 @@ export function GoProfilePage(props: {
           {!p.mine && <button type="button" role="menuitem" className="bad" id="profileBlock" onClick={() => { setMenu(false); props.onBlock(); }}>{L('Block')}</button>}
         </div>
       )}
-      <div className="go-ptop">
-        <div className="go-pcard"><KxMemberCard L={L} Lf={props.Lf} p={p} kx={props.kx} compact /></div>
-        <div className="go-pinfo">
-          <div>
-            <div className="go-pname">{p.first_name}{p.verified ? <i aria-label={L('verified')}>✓</i> : null}</div>
-            <div className="go-psub">{p.who === 'traveller' ? L('Traveller') : `Kring Local · ${L(p.area)}`}</div>
-            {props.gender ? <div className="go-pg" id="profileGender"><GenderChip L={L} gender={props.gender} /></div> : null}
+      {/* revamp Phase 1 (ChatGPT): identity hero · stats Reels/Followers/Following · Say hi primary + Follow · Reels grid dominant */}
+      <RvIdentity L={L} p={p} id="profileIdentity" hero
+        extra={(props.gender || handle || props.kx?.tiktok_handle) ? (
+          <div className="rv-idx">
+            {props.gender ? <span className="go-pg" id="profileGender"><GenderChip L={L} gender={props.gender} /></span> : null}
+            {handle || props.kx?.tiktok_handle ? <SocialPills ig={handle} tt={props.kx?.tiktok_handle ?? null} compact /> : null}
           </div>
-          <button type="button" className="go-score big" id="profileScore" aria-label={L('See the math')} onClick={props.onMath}>
-            <RingGlyph /><b>{fmtN(props.kx?.week ?? 0)}</b><span>{L('this week')}</span></button>
-          {handle || props.kx?.tiktok_handle ? <SocialPills ig={handle} tt={props.kx?.tiktok_handle ?? null} compact /> : null}
-          {!p.mine ? (
-            <div className="go-pbtns">
-              <button type="button" className={`go-pill${p.i_follow ? ' gh' : ''}`} id="profileFollow" disabled={props.busy} onClick={props.onFollow}>
-                {p.i_follow ? `${L('Following')} ✓` : p.follows_me ? L('Follow back') : L('Follow')}</button>
-              <button type="button" className="go-pill gh" id="profileHi" onClick={props.onHi}><svg className="hi-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 12.5V6.8a1.4 1.4 0 0 1 2.8 0v4.7M10.3 11V4.9a1.4 1.4 0 0 1 2.8 0V11M13.1 11V5.8a1.4 1.4 0 0 1 2.8 0v6.4M15.9 10.6V8.6a1.4 1.4 0 0 1 2.8 0v5.2c0 4.1-2.7 7.2-6.5 7.2-2.6 0-4.1-1.1-5.6-3.3l-2.3-3.6a1.45 1.45 0 0 1 2.3-1.75l1 1.25M3.2 6.2c.4-1.4 1.3-2.6 2.6-3.3M19.6 3.3c1.2.7 2 1.8 2.3 3.1" /></svg>{L('Say hi')}</button>
-            </div>
-          ) : null}
-        </div>
-      </div>
-      {p.bio ? <p className="go-bio">{p.bio}</p> : null}
-      <div className="go-cnt">
+        ) : null} />
+      <div className="go-cnt rv-stats" id="profileStats">
         <div><b>{fmtN(list.length || p.reels.length)}</b><span>{L('Reels')}</span></div>
         <button type="button" onClick={() => props.onList('followers')}><b id="profileFollowers">{fmtN(p.followers)}</b><span>{L('Followers')}</span></button>
-        <div><b>{fmtN(p.likes)}</b><span>{L('Likes')}</span></div>
+        <button type="button" onClick={() => props.onList('following')}><b id="profileFollowing">{fmtN(p.following)}</b><span>{L('Following')}</span></button>
       </div>
-      <div className="go-seg one"><button type="button" className="on"><IcGrid />{L('Reels')}</button></div>
+      {!p.mine ? (
+        <div className="go-pbtns rv-acts">
+          <button type="button" className="rv-hi" id="profileHi" onClick={props.onHi}>
+            <span className="rv-hi-rings" aria-hidden="true"><i /><i /></span>{L('Say hi')}</button>
+          <button type="button" className={`rv-fol${p.i_follow ? ' on' : ''}`} id="profileFollow" disabled={props.busy} onClick={props.onFollow}>
+            {p.i_follow ? `${L('Following')} ✓` : p.follows_me ? L('Follow back') : L('Follow')}</button>
+        </div>
+      ) : null}
+      <button type="button" className="rv-wk" id="profileScore" aria-label={L('See the math')} onClick={props.onMath}>
+        <RingGlyph /><b>{fmtN(props.kx?.week ?? 0)}</b><span>{L('Rings this week')}</span><i aria-hidden="true">›</i></button>
+      <div className="go-seg one rv-rh"><button type="button" className="on"><IcGrid />{L('Reels')}</button></div>
       {props.reels === null ? <p className="go-empty">…</p> : list.length ? <GoGrid L={L} reels={list} onOpen={props.onOpen} /> : <p className="go-empty" id="profileNoReels">{L('No Reels yet')}</p>}
     </div>
   );
