@@ -15,6 +15,7 @@ import { NeonCard, progLine, RingGlyph } from './V5KxCard';
 import { isStandalone, openInstallSheet } from './A2HS';
 import { fmtN, isNotYetNote, levelFor, reviewNoteText } from './kxLogic';
 import type { KxCardExtras } from './v5Kx';
+import { fvMarkShown, fvText } from './V5Unverified';
 
 // ── pre-season (D-11NOV-G): the board ranks from day one; rewards start on kr8_settings.reward_start_at ──
 const LOCALE: Record<string, string> = { th: 'th-TH', zh: 'zh-CN', hi: 'hi-IN', ja: 'ja-JP', ko: 'ko-KR' };
@@ -544,8 +545,14 @@ const bkkDayOf = (iso: string) => new Date(Date.parse(iso) + 7 * 3600_000).toISO
 
 /** 🔔 Activity (H, 15 Nov): full-height page, Today / Earlier, every row opens the Reel or the person, Mark all read, back. */
 export function ActivitySheet(props: { L: Tx; Lf: Txf; rows: V5Activity[] | null; posters: Record<string, string>; onClose: () => void;
-  onFollowBack: (id: string) => Promise<void>; onPerson: (id: string) => void; onReel: (id: string) => void; seenAt?: string; onMarkRead?: () => void }) {
+  onFollowBack: (id: string) => Promise<void>; onPerson: (id: string) => void; onReel: (id: string) => void; seenAt?: string; onMarkRead?: () => void;
+  /** 0182: the friend-verify line is in the app's language only */ lang?: string }) {
   const { L, Lf } = props;
+  // 0182: today's friend-verify line counts as today's one showing (My Reel stats then stays quiet)
+  useEffect(() => {
+    const t = bkkDayOf(new Date().toISOString());
+    if ((props.rows || []).some((a) => a.kind === 'friend_verify' && bkkDayOf(a.at) === t)) fvMarkShown();
+  }, [props.rows]);
   const [back, setBack] = useState<Record<string, boolean>>({});
   const [seen, setSeen] = useState(props.seenAt || '');
   const today = bkkDayOf(new Date().toISOString());
@@ -554,7 +561,8 @@ export function ActivitySheet(props: { L: Tx; Lf: Txf; rows: V5Activity[] | null
   const open = (a: V5Activity) => (a.kind === 'hidden' ? undefined : a.post_id && a.kind !== 'follow' ? props.onReel(a.post_id) : a.actor_id ? props.onPerson(a.actor_id) : undefined);
   const row = (a: V5Activity, i: number) => {
     const thumb = a.poster_path && props.posters[a.poster_path];
-    const text = a.kind === 'follow' ? Lf('{0} started following you', a.actor_name || '')
+    const text = a.kind === 'friend_verify' ? fvText(props.lang || 'en')
+      : a.kind === 'follow' ? Lf('{0} started following you', a.actor_name || '')
       : a.kind === 'like' ? (a.n > 1 ? Lf('{0} and {1} others liked your Reel', a.actor_name || '', String(a.n - 1)) : Lf('{0} liked your Reel', a.actor_name || ''))
       : a.kind === 'gift' ? Lf('Your Reel is #{0} · {1}', String(a.rank || ''), a.prize || '')
       // audit P2-3: hidden by the team, with the reason (the prize column carries it)
@@ -564,7 +572,7 @@ export function ActivitySheet(props: { L: Tx; Lf: Txf; rows: V5Activity[] | null
     const isNew = !seen || a.at > seen;
     return (
       <div className={`li${isNew ? ' new' : ''}`} key={`${a.kind}-${a.at}-${i}`} data-activity={a.kind}>
-        {a.kind === 'follow' || a.kind === 'like' ? (
+        {a.kind === 'follow' || a.kind === 'like' || a.kind === 'friend_verify' ? (
           <button type="button" className="av" aria-label={a.actor_name || ''} onClick={() => a.actor_id && props.onPerson(a.actor_id)}><Avatar photo={a.actor_photo} name={a.actor_name || '?'} size={44} /></button>
         ) : <span className="kme-av kme-av-i" style={{ width: 44, height: 44 }}>{a.kind === 'gift' ? '🏆' : a.kind === 'hidden' ? '!' : '✓'}</span>}
         <button type="button" className="who" onClick={() => open(a)}>

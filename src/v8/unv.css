@@ -39,3 +39,9 @@
   backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2); color: #fff; }
 .v8-app-root .chat-fab svg.unv-fl { position: absolute; right: 3px; bottom: 4px; width: 15px !important; height: 15px !important; padding: 2.5px; border-radius: 50%;
   background: #e23da5; stroke: #fff; stroke-width: 2.4; filter: none; box-shadow: 0 0 0 1.5px rgba(20, 16, 28, .9); }
+/* 0182 friend-verify nudge: one soft line, no box */
+.unv-sheet p.unv-fv { display: flex; align-items: center; justify-content: center; gap: 6px; margin: -8px 4px 16px; font-size: 13px; line-height: 1.45; color: rgba(255, 214, 226, .86); }
+.unv-sheet p.unv-fv span, .unv-fvo span { color: #ff6f9c; font-size: 12px; }
+.unv-fvo { display: flex; align-items: flex-start; gap: 6px; }
+.unv-fvo span { margin-top: 1px; }
+.kme-sheet .li[data-activity="friend_verify"] .n { line-height: 1.4; }

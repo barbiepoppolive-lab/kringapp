@@ -96,6 +96,8 @@ export async function kxShareLink(post: string): Promise<string> {
 }
 export const kxShareLinkCached = (post: string) => (shortCache.has(post) ? `${location.origin}/r/${shortCache.get(post)}` : null);
 export const kxShareOpenSeen = (open: string) => rpc<boolean>('kr8_share_open_seen', { p_open: open }).catch(() => false);
+/** 0182: how many members without a face check liked my Reel (board v2) → the friend-verify line in My Reel stats */
+export const kxReelUnvLikes = (post: string) => rpc<number>('kr8_reel_unv_likes', { p_post: post }).then((n) => Number(n) || 0).catch(() => 0);
 
 // ───────────── saved Reels ─────────────
 export interface KxSavedReel { id: string; poster_path: string; video_path: string; likes: number; name: string; saved_at: string }

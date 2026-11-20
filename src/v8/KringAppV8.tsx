@@ -138,7 +138,7 @@ import { liveSeen, markLiveSeen, oneTapShare, pickLiveReel, refCode, shareText, 
 import { InviteHint } from './V5Invite';
 import { copyText } from './camGuard';
 import { PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, SavedReelsPage, type PickedPlace } from './V5KxPlaces';
-import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRanking, kxRefName, kxSavedReels, kxShareLink, kxShareLinkCached, kxShareOpenSeen,
+import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRanking, kxRefName, kxSavedReels, kxShareLink, kxShareLinkCached, kxShareOpenSeen, kxReelUnvLikes,
   type KxCardExtras, type KxClaimResult, type KxFeedExtra, type KxPrize, type KxRanking, type KxRewards, type KxSavedReel, type KxWeekResult } from './v5Kx';
 import { inviteCode } from './kxLogic';
 import { V5Qr, V5SignInSheet } from './V5Sheets';
@@ -147,6 +147,7 @@ import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, sh
 import { V5ReelVideo, holdReels, reelsHeld, toggleReelSound } from './V5ReelVideo';
 import { TasksFeed, TasksFromMe, TasksMeLine, ThisOrThatCard } from './V5Tasks';
 import { FaceIntroSheet, LockIc, UnvMeLine, UnvPeopleWall } from './V5Unverified';
+import { startOpenBeacon } from './openBeacon';
 import { restoredTab, rememberTab } from './tabMemory';
 import { AskSwitch } from './V5AskSwitch';
 import { createAskApi, type AskPerson } from './askThai';
@@ -2668,6 +2669,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   };
   const kxLoadSaved = () => kxSavedReels().then((rows) => { setKxSaved(rows || []); void signPosters((rows || []).slice(0, 3).map((x) => x.poster_path)); }).catch(() => setKxSaved((x) => x || []));
   // a visitor who came through a share link (/r/<short> → ?reel=…&so=<open id>): once signed in, tell the server who it was (own opens count 0)
+  useEffect(() => { startOpenBeacon(); }, []);   // 0182: the share-link open counts only after 2 s of visible page
   const kxOpenRef = useRef<string | null>((() => { try { const v = new URLSearchParams(location.search).get('so'); return v && /^[0-9a-f-]{36}$/.test(v) ? v : null; } catch { return null; } })());
   useEffect(() => {
     if (!live || !v5Uid || !kxOpenRef.current) return;
@@ -7299,7 +7301,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onClose={() => { setSheet(null); void loadMe(); }} />
         )}
         {sheet === 'activity' && (
-          <ActivitySheet L={L} Lf={Lf} rows={activityRows} posters={mePosters} onClose={() => setSheet(null)} seenAt={activitySeenAt}
+          <ActivitySheet L={L} Lf={Lf} lang={lang} rows={activityRows} posters={mePosters} onClose={() => setSheet(null)} seenAt={activitySeenAt}
             onMarkRead={() => { setActivityUnread(false); try { localStorage.setItem('kr8_activity_seen', activityRows?.[0]?.at || new Date().toISOString()); } catch { /* ignore */ } }}
             onFollowBack={async (id) => { await toggleFollow(id, false); void loadMe(); }}
             onPerson={(id) => void openProfile(id)} onReel={openReelFromProfile} />
@@ -7394,7 +7396,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               const b = await kxBreakdown(v5Uid).catch(() => null);
               const m = b?.reels.find((x) => x.post_id === id) || null;
               const f = feedItems.find((x) => x.id === id) as { views?: number } | undefined;
-              return { views: typeof f?.views === 'number' ? f.views : null, likes: r?.likes || 0, saves: r?.saves || 0, opens: m ? m.opens : null, rings: m ? m.score : r?.rings ?? null, travellers: m ? m.l_trav + m.s_trav : 0 };
+              const unv = await kxReelUnvLikes(id);   // 0182: friend-verify line
+              return { views: typeof f?.views === 'number' ? f.views : null, likes: r?.likes || 0, saves: r?.saves || 0, opens: m ? m.opens : null, rings: m ? m.score : r?.rings ?? null, travellers: m ? m.l_trav + m.s_trav : 0, unv };
             } : undefined}
             onActive={(r, el) => {
               if (!r.mine || r.status !== 'approved') return;

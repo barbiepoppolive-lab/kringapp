@@ -19,6 +19,7 @@ import { rvArea, rvLangs } from './rvLabels';
 import { rvHeroIn } from './rvMotion';
 import { RingGlyph, SocialPills } from './V5KxCard';
 import { GenderChip } from './V5Gender';
+import { FriendVerifyNote, fvMarkShown, fvShownToday } from './V5Unverified';
 import type { V5Profile } from './v5Live';
 import type { PickedPlace } from './V5KxPlaces';
 
@@ -95,7 +96,8 @@ export function usePosters(paths: string[]): Record<string, string> {
 
 // ───────────── full-screen Reel player ─────────────
 /** 17 Nov "My Reel stats": opens/rings are null when this Reel is not among this week's counted Reels. */
-export interface GoReelStats { views: number | null; likes: number; saves: number; opens: number | null; rings: number | null; travellers: number }
+export interface GoReelStats { views: number | null; likes: number; saves: number; opens: number | null; rings: number | null; travellers: number;
+  /** 0182: likes from members without a face check (board v2) → the friend-verify line, once a day */ unv?: number }
 const IcBars = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M5 20V11M12 20V5M19 20v-6" /></svg>;
 export interface GoReel {
   id: string; video_path: string; poster_path: string; body?: string | null; status?: string; note?: string | null;
@@ -157,6 +159,12 @@ export function GoReelPlayer(props: {
 }) {
   const { L } = props;
   const [stats, setStats] = useState<{ id: string; s: GoReelStats | null; busy: boolean } | null>(null);
+  // 0182: the friend-verify line shows at most once per Bangkok day (shared with Activity), decided when the numbers arrive
+  const [fvShow, setFvShow] = useState(false);
+  useEffect(() => {
+    if (stats && !stats.busy && (stats.s?.unv || 0) > 0 && !fvShownToday()) { fvMarkShown(); setFvShow(true); }
+    if (!stats) setFvShow(false);
+  }, [stats]);
   const openStats = (r: GoReel) => {
     if (!props.onStats) return;
     setStats({ id: r.id, s: null, busy: true });
@@ -286,6 +294,7 @@ export function GoReelPlayer(props: {
               </div>
               {st && st.travellers > 0 ? <p className="go-stats-note">{props.Lf('{0} of these from travellers (count double)', String(st.travellers))}</p> : null}
               {st && st.opens === null ? <p className="go-stats-note">{L('Outside opens show for your best Reels this week.')}</p> : null}
+              {fvShow ? <FriendVerifyNote lang={props.lang} /> : null}
             </div>
           </div>
         );

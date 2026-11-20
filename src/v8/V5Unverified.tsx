@@ -22,6 +22,9 @@ const TX: Record<Lng, Record<string, string>> = {
     shGo: 'Start · 3 seconds',
     shNo: 'Not now',
     shFoot: 'Your selfie is deleted within 30 days',
+    // 0182 (20 Nov): friend-verify nudge. Owner: in My Reel stats + Activity (once a day). Liker: on this sheet.
+    fvOwner: 'Your friend’s like counts fully once they do the 3-second face check.',
+    fvLiker: 'Your likes count fully for your friends after a 3-second face check.',
   },
   th: {
     meetT: 'มาเจอผู้คนในกรุงเทพฯ',
@@ -36,6 +39,8 @@ const TX: Record<Lng, Record<string, string>> = {
     shGo: 'เริ่ม · 3 วินาที',
     shNo: 'ไว้ทีหลัง',
     shFoot: 'เซลฟี่ของคุณจะถูกลบภายใน 30 วัน',
+    fvOwner: 'ไลก์ของเพื่อนจะนับเต็มเมื่อเพื่อนสแกนหน้า 3 วินาที',
+    fvLiker: 'ไลก์ของคุณจะนับเต็มให้เพื่อน หลังสแกนหน้า 3 วินาที',
   },
 };
 const tx = (lang: string) => TX[lang === 'th' ? 'th' : 'en'];
@@ -89,10 +94,21 @@ export function FaceIntroSheet(props: { lang: string; onStart: () => void; onClo
         <span className="unv-ic"><FaceIc /></span>
         <b>{t.shT}</b>
         <p>{t.shB}</p>
+        <p className="unv-fv" id="unvLikesNote"><span aria-hidden="true">♥</span>{t.fvLiker}</p>
         <button type="button" className="unv-go" id="unvStart" onClick={props.onStart}><FaceIc />{t.shGo}</button>
         <button type="button" className="unv-no" id="unvNotNow" onClick={props.onClose}>{t.shNo}</button>
         <small><LockIc />{t.shFoot}</small>
       </div>
     </div>
   );
+}
+
+/** 0182: the friend-verify line, in the app's language only. Shown at most once per Bangkok day (shared by Activity and My Reel stats). */
+export const fvText = (lang: string, who: 'owner' | 'liker' = 'owner') => (who === 'owner' ? tx(lang).fvOwner : tx(lang).fvLiker);
+const FV_KEY = 'kr8_fv_day';
+const bkkToday = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
+export function fvShownToday(): boolean { try { return localStorage.getItem(FV_KEY) === bkkToday(); } catch { return false; } }
+export function fvMarkShown(): void { try { localStorage.setItem(FV_KEY, bkkToday()); } catch { /* private mode */ } }
+export function FriendVerifyNote(props: { lang: string }) {
+  return <p className="go-stats-note unv-fvo" id="fvOwnerNote" data-one={props.lang === 'th' ? 'th' : 'en'}><span aria-hidden="true">♥</span>{fvText(props.lang)}</p>;
 }
