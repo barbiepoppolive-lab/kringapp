@@ -4,7 +4,7 @@
 .v8-app-root .dt-rings .b { stroke: #737BFF; }
 .v8-app-root .dt-rings .p { stroke: #EC46B6; }
 .v8-app-root .dt-ring { position: relative; display: inline-grid; place-items: center; flex: none; }
-.v8-app-root .dt-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.v8-app-root .dt-ring > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .v8-app-root .dt-ring .tr { fill: none; stroke: rgba(255,255,255,.14); }
 .v8-app-root .dt-ring .fl { fill: none; stroke: #D8B477; stroke-linecap: round; transition: stroke-dasharray .6s cubic-bezier(.22,1,.36,1); filter: drop-shadow(0 0 4px rgba(216,180,119,.45)); }
 .v8-app-root .dt-ring .in { position: relative; display: grid; place-items: center; line-height: 1; }
