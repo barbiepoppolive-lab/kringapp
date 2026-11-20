@@ -10,7 +10,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { rvHeroIn, rvSettle } from './rvMotion';
 import './me.css';
 import './meA.css';
-import { PerksCard } from './V5Perks';
 import type { V5Activity, V5FollowRow, V5Level, V5Profile } from './v5Live';
 import { NeonCard, progLine, RingGlyph } from './V5KxCard';
 import { isStandalone, openInstallSheet } from './A2HS';
@@ -232,8 +231,6 @@ const IcHelp = () => <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12"
 const IcPlay = () => <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6M4 4v4h4" /></svg>;
 const IcPhone = () => <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5" /><path d="M12 8v6M9.5 11.5 12 14l2.5-2.5" /></svg>;
 const Chev = () => <i className="kme-chev" aria-hidden="true">›</i>;
-/** small caps label; Thai gets no letter-spacing / caps (spaced Thai letters read badly) */
-const Cap = ({ t }: { t: string }) => <small className={/[฀-๿]/.test(t) ? 'thai' : undefined}>{t}</small>;
 
 /** My Me tab */
 export type MeViewProps = {
@@ -273,14 +270,12 @@ export type MeViewProps = {
  */
 export function MeView(props: MeViewProps) {
   const { L, Lf, p } = props;
-  const lv = p.level;
-  const visits = Math.ceil(lv.need_points / 5);
   const [menu, setMenu] = useState(false);
-  const prize = props.weekPrize && props.weekPrize > 0 ? `฿${fmtN(props.weekPrize)}` : null;
   const pick = (f?: () => void) => () => { setMenu(false); f?.(); };
   const actionStep = !!props.nextKind && props.nextKind !== 'climb';
   return (
-    <div className="kme kme-a" id="meView">
+    <div className="kme kme-a rv4-me" id="meView">
+      <div className="rv4-msky" aria-hidden="true" />
       <div className="kme-top">
         <span className="cap">{L('Your Kring')}</span>
         <span className="kme-icons">
@@ -306,42 +301,22 @@ export function MeView(props: MeViewProps) {
         </>
       ) : null}
       {props.ghost ? <p className="kme-ghost" id="meGhost" role="status"><span aria-hidden="true">👻</span>{L('Ghost mode · nobody can see you')}</p> : null}
-      {/* revamp Phase 1 (ChatGPT), in this order: 1 identity · 2 social stats · 3 Rings balance · 4 My Reels / Saved · 5 weekly ranking & rewards */}
-      <RvIdentity L={L} p={p} id="meIdentity" tools={(
-        <button type="button" className="kme-pencil rv-pencil" id="meEdit" aria-label={L('Edit card')} onClick={props.onEdit}>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" /></svg>
-        </button>
+      {/* rv4 (founder pick Me round 2 · A, 20 Nov): Bangkok twilight skyline behind a gold-ringed photo with the stats beside it,
+          name ✓ · area, ONE line (Rings · this week's board, Post when not on it), then the Reels / Saved grid edge to edge.
+          Founding ฿100 is closed, so the line sells the weekly board (same copy as the live fix). */}
+      <MeHead L={L} p={p} onEdit={props.onEdit} stats={(
+        <div className="rv4-pst" id="meStats">
+          <span id="statReels"><b>{fmtCount(props.reelCount ?? p.reels.length)}</b><span>{L('Reels')}</span></span>
+          <button type="button" id="statFollowers" onClick={() => props.onList('followers')}><b>{fmtCount(p.followers)}</b><span>{L('Followers')}</span></button>
+          <button type="button" id="statFollowing" onClick={() => props.onList('following')}><b>{fmtCount(p.following)}</b><span>{L('Following')}</span></button>
+        </div>
       )} />
-      <div className="kme-stats rv-stats" id="meStats">
-        <span id="statReels"><b>{fmtCount(props.reelCount ?? p.reels.length)}</b><span>{L('Reels')}</span></span>
-        <button type="button" id="statFollowers" onClick={() => props.onList('followers')}><b>{fmtCount(p.followers)}</b><span>{L('Followers')}</span></button>
-        <button type="button" id="statFollowing" onClick={() => props.onList('following')}><b>{fmtCount(p.following)}</b><span>{L('Following')}</span></button>
-      </div>
-      <RingsBalance L={L} Lf={Lf} kx={props.kx} dot={!!props.ringsDot || (props.kx?.prizes ?? 0) > 0} onOpen={props.onRings} />
-      {actionStep ? props.nextSlot : null}
+      <MeLine L={L} Lf={Lf} kx={props.kx} hook={props.weekHook || { rank: props.weekRank ?? null, prize: props.weekPrize ?? 0, toLine: null, top: 0 }}
+        dot={!!props.ringsDot || (props.kx?.prizes ?? 0) > 0} onRings={props.onRings} onRanking={props.onRanking} onPost={props.onPost} />
+      {actionStep && props.nextKind !== 'reel' && props.nextKind !== 'pending' ? props.nextSlot : null}
       {props.webAskSlot || null}
-      <FoundingChecklist L={L} Lf={Lf} kx={props.kx} hasSocial={!!(props.kx?.ig_handle || props.kx?.tiktok_handle || p.ig_handle)} onLink={props.onLink || props.onEdit} onPost={props.onPost}
-        hook={props.weekHook} onRanking={props.onRanking} />
-      {props.reelsSlot ? null : (
-      <button type="button" className="kx-savedrow" id="kxSavedRow" onClick={props.onSavedReels || props.onSaved}>
-        <span className="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4.5L5 21V4a1 1 0 0 1 1-1z" /></svg></span>
-        <span className="t">{L('Saved Reels')}<small>{props.saved ? (props.saved.count === 1 ? L('1 Reel') : Lf('{0} Reels', String(props.saved.count))) : '…'}</small></span>
-        <span className="th">{(props.saved?.thumbs || []).slice(0, 3).map((u, i) => <i key={i} style={{ backgroundImage: `url('${u}')` }} />)}</span>
-        <span className="go">›</span>
-      </button>
-      )}
-      {props.reelsSlot ? null : <PerksCard />}
       {props.reelsSlot ? props.reelsSlot : (
         <>
-      <div className="kme-lvl" id="meLevel">
-        <span className="cup" aria-hidden="true"><span className="liq" style={{ height: `${Math.max(8, Math.min(100, lv.pct))}%` }} /></span>
-        <span className="t">
-          <span className="cap">{lv.next ? L('Next level') : L('Top level')}</span>
-          <b>{L(LEVEL_NAME[lv.next || lv.level])}</b>
-          <small>{lv.next ? (visits === 1 ? Lf('{0} more posts or 1 partner-café visit to go', String(lv.need_points))
-            : Lf('{0} more posts or {1} partner-café visits to go', String(lv.need_points), String(visits))) : L('Levels come from posts and visits, never from payment')}</small>
-        </span>
-      </div>
       {p.reels.length ? (
         <ReelRow reels={p.reels} posters={props.posters} onOpen={props.onReel} pending={L('Waiting for a quick check')} />
       ) : (
@@ -352,22 +327,6 @@ export function MeView(props: MeViewProps) {
       )}
         </>
       )}
-      {/* 5 · weekly ranking & rewards: position, weekly progress, the voucher I could win now. Rank → the board, the rest → Rewards */}
-      <section className="rv-week" aria-label={L('Weekly ranking & rewards')}>
-        <div className="rv-sech"><b>{L('Weekly ranking & rewards')}</b>
-          {props.invites && props.invites.friends > 0 ? <span id="meFriends">{props.invites.friends === 1 ? L('1 friend joined') : Lf('{0} friends joined', fmtN(props.invites.friends))}</span> : null}</div>
-        <div className="kme-line rv-wline" id="kxTiles">
-          <button type="button" className="c" id="kxRankTile" onClick={() => (props.onRanking ? props.onRanking() : props.onRings?.())}>
-            <Cap t={L('Position')} /><b className="gd">{props.weekRank ? `#${props.weekRank}` : '–'}</b>
-          </button>
-          <button type="button" className="c" id="kxRingsHit" aria-label={`${L('This week')} · ${L('Rewards')}`} onClick={props.onRings}>
-            <Cap t={L('This week')} /><b>{props.kx ? fmtN(props.kx.week ?? 0) : '…'} <RingGlyph /></b>
-          </button>
-          <button type="button" className="c" id="kxPrizeNow" onClick={props.onRings}>
-            <Cap t={prize ? L('Voucher now') : L('Rewards')} /><b>{prize || <Chev />}</b>
-          </button>
-        </div>
-      </section>
       {/* 0111 (founder 18 Nov): a gentle nudge, not a gate. The face check is needed only to claim a prize; the row can be hidden. */}
       {props.verifyState !== 'verified' && (p.reels.length > 0 || props.verifyState === 'pending' || !props.reelsSlot)
         && !(props.verifyState === 'none' && props.verifyHidden) && (
@@ -389,8 +348,57 @@ export function MeView(props: MeViewProps) {
   );
 }
 
+/** rv4 Me A head: skyline band (CSS), round photo with a thin gold ring (tap = edit card), stats beside it, name ✓ and area. */
+function MeHead(props: { L: Tx; p: V5Profile; stats: React.ReactNode; onEdit: () => void }) {
+  const { L, p } = props;
+  const ref = useRef<HTMLButtonElement>(null);
+  useEffect(() => { rvHeroIn(ref.current); }, []);
+  const where = p.who === 'traveller' ? [L('Traveller'), rvArea(L(p.area))].filter(Boolean).join(' · ') : rvArea(L(p.area === 'Bangkok' ? 'Bangkok' : p.area));
+  return (
+    <section className="rv4-phd rv4-mhd" id="meIdentity" aria-label={p.first_name}>
+      <div className="rv4-ptop">
+        <button type="button" className="rv4-pav" id="meEdit" ref={ref} aria-label={L('Edit card')} onClick={props.onEdit}
+          style={p.photo ? { backgroundImage: `url('${p.photo}')` } : undefined}>
+          {p.photo ? null : <span aria-hidden="true">{initial(p.first_name)}</span>}
+          <i className="rv4-pen" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z" /></svg></i>
+        </button>
+        {props.stats}
+      </div>
+      <h2 className="rv4-pnm">{p.first_name}{p.verified ? <RvCheck L={L} /> : null}</h2>
+      {where ? <p className="rv4-psub">{where}</p> : null}
+    </section>
+  );
+}
+
+/** rv4 Me A: the one line. Rings (lifetime, taps → Rewards) | this week's board in the live fix's words (taps → the ranking) | Post when not on the board. */
+function MeLine(props: { L: Tx; Lf: Txf; kx: KxCardExtras | null | undefined; hook: WeekHookData; dot: boolean;
+  onRings?: () => void; onRanking?: () => void; onPost: () => void }) {
+  const { L, Lf, kx, hook: h } = props;
+  const total = kx ? kx.lifetime ?? 0 : null;
+  const baht = (n: number) => `฿${fmtN(n)}`;
+  const inPrize = !!h.rank && h.prize > 0;
+  const onBoard = !!h.rank;
+  const line = inPrize ? Lf('You’re #{0} · {1} this week 🏆', String(h.rank), baht(h.prize))
+    : onBoard && h.toLine ? Lf('You’re #{0} · {1} Rings to the prize line', String(h.rank), fmtN(h.toLine))
+    : h.top ? Lf('Be Bangkok’s face of the week · #1 wins {0}', baht(h.top)) : L('Climb this week’s board');
+  const cut = line.indexOf(' · ');
+  const [a, b] = cut > 0 ? [line.slice(0, cut), line.slice(cut + 3)] : [line, ''];
+  return (
+    <div className={`rv4-mline${inPrize ? ' won' : ''}`} id="kxWeekHook" data-state={inPrize ? 'prize' : onBoard ? 'board' : 'off'}>
+      <button type="button" className="rv4-mr" id="meRings" aria-label={`${L('Your Rings')} · ${total === null ? '…' : fmtN(total)}`} onClick={props.onRings}>
+        <RingGlyph /><b>{total === null ? '…' : fmtN(total)}</b>{props.dot ? <i className="kx-tdot" aria-label={L('New')} /> : null}
+      </button>
+      <span className="rv4-msep" aria-hidden="true" />
+      <button type="button" className="rv4-mw" id="kxWeekHookOpen" aria-label={line} onClick={props.onRanking || props.onPost}>
+        <span>{a}</span>{b ? <b>{b}</b> : null}
+      </button>
+      {!onBoard ? <button type="button" className="rv4-mpost" id="kxWeekHookPost" onClick={props.onPost}>{L('Post')}</button> : null}
+    </div>
+  );
+}
+
 /** 3 · Rings balance: prominent but calm (no casino glow). Taps open Rewards. Expands and settles once when the number changes. */
-function RingsBalance(props: { L: Tx; Lf: Txf; kx: KxCardExtras | null | undefined; dot: boolean; onOpen?: () => void }) {
+export function RingsBalance(props: { L: Tx; Lf: Txf; kx: KxCardExtras | null | undefined; dot: boolean; onOpen?: () => void }) {
   const { L, Lf, kx } = props;
   const ref = useRef<HTMLButtonElement>(null);
   const total = kx ? kx.lifetime ?? 0 : null;

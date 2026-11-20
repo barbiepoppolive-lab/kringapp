@@ -315,14 +315,19 @@ function Tile(props: { L: Tx; poster?: string; rings?: number | null; week?: boo
     </button>
   );
 }
-export function GoGrid(props: { L: Tx; reels: KxGridReel[]; onOpen: (i: number) => void; add?: { label: string; onAdd: () => void } }) {
+const RV4_FILL = ['thonglor', 'siam-square', 'charoen-krung', 'one-bangkok', 'bacc'].map((n) => `${import.meta.env.BASE_URL}media/places/${n}.jpg`);
+export function GoGrid(props: { L: Tx; reels: KxGridReel[]; onOpen: (i: number) => void; add?: { label: string; onAdd: () => void };
+  /** rv4 Me A: the "+" tile first, and quiet Bangkok photos fill the first two rows (decoration only, not Reels) */ me?: boolean }) {
   const posters = usePosters(props.reels.map((r) => r.poster_path));
+  const addT = props.add ? <button type="button" className="go-gt add" id="goGridAdd" aria-label={props.add.label} onClick={props.add.onAdd}><span><IcPlus /><em>{props.add.label}</em></span></button> : null;
+  const fill = props.me ? RV4_FILL.slice(0, Math.max(0, 5 - props.reels.length)) : [];
   return (
     <div className="go-grid" id="goGrid">
+      {props.me ? addT : null}
       {props.reels.map((r, i) => (
         <Tile key={r.id} L={props.L} id={r.id} i={i} poster={posters[r.poster_path]} rings={r.rings} week={r.this_week} pending={r.status === 'pending'} hidden={r.status === 'hidden' ? reviewNoteText(r.note) : null} notYet={r.status === 'hidden' && isNotYetNote(r.note)} onOpen={() => props.onOpen(i)} />
       ))}
-      {props.add ? <button type="button" className="go-gt add" id="goGridAdd" onClick={props.add.onAdd}><span><IcPlus />{props.add.label}</span></button> : null}
+      {props.me ? fill.map((f) => <span key={f} className="go-gt rv4-fill" aria-hidden="true" style={{ backgroundImage: `url('${f}')` }} />) : addT}
     </div>
   );
 }
@@ -340,11 +345,11 @@ export function GoMeReels(props: {
       <div className="go-seg" role="tablist">
         <button type="button" role="tab" id="goTabReels" aria-selected={props.tab === 'reels'} className={props.tab === 'reels' ? 'on' : ''} onClick={() => props.onTab('reels')}><IcGrid />{L('Reels')}</button>
         <button type="button" role="tab" id="goTabSaved" aria-selected={props.tab === 'saved'} className={props.tab === 'saved' ? 'on' : ''} onClick={() => props.onTab('saved')}>
-          <IcBook />{L('Saved Reels')}{nSaved ? ` · ${nSaved}` : ''}</button>
+          <IcBook />{L('Saved')}{nSaved ? ` · ${nSaved}` : ''}</button>
       </div>
       {props.tab === 'reels' ? (
         props.mine === null ? <p className="go-empty">…</p> : (
-          <GoGrid L={L} reels={props.mine} onOpen={props.onOpenMine} add={{ label: props.mine.length ? L('New Reel') : L('Post your first Reel'), onAdd: props.onPost }} />
+          <GoGrid L={L} reels={props.mine} me onOpen={props.onOpenMine} add={{ label: props.mine.length ? L('New Reel') : L('Post your first Reel'), onAdd: props.onPost }} />
         )
       ) : props.saved === null ? <p className="go-empty">…</p> : nSaved ? (
         <div className="go-grid" id="goSavedGrid">

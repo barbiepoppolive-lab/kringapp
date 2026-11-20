@@ -148,7 +148,7 @@ const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onAnswer: () 
     <button type="button" className="at-tw-open" onClick={onOpen}>
       <div className="rva-who rv4-qwho">
         <Av p={q.by} s={22} />
-        <span className="rva-meta"><b>{q.by.name}</b>{q.by.official ? null : q.by.local ? <em>{L('Thai Local')}</em> : null} · {areaLabel(q.area)} · {askTime(L, q.at)}</span>
+        <span className="rva-meta"><b>{q.by.name}</b>{q.by.official ? <Official L={L} /> : q.by.local ? <em>{L('Thai Local')}</em> : null} · {areaLabel(q.area)} · {askTime(L, q.at)}</span>
       </div>
       <div className="at-tw-q">{q.body}</div>
       {q.media && <Media m={q.media} cls="at-tw-img" />}
@@ -157,7 +157,7 @@ const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onAnswer: () 
           <Av p={q.top.by} s={40} />
           <div className="rv4-bub">
             {q.top.body && <div className="t">“{q.top.body}”</div>}
-            <div className="h"><b>{q.top.by.name}</b>{q.top.by.local ? <><i aria-hidden="true">·</i><span>{L('Thai Local')}</span></> : null}{q.top.score > 0 ? <><i aria-hidden="true">·</i><span className="rv4-up"><Ic d={IC.up} s={12} />{fmtCount(q.top.score)}</span></> : null}</div>
+            <div className="h"><b>{q.top.by.name}</b>{q.top.by.official ? <><i aria-hidden="true">·</i><Official L={L} /></> : q.top.by.local ? <><i aria-hidden="true">·</i><span>{L('Thai Local')}</span></> : null}{q.top.score > 0 ? <><i aria-hidden="true">·</i><span className="rv4-up"><Ic d={IC.up} s={12} />{fmtCount(q.top.score)}</span></> : null}</div>
           </div>
         </div>
       )}

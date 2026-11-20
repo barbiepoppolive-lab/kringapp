@@ -285,11 +285,11 @@ describe('Me tab: the race card sits right under "This week"', () => {
     fireEvent.click(document.getElementById('meMore')!);
     expect(document.getElementById('meShare')!.closest('#meMoreList')).toBeTruthy();
   });
-  it('one next step at a time: hidden while the Founding "Next step" card shows', () => {
+  it('rv4 Me A: Founding ฿100 is closed, so no Founding card on Me (the one line sells the weekly board)', () => {
     const fresh = { ...kx, founding_no: null, has_reel: false };
     expect(foundingDue(fresh as never)).toBe(true);
     render(view(fresh as never));
-    expect(document.getElementById('kxFounding')).toBeTruthy();
+    expect(document.getElementById('kxFounding')).toBeNull();
     expect(document.getElementById('prizeSlotProbe')).toBeNull();
   });
 });

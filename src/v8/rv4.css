@@ -221,3 +221,58 @@
   .v8-app-root .rv4-coin { animation: none; }
   .v8-app-root :is(.rv4-hi, .dock .dk-pill) { transition: none; }
 }
+
+/* ───────────── Me A (founder pick, round 2): twilight skyline · gold-ringed photo + stats · one line · Reels/Saved edge to edge ───────────── */
+.v8-app-root .rv4-me { position: relative; isolation: isolate; }
+.v8-app-root .rv4-msky { position: absolute; z-index: -1; left: 0; right: 0; top: 0; height: 300px; pointer-events: none;
+  background: linear-gradient(180deg, rgba(14,15,25,.15) 0%, rgba(14,15,25,0) 30%, rgba(14,15,25,.55) 70%, var(--rv-mid) 100%),
+    url('/media/places/rv4-me-sky.jpg') 50% 60% / cover no-repeat; }
+.v8-app-root #s-me .rv4-me .kme-top { position: relative; z-index: 2; justify-content: flex-end; }
+.v8-app-root #s-me .rv4-me .kme-top .cap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.v8-app-root #s-me .rv4-me .kme-icons { gap: 10px; color: #fff; filter: drop-shadow(0 1px 3px rgba(0,0,0,.55)); }
+.v8-app-root #s-me .rv4-me .kme-icons svg { width: 24px; height: 24px; }
+.v8-app-root #s-me .rv4-mhd { padding: 0 20px; margin-top: 72px; }
+.v8-app-root #s-me .rv4-mhd .rv4-ptop { gap: 22px; align-items: center; }
+.v8-app-root #s-me .rv4-mhd .rv4-pav { position: relative; width: 108px; height: 108px; padding: 0; border: 0; cursor: pointer;
+  box-shadow: 0 0 0 3px var(--rv-mid), 0 0 0 4.5px rgba(216,180,119,.92), 0 18px 40px -12px rgba(0,0,0,.8); }
+.v8-app-root #s-me .rv4-pen { position: absolute; right: 2px; bottom: 2px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(14,15,25,.82); box-shadow: 0 0 0 1px rgba(255,255,255,.18); }
+.v8-app-root #s-me .rv4-pen svg { width: 14px; height: 14px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linejoin: round; }
+.v8-app-root #s-me .rv4-mhd .rv4-pst { padding-top: 30px; }
+.v8-app-root #s-me .rv4-mhd .rv4-pst b { font-size: 1.25rem; text-shadow: 0 1px 8px rgba(0,0,0,.6); }
+.v8-app-root #s-me .rv4-mhd .rv4-pst span { color: rgba(255,255,255,.7); text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+.v8-app-root #s-me .rv4-mhd .rv4-pnm { margin-top: 16px; }
+.v8-app-root #s-me .rv4-mhd .rv4-psub { color: rgba(255,255,255,.62); margin-top: 2px; }
+.v8-app-root .rv4-mline { display: flex; align-items: center; gap: 0; margin: 26px 20px 0; font-family: var(--rv-f); }
+.v8-app-root .rv4-mline > button { background: none; border: 0; padding: 0; color: #fff; cursor: pointer; font-family: inherit; }
+.v8-app-root .rv4-mr { position: relative; flex: none; display: inline-flex; align-items: center; gap: 9px; min-height: 44px; }
+.v8-app-root .rv4-mr svg { width: 26px; height: 17px; }
+.v8-app-root .rv4-mr b { font: 700 1rem var(--rv-f); }
+.v8-app-root .rv4-mr .kx-tdot { position: absolute; top: 6px; right: -8px; }
+.v8-app-root .rv4-msep { flex: none; width: 1px; height: 18px; margin: 0 14px; background: rgba(255,255,255,.2); }
+.v8-app-root .rv4-mw { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; text-align: left; min-height: 44px; justify-content: center; }
+.v8-app-root .rv4-mw span { font: 500 0.875rem/1.3 var(--rv-f); color: #E9E6F2; }
+.v8-app-root .rv4-mw b { font: 700 0.9375rem/1.3 var(--rv-f); color: var(--rv-gd, #D8B477); }
+.v8-app-root .rv4-mline.won .rv4-mw b { color: var(--rv-gd, #D8B477); }
+.v8-app-root .rv4-mpost { flex: none; margin-left: 12px; height: 40px; padding: 0 24px !important; border-radius: 999px; font: 600 0.9375rem var(--rv-f) !important;
+  background: linear-gradient(180deg, #F25FC6, #D93AA6) !important; color: #fff; box-shadow: 0 10px 26px -8px rgba(236,70,182,.65); }
+.v8-app-root #s-me .rv4-me .go-me { padding: 0; margin-top: 22px; }
+.v8-app-root #s-me .rv4-me .go-seg { margin: 0; padding: 0 20px; border-bottom: 0; }
+.v8-app-root #s-me .rv4-me .go-seg button { font: 600 0.9375rem var(--rv-f); color: rgba(255,255,255,.5); box-shadow: none; }
+.v8-app-root #s-me .rv4-me .go-seg button svg { display: none; }
+.v8-app-root #s-me .rv4-me .go-seg button.on { color: #fff; position: relative; }
+.v8-app-root #s-me .rv4-me .go-seg button.on::after { content: ''; position: absolute; left: 50%; bottom: 4px; width: 72px; margin-left: -36px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, #8C95FF, #FF5FB4); }
+.v8-app-root #s-me .rv4-me .go-grid { margin: 6px 2px 0 !important; padding: 0 !important; gap: 2px !important; grid-template-columns: repeat(3, 1fr) !important; }
+.v8-app-root #s-me .rv4-me .go-grid .go-gt { border-radius: 0 !important; aspect-ratio: 3 / 4.4; box-shadow: none !important; }
+.v8-app-root #s-me .rv4-me .go-gt.add { background: url('/media/places/rv4-yaowarat.jpg') center / cover no-repeat !important; box-shadow: none !important; }
+.v8-app-root #s-me .rv4-me .go-gt.add::before { content: ''; position: absolute; inset: 0; background: linear-gradient(160deg, rgba(236,70,182,.35), rgba(14,15,25,.35) 60%, rgba(115,123,255,.35)); }
+.v8-app-root #s-me .rv4-me .go-gt.add span { position: relative; }
+.v8-app-root #s-me .rv4-me .go-gt.add svg { width: 36px; height: 36px; margin: 0; color: #fff !important; stroke-width: 1.6; }
+.v8-app-root #s-me .rv4-me .go-gt.add em { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.v8-app-root .rv4-fill { display: block; background: #15161f center / cover no-repeat; }
+.v8-app-root .rv4-fill::before { content: ''; position: absolute; inset: 0; background: rgba(14,15,25,.84); }
+.v8-app-root .rv4-fill::after { display: none !important; }
+.v8-app-root #s-me .rv4-me .kme-verify { margin-top: 18px; }
+.v8-app-root .rv4-chats .rv4-cempty { padding: 40px 28px 24px; text-align: center; font-family: var(--rv-f); }
+.v8-app-root .rv4-chats .rv4-cempty b { display: block; font: 600 1rem var(--rv-f); color: #fff; margin-bottom: 6px; }
+.v8-app-root .rv4-chats .rv4-cempty span { display: block; font: 500 0.8125rem/1.5 var(--rv-f); color: var(--rv-mu); }

@@ -6250,27 +6250,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             )}
 
             {threads.length === 0 ? (
-              <div
-                style={{
-                  padding: '38px 20px',
-                  textAlign: 'center',
-                  background: 'rgba(23,21,32,0.55)',
-                  borderRadius: 18,
-                  border: '1px solid rgba(255,247,236,0.1)',
-                }}
-              >
-                <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 6 }}>
-                  {t.emptyChatTitle}
-                </div>
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: 'rgba(255,247,236,0.68)',
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {t.emptyChatSub}
-                </div>
+              <div className="rv4-cempty" id="chatEmpty">
+                <b>{t.emptyChatTitle}</b>
+                <span>{t.emptyChatSub}</span>
               </div>
             ) : (
               <div className="chat-list">

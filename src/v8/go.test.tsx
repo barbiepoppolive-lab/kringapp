@@ -207,7 +207,7 @@ describe('profile grid and Me tabs', () => {
     const saved = [{ id: 's1', poster_path: 'b/s1.jpg', video_path: 'b/s1.mp4', likes: 3, name: 'TEST-Fah', saved_at: '2026-11-13T00:00:00Z' }];
     const { rerender } = render(<GoMeReels L={L} Lf={Lf} mine={[grid('r1', { status: 'pending' })]} saved={saved} tab="reels" onTab={onTab} onOpenMine={vi.fn()} onOpenSaved={onOpenSaved} onPost={onPost} onBrowse={vi.fn()} />);
     expect(document.querySelector('.go-gw.rv')!.textContent).toBe('in review');
-    expect(document.getElementById('goTabSaved')!.textContent).toBe('Saved Reels · 1');
+    expect(document.getElementById('goTabSaved')!.textContent).toBe('Saved · 1');
     fireEvent.click(document.getElementById('goGridAdd')!);
     expect(onPost).toHaveBeenCalled();
     fireEvent.click(document.getElementById('goTabSaved')!);
