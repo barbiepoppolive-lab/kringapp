@@ -301,6 +301,14 @@ export function GoReelPlayer(props: {
               {st && st.travellers > 0 ? <p className="go-stats-note">{props.Lf('{0} of these from travellers (count double)', String(st.travellers))}</p> : null}
               {st && st.opens === null ? <p className="go-stats-note">{L('Outside opens show for your best Reels this week.')}</p> : null}
               {fvShow ? <FriendVerifyNote lang={props.lang} /> : null}
+              {/* 21 Nov (founder): one soft line + Share (the Reel's own /r/<short> link) — opens from outside apps count */}
+              {cur ? (
+                <div className="go-stats-push" id="goStatsPush">
+                  <span>{L('Friends who open this push you up 🚀')}</span>
+                  <button type="button" className="go-stats-share" id="goStatsShare" onPointerDown={() => props.onShareDown?.(stats.id)} onClick={() => props.onShare(stats.id)}>
+                    {L('Share')}<span aria-hidden="true">↗</span></button>
+                </div>
+              ) : null}
             </div>
           </div>
         );

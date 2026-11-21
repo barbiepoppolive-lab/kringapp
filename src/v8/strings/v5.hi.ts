@@ -654,6 +654,9 @@ const T: Record<string, string> = {
   'How to win': 'कैसे जीतें',
   'Show my QR': 'मेरा QR दिखाएँ',
   'Your Reel is live': 'आपकी रील लाइव है',
+  'Friends who open this push you up 🚀': 'दोस्त इसे खोलें तो आप ऊपर चढ़ते हैं 🚀',
+  '{0} Rings from {1} · one Story could do it': '{1} से बस {0} Rings दूर · एक Story काफ़ी हो सकती है',
+  '1 Ring from {1} · one Story could do it': '{1} से बस 1 Ring दूर · एक Story काफ़ी हो सकती है',
   // 0111: face check only for prize claims
   'Do it later': 'बाद में करें',
   // fix4 (19 Nov)

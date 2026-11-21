@@ -654,6 +654,9 @@ const T: Record<string, string> = {
   'How to win': '이기는 방법',
   'Show my QR': '내 QR 보기',
   'Your Reel is live': '내 릴이 공개됐어요',
+  'Friends who open this push you up 🚀': '친구가 열어보면 순위가 올라가요 🚀',
+  '{0} Rings from {1} · one Story could do it': '{0}링만 더 모으면 {1} · 스토리 하나면 충분해요',
+  '1 Ring from {1} · one Story could do it': '1링만 더 모으면 {1} · 스토리 하나면 충분해요',
   // 0111: face check only for prize claims
   'Do it later': '나중에 하기',
   // fix4 (19 Nov)

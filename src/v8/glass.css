@@ -87,3 +87,19 @@
 /* 20 Nov (founder): chat header photo + name open the profile (44 px tap areas) */
 .v8-app-root .th-head .th-av { flex: none; display: grid; place-items: center; min-width: 44px; min-height: 44px; margin: -4px 0; padding: 0; border: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .v8-app-root .th-head .th-nm { display: inline-flex; align-items: center; min-height: 44px; margin: -12px 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; text-align: left; }
+
+/* 21 Nov (founder): soft share nudges — light glass, no new boxes */
+.v8-app-root #s-me .rv5-mstrip .rv4-mshare, .v8-app-root .rv4-mshare { flex: none; display: inline-flex; align-items: center; gap: 4px; height: 30px; margin-left: 6px; padding: 0 12px;
+  border: 0; border-radius: 999px; color: #fff; font: 700 0.78rem/1 var(--rv-f, system-ui); background: rgba(255, 255, 255, .12);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); white-space: nowrap; }
+.v8-app-root .rv4-mshare span { opacity: .8; }
+.v8-app-root .rv4-mshare:active { transform: scale(.96); }
+.v8-app-root .go-stats-push { display: flex; align-items: center; gap: 10px; margin: 14px 2px 0; }
+.v8-app-root .go-stats-push > span { flex: 1; min-width: 0; font-size: 0.8125rem; line-height: 1.4; color: rgba(255, 255, 255, .86); }
+.v8-app-root .go-stats-share { flex: none; display: inline-flex; align-items: center; gap: 5px; height: 36px; padding: 0 16px; border: 0; border-radius: 999px;
+  color: #fff; font: 700 0.875rem/1 inherit; background: rgba(255, 79, 192, .22); }
+.v8-app-root .go-stats-share:active { transform: scale(.96); }
+.v8-app-root .v8-posted-push { margin: 8px 0 0; font-size: 0.8125rem; font-weight: 600; color: #fff; text-shadow: 0 1px 4px rgba(0, 0, 0, .6); white-space: nowrap; }
+.v8-app-root .v8-posted-push + .kx-ihint { margin-top: 2px; }
+.v8-app-root #s-me .rv5-mstrip .rv4-mline[data-near] .rv4-mw b { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  font-size: 0.8125rem; line-height: 1.25; }

@@ -654,6 +654,9 @@ const T: Record<string, string> = {
   'How to win': '勝ち方',
   'Show my QR': '自分のQRを表示',
   'Your Reel is live': 'リールが公開されました',
+  'Friends who open this push you up 🚀': '友だちが開くたびに順位アップ 🚀',
+  '{0} Rings from {1} · one Story could do it': 'あと {0} Ringsで {1} · ストーリー1本で届くかも',
+  '1 Ring from {1} · one Story could do it': 'あと 1 Ringで {1} · ストーリー1本で届くかも',
   // 0111: face check only for prize claims
   'Do it later': 'あとで',
   // fix4 (19 Nov)

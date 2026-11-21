@@ -155,7 +155,9 @@ export function ReelStamps(props: { L: Tx }) {
  * "Founding Local · ฿100": three steps under the card, step 1 already ticked (mock m5). Shows until the member is a Founding Local;
  * when all the spots are taken it becomes "3 steps to the board" with no ฿. The spots-left number is the true count from the server.
  */
-export type WeekHookData = { rank: number | null; prize: number; toLine: number | null; top: number; needs?: number | null };
+export type WeekHookData = { rank: number | null; prize: number; toLine: number | null; top: number; needs?: number | null;
+  /** 21 Nov: within 10 Rings of the next prize rank (or of the 25-Ring line) → "{n} Rings from ฿{prize} · one Story could do it" */
+  near?: { n: number; prize: number } | null };
 
 /**
  * 20 Nov fix ("You're #1 ฿900" for a test member): the board's me.rank is the rank inside the loaded scope (area / friends / with
@@ -173,7 +175,22 @@ export function kxWeekHook(w: { me: { rank: number; all_rank?: number; rings: nu
   const toLine = rank && rank > paid ? (row?.to_line ?? (lineRow && me ? Math.max(1, lineRow.rings - me.rings + 1) : null)) : null;
   const flr = w?.floor ?? 25;
   const needs = prize > 0 && me && me.rings < flr ? flr : null;
-  return { rank, prize, toLine, top: w?.prizes?.[0] || ladderTop || 0, needs };
+  return { rank, prize, toLine, top: w?.prizes?.[0] || ladderTop || 0, needs, near: nearPrize(w, rank, prize, paid, flr) };
+}
+
+/** 21 Nov: the next prize step when it is 10 Rings away or less. In a prize seat under 25 Rings: the 25-Ring line for that prize.
+ *  In a prize seat: the rank above (its Rings + 1). Outside the prizes: the last paid seat (or just the 25-Ring line if that seat is open). */
+export function nearPrize(w: { me: { rings: number } | null; rows?: { all_rank?: number; rank: number; rings: number }[]; prizes?: number[] } | null | undefined,
+  rank: number | null, prize: number, paid: number, flr: number): { n: number; prize: number } | null {
+  const me = w?.me;
+  if (!me || !rank) return null;
+  const R = me.rings || 0;
+  const at = (k: number) => w?.rows?.find((r) => (r.all_rank || r.rank) === k);
+  let n = 0, pz = 0;
+  if (prize > 0 && R < flr) { n = flr - R; pz = prize; }
+  else if (prize > 0 && rank > 1) { const up = at(rank - 1); if (up) { n = up.rings - R + 1; pz = w?.prizes?.[rank - 2] ?? 0; } }
+  else if (rank > paid) { const lr = at(paid); n = Math.max(flr - R, lr && lr.rings >= flr ? lr.rings - R + 1 : 0); pz = w?.prizes?.[paid - 1] ?? 0; }
+  return n > 0 && n <= 10 && pz > 0 ? { n, prize: pz } : null;
 }
 
 /**
@@ -282,6 +299,8 @@ export type MeViewProps = {
   reelCount?: number;
   /** 20 Nov: the weekly-board hook that replaced the Founding ฿100 card */
   weekHook?: WeekHookData | null;
+  /** 21 Nov: the Share chip on the Me strip when close to a prize (my best Reel this week) */
+  onShareBest?: () => void; onShareBestDown?: () => void;
   /** 0171: the daily-tasks line (mini ring · N of 4 · streak · Claim) */
   tasksSlot?: React.ReactNode;
   /** 20 Nov: no passed face check → one Verify line in place of the weekly ranking + daily rewards */
@@ -340,7 +359,8 @@ export function MeView(props: MeViewProps) {
       {props.lockSlot ? props.lockSlot : (
       <div className={`rv5-mstrip${props.tasksSlot ? '' : ' solo'}`} id="meStrip">
         <MeLine L={L} Lf={Lf} kx={props.kx} hook={props.weekHook || { rank: props.weekRank ?? null, prize: props.weekPrize ?? 0, toLine: null, top: 0 }}
-          dot={!!props.ringsDot || (props.kx?.prizes ?? 0) > 0} onRings={props.onRings} onRanking={props.onRanking} onPost={props.onPost} />
+          dot={!!props.ringsDot || (props.kx?.prizes ?? 0) > 0} onRings={props.onRings} onRanking={props.onRanking} onPost={props.onPost}
+          onShareBest={props.onShareBest} onShareBestDown={props.onShareBestDown} />
         {props.tasksSlot || null}
       </div>)}
       {actionStep && props.nextKind !== 'reel' && props.nextKind !== 'pending' ? props.nextSlot : null}
@@ -405,7 +425,8 @@ function MeHead(props: { L: Tx; p: V5Profile; stats: React.ReactNode; onEdit: ()
 
 /** rv4 Me A: the one line. Rings (lifetime, taps → Rewards) | this week's board in the live fix's words (taps → the ranking) | Post when not on the board. */
 function MeLine(props: { L: Tx; Lf: Txf; kx: KxCardExtras | null | undefined; hook: WeekHookData; dot: boolean;
-  onRings?: () => void; onRanking?: () => void; onPost: () => void }) {
+  onRings?: () => void; onRanking?: () => void; onPost: () => void;
+  /** 21 Nov: share my best Reel this week (shown only with hook.near) */ onShareBest?: () => void; onShareBestDown?: () => void }) {
   const { L, Lf, kx, hook: h } = props;
   const total = kx ? kx.lifetime ?? 0 : null;
   const baht = (n: number) => `฿${fmtN(n)}`;
@@ -416,9 +437,11 @@ function MeLine(props: { L: Tx; Lf: Txf; kx: KxCardExtras | null | undefined; ho
     : onBoard && h.toLine ? Lf('You’re #{0} · {1} Rings to the prize line', String(h.rank), fmtN(h.toLine))
     : h.top ? Lf('Be Bangkok’s face of the week · #1 wins {0}', baht(h.top)) : L('Climb this week’s board');
   const cut = line.indexOf(' · ');
-  const [a, b] = cut > 0 ? [line.slice(0, cut), line.slice(cut + 3)] : [line, ''];
+  const [a, b0] = cut > 0 ? [line.slice(0, cut), line.slice(cut + 3)] : [line, ''];
+  const near = onBoard ? h.near : null;
+  const b = near ? Lf(near.n === 1 ? '1 Ring from {1} · one Story could do it' : '{0} Rings from {1} · one Story could do it', fmtN(near.n), baht(near.prize)) : b0;
   return (
-    <div className={`rv4-mline${inPrize && !locked ? ' won' : locked ? ' locked' : ''}`} id="kxWeekHook" data-state={inPrize ? 'prize' : onBoard ? 'board' : 'off'}>
+    <div className={`rv4-mline${inPrize && !locked ? ' won' : locked ? ' locked' : ''}`} id="kxWeekHook" data-state={inPrize ? 'prize' : onBoard ? 'board' : 'off'} data-near={near ? '1' : undefined}>
       <button type="button" className="rv4-mr" id="meRings" aria-label={`${L('Your Rings')} · ${total === null ? '…' : fmtN(total)}`} onClick={props.onRings}>
         <RingGlyph /><b>{total === null ? '…' : fmtN(total)}</b>{props.dot ? <i className="kx-tdot" aria-label={L('New')} /> : null}
       </button>
@@ -426,6 +449,10 @@ function MeLine(props: { L: Tx; Lf: Txf; kx: KxCardExtras | null | undefined; ho
       <button type="button" className="rv4-mw" id="kxWeekHookOpen" aria-label={line} onClick={props.onRanking || props.onPost}>
         <span>{a}</span>{b ? <b>{b}</b> : null}
       </button>
+      {near && props.onShareBest ? (
+        <button type="button" className="rv4-mshare" id="kxNearShare" onPointerDown={props.onShareBestDown} onClick={props.onShareBest}>
+          {L('Share')}<span aria-hidden="true">↗</span></button>
+      ) : null}
       {!onBoard ? <button type="button" className="rv4-mpost" id="kxWeekHookPost" onClick={props.onPost}>{L('Post')}</button> : null}
     </div>
   );

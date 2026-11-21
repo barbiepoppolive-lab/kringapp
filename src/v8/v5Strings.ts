@@ -36,6 +36,10 @@ export const V5_L: Record<string, Record<string, string>> = {
     // founder 18 Nov: QR in my profile's ⋯ menu; "Your Reel is live · Share" after the team approves a Reel
     'Show my QR': 'แสดง QR ของฉัน',
     'Your Reel is live': 'รีลของคุณขึ้นฟีดแล้ว',
+    // 21 Nov (founder): soft share nudges — after a Reel is approved, and on Me when close to a prize
+    'Friends who open this push you up 🚀': 'เพื่อนเปิดดูคลิปนี้ ช่วยดันคุณขึ้นกระดาน 🚀',
+    '{0} Rings from {1} · one Story could do it': 'อีก {0} ริงได้ {1} · แชร์สตอรี่เดียวก็ถึง',
+    '1 Ring from {1} · one Story could do it': 'อีก 1 ริงได้ {1} · แชร์สตอรี่เดียวก็ถึง',
     '+ Add {0}': '+ เพิ่ม {0}',
     'Outside opens': 'เปิดจากลิงก์แชร์',
     '{0} of these from travellers (count double)': 'มาจากนักท่องเที่ยว {0} ครั้ง (นับ 2 เท่า)',

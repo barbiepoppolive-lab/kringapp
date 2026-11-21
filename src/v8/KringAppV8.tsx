@@ -2590,6 +2590,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [kxResult, setKxResult] = useState<KxWeekResult | null>(null);
   const [kxSaved, setKxSaved] = useState<KxSavedReel[] | null>(null);
   const [kxRankLine, setKxRankLine] = useState<string>('');
+  /** 21 Nov: my best Reel this week (highest score in the ranking math), for the Me strip's "one Story could do it" Share chip */
+  const [kxBestReel, setKxBestReel] = useState<string | null>(null);
   // 16 Nov prize banner: this week's board for the member (the same kr8_weekly_ranking call the Me row makes), shared by the Feed ticker and the Me card
   const [kxWeek, setKxWeek] = useState<KxRanking | null>(null);
   const [prizeHideTick, setPrizeHideTick] = useState(0);
@@ -2653,6 +2655,19 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     setPostedShare({ id: liveReel, mode: 'live' });
     setLiveReel(null);
   }, [liveReel, tab, sheet, postedShare]);
+  // 21 Nov: close to a prize (10 Rings or less) → find my best Reel this week and warm its share link, so the chip's tap opens the sheet at once
+  const kxNearKey = (() => { const h = kxWeek ? kxWeekHook(kxWeek, 0) : null; return h?.near ? `${h.near.n}:${h.near.prize}` : ''; })();
+  useEffect(() => {
+    if (!live || !v5Uid || !kxNearKey) { setKxBestReel(null); return; }
+    let on = true;
+    kxBreakdown(v5Uid).then((b) => {
+      const best = [...(b?.reels || [])].sort((x, y) => (y.score || 0) - (x.score || 0))[0]?.post_id || null;
+      if (!on) return;
+      setKxBestReel(best);
+      if (best) prefetchReelLink(best);
+    }).catch(() => undefined);
+    return () => { on = false; };
+  }, [live, v5Uid, kxNearKey]);   // eslint-disable-line react-hooks/exhaustive-deps
   /** The Ranking tile's second line: the next step and what it pays. */
   const kxTileLine = (r: KxRanking): string => {
     const g = r.gap;
@@ -5033,6 +5048,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               kx={kxMe}
               weekRank={kxWeekRank}
               weekHook={kxWeekHook(kxWeek, kxRewards?.ladder?.[0] || 0)}
+              onShareBest={kxBestReel ? () => void kxShareReelId(kxBestReel) : undefined}
+              onShareBestDown={() => prefetchReelLink(kxBestReel)}
               lockSlot={unvRef.current ? <UnvMeLine lang={lang} onVerify={() => setFaceIntro(true)} /> : null}
               onRings={() => { setKxReady(false); setSheet('rewards'); void kxLoadRewards(); }}
               ringsDot={kxReady}
@@ -7767,6 +7784,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               {postedShare.mode === 'live' ? <>{L('Your Reel is live')}<i className="v8-posted-dot" aria-hidden="true">·</i>{L('Share')}<span aria-hidden="true">↗</span></>
                 : <><span aria-hidden="true">↗</span>{L('Share my Reel')}</>}
             </button>
+            {postedShare.mode !== 'pending' ? <p className="v8-posted-push" id="postedPush">{L('Friends who open this push you up 🚀')}</p> : null}
             <InviteHint lang={shareLang} x={kxRewards?.rules?.invite} id="postedHint" />
           </div>
         )}

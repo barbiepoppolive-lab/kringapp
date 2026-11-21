@@ -654,6 +654,9 @@ const T: Record<string, string> = {
   'How to win': '如何赢',
   'Show my QR': '显示我的二维码',
   'Your Reel is live': '你的短视频已上线',
+  'Friends who open this push you up 🚀': '朋友打开它就能推你往上 🚀',
+  '{0} Rings from {1} · one Story could do it': '再 {0} 个 Ring 拿 {1} · 一条快拍就够',
+  '1 Ring from {1} · one Story could do it': '再 1 个 Ring 拿 {1} · 一条快拍就够',
   // 0111: face check only for prize claims
   'Do it later': '稍后再做',
   // fix4 (19 Nov)
