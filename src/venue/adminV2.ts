@@ -141,7 +141,9 @@ async function loadPhotos(ids: string[]) {
 function startPolling(render: () => void) {
   rerender = render;
   clearInterval(pollTimer); clearInterval(tickTimer);
-  pollTimer = window.setInterval(() => { if (document.visibilityState === 'visible' && !document.querySelector('.v2sheet')) void loadSnapshot(true).then(() => rerender?.()).catch(() => undefined); }, 30_000);
+  // 21 Nov: no refresh while a reply is being typed or sent (re-painting closed the phone keyboard under the founder's tap on Send)
+  const busy = () => !!document.querySelector('.v2sheet, .hpa-sending') || /^(TEXTAREA|INPUT)$/.test(document.activeElement?.tagName || '');
+  pollTimer = window.setInterval(() => { if (document.visibilityState === 'visible' && !busy()) void loadSnapshot(true).then(() => { if (!busy()) rerender?.(); }).catch(() => undefined); }, 30_000);
   tickTimer = window.setInterval(() => { const n = document.getElementById('v2Fresh'); if (n && snap) n.textContent = `Updated ${ago(new Date(snapAt).toISOString())}`; }, 1000);
 }
 export function stopV2() { clearInterval(pollTimer); clearInterval(tickTimer); rerender = null; }

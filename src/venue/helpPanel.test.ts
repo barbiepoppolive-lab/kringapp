@@ -43,18 +43,19 @@ async function setup() {
   const shared = await import('./shared');
   const rpc = vi.mocked(shared.rpc);
   rpc.mockReset();
-  rpc.mockImplementation((async (fn: string) => {
+  const saved: { id: number; from: 'team'; body: string; at: string; translation_en: string }[] = [];   // what the server really stored (21 Nov: Sent only after the row exists)
+  rpc.mockImplementation((async (fn: string, args?: Record<string, unknown>) => {
     if (fn === 'kr8_admin_help_threads') return LIST;
-    if (fn === 'kr8_admin_help_thread') return structuredClone(DETAIL);
+    if (fn === 'kr8_admin_help_thread') { const d = structuredClone(DETAIL); d.messages = [...d.messages, ...saved]; return d; }
     if (fn === 'kr8_admin_v2_member') return MEMBER;
     if (fn === 'kr8_admin_v2_photos') return {};
-    if (fn === 'kr8_admin_team_reply_en') return 99;
+    if (fn === 'kr8_admin_team_reply_en') { saved.push({ id: 99, from: 'team', body: String(args?.p_body), at: new Date().toISOString(), translation_en: String(args?.p_body_en) }); return 99; }
     return null;
   }) as never);
   const screen = (...kids: (Node | string | null | undefined | false)[]) => { const s = document.createElement('div'); s.className = 'scr'; for (const k of kids) if (k) s.append(k); document.body.replaceChildren(s); return s; };
   return { rpc, screen, mod: await import('./helpPanel') };
 }
-const flush = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
+const flush = async () => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
 /** all visible text except the member's / team's raw Thai message lines */
 const chromeText = () => { const c = document.body.cloneNode(true) as HTMLElement; c.querySelectorAll('.hp-b-text, textarea').forEach((n) => n.remove()); return c.textContent || ''; };
 
@@ -146,8 +147,39 @@ describe('Help panel screens', () => {
     const all = [...document.querySelectorAll('.hp-b')]; const last = all[all.length - 1];
     expect(last.className).toContain('team');
     expect(last.querySelector('.hp-b-en')?.textContent).toBe('EN: Your code is sent. Look under My prizes.');
-    expect(document.getElementById('hpStatus')?.textContent).toBe('Sent as Kring Team ✓');
+    expect(document.getElementById('hpStatus')?.textContent).toBe('Sent as Kring Team ✓ · message #99');
     expect((document.getElementById('hpText') as HTMLTextAreaElement).value).toBe('');
+  });
+
+  it('Send: a server refusal shows a red "Not sent — reason", never "Sent"', async () => {
+    const { mod, screen, rpc } = await setup();
+    const base = rpc.getMockImplementation()!;
+    rpc.mockImplementation((async (fn: string, args?: Record<string, unknown>) => {
+      if (fn === 'kr8_admin_team_reply_en') throw new Error('KR8_ADMIN_ONLY');
+      return (base as (f: string, a?: Record<string, unknown>) => unknown)(fn, args);
+    }) as never);
+    mod.helpPanelView(screen, 'waitOld');
+    await flush();
+    (document.getElementById('hpSend') as HTMLButtonElement).click();
+    await flush();
+    const st = document.getElementById('hpStatus')!;
+    expect(st.className).toContain('bad');
+    expect(st.textContent).toMatch(/^Not sent — your admin sign-in has expired/);
+    expect((document.getElementById('hpSend') as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it('Send: an id with no saved row is "Not sent", not "Sent"', async () => {
+    const { mod, screen, rpc } = await setup();
+    const base = rpc.getMockImplementation()!;
+    rpc.mockImplementation((async (fn: string, args?: Record<string, unknown>) => {
+      if (fn === 'kr8_admin_team_reply_en') return 12345;   // id came back but the chat has no such message
+      return (base as (f: string, a?: Record<string, unknown>) => unknown)(fn, args);
+    }) as never);
+    mod.helpPanelView(screen, 'waitOld');
+    await flush();
+    (document.getElementById('hpSend') as HTMLButtonElement).click();
+    await flush();
+    expect(document.getElementById('hpStatus')?.textContent).toBe('Not sent — the server did not save the message. Tap Send again.');
   });
 
   it('Send: edited English / quick reply is translated to Thai first, then sent', async () => {

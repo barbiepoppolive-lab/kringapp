@@ -7,7 +7,7 @@
  * Refreshes every 20 s without touching what the founder is typing. English-only chrome; Thai only reaches the member.
  */
 import { el, rpc } from './shared';
-import { closeHelpNoReply, sendTeamReply } from './adminHelp';
+import { closeHelpNoReply, sendFailReason, sendTeamReply } from './adminHelp';
 import { hasThaiText, helpQuestion, sortHelpCases, type HelpCase } from './adminHelpLogic';
 import { flagKeyLabel, type ProtectFlagKey } from './autopilotLogic';
 import {
@@ -252,22 +252,24 @@ async function chatView(screen: Screen, member: string, onCount?: (waiting: numb
     const en = ta.value.trim();
     if (!en) { ta.focus(); return; }
     const thai = detail ? memberWritesThai(detail) : hasThaiText(t0?.last_body || '');
-    send.setAttribute('disabled', ''); ta.setAttribute('disabled', '');
-    status.className = 'hp-status'; status.textContent = thai ? 'Translating to Thai…' : 'Sending…';
+    if (send.hasAttribute('disabled')) return;
+    send.setAttribute('disabled', ''); ta.setAttribute('disabled', ''); send.textContent = 'Sending…';
+    status.className = 'hp-status busy'; status.textContent = thai ? 'Translating to Thai…' : 'Sending…';
     try {
       const r = await sendTeamReply({ member, en, memberThai: thai, draftTh: draft?.th, draftEn: draft?.en, onStep: (s) => { status.textContent = s; } });
       // show it at once; the next load brings the real row
       pendingSent.set(member, [...(pendingSent.get(member) || []), { from: 'team', body: r.body, translation_en: r.en, at: new Date().toISOString(), pending: true }]);
       if (detail) detail = { ...detail, unanswered: 0 };
       typed.delete(member); ta.value = ''; touched = true;
-      status.className = 'hp-status ok'; status.textContent = 'Sent as Kring Team ✓';
+      status.className = 'hp-status ok'; status.textContent = `Sent as Kring Team ✓${r.id ? ` · message #${r.id}` : ''}`;
       if (threads) { threads = sortThreads(threads.map((x) => (x.member === member ? { ...x, unanswered: 0, waiting_since: null, team_replied: true, last_from: 'team' as const, last_body: r.body, last_en: r.en, last_at: new Date().toISOString() } : x))); onCount?.(threads.filter((x) => x.unanswered > 0).length); }
       paint(true);
       void refresh();
     } catch (e) {
-      status.className = 'hp-status bad'; status.textContent = `Not sent: ${(e as Error).message}`;
+      status.className = 'hp-status bad'; status.textContent = `Not sent — ${sendFailReason(e)}`;
+      status.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
     } finally {
-      send.removeAttribute('disabled'); ta.removeAttribute('disabled');
+      send.removeAttribute('disabled'); ta.removeAttribute('disabled'); send.textContent = 'Send as Kring Team';
     }
   };
 

@@ -5,7 +5,7 @@
  * SELF-CONTAINED: adminV2 adds accountCheckSection(onCount) at the top of Needs you. English only (the founder's rule).
  */
 import { el, rpc, v5Client } from './shared';
-import { sendTeamReply } from './adminHelp';
+import { sendFailReason, sendTeamReply } from './adminHelp';
 
 export interface AccountCheck {
   id: string; status: 'open' | 'approved' | 'kept'; created_at: string; decided_at: string | null; note: string | null;
@@ -91,12 +91,12 @@ function card(c: AccountCheck, selfies: Record<string, string>, refresh: () => v
   };
   const thai = memberThai(c);
   const send = async (en: string, th?: string) => {
-    busy(btns, true); status.textContent = 'Sending…';
+    busy(btns, true); status.className = 'hpa-status busy'; status.textContent = 'Sending…';
     try {
       const r = await sendTeamReply({ member: c.user_id, en, memberThai: thai, draftEn: th ? en : undefined, draftTh: th, onStep: (t) => { status.textContent = t; } });
       await rpc('kr8_admin_account_check_note', { p_id: c.id, p_en: r.en }).catch(() => undefined);
-      status.textContent = `Sent ✓ “${r.en.slice(0, 80)}${r.en.length > 80 ? '…' : ''}”`;
-    } catch (e) { status.textContent = `Not sent: ${String((e as Error)?.message || e).slice(0, 120)}`; }
+      status.className = 'hpa-status ok'; status.textContent = `Sent ✓ “${r.en.slice(0, 80)}${r.en.length > 80 ? '…' : ''}”`;
+    } catch (e) { status.className = 'hpa-status bad'; status.textContent = `Not sent — ${sendFailReason(e)}`; }
     busy(btns, false);
   };
   const mk = (label: string, cls: string, id: string, fn: () => void) => { const b = el('button', { type: 'button', class: `v2btn ${cls}`, id }, label); b.onclick = fn; btns.push(b); return b; };

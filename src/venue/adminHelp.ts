@@ -23,29 +23,98 @@ function enLine(rawText: string, tr?: string | null): HTMLElement | null {
   return el('small', { class: 'hpa-en' }, `EN: ${cleanTr}`);
 }
 
+/** 21 Nov: a step that never answers must not leave the founder looking at a silent button */
+function withTimeout<T>(p: Promise<T>, ms: number, why: string): Promise<T> {
+  let t = 0;
+  return Promise.race([p, new Promise<never>((_, rej) => { t = window.setTimeout(() => rej(new Error(why)), ms); })]).finally(() => window.clearTimeout(t));
+}
+
+/** plain-English reason for the red "Not sent — …" line (the admin is English only) */
+export function sendFailReason(e: unknown): string {
+  const m = String((e as Error)?.message || e || '');
+  if (/KR8_ADMIN_ONLY|JWT|jwt|401|not authenticated|refresh token/i.test(m)) return 'your admin sign-in has expired. Reload the page, sign in again, then tap Send.';
+  if (/KR8_NO_PERSON/.test(m)) return "this member's card was not found (account closed?).";
+  if (/KR8_BAD_TEXT/.test(m)) return 'the reply is empty or longer than 2,000 characters.';
+  if (/KR8_NO_TEAM/.test(m)) return 'the Kring Team account is missing on the server.';
+  if (/Failed to fetch|Load failed|NetworkError|network/i.test(m)) return 'no internet connection. Check the connection and tap Send again.';
+  return m.replace(/^Not sent:?\s*/i, '') || 'unknown error. Tap Send again.';
+}
+
+/** English → Thai for the member. Long replies go in short pieces (one long call was cut off mid-sentence and leaked a <thai> tag). */
+export function splitForTranslation(en: string, max = 320): string[] {
+  const out: string[] = [];
+  for (const para of en.split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean)) {
+    if (para.length <= max) { out.push(para); continue; }
+    let cur = '';
+    for (const sent of para.match(/[^.!?。]+[.!?。]+["')\]]*\s*|[^.!?。]+$/g) || [para]) {
+      if (cur && (cur + sent).length > max) { out.push(cur.trim()); cur = ''; }
+      cur += sent;
+    }
+    if (cur.trim()) out.push(cur.trim());
+  }
+  return out.flatMap((x) => (x.length > 560 ? x.match(/[\s\S]{1,560}/g) || [x] : [x]));
+}
+export function cleanThai(raw: string): string | null {
+  const t = (raw || '').replace(/<\/?thai>/gi, '').trim();
+  if (!t || !/[\u0E00-\u0E7F]/.test(t)) return null;
+  if (/<thai>/i.test(raw) && !/<\/thai>/i.test(raw)) return null;   // cut off before the end
+  return t;
+}
+async function toThai(en: string): Promise<string> {
+  const cl = await v5Client();
+  const parts = splitForTranslation(en);
+  const th = await withTimeout(Promise.all(parts.map(async (p) => {
+    const { data, error } = await cl.functions.invoke('kr8-help-ai', { body: { mode: 'translate_reply', text_en: p, lang: 'th' } });
+    const ok = cleanThai((data as { text?: string } | null)?.text || '');
+    if (error || !ok) throw new Error('the Thai translation failed (nothing was sent). Tap Send again.');
+    return ok;
+  })), 40_000, 'the Thai translation took too long (nothing was sent). Tap Send again.');
+  return th.join('\n\n');
+}
+
+/** true once the team message is really in the member's chat (by id, or by text within the last few minutes) */
+export async function teamMessageExists(member: string, o: { id?: number | null; body?: string; since?: number }): Promise<boolean> {
+  const r = await rpc<{ messages?: { id: number | string; from: string; body: string; at: string }[] } | null>('kr8_admin_help_thread', { p_member: member });
+  return (r?.messages || []).some((m) => m.from === 'team' && (o.id != null ? Number(m.id) === Number(o.id)
+    : m.body === o.body && Date.parse(m.at) >= (o.since || 0) - 120_000));
+}
+
 /**
- * The one send path for Help replies (Needs you cards AND the Help panel): the founder writes ENGLISH; when the member writes Thai
- * the English is turned into natural Thai (kr8-help-ai translate_reply; the unchanged Sonnet draft sends Sonnet's own Thai),
- * then kr8_admin_team_reply_en stores the Thai for the member and the English for the founder. Returns what the member got.
+ * The one send path for Help replies (Needs you cards, the Help panel, account checks): the founder writes ENGLISH; when the member
+ * writes Thai the English is turned into natural Thai (kr8-help-ai translate_reply; the unchanged Sonnet draft sends Sonnet's own
+ * Thai), then kr8_admin_team_reply_en stores the Thai for the member and the English for the founder.
+ * 21 Nov (founder pressed Send on #87 and nothing appeared): every step has a time limit, every failure throws a plain reason, and
+ * it only resolves once the message row is confirmed in the member's chat. Returns what the member got + the message id.
  */
-export async function sendTeamReply(o: { member: string; en: string; memberThai: boolean; draftTh?: string; draftEn?: string; onStep?: (t: string) => void }): Promise<{ body: string; en: string }> {
+export async function sendTeamReply(o: { member: string; en: string; memberThai: boolean; draftTh?: string; draftEn?: string; onStep?: (t: string) => void }): Promise<{ body: string; en: string; id: number | null }> {
   const en = o.en.trim();
-  if (!en) throw new Error('Write a reply first.');
+  if (!en) throw new Error('write a reply first.');
+  if (!o.member) throw new Error("this member's id is missing. Reload the page.");
   let body = en;
   if (o.memberThai && !hasThaiText(en)) {
     if (o.draftTh && en === (o.draftEn || '').trim()) body = o.draftTh;
-    else {
-      o.onStep?.('Translating to Thai…');
-      const cl = await v5Client();
-      const { data, error } = await cl.functions.invoke('kr8-help-ai', { body: { mode: 'translate_reply', text_en: en, lang: 'th' } });
-      const th = (data as { ok?: boolean; text?: string } | null)?.text;
-      if (error || !th) throw new Error('Thai translation failed, nothing was sent. Try again.');
-      body = th;
-    }
+    else { o.onStep?.('Translating to Thai…'); body = await toThai(en); }
   }
+  if (body.length > 2000) throw new Error('the reply is longer than 2,000 characters. Make it shorter.');
   o.onStep?.('Sending…');
-  await rpc('kr8_admin_team_reply_en', { p_member: o.member, p_body: body, p_body_en: en });
-  return { body, en };
+  const since = Date.now();
+  let id: number | null = null;
+  try {
+    const r = await withTimeout(rpc<number | string | null>('kr8_admin_team_reply_en', { p_member: o.member, p_body: body, p_body_en: en }), 25_000, 'TIMEOUT');
+    id = r == null ? null : Number(r);
+  } catch (e) {
+    if ((e as Error).message !== 'TIMEOUT') throw new Error(sendFailReason(e));
+    // no answer in time: it may still have gone through, so look before saying anything (never a double send)
+    o.onStep?.('Checking…');
+    const there = await teamMessageExists(o.member, { body, since }).catch(() => false);
+    if (!there) throw new Error('no answer from the server (nothing was sent). Check the connection and tap Send again.');
+    return { body, en, id: null };
+  }
+  if (id == null || !Number.isFinite(id)) throw new Error('the server did not save the message. Tap Send again.');
+  o.onStep?.('Checking…');
+  const ok = await teamMessageExists(o.member, { id }).catch(() => true);   // the id only comes back after the row is committed
+  if (!ok) throw new Error('the server did not save the message. Tap Send again.');
+  return { body, en, id };
 }
 
 /**
@@ -111,16 +180,25 @@ export function helpCaseCard(c: HelpCase, onDone?: (c: HelpCase) => void): HTMLE
       enLine(it.q, it.en)))),
     urg !== 'ok' ? el('p', { class: 'hpa-risk', id: 'hpaRisk-' + c.member }, `⚠ ${helpUrgencyText(urg)}`) : null,
     hist, suggestHead, ta, el('div', { class: 'v2acts' }, send, noReply), status);
+  const setStatus = (cls: '' | 'busy' | 'ok' | 'bad', text: string) => { status.className = `hpa-status ${cls}`.trim(); status.textContent = text; };
   send.onclick = async () => {
+    if (card.classList.contains('hpa-sending')) return;
     const en = ta.value.trim();
-    if (!en) { ta.focus(); return; }
-    send.setAttribute('disabled', ''); status.textContent = memberThai ? 'Translating to Thai…' : 'Sending…';
+    if (!en) { setStatus('bad', 'Not sent — write a reply first.'); ta.focus(); return; }
+    card.classList.add('hpa-sending'); send.setAttribute('disabled', ''); noReply.setAttribute('disabled', ''); send.textContent = 'Sending…';
+    setStatus('busy', memberThai ? 'Translating to Thai…' : 'Sending…');
     try {
-      await sendTeamReply({ member: c.member, en, memberThai, draftTh, draftEn, onStep: (t) => { status.textContent = t; } });
-      card.classList.add('hpa-done'); status.textContent = `Sent to ${who} as Kring Team ✓`; ta.setAttribute('disabled', ''); noReply.setAttribute('disabled', '');
+      const r = await sendTeamReply({ member: c.member, en, memberThai, draftTh, draftEn, onStep: (t) => setStatus('busy', t) });
+      card.classList.add('hpa-done'); send.textContent = 'Sent ✓';
+      setStatus('ok', `Sent to ${who} as Kring Team ✓ · ${fmtClock(new Date().toISOString())} IST${r.id ? ` · message #${r.id}` : ''}`);
+      ta.setAttribute('disabled', '');
       onDone?.(c);
     } catch (e) {
-      send.removeAttribute('disabled'); status.textContent = `Not sent: ${(e as Error).message}`;
+      send.removeAttribute('disabled'); noReply.removeAttribute('disabled'); send.textContent = 'Send as Kring Team';
+      setStatus('bad', `Not sent — ${sendFailReason(e)}`);
+      status.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+    } finally {
+      card.classList.remove('hpa-sending');
     }
   };
   noReply.onclick = async () => {
