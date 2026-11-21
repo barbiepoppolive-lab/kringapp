@@ -81,7 +81,7 @@ export function useAskTr(kind: TrKind, id: string, text: string, skip = false): 
 
 /**
  * A member-written text in the reader's language. `toggle` adds the tiny "Translated · See original" switch (not inside the
- * feed cards, which are one big button: there it says "Translated" only).
+ * feed cards, which are one big button: there no label at all, 21 Nov).
  */
 export function AskText(props: { L: (en: string) => string; kind: TrKind; id: string; text: string; skip?: boolean; toggle?: boolean;
   as?: 'div' | 'h1' | 'p'; className?: string; wrap?: (s: string) => string }) {
@@ -98,7 +98,7 @@ export function AskText(props: { L: (en: string) => string; kind: TrKind; id: st
           <button type="button" className="at-tr" data-tr={orig ? 'orig' : 'tr'} onClick={() => setOrig((o) => !o)}>
             {orig ? L('See translation') : `${L('Translated')} · ${L('See original')}`}
           </button>
-        ) : <span className="at-tr at-tr-s" aria-hidden="true">{L('Translated')}</span>
+        ) : null   /* 21 Nov (founder): no "Translated" label in the feed cards; the opened thread keeps its subtle switch */
       ) : null}
     </>
   );

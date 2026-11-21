@@ -151,6 +151,11 @@ function rv4Pick(id: string): { scene: string; tint: string } {
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
   return { scene: RV4_SCENES[h % RV4_SCENES.length], tint: RV4_TINTS[(h >>> 4) % RV4_TINTS.length] };
 }
+/** 21 Nov: join the parts that exist with " · " (never a leading, trailing or double dot) */
+function dots(parts: React.ReactNode[], tag?: boolean): React.ReactNode {
+  const xs = parts.filter((x) => x !== null && x !== undefined && x !== false && x !== '');
+  return xs.map((x, i) => <React.Fragment key={i}>{i > 0 ? (tag ? <i aria-hidden="true">·</i> : ' · ') : null}{x}</React.Fragment>);
+}
 const RV4_BASE = ((import.meta as unknown as { env?: { BASE_URL?: string } }).env?.BASE_URL || '/app/');
 const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onAnswer: () => void; onVote: (v: 1) => void; onShare: () => void; areaLabel: (a: string) => string }> = ({ q, L, onOpen, onAnswer, onVote, onShare, areaLabel }) => {
   const pick = rv4Pick(q.id);
@@ -159,7 +164,7 @@ const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onAnswer: () 
     <span className="rv4-scene" aria-hidden="true" style={{ backgroundImage: `url('${RV4_BASE}media/places/${pick.scene}.jpg')` }} />
     <div className="rva-who rv4-qwho">
       <PersonBtn p={q.by} className="at-pq"><Av p={q.by} s={22} /><b className="at-pnm">{q.by.name}</b></PersonBtn>
-      <span className="rva-meta">{q.by.official ? <Official L={L} /> : q.by.local ? <em>{L('BKK Local')}</em> : null} · {areaLabel(q.area)} · {askTime(L, q.at)}</span>
+      <span className="rva-meta">{dots([q.by.official ? <Official L={L} /> : q.by.local ? <em>{L('BKK Local')}</em> : null, areaLabel(q.area), askTime(L, q.at)])}</span>
     </div>
     <button type="button" className="at-tw-open" onClick={onOpen}>
       <AskText L={L} kind="q" id={q.id} text={q.body} skip={!!q.by.official} className="at-tw-q" />
@@ -171,7 +176,9 @@ const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onAnswer: () 
           <PersonBtn p={q.top.by} className="at-pav"><Av p={q.top.by} s={40} /></PersonBtn>
           <button type="button" className="rv4-bub at-bubbtn" onClick={onOpen}>
             {q.top.body && <AskText L={L} kind="a" id={q.top.id} text={q.top.body} className="t" wrap={(t) => `“${t}”`} />}
-            <div className="h"><b>{q.top.by.name}</b>{q.top.by.official ? <><i aria-hidden="true">·</i><Official L={L} /></> : q.top.by.local ? <><i aria-hidden="true">·</i><span>{L('BKK Local')}</span></> : null}{q.top.score > 0 ? <><i aria-hidden="true">·</i><span className="rv4-up"><Ic d={IC.up} s={12} />{fmtCount(q.top.score)}</span></> : null}</div>
+            {/* 21 Nov (founder): name · ▲ votes only; the BKK Local badge already shows at the card top */}
+            <div className="h">{dots([<b>{q.top.by.name}</b>, q.top.by.official ? <Official L={L} /> : null,
+              q.top.score > 0 ? <span className="rv4-up"><Ic d={IC.up} s={12} />{fmtCount(q.top.score)}</span> : null], true)}</div>
           </button>
         </div>
     )}

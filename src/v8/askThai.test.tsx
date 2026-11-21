@@ -82,10 +82,14 @@ describe('Ask BKK screens', () => {
     const need = (f: () => void) => f();
     render(<div className="v8-app-root"><AskThaiView L={L} api={api} me={me} areas={['Bangkok', 'Ari']} areaLabel={(a) => a} need={need} toast={() => {}} /></div>);
     await screen.findByText(/Best time to visit So Heng Tai/);
-    expect(screen.getAllByText('BKK Local').length).toBeGreaterThan(0);
     expect(screen.getByText(/Weekday, 9–10am/)).toBeTruthy();
+    // 21 Nov: the top-answer preview reads "name · ▲ n" (no BKK Local badge, no stray dots); the badge shows in the thread
+    const h = document.querySelector('.rv4-bub .h') as HTMLElement;
+    expect(h.textContent).toBe('Ploy·96');
+    expect(document.querySelector('.rv4-bub .at-tr')).toBeNull();
     fireEvent.click(screen.getByText(/Best time to visit So Heng Tai/));
     await screen.findByText('★ Best');
+    expect(screen.getAllByText('BKK Local').length).toBeGreaterThan(0);
     expect(screen.getByPlaceholderText('Add an answer')).toBeTruthy();
     expect(screen.getByLabelText('GIF')).toBeTruthy();
   });
