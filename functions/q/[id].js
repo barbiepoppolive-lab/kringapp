@@ -5,6 +5,7 @@
 //    "Join Kring to answer" → /app/?ask=<question>&ref=<sharer>. Indexable. One language: Thai when the browser asks for Thai.
 // No IP address is stored: only one-way hashes. Without SHARE_OPEN_KEY the page still opens the app (nothing is logged).
 import { ipRange } from '../_lib/opennet.js';
+import { isQuestionId, questionPage } from '../_lib/askpage.js';
 const SUPA = 'https://pedxoxpammnyfnizljyj.supabase.co';
 const ANON = 'sb_publishable_SaAf7mILfPPpCeAEvj79bA_Vz8JnCBN';   // public key, the same one the app ships
 const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -20,6 +21,8 @@ const T = {
 export async function onRequestGet({ request, params, env }) {
   const url = new URL(request.url);
   const short = String(params.id || '').toLowerCase();
+  // 21 Nov: /q/<question id> = the public question page (all visible answers, Thai + English) for Google / ChatGPT
+  if (isQuestionId(params.id)) return questionPage(env, String(params.id));
   const rawInv = (url.searchParams.get('ref') || '').trim();
   const inv = /^k[0-9]{5,7}$/i.test(rawInv) ? rawInv.toLowerCase() : /^[A-Za-z]{2,8}[0-9]{1,4}$/.test(rawInv) ? rawInv.toUpperCase() : '';
   const SEC = { 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains', 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY' };
