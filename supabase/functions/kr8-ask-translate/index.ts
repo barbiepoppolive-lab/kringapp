@@ -4,7 +4,11 @@
 // translated ONCE with the same cheap Gemini flash-lite models as chat translation, then kept in kr8_ask_tr; later views read it from there.
 //   POST { items: [{ kind: "q" | "qd" | "a" | "b", id: uuid }] (up to 40), target: "en" | "th" }   Authorization: Bearer <member sign-in token>
 //   → { status: "ok", items: [{ kind, id, status: "ok" | "same" | "none" | "later", text? }] }
-//   POST { backfill: true, target, limit? }   Authorization: Bearer <service role>   → translates texts that have no translation yet
+//   POST { backfill: true, target, limit? }   Authorization: Bearer <service role> or x-kring-robot   → translates texts that have no
+//        (current) translation yet: questions, details, answers, replies and bios (0186: the 10-minute sweep, pg_cron)
+//   POST { items, targets: ["en","th"] }   x-kring-robot   → 0186: a new / edited text is translated both ways the moment it is saved
+// 0186 (21 Nov): signed-out readers (and the admin "View as member" visitor) get the STORED translations too — they never start a
+// new (paid) translation; insert + sweep make sure every text already has one. Deployed with verify_jwt off: every path checks its own key.
 // Texts are never logged. Hidden answers are never translated. A daily cap (kr8_translate_config.ask_daily_total) bounds the bill.
 import { detectLang, mask, unmask, nothingToTranslate, tidy, type Lang } from "../kr8-translate/core.ts";
 
@@ -179,28 +183,39 @@ Deno.serve(async (req) => {
   if (!target) return json({ status: "bad_target" }, 400, origin);
   const auth = req.headers.get("authorization") || "";
   try {
+    const robotKey = Deno.env.get("FACE_ROBOT_KEY") ?? "";
+    const robot = (robotKey.length >= 32 && req.headers.get("x-kring-robot") === robotKey) || (SERVICE.length > 20 && auth === `Bearer ${SERVICE}`);
     if (input?.backfill) {
-      // the gateway has already checked the token's signature (verify_jwt), so its role claim can be read here
-      let role = "";
-      try { const p = auth.replace(/^Bearer\s+/i, "").split(".")[1]; role = JSON.parse(atob(p.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(p.length / 4) * 4, "="))).role || ""; } catch { role = ""; }
-      if (auth !== `Bearer ${SERVICE}` && role !== "service_role") return json({ status: "forbidden" }, 403, origin);
+      if (!robot) return json({ status: "forbidden" }, 403, origin);
       const lim = Math.min(200, Math.max(1, Number(input.limit) || 60));
-      const done = new Set((await rest<{ kind: string; ref: string }[]>(`kr8_ask_tr?select=kind,ref&target=eq.${target}`)).map((x) => `${x.kind}:${x.ref}`));
+      // a text counts as done only when its stored translation was made from the CURRENT text (an edited text is translated again)
+      const done = new Set((await rest<{ kind: string; ref: string; body_hash: string }[]>(`kr8_ask_tr?select=kind,ref,body_hash&target=eq.${target}`)).map((x) => `${x.kind}:${x.ref}:${x.body_hash}`));
       const qs = await rest<{ id: string; body: string | null; ask_details: string | null }[]>(`kr8_posts?select=id,body,ask_details&kind=eq.ask&order=created_at.desc&limit=500`);
       const as = await rest<{ id: string; body: string | null }[]>(`kr8_ask_answers?select=id,body&hidden=is.false&order=created_at.desc&limit=2000`);
-      const want: Src[] = [];
-      for (const q of qs) { if (q.body && !done.has(`q:${q.id}`)) want.push({ kind: "q", id: q.id, body: q.body }); if (q.ask_details && !done.has(`qd:${q.id}`)) want.push({ kind: "qd", id: q.id, body: q.ask_details }); }
-      for (const a of as) if (a.body && !done.has(`a:${a.id}`)) want.push({ kind: "a", id: a.id, body: a.body });
-      const need = want.filter((w) => { const l = detectLang(w.body); return l && l !== target; }).slice(0, lim);
+      const bs = await rest<{ user_id: string; bio: string | null }[]>(`kr8_members?select=user_id,bio&bio=not.is.null&limit=2000`).catch(() => [] as { user_id: string; bio: string | null }[]);
+      const all: Src[] = [];
+      for (const q of qs) { if (q.body?.trim()) all.push({ kind: "q", id: q.id, body: q.body }); if (q.ask_details?.trim()) all.push({ kind: "qd", id: q.id, body: q.ask_details }); }
+      for (const a of as) if (a.body?.trim()) all.push({ kind: "a", id: a.id, body: a.body });
+      for (const b of bs) if (b.bio?.trim()) all.push({ kind: "b", id: b.user_id, body: b.bio });
+      const hs = await Promise.all(all.map((w) => hash(w.body)));
+      const want = all.filter((w, i) => { if (done.has(`${w.kind}:${w.id}:${hs[i]}`)) return false; const l = detectLang(w.body); return !!l && l !== target && w.body.length <= 1200; });
+      const need = want.slice(0, lim);
       const out = await translateAll(need, target, budgetLeft);
-      return json({ status: "ok", asked: need.length, done: out.filter((o) => o.status === "ok").length, later: out.filter((o) => o.status === "later").length, remaining: want.filter((w) => { const l = detectLang(w.body); return l && l !== target; }).length - need.length }, 200, origin);
+      return json({ status: "ok", asked: need.length, done: out.filter((o) => o.status === "ok").length, later: out.filter((o) => o.status === "later").length, remaining: want.length - need.length }, 200, origin);
     }
-    const uid = await whoIs(auth);
-    if (!uid) return json({ status: "sign_in" }, 401, origin);
     const items = (Array.isArray(input?.items) ? input.items : []).slice(0, 40)
       .filter((x: { kind?: unknown; id?: unknown }) => (x?.kind === "q" || x?.kind === "qd" || x?.kind === "a" || x?.kind === "b") && typeof x?.id === "string" && UUID.test(x.id as string)) as { kind: Kind; id: string }[];
+    if (robot) {
+      // 0186: on insert / edit (database trigger): translate into both languages now
+      const src = await load(items);
+      let n = 0;
+      for (const t of ["en", "th"] as Lang[]) n += (await translateAll(src, t, budgetLeft)).filter((o) => o.status === "ok").length;
+      return json({ status: "ok", done: n }, 200, origin);
+    }
     if (!items.length) return json({ status: "ok", items: [] }, 200, origin);
-    const out = await translateAll(await load(items), target, budgetLeft);
+    const uid = await whoIs(auth);
+    // signed out: stored translations only (a budget of 0 never starts a new one)
+    const out = await translateAll(await load(items), target, uid ? budgetLeft : async () => 0);
     return json({ status: "ok", items: out }, 200, origin);
   } catch (e) {
     console.log("kr8-ask-translate error", String((e as Error)?.message || e).slice(0, 80));
