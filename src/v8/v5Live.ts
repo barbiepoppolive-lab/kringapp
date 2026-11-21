@@ -742,6 +742,20 @@ export const v5MySaves = () => rpc<string[]>('kr8_my_saves');
 export const v5NotInterested = (post: string) => rpc<void>('kr8_not_interested', { p_post: post });
 export type V5ReportReason = 'spam' | 'unsafe' | 'stolen' | 'wrong_place' | 'block';
 export const v5ReportReel = (post: string, reason: V5ReportReason) => rpc<void>('kr8_report_reel', { p_post: post, p_reason: reason, p_note: null });
+// ─────────────── Reel comments (0189) ───────────────
+export interface V5Comment { id: string; author_id: string; name: string | null; photo: string | null; official: boolean; body: string; at: string; mine: boolean }
+/** can: 'ok' or why this viewer can't comment ('signin' | 'no_card' | 'verify' | 'banned' | 'off' | 'no_reel') */
+export interface V5Comments { post_id: string; n: number; off: boolean; can: string; creator: boolean; items: V5Comment[] }
+export type V5CommentAdd = { ok: true; n: number; comment: V5Comment } | { ok: false; reason: string };
+/** never shared with another identical read: the list must be fresh right after a post / delete */
+export const v5ReelComments = (post: string) => rpcRaw<V5Comments>('kr8_reel_comments', { p_post: post, p_limit: 60 });
+export const v5CommentCounts = (posts: string[]) =>
+  (posts.length ? rpcRaw<{ post_id: string; n: number; off: boolean }[]>('kr8_comment_counts', { p_posts: posts.slice(0, 100) }) : Promise.resolve([]));
+export const v5CommentAdd = (post: string, body: string) => rpcRaw<V5CommentAdd>('kr8_comment_add', { p_post: post, p_body: body });
+export const v5CommentDelete = (id: string) => rpcRaw<{ ok: boolean }>('kr8_comment_delete', { p_comment: id });
+export const v5CommentReport = (id: string, reason: 'rude' | 'spam' | 'unsafe' | 'other') =>
+  rpcRaw<{ ok: boolean; hidden: boolean }>('kr8_comment_report', { p_comment: id, p_reason: reason });
+export const v5CommentsSetOff = (post: string, off: boolean) => rpcRaw<{ ok: boolean; off: boolean }>('kr8_comments_set_off', { p_post: post, p_off: off });
 /** 0183: save just the bio (server checks: max 80, no phone numbers / links / LINE IDs) */
 export const v5SetBio = (bio: string) => rpc<string>('kr8_set_bio', { p_bio: bio });
 export const v5SetIgHandle = (h: string) => rpc<string | null>('kr8_set_ig_handle', { p_handle: h });
@@ -779,7 +793,7 @@ export const v5FollowList = (user: string, kind: 'followers' | 'following') => r
 export type V5TopPeriod = 'today' | 'week' | 'area';
 export interface V5TopRow { rank: number; reel_id: string; user_id: string; first_name: string; photo: string | null; area: string; body: string; venue_name: string | null; poster_path: string; points: number; prize: string | null; is_me: boolean | null }
 export const v5Top10 = (period: V5TopPeriod, area?: string | null) => rpc<V5TopRow[]>('kr8_top10', { p_period: period, p_area: area || null });
-export interface V5Activity { kind: 'follow' | 'like' | 'gift' | 'approved' | 'hidden' | 'friend_verify'; at: string; actor_id: string | null; actor_name: string | null; actor_photo: string | null;
+export interface V5Activity { kind: 'follow' | 'like' | 'comment' | 'gift' | 'approved' | 'hidden' | 'friend_verify'; at: string; actor_id: string | null; actor_name: string | null; actor_photo: string | null;
   post_id: string | null; poster_path: string | null; n: number; rank: number | null; prize: string | null; i_follow: boolean | null }
 export const v5Activity = () => rpc<V5Activity[]>('kr8_my_activity', { p_limit: 50 });
 export const V5_INTERESTS = ['coffee', 'street_food', 'desserts', 'markets', 'running', 'yoga', 'film_photos', 'art', 'music', 'books',

@@ -576,6 +576,7 @@ const bkkDayOf = (iso: string) => new Date(Date.parse(iso) + 7 * 3600_000).toISO
 /** 🔔 Activity (H, 15 Nov): full-height page, Today / Earlier, every row opens the Reel or the person, Mark all read, back. */
 export function ActivitySheet(props: { L: Tx; Lf: Txf; rows: V5Activity[] | null; posters: Record<string, string>; onClose: () => void;
   onFollowBack: (id: string) => Promise<void>; onPerson: (id: string) => void; onReel: (id: string) => void; seenAt?: string; onMarkRead?: () => void;
+  /** 0189: a 'comment' line opens that Reel's comments */ onComments?: (postId: string) => void;
   /** 0182: the friend-verify line is in the app's language only */ lang?: string }) {
   const { L, Lf } = props;
   // 0182: today's friend-verify line counts as today's one showing (My Reel stats then stays quiet)
@@ -588,12 +589,14 @@ export function ActivitySheet(props: { L: Tx; Lf: Txf; rows: V5Activity[] | null
   const today = bkkDayOf(new Date().toISOString());
   const rows = props.rows || [];
   const unread = rows.some((a) => !seen || a.at > seen);
-  const open = (a: V5Activity) => (a.kind === 'hidden' ? undefined : a.post_id && a.kind !== 'follow' ? props.onReel(a.post_id) : a.actor_id ? props.onPerson(a.actor_id) : undefined);
+  const open = (a: V5Activity) => (a.kind === 'hidden' ? undefined : a.kind === 'comment' && a.post_id && props.onComments ? props.onComments(a.post_id) : a.post_id && a.kind !== 'follow' ? props.onReel(a.post_id) : a.actor_id ? props.onPerson(a.actor_id) : undefined);
   const row = (a: V5Activity, i: number) => {
     const thumb = a.poster_path && props.posters[a.poster_path];
     const text = a.kind === 'friend_verify' ? fvText(props.lang || 'en')
       : a.kind === 'follow' ? Lf('{0} started following you', a.actor_name || '')
       : a.kind === 'like' ? (a.n > 1 ? Lf('{0} and {1} others liked your Reel', a.actor_name || '', String(a.n - 1)) : Lf('{0} liked your Reel', a.actor_name || ''))
+      : a.kind === 'comment' ? [a.n > 1 ? Lf('{0} and {1} others commented on your Reel', a.actor_name || '', String(a.n - 1)) : Lf('{0} commented on your Reel', a.actor_name || ''),
+          a.prize ? `“${a.prize}”` : ''].filter(Boolean).join(': ')
       : a.kind === 'gift' ? Lf('Your Reel is #{0} · {1}', String(a.rank || ''), a.prize || '')
       // audit P2-3: hidden by the team, with the reason (the prize column carries it)
       : a.kind === 'hidden' && isNotYetNote(a.prize) ? [L('Not yet · tips for your next Reel'), reviewNoteText(a.prize)].filter(Boolean).join(' · ')
@@ -602,7 +605,7 @@ export function ActivitySheet(props: { L: Tx; Lf: Txf; rows: V5Activity[] | null
     const isNew = !seen || a.at > seen;
     return (
       <div className={`li${isNew ? ' new' : ''}`} key={`${a.kind}-${a.at}-${i}`} data-activity={a.kind}>
-        {a.kind === 'follow' || a.kind === 'like' || a.kind === 'friend_verify' ? (
+        {a.kind === 'follow' || a.kind === 'like' || a.kind === 'comment' || a.kind === 'friend_verify' ? (
           <button type="button" className="av" aria-label={a.actor_name || ''} onClick={() => a.actor_id && props.onPerson(a.actor_id)}><Avatar photo={a.actor_photo} name={a.actor_name || '?'} size={44} /></button>
         ) : <span className="kme-av kme-av-i" style={{ width: 44, height: 44 }}>{a.kind === 'gift' ? '🏆' : a.kind === 'hidden' ? '!' : '✓'}</span>}
         <button type="button" className="who" onClick={() => open(a)}>
@@ -610,7 +613,7 @@ export function ActivitySheet(props: { L: Tx; Lf: Txf; rows: V5Activity[] | null
         </button>
         {a.kind === 'follow' && a.actor_id && !a.i_follow && !back[a.actor_id] ? (
           <button type="button" className="pb" data-follow-back={a.actor_id} onClick={() => { const id = a.actor_id as string; void props.onFollowBack(id).then(() => setBack((b) => ({ ...b, [id]: true }))); }}>{L('Follow back')}</button>
-        ) : thumb ? <button type="button" className="thumb" aria-label={L('Open Reel')} style={{ backgroundImage: `url('${thumb}')` }} onClick={() => a.post_id && props.onReel(a.post_id)} /> : null}
+        ) : thumb ? <button type="button" className="thumb" aria-label={L('Open Reel')} style={{ backgroundImage: `url('${thumb}')` }} onClick={() => a.post_id && (a.kind === 'comment' && props.onComments ? props.onComments(a.post_id) : props.onReel(a.post_id))} /> : null}
       </div>
     );
   };

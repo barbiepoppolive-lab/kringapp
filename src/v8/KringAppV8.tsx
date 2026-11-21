@@ -95,6 +95,9 @@ import {
   v5StoredRef,
 } from './v5Live';
 import { ActivitySheet, FollowSheet, INTEREST, InterestsSheet, LANG_NAME, MeView, kxWeekHook } from './V5Me';
+import { CommentsSheet } from './V5Comments';
+import { KC_L } from './commentStrings';
+import { v5CommentCounts } from './v5Live';
 import { rvHeroFrom } from './rvMotion';
 import { inAppBrowser, A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip, openInstallSheet, takeInstallAsk } from './A2HS';
 import { parsePushLink, pushConfigured, pushDisable, pushEnable, pushMoment, pushResync, pushState, type PushLink, type PushState } from './push';
@@ -985,6 +988,7 @@ type SheetId =
   | 'activity'
   | 'interests'
   | 'profile'
+  | 'comments'
   | 'verify';
 
 export interface V8UserAccount {
@@ -1151,7 +1155,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [, setStringsTick] = useState(0);
   useEffect(() => { if (!v5LangReady(lang)) void loadV5Lang(lang).then(() => setStringsTick((n) => n + 1)); }, [lang]);
   const L = (en: string): string =>
-    ((V5_L[lang] && V5_L[lang][en]) || (KX_L[lang] && KX_L[lang][en]) || (V9_L[lang] && V9_L[lang][en]) || (QA_L[lang] && QA_L[lang][en]) || en).replace(/&amp;/g, '&');
+    ((V5_L[lang] && V5_L[lang][en]) || (KX_L[lang] && KX_L[lang][en]) || (V9_L[lang] && V9_L[lang][en]) || (QA_L[lang] && QA_L[lang][en]) || (KC_L[lang] && KC_L[lang][en]) || en).replace(/&amp;/g, '&');
   const Lf = (en: string, a: string, b = ''): string => L(en).replace('{0}', a).replace('{1}', b);
   /** "TH · EN" → "ไทย · อังกฤษ" in the member's language (polish #11: no stray English codes in a Thai line) */
   const langWords = (codes: string) => codes.split(/\s*·\s*/).filter(Boolean).map((c) => L(LANG_NAME[c.toUpperCase()] || c)).join(' · ');
@@ -2600,6 +2604,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [kxHow, setKxHow] = useState(false);
   const [kxPlaceId, setKxPlaceId] = useState<string>('');
   const [kxFeedX, setKxFeedX] = useState<Record<string, KxFeedExtra>>({});
+  // 0189 Reel comments: count + off per feed Reel, and the Reel whose comments sheet is open
+  const [commentInfo, setCommentInfo] = useState<Record<string, { n: number; off: boolean }>>({});
+  const [commentsPost, setCommentsPost] = useState<string>('');
   const [postPlaces, setPostPlaces] = useState<PickedPlace[]>([]);
   const [placeSearchOpen, setPlaceSearchOpen] = useState(false);
   const [kxInviter, setKxInviter] = useState<string>('');
@@ -2754,6 +2761,28 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     }).catch(() => undefined);
     return () => { dead = true; };
   }, [live, feedItems]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // 0189: comment counts for the Reels in the feed (one call per new batch)
+  useEffect(() => {
+    if (!live) return;
+    const ids = feedItems.filter((f) => (f as { video?: string }).video && /^[0-9a-f-]{36}$/.test(f.id) && !(f.id in commentInfo)).map((f) => f.id);
+    if (!ids.length) return;
+    let dead = false;
+    v5CommentCounts(ids).then((rows) => {
+      if (dead) return;
+      setCommentInfo((prev) => {
+        const next = { ...prev };
+        for (const id of ids) next[id] = next[id] || { n: 0, off: false };
+        for (const r of rows || []) next[r.post_id] = { n: r.n, off: r.off };
+        return next;
+      });
+    }).catch(() => undefined);
+    return () => { dead = true; };
+  }, [live, feedItems]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const openComments = (id: string) => {
+    if (!live || !/^[0-9a-f-]{36}$/.test(id)) return;
+    setCommentsPost(id);
+    setSheet('comments');
+  };
   // ?place=<id> opens a place page; a member invite code (?ref=k00412) shows the friend's first name on the join sheet
   useEffect(() => {
     if (!live) return;
@@ -4392,6 +4421,14 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                             <path d="M12 21s-7.5-4.6-9.5-9.2C1.2 8.7 3.1 5 6.7 5c2.1 0 3.6 1.1 4.3 2.4h2C13.7 6.1 15.2 5 17.3 5c3.6 0 5.5 3.7 4.2 6.8C19.5 16.4 12 21 12 21z" />
                           </svg>
                           <span className="lbl">{p.likes ? p.likes : p.video ? '' : L('Like')}</span>
+                        </button>
+                      )}
+                      {p.video && !p.reelPending && live && (
+                        <button type="button" className="rail cmt" data-act="comments" aria-label={L('Comments')} onClick={() => openComments(p.id)}>
+                          <svg viewBox="0 0 24 24">
+                            <path d="M20.5 11.6c0 4.4-3.8 7.9-8.5 7.9-1.3 0-2.6-.3-3.7-.8L3.5 20l1.2-3.9c-.8-1.3-1.2-2.8-1.2-4.5C3.5 7.2 7.3 3.7 12 3.7s8.5 3.5 8.5 7.9z" />
+                          </svg>
+                          <span className="lbl">{commentInfo[p.id]?.n ? commentInfo[p.id].n : ''}</span>
                         </button>
                       )}
                       {!p.video && (
@@ -7280,6 +7317,14 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           </div>
         )}
 
+        {sheet === 'comments' && commentsPost && (
+          <CommentsSheet L={L} Lf={Lf} postId={commentsPost} readOnly={adminView || mirrorActive()} onClose={() => setSheet(null)} toast={showToast}
+            onCount={(id, n, off) => setCommentInfo((prev) => ({ ...prev, [id]: { n, off } }))}
+            onVerify={() => { setSheet(null); setFaceIntro(true); }}
+            onSignIn={() => requireSignInForAction(() => openComments(commentsPost))}
+            onCard={() => setSheet('v5card')}
+            onPerson={(id) => void openProfile(id)} />
+        )}
         {sheet === 'reelmore' && activeReel && (
           <div className="v8-sheet" id="sh-reelmore">
             <div className="grab" />
@@ -7357,7 +7402,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <ActivitySheet L={L} Lf={Lf} lang={lang} rows={activityRows} posters={mePosters} onClose={() => setSheet(null)} seenAt={activitySeenAt}
             onMarkRead={() => { setActivityUnread(false); try { localStorage.setItem('kr8_activity_seen', activityRows?.[0]?.at || new Date().toISOString()); } catch { /* ignore */ } }}
             onFollowBack={async (id) => { await toggleFollow(id, false); void loadMe(); }}
-            onPerson={(id) => void openProfile(id)} onReel={openReelFromProfile} />
+            onPerson={(id) => void openProfile(id)} onReel={openReelFromProfile} onComments={openComments} />
         )}
         {sheet === 'v5card' && cardInterests && (
           <InterestsSheet L={L} Lf={Lf} value={v5Card?.interests || []} all={V5_INTERESTS} onClose={() => setCardInterests(false)}

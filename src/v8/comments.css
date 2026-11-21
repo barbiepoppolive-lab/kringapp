@@ -1,0 +1,55 @@
+/* Reel comments (0189): the same light-glass sheet as Share / More; rows without boxes, thin hairlines, the pink send dot. */
+.v8-app-root .v8-sheet.kc-sheet { height: 72%; max-height: 72%; display: flex; flex-direction: column; overflow: hidden; padding: 10px 0 0; font-family: var(--rv-f, inherit); }
+/* the glass itself comes from glass.css (one recipe for every sheet, founder 20 Nov); rows are separated by space only */
+.v8-app-root .kc-sheet .grab { flex: 0 0 auto; }
+.v8-app-root .kc-head { padding: 0 16px; margin-bottom: 4px; flex: 0 0 auto; }
+.v8-app-root .kc-head h3 { display: flex; align-items: baseline; gap: 8px; }
+.v8-app-root .kc-n { font-size: 0.875rem; font-weight: 500; color: rgba(255,255,255,.55); }
+.v8-app-root .kc-head-r { display: flex; align-items: center; gap: 8px; }
+.v8-app-root .kc-off { background: rgba(255,255,255,.08); border: 0; color: rgba(255,255,255,.82); border-radius: 99px; padding: 6px 12px; min-height: 32px;
+  font: 600 0.75rem var(--rv-f, inherit); cursor: pointer; }
+.v8-app-root .kc-off[aria-pressed="true"] { color: var(--rv-pk, #FF4FA3); }
+
+.v8-app-root .kc-list { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding: 4px 16px 8px; }
+.v8-app-root .kc-empty { margin: 36px 0; text-align: center; color: rgba(255,255,255,.55); font-size: 0.875rem; }
+.v8-app-root .kc-note { margin: 6px 0 10px; color: rgba(255,255,255,.6); font-size: 0.8125rem; text-align: center; }
+.v8-app-root .kc-note.foot { margin: 0; padding: 4px 0 2px; }
+
+.v8-app-root .kc-row { display: flex; gap: 11px; padding: 10px 0; }
+.v8-app-root .kc-av { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; border: 0; padding: 0; background: rgba(255,255,255,.1) center / cover no-repeat;
+  color: #fff; font: 700 0.875rem var(--rv-f, inherit); display: grid; place-items: center; cursor: pointer; }
+.v8-app-root .kc-main { flex: 1 1 auto; min-width: 0; }
+.v8-app-root .kc-who { display: flex; align-items: baseline; gap: 6px; font-size: 0.8125rem; line-height: 1.25; }
+.v8-app-root .kc-who b { font-weight: 600; color: rgba(255,255,255,.92); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v8-app-root .kc-who span { color: rgba(255,255,255,.45); font-size: 0.75rem; flex: 0 0 auto; }
+.v8-app-root .kc-body { margin: 3px 0 0; font-size: 0.9375rem; line-height: 1.45; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.35); white-space: pre-wrap; overflow-wrap: anywhere; }
+html[lang="th"] .v8-app-root .kc-body, html[lang="th"] .v8-app-root .kc-gate p { line-height: 1.6; }
+.v8-app-root .kc-acts { display: flex; gap: 16px; margin-top: 4px; }
+.v8-app-root .kc-act { background: none; border: 0; padding: 4px 0; min-height: 28px; color: rgba(255,255,255,.5); font: 600 0.75rem var(--rv-f, inherit); cursor: pointer; }
+.v8-app-root .kc-act.arm { color: #FF8CA8; }
+.v8-app-root .kc-report { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.v8-app-root .kc-chip { background: rgba(255,255,255,.1); border: 0; color: #fff; border-radius: 99px; padding: 7px 12px; min-height: 34px;
+  font: 600 0.75rem var(--rv-f, inherit); cursor: pointer; }
+.v8-app-root .kc-chip.ghost { background: none; color: rgba(255,255,255,.6); }
+
+.v8-app-root .kc-foot { flex: 0 0 auto; padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)); }
+.v8-app-root .kc-err { margin: 0 4px 8px; color: #FF8CA8; font-size: 0.8125rem; line-height: 1.4; }
+.v8-app-root .kc-compose { display: flex; align-items: flex-end; gap: 8px; }
+.v8-app-root .kc-compose textarea { flex: 1 1 auto; min-width: 0; resize: none; border-radius: 20px; border: 1px solid rgba(255,255,255,.13); background: rgba(255,255,255,.07);
+  color: #fff; padding: 10px 14px; font: 400 1rem/1.35 var(--rv-f, inherit); min-height: 42px; max-height: 104px; outline: none; }
+.v8-app-root .kc-compose textarea::placeholder { color: rgba(255,255,255,.45); }
+.v8-app-root .kc-compose textarea:focus { border-color: rgba(255,255,255,.3); }
+.v8-app-root .kc-left { align-self: center; font-size: 0.75rem; color: rgba(255,255,255,.5); }
+.v8-app-root .kc-left.over { color: #FF8CA8; }
+.v8-app-root .kc-send { flex: 0 0 auto; width: 42px; height: 42px; border-radius: 50%; border: 0; background: var(--rv-pk, #FF4FA3); display: grid; place-items: center; cursor: pointer;
+  transition: opacity .15s, transform .15s; }
+.v8-app-root .kc-send:active { transform: scale(.94); }
+.v8-app-root .kc-send:disabled { opacity: .35; cursor: default; }
+.v8-app-root .kc-send svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.v8-app-root .kc-gate { display: flex; align-items: center; gap: 10px; padding: 2px 4px; }
+.v8-app-root .kc-gate p { margin: 0; flex: 1 1 auto; font-size: 0.8125rem; line-height: 1.4; color: rgba(255,255,255,.78); }
+.v8-app-root .kc-gate-ic { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 0.875rem; font-weight: 800;
+  color: var(--rv-pk, #FF4FA3); border: 1.5px solid var(--rv-pk, #FF4FA3); }
+.v8-app-root .kc-gate-btn { flex: 0 0 auto; background: none; border: 1.5px solid var(--rv-pk, #FF4FA3); color: #fff; border-radius: 99px; padding: 8px 16px; min-height: 40px;
+  font: 700 0.8125rem var(--rv-f, inherit); cursor: pointer; }
+.v8-app-root .kc-gate-btn.wide { width: 100%; }
