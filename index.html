@@ -341,6 +341,21 @@ html[lang=th] .op .opt{line-height:1.3}
 @media (max-width:429px){.nv a.nvi{display:none}}
 /* W-003 (17 Nov): the hero words fade in fast once the quick opening clears */
 html.opdone .hero .rv{transition-duration:.2s;transition-delay:0s}
+/* 21 Nov (founder, "too many things asking for attention"): a calmer first screen. No pill, no neon install card: the Kring rings
+   float gently with one small label (tap = the same install flow), "Open Kring" is a quiet text link; the phone top bar is logo + EN|ไทย. */
+.hgo{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:22px;width:100%}
+.lev{display:flex;flex-direction:column;align-items:center;gap:6px;color:#fff;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.lev-r{display:block;width:118px;height:118px;margin:-16px 0 -26px;will-change:transform}
+.lev-r svg{width:100%;height:100%;overflow:visible}
+.lev-g{opacity:.5;will-change:opacity}
+.lev-l{font:700 14px/1.2 var(--fj);letter-spacing:.01em;text-shadow:0 1px 10px rgba(0,0,0,.6)}
+.lev:active .lev-r{transform:scale(.95)}
+.qlink{font:600 14px/1.2 var(--fj);color:rgba(255,255,255,.78);text-decoration:none;padding:8px 6px;text-shadow:0 1px 10px rgba(0,0,0,.6)}
+.qlink span{margin-left:4px}
+@media (prefers-reduced-motion:no-preference){.lev-r{animation:levF 3.8s ease-in-out infinite}.lev-g{animation:levG 3.8s ease-in-out infinite}}
+@keyframes levF{0%,100%{transform:translateY(3px)}50%{transform:translateY(-7px)}}
+@keyframes levG{0%,100%{opacity:.38}50%{opacity:.8}}
+@media (max-width:799px){.top .nv{display:none}}
 </style>
 </head>
 <body>
@@ -439,11 +454,9 @@ auto=setTimeout(function(){start(false)},(lk?lk+420:300));   // 21 Nov: hold a b
 <section class="pn hero" id="hero">
 <picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/hero-d.webp" type="image/webp"/><img alt="เพื่อนห้าคนนั่งริมแม่น้ำเจ้าพระยา ดูพลุที่สะพานพระราม 8" fetchpriority="high" height="1254" id="heroimg" onerror="this.classList.add('isld')" onload="this.classList.add('isld')" src="/assets/neon/hero-m.webp" width="700"/></picture>
 <div class="tx">
-<p class="eb rv"><i></i>เปิดแล้ว · กรุงเทพฯ</p>
 <h1 class="rv" style="--d:.08s">กรุงเทพฯ สวยกว่า<br/>เมื่อมี<em>เพื่อน</em></h1>
 <p class="ld rv" style="--d:.16s">ทำการ์ด โพสต์ Reel ได้เพื่อนใหม่</p>
-<p class="rv ctas" style="--d:.24s;margin-top:18px"><a class="inst" data-install="" href="/app/?install=1" id="heroInstall"><span aria-hidden="true" class="ai"></span><span class="il"><b>ติดตั้งแอป กริ๊ง!</b><small>ฟรี · เปิดเร็วเหมือนแอป</small></span><span aria-hidden="true" class="ig"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></svg></span></a><a class="btn" data-app="" data-join="" href="/app/?join=1">เปิด Kring<svg aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></p>
-<p class="nt rv" style="--d:.3s">เข้าร่วมด้วย LINE หรืออีเมล · ฟรี · 18+</p>
+<p class="rv hgo" style="--d:.24s"><a aria-label="ติดตั้งแอป" class="lev" data-install="" href="/app/?install=1" id="heroInstall"><span class="lev-r"><svg viewBox="0 0 1024 1024" aria-hidden="true"><defs><filter id="hBl" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="30"/></filter></defs><g class="lev-g"><circle cx="392" cy="512" r="225" fill="none" stroke="#8D9BFF" stroke-width="84" filter="url(#hBl)"/><circle cx="632" cy="512" r="225" fill="none" stroke="#FF7CC2" stroke-width="84" filter="url(#hBl)"/></g><circle cx="392" cy="512" r="225" fill="none" stroke="#5B6CFF" stroke-width="54"/><circle cx="632" cy="512" r="225" fill="none" stroke="#FF4FA3" stroke-width="54"/></svg></span><span class="lev-l">ติดตั้งแอป</span></a><a class="qlink" data-app="" data-join="" href="/app/?join=1">เปิด Kring<span aria-hidden="true">→</span></a></p>
 </div>
 </section>
 
