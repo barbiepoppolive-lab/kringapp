@@ -11,7 +11,7 @@ import {
   ago, both, buildInbox, buildRobotReport, claimChip, clock, filterPeople, groupPeople, isSnapshot, money, noCard, peopleCounts, peopleHeadline,
   personFlags, personTrust, placeFlags, realPhoto, referrers, stepChip, who, withAdminLogins, faceStatusWords, liveSteps,
   INBOX_FILTERS, waitShort, moneyRobotVerdict, type Handled,
-  type Claim, type DupAuto, type FaceCheck, type InboxItem, type TravellerCase, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot, type Trust,
+  type Claim, type DupAuto, type FaceCheck, type InboxItem, type TravellerCase, type TravellerCheck, travellerSuggestion, type PeopleExtra, type Person, type PeopleFilter, type PlaceAuto, type PlaceRow, type Snapshot, type Trust,
 } from './adminV2Logic';
 import {
   aiRulesFallback, capStatus, computeVoucherRunway, DEFAULT_VOUCHER_BUY_URL, fallbackAiSlotStatus, fallbackAutopilotState,
@@ -104,7 +104,14 @@ export async function loadSnapshot(force = false): Promise<Snapshot | null> {
   // 0099 M2: Morning Brief + unified Alert Centre (falls back to client synthesis before 0099 is applied)
   const mb = rpc<unknown>('kr8_admin_morning_brief', { p_include_test: includeTest }).catch(() => null);
   // 0138: passport checks for the traveller tag (empty before 0138)
-  const trav = rpc<TravellerCase[]>('kr8_admin_traveller_requests', { p_status: 'pending' }).catch(() => [] as TravellerCase[]);
+  const trav = rpc<TravellerCase[]>('kr8_admin_traveller_requests', { p_status: 'pending' }).catch(() => [] as TravellerCase[])
+    // 0187: the robot's pre-check of each request rides along (none before 0187 / while it runs)
+    .then(async (list) => {
+      if (!Array.isArray(list) || !list.length) return list;
+      const checks = await rpc<TravellerCheck[]>('kr8_admin_traveller_checks', { p_ids: list.map((t) => t.id) }).catch(() => [] as TravellerCheck[]);
+      const by = new Map((Array.isArray(checks) ? checks : []).map((c) => [c.request_id, c]));
+      return list.map((t) => ({ ...t, check: by.get(t.id) ?? null }));
+    });
   // 19 Nov (0141): the real AWS look-alikes (kr8_face_lookalikes) + why each held claim waits; null before 0141 (old face links are still dropped)
   const aws = rpc<unknown>('kr8_admin_aws_lookalikes').then((x) => (isAwsFacts(x) ? x : null)).catch(() => null);
   loadingSnap = Promise.all([rpc<unknown>('kr8_admin_v2_snapshot', { p_include_test: includeTest }), auto, extra, dups, mb, trav, aws])
@@ -1013,6 +1020,9 @@ const signPassport = async (path: string | null | undefined): Promise<string | n
 export function passportPhotos(i: InboxItem, sign: (p: string | null | undefined) => Promise<string | null> = signPassport): HTMLElement {
   const t = i.traveller; const p = i.people[0];
   const box = el('div', { class: 'v2pp', id: 'v2Pass-' + (t?.id || i.key) }, el('small', { class: 'v2sub' }, 'Loading photos…'));
+  // 0187: the robot's suggestion, big at the top (plain English); the founder still decides
+  const sug = travellerSuggestion(t?.check, p?.name || t?.first_name || '');
+  const head = sug ? el('b', { class: `v2vsent v2pp-sug ${sug.tone}`, id: 'v2TravSug-' + (t?.id || i.key) }, sug.line) : null;
   const ph = (src: string | null, cap: string, cls: string, link = false) => el('figure', { class: `v2pp-f ${cls}` },
     src ? (link ? el('a', { href: src, target: '_blank', rel: 'noopener noreferrer', 'aria-label': 'Open the passport photo full size' }, el('img', { src, alt: '' })) : el('img', { src, alt: '' }))
       : el('div', { class: 'v2pp-none' }, cls === 'v2pp-pass' ? (t?.passport_path ? 'Could not load' : 'Deleted') : 'No photo'),
@@ -1022,10 +1032,15 @@ export function passportPhotos(i: InboxItem, sign: (p: string | null | undefined
     const pass = await sign(t?.passport_path);
     // the passport full width (big, readable), the card photo right under it next to the three checks
     box.replaceChildren(
+      ...(head ? [head] : []),
       ph(pass, 'Passport photo page · tap to zoom', 'v2pp-pass', true),
       el('div', { class: 'v2pp-row' }, ph((p && photos.get(p.user_id)) || null, `${p?.name || 'Member'} #${p?.no ?? '–'} · card photo`, 'v2pp-card'),
-        el('ul', { class: 'v2pp-chk' }, el('li', {}, `Name on the passport = “${p?.name || t?.first_name || ''}”`), el('li', {}, 'Face in the passport = this card photo'), el('li', {}, 'NOT a Thai passport'))),
-      el('small', { class: 'v2sub v2pp-note' }, 'All three yes → Approve (the card gets the traveller tag, their likes and saves count ×2). Otherwise → Refuse and pick why; the member sees the reason in their language. The passport photo is deleted as soon as you decide (never shown to other members).'));
+        sug && sug.items.length
+          ? el('ul', { class: 'v2pp-chk v2pp-auto' }, ...sug.items.map((x) => el('li', { class: x.ok === true ? 'ok' : x.ok === false ? 'no' : 'q' }, x.text)))
+          : el('ul', { class: 'v2pp-chk' }, el('li', {}, `Name on the passport = “${p?.name || t?.first_name || ''}”`), el('li', {}, 'Face in the passport = this card photo'), el('li', {}, 'NOT a Thai passport'))),
+      el('small', { class: 'v2sub v2pp-note' }, sug && sug.items.length
+        ? 'The robot only suggests; nothing is decided until you tap. Approve → the card gets the traveller tag (likes and saves count ×2). Refuse → pick why; the member sees the reason in their language. The passport photo is deleted as soon as you decide.'
+        : 'All three yes → Approve (the card gets the traveller tag, their likes and saves count ×2). Otherwise → Refuse and pick why; the member sees the reason in their language. The passport photo is deleted as soon as you decide (never shown to other members).'));
   })().catch(() => box.replaceChildren(el('small', { class: 'v2sub' }, 'Photos could not load. Refresh and try again.')));
   return box;
 }
@@ -1048,6 +1063,9 @@ function travellerRefuse(i: InboxItem, t: TravellerCase): HTMLElement {
     later(i.key, `Traveller tag refused: ${label}`, () => rpc('kr8_admin_traveller_decide', { p_id: t.id, p_approve: false, p_reason_code: code, p_note: code === 'other' ? note.value.trim() : null }));
   };
   wrap.append(el('b', {}, 'Why? (the member sees this)'), opts, note, el('div', { class: 'v2acts' }, go));
+  // 0187: the reason matching the robot's REFUSE suggestion is picked already (the founder can change it)
+  const pre = travellerSuggestion(t.check, t.first_name || '')?.preselect;
+  if (pre) opts.querySelector<HTMLElement>(`[data-code="${pre}"]`)?.click();
   return wrap;
 }
 function act(label: string, cls: string, id: string, fn: () => void): HTMLButtonElement {
@@ -1077,7 +1095,10 @@ function actions(i: InboxItem): HTMLElement {
     const ref = travellerRefuse(i, t);
     const ok = act('Approve', 'ok', 'v2TravOk-' + t.id, () => later(i.key, `${who(i.people[0])} is now a traveller`, () => rpc('kr8_admin_traveller_decide', { p_id: t.id, p_approve: true })));
     if (!t.passport_path) ok.disabled = true;
-    const no = act('Refuse…', 'bad', 'v2TravNo-' + t.id, () => { ref.hidden = !ref.hidden; no.setAttribute('aria-expanded', String(!ref.hidden)); });
+    // 0187: when the robot suggests REFUSE, Refuse is the solid button (same as held claims); Approve stays one tap away
+    const refuseFirst = !!travellerSuggestion(t.check, t.first_name || '')?.refuseFirst;
+    if (refuseFirst) ok.className = 'v2btn ok soft';
+    const no = act('Refuse…', refuseFirst ? 'bad solid' : 'bad', 'v2TravNo-' + t.id, () => { ref.hidden = !ref.hidden; no.setAttribute('aria-expanded', String(!ref.hidden)); });
     box.append(ok, no);
     return el('div', {}, box, ref);
   } else if (i.kind === 'reel') {

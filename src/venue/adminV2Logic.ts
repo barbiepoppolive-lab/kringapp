@@ -72,6 +72,74 @@ export interface TravellerCase {
   id: string; user_id: string; member_no: number | null; first_name: string | null; who: string | null; verified: boolean;
   passport_path: string | null; status: 'pending' | 'approved' | 'refused' | 'replaced' | 'expired'; reason_code: string | null; reason_note: string | null;
   created_at: string; decided_at: string | null; file_deleted_at: string | null;
+  /** 0187 kr8_admin_traveller_checks: the robot's pre-check (missing while it runs or before 0187) */
+  check?: TravellerCheck | null;
+}
+/** 0187: automatic pre-check of a traveller request. Only outcomes are stored (no MRZ text, passport number or passport name). */
+export interface TravellerCheck {
+  request_id: string; state: 'running' | 'done' | 'error'; checked_at: string | null; mrz_found: boolean | null; mrz_valid: boolean | null;
+  issuing: string | null; nationality: string | null; is_thai: boolean | null; face_ref: 'selfie' | 'card' | 'none' | null;
+  face_result: 'ok' | 'unsure' | 'different' | 'no_face_passport' | 'no_reference' | 'skipped' | 'error' | null; face_sim: number | null;
+  name_result: 'match' | 'close' | 'differs' | 'thai_script' | 'unknown' | null; suggestion: 'pass' | 'fail' | 'check' | null;
+  fail_code: 'not_passport' | 'thai' | 'photo' | null; errors: string[]; attempts: number;
+}
+const A3A2 = 'ABWAW AFGAF AGOAO AIAAI ALAAX ALBAL ANDAD AREAE ARGAR ARMAM ASMAS ATAAQ ATFTF ATGAG AUSAU AUTAT AZEAZ BDIBI BELBE BENBJ BESBQ BFABF BGDBD BGRBG BHRBH BHSBS BIHBA BLMBL BLRBY BLZBZ BMUBM BOLBO BRABR BRBBB BRNBN BTNBT BVTBV BWABW CAFCF CANCA CCKCC CHECH CHLCL CHNCN CIVCI CMRCM CODCD COGCG COKCK COLCO COMKM CPVCV CRICR CUBCU CUWCW CXRCX CYMKY CYPCY CZECZ DEUDE DJIDJ DMADM DNKDK DOMDO DZADZ ECUEC EGYEG ERIER ESHEH ESPES ESTEE ETHET FINFI FJIFJ FLKFK FRAFR FROFO FSMFM GABGA GBRGB GEOGE GGYGG GHAGH GIBGI GINGN GLPGP GMBGM GNBGW GNQGQ GRCGR GRDGD GRLGL GTMGT GUFGF GUMGU GUYGY HKGHK HMDHM HNDHN HRVHR HTIHT HUNHU IDNID IMNIM INDIN IOTIO IRLIE IRNIR IRQIQ ISLIS ISRIL ITAIT JAMJM JEYJE JORJO JPNJP KAZKZ KENKE KGZKG KHMKH KIRKI KNAKN KORKR KWTKW LAOLA LBNLB LBRLR LBYLY LCALC LIELI LKALK LSOLS LTULT LUXLU LVALV MACMO MAFMF MARMA MCOMC MDAMD MDGMG MDVMV MEXMX MHLMH MKDMK MLIML MLTMT MMRMM MNEME MNGMN MNPMP MOZMZ MRTMR MSRMS MTQMQ MUSMU MWIMW MYSMY MYTYT NAMNA NCLNC NERNE NFKNF NGANG NICNI NIUNU NLDNL NORNO NPLNP NRUNR NZLNZ OMNOM PAKPK PANPA PCNPN PERPE PHLPH PLWPW PNGPG POLPL PRIPR PRKKP PRTPT PRYPY PSEPS PYFPF QATQA REURE ROURO RUSRU RWARW SAUSA SDNSD SENSN SGPSG SGSGS SHNSH SJMSJ SLBSB SLESL SLVSV SMRSM SOMSO SPMPM SRBRS SSDSS STPST SURSR SVKSK SVNSI SWESE SWZSZ SXMSX SYCSC SYRSY TCATC TCDTD TGOTG THATH TJKTJ TKLTK TKMTM TLSTL TONTO TTOTT TUNTN TURTR TUVTV TWNTW TZATZ UGAUG UKRUA UMIUM URYUY USAUS UZBUZ VATVA VCTVC VENVE VGBVG VIRVI VNMVN VUTVU WLFWF WSMWS YEMYE ZAFZA ZMBZM ZWEZW';
+const MRZ_EXTRA: Record<string, string> = { RKS: 'Kosovo', UTO: 'Utopia (ICAO specimen)', XXA: 'stateless person', XXB: 'refugee', XXC: 'refugee', XXX: 'unspecified nationality',
+  GBD: 'United Kingdom (overseas territory)', GBN: 'United Kingdom (overseas)', GBO: 'United Kingdom (overseas citizen)', GBS: 'United Kingdom (subject)', GBP: 'United Kingdom (protected person)',
+  UNO: 'United Nations', UNA: 'United Nations agency', EUE: 'European Union' };
+/** 0187: an MRZ country code → an English country name ('NOR' → 'Norway'); unknown codes come back as they are */
+export function countryName(code: string | null | undefined): string {
+  if (!code) return 'an unknown country';
+  if (MRZ_EXTRA[code]) return MRZ_EXTRA[code];
+  const a2 = code.length === 2 ? code : /^[A-Z]{3}$/.test(code) ? (A3A2.match(new RegExp(`(?:^| )${code}([A-Z]{2})`))?.[1] || '') : '';
+  if (!a2) return code;
+  try { return new Intl.DisplayNames(['en'], { type: 'region' }).of(a2) || code; } catch { return code; }
+}
+export type TravCheckLine = { ok: boolean | null; text: string };
+export type TravSuggestion = { tone: 'g' | 'a' | 'r'; line: string; items: TravCheckLine[]; preselect: 'not_passport' | 'thai' | 'photo' | null; refuseFirst: boolean };
+/** 0187: the robot's pre-check in plain English for the admin card: one big line + one ✓ / ✗ / ? line per check. Never decides. */
+export function travellerSuggestion(c: TravellerCheck | null | undefined, cardName: string): TravSuggestion | null {
+  if (!c) return null;
+  const nm = `“${cardName || 'their card name'}”`;
+  if (c.state === 'running') return { tone: 'a', line: 'The robot is checking the passport photo…', items: [], preselect: null, refuseFirst: false };
+  if (c.state === 'error' || !c.suggestion) return { tone: 'a', line: 'Suggested: CHECK BY EYE — the automatic check could not run', items: [], preselect: null, refuseFirst: false };
+  const items: TravCheckLine[] = [];
+  const country = `${countryName(c.nationality)} (${c.nationality})`;
+  const pct = c.face_sim == null ? '' : `${Math.round(c.face_sim)}%`;
+  const ref = c.face_ref === 'selfie' ? 'their face-check selfie' : 'their card photo';
+  // 1. a real passport photo page
+  items.push(c.mrz_found ? { ok: true, text: `Passport code found (the two lines at the bottom)${c.mrz_valid === false ? ' · its numbers don’t add up — look closer' : ''}` }
+    : c.mrz_found === false ? { ok: false, text: 'No passport code found — not a passport photo page' } : { ok: null, text: 'Could not read the photo' });
+  if (c.mrz_found) {
+    // 2. nationality
+    items.push(c.is_thai ? { ok: false, text: `Thai passport (${c.nationality === 'THA' ? 'THA' : c.issuing})` } : { ok: true, text: `Not Thai: passport from ${country}` });
+    // 3. face
+    const f = c.face_result;
+    items.push(f === 'ok' ? { ok: true, text: `Same face as ${ref}: ${pct} match` }
+      : f === 'different' ? { ok: false, text: `Different face from ${ref}: ${pct} match` }
+      : f === 'unsure' ? { ok: null, text: `Face match only ${pct} with ${ref} — compare by eye` }
+      : f === 'no_face_passport' ? { ok: null, text: 'No face found in the passport photo — compare by eye' }
+      : f === 'no_reference' ? { ok: null, text: 'No face-check selfie or card photo to compare — compare by eye' }
+      : { ok: null, text: 'Face check could not run — compare by eye' });
+    // 4. name (soft)
+    const n = c.name_result;
+    items.push(n === 'match' ? { ok: true, text: `Name on the passport matches ${nm}` }
+      : n === 'close' ? { ok: true, text: `Name on the passport is close to ${nm} (short form or spelling)` }
+      : n === 'thai_script' ? { ok: null, text: `Card name ${nm} is in Thai letters — check the name by eye` }
+      : n === 'differs' ? { ok: null, text: `Name differs from ${nm} — check (nicknames are common)` }
+      : { ok: null, text: 'Name could not be read — check by eye' });
+  }
+  if (c.suggestion === 'fail') {
+    const why = c.fail_code === 'not_passport' ? 'not a passport page (no passport code found)'
+      : c.fail_code === 'thai' ? 'Thai passport' : `different face (${pct} match)`;
+    return { tone: 'r', line: `Suggested: REFUSE — ${why}`, items, preselect: c.fail_code, refuseFirst: true };
+  }
+  if (c.suggestion === 'pass') {
+    const name = c.name_result === 'match' ? `name matches ${nm}` : `name ≈ ${nm}`;
+    return { tone: 'g', line: `Suggested: APPROVE — passport from ${countryName(c.nationality)}, face match ${pct}, ${name}`, items, preselect: null, refuseFirst: false };
+  }
+  const open = items.filter((x) => x.ok === null).map((x) => x.text.replace(/ — .*$/, '').replace(/^./, (y) => y.toLowerCase()));
+  return { tone: 'a', line: `Suggested: CHECK BY EYE — ${open.length ? open.join(' · ') : 'one check was unclear'}`, items, preselect: null, refuseFirst: false };
 }
 export interface PeopleExtraRow {
   real_photo: boolean;
@@ -392,7 +460,9 @@ export function buildInbox(s: Snapshot): { items: InboxItem[]; handled: Handled[
     const facts = [p.verified ? 'face-verified' : 'not face-verified yet', p.kind !== 'real' ? `${p.kind} account` : ''].filter(Boolean);
     push({ key: 't:' + t.id, kind: 'traveller', tone: 'a', rank: 65, at: t.created_at, people: [p], traveller: t,
       question: `Make ${nameNo({ name: p.name || t.first_name, no: p.no ?? t.member_no })} a traveller?`,
-      what: [t.passport_path ? 'Passport photo sent. Check: same name, same face, not a Thai passport.' : 'The passport photo is gone (deleted). Refuse and ask for a new one.',
+      what: [!t.passport_path ? 'The passport photo is gone (deleted). Refuse and ask for a new one.'
+        : t.check?.state === 'done' ? 'Passport photo sent. The robot checked it (below); you decide.'
+        : 'Passport photo sent. Check: same name, same face, not a Thai passport.',
         `Asked ${ago(t.created_at)} · ${facts.join(' · ')}`] });
   }
   // 4) Reels waiting, one card per person

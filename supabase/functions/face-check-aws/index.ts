@@ -16,6 +16,9 @@
 //   { action: 'sweep' }   remove faces of deleted / no longer verified members from the collection (PDPA)
 //   { action: 'reel_copy_scan', limit? }   (0148, robot) new waiting Reels: poster + 2 scan frames → DetectText → copied watermark?
 //                          recorded in kr8_reel_copy_checks (+ amber alert). Never hides a Reel.
+//   { action: 'traveller_scan', limit? }   (0187, robot) traveller-tag requests not checked yet: OCR the passport page (Textract,
+//                          Rekognition DetectText fallback) → MRZ? nationality? + CompareFaces with the member's selfie / card photo
+//                          + name vs card → kr8_traveller_check_record (suggestion only; the founder decides). Once per request.
 // 0148: the straight frame's DetectFaces also asks AGE_RANGE (same call); pass / review → kr8_age_check_record (likely under 18
 //       → red alert). Never closes an account.
 //
@@ -31,6 +34,7 @@ import { dataUrlB64, frameFeatures, type FacesResp, type FrameF, type LabelsResp
 import { dhashRGBA, otherMemberInReel, type FaceHit } from './reelprint.ts';
 import { photoVerdictAws, type Fd, type PhotoV } from './photoverdict.ts';
 export { photoVerdictAws, PHOTO_TEXT_WORDS, PHOTO_CHILD_HIGH } from './photoverdict.ts';
+import { faceOf, findMrz, nameMatch, verdict, type FaceResult, type NameResult } from './travellercheck.ts';
 import jpeg from 'npm:jpeg-js@0.4.4';
 
 const SUPA = (Deno.env.get('SUPABASE_URL') ?? '').replace(/\/$/, '');
@@ -126,6 +130,19 @@ async function rk<T>(target: string, payload: Record<string, unknown>): Promise<
   const headers = await signV4({ method: 'POST', url, body, region: REGION, service: 'rekognition', accessKeyId: AK, secretAccessKey: SK, sessionToken: TOKEN,
     headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': `RekognitionService.${target}` } });
   const r = await fetch(url, { method: 'POST', headers, body, signal: AbortSignal.timeout(9000) });
+  const j = await r.json().catch(() => ({})) as Record<string, unknown>;
+  if (!r.ok) throw new AwsError(String(j.__type || `HTTP_${r.status}`).split('#').pop()!, String(j.message || j.Message || ''));
+  return j as T;
+}
+/** 0187: AWS Textract (same keys / region as Rekognition) */
+async function tx<T>(target: string, payload: Record<string, unknown>): Promise<T> {
+  if (MOCK) return { Blocks: [] } as T;
+  if (!AK || !SK) throw new AwsError('NoKeys', 'AWS keys are not set');
+  const url = `https://textract.${REGION}.amazonaws.com/`;
+  const body = JSON.stringify(payload);
+  const headers = await signV4({ method: 'POST', url, body, region: REGION, service: 'textract', accessKeyId: AK, secretAccessKey: SK, sessionToken: TOKEN,
+    headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': `Textract.${target}` } });
+  const r = await fetch(url, { method: 'POST', headers, body, signal: AbortSignal.timeout(15000) });
   const j = await r.json().catch(() => ({})) as Record<string, unknown>;
   if (!r.ok) throw new AwsError(String(j.__type || `HTTP_${r.status}`).split('#').pop()!, String(j.message || j.Message || ''));
   return j as T;
@@ -350,10 +367,91 @@ async function deviceLinks(limit: number): Promise<Record<string, unknown>> {
   return { checked: (todo || []).length, ...out };
 }
 
+// ───────── 0187: traveller-tag pre-checks ─────────
+// One run per request (claimed in kr8_traveller_check_todo). Only the outcome is saved: never the MRZ text, number or names.
+// Rekognition DetectText reads at most 100 words per call, so on a busy passport page the MRZ at the bottom is often cut off.
+// Read the whole picture first, then the bottom band (where the MRZ sits), then the left / right edges (a sideways photo);
+// stop as soon as an MRZ is found: 1–4 calls (≈ US$0.001 each). Textract (better OCR) only when TRAVELLER_TEXTRACT=1 and the
+// AWS user has textract:DetectDocumentText (it does not on 21 Nov).
+const OCR_REGIONS: (Record<string, number> | null)[] = [null, { Left: 0, Top: 0.55, Width: 1, Height: 0.45 },
+  { Left: 0, Top: 0, Width: 0.4, Height: 1 }, { Left: 0.6, Top: 0, Width: 0.4, Height: 1 }];
+async function readMrz(b64: string): Promise<{ mrz: ReturnType<typeof findMrz>; ocr: 'textract' | 'rekognition'; calls: number }> {
+  let calls = 0;
+  if (Deno.env.get('TRAVELLER_TEXTRACT') === '1') {
+    try {
+      calls++;
+      const r = await tx<{ Blocks?: { BlockType?: string; Text?: string }[] }>('DetectDocumentText', { Document: { Bytes: b64 } });
+      const mrz = findMrz((r.Blocks || []).filter((b) => b.BlockType === 'LINE' && b.Text).map((b) => b.Text as string));
+      if (mrz) return { mrz, ocr: 'textract', calls };
+    } catch (e) { log({ traveller_textract: e instanceof AwsError ? e.type : String(e).slice(0, 120) }); }
+  }
+  for (const roi of OCR_REGIONS) {
+    calls++;
+    const r = await rk<{ TextDetections?: { Type?: string; DetectedText?: string }[] }>('DetectText',
+      { Image: img(b64), ...(roi ? { Filters: { RegionsOfInterest: [{ BoundingBox: roi }] } } : {}) });
+    const mrz = findMrz((r.TextDetections || []).filter((d) => d.Type === 'LINE' && d.DetectedText).map((d) => d.DetectedText as string));
+    if (mrz) return { mrz, ocr: 'rekognition', calls };
+  }
+  return { mrz: null, ocr: 'rekognition', calls };
+}
+export async function travellerScan(limit: number): Promise<{ checked: number; results: Record<string, number> }> {
+  const todo = await rpc<{ request_id: string; user_id: string; passport_path: string; first_name: string | null; photo: string | null; selfie_path: string | null }[]>(
+    'kr8_traveller_check_todo', { p_limit: limit });
+  const results: Record<string, number> = {};
+  for (const t of todo || []) {
+    const errors: string[] = []; let calls = 0;
+    const res: Record<string, unknown> = { mrz_found: null, face_result: 'skipped', name_result: 'unknown' };
+    try {
+      const pass = await download(t.passport_path, 'kr8-passport');
+      if (!pass) { errors.push('passport_missing'); throw new Error('passport file missing'); }
+      let mrz: ReturnType<typeof findMrz> = null;
+      try { const o = await readMrz(pass); calls += o.calls; res.ocr = o.ocr; mrz = o.mrz; }
+      catch (e) { errors.push('ocr'); log({ traveller_ocr_error: String(e).slice(0, 160) }); }
+      res.mrz_found = errors.includes('ocr') ? null : !!mrz;
+      let face: FaceResult = 'skipped'; let name: NameResult = 'unknown';
+      if (mrz) {
+        res.mrz_valid = mrz.valid; res.issuing = mrz.issuing; res.nationality = mrz.nationality;
+        res.is_thai = mrz.issuing === 'THA' || mrz.nationality === 'THA';
+        name = nameMatch(t.first_name, mrz.surname, mrz.given);
+        // the face: the member's face-check selfie (kept ~30 days) or else the card photo (which the face check matched)
+        let ref: string | null = null;
+        if (t.selfie_path) { ref = await download(t.selfie_path); if (ref) res.face_ref = 'selfie'; }
+        if (!ref) { ref = await photoB64(t.photo); if (ref) res.face_ref = 'card'; }
+        if (!ref) { res.face_ref = 'none'; face = 'no_reference'; }
+        else {
+          try {
+            calls++;
+            const f = faceOf(await rk<unknown>('CompareFaces', { SourceImage: img(ref), TargetImage: img(pass), SimilarityThreshold: 0, QualityFilter: 'NONE' }));
+            face = f.result; res.face_sim = f.sim;
+          } catch (e) {
+            if (e instanceof AwsError && /InvalidParameter/.test(e.type)) face = 'no_reference';   // no face found in the reference photo
+            else { face = 'error'; errors.push('face'); log({ traveller_face_error: String(e).slice(0, 160) }); }
+          }
+        }
+      }
+      res.face_result = face; res.name_result = name;
+      const v = verdict({ mrz: !!mrz, thai: !!res.is_thai, face, name, errors });
+      res.suggestion = v.suggestion; res.fail_code = v.fail_code;
+    } catch (e) {
+      if (!errors.length) errors.push('server');
+      log({ traveller_scan_error: String(e).slice(0, 200), request: t.request_id });
+      // passport gone: nothing to retry; anything else (AWS down) is retried once by the 5-min job
+      if (errors.includes('passport_missing')) { res.suggestion = 'check'; }
+    }
+    res.errors = errors; res.aws_calls = calls;
+    try { await rpc('kr8_traveller_check_record', { p_request: t.request_id, p_res: res }); }
+    catch (e) { log({ traveller_record_error: String(e).slice(0, 200) }); }
+    const k = String(res.suggestion ?? 'error');
+    results[k] = (results[k] || 0) + 1;
+  }
+  log({ traveller_scan: (todo || []).length, results });
+  return { checked: (todo || []).length, results };
+}
+
 // ───────── admin actions ─────────
 async function admin(jwt: string, body: Record<string, unknown>, robot = false): Promise<Response> {
   // 19 Nov fix2: the canary (service key) runs backfill every hour, so faces the team approves by hand get into AWS too
-  const ok = robot ? (body.action === 'backfill' || body.action === 'sweep' || body.action === 'reel_copy_scan' || body.action === 'quality_scan' || body.action === 'device_links') : await rpc<boolean>('kr8_is_admin', {}, jwt).catch(() => false);
+  const ok = robot ? (body.action === 'backfill' || body.action === 'sweep' || body.action === 'reel_copy_scan' || body.action === 'quality_scan' || body.action === 'device_links' || body.action === 'traveller_scan') : await rpc<boolean>('kr8_is_admin', {}, jwt).catch(() => false);
   if (ok !== true) return json({ error: 'ADMIN_ONLY' }, 403);
   if (body.action === 'index') {
     const info = await rpc<{ user_id: string; selfie_path: string | null; status: string; aws: boolean } | null>('kr8_face_aws_index_info', { p_id: body.id });
@@ -381,6 +479,7 @@ async function admin(jwt: string, body: Record<string, unknown>, robot = false):
     const n = await rpc<number>('kr8_face_aws_forgot', { p_face_ids: stale });
     return json({ removed: n });
   }
+  if (body.action === 'traveller_scan') return json(await travellerScan(Math.min(Number(body.limit) || 5, 10)));
   if (body.action === 'device_links') return json(await deviceLinks(Math.min(Number(body.limit) || 10, 25)));
   if (body.action === 'reel_copy_scan') return json(await reelCopyScan(Math.min(Number(body.limit) || 10, 20)));
   if (body.action === 'quality_scan') return json(await qualityScan(Math.min(Number(body.reels) || 6, 12), Math.min(Number(body.people) || 8, 20), body.post ? String(body.post) : null));

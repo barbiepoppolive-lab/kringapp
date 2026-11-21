@@ -709,6 +709,14 @@ details.v2brief:not([open]) { padding-bottom: 12px; }
 .v2pp-chk li { padding-left: 24px; position: relative; overflow-wrap: anywhere; }
 .v2pp-chk li::before { content: ''; position: absolute; left: 0; top: 1px; width: 15px; height: 15px; border: 2px solid var(--v2cy); border-radius: 4px; }
 .v2pp-note { display: block; margin-top: 8px; }
+/* 0187: robot pre-check — the suggestion line on top, ✓ / ✗ / ? per check (same tones as the robot verdict lines) */
+.v2pp-sug { font-size: 16px; font-weight: 750; margin: 0 0 10px; }
+.v2pp-auto { gap: 8px; font-size: 13.5px; font-weight: 650; }
+.v2pp-auto li { padding-left: 22px; }
+.v2pp-auto li::before { border: 0; width: auto; height: auto; top: 0; font-weight: 800; }
+.v2pp-auto li.ok::before { content: '✓'; color: var(--go2); }
+.v2pp-auto li.no::before { content: '✗'; color: #ff8a97; }
+.v2pp-auto li.q::before { content: '?'; color: var(--warn); }
 .v2pp-ref { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
 .v2pp-ref[hidden] { display: none; }
 .v2pp-opts { display: flex; flex-wrap: wrap; gap: 6px; }

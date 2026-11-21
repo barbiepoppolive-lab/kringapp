@@ -8,7 +8,7 @@ import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { guardWho, OTHER_KEY, passportPathOk, reasonText, REASON_KEY, REFUSE_REASONS, travellerView, whoToSave, type TravellerState } from './travellerLogic';
 import { V5_L, KX_L } from './v5Strings';
-import { buildInbox, travellerPerson, type Snapshot, type TravellerCase } from '../venue/adminV2Logic';
+import { buildInbox, countryName, travellerPerson, travellerSuggestion, type Snapshot, type TravellerCase, type TravellerCheck } from '../venue/adminV2Logic';
 
 vi.mock('./v5Live', async (orig) => ({
   ...(await orig<typeof import('./v5Live')>()),
@@ -215,6 +215,7 @@ describe('admin: Traveller check case cards (logic)', () => {
 });
 
 const rpcCalls: { fn: string; args: Record<string, unknown> }[] = [];
+let checksMock: unknown[] = [];   // 0187: kr8_admin_traveller_checks answer
 vi.mock('../venue/shared', async () => {
   const actual = await vi.importActual<typeof import('../venue/shared')>('../venue/shared');
   return {
@@ -227,6 +228,7 @@ vi.mock('../venue/shared', async () => {
       if (fn === 'kr8_admin_traveller_requests') return snap().traveller;
       if (fn === 'kr8_admin_v2_photos') return { u77: 'https://cdn.test/anna.jpg' };
       if (fn === 'kr8_admin_traveller_decide') return { ok: true };
+      if (fn === 'kr8_admin_traveller_checks') return checksMock;
       return null;
     }),
   };
@@ -234,7 +236,7 @@ vi.mock('../venue/shared', async () => {
 const wait = (ms = 30) => new Promise((r) => setTimeout(r, ms));
 
 describe('admin: Traveller check case card (DOM)', () => {
-  beforeEach(() => { document.body.innerHTML = '<div id="app"></div>'; rpcCalls.length = 0; history.replaceState(null, '', '#inbox'); });
+  beforeEach(() => { document.body.innerHTML = '<div id="app"></div>'; rpcCalls.length = 0; checksMock = []; history.replaceState(null, '', '#inbox'); });
   it('passport photo big next to the card photo, name + member no, Approve → decide RPC', async () => {
     const v2 = await import('../venue/adminV2');
     await v2.loadSnapshot(true);
@@ -278,4 +280,62 @@ describe('admin: Traveller check case card (DOM)', () => {
     try { go.click(); await vi.advanceTimersByTimeAsync(5200); } finally { vi.useRealTimers(); }
     expect(rpcCalls.find((c) => c.fn === 'kr8_admin_traveller_decide')!.args).toEqual({ p_id: 'req2', p_approve: false, p_reason_code: 'thai', p_note: null });
   });
+  it('0187 robot PASS: big APPROVE line + four ✓ lines; the founder still taps Approve', async () => {
+    checksMock = [chk({ request_id: 'req1' })];
+    const v2 = await import('../venue/adminV2');
+    await v2.loadSnapshot(true);
+    v2.inboxView(); await wait(80);
+    const card = document.querySelector<HTMLElement>('[data-item="t:req1"]')!;
+    expect(card.querySelector('#v2TravSug-req1')!.textContent).toBe('Suggested: APPROVE — passport from Germany, face match 97%, name matches “Anna”');
+    expect(card.querySelectorAll('.v2pp-auto li.ok').length).toBe(4);
+    expect(card.querySelector('#v2TravOk-req1')!.className).toBe('v2btn ok');
+    expect(rpcCalls.some((c) => c.fn === 'kr8_admin_traveller_decide')).toBe(false);   // nothing decided by itself
+  });
+  it('0187 robot FAIL (not a passport): REFUSE line, Refuse is the solid button, the reason is picked already', async () => {
+    checksMock = [chk({ request_id: 'req2', mrz_found: false, nationality: null, issuing: null, face_result: 'skipped', face_sim: null, name_result: 'unknown', suggestion: 'fail', fail_code: 'not_passport' })];
+    const v2 = await import('../venue/adminV2');
+    await v2.loadSnapshot(true);
+    v2.inboxView(); await wait(80);
+    const card = document.querySelector<HTMLElement>('[data-item="t:req2"]')!;
+    expect(card.querySelector('#v2TravSug-req2')!.textContent).toBe('Suggested: REFUSE — not a passport page (no passport code found)');
+    expect(card.querySelector('.v2pp-auto li.no')!.textContent).toContain('No passport code found');
+    expect(card.querySelector('#v2TravNo-req2')!.className).toContain('solid');
+    card.querySelector<HTMLButtonElement>('#v2TravNo-req2')!.click();
+    const box = card.querySelector<HTMLElement>('#v2TravRefuse-req2')!;
+    expect(box.querySelector('[data-code="not_passport"]')!.getAttribute('aria-checked')).toBe('true');
+    const go = box.querySelector<HTMLButtonElement>('#v2TravRefuseGo-req2')!;
+    expect(go.disabled).toBe(false);
+    vi.useFakeTimers();
+    try { go.click(); await vi.advanceTimersByTimeAsync(5200); } finally { vi.useRealTimers(); }
+    expect(rpcCalls.find((c) => c.fn === 'kr8_admin_traveller_decide')!.args).toEqual({ p_id: 'req2', p_approve: false, p_reason_code: 'not_passport', p_note: null });
+  });
+});
+
+const chk = (o: Partial<TravellerCheck> = {}): TravellerCheck => ({ request_id: 'req1', state: 'done', checked_at: '2026-11-21T10:00:00Z', mrz_found: true, mrz_valid: true,
+  issuing: 'DEU', nationality: 'DEU', is_thai: false, face_ref: 'selfie', face_result: 'ok', face_sim: 97.2, name_result: 'match', suggestion: 'pass',
+  fail_code: null, errors: [], attempts: 1, ...o });
+describe('0187 travellerSuggestion (plain English)', () => {
+  it('Thai passport → REFUSE with the thai reason', () => {
+    const s = travellerSuggestion(chk({ issuing: 'THA', nationality: 'THA', is_thai: true, suggestion: 'fail', fail_code: 'thai' }), 'Mint')!;
+    expect(s.line).toBe('Suggested: REFUSE — Thai passport'); expect(s.preselect).toBe('thai'); expect(s.tone).toBe('r');
+  });
+  it('different face → REFUSE with the percent', () => {
+    const s = travellerSuggestion(chk({ face_result: 'different', face_sim: 12.4, suggestion: 'fail', fail_code: 'photo' }), 'Lena')!;
+    expect(s.line).toBe('Suggested: REFUSE — different face (12% match)'); expect(s.preselect).toBe('photo');
+  });
+  it('only the name differs → CHECK BY EYE, nothing pre-picked', () => {
+    const s = travellerSuggestion(chk({ nationality: 'NOR', issuing: 'NOR', name_result: 'differs', suggestion: 'check' }), 'Lena')!;
+    expect(s.line).toBe('Suggested: CHECK BY EYE — name differs from “Lena”'); expect(s.preselect).toBeNull(); expect(s.tone).toBe('a');
+    expect(s.items[1].text).toBe('Not Thai: passport from Norway (NOR)');
+  });
+  it('Thai-script card name + no face to compare', () => {
+    const s = travellerSuggestion(chk({ name_result: 'thai_script', face_result: 'no_reference', face_ref: 'none', face_sim: null, suggestion: 'check' }), 'มิ้นท์')!;
+    expect(s.line).toContain('Suggested: CHECK BY EYE — no face-check selfie or card photo to compare · card name “มิ้นท์” is in Thai letters');
+  });
+  it('still running / errored', () => {
+    expect(travellerSuggestion(chk({ state: 'running', suggestion: null }), 'A')!.line).toContain('checking');
+    expect(travellerSuggestion(chk({ state: 'error', suggestion: null }), 'A')!.line).toBe('Suggested: CHECK BY EYE — the automatic check could not run');
+    expect(travellerSuggestion(null, 'A')).toBeNull();
+  });
+  it('country names', () => { expect(countryName('DEU')).toBe('Germany'); expect(countryName('USA')).toBe('United States'); expect(countryName('UTO')).toContain('specimen'); expect(countryName('ZZZ')).toBe('ZZZ'); });
 });
