@@ -23,7 +23,7 @@ import {
   type ProtectOverview, type RobotAlert, type RobotLogRow, type RobotMode, type RobotRow, type SelfFixStatus,
 } from './autopilotLogic';
 import { addDays, bkkToday, clampDay, countryName, dailyRange, dayName, flag, groupSources, isGrowth, isGrowthDaily, isGrowthDay, refLabel, seriesEnds, sparkPath, stepPct, trendWords, visibleRefs,
-  type Growth, type GrowthDailyRow, type GrowthDay, type GrowthDays } from './growthLogic';
+  SOURCE2, type GrowthSource2Key, type Growth, type GrowthDailyRow, type GrowthDay, type GrowthDays } from './growthLogic';
 import './adminV2.css';
 import { closeSheet, openSheet, sheetOpen, sheetRoute, xbtn, xlink, xrow, xsec, type SheetSpec, type SheetWho } from './adminSheet';
 import { alertSheetKind, alertUser, detailLines, flagSentence, flagWhy, giveWhy, isEx, linkVerdict, openWhy, ringsSentence, ringsSummary, selfieWords, trustWords, verdictSentence,
@@ -745,16 +745,19 @@ function sparkline(g: Growth): HTMLElement {
 }
 function growthBody(g: Growth, opt: { pastDay?: boolean; daily?: HTMLElement | null } = {}): HTMLElement[] {
   const retPct = g.visitors ? Math.round((g.returning / g.visitors) * 100) : 0;
+  const newV = g.new_visitors ?? g.visitors;
   const trend = trendWords(g.visitors, g.visitors_prev, g.days, !!opt.pastDay);
   const up = g.visitors >= g.visitors_prev;
   const stat = (id: string, val: string, label: string) => el('div', { class: 'gr-stat', id }, el('b', {}, val), el('span', {}, label));
   const hero = el('section', { class: 'gr-hero', id: 'grHero' },
-    el('div', { class: 'gr-big' },
-      el('div', {}, el('b', { id: 'grVisitors' }, fmt(g.visitors)), el('span', {}, 'visitors')),
-      trend ? el('small', { class: `gr-trend ${up ? 'up' : 'down'}` }, trend) : null),
+    // 0193: the top number is NEW visitors (first-ever visit, not members); members opening the app sit next to it
+    el('div', { class: 'gr-big gr-big2' },
+      el('div', {}, el('b', { id: 'grNewVisitors' }, fmt(newV)), el('span', {}, 'New visitors')),
+      el('div', { class: 'gr-big-m' }, el('b', { id: 'grMemberOpens' }, fmt(g.member_opens ?? 0)), el('span', {}, 'Members opening the app'))),
+    trend ? el('small', { class: `gr-trend ${up ? 'up' : 'down'}` }, trend) : null,
     sparkline(g),
     el('div', { class: 'gr-grid' },
-      stat('grVisits', fmt(g.visits), 'Visits'),
+      stat('grVisits', fmt(g.visitors), 'All visitors'),
       stat('grReturning', `${fmt(g.returning)}`, `Came back · ${retPct}%`),
       stat('grSignins', fmt(g.signins), 'New sign-ins'),
       stat('grCards', fmt(g.cards), 'New cards'),
@@ -762,16 +765,30 @@ function growthBody(g: Growth, opt: { pastDay?: boolean; daily?: HTMLElement | n
       stat('grInstalls', fmt(g.app_installs), 'App installs')));
 
   // funnel: visitors, then ONE group of people (signed in this period → made a card → posted a Reel)
-  const f: [string, number, number][] = [['Visitors', g.visitors, 0], ['Signed in', g.funnel.signed_in, g.visitors], ['Card made', g.funnel.card, g.funnel.signed_in], ['First Reel', g.funnel.reel, g.funnel.card]];
+  const f: [string, number, number][] = [['New visitors', newV, 0], ['Signed in', g.funnel.signed_in, newV], ['Card made', g.funnel.card, g.funnel.signed_in], ['First Reel', g.funnel.reel, g.funnel.card]];
   const pcts = f.slice(1).map(([, n, of]) => (of ? n / of : 1));
   const low = Math.min(...pcts);
   const funnel = el('div', { class: 'v2funnel gr-funnel', id: 'grFunnel' }, ...f.map(([t, n, of], k) => el('div', { class: 'v2fun' },
-    el('span', {}, t), el('i', {}, el('u', { style: `width:${Math.max(n ? 3 : 0, Math.round((n / Math.max(1, g.visitors)) * 100))}%` })), el('b', {}, fmt(n)),
+    el('span', {}, t), el('i', {}, el('u', { style: `width:${Math.max(n ? 3 : 0, Math.min(100, Math.round((n / Math.max(1, newV)) * 100)))}%` })), el('b', {}, fmt(n)),
     el('small', { class: k && of && n / of === low ? 'low' : '' }, k ? stepPct(n, of) : ''))));
 
   const src = groupSources(g.sources);
-  // 18 Nov tap-all: each source / link / country row opens what it means
-  const sources = el('div', { class: 'lt-list', id: 'grSources' }, ...(src.length ? src.map((x) => tap(el('div', { class: 'v2li gr-row', 'data-src': x.key, title: x.hosts.join(', ') || undefined },
+  const s2 = g.sources2 || null;
+  const s2Total = Math.max(1, ...(s2 || []).map((x) => x.visitors), 1);
+  const s2All = (s2 || []).reduce((a, x) => a + x.visitors, 0);
+  const detailRow = (k: GrowthSource2Key, d: { d: string; n: number; name: string | null; no: number | null }) =>
+    xrow(k === 'invite' ? (d.name ? `${d.name} #${d.no} · ${d.d}` : `${d.d} (member not found)`) : d.d, `${fmt(d.n)} visitor${d.n === 1 ? '' : 's'}`);
+  // 0193: one fixed channel list; each row opens the detail behind it (which member's invite link, which site, which question)
+  const sources = s2 ? el('div', { class: 'lt-list', id: 'grSources' }, ...(s2.length ? s2.map((x) => {
+    const meta = SOURCE2[x.key] || SOURCE2.other; const share = Math.round((x.visitors / Math.max(1, s2All)) * 100);
+    return tap(el('div', { class: 'v2li gr-row', 'data-src': x.key },
+      el('span', { class: `gr-dot s2-${x.key}` }),
+      el('div', { class: 'grow' }, el('b', {}, meta.label), el('i', { class: 'gr-bar' }, el('u', { style: `width:${Math.max(2, Math.round((x.visitors / s2Total) * 100))}%` }))),
+      el('div', { class: 'gr-n' }, el('b', {}, fmt(x.visitors)), el('small', {}, `${share}%`))), () => openSheet({ kind: 'source', id: `${g.from}:${g.to}:${x.key}`, title: meta.label,
+      why: `${fmt(x.visitors)} visitor${x.visitors === 1 ? '' : 's'} (${share}% of this period) ${meta.means}.`,
+      evidence: x.details.length ? [xsec(x.key === 'invite' ? 'Whose invite link' : x.key === 'ask' ? 'Which question page' : 'Where exactly'), ...x.details.slice(0, 40).map((d) => detailRow(x.key, d))]
+        : [el('small', { class: 'xs-line' }, 'No more detail was passed on for these visits.')] }));
+  }) : [el('div', { class: 'v2sub gr-none' }, 'No visitors in this period yet.')])) : el('div', { class: 'lt-list', id: 'grSources' }, ...(src.length ? src.map((x) => tap(el('div', { class: 'v2li gr-row', 'data-src': x.key, title: x.hosts.join(', ') || undefined },
     el('span', { class: `gr-dot s-${x.key}` }),
     el('div', { class: 'grow' }, el('b', {}, x.label), el('i', { class: 'gr-bar' }, el('u', { style: `width:${Math.max(2, x.share)}%` })),
       x.key === 'other' && x.hosts.length ? el('small', {}, x.hosts.join(' · ')) : null),
@@ -812,8 +829,8 @@ function growthBody(g: Growth, opt: { pastDay?: boolean; daily?: HTMLElement | n
 
   const sec = (t: string, note: string, id: string) => el('div', { class: 'v2sec gr-sec' }, t, info(note, id));
   return [hero, ...(opt.daily ? [opt.daily] : []),
-    sec('Visitor to Reel', 'Visitors = phones that opened the site or app. The next three steps follow ONE group: people who signed in during this period, how many of them made a card, and how many of them posted a Reel. The % is step to step; the weakest step is pink.', 'grFunnelInfo'), funnel,
-    sec('Where visitors come from', 'Each visitor counts once, by the site that sent their first visit in this period. Direct / in-app = no site was passed on (typed link, home-screen app, many in-app browsers). Shared links = a ?ref= link with no site passed on. Test phones, robots, localhost and preview links are left out.', 'grSrcInfo'), sources,
+    sec('Visitor to Reel', 'New visitors = phones opening Kring for the first time ever in this period (members and the installed app are not counted). The next three steps follow ONE group: people who signed in during this period, how many of them made a card, and how many of them posted a Reel. The % is step to step; the weakest step is pink.', 'grFunnelInfo'), funnel,
+    sec('Where visitors come from', 'Each visitor counts once, by how their first visit in this period arrived: Google, an AI answer (ChatGPT, Perplexity, Gemini, Copilot, Claude), Instagram, TikTok, Facebook, LINE, a member invite link, Pich, a shared Reel link, an Ask BKK page, an Install button, another link or site, or Direct (nothing passed on). Tap a row for the detail. Left out everywhere on this page: test and QA links (test*, qa*, perf, demo), automated and headless browsers, preview pages, our own phones (admin phones, US / India), and test accounts.', 'grSrcInfo'), sources,
     sec('Recruiter links', 'Visitors = phones that opened a ?ref= link. Joined = real members who made a card in this period with that code (or were credited to it). The code is saved on the card, so a sign-in without a card cannot be tied to a link. Test, demo and perf links are hidden.', 'grRefInfo'), recruit,
     sec('Countries', 'Top 8 countries of this period\'s visitors (from the visit counter; Unknown = not sent).', 'grCtyInfo'), countries,
     el('p', { class: 'gr-foot' }, `Bangkok ${g.from === g.to ? `day · ${dayName(g.to)}` : `days · ${dayName(g.from)} → ${dayName(g.to)}`} · came back = also visited on an earlier day`)];

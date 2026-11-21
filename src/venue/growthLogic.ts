@@ -5,12 +5,35 @@
 export type GrowthDays = 1 | 7 | 30;
 export type GrowthSourceRow = { host: string | null; ref: string | null; visitors: number };
 export type GrowthRef = { ref: string; visitors: number; joined: number; reels: number; member_no: number | null; member_name: string | null };
+export type GrowthSource2Key = 'google' | 'ai' | 'instagram' | 'tiktok' | 'facebook' | 'line' | 'invite' | 'pich' | 'reel' | 'ask' | 'install' | 'link' | 'other' | 'direct';
+export type GrowthSource2 = { key: GrowthSource2Key; visitors: number; details: { d: string; n: number; name: string | null; no: number | null }[] };
+/** 0193 channel names (English only, admin) and what a row means when tapped */
+export const SOURCE2: Record<GrowthSource2Key, { label: string; means: string }> = {
+  google: { label: 'Google', means: 'came from a Google search or the Google app' },
+  ai: { label: 'ChatGPT / AI', means: 'came from an AI answer (ChatGPT, Perplexity, Gemini, Copilot, Claude)' },
+  instagram: { label: 'Instagram', means: 'came from Instagram' },
+  tiktok: { label: 'TikTok', means: 'came from TikTok' },
+  facebook: { label: 'Facebook', means: 'came from Facebook or Messenger' },
+  line: { label: 'LINE', means: 'came from LINE' },
+  invite: { label: 'Member invite links', means: 'opened a member\'s invite link (?ref=k…)' },
+  pich: { label: 'Pich', means: 'opened Pich\'s link (?ref=pich)' },
+  reel: { label: 'Reel share links', means: 'opened a shared Reel link (/r/…)' },
+  ask: { label: 'Ask BKK pages', means: 'came in from a public Ask BKK question page (/q/…)' },
+  install: { label: 'Install button', means: 'came through an Install / Get the app button' },
+  link: { label: 'Other links', means: 'opened another ?ref= link (recruiters, posters, partners)' },
+  other: { label: 'Other sites', means: 'came from another website' },
+  direct: { label: 'Direct', means: 'no site was passed on (typed link, home-screen app, many in-app browsers)' },
+};
 export type Growth = {
   days: GrowthDays; from: string; to: string; now: string;
   visitors: number; visitors_prev: number; visits: number; returning: number;
   signins: number; cards: number; first_reels: number; app_installs: number; share_opens: number | null;
-  funnel: { signed_in: number; card: number; reel: number };
+  funnel: { signed_in: number; card: number; reel: number; new_visitors?: number };
   sources: GrowthSourceRow[];
+  /** 0193: phones whose first-ever visit is in the period (never signed in / installed app) · real members whose app opened */
+  new_visitors?: number; member_opens?: number;
+  /** 0193: one fixed channel list with the detail behind each row */
+  sources2?: GrowthSource2[];
   refs: GrowthRef[];
   countries: { country: string | null; visitors: number }[];
   series: { t: string | number; visitors: number }[];

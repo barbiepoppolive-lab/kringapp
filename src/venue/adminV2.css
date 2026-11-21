@@ -723,3 +723,13 @@ details.v2brief:not([open]) { padding-bottom: 12px; }
 .v2pp-opts .v2chip { font-size: 13px; padding: 7px 11px; border: 0; cursor: pointer; white-space: normal; }
 .v2pp-note-in { min-height: 44px; border-radius: 12px; padding: 0 12px; background: var(--s2); border: 1px solid var(--line2); color: var(--text); font-size: 14px; }
 .v2pp-note-in[hidden] { display: none; }
+/* 0193 Growth: New visitors + Members opening the app side by side; one dot colour per channel */
+.gr-big2 { align-items: flex-end; }
+.gr-big2 .gr-big-m { text-align: right; }
+.gr-big2 .gr-big-m b { font-size: 1.6rem; }
+.gr-big2 .gr-big-m span { display: block; }
+.gr-dot.s2-direct { background: #c9c3d6; } .gr-dot.s2-line { background: #06c755; } .gr-dot.s2-google { background: #4285f4; }
+.gr-dot.s2-facebook { background: #1877f2; } .gr-dot.s2-instagram { background: linear-gradient(45deg, #f58529, #dd2a7b, #8134af); }
+.gr-dot.s2-tiktok { background: linear-gradient(45deg, #25f4ee, #fe2c55); } .gr-dot.s2-ai { background: #10a37f; }
+.gr-dot.s2-invite { background: #ff4fd8; } .gr-dot.s2-pich { background: #f3d98b; } .gr-dot.s2-reel { background: #7381ff; }
+.gr-dot.s2-ask { background: #ff8a3d; } .gr-dot.s2-install { background: #a35bff; } .gr-dot.s2-link { background: #9aa6ff; } .gr-dot.s2-other { background: #6b6680; }
