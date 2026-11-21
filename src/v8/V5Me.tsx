@@ -595,6 +595,9 @@ export function ActivitySheet(props: { L: Tx; Lf: Txf; rows: V5Activity[] | null
     const text = a.kind === 'friend_verify' ? fvText(props.lang || 'en')
       : a.kind === 'follow' ? Lf('{0} started following you', a.actor_name || '')
       : a.kind === 'like' ? (a.n > 1 ? Lf('{0} and {1} others liked your Reel', a.actor_name || '', String(a.n - 1)) : Lf('{0} liked your Reel', a.actor_name || ''))
+      // 0191: rank = 1 marks a reply to my comment
+      : a.kind === 'comment' && a.rank === 1 ? [a.n > 1 ? Lf('{0} and {1} others replied to your comment', a.actor_name || '', String(a.n - 1)) : Lf('{0} replied to your comment', a.actor_name || ''),
+          a.prize ? `“${a.prize}”` : ''].filter(Boolean).join(': ')
       : a.kind === 'comment' ? [a.n > 1 ? Lf('{0} and {1} others commented on your Reel', a.actor_name || '', String(a.n - 1)) : Lf('{0} commented on your Reel', a.actor_name || ''),
           a.prize ? `“${a.prize}”` : ''].filter(Boolean).join(': ')
       : a.kind === 'gift' ? Lf('Your Reel is #{0} · {1}', String(a.rank || ''), a.prize || '')

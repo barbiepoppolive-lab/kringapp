@@ -40,6 +40,15 @@ export const KC_L: Record<string, Record<string, string>> = {
     'Couldn’t post. Try again.': 'ส่งไม่สำเร็จ ลองอีกครั้งนะ',
     '{0} commented on your Reel': '{0} แสดงความคิดเห็นในรีลของคุณ',
     '{0} and {1} others commented on your Reel': '{0} และอีก {1} คนแสดงความคิดเห็นในรีลของคุณ',
+    '{0} replied to your comment': '{0} ตอบกลับความคิดเห็นของคุณ',
+    '{0} and {1} others replied to your comment': '{0} และอีก {1} คนตอบกลับความคิดเห็นของคุณ',
+    'Reply': 'ตอบกลับ',
+    'Replying to {0}': 'กำลังตอบกลับ {0}',
+    'Reply to {0}…': 'ตอบกลับ {0}…',
+    'View {0} replies': 'ดูการตอบกลับ {0} รายการ',
+    'Hide replies': 'ซ่อนการตอบกลับ',
+    'Stop replying': 'เลิกตอบกลับ',
+    'This comment isn’t here any more.': 'ความคิดเห็นนี้ไม่มีแล้ว',
     'Kring Team': 'ทีมกริ๊ง!',
     'now': 'ตอนนี้',
   },
@@ -64,6 +73,7 @@ export function commentReasonText(reason: string): string {
     case 'off': return 'Comments are off for this Reel.';
     case 'no_reel': return 'This Reel isn’t available any more.';
     case 'banned': return 'Comments aren’t available for this account.';
+    case 'gone': return 'This comment isn’t here any more.';
     default: return 'Couldn’t post. Try again.';
   }
 }

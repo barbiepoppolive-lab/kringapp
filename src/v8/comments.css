@@ -53,3 +53,14 @@ html[lang="th"] .v8-app-root .kc-body, html[lang="th"] .v8-app-root .kc-gate p {
 .v8-app-root .kc-gate-btn { flex: 0 0 auto; background: none; border: 1.5px solid var(--rv-pk, #FF4FA3); color: #fff; border-radius: 99px; padding: 8px 16px; min-height: 40px;
   font: 700 0.8125rem var(--rv-f, inherit); cursor: pointer; }
 .v8-app-root .kc-gate-btn.wide { width: 100%; }
+
+/* 0191 replies: indented under their top comment, smaller face, the name they answer in pink; "View N replies" with a short rule */
+.v8-app-root .kc-row.kc-rep { padding: 6px 0 6px 45px; gap: 9px; }
+.v8-app-root .kc-row.kc-rep .kc-av { width: 26px; height: 26px; font-size: 0.75rem; }
+.v8-app-root .kc-row.kc-rep .kc-body { font-size: 0.875rem; }
+.v8-app-root .kc-to { color: var(--rv-pk, #FF4FA3); font-weight: 600; }
+.v8-app-root .kc-more { display: flex; align-items: center; gap: 10px; margin: 0 0 4px 45px; padding: 4px 0; min-height: 30px; background: none; border: 0;
+  color: rgba(255,255,255,.55); font: 600 0.75rem var(--rv-f, inherit); cursor: pointer; }
+.v8-app-root .kc-more i { display: block; width: 22px; height: 1px; background: rgba(255,255,255,.3); }
+.v8-app-root .kc-replying { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 6px 8px; font-size: 0.8125rem; color: rgba(255,255,255,.7); }
+.v8-app-root .kc-replying-x { background: none; border: 0; color: rgba(255,255,255,.6); font-size: 0.875rem; min-width: 32px; min-height: 32px; cursor: pointer; }

@@ -743,7 +743,9 @@ export const v5NotInterested = (post: string) => rpc<void>('kr8_not_interested',
 export type V5ReportReason = 'spam' | 'unsafe' | 'stolen' | 'wrong_place' | 'block';
 export const v5ReportReel = (post: string, reason: V5ReportReason) => rpc<void>('kr8_report_reel', { p_post: post, p_reason: reason, p_note: null });
 // ─────────────── Reel comments (0189) ───────────────
-export interface V5Comment { id: string; author_id: string; name: string | null; photo: string | null; official: boolean; body: string; at: string; mine: boolean }
+export interface V5Comment { id: string; author_id: string; name: string | null; photo: string | null; official: boolean; body: string; at: string; mine: boolean;
+  /** 0191 replies: a reply has parent_id (its top comment) and to_name (the person it answers); a top comment carries its replies */
+  parent_id?: string | null; to_id?: string | null; to_name?: string | null; replies?: V5Comment[]; nrep?: number }
 /** can: 'ok' or why this viewer can't comment ('signin' | 'no_card' | 'verify' | 'banned' | 'off' | 'no_reel') */
 export interface V5Comments { post_id: string; n: number; off: boolean; can: string; creator: boolean; items: V5Comment[] }
 export type V5CommentAdd = { ok: true; n: number; comment: V5Comment } | { ok: false; reason: string };
@@ -752,6 +754,8 @@ export const v5ReelComments = (post: string) => rpcRaw<V5Comments>('kr8_reel_com
 export const v5CommentCounts = (posts: string[]) =>
   (posts.length ? rpcRaw<{ post_id: string; n: number; off: boolean }[]>('kr8_comment_counts', { p_posts: posts.slice(0, 100) }) : Promise.resolve([]));
 export const v5CommentAdd = (post: string, body: string) => rpcRaw<V5CommentAdd>('kr8_comment_add', { p_post: post, p_body: body });
+/** 0191: reply to a comment or to a reply (it joins the same top comment); same answers as v5CommentAdd plus reason 'gone' */
+export const v5CommentReply = (comment: string, body: string) => rpcRaw<V5CommentAdd>('kr8_comment_reply', { p_comment: comment, p_body: body });
 export const v5CommentDelete = (id: string) => rpcRaw<{ ok: boolean }>('kr8_comment_delete', { p_comment: id });
 export const v5CommentReport = (id: string, reason: 'rude' | 'spam' | 'unsafe' | 'other') =>
   rpcRaw<{ ok: boolean; hidden: boolean }>('kr8_comment_report', { p_comment: id, p_reason: reason });
