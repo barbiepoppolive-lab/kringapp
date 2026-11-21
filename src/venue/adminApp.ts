@@ -2514,6 +2514,12 @@ async function boot() {
   if (!data.session) return signIn();
   const isAdmin = await rpc<boolean>('kr8_is_admin').catch(() => false);
   if (!isAdmin) return signIn('This account is not an admin');
+  // 0194: this phone belongs to an admin, so its visits never count in Growth (past and future); same visit id as the site counter
+  try {
+    let vid = localStorage.getItem('kr_vid');
+    if (!vid || !/^[a-z0-9]{4,40}$/.test(vid)) { vid = (Math.random().toString(36).slice(2, 12) + Math.random().toString(36).slice(2, 8)) || 'x'; localStorage.setItem('kr_vid', vid); }
+    void rpc('kr8_staff_device', { p_vid: vid }).catch(() => undefined);
+  } catch { /* private mode: nothing to mark */ }
   me = data.session.user?.email || '';
   window.onhashchange = route;
   route();

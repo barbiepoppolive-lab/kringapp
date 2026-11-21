@@ -1030,7 +1030,14 @@ export function v5LogClient(kind: string, code?: string, detail?: string): void 
 }
 /** 0124: once a Bangkok day per member on this phone, so the Fake Finder knows which phone each active member uses. Never throws. */
 export function v5DeviceSeen(uid: string): void {
-  try { if (deviceSeenDue(uid)) v5LogClient('device_seen'); } catch { /* never block the member */ }
+  try {
+    if (!deviceSeenDue(uid)) return;
+    v5LogClient('device_seen');
+    // 0194: once a day the app also tells the server this phone's visit id; it is only kept for admin / team / test-QA accounts,
+    // so their phones never count in Growth (for every member it does nothing)
+    const vid = localStorage.getItem('kr_vid');
+    if (vid && /^[a-z0-9]{4,40}$/.test(vid)) void rpc<boolean>('kr8_staff_device', { p_vid: vid }).catch(() => undefined);
+  } catch { /* never block the member */ }
 }
 /** Terms + Privacy notice version the member agreed to. Bump when terms.html / privacy.html change.
  *  0079 (17 Nov): Terms §4 now lets Kring feature members' posts in its own promotion, so existing members agree again. */
