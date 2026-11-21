@@ -3737,3 +3737,10 @@
 /* founder 18 Nov: "Your Reel is live · Share" (same light pill, no box) */
 .v8-app-root .v8-posted[data-mode="live"] .v8-posted-btn { gap: 6px; padding: 0 20px; white-space: nowrap; max-width: calc(100vw - 32px); }
 .v8-app-root .v8-posted-dot { font-style: normal; opacity: .75; }
+
+/* 21 Nov (founder): the time of every post, small and muted next to the name; chat bubbles carry their clock time and
+   each Bangkok day starts with a quiet day line (Today / Yesterday / Sat 21 Nov). */
+.v8-app-root .kr-pt { margin-left: 6px; font-size: 0.75rem; font-weight: 500; color: rgba(255,255,255,.62); text-shadow: 0 1px 4px rgba(0,0,0,.5); white-space: nowrap; }
+.v8-app-root .kr-day { align-self: center; margin: 6px 0 2px; font-size: 0.6875rem; font-weight: 600; color: rgba(255,255,255,.5); }
+.v8-app-root .kr-day span { padding: 3px 10px; border-radius: 99px; background: rgba(255,255,255,.06); }
+.v8-app-root .bub .kr-bt { display: block; margin-top: 3px; font-size: 0.625rem; line-height: 1; text-align: right; opacity: .55; font-variant-numeric: tabular-nums; }

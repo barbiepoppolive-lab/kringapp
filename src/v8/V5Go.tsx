@@ -23,6 +23,7 @@ import { AskText } from './askTr';
 import { FriendVerifyNote, fvMarkShown, fvShownToday } from './V5Unverified';
 import type { V5Profile } from './v5Live';
 import type { PickedPlace } from './V5KxPlaces';
+import { postAgo } from './postTime';
 
 type Tx = (en: string) => string;
 type Txf = (en: string, a: string, b?: string) => string;
@@ -248,7 +249,7 @@ export function GoReelPlayer(props: {
                   {a ? (
                     <button type="button" className="go-whob" data-go="author" disabled={!a.id} onClick={() => a.id && props.onProfile(a.id)}>
                       <span className="go-av" style={a.photo ? { backgroundImage: `url('${a.photo}')` } : undefined}>{a.photo ? null : (a.name || '?').charAt(0)}</span>
-                      <span className="go-nm"><b>{a.name}</b></span>
+                      <span className="go-nm"><b>{a.name}</b>{(r as { created_at?: string }).created_at ? <small className="go-pt" data-post-time="1">{postAgo((r as { created_at?: string }).created_at)}</small> : null}</span>
                     </button>
                   ) : null}
                   {r.status === 'hidden' && isNotYetNote(r.note) ? <span className="go-score rv ny" data-go="notyet">{L('Not yet')}</span>

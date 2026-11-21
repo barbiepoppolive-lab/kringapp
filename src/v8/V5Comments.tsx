@@ -11,6 +11,7 @@
 import { useEffect, useRef, useState } from 'react';
 import './comments.css';
 import { commentReasonText } from './commentStrings';
+import { postAgo } from './postTime';
 import {
   v5CommentAdd, v5CommentDelete, v5CommentReply, v5CommentReport, v5CommentsSetOff, v5ReelComments,
   type V5Comment, type V5Comments,
@@ -19,13 +20,6 @@ import {
 type Tx = (en: string) => string;
 type Txf = (en: string, a: string, b?: string) => string;
 
-function ago(L: Tx, Lf: Txf, iso: string): string {
-  const m = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 60000));
-  if (m < 1) return L('now');
-  if (m < 60) return Lf('{0}m', String(m));
-  if (m < 1440) return Lf('{0}h', String(Math.round(m / 60)));
-  return Lf('{0}d', String(Math.round(m / 1440)));
-}
 
 const initial = (n: string | null) => (n || '?').trim().charAt(0).toUpperCase() || '?';
 
@@ -123,7 +117,7 @@ export function CommentsSheet(props: {
             <button type="button" className="kc-av" aria-label={c.name || ''} onClick={() => !c.official && props.onPerson(c.author_id)}
               style={c.photo ? { backgroundImage: `url('${c.photo}')` } : undefined}>{c.photo ? null : initial(c.official ? 'K' : c.name)}</button>
             <div className="kc-main">
-              <div className="kc-who"><b>{c.official ? L('Kring Team') : c.name}</b><span>{ago(L, Lf, c.at)}</span></div>
+              <div className="kc-who"><b>{c.official ? L('Kring Team') : c.name}</b><span>{postAgo(c.at)}</span></div>
               <p className="kc-body" dir="auto">{c.parent_id && c.to_name ? <span className="kc-to">@{c.to_name} </span> : null}{c.body}</p>
               {!props.readOnly && can !== 'signin' && reportId !== c.id ? (
                 <div className="kc-acts">

@@ -20,6 +20,8 @@ export interface V8FeedItem {
   cap?: string;
   hiCount?: number;
   bestOfWeek?: boolean;
+  /** 21 Nov: when it was posted (ISO), shown small next to the name */
+  at?: string;
   /** Reels (0024): signed video + poster links; reelPending = only the author sees it until approved */
   video?: string;
   poster?: string;
@@ -114,6 +116,8 @@ export interface V8ChatMessage {
   text: string;
   translation?: string;
   createdAt: string;
+  /** 21 Nov: the real send time (ISO) for the bubble time and the day separators */
+  at?: string;
 }
 
 export interface V8ChatThread {

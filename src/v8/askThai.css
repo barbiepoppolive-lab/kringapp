@@ -157,3 +157,5 @@
 /* the top answer's bubble is its own button (opens the thread); the photo beside it opens the profile */
 .v8-app-root .at-bubbtn { display: block; width: auto; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .v8-app-root .at-pbtn.at-pav { flex: none; align-self: flex-start; margin: -2px 0 0; }
+/* 21 Nov: the post time, small and muted next to the name */
+.v8-app-root .at-c .h .at-t { font-weight: 500; font-size: 0.75rem; color: rgba(255,255,255,.5); }

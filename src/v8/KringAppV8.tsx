@@ -196,6 +196,7 @@ const appBasePath = () => ((import.meta as unknown as { env?: Record<string, str
 import { AdminViewMe, AdminViewPill } from './V5AdminView';
 import { HELP_UI, HelpSheet } from './V5Help';
 import { v5HelpEvent, v5HelpOpen } from './v5Live';
+import { bkkClock, bkkDay, dayLabel, postAgo } from './postTime';
 import './glass.css';   // 20 Nov: light glass on every sheet; last so it wins
 
 const V9_L: Record<string, Record<string, string>> = {
@@ -3781,7 +3782,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         setThreads((prev) =>
           prev.some((t) => t.id === req.id)
             ? prev
-            : [({ id: req.id, personId: '', name: req.name, avatar: req.img, langs: '', verified: req.verified, lastPreview: req.msg, timeLabel: 'Now',
+            : [({ id: req.id, personId: '', name: req.name, avatar: req.img, langs: '', verified: req.verified, lastPreview: req.msg, timeLabel: postAgo(Date.now()),
                 unread: false, messages: [{ id: 'hello', sender: 'them', text: req.msg, createdAt: '' }], v5Status: 'pending', v5OpenedByMe: false } as V5Thread), ...prev]
         );
         setSheet('thread');
@@ -3810,7 +3811,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         langs: currentReq.meta.replace(/^.*Speaks\s*/i, '') || 'TH · EN',
         verified: currentReq.verified,
         lastPreview: currentReq.msg,
-        timeLabel: 'Now',
+        timeLabel: postAgo(Date.now()),
         unread: false,
         messages: [
           {
@@ -3820,7 +3821,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             translation: hasThaiScript(currentReq.msg)
               ? translateThaiLineToEnglish(currentReq.msg)
               : undefined,
-            createdAt: 'Just now',
+            createdAt: 'Just now', at: new Date().toISOString(),
           },
         ],
       };
@@ -3846,7 +3847,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       }
       void v5Once('msg', async () => {
         const tmpId = `tmp-${Date.now()}`;
-        setThreads((prev) => prev.map((t) => (t.id === th.id ? { ...t, lastPreview: txt, timeLabel: 'Now', messages: [...t.messages, { id: tmpId, sender: 'me', text: txt, createdAt: 'Now' }] } : t)));
+        setThreads((prev) => prev.map((t) => (t.id === th.id ? { ...t, lastPreview: txt, timeLabel: postAgo(Date.now()), messages: [...t.messages, { id: tmpId, sender: 'me', text: txt, createdAt: 'Now', at: new Date().toISOString() }] } : t)));
         if (!customText) setChatInput('');
         try {
           await v5SendMessage(th.id, txt);
@@ -3871,7 +3872,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           ? {
               ...th,
               lastPreview: txt,
-              timeLabel: 'Now',
+              timeLabel: postAgo(Date.now()),
               messages: [
                 ...th.messages,
                 {
@@ -3881,7 +3882,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   translation: hasThaiScript(txt)
                     ? translateThaiLineToEnglish(txt)
                     : undefined,
-                  createdAt: 'Now',
+                  createdAt: 'Now', at: new Date().toISOString(),
                 },
               ],
             }
@@ -4525,6 +4526,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                               ✓{p.video ? '' : ` ${t.verifiedLabel}`}
                             </button>
                             )}
+                            {p.at ? <span className="kr-pt" data-post-time="1">{postAgo(p.at)}</span> : null}
                           </div>
                           {/* S (15 Nov): handles + languages left the Reel overlay (they are on the profile, one tap on the name) */}
                           {!p.video ? <div className="langs">{p.langs}</div> : null}
@@ -6562,15 +6564,19 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             </div>
 
             <div className="msgs" id="threadMsgs">
-              {activeThread.messages.map((m) => {
+              {activeThread.messages.map((m, mi) => {
+                // 21 Nov: a day line (Today / Yesterday / Sat 21 Nov) before the first message of each Bangkok day
+                const prevAt = mi > 0 ? activeThread.messages[mi - 1].at : undefined;
+                const dayLine = m.at && (!prevAt || bkkDay(Date.parse(prevAt)) !== bkkDay(Date.parse(m.at))) ? dayLabel(m.at) : '';
                 // clean look (founder, 15 Nov): the bubble shows only the reader's language plus one tiny icon; a tap shows the original
                 const tr = live ? chatTr.map[m.id] : undefined;
                 const trText = tr?.s === 'ok' ? tr.text : (!live && m.sender === 'them' && m.translation ? m.translation : null);
                 const orig = !!trText && !!trOrig[m.id];
                 const shown = trText && !orig ? trText : m.text;
                 return (
+                <React.Fragment key={m.id}>
+                {dayLine ? <div className="kr-day" data-day-line="1"><span>{dayLine}</span></div> : null}
                 <div
-                  key={m.id}
                   data-msg-id={m.id}
                   data-tr={trText ? (orig ? 'orig' : (tr?.s === 'ok' ? tr.via : 'demo')) : undefined}
                   className={`bub ${m.sender === 'me' ? 'me' : 'them'}${trText ? ' go-trb' : ''}`}
@@ -6585,7 +6591,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                       <path d="M4 5h9M8.5 3v2M6 5c.6 3 2.6 5.6 5.5 7M11 5c-.7 3.4-3 6.3-6.5 8" /><path d="M13 21l4-9 4 9M14.5 18h5" />
                     </svg>
                   ) : null}
+                  {m.at ? <time className="kr-bt" dateTime={m.at}>{bkkClock(m.at)}</time> : null}
                 </div>
+                </React.Fragment>
                 );
               })}
 

@@ -16,6 +16,7 @@ import { isStandalone, openInstallSheet } from './A2HS';
 import { fmtN, isNotYetNote, levelFor, reviewNoteText } from './kxLogic';
 import type { KxCardExtras } from './v5Kx';
 import { fvMarkShown, fvText } from './V5Unverified';
+import { postAgo } from './postTime';
 
 // ── pre-season (D-11NOV-G): the board ranks from day one; rewards start on kr8_settings.reward_start_at ──
 const LOCALE: Record<string, string> = { th: 'th-TH', zh: 'zh-CN', hi: 'hi-IN', ja: 'ja-JP', ko: 'ko-KR' };
@@ -562,12 +563,9 @@ export function FollowSheet(props: { L: Tx; Lf: Txf; who: string; counts: [numbe
   );
 }
 
-function ago(L: Tx, Lf: Txf, iso: string): string {
-  const m = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 60000));
-  if (m < 1) return L('now');
-  if (m < 60) return Lf('{0}m', String(m));
-  if (m < 1440) return Lf('{0}h', String(Math.round(m / 60)));
-  return Lf('{0}d', String(Math.round(m / 1440)));
+/** 21 Nov: the one short post time (postTime.ts), one language */
+function ago(_L: Tx, _Lf: Txf, iso: string): string {
+  return postAgo(iso);
 }
 
 /** Bangkok calendar day of an ISO time */

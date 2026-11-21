@@ -14,6 +14,7 @@ import { sharedRead } from './rpcShare';
 import { deviceSeenDue, kr8DeviceId } from './deviceId';
 import type { V8ChatMessage, V8ChatThread, V8Deal, V8FeedItem, V8HelloRequest, V8Person } from './v8Data';
 import type { TravellerState } from './travellerLogic';
+import { postAgo } from './postTime';
 
 const ENV = ((import.meta as unknown as { env?: Record<string, string | undefined> }).env || {}) as Record<string, string | undefined>;
 export const V5_AUTH_LIVE = ENV.VITE_AUTH_LIVE === '1';
@@ -597,7 +598,7 @@ function mapFeed(all: FeedRow[], signed: Record<string, string>): V5FeedItem[] {
       ? { id: r.id, type: 'ask', q: r.body, asker: r.author_name, area: r.area, av: r.author_photo || initialAvatar(r.author_name), authorId: r.author_id || undefined, mine: !!r.mine, v5Kind: 'ask',
           answers: (r.answers || []).map((a) => ({ who: a.name, av: a.photo || initialAvatar(a.name), txt: a.body })) }
       : { id: r.id, type: 'photo', img: r.photo || V5_PLAN_BG, av: r.author_photo || demoPostAvatar(r.id) || (r.kind === 'reel' && signed[r.poster_path || '']) || initialAvatar(r.author_name), name: r.author_name, langs: (r.author_langs || []).join(' · '),
-          area: r.area, here: r.here, cap: r.body, hiCount: 0, authorId: r.author_id || undefined, mine: !!r.mine, v5Kind: r.kind, eventId: r.event_id || undefined,
+          area: r.area, here: r.here, cap: r.body, hiCount: 0, at: r.created_at || undefined, authorId: r.author_id || undefined, mine: !!r.mine, v5Kind: r.kind, eventId: r.event_id || undefined,
           ...(r.kind === 'reel' ? { video: signed[r.video_path || ''], poster: signed[r.poster_path || ''] || undefined, img: signed[r.poster_path || ''] || V5_PLAN_BG,
             reelPending: r.reel_status === 'pending', likes: r.likes || 0, liked: !!r.liked, views: r.views ?? undefined,
             ig: r.ig_handle || undefined,
@@ -645,12 +646,9 @@ export const v5SetSocialsShown = (show: boolean) => rpc<{ show_socials: boolean;
 export type V5Thread = V8ChatThread & { v5Status: 'pending' | 'open'; v5OpenedByMe: boolean; area?: string };
 interface InboxRow { thread_id: string; status: 'pending' | 'open'; opened_by_me: boolean; other_id: string; other_name: string; other_photo: string | null; other_langs: string[];
   other_verified: boolean; other_area: string; last_body: string; last_sender_me: boolean; last_at: string; unread: number }
+/** 21 Nov: the one short post time (now · 5m · 3h · 2d · 21 Nov; Thai forms in Thai mode) */
 export function v5TimeLabel(iso: string): string {
-  const d = Date.now() - new Date(iso).getTime();
-  if (d < 60_000) return 'Now';
-  if (d < 3_600_000) return `${Math.floor(d / 60_000)}m`;
-  if (d < 86_400_000) return `${Math.floor(d / 3_600_000)}h`;
-  return `${Math.floor(d / 86_400_000)}d`;
+  return postAgo(iso);
 }
 /** 0073: the Kring Team account(s): official, sender only. Fetched once per app run; [] before 0073 is applied. */
 export const KRING_TEAM_NAME = 'Kring Team';
@@ -698,7 +696,7 @@ interface MsgRow { id: number; mine: boolean; body: string; created_at: string }
 export const v5MarkThreadRead = (thread: string) => rpcRaw<void>('kr8_mark_thread_read', { p_thread: thread }).catch(() => undefined);
 export async function v5Messages(thread: string): Promise<V8ChatMessage[]> {
   const [rows, en] = await Promise.all([rpc<MsgRow[]>('kr8_thread_messages', { p_thread: thread, p_after: 0 }), teamEnglish()]);
-  return (rows || []).map((m) => ({ id: String(m.id), sender: m.mine ? 'me' : 'them', text: (!m.mine && en.byMsg.get(String(m.id))) || m.body, createdAt: v5TimeLabel(m.created_at) }));
+  return (rows || []).map((m) => ({ id: String(m.id), sender: m.mine ? 'me' : 'them', text: (!m.mine && en.byMsg.get(String(m.id))) || m.body, createdAt: v5TimeLabel(m.created_at), at: m.created_at }));
 }
 /**
  * Live updates: Supabase Realtime on kr8_messages / kr8_threads (RLS limits rows to my own threads).

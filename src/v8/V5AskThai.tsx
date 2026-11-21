@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import './askThai.css';
 import './rv3ask.css';
 import {
-  ASK_MAX_Q, ASK_MAX_TEXT, askAge, checkAskFile, fmtCount, nextVote,
+  ASK_MAX_Q, ASK_MAX_TEXT, checkAskFile, fmtCount, nextVote,
   type AskAnswer, type AskApi, type AskPerson, type AskQuestion, type AskReportReason, type AskThreadData,
 } from './askThai';
 import { initialAvatar } from './v8Data';
@@ -15,6 +15,7 @@ import { AskText } from './askTr';
 import { lineOut, withRef } from './invite';
 // 0185: share-an-answer card, rich replies (big emoji, photo check), quick reactions
 import { AnswerShareSheet, EmojiGrid, MediaNote, ReactBar, applyReact, askCheckPhoto, askReact, askShareShort, bigEmoji, nextReact, useLongPress, type React4 } from './askRich';
+import { postAgo } from './postTime';
 
 type LFn = (en: string) => string;
 /** A server refusal the member can act on (ghost mode, too many posts, banned words, no card) gets its own message;
@@ -79,10 +80,9 @@ const MoreBtn: React.FC<{ L: LFn; onClick: () => void; id: string }> = ({ L, onC
   <button type="button" className="at-more" aria-label={L('More')} data-ask-more={id} onClick={onClick}><Ic d={IC.more} s={20} /></button>
 );
 
-export function askTime(L: LFn, iso: string): string {
-  const a = askAge(iso);
-  if (a.u === 'now') return L('Now');
-  return L(`{0}${a.u}`).replace('{0}', String(a.n));
+/** 21 Nov: one short post time everywhere (postTime.ts): now · 5m · 3h · 2d · 21 Nov / เมื่อกี้ · 5 นาที · 3 ชม. · 2 วัน · 21 พ.ย. */
+export function askTime(_L: LFn, iso: string): string {
+  return postAgo(iso);
 }
 
 /** T301-015: an image URL that is checked first; null while loading or when it fails (no blank dark boxes or circles). */
@@ -337,6 +337,7 @@ const Thread: React.FC<{
             <div className="h">
               <PersonBtn p={a.by} className="at-pa"><Av p={a.by} s={26} />{a.by.name}</PersonBtn>
               {a.by.official || a.by.local ? who(a.by, L) : <small>· {L('traveller')}</small>}
+              <small className="at-t" data-post-time="1">{postAgo(a.at)}</small>
               {a.best && <span className="star">{L('★ Best')}</span>}
               {!mine(a.by) && <MoreBtn L={L} id={a.id} onClick={() => setRep({ kind: 'a', id: a.id })} />}
             </div>

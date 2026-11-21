@@ -343,3 +343,6 @@
   .v8-app-root .go-sheet { background: linear-gradient(rgba(255,255,255,.07), rgba(255,255,255,.07)), rgba(14,12,22,.84); }
 }
 .v8-app-root.kr-lowend .go-sheet { background: linear-gradient(rgba(255,255,255,.07), rgba(255,255,255,.07)), rgba(14,12,22,.84); -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* 21 Nov: post time next to the name, small and muted */
+.v8-app-root .go-nm { display: flex; align-items: baseline; gap: 6px; }
+.v8-app-root .go-pt { flex: 0 0 auto; font-size: 0.75rem; font-weight: 500; color: rgba(255,255,255,.65); white-space: nowrap; }
