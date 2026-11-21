@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <script>/* Kring language: ?lang= > saved choice > phone language (th* = Thai) > English. Same key as the app. Thai lives at /, English at /en/. */(function(){try{var P='th',S=location.search,q=(new URLSearchParams(S).get('lang')||'').toLowerCase(),l=null;if(q==='th'||q==='en'){l=q;try{localStorage.setItem('kr8_lang',q)}catch(e){}}else{try{l=localStorage.getItem('kr8_lang')}catch(e){}if(P==='en')l='en'}if(l!=='th'&&l!=='en'){if(navigator.webdriver||/bot|crawl|spider|facebookexternalhit|line-poker|preview|lighthouse|slurp/i.test(navigator.userAgent))return;var n=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||''];l=String(n[0]||'').toLowerCase().indexOf('th')===0?'th':'en'}if(l!==P)location.replace((l==='en'?'/en/':'/')+S+location.hash)}catch(e){}})();</script>
 <script>/* js flag early; if the main script never arrives, drop it after 4 s so nothing stays hidden */document.documentElement.classList.add('js','hl');setTimeout(function(){if(!window.__krOK)document.documentElement.classList.remove('js')},4000);</script>
-<script>/* opening rings: first visit only, home pages only, never with reduced motion; gone by ~0.4 s (W-003, 17 Nov). (16 Nov perf 2: a phone that has seen it once opens straight onto the page; ~0.6 s when shown). Not replayed only when coming back to home from inside the site (or by Back) within 60 s. ?noop=1 skips */(function(){var H=document.documentElement;try{window.__opT0=performance.now();if(/[?&]noop=/.test(location.search))return;if(!/^\/(en\/)?(index\.html)?$/.test(location.pathname))return;try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return}catch(e){}try{if(localStorage.getItem('kr_op_seen'))return}catch(e){}var t=0;try{t=+sessionStorage.getItem('kr_op_t')||0}catch(e){}var n=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0],ty=n&&n.type,inn=document.referrer&&document.referrer.indexOf(location.origin)===0;if(ty!=='reload'&&(inn||ty==='back_forward')&&Date.now()-t<60000)return;H.classList.add('opon')}catch(e){H.classList.add('opon')}})();</script>
+<script>/* opening rings (founder 21 Nov): every fresh load of the home page, rings clink and lock at ~1.1 s, tap anywhere skips, the page loads underneath. Not replayed when coming back to home from inside the site (or by Back) within 60 s. Never with reduced motion. ?noop=1 skips */(function(){var H=document.documentElement;try{window.__opT0=performance.now();if(/[?&]noop=/.test(location.search))return;if(!/^\/(en\/)?(index\.html)?$/.test(location.pathname))return;try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return}catch(e){}var t=0;try{t=+sessionStorage.getItem('kr_op_t')||0}catch(e){}var n=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0],ty=n&&n.type,inn=document.referrer&&document.referrer.indexOf(location.origin)===0;if(ty!=='reload'&&(inn||ty==='back_forward')&&Date.now()-t<60000)return;H.classList.add('opon')}catch(e){H.classList.add('opon')}})();</script>
 <meta content="notranslate" name="google"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
 <title>กริ๊ง! · หาเพื่อนใหม่ในกรุงเทพฯ | แอปของคนกรุงเทพฯ</title>
@@ -205,8 +205,8 @@ html[lang=th] .eb{letter-spacing:.04em;font-size:13px}
 .iab .arrow{position:absolute;right:14px;top:10px;font-size:40px;color:var(--pk)}
 /* opening: the Kring rings (brought back unchanged from the previous home; plays on every fresh load) */
 .op{display:none;--th:var(--fu);--g:var(--gx);--ctah:40px}
-html.opon .op{display:block;animation:opsafe .01s .38s forwards}   /* W-003 (17 Nov): the opening never covers the page past ~0.4 s, even before the script runs */
-html.opon .hero .rv{animation:opshow .18s .38s forwards}
+html.opon .op{display:block;animation:opsafe .01s 2.6s forwards}   /* 21 Nov: safety net, the opening never covers the page past ~2.6 s, even if the script never runs */
+html.opon .hero .rv{animation:opshow .18s 2.6s forwards}
 @keyframes opshow{to{opacity:1;transform:none}}
 .op .obg{transition:opacity .5s}.op .obg:not(.isld){opacity:0!important}
 /* pure-CSS start: if the script is late, the locked rings and the line still fade in by themselves */
@@ -360,7 +360,6 @@ var D=document,H=D.documentElement,op=D.getElementById('op');
 function done(){try{sessionStorage.setItem('kr_op_t',String(Date.now()))}catch(e){}H.classList.remove('opon');H.classList.add('opdone');try{window.dispatchEvent(new Event('kr:opdone'))}catch(e){}}
 addEventListener('pagehide',function(){try{sessionStorage.setItem('kr_op_t',String(Date.now()))}catch(e){}});
 if(!op||!H.classList.contains('opon')){H.classList.add('opdone');return}
-try{localStorage.setItem('kr_op_seen',String(Date.now()))}catch(e){}   // 16 Nov perf 2: shown once per phone
 var RM=matchMedia('(prefers-reduced-motion: reduce)').matches,started=false,auto=0,T00=window.__opT0||performance.now(),LATE=performance.now()-T00>560,himg=op&&op.querySelector('.obg'),ready=false,want=0;
 function setReady(){if(ready)return;ready=true;if(want)go(want===2)}
 if(!himg)ready=true;else{var chk=function(){if(himg.decode)himg.decode().then(setReady,setReady);else setReady()};if(himg.complete)chk();else{himg.addEventListener('load',chk);himg.addEventListener('error',setReady)}}
@@ -372,7 +371,7 @@ var AN=[],idleT=0;
 function intro(){
 op.classList.remove('pre');
 if(!op.animate){op.classList.add('idle');return 0}
-var $=function(q){return op.querySelector(q)},orb=$('.orb'),W=orb.offsetWidth||240,F=.24,FX=.75;   // 16 Nov perf 2: the rings lock by ~0.45 s (was ~1.1 s)
+var $=function(q){return op.querySelector(q)},orb=$('.orb'),W=orb.offsetWidth||240,F=.5,FX=.75;   // 21 Nov: back to the original pace, the rings clink and lock at ~1.1 s
 function an(el,k,o){if(!el)return;o.fill=o.fill||'both';var x=el.animate(k,o);AN.push(x);return x}
 var cta=null;
 if(RM){[$('.br'),$('.opt'),$('.opc')].forEach(function(el,i){an(el,[{opacity:0},{opacity:1}],{duration:500,delay:i*120})});return 600}
@@ -420,14 +419,14 @@ function start(tapped){if(started)return;started=true;clearTimeout(auto);if(tapp
 function go(tapped){clearTimeout(idleT);if(tapped)AN.forEach(function(x){try{x.finish()}catch(e){}});
 if(RM){op.classList.add('gone');done();return}
 op.style.pointerEvents='none'; // 16 Nov perf: from the first frame of the exit, taps go straight to the page under it
-var WP=230,pre=tapped?30:50;   // W-003 (17 Nov): the wipe is short so the page is fully there by ~0.4 s
+var WP=tapped?320:560,pre=tapped?40:120;   // 21 Nov: a soft circle wipe after the lock; a tap clears it faster
 if(op.animate){[op.querySelector('.opt'),op.querySelector('.opc')].forEach(function(el){if(el)el.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-12px)'}],{duration:pre,easing:'cubic-bezier(.4,0,.8,.4)',fill:'forwards'})})}
 op.classList.add('ring');op.classList.add('out');
 setTimeout(function(){if(op.animate){var w=innerWidth,h=innerHeight,cx=w*.5,cy=h*.52,R=Math.ceil(Math.sqrt(Math.pow(Math.max(cx,w-cx),2)+Math.pow(Math.max(cy,h-cy),2)));op.style.transition='none';op.animate([{clipPath:'circle('+R+'px at 50% 52%)'},{clipPath:'circle(0px at 50% 52%)'}],{duration:WP,easing:'cubic-bezier(.5,0,.2,1)',fill:'forwards'});op.animate([{opacity:1},{opacity:1,offset:.55},{opacity:0}],{duration:WP,easing:'linear',fill:'forwards'})}else op.classList.add('wipe');done()},pre);
 setTimeout(function(){op.classList.add('gone')},pre+WP+20)}
 var lk=RM?0:intro(); // reduced motion: the CSS fade-in is the whole (gentle) opening
 op.addEventListener('click',function(){start(true)});op.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '||e.key==='Escape'){e.preventDefault();start(true)}});
-auto=setTimeout(function(){start(false)},Math.max(0,110-(performance.now()-T00)));   // W-003 (17 Nov): a quick brand beat (~0.1 s), then the page
+auto=setTimeout(function(){start(false)},(lk?lk+420:300));   // 21 Nov: hold a beat after the rings lock (~1.55 s from the start), then the page; gone by ~2.3 s
 ['pointerdown','touchstart','keydown','wheel'].forEach(function(ev){addEventListener(ev,function(){start(true)},{once:true,passive:true,capture:true})});
 })();</script>
 <header class="top" id="top">
