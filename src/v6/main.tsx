@@ -23,7 +23,7 @@ const isApply = /^#(apply|venue-onboard|venue-consent)/i.test(location.hash) || 
 const rootEl = document.getElementById('root')!
 if (isApply) {
   if (!/^#apply/i.test(location.hash)) history.replaceState(null, '', `${location.pathname}${location.search}#apply`)
-  void import('../apply/apply').then(({ mountApply }) => mountApply(rootEl))
+  void import('../apply/apply').then(({ mountApply }) => mountApply(rootEl)).finally(() => (window as unknown as { __kr8BootDone?: () => void }).__kr8BootDone?.())
 } else {
   // a link to #apply from inside the app opens the sign-up screen
   addEventListener('hashchange', () => { if (/^#apply/i.test(location.hash)) location.reload() })

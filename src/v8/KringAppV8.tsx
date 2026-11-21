@@ -1042,6 +1042,11 @@ function ringHaptic(): void {
   }
 }
 
+/** 21 Nov: the Kring rings loading screen (index.html, outside #root) goes away once the first screen is really there. */
+function bootDone(): void {
+  try { (window as unknown as { __kr8BootDone?: () => void }).__kr8BootDone?.(); } catch { /* ignore */ }
+}
+
 class V8ErrorBoundary extends React.Component<
   { children: React.ReactNode },
   { hasError: boolean; message: string }
@@ -1053,6 +1058,10 @@ class V8ErrorBoundary extends React.Component<
 
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, message: error?.message || 'Unexpected error' };
+  }
+
+  componentDidCatch() {
+    bootDone();   // the error screen must never sit under the loading rings
   }
 
   render() {
@@ -1458,6 +1467,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [editHook, setEditHook] = useState<string>(user.hook);
   // ── V5 live mode (VITE_AUTH_LIVE=1): real Supabase account + member card. Demo builds keep their examples.
   const live = V5_AUTH_LIVE && !isDemo;
+  // 21 Nov: the rings loading screen stays exactly as long as the feed is on its way (index.html keeps it ≥ ~0.9 s on a cold start only)
+  const bootWaiting = live && tab === 'feed' && !feedSettled && feedItems.length === 0;
+  useEffect(() => { if (!bootWaiting) bootDone(); }, [bootWaiting]);
   // Ask BKK (16 Nov, founder-approved Screen 2): Feed top switch. Reels stays the default.
   // 0185: /q/<short> "Join Kring to answer" → /app/?ask=<question id> opens that Ask BKK thread
   const askLink = (() => { try { const v = new URLSearchParams(location.search).get('ask'); return v && /^[0-9a-f-]{36}$/.test(v) ? v : null; } catch { return null; } })();
