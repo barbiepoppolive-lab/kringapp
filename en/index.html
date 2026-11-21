@@ -341,21 +341,32 @@ html[lang=th] .op .opt{line-height:1.3}
 @media (max-width:429px){.nv a.nvi{display:none}}
 /* W-003 (17 Nov): the hero words fade in fast once the quick opening clears */
 html.opdone .hero .rv{transition-duration:.2s;transition-delay:0s}
-/* 21 Nov (founder, "too many things asking for attention"): a calmer first screen. No pill, no neon install card: the Kring rings
-   float gently with one small label (tap = the same install flow), "Open Kring" is a quiet text link; the phone top bar is logo + EN|ไทย. */
-.hgo{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:22px;width:100%}
-.lev{display:flex;flex-direction:column;align-items:center;gap:6px;color:#fff;text-decoration:none;-webkit-tap-highlight-color:transparent}
-.lev-r{display:block;width:118px;height:118px;margin:-16px 0 -26px;will-change:transform}
-.lev-r svg{width:100%;height:100%;overflow:visible}
-.lev-g{opacity:.5;will-change:opacity}
-.lev-l{font:700 14px/1.2 var(--fj);letter-spacing:.01em;text-shadow:0 1px 10px rgba(0,0,0,.6)}
-.lev:active .lev-r{transform:scale(.95)}
-.qlink{font:600 14px/1.2 var(--fj);color:rgba(255,255,255,.78);text-decoration:none;padding:8px 6px;text-shadow:0 1px 10px rgba(0,0,0,.6)}
+/* 21 Nov v2 (founder: calmer first screen): the photo fills the whole first screen; the headline + one why-line sit over the
+   sky / river at the top, the one main action (a frosted glass pill with the floating Kring rings) at the bottom; "Open Kring" is a
+   quiet link under it. Dark gradients only behind the words. Transform / opacity animation only; none with reduced motion. */
+.hero{justify-content:space-between}
+.hero::after{background:linear-gradient(180deg,rgba(7,6,13,.78) 0,rgba(7,6,13,.5) 22%,rgba(7,6,13,0) 40%,rgba(7,6,13,0) 70%,rgba(7,6,13,.45) 86%,rgba(7,6,13,.7) 100%)}
+.hero .tx-top{padding-top:calc(74px + var(--st));padding-bottom:0}
+.hero .tx-top h1{text-shadow:0 2px 24px rgba(0,0,0,.55)}
+.hero .tx-top .why{margin-top:10px;font-size:16px;line-height:1.45;color:rgba(255,255,255,.9);text-shadow:0 1px 12px rgba(0,0,0,.6);max-width:30em}
+html[lang=th] .hero .tx-top .why{line-height:1.6}
+.hero .tx-bot{padding-top:0;padding-bottom:calc(18px + var(--sb))}
+.hgo{display:flex;flex-direction:column;align-items:stretch;gap:4px;margin:0;width:100%}
+.gpill{position:relative;display:flex;align-items:center;justify-content:center;gap:12px;min-height:60px;padding:0 22px 0 14px;border-radius:999px;color:#fff;text-decoration:none;
+ font:800 18px/1.2 var(--fj);letter-spacing:.005em;background:rgba(255,255,255,.24);border:1px solid rgba(255,255,255,.55);
+ -webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 10px 34px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.25);
+ -webkit-tap-highlight-color:transparent;transition:transform .2s var(--ez),background .2s}
+.gpill:active{transform:scale(.98);background:rgba(255,255,255,.22)}
+.gp-r{display:block;flex:0 0 auto;width:52px;height:36px;will-change:transform}
+.gp-r svg{width:100%;height:100%;overflow:visible}
+.gp-g{opacity:.45;will-change:opacity}
+.qlink{align-self:center;font:600 14px/1.2 var(--fj);color:rgba(255,255,255,.78);text-decoration:none;padding:12px 8px 4px;text-shadow:0 1px 10px rgba(0,0,0,.6)}
 .qlink span{margin-left:4px}
-@media (prefers-reduced-motion:no-preference){.lev-r{animation:levF 3.8s ease-in-out infinite}.lev-g{animation:levG 3.8s ease-in-out infinite}}
-@keyframes levF{0%,100%{transform:translateY(3px)}50%{transform:translateY(-7px)}}
-@keyframes levG{0%,100%{opacity:.38}50%{opacity:.8}}
-@media (max-width:799px){.top .nv{display:none}}
+@media (prefers-reduced-motion:no-preference){.gp-r{animation:gpF 3.6s ease-in-out infinite}.gp-g{animation:gpG 3.6s ease-in-out infinite}}
+@keyframes gpF{0%,100%{transform:translateY(1.5px)}50%{transform:translateY(-3.5px)}}
+@keyframes gpG{0%,100%{opacity:.3}50%{opacity:.85}}
+@media (max-width:799px){.top .nv{display:none}.hero .bg img{height:122%;--op:50% 0}}
+@media (min-width:800px){.hero .tx-bot .hgo{max-width:420px}.hero .tx-top{padding-top:120px}}
 </style>
 </head>
 <body>
@@ -453,10 +464,12 @@ auto=setTimeout(function(){start(false)},(lk?lk+420:300));   // 21 Nov: hold a b
 
 <section class="pn hero" id="hero">
 <picture class="bg"><source media="(min-width:800px)" srcset="/assets/neon/hero-d.webp" type="image/webp"/><img alt="Five friends on a riverside deck watching fireworks at Rama VIII Bridge" fetchpriority="high" height="1254" id="heroimg" onerror="this.classList.add('isld')" onload="this.classList.add('isld')" src="/assets/neon/hero-m.webp" width="700"/></picture>
-<div class="tx">
+<div class="tx tx-top">
 <h1 class="rv" style="--d:.08s">Bangkok is more beautiful <em>with friends</em></h1>
-<p class="ld rv" style="--d:.16s">Make a card. Post a Reel. Make new friends.</p>
-<p class="rv hgo" style="--d:.24s"><a aria-label="Get the app" class="lev" data-install="" href="/app/?install=1" id="heroInstall"><span class="lev-r"><svg viewBox="0 0 1024 1024" aria-hidden="true"><defs><filter id="hBl" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="30"/></filter></defs><g class="lev-g"><circle cx="392" cy="512" r="225" fill="none" stroke="#8D9BFF" stroke-width="84" filter="url(#hBl)"/><circle cx="632" cy="512" r="225" fill="none" stroke="#FF7CC2" stroke-width="84" filter="url(#hBl)"/></g><circle cx="392" cy="512" r="225" fill="none" stroke="#5B6CFF" stroke-width="54"/><circle cx="632" cy="512" r="225" fill="none" stroke="#FF4FA3" stroke-width="54"/></svg></span><span class="lev-l">Get the app</span></a><a class="qlink" data-app="" data-join="" href="/app/?join=1">Open Kring<span aria-hidden="true">→</span></a></p>
+<p class="ld why rv" style="--d:.16s">Meet people who love Bangkok the way you do</p>
+</div>
+<div class="tx tx-bot">
+<p class="rv hgo" style="--d:.24s"><a class="gpill" data-install="" href="/app/?install=1" id="heroInstall"><span class="gp-r"><svg viewBox="0 0 1024 1024" aria-hidden="true"><defs><filter id="hBl" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="34"/></filter></defs><g class="gp-g"><circle cx="392" cy="512" r="225" fill="none" stroke="#8D9BFF" stroke-width="90" filter="url(#hBl)"/><circle cx="632" cy="512" r="225" fill="none" stroke="#FF7CC2" stroke-width="90" filter="url(#hBl)"/></g><circle cx="392" cy="512" r="225" fill="none" stroke="#5B6CFF" stroke-width="64"/><circle cx="632" cy="512" r="225" fill="none" stroke="#FF4FA3" stroke-width="64"/></svg></span><span>Get Kring — free</span></a><a class="qlink" data-app="" data-join="" href="/app/?join=1">Open Kring<span aria-hidden="true">→</span></a></p>
 </div>
 </section>
 
