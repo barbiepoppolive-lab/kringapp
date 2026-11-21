@@ -9,7 +9,7 @@ import { kxRules } from './v5Kx';
 import { withTimeout } from './camGuard';
 import type { VerifyMode } from './V5Verify';
 
-type Props = { L: (en: string) => string; photo: string | null; nudge?: boolean; mode?: VerifyMode; onClose: () => void; onSent: () => void; onVerified?: () => void;
+type Props = { L: (en: string) => string; photo: string | null; nudge?: boolean; mode?: VerifyMode; invited?: boolean; onClose: () => void; onSent: () => void; onVerified?: () => void;
   onAddPhoto: () => void; errText: (e: unknown) => string; onFeed?: () => void };
 
 const Classic = lazyPart(() => import('./V5Verify').then((m) => m.V5VerifySheet));

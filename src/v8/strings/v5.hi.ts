@@ -659,6 +659,7 @@ const T: Record<string, string> = {
   '1 Ring from {1} · one Story could do it': '{1} से बस 1 Ring दूर · एक Story काफ़ी हो सकती है',
   // 0111: face check only for prize claims
   'Do it later': 'बाद में करें',
+  'Verify your face in 30 sec and the friend who invited you gets 10 Rings': '30 सेकंड में चेहरा वेरिफ़ाई करें, आपको बुलाने वाले दोस्त को 10 Rings मिलेंगे',
   // fix4 (19 Nov)
   'No rush. You only need this to claim a prize.': 'कोई जल्दी नहीं। इसकी ज़रूरत सिर्फ़ इनाम लेते समय है।',
   'Allow the camera': 'कैमरा की अनुमति दें',

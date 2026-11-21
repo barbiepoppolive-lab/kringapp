@@ -659,6 +659,7 @@ const T: Record<string, string> = {
   '1 Ring from {1} · one Story could do it': 'あと 1 Ringで {1} · ストーリー1本で届くかも',
   // 0111: face check only for prize claims
   'Do it later': 'あとで',
+  'Verify your face in 30 sec and the friend who invited you gets 10 Rings': '30秒で顔認証すると、招待してくれた友だちに 10 Rings',
   // fix4 (19 Nov)
   'No rush. You only need this to claim a prize.': '急がなくて大丈夫。必要なのは賞品を受け取るときだけです。',
   'Allow the camera': 'カメラを許可',

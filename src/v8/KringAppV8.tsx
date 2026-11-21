@@ -135,7 +135,7 @@ import { useChatTranslate } from './v5Translate';
 import { kxMyInvites, kxBreakdown, kxGenderShown, kxMemberReels, kxReelPeople, kxTagPeople, type KxGridReel, type KxMemberReels, type KxTagPerson } from './v5Kx';
 import { kxRules, kxSetWebReels, kxWebReelsGet, type KxWebReels } from './v5Kx';
 import { facePassedHere, markFacePassed, skipClaimFace } from './faceSkip';
-import { liveSeen, markLiveSeen, oneTapShare, pickLiveReel, refCode, shareText, withRef, type ShareKind, type ShareResult } from './invite';
+import { invitedByMember, liveSeen, markLiveSeen, oneTapShare, pickLiveReel, refCode, shareText, withRef, type ShareKind, type ShareResult } from './invite';
 import { InviteHint } from './V5Invite';
 import { copyText } from './camGuard';
 import { PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, SavedReelsPage, type PickedPlace } from './V5KxPlaces';
@@ -7335,6 +7335,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         )}
         {sheet === 'verify' && live && v5Card && (
           <V5VerifySheet L={L} photo={v5Card.photo} errText={(e) => v5Msg(e)} mode={verifyMode === 'claim' ? 'me' : verifyMode}
+            invited={verifyMode === 'signup' && invitedByMember(v5StoredRef(), getMyRef())}
             onClose={() => {
               setSheet(null); setVerifyMode('me'); void loadMe();
               // a brand-new member goes on to Me, where "Your next step" offers the first Reel

@@ -72,7 +72,7 @@ const navHints = () => (typeof navigator === 'undefined' ? null : navigator as N
  *  'signup' = right after a new card (clear "Do it later", nothing waits for it) · 'me' = opened by the member ·
  *  'claim' = the required step before a prize claim. */
 export type VerifyMode = 'signup' | 'me' | 'claim';
-export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: boolean; mode?: VerifyMode; onClose: () => void; onSent: () => void; onVerified?: () => void;
+export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: boolean; mode?: VerifyMode; invited?: boolean; onClose: () => void; onSent: () => void; onVerified?: () => void;
   onAddPhoto: () => void; errText: (e: unknown) => string;
   /** 19 Nov 2B: "Keep using Kring" goes to the feed (falls back to onClose) */
   onFeed?: () => void }) {
@@ -492,6 +492,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
 
       {stage === 'intro' && (
         <Panel L={L} onClose={close} icon="intro" id="verifyIntro"
+          lead={mode === 'signup' && props.invited ? L('Verify your face in 30 sec and the friend who invited you gets 10 Rings') : undefined}
           title={mode === 'claim' ? L('One quick step to get your prize') : props.nudge ? L('New: 3-second face check') : L('Verify in 3 seconds')}
           text={mode === 'claim' ? L('A 3-second face check keeps every prize one person, one account.')
             : props.nudge ? L('Do it once. It keeps your ✓ and your prizes safe.')
@@ -615,7 +616,7 @@ function TipRow({ L }: { L: Tx }) {
   );
 }
 
-function Panel(props: { L: Tx; onClose: () => void; icon: 'photo' | 'intro' | 'pass' | 'review' | 'fail' | 'block'; photo?: string | null; title: string; text: string; id?: string; children?: React.ReactNode }) {
+function Panel(props: { L: Tx; onClose: () => void; icon: 'photo' | 'intro' | 'pass' | 'review' | 'fail' | 'block'; lead?: string; photo?: string | null; title: string; text: string; id?: string; children?: React.ReactNode }) {
   return (
     <div className={`kfv2-panel i-${props.icon}`} id={props.id}>
       <button type="button" className="kfv2-x" aria-label={props.L('Close')} onClick={props.onClose}>✕</button>
@@ -623,6 +624,7 @@ function Panel(props: { L: Tx; onClose: () => void; icon: 'photo' | 'intro' | 'p
         {props.icon === 'pass' && props.photo ? <img src={props.photo} alt="" /> : <span className="kfv2-glyph" />}
         {props.icon === 'pass' && <span className="kfv2-tick">✓</span>}
       </div>
+      {props.lead ? <p className="kfv2-invited" id="verifyInvited">{props.lead}</p> : null}
       <h2>{props.title}</h2>
       {props.text ? <p className="kfv2-text">{props.text}</p> : null}
       <div className="kfv2-acts">{props.children}</div>

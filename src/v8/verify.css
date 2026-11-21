@@ -89,6 +89,7 @@
 .v8-app-root .i-fail .kfv2-glyph::after { width: 0; height: 0; border: 9px solid transparent; border-left-color: #FF8A3D; transform: translate(14px, -23px) rotate(-40deg); }
 .v8-app-root .i-block .kfv2-glyph::before { width: 34px; height: 44px; border: 3px solid #FF5A6B; border-radius: 50%; transform: translate(-13px, -4px); }
 .v8-app-root .i-block .kfv2-glyph::after { width: 34px; height: 44px; border: 3px solid #FF5A6B; border-radius: 50%; transform: translate(13px, -4px); }
+.v8-app-root .kfv2-invited { margin: 0 0 10px; color: #FFC44D; font-size: .95rem; font-weight: 600; line-height: 1.45; max-width: 330px; }   /* invite-face 21 Nov: plain line, no box */
 .v8-app-root .kfv2-panel h2 { margin: 0; font-size: 1.6rem; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; max-width: 340px; }
 .v8-app-root .kfv2-text { margin: 10px 0 0; color: rgba(255, 247, 236, 0.74); font-size: .98rem; line-height: 1.5; max-width: 330px; }
 .v8-app-root .kfv2-acts { width: 100%; max-width: 360px; margin-top: auto; padding-top: 26px; display: flex; flex-direction: column; gap: 10px; }

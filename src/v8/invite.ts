@@ -52,11 +52,25 @@ export function lineOut(url: string, ua: string = typeof navigator === 'undefine
 /** LINE's official share picker with the text and the link. */
 export const lineShareUrl = (text: string, url: string) => `https://line.me/R/share?text=${encodeURIComponent(text ? `${text}\n${url}` : url)}`;
 
+/** invite-face (21 Nov): the sign-up came from another member's invite link (?ref=k00184 stored on this phone), not my own code. */
+export const invitedByMember = (stored: string | null | undefined, mine: string | null | undefined): boolean => {
+  const c = (stored || '').toLowerCase();
+  return CODE_RE.test(c) && c !== (mine || '').toLowerCase();
+};
+
 export type ShareKind = 'my_reel' | 'my_reel_soon' | 'reel' | 'my_profile' | 'profile' | 'place' | 'invite';
 const isTh = (lang: string) => lang === 'th';
 
 /** One short natural line, in the app's language only (Thai mode = Thai, every other mode = English). Founder 18 Nov: a challenge. */
 export function shareText(lang: string, kind: ShareKind, name = ''): string {
+  const t = shareLine(lang, kind, name);
+  return t && OWN_SHARES.includes(kind) ? `${t}\n${faceAsk(lang)}` : t;
+}
+/** invite-face (21 Nov, founder): since 21 Nov an invite earns the inviter 10 Rings only once the friend passes the face check, so every
+ *  message a member sends about their OWN card / Reel (it carries their ?ref= code) ends with one short line asking for it. */
+export const OWN_SHARES: readonly ShareKind[] = ['invite', 'my_profile', 'my_reel', 'my_reel_soon'];
+export const faceAsk = (lang: string): string => (isTh(lang) ? 'สมัครแล้วยืนยันใบหน้า 30 วิ ฉันจะได้ 10 ริง' : 'Sign up and do the 30-sec face check so I get 10 Rings');
+function shareLine(lang: string, kind: ShareKind, name = ''): string {
   const th = isTh(lang);
   const n = (name || '').trim();
   switch (kind) {

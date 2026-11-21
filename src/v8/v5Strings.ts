@@ -682,6 +682,8 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Getting ready… {0}%': 'กำลังเตรียม… {0}%',
     // 0111 (18 Nov): the face check is needed only to claim a prize ("Do it later" in sign-up, a gentle row on Me, a step in the claim)
     'Do it later': 'ไว้ทีหลัง',
+    // invite-face (21 Nov, founder): the face check right after a sign-up from a member's invite link (the inviter's 10 Rings wait for it)
+    'Verify your face in 30 sec and the friend who invited you gets 10 Rings': 'ยืนยันใบหน้า 30 วิ แล้วเพื่อนที่ชวนคุณได้ 10 ริง',
     'You only need it to claim a prize. Look at the camera, turn a little, blink.': 'ใช้แค่ตอนรับรางวัลเท่านั้น มองกล้อง หันหน้านิดนึง แล้วกะพริบตา',
     // fix4 (19 Nov): a timed-out face check offers "Do it later"; camera blocked shows short steps
     'No rush. You only need this to claim a prize.': 'ไม่ต้องรีบครับ ใช้แค่ตอนรับรางวัลเท่านั้น',

@@ -1,7 +1,7 @@
 // invite-1 (18 Nov): one-tap invite sharing — share URL, LINE fallback, hint text, and the 0109 credit rules.
 import { describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { friendsLine, inviteHint, lineShareUrl, liveSeen, markLiveSeen, oneTapShare, pickChannel, pickLiveReel, refCode, shareText, withRef } from './invite';
+import { friendsLine, inviteHint, invitedByMember, lineShareUrl, liveSeen, markLiveSeen, oneTapShare, pickChannel, pickLiveReel, refCode, shareText, withRef } from './invite';
 
 const UA = {
   iphone: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
@@ -102,15 +102,28 @@ describe('copy: one language at a time, founder wording, no banned words', () =>
     expect(inviteHint('en')).not.toMatch(/[฀-๿]/);
   });
   it('share text: a short challenge, one line, one language', () => {
-    expect(shareText('th', 'my_reel')).toBe('ช่วยกดไลก์คลิปนี้หน่อย! ยิ่งไลก์ยิ่งได้ขึ้นอันดับบนกริ๊ง! 🔥');
-    expect(shareText('en', 'my_reel')).toBe('Help me climb! Every like and save on Kring pushes me up the board 🔥');
+    expect(shareText('th', 'my_reel')).toBe('ช่วยกดไลก์คลิปนี้หน่อย! ยิ่งไลก์ยิ่งได้ขึ้นอันดับบนกริ๊ง! 🔥\nสมัครแล้วยืนยันใบหน้า 30 วิ ฉันจะได้ 10 ริง');
+    expect(shareText('en', 'my_reel')).toBe('Help me climb! Every like and save on Kring pushes me up the board 🔥\nSign up and do the 30-sec face check so I get 10 Rings');
     for (const lang of ['th', 'en']) for (const k of ['my_reel', 'my_reel_soon', 'reel', 'my_profile', 'profile', 'place', 'invite'] as const) {
       const t = shareText(lang, k, lang === 'th' ? 'มิ้นท์' : 'Mint');
-      expect(t).not.toMatch(/\n/);
-      expect(t.length).toBeLessThan(90);
+      // invite-face (21 Nov): my own card / Reel shares have one extra short line asking for the 30-sec face check; others' things stay one line
+      const lines = t.split('\n');
+      expect(lines.length).toBe(['invite', 'my_profile', 'my_reel', 'my_reel_soon'].includes(k) ? 2 : 1);
+      for (const ln of lines) expect(ln.length).toBeLessThan(90);
       expect(t).not.toMatch(BANNED);
       if (lang === 'th') expect(t.replace(/Kring/g, '')).not.toMatch(/[A-Za-z]/); else expect(t).not.toMatch(/[฀-๿]/);
     }
+  });
+  it('invite message asks for the 30-sec face check (21 Nov), one language only', () => {
+    expect(shareText('th', 'invite').split('\n')[1]).toBe('สมัครแล้วยืนยันใบหน้า 30 วิ ฉันจะได้ 10 ริง');
+    expect(shareText('en', 'invite').split('\n')[1]).toBe('Sign up and do the 30-sec face check so I get 10 Rings');
+  });
+  it('invitedByMember: only another member\'s k-code counts', () => {
+    expect(invitedByMember('k00184', 'k00200')).toBe(true);
+    expect(invitedByMember('K00184', '')).toBe(true);
+    expect(invitedByMember('k00184', 'k00184')).toBe(false);
+    expect(invitedByMember('test1', 'k00200')).toBe(false);
+    expect(invitedByMember('', 'k00200')).toBe(false);
   });
   it('Me line', () => {
     expect(friendsLine('en', 2, 20)).toBe('Friends joined: 2 · +20 Rings');
@@ -221,8 +234,8 @@ describe('founder 18 Nov: share after posting for everyone, "Your Reel is live",
     const f = app.slice(app.indexOf('const sharePosted'), app.indexOf('const sharePosted') + 400);
     expect(f).toContain("if (m.mode === 'pending') { if (v5Uid) void tapShare(v5ProfileLink(v5Uid), 'my_reel_soon'); return; }");
     expect(f).toContain('void kxShareReelId(m.id)');
-    expect(shareText('en', 'my_reel_soon')).toBe('My new Reel is coming up on Kring · follow me so you don’t miss it 🔥');
-    expect(shareText('th', 'my_reel_soon')).toBe('รีลใหม่ของฉันกำลังจะขึ้นบนกริ๊ง! กดติดตามไว้ก่อนเลย 🔥');
+    expect(shareText('en', 'my_reel_soon')).toBe('My new Reel is coming up on Kring · follow me so you don’t miss it 🔥\nSign up and do the 30-sec face check so I get 10 Rings');
+    expect(shareText('th', 'my_reel_soon')).toBe('รีลใหม่ของฉันกำลังจะขึ้นบนกริ๊ง! กดติดตามไว้ก่อนเลย 🔥\nสมัครแล้วยืนยันใบหน้า 30 วิ ฉันจะได้ 10 ริง');
   });
   it('"Your Reel is live": newest team-approved Reel of the last 3 days, once per Reel', () => {
     const now = Date.parse('2026-11-18T12:00:00Z');

@@ -659,6 +659,7 @@ const T: Record<string, string> = {
   '1 Ring from {1} · one Story could do it': '1링만 더 모으면 {1} · 스토리 하나면 충분해요',
   // 0111: face check only for prize claims
   'Do it later': '나중에 하기',
+  'Verify your face in 30 sec and the friend who invited you gets 10 Rings': '30초 얼굴 인증을 하면 초대해 준 친구가 10 Rings를 받아요',
   // fix4 (19 Nov)
   'No rush. You only need this to claim a prize.': '서두르지 않아도 돼요. 상품을 받을 때만 필요해요.',
   'Allow the camera': '카메라 허용',

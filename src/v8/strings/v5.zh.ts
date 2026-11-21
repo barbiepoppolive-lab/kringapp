@@ -659,6 +659,7 @@ const T: Record<string, string> = {
   '1 Ring from {1} · one Story could do it': '再 1 个 Ring 拿 {1} · 一条快拍就够',
   // 0111: face check only for prize claims
   'Do it later': '稍后再做',
+  'Verify your face in 30 sec and the friend who invited you gets 10 Rings': '30 秒验证人脸，邀请你的朋友就能得到 10 个 Rings',
   // fix4 (19 Nov)
   'No rush. You only need this to claim a prize.': '不着急，只有领奖时才需要。',
   'Allow the camera': '允许使用相机',
