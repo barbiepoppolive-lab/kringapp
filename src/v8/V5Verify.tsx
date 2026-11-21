@@ -478,7 +478,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
               ? <><p id="verifyPhotoNote">{L('We’ll send this one photo to our team to check, then delete it.')}</p><button type="button" className="kfv2-cta" id="verifySnap" onClick={takeSelfie}>{L('Take selfie')}</button></>
               : photoNote && stage === 'checking'
                 ? <p id="verifyPhotoNote" role="status">{L('We’ll send this one photo to our team to check, then delete it.')}</p>
-                : <><p>{L('Checked on your phone · about 3 seconds')}</p><PrivacyLink L={L} /></>}
+                : <><p>{L('Checked on your phone · about 30 seconds')}</p><PrivacyLink L={L} /></>}
           </div>
         </div>
       )}
@@ -493,10 +493,10 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
       {stage === 'intro' && (
         <Panel L={L} onClose={close} icon="intro" id="verifyIntro"
           lead={mode === 'signup' && props.invited ? L('Verify your face in 30 sec and the friend who invited you gets 10 Rings') : undefined}
-          title={mode === 'claim' ? L('One quick step to get your prize') : props.nudge ? L('New: 3-second face check') : L('Verify in 3 seconds')}
-          text={mode === 'claim' ? L('A 3-second face check keeps every prize one person, one account.')
+          title={mode === 'claim' ? L('One quick step to get your prize') : props.nudge ? L('New: 30-second face check') : L('Verify in 30 seconds')}
+          text={mode === 'claim' ? L('A 30-second face check keeps every prize one person, one account.')
             : props.nudge ? L('Do it once. It keeps your ✓ and your prizes safe.')
-            : L('You only need it to claim a prize. Look at the camera, turn a little, blink.')}>
+            : L('So your and your friends’ Rings count in full. Look at the camera, turn a little, blink.')}>
           {inApp && <p className="kfv2-small kfv2-inapp" id="verifyInApp" role="note">{L('You’re in an app’s built-in browser, where the camera often doesn’t work. If it doesn’t start, open this page in Chrome (or Safari).')}</p>}
           {/* face-fixes 19 Nov: inside LINE, one tap opens this check in the phone's own browser (Instagram / TikTok: camGuard help) */}
           {inApp === 'line' && <button type="button" className="kfv2-2nd kfv2-out" id="verifyOpenOutside" disabled={leaving} onClick={() => void openOutside()}>{L('Open in browser')}</button>}
@@ -539,7 +539,7 @@ export function V5VerifySheet(props: { L: Tx; photo: string | null; nudge?: bool
             : (why === 'timeout' || why === 'still') && mode !== 'claim'
               // fix4: the face check is only needed to claim a prize, so a timed-out check never feels like a dead end
               ? <><button type="button" className="kfv2-2nd" id="verifyLaterFail" onClick={() => { v5LogClient('verify_later', why); close(); }}>{L('Do it later')}</button>
-                <p className="kfv2-small" id="verifyLaterNote">{L('No rush. You only need this to claim a prize.')}</p></>
+                <p className="kfv2-small" id="verifyLaterNote">{L('No rush. Do it when you can, so your and your friends’ Rings count in full.')}</p></>
               : <button type="button" className="kfv2-2nd" onClick={close}>{L('Not now')}</button>}
           <TipRow L={L} />
         </Panel>

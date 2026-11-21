@@ -1,7 +1,7 @@
-// 0111 (founder 18 Nov) "Do it later": the face check is needed ONLY to claim a prize.
+// 0111 (founder 18 Nov) "Do it later": the face check never blocks; since 21 Nov its line says it makes your and your friends’ Rings count in full.
 //   · sign-up keeps the check right after the card photo, with a clear "Do it later" (Thai "ไว้ทีหลัง") that never blocks anything
 //   · the app's own copy of the 0093 gate is off; the server switch face_gate_on = 0 (migration 0111)
-//   · Me shows a gentle, hideable "Verify your face in 3 seconds" row
+//   · Me shows a gentle, hideable "Verify your face in 30 seconds" row
 //   · a prize claim asks for the 3-second check first (and the server answers KR8_VERIFY_FIRST without it)
 //   · claims send no photo (0092) and 0111 stops holding them as "no_photo"
 //   · invite Rings + recruiter pay count the friend's FIRST APPROVED Reel, not the face check
@@ -39,7 +39,7 @@ describe('sign-up: the face check stays, with "Do it later"', () => {
   it('shows a clear "Do it later" that closes without starting the camera', () => {
     const onClose = vi.fn();
     sheet('signup', L, onClose);
-    expect(document.getElementById('verifyIntro')!.textContent).toContain('You only need it to claim a prize');
+    expect(document.getElementById('verifyIntro')!.textContent).toContain('So your and your friends’ Rings count in full');
     const later = document.getElementById('verifyLater')!;
     expect(later.textContent).toBe('Do it later');
     fireEvent.click(later);
@@ -57,8 +57,8 @@ describe('sign-up: the face check stays, with "Do it later"', () => {
     expect(document.getElementById('verifyLater')!.textContent).toBe('Not now');
   });
   it('every new string has Thai', () => {
-    for (const k of ['Do it later', 'You only need it to claim a prize. Look at the camera, turn a little, blink.', 'One quick step to get your prize',
-      'A 3-second face check keeps every prize one person, one account.', 'Verify your face in 3 seconds', 'Be ready to claim your prize the moment you win.', 'Hide'])
+    for (const k of ['Do it later', 'So your and your friends’ Rings count in full. Look at the camera, turn a little, blink.', 'One quick step to get your prize',
+      'A 30-second face check keeps every prize one person, one account.', 'Verify your face in 30 seconds', 'Be ready to claim your prize the moment you win.', 'Hide'])
       expect(V5_L.th[k], k).toBeTruthy();
   });
 });
@@ -121,11 +121,11 @@ describe('Me: a gentle nudge, never a gate', () => {
         onSaved={() => undefined} onRewards={() => undefined} onReel={() => undefined} onPost={() => undefined} onVerify={x.onVerify || (() => undefined)}
         reelsSlot={<div id="slot" />} verifyHidden={x.verifyHidden} onVerifyHide={x.onVerifyHide} />
     </div>);
-  it('shows "Verify your face in 3 seconds" with a prize reason; tap opens the check, × hides it', () => {
+  it('shows "Verify your face in 30 seconds" with a prize reason; tap opens the check, × hides it', () => {
     const onVerify = vi.fn(), onVerifyHide = vi.fn();
     me({ onVerify, onVerifyHide });
     const row = document.getElementById('meVerify')!;
-    expect(row.textContent).toContain('Verify your face in 3 seconds');
+    expect(row.textContent).toContain('Verify your face in 30 seconds');
     expect(row.textContent).toContain('claim your prize');
     expect(row.textContent).not.toContain('People reply more');
     fireEvent.click(document.getElementById('meVerifyGo')!);
@@ -147,7 +147,7 @@ describe('Me: a gentle nudge, never a gate', () => {
   it('Thai mode: Thai only', () => {
     me({ l: TH, onVerifyHide: () => undefined });
     const t = document.getElementById('meVerify')!.textContent || '';
-    expect(t).toContain('ยืนยันใบหน้าใน 3 วินาที');
+    expect(t).toContain('ยืนยันใบหน้าใน 30 วินาที');
     expect(t).not.toMatch(/Verify|prize/);
   });
   it('× hides it for a week per member, then it comes back', () => {

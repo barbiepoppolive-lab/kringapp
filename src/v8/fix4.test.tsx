@@ -168,10 +168,10 @@ describe('fix4 · 2 face check on slow phones', () => {
     expect(container.querySelector('#verifyFail')).not.toBeNull();
     expect(container.querySelector('#verifyRetry')?.textContent).toBe('Try again · 2 left today');
     expect(container.querySelector('#verifyLaterFail')?.textContent).toBe('Do it later');
-    expect(container.querySelector('#verifyLaterNote')?.textContent).toBe('No rush. You only need this to claim a prize.');
+    expect(container.querySelector('#verifyLaterNote')?.textContent).toBe('No rush. Do it when you can, so your and your friends’ Rings count in full.');
     expect(liveMock.v5LogClient).toHaveBeenCalledWith('verify_live_fail', 'timeout', 'r0');
     expect(V5_L.th['Do it later']).toBe('ไว้ทีหลัง');
-    expect(V5_L.th['No rush. You only need this to claim a prize.']).toMatch(/[\u0E00-\u0E7F]/);
+    expect(V5_L.th['No rush. Do it when you can, so your and your friends’ Rings count in full.']).toMatch(/[\u0E00-\u0E7F]/);
   });
   it('prize-claim mode keeps "Not now" (the check is required there)', async () => {
     const { container, getByText } = await timedOut('claim');

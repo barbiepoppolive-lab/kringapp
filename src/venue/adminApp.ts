@@ -1863,7 +1863,7 @@ function rulesView() {
       r('Selfies', 'Deleted 30 days after review.'),
       r('Replies', 'Max 5 a day · 20+ minutes apart · Kring only after 9 replies without it. A disclosure line is added when Kring is mentioned.'),
       r('Kring Local payouts', 'Only approved Reels count: first approved Reel, and 3 approved Reels within the first 14 days.'),
-      r('Recruiter pay', 'Per sign-up with their link whose first Reel is approved (Recruiters: "Paid · 1st Reel approved"). No face check needed: members verify only to claim a prize. Invite Rings (+10 each) follow the same rule.'),
+      r('Recruiter pay', 'Per sign-up with their link whose first Reel is approved (Recruiters: "Paid · 1st Reel approved"). Recruiter pay needs no face check. Invite Rings (+10) count only once the invited friend passes the face check (since 21 Nov).'),
       r('Recruiter milestones', 'M1 = verified + photo, area, IG + 1 approved Reel. M2 = M1 + opened the app on a later day and sent a hello / saved 3 / 2nd Reel.'),
       r('Venue deals', 'In baht, never percent. No quiet-hours words, links or phone numbers.'),
       r('Stay / Do', 'The partner sets the member price. No other-site prices. Hidden until switched live.'),

@@ -1248,7 +1248,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [verifyMode, setVerifyMode] = useState<'signup' | 'me' | 'claim'>('me');
   /** 0111: the face check opened ON TOP of the claim screen (the claim stays underneath and goes on once verified) */
   const [claimVerify, setClaimVerify] = useState(false);
-  /** 0111: the Me "Verify your face in 3 seconds" row was hidden (×) */
+  /** 0111: the Me "Verify your face in 30 seconds" row was hidden (×) */
   const [verifyHideTick, setVerifyHideTick] = useState(0);
   /** 0092: two taps to delete face data (the page can't show confirm dialogs) */
   const [forgetArm, setForgetArm] = useState(false);
@@ -3014,7 +3014,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     }
   };
   // 0081 asked every member ONCE (a pop-up 6 s after opening) to do the 3-second check. 0111 (founder 18 Nov): no pop-ups; the face
-  // check is only needed to claim a prize, so the gentle row on Me ("Verify your face in 3 seconds") and the claim screen ask instead.
+  // check is only needed to claim a prize, so the gentle row on Me ("Verify your face in 30 seconds") and the claim screen ask instead.
   // A ?open=verify link still opens the check.
   useEffect(() => {
     if (!live || !v5Uid || !v5Card?.photo || adminViewActive()) return;
@@ -3099,7 +3099,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     unvRef.current = live && !!v5Card && !adminView && !v5Ghost && !(v5Card.verified || meProfile?.verified || faceOkNow)
       && no != null && Number(no) > FACE_GATE_AFTER_NO;
     verifyFirstRef.current = () => {
-      showToast(L('Verify your face in 3 seconds to post and chat. One person, one account.'));
+      showToast(L('Verify your face in 30 seconds to post and chat. One person, one account.'));
       try { window.dispatchEvent(new CustomEvent('kr8-verify-first')); } catch { /* ignore */ }
     };
   }

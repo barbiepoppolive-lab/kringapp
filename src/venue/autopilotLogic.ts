@@ -1207,10 +1207,10 @@ export const DEFAULT_GROWTH_COHORTS: Omit<GrowthNudgeCohort, 'would_send_count' 
   {
     key: 'face_unverified_24h',
     label: 'New member not face-checked after 24 h',
-    title_th: 'ยืนยันใบหน้า 3 วินาที เปิดการมองเห็นบนฟีด',
-    title_en: '3-second face check to appear on the feed',
+    title_th: 'ยืนยันใบหน้า 30 วินาที เปิดการมองเห็นบนฟีด',
+    title_en: '30-second face check to appear on the feed',
     body_th: 'แตะตรวจใบหน้าจากกล้องมือถือเพียงครั้งเดียว ระบบเช็กเฉพาะรหัสตัวเลขบนเครื่อง เพื่อให้โปรไฟล์และรีลของคุณแสดงบนกระดานประจำสัปดาห์',
-    body_en: 'Complete a quick 3-second camera check once (your selfie stays on your phone) so your card and Reels appear on the feed and weekly board.',
+    body_en: 'Complete a quick 30-second camera check once (your selfie stays on your phone) so your card and Reels appear on the feed and weekly board.',
     approved_by_founder: false,
   },
   {
