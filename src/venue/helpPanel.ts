@@ -188,7 +188,7 @@ async function chatView(screen: Screen, member: string, onCount?: (waiting: numb
   const status = el('small', { class: 'hp-status', id: 'hpStatus', role: 'status' });
   // 0122: close the case without sending anything (shown only while the member is waiting)
   const noReply = el('button', { type: 'button', class: 'v2btn hp-noreply', id: 'hpNoReply', title: 'Close this case without sending a message', hidden: true }, 'No reply needed') as HTMLButtonElement;
-  const composer = el('div', { class: 'hp-comp', id: 'hpComp' }, qr, ta, el('div', { class: 'hp-comp-row' }, hint, noReply, send), status);
+  const composer = el('div', { class: 'hp-comp', id: 'hpComp' }, qr, ta, status, el('div', { class: 'hp-comp-row' }, hint, noReply, send));   // 21 Nov: result above the buttons, never under the tab bar
 
   let detail: HelpThreadDetail | null = null;
   let draft: { en: string; th: string } | null = null;
@@ -267,7 +267,7 @@ async function chatView(screen: Screen, member: string, onCount?: (waiting: numb
       void refresh();
     } catch (e) {
       status.className = 'hp-status bad'; status.textContent = `Not sent — ${sendFailReason(e)}`;
-      status.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+      status.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
     } finally {
       send.removeAttribute('disabled'); ta.removeAttribute('disabled'); send.textContent = 'Send as Kring Team';
     }

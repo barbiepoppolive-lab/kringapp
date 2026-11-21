@@ -179,7 +179,7 @@ export function helpCaseCard(c: HelpCase, onDone?: (c: HelpCase) => void): HTMLE
       el('p', {}, `“${it.q}”`),
       enLine(it.q, it.en)))),
     urg !== 'ok' ? el('p', { class: 'hpa-risk', id: 'hpaRisk-' + c.member }, `⚠ ${helpUrgencyText(urg)}`) : null,
-    hist, suggestHead, ta, el('div', { class: 'v2acts' }, send, noReply), status);
+    hist, suggestHead, ta, status, el('div', { class: 'v2acts' }, send, noReply));   // 21 Nov: the result sits ABOVE the buttons (below them the phone's tab bar covered it)
   const setStatus = (cls: '' | 'busy' | 'ok' | 'bad', text: string) => { status.className = `hpa-status ${cls}`.trim(); status.textContent = text; };
   send.onclick = async () => {
     if (card.classList.contains('hpa-sending')) return;
@@ -196,7 +196,7 @@ export function helpCaseCard(c: HelpCase, onDone?: (c: HelpCase) => void): HTMLE
     } catch (e) {
       send.removeAttribute('disabled'); noReply.removeAttribute('disabled'); send.textContent = 'Send as Kring Team';
       setStatus('bad', `Not sent — ${sendFailReason(e)}`);
-      status.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+      status.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
     } finally {
       card.classList.remove('hpa-sending');
     }
