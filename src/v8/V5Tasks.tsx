@@ -253,6 +253,7 @@ export function TasksSheet(props: { lang: string; onClose: () => void; onAsk: (q
     if (t.id === 'ask') { props.onAsk(t.question?.id || null); return; }
     if (t.id === 'vote') { setVote(true); return; }
     if (t.id === 'watch') { props.onClose(); }
+    if (t.id === 'post') { props.onClose(); window.dispatchEvent(new Event('kr8:post')); }
   };
   const dayLabels = weekLabels(data.day, tx);
   return (

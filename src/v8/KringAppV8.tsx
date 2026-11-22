@@ -2911,6 +2911,12 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     setSheet('post');
     v5LogClient('reel_open', 'place');
   };
+  const kxPostRef = useRef(kxPostAt); kxPostRef.current = kxPostAt;
+  useEffect(() => {   // 23 Nov: Daily Card "Post a photo or Reel" → the composer
+    const on = () => kxPostRef.current();
+    window.addEventListener('kr8:post', on);
+    return () => window.removeEventListener('kr8:post', on);
+  }, []);
   // ───────── go-live build (15 Nov): Reel player, profile grid, tagged people, one-time coach marks ─────────
   const [goPlayer, setGoPlayer] = useState<{ reels: GoReel[]; start: number; viewProfile?: { id: string; name: string; photo: string | null } | null; title?: string } | null>(null);
   const [goOtherReels, setGoOtherReels] = useState<KxMemberReels | null>(null);
