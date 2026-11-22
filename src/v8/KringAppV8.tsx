@@ -2614,6 +2614,18 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   /** 22 Nov: week-close celebration (winner: gift → fireworks → claim; everyone else: fireworks + Top 3). */
   const [kxCeleb, setKxCeleb] = useState<{ mode: 'winner' | 'all'; week: string; top3: KxTop3['top'] } | null>(null);
   const [kxFly, setKxFly] = useState(false);
+  // QA only on *.pages.dev previews: ?celebtest=winner|all shows the celebration with my own card (never on kringapp.com)
+  useEffect(() => {
+    try {
+      const m = new URLSearchParams(location.search).get('celebtest');
+      if (!m || !/\.pages\.dev$/.test(location.hostname)) return;
+      const t = window.setTimeout(() => {
+        setKxResult({ week: '2026-11-16', rank: 1, rings: 212, reel: null, prize: null, line_need: null, line_prize: 0 });
+        setKxCeleb({ mode: m === 'all' ? 'all' : 'winner', week: '2026-11-16', top3: [{ rank: 1, name: 'Jaaaa', photo: null, rings: 212 }, { rank: 2, name: 'Nut', photo: null, rings: 189 }, { rank: 3, name: 'Otop', photo: null, rings: 176 }] });
+      }, 2500);
+      return () => window.clearTimeout(t);
+    } catch { return undefined; }
+  }, []);
   const [kxSaved, setKxSaved] = useState<KxSavedReel[] | null>(null);
   const [kxRankLine, setKxRankLine] = useState<string>('');
   /** 21 Nov: my best Reel this week (highest score in the ranking math), for the Me strip's "one Story could do it" Share chip */
