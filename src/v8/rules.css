@@ -122,6 +122,8 @@
   background: linear-gradient(135deg, rgba(77,107,255,.22), rgba(255,79,163,.12)); border: 1px solid rgba(255,255,255,.12); }
 .v8-app-root .rw-card.s2 { background: linear-gradient(135deg, rgba(139,92,255,.24), rgba(255,79,163,.16)); }
 .v8-app-root .rw-card.s3 { background: linear-gradient(135deg, rgba(255,79,163,.28), rgba(245,196,81,.16)); border-color: rgba(255,200,107,.35); }
+.v8-app-root .rw-card.s4 { background: linear-gradient(135deg, rgba(255,79,163,.28), rgba(245,196,81,.16)); border-color: rgba(255,200,107,.35); }
+.v8-app-root .rw-card.s3 { background: linear-gradient(135deg, rgba(77,107,255,.24), rgba(63,240,255,.12)); border-color: rgba(255,255,255,.12); }
 .v8-app-root .rw-card .num { position: absolute; right: 10px; top: -14px; font: 800 4.5rem/1 var(--kx-u); color: rgba(255,255,255,.07); pointer-events: none; }
 .v8-app-root .rw-card .art { flex: none; width: 56px; height: 56px; border-radius: 18px; display: grid; place-items: center; font-style: normal; font-size: 1.75rem;
   background: rgba(7,6,13,.45); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 0 20px rgba(77,107,255,.3); }
@@ -197,3 +199,11 @@
 .v8-app-root .rw-toast.vC .pts { background: rgba(7,6,13,.35); }
 .v8-app-root .rw-toast.vC .bi .en { color: rgba(255,255,255,.8); }
 @media (prefers-reduced-motion: reduce) { .v8-app-root .rw-sheet, .v8-app-root .rw-toast { animation: none; } }
+/* rules v2 (30 Nov, founder): fewer borders: no card outlines, no chip outlines, icon boxes glow only; gold stays on the prize card */
+.v8-app-root .rw-sheet .rw-card { border: 0; }
+.v8-app-root .rw-sheet .rw-card .chip { box-shadow: none; background: rgba(7,6,13,.35); }
+.v8-app-root .rw-sheet .rw-card .art { box-shadow: 0 0 20px rgba(77,107,255,.25); }
+.v8-app-root .rw-sheet .rw-card.s3 .art { box-shadow: 0 0 20px rgba(77,107,255,.25); }
+.v8-app-root .rw-sheet .rw-card.s3 .chip:first-child { color: #fff; }
+.v8-app-root .rw-sheet .rw-card.s4 .art { box-shadow: 0 0 22px rgba(245,196,81,.35); }
+.v8-app-root .rw-sheet .rw-card.s4 .chip:first-child { color: #FFE08A; }

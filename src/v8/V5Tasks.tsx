@@ -54,6 +54,8 @@ function Ring({ pct, size, stroke, children, cls = '' }: { pct: number; size: nu
   );
 }
 const Ic: Record<TaskId, React.ReactNode> = {
+  post: <svg viewBox="0 0 24 24"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></svg>,
+  bonus: <svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z" /></svg>,
   open: <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>,
   ask: <svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z" /><path d="M8 9.5h8M8 12.5h5" /></svg>,
   vote: <svg viewBox="0 0 24 24"><path d="M12 3v18M5 7h14M5 7l-3 7h6zM19 7l-3 7h6z" /></svg>,
@@ -78,6 +80,8 @@ function rowText(t: TaskRow, tx: TaskTx, lang: 'th' | 'en'): { title: string; su
     }
     case 'watch': return { title: tx.watch, sub: fmt(tx.watchS, t.progress ?? 0, t.goal ?? 3) };
     case 'say': return { title: tx.say, sub: tx.sayS };
+    case 'post': return { title: tx.post, sub: t.done ? tx.postDone : t.question ? `“${t.question.body}” · ${tx.postS}` : tx.postS };
+    case 'bonus': return { title: tx.bonus, sub: tx.bonusS };
   }
 }
 
@@ -275,8 +279,9 @@ export function TasksSheet(props: { lang: string; onClose: () => void; onAsk: (q
               <div key={t.id} className={`dt-row st-${st}${popping === t.id ? ' pop' : ''}`} data-task={t.id}>
                 <span className="ic" aria-hidden="true">{Ic[t.id]}</span>
                 <span className="tx"><b>{title}</b><small>{sub}</small></span>
-                <span className="rw">{fmt(tx.ringsShort, t.rings)}</span>
-                {st === 'soon' ? <span className="dt-tag">{tx.soon}</span>
+                <span className="rw">{t.id === 'post' ? '+3–7' : fmt(tx.ringsShort, t.rings)}</span>
+                {t.id === 'bonus' && st === 'go' ? <span className="dt-tag">{c}/{n}</span>
+                  : st === 'soon' ? <span className="dt-tag">{tx.soon}</span>
                   : st === 'done' ? <span className="dt-btn done"><Check />{tx.done}</span>
                   : st === 'claim' ? (
                     <button type="button" className="dt-btn claim" disabled={busy === t.id} onClick={() => void claim(t.id)}>
@@ -295,6 +300,7 @@ export function TasksSheet(props: { lang: string; onClose: () => void; onAsk: (q
             </span>
           ))}
         </div>
+        <p className="dt-msg dt-skl">{tx.streakLine}</p>
       </div>
       {vote ? <VoteSheet lang={props.lang} onClose={() => setVote(false)} /> : null}
     </div>

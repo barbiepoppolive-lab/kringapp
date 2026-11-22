@@ -5,7 +5,7 @@
  */
 import { v5Client, V5Error, v5ErrCode } from './v5Live';
 
-export type TaskId = 'ask' | 'say' | 'vote' | 'watch' | 'open';
+export type TaskId = 'post' | 'ask' | 'say' | 'vote' | 'watch' | 'open' | 'bonus';
 export interface TaskVote {
   kind: 'pair' | 'price'; q_en: string; q_th: string;
   a_en: string; a_th: string; a_img: string | null; b_en: string; b_th: string; b_img: string | null;
@@ -38,7 +38,7 @@ export const taskWatch = (post: string, phase: 'start' | 'end') =>
   call<{ counted: boolean; progress: number; goal?: number }>('kr8_task_watch', { p_post: post, p_phase: phase });
 
 /** Order on the sheet: the main task first, the check-in last (it is always ready). */
-export const TASK_ORDER: TaskId[] = ['open', 'ask', 'vote', 'watch', 'say'];
+export const TASK_ORDER: TaskId[] = ['post', 'ask', 'vote', 'watch', 'bonus'];   // rules v2 (30 Nov): open + say removed
 
 export function taskState(t: TaskRow): TaskState {
   if (t.soon) return 'soon';
@@ -48,7 +48,7 @@ export function taskState(t: TaskRow): TaskState {
 }
 
 /** doable tasks (not "coming soon") */
-export const doable = (d: TasksToday | null) => (d?.tasks || []).filter((t) => !t.soon);
+export const doable = (d: TasksToday | null) => (d?.tasks || []).filter((t) => !t.soon && t.id !== 'bonus');
 export const claimedCount = (d: TasksToday | null) => doable(d).filter((t) => t.claimed).length;
 export const readyCount = (d: TasksToday | null) => doable(d).filter((t) => t.done && !t.claimed).length;
 export const leftCount = (d: TasksToday | null) => doable(d).filter((t) => !t.claimed).length;
@@ -84,6 +84,7 @@ const EN = {
     ask: 'Answer 1 Ask BKK', askRule: 'Answer 1 question ({0}+ characters)', askDone: 'Answer posted', askNone: 'Answer any question',
     vote: 'Quick vote', voteDone: 'You picked {0}', watch: 'Watch 3 Reels', watchS: 'To the end · {0} of {1}',
     say: 'Say it in Thai', sayS: 'Voice clips are coming soon',
+    post: 'Post a photo or Reel', postS: 'Photo +3 · Reel +5 · today’s prompt +2', postDone: 'Posted · best one counts', bonus: 'All 4 done', bonusS: 'Counts for your streak', streakLine: 'Streak: day 3 +5 · day 5 +10 · day 7 +20',
     tasksLeft: '{0} tasks left today', taskLeft: '1 task left today', dailyTasks: 'Daily tasks',
     faceT: 'Verify your face to collect your Rings', faceS: 'Takes 30 seconds. Your task stays done, collect it right after.', faceGo: 'Verify my face', later: 'Later',
     quickVote: 'Quick vote', priceCheck: 'Price check', tapSide: 'Tap a side · see what everyone picked', voted: '{0} members voted', next: 'Done',
@@ -100,6 +101,7 @@ const TH: TaskTx = {
     ask: 'ตอบ 1 คำถามใน ถาม BKK', askRule: 'ตอบคำถาม 1 ข้อ ({0} ตัวอักษรขึ้นไป)', askDone: 'ตอบแล้ว', askNone: 'ตอบคำถามไหนก็ได้',
     vote: 'โหวตด่วน', voteDone: 'คุณเลือก {0}', watch: 'ดูรีล 3 อัน', watchS: 'ดูจนจบ · {0} จาก {1}',
     say: 'พูดเป็นภาษาไทย', sayS: 'คลิปเสียงมาเร็วๆ นี้',
+    post: 'โพสต์รูปหรือรีล', postS: 'รูป +3 · รีล +5 · ตามโจทย์วันนี้ +2', postDone: 'โพสต์แล้ว · นับอันที่ดีที่สุด', bonus: 'ครบ 4 อย่าง', bonusS: 'นับเป็นวันต่อเนื่อง', streakLine: 'ต่อเนื่อง: วันที่ 3 +5 · วันที่ 5 +10 · วันที่ 7 +20',
     tasksLeft: 'เหลืออีก {0} ภารกิจวันนี้', taskLeft: 'เหลืออีก 1 ภารกิจวันนี้', dailyTasks: 'ภารกิจรายวัน',
     faceT: 'ยืนยันใบหน้าเพื่อรับริงของคุณ', faceS: 'ใช้เวลา 30 วินาที ภารกิจที่ทำแล้วยังอยู่ รับได้ทันทีหลังยืนยัน', faceGo: 'ยืนยันใบหน้า', later: 'ไว้ทีหลัง',
     quickVote: 'โหวตด่วน', priceCheck: 'เช็กราคา', tapSide: 'แตะเลือก · ดูว่าทุกคนเลือกอะไร', voted: 'โหวตแล้ว {0} คน', next: 'เสร็จ',

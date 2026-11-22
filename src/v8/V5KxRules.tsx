@@ -131,13 +131,16 @@ export function WinSheet({ v, lang, r, onClose, glass, extra }: SheetProps) {
     );
   } else {
     const steps = [
-      // 19 Nov founder: the Reel must show YOU, out at a real place in Bangkok
-      { n: 1, art: '🎬', th: 'โพสต์รีลที่มีตัวคุณอยู่ในคลิป ตามที่เที่ยวในกรุงเทพฯ', en: 'Post a Reel with you in it, out in Bangkok',
-        chips: [{ th: '🙋 เห็นหน้าคุณในคลิป', en: '🙋 You on camera' }, { th: '📍 ที่ไหนก็ได้ในกรุงเทพฯ', en: '📍 Any real Bangkok spot' },
-          { th: r.best <= 1 ? 'นับรีลที่ดีที่สุด 1 รีล' : `นับ ${r.best} รีลที่ดีที่สุด`, en: r.best <= 1 ? 'Your best Reel counts' : `Best ${r.best} Reels count` }] },
-      { n: 2, art: <RingGlyph />, th: 'เก็บริงจากคนที่ชอบรีลคุณ', en: 'Collect Rings on your Reel',
-        chips: earnRows(r).map((x) => ({ th: `${x.ic} ${x.pts}`, en: `${x.ic} ${x.pts}` })) },
-      { n: 3, art: '🏆', th: `ติด ${r.prizes.length} อันดับแรก รับรางวัลทุกสัปดาห์`, en: `Make the top ${r.prizes.length}, win every week`,
+      // rules v2 (30 Nov): Daily Card · streak + reactions · friends · top 8
+      { n: 1, art: '📸', th: 'ทำภารกิจรายวัน', en: 'Do your Daily Card',
+        chips: [{ th: '📸 รูป +3', en: '📸 Photo +3' }, { th: '🎬 รีล +5', en: '🎬 Reel +5' }, { th: '💬 ถาม BKK +3', en: '💬 Ask BKK +3' },
+          { th: '⚖️ อันไหนดี +1', en: '⚖️ This or That +1' }, { th: '▶️ ดู 3 อัน +1', en: '▶️ Watch 3 +1' }] },
+      { n: 2, art: <RingGlyph />, th: 'ต่อเนื่องทุกวัน + มีคนทักรีลคุณ', en: 'Keep your streak, get reactions',
+        chips: [{ th: '🔥 3 วัน +5', en: '🔥 3 days +5' }, { th: '🔥 5 วัน +10', en: '🔥 5 days +10' }, { th: '🔥 7 วัน +20', en: '🔥 7 days +20' },
+          { th: '👋 +1 ต่อคน', en: '👋 +1 per person' }, { th: `✈️ ×${r.mult}`, en: `✈️ ×${r.mult}` }] },
+      { n: 3, art: '👯', th: 'ชวนเพื่อนมาเล่น', en: 'Bring friends',
+        chips: [{ th: 'เพื่อนสมัคร +5', en: 'Friend joins +5' }, { th: 'เล่นครบ 3 วัน +10', en: 'Active 3 days +10' }, { th: 'สูงสุด 60/สัปดาห์', en: 'max 60/week' }] },
+      { n: 4, art: '🏆', th: `ติด ${r.prizes.length} อันดับแรก รับรางวัลทุกสัปดาห์`, en: `Make the top ${r.prizes.length}, win every week`,
         chips: [{ th: `อันดับ 1 ${B(r.prizes[0])}`, en: `#1 ${B(r.prizes[0])}` }, { th: `ขั้นต่ำ ${r.floor} ริง`, en: `${r.floor} Rings to qualify` }] },
     ];
     body = (
@@ -155,7 +158,7 @@ export function WinSheet({ v, lang, r, onClose, glass, extra }: SheetProps) {
             </div>
           ))}
         </div>
-        <p className="rw-legend"><Bi lang={lang} th={`🔗 คนเปิดลิงก์ที่คุณแชร์ (สูงสุด ${r.cap}/วัน) · ✈️ นักท่องเที่ยวที่ยืนยันแล้ว`} en={`🔗 someone opens your share link (max ${r.cap}/day) · ✈️ verified traveller`} /></p>
+        <p className="rw-legend"><Bi lang={lang} th={'👋 คนคอมเมนต์หรือโบกมือ (สูงสุด 30/สัปดาห์) · ✈️ นักท่องเที่ยว'} en={'👋 each member who comments or waves (max 30/week) · ✈️ verified traveller'} /></p>
         <div className="rw-ladc">{r.prizes.map((p, i) => <span key={i} className={`r${i + 1}`}><small>#{i + 1}</small>{B(p)}</span>)}</div>
         <div className="rw-fine">
           {fineRows(r).filter((x) => x.k !== 'floor' && x.k !== 'best').map((x) => <div className="rw-frow" key={x.k} data-rule={x.k}><i>{x.ic}</i><Bi lang={lang} th={x.th} en={x.en} /></div>)}
