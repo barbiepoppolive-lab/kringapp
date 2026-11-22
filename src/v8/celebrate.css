@@ -142,3 +142,6 @@
 .cb-stage .cb-pod.p1 .cb-beam { top: -170px; background: linear-gradient(180deg, rgba(255,222,140,.6), rgba(255,222,140,.12) 75%, rgba(255,222,140,0)); }
 .cb-stage .cb-pod.p2 .cb-beam { background: linear-gradient(180deg, rgba(210,225,255,.38), rgba(210,225,255,.06) 75%, transparent); }
 .cb-stage .cb-pod.p3 .cb-beam { background: linear-gradient(180deg, rgba(255,205,170,.36), rgba(255,205,170,.06) 75%, transparent); }
+/* everyone view: "Let's go" always visible at the bottom (list scrolls above it) */
+.cb-reveal.all .cb-acts { position: sticky; bottom: 0; margin-top: 10px; padding: 14px 0 max(6px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, rgba(5,4,10,0), rgba(5,4,10,.92) 38%); z-index: 3; }
+.cb-reveal.all .cb-sub { margin-top: 10px; }
