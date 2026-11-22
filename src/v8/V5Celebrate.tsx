@@ -7,7 +7,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import './celebrate.css';
-import { bell, boom, fanfare, isMuted, setMuted, sparkle, unlockAudio, whoosh } from './celebrateSound';
+import { bell, boom, isMuted, setMuted, sparkle, swell, unlockAudio, whoosh } from './celebrateSound';
 
 export interface CelebTop { rank: number; name: string; photo: string | null; rings: number }
 export interface CelebProps {
@@ -23,6 +23,8 @@ export interface CelebProps {
   shareLink?: string;
   onPrize?: () => void;
   onShare?: (blob: Blob | null) => void;
+  /** the approved one-tap share card (rankStory 'proof'), built by the app */
+  makeStory?: () => Promise<Blob | null>;
   onClose: () => void;
 }
 
@@ -55,7 +57,6 @@ class Fx {
   launch(xr = 0.18 + Math.random() * 0.64, tyr = 0.12 + Math.random() * 0.26, pal = PALETTES[Math.floor(Math.random() * PALETTES.length)]) {
     const x = xr * this.w, y = this.h * 0.8;
     this.ps.push({ x, y, px: x, py: y, vx: (Math.random() - 0.5) * 0.8, vy: -(this.h * 0.0135 + Math.random() * 2), a: 1, da: 0, c: '#fff3c4', w: 2.2, glitter: false, rocket: { ty: tyr * this.h, pal } });
-    whoosh(0, 0.6, 0.16);
   }
   burst(x: number, y: number, pal: string[]) {
     const n = reduced() ? 30 : 72; const sp = 3.2 + Math.random() * 1.8;
@@ -64,7 +65,7 @@ class Fx {
       this.ps.push({ x, y, px: x, py: y, vx: Math.cos(ang) * s, vy: Math.sin(ang) * s, a: 1, da: 0.008 + Math.random() * 0.008, c: pal[i % pal.length], w: 1.6 + Math.random(), glitter: Math.random() < 0.25 });
     }
     this.ps.push({ x, y, px: x, py: y, vx: 0, vy: 0, a: 1, da: 0.08, c: '#ffffff', w: 26, glitter: false });
-    boom(0, 0.45);
+    boom(0, 0.3);
   }
   step() {
     const g = this.g; g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
@@ -249,7 +250,10 @@ function OpRings({ play, onLock }: { play: boolean; onLock?: () => void }) {
     an($('.spk'), [{ opacity: 0, transform: 'scale(0) rotate(-120deg)' }, { opacity: 1, transform: 'scale(1.7) rotate(0deg)', offset: 0.35 }, { opacity: 1, transform: 'scale(1) rotate(0deg)' }], { duration: 560 * FX, delay: C, easing: 'cubic-bezier(.2,.8,.3,1)' });
     an($('.fl'), [{ opacity: 0, transform: 'scale(.3)' }, { opacity: 0.95, transform: 'scale(1)', offset: 0.2 }, { opacity: 0, transform: 'scale(1.9)' }], { duration: 620 * FX, delay: C - 20, easing: 'ease-out', fill: 'none' });
     op.querySelectorAll('.sw').forEach((w, k) => an(w, [{ opacity: 0, transform: 'scale(.38)' }, { opacity: 0.9, transform: 'scale(.45)', offset: 0.04 }, { opacity: 0, transform: `scale(${2.7 + k * 0.5})` }], { duration: (820 + k * 160) * FX, delay: C + k * 90 * FX, easing: 'cubic-bezier(.15,.75,.3,1)', fill: 'none' }));
-    lockT = window.setTimeout(() => onLock?.(), C);
+    const first = AN[0];
+    let fired = false; const fire = () => { if (fired) return; fired = true; onLock?.(); };
+    if (first && first.ready) first.ready.then(() => { lockT = window.setTimeout(fire, C); }).catch(() => { lockT = window.setTimeout(fire, C); });
+    else lockT = window.setTimeout(fire, C);
     return () => { window.clearTimeout(lockT); AN.forEach((x) => { try { x.cancel(); } catch { /* ignore */ } }); };
   }, [play]); // eslint-disable-line react-hooks/exhaustive-deps
   const gl = (cx: number, col: string) => <svg className="gl" viewBox="0 0 1024 1024"><circle cx={cx} cy="512" fill="none" filter="url(#cbOBl)" r="225" stroke={col} strokeWidth="84" /></svg>;
@@ -269,7 +273,7 @@ function OpRings({ play, onLock }: { play: boolean; onLock?: () => void }) {
 }
 
 /** The website's clink: two bright strikes. */
-function clink() { bell(0, 1318, 0.32); bell(0.17, 1318, 0.26); }
+function clinkAt(at: number) { bell(at, 1318, 0.3); bell(at + 0.17, 1318, 0.24); }
 
 /* ---------- the moment ---------- */
 export function Celebrate(p: CelebProps) {
@@ -283,6 +287,11 @@ export function Celebrate(p: CelebProps) {
   const story = useRef<Promise<Blob | null> | null>(null);
 
   useEffect(() => {
+    const root = document.documentElement; const prev = root.style.colorScheme;
+    root.style.colorScheme = 'dark';
+    return () => { root.style.colorScheme = prev; };
+  }, []);
+  useEffect(() => {
     const on = () => fx.current?.resize();
     window.addEventListener('resize', on);
     return () => { window.removeEventListener('resize', on); timers.current.forEach((t) => window.clearTimeout(t)); fx.current?.stop(); };
@@ -295,19 +304,22 @@ export function Celebrate(p: CelebProps) {
     unlockAudio();
     if (cvRef.current && !fx.current) fx.current = new Fx(cvRef.current);
     setStage('ignite'); setPlay(true);
-    whoosh(0.05, 1.0, 0.14);
-    if (winner && p.rank) story.current = winStory({ lang, week: p.week, rank: p.rank, rings: p.rings || 0, name: p.name || '', photo: p.photo || null, code: p.inviteCode });
+    // sounds are scheduled on the audio clock from this tap, so they land exactly with the rings
+    const lock = reduced() ? 0.5 : 1.128;
+    whoosh(0.08, lock - 0.12, 0.12);
+    clinkAt(lock); bell(lock + 0.22, 660, 0.32);
+    swell(lock + 1.25);
+    story.current = p.makeStory ? p.makeStory().catch(() => null) : null;
   };
   const onLock = () => {
-    clink(); bell(0.25, 660, 0.4);
-    later(1250, () => { setStage('reveal'); if (winner) fanfare(0.1); });
+    later(1250, () => setStage('reveal'));
     // three elegant bursts, no more (founder: not a fireworks show)
     later(150, () => fx.current?.launch(0.22, 0.2, PALETTES[0]));
     later(700, () => fx.current?.launch(0.78, 0.16, PALETTES[1]));
     later(2600, () => fx.current?.launch(0.5, 0.12, PALETTES[2]));
   };
   const toggleMute = () => { const m = !mute; setMute(m); setMuted(m); };
-  const share = async () => { sparkle(); const b = story.current ? await story.current : null; p.onShare?.(b); };
+  const share = async () => { const b = story.current ? await story.current : null; p.onShare?.(b); };
   const cap = T(lang, `ผลประจำสัปดาห์ · ${weekText(lang, p.week)}`, `WEEK OF ${weekText(lang, p.week).toUpperCase()} · FINAL`);
 
   return (
@@ -346,15 +358,25 @@ export function Celebrate(p: CelebProps) {
         <div className="cb-reveal all" id="kxCelebAll">
           <p className="cb-cap">{cap}</p>
           <h2 className="cb-title big">{T(lang, 'ยินดีกับผู้ชนะประจำสัปดาห์', 'Congratulations to this week’s winners')}</h2>
-          <div className="cb-podium">
-            {[2, 1, 3].map((rk) => { const x = (p.top3 || []).find((t) => t.rank === rk); if (!x) return <div key={rk} className="cb-pod empty" />; return (
-              <div key={rk} className={`cb-pod p${rk}`}>
-                <Avatar photo={x.photo} name={x.name} size={rk === 1 ? 92 : 68} laurel={rk === 1} />
-                <span className="cb-pr">#{rk}</span>
-                <b>{x.name}</b><small>{x.rings.toLocaleString('en-US')} {T(lang, 'ริง', 'Rings')}</small>
+          <div className="cb-stage">
+            {[2, 1, 3].map((rk) => { const x = (p.top3 || []).find((t) => t.rank === rk); return (
+              <div key={rk} className={`cb-pod p${rk}${x ? '' : ' empty'}`}>
+                <span className="cb-beam" />
+                {x ? <>
+                  <Avatar photo={x.photo} name={x.name} size={rk === 1 ? 84 : 62} laurel={rk === 1} />
+                  <span className="cb-pr">{rk === 1 ? '👑 ' : ''}#{rk}</span>
+                  <b>{x.name}</b><small>{x.rings.toLocaleString('en-US')} {T(lang, 'ริง', 'Rings')}</small>
+                </> : null}
               </div>
             ); })}
           </div>
+          <ol className="cb-list">
+            {(p.top3 || []).filter((t) => t.rank > 3).slice(0, 7).map((t) => (
+              <li key={t.rank}><span className="n">{t.rank}</span>
+                <span className="av">{t.photo ? <img src={t.photo} alt="" /> : (t.name || '?').slice(0, 1).toUpperCase()}</span>
+                <span className="nm">{t.name}</span><span className="rg">{t.rings.toLocaleString('en-US')}</span></li>
+            ))}
+          </ol>
           <p className="cb-sub">{T(lang, 'สัปดาห์ใหม่เริ่มแล้ว ครั้งหน้าอาจเป็นคุณ', 'A new week has started. Next time it could be you.')}</p>
           <div className="cb-acts"><button type="button" className="cb-btn" id="kxCelebGo" onClick={p.onClose}>{T(lang, 'ไปกันเลย', 'Let’s go')}</button></div>
         </div>

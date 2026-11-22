@@ -182,7 +182,7 @@ const ResultPage = lazyPart(() => import('./V5KxRewards').then((m) => m.ResultPa
 const Celebrate = lazyPart(() => import('./V5Celebrate').then((m) => m.Celebrate));
 const RingFly = lazyPart(() => import('./V5Celebrate').then((m) => m.RingFly));
 import { kxTop3, type KxTop3 } from './v5Kx';
-import { shareCard } from './rankStory';
+import { cardBlob, displayCode } from './rankStory';
 const RewardsPage = lazyPart(() => import('./V5KxRewards').then((m) => m.RewardsPage));
 const MathSheet = lazyPart(() => import('./V5KxRanking').then((m) => m.MathSheet));
 const HowSheet = lazyPart(() => import('./V5KxRanking').then((m) => m.HowSheet));
@@ -2620,8 +2620,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       const m = new URLSearchParams(location.search).get('celebtest');
       if (!m || !/\.pages\.dev$/.test(location.hostname)) return;
       const t = window.setTimeout(() => {
-        setKxResult({ week: '2026-11-16', rank: 1, rings: 212, reel: null, prize: null, line_need: null, line_prize: 0 });
-        setKxCeleb({ mode: m === 'all' ? 'all' : 'winner', week: '2026-11-16', top3: [{ rank: 1, name: 'Jaaaa', photo: null, rings: 212 }, { rank: 2, name: 'Nut', photo: null, rings: 189 }, { rank: 3, name: 'Otop', photo: null, rings: 176 }] });
+        setKxResult({ week: '2026-11-16', rank: 1, rings: 212, reel: null, prize: { id: 'qa', amount: 1500, status: 'claimed' }, line_need: null, line_prize: 0 });
+        setKxCeleb({ mode: m === 'all' ? 'all' : 'winner', week: '2026-11-16', top3: ['Jaaaa', 'Nut', 'Otop', 'game_pnp', 'M.n', 'Guy', 'Nes', 'พลอยรุ้ง', 'Pichy', 'ผึ้ง'].map((n, i) => ({ rank: i + 1, name: n, photo: v5Card?.photo || null, rings: [212, 189, 176, 70, 55, 32, 29, 26, 25, 24][i] })) });
       }, 2500);
       return () => window.clearTimeout(t);
     } catch { return undefined; }
@@ -7625,12 +7625,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <Celebrate lang={lang} mode={kxCeleb.mode} week={kxCeleb.week} rank={kxResult?.rank ?? null} rings={kxResult?.rings ?? null}
             name={v5Card?.first_name || ''} photo={v5Card?.photo || null} top3={kxCeleb.top3} inviteCode={getMyRef() || undefined} shareLink={withRef(kxInviteLink(null), getMyRef())}
             onClose={() => { const w = kxCeleb.mode === 'winner'; setKxCeleb(null); if (w && kxResult) setSheet('result'); }}
-            onShare={(blob) => {
-              const link = withRef(kxInviteLink(null), getMyRef());
-              void shareCard(blob, { name: `kring-week-${kxResult?.rank ?? ''}.png`, caption: lang === 'th' ? 'ติดท็อปประจำสัปดาห์บนกริ๊ง! 🏆' : 'Top of the week on Kring! 🏆', link,
-                copy: async (x: string) => { try { await navigator.clipboard.writeText(x); return true; } catch { return false; } }, toast: showToast,
-                copied: lang === 'th' ? 'คัดลอกลิงก์แล้ว · ใน IG สตอรี่ ใส่สติกเกอร์ลิงก์แล้ววาง' : 'Link copied · in your IG story add a link sticker and paste' });
-            }}
+            makeStory={() => cardBlob({ lang, moment: 'proof', look: 'B3', rank: kxResult?.rank ?? 1, daysLeft: 0, won: kxResult?.prize?.amount ?? 0,
+              paidN: 8, pool: 4400, code: displayCode(null, getMyRef() || ''), hero: v5Card?.photo || null })}
+            onShare={() => { setKxCeleb(null); openShareWin(); }}
             onPrize={() => {
               setKxCeleb(null);
               if (!kxResult?.prize) return;

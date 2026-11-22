@@ -74,7 +74,7 @@ export function boom(at = 0, vol = 0.6, crackle = true): void {
   const g = c.createGain(); g.gain.setValueAtTime(vol * 0.9, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.65);
   s.connect(f).connect(g).connect(m); s.start(t, Math.random()); s.stop(t + 0.7);
   if (!crackle) return;
-  for (let i = 0; i < 26; i++) {
+  for (let i = 0; i < 12; i++) {
     const ct = t + 0.25 + Math.random() * 1.1;
     const cs = c.createBufferSource(); cs.buffer = noise(c);
     const cf = c.createBiquadFilter(); cf.type = 'highpass'; cf.frequency.value = 2500 + Math.random() * 4000;
@@ -115,5 +115,20 @@ export function sparkle(at = 0, vol = 0.16): void {
     osc.type = 'sine'; osc.frequency.value = fq;
     g.gain.setValueAtTime(0.0001, st); g.gain.exponentialRampToValueAtTime(vol, st + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, st + 0.35);
     osc.connect(g).connect(m); osc.start(st); osc.stop(st + 0.4);
+  });
+}
+
+/** Warm "you won" swell: a soft major-7 chord that blooms and fades (replaces the arcade fanfare). */
+export function swell(at = 0, vol = 0.16): void {
+  const o = out(); if (!o) return;
+  const { c, m } = o; const t = c.currentTime + at;
+  [523.25, 659.25, 783.99, 987.77, 1046.5].forEach((fq, i) => {
+    [0, 4].forEach((det) => {
+      const osc = c.createOscillator(); const g = c.createGain();
+      osc.type = 'sine'; osc.frequency.value = fq; osc.detune.value = det - 2;
+      const st = t + i * 0.05;
+      g.gain.setValueAtTime(0.0001, st); g.gain.exponentialRampToValueAtTime(vol * (i === 4 ? 0.5 : 1) / 2, st + 0.35); g.gain.exponentialRampToValueAtTime(0.0001, st + 2.6);
+      osc.connect(g).connect(m); osc.start(st); osc.stop(st + 2.7);
+    });
   });
 }
