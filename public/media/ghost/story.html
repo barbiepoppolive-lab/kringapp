@@ -6,7 +6,7 @@ html{width:100%;height:100%;overflow:hidden;background:#05040a}body{position:abs
 #bg{position:absolute;inset:-30px;background:url(../board/skyline.jpg) center 70%/cover;filter:brightness(.55) saturate(1.25) hue-rotate(-12deg) blur(.5px)}
 #shade{position:absolute;inset:0;background:radial-gradient(75% 45% at 50% 43%,rgba(90,50,160,.28),rgba(5,4,10,.78) 80%),linear-gradient(180deg,rgba(5,4,10,.55),rgba(5,4,10,.05) 35%,rgba(5,4,10,.85))}
 canvas{position:absolute;left:0;top:0;width:390px;height:844px}
-.cap{position:absolute;left:24px;right:24px;text-align:center;font:800 30px/1.3 A;text-shadow:0 4px 24px rgba(0,0,0,.7);opacity:0;top:735px;padding:12px 16px 14px;border-radius:24px;background:rgba(14,10,30,.45);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+.cap{position:absolute;left:24px;right:24px;text-align:center;font:800 30px/1.3 A;text-shadow:0 4px 24px rgba(0,0,0,.7);opacity:0;top:720px;padding:12px 16px 14px;border-radius:24px;background:rgba(14,10,30,.45);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
 .cap small{display:block;font:500 15px system-ui,sans-serif;opacity:.75;margin-top:6px;letter-spacing:.02em}
 .p{background:linear-gradient(90deg,#8D9BFF,#FF7CC2);-webkit-background-clip:text;background-clip:text;color:transparent}
 #ask{position:absolute;inset:0;background:#0b0916;opacity:0}
@@ -18,13 +18,13 @@ canvas{position:absolute;left:0;top:0;width:390px;height:844px}
 <div class="cap" id="c1">…เสียงอะไรน่ะ? 👀<small>…what was that?</small></div>
 <div class="cap" id="c2">ผีหิวโผล่มา! 👻<small>A Hungry Ghost breaks through!</small></div>
 <div class="cap" id="c2b">มันเล็งแหวนชมพู… 👀<small>It's eyeing the pink ring…</small></div>
-<div class="cap" id="c2c" style="top:715px">แหวนชมพูหนี! แหวนฟ้าตามไปช่วย 💨<small>Pink runs! Blue races to help</small></div>
+<div class="cap" id="c2c">แหวนชมพูค่อยๆ หนี… ผีหิวไล่ตาม 😰<small>Pink slowly backs away… the ghost follows</small></div>
 <div class="cap" id="c3">งั่ม! 😱<small>Chomp!</small></div>
 <div class="cap" id="c4">แหวนฟ้ามาช่วยแล้ว! <span class="p">Kring</span> ไม่ทิ้งกัน<small>Blue is here! Kring never leaves anyone behind</small></div>
 <div class="cap" id="c4b">ร่วมมือกันซัด! 👊💥<small>Together, they punch it out!</small></div>
-<div class="cap" id="c5" style="top:700px">ไม่มีอะไรมาขวาง<br>คอมมูนิตี้<span class="p">กริ๊ง</span>ได้ 💫<small>Nothing comes between the Kring community.</small></div>
+<div class="cap" id="c5">ไม่มีอะไรมาขวาง<br>คอมมูนิตี้<span class="p">กริ๊ง</span>ได้ 💫<small>Nothing comes between the Kring community.</small></div>
 <script>
-(()=>{const fit=()=>{const k=Math.max(innerWidth/390,innerHeight/844);document.body.style.transform=`translate(${(innerWidth-390*k)/2}px,${Math.min(0,innerHeight-844*k)}px) scale(${k})`};fit();addEventListener('resize',fit);})();
+(()=>{const fit=()=>{const k=Math.min(innerWidth/390,innerHeight/844)*1.0;document.body.style.transform=`translate(${(innerWidth-390*k)/2}px,${(innerHeight-844*k)/2}px) scale(${k})`};fit();addEventListener('resize',fit);})();
 (()=>{const L=new URLSearchParams(location.search).get('lang')||'th';document.querySelectorAll('.cap').forEach(c=>{const sm=c.querySelector('small');if(!sm)return;if(L==='th'){sm.remove();}else{c.innerHTML=sm.innerHTML;}});})();
 
 const $=id=>document.getElementById(id);
@@ -98,22 +98,21 @@ function frame(t){T=t;x.clearRect(0,0,390,844);
  if(t>4.5){gA=seg(t,4.5,4.8);const k=seg(t,4.5,5.9);gY=lerp(GROUND,470,eo(k))+Math.sin(t*3)*6;gS=lerp(.3,.95,back(seg(t,4.5,5.2)));
   debris.forEach(d=>{const tt=t-4.5;if(tt>0&&tt<1.6){x.globalAlpha=1-tt/1.6;x.fillStyle='#3b2a5e';x.save();x.translate(CX+d.vx*tt,GROUND+d.vy*tt+300*tt*tt);x.rotate(d.rot+tt*5);x.fillRect(-d.r,-d.r,d.r*2,d.r*2);x.restore();}});x.globalAlpha=1;}
  // 3) eyeing 5.9-6.9, suction 6.9-7.4, flee 7.4-8.6, chomp 8.6-9.0, rescue 9.0-9.9
- const fleePath=k=>({x:lerp(CX+OFF,262,eio(k)),y:CY+60-Math.sin(k*Math.PI)*40-eio(k)*150});
+ const fleePath=k=>({x:lerp(CX+OFF,CX+48,eio(k))+Math.sin(k*9)*4,y:lerp(CY,CY-95,eio(k))});
  if(t>=5.9){gX=CX;gY=470+Math.sin(t*3)*5;gS=.95;gA=1;}
  LX=2;LY=1;if(t>=5.9&&t<9.0){LX=5;LY=-5;}
  if(t>=5.9&&t<6.9){open=.25+.15*Math.sin(t*10);if(t>6.3)pP={...pP,x:pP.x+Math.sin(t*40)*1.5};}
- if(t>=6.9&&t<7.4){const k=eo(seg(t,6.9,7.4));open=.6;pP={x:CX+OFF+Math.sin(t*50)*3,y:lerp(CY,CY+60,k),s:.95,tilt:0,a:1};
-  for(let i=0;i<14;i++){const ph=(i/14+t*1.5)%1;x.globalAlpha=Math.sin(ph*Math.PI)*.8;x.fillStyle=P.g;x.beginPath();x.arc(lerp(pP.x+Math.cos(i)*40,gX,ph),lerp(pP.y+Math.sin(i)*40,gY,ph),1.8,0,6.283);x.fill();}x.globalAlpha=1;}
- if(t>=7.4&&t<9.0){const k=seg(t,7.4,8.6);const p=fleePath(k);pP={x:p.x,y:p.y,s:.9,tilt:.1,a:1};
-  const gp=fleePath(clamp(k-.22));gX=lerp(CX,gp.x,seg(t,7.4,7.9));gY=lerp(470,gp.y+45,seg(t,7.4,7.9));open=.5+.4*Math.sin(t*14);gS=.85;
-  const bp=fleePath(clamp(k-.5));bP={x:lerp(CX-OFF,bp.x-70,seg(t,7.4,8.0)),y:lerp(CY,bp.y+130,seg(t,7.4,8.0)),s:.9,tilt:.1,a:1};
-  [.05,.1].forEach((dt,i)=>{const e=fleePath(clamp(k-dt));ringAt(P,e.x,e.y,.9*(1-.08*(i+1)),.1,[.14,.06][i],8);});
+ if(t>=6.9&&t<7.4){pP={x:CX+OFF+Math.sin(t*40)*2,y:CY,s:1,tilt:0,a:1};open=.5;}
+  if(t>=7.4&&t<9.0){const k=seg(t,7.4,8.6);const p=fleePath(k);pP={x:p.x,y:p.y,s:.95,tilt:0,a:1};
+  const gp=fleePath(clamp(k-.28));gX=lerp(CX,gp.x-6,eio(seg(t,7.4,8.2)));gY=lerp(470,gp.y+58,eio(seg(t,7.4,8.2)));open=.45+.25*Math.sin(t*6);gS=.85;
+  bP={x:CX-OFF+Math.sin(t*30)*1.5,y:CY,s:1,tilt:0,a:1};
+  if(t<8.6){const sx=pP.x+R*.95,sy=pP.y-R*.85;x.save();x.font='30px serif';x.textAlign='center';x.globalAlpha=sm(seg(t,7.5,7.8));x.fillText('😰',sx,sy+Math.sin(t*5)*3);x.restore();for(let d=0;d<2;d++){const ph=((t*1.2+d*.5)%1);x.globalAlpha=1-ph;x.fillStyle='#8fd3ff';x.beginPath();x.ellipse(pP.x-R*.9-d*8,pP.y-R*.4+ph*26,2.6,4,0,0,6.283);x.fill();}x.globalAlpha=1;}
   if(t>=8.6){const ck=seg(t,8.6,9.0);open=1;flash(pP.x+20,pP.y+30,70,1-ck,'rgba(255,124,194,A)');for(let i=0;i<8;i++){x.globalAlpha=1-ck;x.fillStyle='#FF4FA3';x.beginPath();x.arc(pP.x+20+Math.cos(i)*ck*50,pP.y+30+Math.sin(i)*ck*50,2.5,0,6.283);x.fill();}x.globalAlpha=1;}}
  if(t>=8.6)bite=.75;
  // 4) blue catches up and both rings fight the ghost right where it bit (8.9-10.9)
- const CH=fleePath(1);const GH={x:CX+8,y:CH.y+60};const G0={x:CH.x-8,y:CH.y+48};
+ const CH=fleePath(1);const GH={x:CX+4,y:CH.y+62};const G0={x:CH.x-8,y:CH.y+48};
  if(t>=8.6&&t<11.0){const gm=eio(seg(t,8.9,9.5));gX=lerp(G0.x,GH.x,gm);gY=lerp(G0.y,GH.y,gm)+Math.sin(t*2.2)*3;gS=.85;open=t<9.0?1:.35;
-  const ba=eio(seg(t,8.6,9.4));bP={x:lerp(fleePath(.5).x-70,GH.x-72,ba),y:lerp(fleePath(.5).y+130,GH.y-8,ba),s:.9,tilt:0,a:1};
+  const ba=eio(seg(t,8.6,9.4));bP={x:lerp(CX-OFF,GH.x-72,ba),y:lerp(CY,GH.y-8,ba),s:.9,tilt:0,a:1};
   pP={x:lerp(CH.x,GH.x+54,eio(seg(t,8.9,9.5))),y:lerp(CH.y,GH.y-60,eio(seg(t,8.9,9.5))),s:.9,tilt:0,a:1};
   window.__F={on:t>=9.4&&t<10.8};
   let hit=0;[[9.55,'B'],[9.85,'P'],[10.15,'B'],[10.45,'P']].forEach(([pt])=>{const pk=seg(t,pt,pt+.28);if(pk>0&&pk<1)hit=Math.max(hit,Math.sin(pk*Math.PI));});
