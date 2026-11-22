@@ -1376,3 +1376,11 @@
 .v8-app-root .bx-lw { display: inline-flex; align-items: center; gap: 6px; margin: 8px auto 0; padding: 6px 14px; border-radius: 999px; border: 0;
   background: rgba(10,8,24,.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #FFE08A; font: 800 0.78rem/1 var(--kx-j); cursor: pointer; }
 .v8-app-root .bx-lw b { color: #fff; font-size: 0.95rem; }
+/* 23 Nov fix: multi-card prizes ("300:PIN|50:PIN") overlapped because the ticket's .code/.cp are absolutely positioned.
+   The ticket grows; each card is its own row (amount · PIN · Copy) under the perforation. */
+.v8-app-root .kx-tix.multi { height: auto; min-height: 262px; padding: 204px 18px 16px; }
+.v8-app-root .kx-tix.multi .kx-multi { margin: 0; gap: 10px; }
+.v8-app-root .kx-tix.multi .kx-mrow { background: rgba(42,23,0,.07); border-radius: 14px; padding: 8px 8px 8px 12px; }
+.v8-app-root .kx-tix.multi .kx-mrow .a { min-width: 52px; font: 800 1rem var(--kx-j); }
+.v8-app-root .kx-tix.multi .kx-mrow .code { position: static; font-size: 1rem; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .kx-tix.multi .kx-mrow .cp { position: static; height: 34px; padding: 0 14px; }

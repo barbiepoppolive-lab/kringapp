@@ -322,7 +322,7 @@ export function ClaimedPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewar
       {c && c.code ? (
         <>
           <div className="kx-cd-h">{props.fresh ? L('Claimed!') : L('Your code')}</div>
-          <div className="kx-tix" id="kxTicket" data-brand={c.brand}>
+          <div className={`kx-tix${isMulti(c.code) ? ' multi' : ''}`} id="kxTicket" data-brand={c.brand}>
             <div className="t1"><span className="gb" style={{ background: BRAND_BG[c.brand] }}>{BRAND_NAME[c.brand]}</span><small>{prizeTitle(L, Lf, props.lang, c, true).toLocaleUpperCase()}</small></div>
             <div className="amt">{baht(c.value ?? valueFor(c.brand, c.amount, tmPct(ringsRules(data?.rules))))}</div>
             <div className="perf" />
