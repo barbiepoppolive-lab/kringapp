@@ -16,6 +16,18 @@ import { lineOut, withRef } from './invite';
 // 0185: share-an-answer card, rich replies (big emoji, photo check), quick reactions
 import { AnswerShareSheet, EmojiGrid, MediaNote, ReactBar, applyReact, askCheckPhoto, askReact, askShareShort, bigEmoji, nextReact, useLongPress, type React4 } from './askRich';
 import { postAgo } from './postTime';
+import { tasksToday } from './v5Tasks';
+
+/** 22 Nov (founder): the daily "answer a question" task (+3) counts a top-level answer of at least kr8_rcfg('task_ask_min_chars', 15)
+ *  characters that is not a word-for-word copy of another answer. The composer says so while typing; the number follows the server
+ *  (min_chars from kr8_tasks_today, remembered once read). One language at a time: Thai mode Thai, every other mode English. */
+let askMinChars = 15;
+export const askChars = (s: string) => [...s.trim()].length;
+const askNorm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+export function askTaskHint(th: boolean, n: number, min: number): string {
+  if (n >= min) return th ? `✓ นับภารกิจ +3 ริง (${n}/${min})` : `✓ Counts for +3 Rings (${n}/${min})`;
+  return th ? `ตอบอย่างน้อย ${min} ตัวอักษร + บอกว่าทำไม เพื่อรับ +3 ริง (${n}/${min})` : `Write at least ${min} characters + say why to get +3 Rings (${n}/${min})`;
+}
 
 type LFn = (en: string) => string;
 /** A server refusal the member can act on (ghost mode, too many posts, banned words, no card) gets its own message;
@@ -235,6 +247,7 @@ const Thread: React.FC<{
   const gifIn = useRef<HTMLInputElement>(null);
   const inp = useRef<HTMLInputElement>(null);
   const rechecked = useRef(false);
+  useEffect(() => { if (me && api.mode() === 'live') void tasksToday().then((d) => { const m = d?.tasks?.find((x) => x.id === 'ask')?.min_chars; if (m && m > 0) askMinChars = m; }).catch(() => undefined); }, [me?.id]);   // eslint-disable-line react-hooks/exhaustive-deps
   const load = useCallback(() => {
     setErr(false);
     api.thread(id).then((d) => {
@@ -290,9 +303,18 @@ const Thread: React.FC<{
     setBusy(true);
     try {
       const hadFile = !!media.file;
+      const sentText = text.trim(); const topLevel = !replyTo;
+      const dup = topLevel && !!sentText && data.answers.some((a) => !mine(a.by) && askNorm(a.body || '') === askNorm(sentText));
       const aid = await api.answer(data.q.id, replyTo ? replyTo.parentId || replyTo.id : null, text.slice(0, ASK_MAX_TEXT), media.file);
       setText(''); media.clear(); setReplyTo(null); setEmoji(false);
       load();
+      if (topLevel && api.mode() === 'live' && (askChars(sentText) < askMinChars || dup)) {
+        void tasksToday().then((d) => {
+          const t = d?.tasks?.find((x) => x.id === 'ask');
+          if (t?.min_chars) askMinChars = t.min_chars;
+          if (t && !t.done && !t.claimed) toast(askTh ? 'คำตอบสั้นไปนิด ยังไม่นับภารกิจ เขียนเพิ่มอีกนิดนะ' : 'A bit short, so it doesn’t count for the task yet. Add a little more!');
+        }).catch(() => undefined);
+      }
       // 0185: the photo / GIF stays hidden from others until the automatic check passes (the author sees "Checking photo…")
       if (hadFile && aid && api.mode() === 'live') void askCheckPhoto(aid).then((v) => { if (v !== 'pending') load(); });
     } catch (e) {
@@ -304,6 +326,8 @@ const Thread: React.FC<{
   const q = data?.q;
   const answers = data ? data.answers : [];   // order is fixed when the thread loads, so a vote never makes rows jump
   const canSend = !!(text.trim() || media.file);
+  const askTh = /[\u0E00-\u0E7F]/.test(L('Add an answer'));
+  const nChars = askChars(text);
 
   return (
     <div className="at-page at-thread" role="dialog" aria-label={L('Ask BKK')}>
@@ -398,6 +422,7 @@ const Thread: React.FC<{
           <button type="button" className="at-tool at-gif" aria-label={L('GIF')} onClick={() => need(() => gifIn.current?.click())}>{L('GIF')}</button>
           {canSend && <button type="button" className="at-go" aria-label={L('Post')} disabled={busy} onClick={send}><Ic d={IC.send} s={18} /></button>}
         </div>
+        {me && !replyTo && nChars > 0 ? <p className={`at-min${nChars >= askMinChars ? ' ok' : ''}`} id="askMinHint" role="status" lang={askTh ? 'th' : 'en'}>{askTaskHint(askTh, nChars, askMinChars)}</p> : null}
         <input ref={photoIn} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => { media.pick(e.target.files?.[0]); e.target.value = ''; }} />
         <input ref={gifIn} type="file" accept="image/gif" hidden onChange={(e) => { media.pick(e.target.files?.[0]); e.target.value = ''; }} />
       </div>

@@ -69,7 +69,8 @@ const askLine = (q: { body: string; details?: string | null }, lang: 'th' | 'en'
 function rowText(t: TaskRow, tx: TaskTx, lang: 'th' | 'en'): { title: string; sub: string } {
   switch (t.id) {
     case 'open': return { title: tx.open, sub: t.claimed ? tx.openDone : tx.openS };
-    case 'ask': return { title: tx.ask, sub: t.done ? tx.askDone : t.question ? `“${askLine(t.question, lang)}”` : tx.askNone };
+    case 'ask': { const rule = fmt(tx.askRule, t.min_chars || 15);   // 22 Nov: the 15-character rule, so a 3-word answer is not a surprise
+      return { title: tx.ask, sub: t.done ? tx.askDone : t.question ? `${rule} · “${askLine(t.question, lang)}”` : rule }; }
     case 'vote': {
       const v = t.vote;
       if (v && v.pick) { const lab = v.pick === 'a' ? (lang === 'th' ? v.a_th : v.a_en) : v.pick === 'b' ? (lang === 'th' ? v.b_th : v.b_en) : (lang === 'th' ? v.c_th : v.c_en) || ''; return { title: tx.vote, sub: fmt(tx.voteDone, lab) }; }

@@ -159,3 +159,6 @@
 .v8-app-root .at-pbtn.at-pav { flex: none; align-self: flex-start; margin: -2px 0 0; }
 /* 21 Nov: the post time, small and muted next to the name */
 .v8-app-root .at-c .h .at-t { font-weight: 500; font-size: 0.75rem; color: rgba(255,255,255,.5); }
+/* 22 Nov: the daily-task rule under the answer box (muted, no box); green tick once it counts */
+.v8-app-root .at-min { margin: 6px 16px 0; font-size: .75rem; line-height: 1.35; color: var(--at-mu, rgba(255,255,255,.6)); }
+.v8-app-root .at-min.ok { color: #5BE3A0; }
