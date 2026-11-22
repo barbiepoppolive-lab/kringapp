@@ -45,8 +45,8 @@ export function ShareWinSheet(props: { lang: string; title: string; sub: string;
   onLine: () => void; onFacebook: () => void; onCopy: () => void; onReel: () => void; onPost: () => void; onReelDown?: () => void }) {
   const th = props.lang === 'th';
   const t = th
-    ? { inv: 'ชวนเพื่อน', invS: '(ได้ทั้งคู่)', reel: 'แชร์รีลของฉัน', reelS: '(ต่อเพื่อนที่เปิดดู)', post: 'โพสต์รีลก่อน', story: 'IG Story', myReel: 'รีลฉัน +5', copy: 'คัดลอก', ask: 'ขอให้เพื่อนช่วยแชร์ต่อด้วยนะ 🙏', close: 'ปิด', label: 'แชร์รับริง' }
-    : { inv: 'Invite a friend', invS: '(you both get it)', reel: 'Share my Reel', reelS: '(per friend who opens)', post: 'Post a Reel first', story: 'IG Story', myReel: 'My Reel +5', copy: 'Copy', ask: 'Ask friends to share it on 🙏', close: 'Close', label: 'Share & win Rings' };
+    ? { inv: 'ชวนเพื่อน', invS: '(ได้ทั้งคู่)', reel: 'แชร์รีลของฉัน', reelS: '(ต่อเพื่อนที่เปิดดู)', post: 'โพสต์รีลก่อน', story: 'IG Story', myReel: 'รีลฉัน +5', copy: 'คัดลอก', tip: '💡 แชร์ลงกลุ่ม Facebook (มหาลัย · ย่านบ้าน · กลุ่มที่ชอบ) ได้ผลที่สุด', ask: 'ขอให้เพื่อนช่วยแชร์ต่อด้วยนะ 🙏', close: 'ปิด', label: 'แชร์รับริง' }
+    : { inv: 'Invite a friend', invS: '(you both get it)', reel: 'Share my Reel', reelS: '(per friend who opens)', post: 'Post a Reel first', story: 'IG Story', myReel: 'My Reel +5', copy: 'Copy', tip: '💡 Facebook groups work best (uni · your area · hobby groups)', ask: 'Ask friends to share it on 🙏', close: 'Close', label: 'Share & win Rings' };
   const reelTap = props.hasReel ? props.onReel : props.onPost;
   return (
     <div className="kx-shbg sw-bg" id="kxShareWinBg" onClick={props.onClose}>
@@ -70,6 +70,7 @@ export function ShareWinSheet(props: { lang: string; title: string; sub: string;
           <button type="button" className="sw-b" id="kxShareWinReel" onPointerDown={props.onReelDown} onClick={reelTap}><span className="ic"><ReelIc /></span><span className="tx">{t.myReel}</span></button>
           <button type="button" className="sw-b" id="kxShareWinCopy" onClick={props.onCopy}><span className="ic"><LinkIc /></span><span className="tx">{t.copy}</span></button>
         </div>
+        <p className="sw-tip" id="kxShareWinTip">{t.tip}</p>
         <p className="sw-ask">{t.ask}</p>
       </div>
     </div>

@@ -41,3 +41,5 @@
 .v8-app-root .sw-sheet .sw-b.fb .ic { background: rgba(255,255,255,.09); color: #4B93FF; }
 .v8-app-root .sw-sheet .sw-b .tx { white-space: nowrap; font-weight: 500; }
 .v8-app-root .sw-sheet .sw-ask { text-align: center; }
+.v8-app-root .sw-sheet .sw-tip { margin: 14px 0 0; text-align: center; font-size: .75rem; line-height: 1.35; color: rgba(255,255,255,.6); }
+.v8-app-root .sw-sheet .sw-tip + .sw-ask { margin-top: 6px; }
