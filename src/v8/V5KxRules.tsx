@@ -134,7 +134,7 @@ export function WinSheet({ v, lang, r, onClose, glass, extra }: SheetProps) {
       // rules v2 (30 Nov): Daily Card · streak + reactions · friends · top 8
       { n: 1, art: '📸', th: 'ทำภารกิจรายวัน', en: 'Do your Daily Card',
         chips: [{ th: '📸 รูป +3', en: '📸 Photo +3' }, { th: '🎬 รีล +5', en: '🎬 Reel +5' }, { th: '💬 ถาม BKK +3', en: '💬 Ask BKK +3' },
-          { th: '⚖️ อันไหนดี +1', en: '⚖️ This or That +1' }, { th: '▶️ ดู 3 อัน +1', en: '▶️ Watch 3 +1' }] },
+          { th: '▶️ ดู 3 อัน +1', en: '▶️ Watch 3 +1' }] },
       { n: 2, art: <RingGlyph />, th: 'ต่อเนื่องทุกวัน + มีคนทักรีลคุณ', en: 'Keep your streak, get reactions',
         chips: [{ th: '🔥 3 วัน +5', en: '🔥 3 days +5' }, { th: '🔥 5 วัน +10', en: '🔥 5 days +10' }, { th: '🔥 7 วัน +20', en: '🔥 7 days +20' },
           { th: '👋 +1 ต่อคน', en: '👋 +1 per person' }, { th: `✈️ ×${r.mult}`, en: `✈️ ×${r.mult}` }] },
