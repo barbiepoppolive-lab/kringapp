@@ -135,16 +135,17 @@ import { GoCoach, GoCompose, GoMeReels, GoProfilePage, GoReelPlayer, gridToGo, R
 import { coachDue, coachMark, coachPick, coachReplay, coachSync, newCoachState, type CoachKey, type CoachState } from './goCoach';
 import { shownGender } from './V5Gender';
 import { useChatTranslate } from './v5Translate';
+import { ShareWinSheet, closesWhen, facebookShareUrl, shareWinHead, shareWinText } from './V5ShareWin';
 import { kxMyInvites, kxBreakdown, kxGenderShown, kxMemberReels, kxReelPeople, kxTagPeople, type KxGridReel, type KxMemberReels, type KxTagPerson } from './v5Kx';
 import { kxRules, kxSetWebReels, kxWebReelsGet, type KxWebReels } from './v5Kx';
 import { facePassedHere, markFacePassed, skipClaimFace } from './faceSkip';
-import { invitedByMember, liveSeen, markLiveSeen, oneTapShare, pickLiveReel, refCode, shareText, withRef, type ShareKind, type ShareResult } from './invite';
+import { lineShareUrl, lineOut, invitedByMember, liveSeen, markLiveSeen, oneTapShare, pickLiveReel, refCode, shareText, withRef, type ShareKind, type ShareResult } from './invite';
 import { InviteHint } from './V5Invite';
 import { copyText } from './camGuard';
 import { PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, SavedReelsPage, type PickedPlace } from './V5KxPlaces';
 import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRanking, kxRefName, kxSavedReels, kxShareLink, kxShareLinkCached, kxShareOpenSeen, kxReelUnvLikes,
   type KxCardExtras, type KxClaimResult, type KxFeedExtra, type KxPrize, type KxRanking, type KxRewards, type KxSavedReel, type KxWeekResult } from './v5Kx';
-import { inviteCode, levelFor as kxLevelFor } from './kxLogic';
+import { inviteCode, levelFor as kxLevelFor, weekEnd } from './kxLogic';
 import { armFirstTapSound } from './reelSound';
 import { V5Qr, V5SignInSheet } from './V5Sheets';
 import { V5ShareCard } from './V5ShareCard';
@@ -1821,6 +1822,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         else if (!s0?.user?.id && ((q0.get('ref') && !['reel', 'u', 'place', 'v', 'so', 'person'].some((k) => q0.get(k))) || v5JoinAsked.current) && !sheetRef.current && !installAskRef.current) setSheet('signin');
         // audit P3-14: ?open=rewards while signed out → sign-in first; the rewards page opens right after (pushOpenRef effect)
         else if (!s0?.user?.id && q0.get('open') === 'rewards' && !sheetRef.current) { setV5SignInNotice(L('Sign in to see your rewards')); setSheet('signin'); }
+        else if (!s0?.user?.id && q0.get('open') === 'share' && !sheetRef.current) setSheet('signin');
       } catch { /* ignore */ }
       off = await v5OnAuth((s1) => {
         const id = s1?.user?.id || '';
@@ -2637,6 +2639,20 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     const res = await tapShare(await reelUrlFast(id), kind, name);
     if (res !== 'cancelled') void v5LogShare(id, res);
   };
+  /** Share & win Rings (22 Nov): ?open=share and the board line open one sheet. My best Reel this week (highest score) for "Share my Reel". */
+  const [shareWin, setShareWin] = useState(false);
+  const [shareWinReel, setShareWinReel] = useState<string | null>(null);
+  const openShareWin = () => {
+    setShareWin(true);
+    if (!live || !v5Uid) return;
+    kxBreakdown(v5Uid).then((b) => {
+      const best = [...(b?.reels || [])].sort((x, y) => (y.score || 0) - (x.score || 0))[0]?.post_id || null;
+      setShareWinReel(best);
+      if (best) prefetchReelLink(best);
+    }).catch(() => undefined);
+  };
+  const shareWinUrl = () => withRef(kxInviteLink(null), getMyRef());
+  const openOut = (x: string) => { if (inAppBrowser(navigator.userAgent) === 'line') location.href = x; else window.open(x, '_blank', 'noopener'); };
   /** The post-success / "Your Reel is live" button. Pending: my profile link (+ref) with "my new Reel is coming up" text. */
   const sharePosted = (m: { id: string; mode: 'posted' | 'pending' | 'live' }) => {
     setPostedShare(null);
@@ -3645,6 +3661,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     pushOpenRef.current = false;
     openPushLink({ rewards: true });
   }, [live, signedIn, v5Uid]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // 22 Nov: kringapp.com/app/?open=share → the Share & win Rings sheet once signed in with a card (signed out: sign-in first)
+  const shareOpenRef = useRef<boolean>((() => { try { return new URLSearchParams(location.search).get('open') === 'share'; } catch { return false; } })());
+  useEffect(() => {
+    if (!shareOpenRef.current || !live || !signedIn || !v5Uid || !v5Card || sheet || adminViewActive()) return;
+    shareOpenRef.current = false;
+    openShareWin();
+  }, [live, signedIn, v5Uid, !!v5Card, sheet]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (live && signedIn && v5Uid) void pushResync(v5Uid).catch(() => undefined); }, [live, signedIn, v5Uid]);
   // came here from an in-app browser after tapping Turn on dings (?dings=1): ask again here, one tap
   useEffect(() => {
@@ -7544,10 +7567,23 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onAsk={(q) => { setMeTasks(false); setTab('feed'); setAskOpenThread(q); pickFeedMode('ask'); }}
             onVerify={() => { setMeTasks(false); setVerifyMode('me'); setSheet('verify'); }} />
         )}
+        {shareWin && live && v5Uid && (
+          <ShareWinSheet lang={shareLang} hasReel={!!shareWinReel}
+            {...(() => { const end = (kxWeek?.ends_at ? Date.parse(kxWeek.ends_at) : 0) || weekEnd(Date.now());
+              return shareWinHead(shareLang, kxWeek ? kxWeekHook(kxWeek, 0) : null, kxWeek?.me?.rings ?? 0, closesWhen(end, shareLang)); })()}
+            onPost={() => { setShareWin(false); requireSignInForAction(() => kxPostAt()); }}
+            onClose={() => setShareWin(false)}
+            onShare={() => { void shareNow(shareWinUrl(), shareWinText(shareLang)); }}
+            onLine={() => { const u = lineOut(shareWinUrl()); openOut(lineShareUrl(shareWinText(shareLang), u)); }}
+            onFacebook={() => openOut(facebookShareUrl(shareWinUrl()))}
+            onCopy={() => { void copyText(shareWinUrl()).then((ok) => showToast(ok ? L('Link copied') : shareWinUrl())).catch(() => showToast(shareWinUrl())); }}
+            onReel={() => { if (shareWinReel) void kxShareReelId(shareWinReel); }}
+            onReelDown={() => prefetchReelLink(shareWinReel)} />
+        )}
         {sheet === 'ranking' && live && (
           <RankingPage L={L} Lf={Lf} lang={lang} myArea={v5Card?.area || null} myPhoto={v5Card?.photo || null} myName={v5Card?.first_name || ''} myId={v5Card ? v5Uid || null : null}
             onBack={() => setSheet(null)} onPerson={(id) => void goOpenBest(id)} onPost={() => requireSignInForAction(() => kxPostAt())}
-            onShare={(reel) => void kxShareReelId(reel)} onShareDown={prefetchReelLink}
+            onShare={(reel) => void kxShareReelId(reel)} onShareDown={prefetchReelLink} onShareWin={openShareWin}
             needsVerify={!!meProfile && !(meProfile.verified || v5Card?.verified || faceOkNow) && !v5Ghost && !verifyPending} onVerify={() => setSheet('verify')} />
         )}
         {sheet === 'result' && live && kxResult && (

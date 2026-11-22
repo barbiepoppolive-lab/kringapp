@@ -1,0 +1,43 @@
+/* Share & win Rings sheet (22 Nov): the shared light-glass sheet (glass.css), no borders, no boxes; rows separated by space only. */
+.v8-app-root .kx-shbg.sw-bg { z-index: 140; background: rgba(6, 4, 14, .28); }
+.v8-app-root .bx-sharesheet.sw-sheet { padding: 10px 18px calc(28px + env(safe-area-inset-bottom)); text-align: center; }
+.v8-app-root .sw-sheet .sw-x { position: absolute; top: 10px; right: 12px; width: 36px; height: 36px; border: 0; border-radius: 50%; background: transparent; color: rgba(255,255,255,.7); font-size: 1.5rem; line-height: 1; cursor: pointer; }
+.v8-app-root .sw-sheet .sw-t { margin: 2px 0 4px; font: 800 1.25rem/1.25 var(--kx-j, inherit); color: #fff; }
+.v8-app-root .sw-sheet[lang="th"] .sw-t { font-weight: 700; font-size: 1.3125rem; line-height: 1.4; }
+.v8-app-root .sw-sheet .sw-rank { margin: 0 0 14px; font-size: .9375rem; font-weight: 600; color: #FFD3F0; }
+.v8-app-root .sw-sheet .sw-go { position: relative; width: 100%; height: 54px; margin-top: 8px; border: 0; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 10px; color: #fff; cursor: pointer; overflow: hidden;
+  background: linear-gradient(90deg, #FF4FC0 0%, #F0239E 50%, #FF3FCF 100%); box-shadow: 0 0 22px rgba(255,46,170,.45); }
+.v8-app-root .sw-sheet .sw-go .ic { display: grid; } .v8-app-root .sw-sheet .sw-go .ic svg { width: 22px; height: 22px; }
+.v8-app-root .sw-sheet .sw-go .tx { font: 800 1.0625rem/1 var(--kx-j, inherit); }
+.v8-app-root .sw-sheet .sw-note { margin: 8px 0 16px; font-size: .75rem; color: rgba(255,255,255,.66); }
+.v8-app-root .sw-sheet .sw-row { display: flex; justify-content: center; gap: 6px; }
+.v8-app-root .sw-sheet .sw-b { flex: 1 1 0; min-width: 0; max-width: 92px; border: 0; background: transparent; color: #fff; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 4px 2px; cursor: pointer; border-radius: 14px; }
+.v8-app-root .sw-sheet .sw-b:active { background: rgba(255,255,255,.06); }
+.v8-app-root .sw-sheet .sw-b .ic { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.1); }
+.v8-app-root .sw-sheet .sw-b.line .ic { background: #06C755; }
+.v8-app-root .sw-sheet .sw-b.fb .ic { background: #1877F2; }
+.v8-app-root .sw-sheet .sw-b .ic svg { width: 24px; height: 24px; }
+.v8-app-root .sw-sheet .sw-b .tx { font-size: .75rem; line-height: 1.25; font-weight: 600; color: rgba(255,255,255,.9); }
+.v8-app-root .sw-sheet .sw-ask { margin: 16px 0 0; font-size: .8125rem; color: rgba(255,255,255,.78); }
+/* the board entry under my row */
+.v8-app-root .bx-swin { align-self: center; border: 0; background: transparent; color: #FFD3F0; font: 700 .875rem/1.2 var(--kx-j, inherit); padding: 6px 12px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.v8-app-root .bx-swin svg { width: 16px; height: 16px; }
+.v8-app-root .bx-swin:active { background: rgba(255,255,255,.08); }
+/* layout C (founder 22 Nov): two big tiles side by side, then the icon row */
+.v8-app-root .sw-sheet { text-align: left; }
+.v8-app-root .sw-sheet .sw-t { font-size: 1.5rem; padding-right: 36px; }
+.v8-app-root .sw-sheet .sw-rank { color: rgba(255,255,255,.74); font-weight: 500; margin-bottom: 16px; }
+.v8-app-root .sw-sheet .sw-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.v8-app-root .sw-sheet .sw-tile { border: 0; border-radius: 22px; min-height: 96px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: #fff; cursor: pointer; text-align: center; }
+.v8-app-root .sw-sheet .sw-tile b { font: 800 1.75rem/1.1 var(--kx-j, inherit); }
+.v8-app-root .sw-sheet .sw-tile span { font-size: .9375rem; line-height: 1.3; }
+.v8-app-root .sw-sheet .sw-tile small { font-size: .8125rem; line-height: 1.3; opacity: .9; }
+.v8-app-root .sw-sheet .sw-tile.inv { background: linear-gradient(135deg, #FF4FC0 0%, #E33CC8 55%, #B54BEA 100%); box-shadow: 0 8px 26px -10px rgba(255,46,170,.6); }
+.v8-app-root .sw-sheet .sw-tile.reel { background: rgba(255,255,255,.08); }
+.v8-app-root .sw-sheet .sw-tile:active { transform: scale(.98); }
+.v8-app-root .sw-sheet .sw-row { margin-top: 18px; gap: 4px; }
+.v8-app-root .sw-sheet .sw-b .ic { width: 52px; height: 52px; background: rgba(255,255,255,.09); }
+.v8-app-root .sw-sheet .sw-b.line .ic { background: rgba(255,255,255,.09); color: #06C755; }
+.v8-app-root .sw-sheet .sw-b.fb .ic { background: rgba(255,255,255,.09); color: #4B93FF; }
+.v8-app-root .sw-sheet .sw-b .tx { white-space: nowrap; font-weight: 500; }
+.v8-app-root .sw-sheet .sw-ask { text-align: center; }

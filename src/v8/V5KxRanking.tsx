@@ -264,6 +264,8 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   onBack: () => void; onPerson: (id: string) => void; onPost: () => void; onShare: (reel: string) => void;
   /** audit 18 Nov: finger down on "Share my Reel" → fetch the /r/ link early, so the tap opens the share sheet at once */
   onShareDown?: (reel: string) => void;
+  /** 22 Nov: the small "Share & win Rings" line under my row → the Share & win Rings sheet */
+  onShareWin?: () => void;
   /** 0066: not face-verified yet → a small nudge under my photo (everyone still shows on the board; 0111: it is only needed to claim a prize) */
   needsVerify?: boolean; onVerify?: () => void }) {
   const { L, Lf, lang } = props;
@@ -498,6 +500,11 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
         ) : props.myId && !err ? (
           // K-006 (18 Nov): keeps my row's place while the board loads, so the button does not jump up when it arrives (CLS)
           <div className="bx-you bx-you-wait" aria-hidden="true" />
+        ) : null}
+        {props.onShareWin && props.myId && data ? (
+          <button type="button" className="bx-swin" id="kxShareWinOpen" lang={lang === 'th' ? 'th' : 'en'} onClick={props.onShareWin}>
+            <ShareIcon />{lang === 'th' ? 'แชร์รับริง' : 'Share & win Rings'} ›
+          </button>
         ) : null}
         <button type="button" className={`bx-cta${share ? ' share' : ' post'}`} id="kxBoardCta" data-act={share ? 'share' : 'post'} aria-busy={latest === undefined}
           aria-haspopup={share && canStory ? 'dialog' : undefined}
