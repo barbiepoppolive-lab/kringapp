@@ -2613,6 +2613,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [kxResult, setKxResult] = useState<KxWeekResult | null>(null);
   /** 22 Nov: week-close celebration (winner: gift → fireworks → claim; everyone else: fireworks + Top 3). */
   const [kxCeleb, setKxCeleb] = useState<{ mode: 'winner' | 'all'; week: string; top3: KxTop3['top'] } | null>(null);
+  useEffect(() => {   // 22 Nov: "Last week's winners" on the ranking page replays the everyone view
+    const on = () => { kxTop3().then((t) => { if (t && t.top?.length) setKxCeleb({ mode: 'all', week: t.week, top3: t.top }); }).catch(() => {}); };
+    window.addEventListener('kr8:lastweek', on);
+    return () => window.removeEventListener('kr8:lastweek', on);
+  }, []);
   const [kxFly, setKxFly] = useState(false);
   // QA only on *.pages.dev previews: ?celebtest=winner|all shows the celebration with my own card (never on kringapp.com)
   useEffect(() => {

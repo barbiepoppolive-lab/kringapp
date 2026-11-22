@@ -432,6 +432,10 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
               role="timer" aria-label={`${C.cdLabel} ${clock.text}`}><Stopwatch /><span className="t">{clock.text}</span></span>
             <span className="bx-live" id="kxLive"><i aria-hidden="true" />{L('Live')}</span>
           </p>
+          {/* 22 Nov founder: after the close, anyone can replay last week's top 10 (opens the week-close celebration, everyone view) */}
+          <button type="button" className="bx-lw" id="kxLastWeek" onClick={() => window.dispatchEvent(new Event('kr8:lastweek'))}>
+            🏆 {lang === 'th' ? 'ผลสัปดาห์ที่แล้ว' : 'Last week’s winners'} <b aria-hidden="true">›</b>
+          </button>
         </div>
         <button type="button" className="bx-i" id="kxWinOpen" aria-label={L('How to win')} onClick={() => (wr ? setWin(true) : setHow(true))}><InfoIcon /></button>
       </div>
