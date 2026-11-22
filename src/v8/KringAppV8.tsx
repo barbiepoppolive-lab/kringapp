@@ -179,6 +179,10 @@ const V5TicketSheet = lazyPart(() => import('./V5Ticket').then((m) => m.V5Ticket
 const ClaimedPage = lazyPart(() => import('./V5KxRewards').then((m) => m.ClaimedPage));
 const ClaimPage = lazyPart(() => import('./V5KxRewards').then((m) => m.ClaimPage));
 const ResultPage = lazyPart(() => import('./V5KxRewards').then((m) => m.ResultPage));
+const Celebrate = lazyPart(() => import('./V5Celebrate').then((m) => m.Celebrate));
+const RingFly = lazyPart(() => import('./V5Celebrate').then((m) => m.RingFly));
+import { kxTop3, type KxTop3 } from './v5Kx';
+import { shareCard } from './rankStory';
 const RewardsPage = lazyPart(() => import('./V5KxRewards').then((m) => m.RewardsPage));
 const MathSheet = lazyPart(() => import('./V5KxRanking').then((m) => m.MathSheet));
 const HowSheet = lazyPart(() => import('./V5KxRanking').then((m) => m.HowSheet));
@@ -2607,6 +2611,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [kxClaimFocus, setKxClaimFocus] = useState<{ id: string | null; fresh: boolean }>({ id: null, fresh: false });
   const [kxPrizeSel, setKxPrizeSel] = useState<KxPrize | null>(null);
   const [kxResult, setKxResult] = useState<KxWeekResult | null>(null);
+  /** 22 Nov: week-close celebration (winner: gift → fireworks → claim; everyone else: fireworks + Top 3). */
+  const [kxCeleb, setKxCeleb] = useState<{ mode: 'winner' | 'all'; week: string; top3: KxTop3['top'] } | null>(null);
+  const [kxFly, setKxFly] = useState(false);
   const [kxSaved, setKxSaved] = useState<KxSavedReel[] | null>(null);
   const [kxRankLine, setKxRankLine] = useState<string>('');
   /** 21 Nov: my best Reel this week (highest score in the ranking math), for the Me strip's "one Story could do it" Share chip */
@@ -2765,8 +2772,23 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         if (seenWeek !== res.week) {
           try { localStorage.setItem(k, res.week); } catch { /* private mode */ }
           setKxResult(res);
-          setTimeout(() => { if (!sheetRef.current) setSheet('result'); }, 900);
+          if (res.prize) {
+            try { localStorage.setItem(`kr8_celeb_seen_${v5Uid}`, res.week); } catch { /* private mode */ }
+            setTimeout(() => { if (!sheetRef.current) setKxCeleb({ mode: 'winner', week: res.week, top3: [] }); }, 700);
+          } else setTimeout(() => { if (!sheetRef.current) setSheet('result'); }, 900);
         }
+      }
+      if (!(res && res.prize)) {
+        // everyone else: once per closed week, fireworks + this week's Top 3
+        kxTop3().then((t) => {
+          if (!t || !t.week || !t.top?.length) return;
+          const ck = `kr8_celeb_seen_${v5Uid}`;
+          let seen = '';
+          try { seen = localStorage.getItem(ck) || ''; } catch { /* private mode */ }
+          if (seen === t.week) return;
+          try { localStorage.setItem(ck, t.week); } catch { /* private mode */ }
+          setTimeout(() => { if (!sheetRef.current) setKxCeleb({ mode: 'all', week: t.week, top3: t.top }); }, 1600);
+        }).catch(() => undefined);
       }
       if ((c.prizes ?? 0) > 0) setKxReady(true);
       void seenDay;
@@ -7519,6 +7541,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               void kxLoadRewards();
               setKxReady(false);
               setKxClaimFocus({ id: r.claim_id, fresh: r.status === 'assigned' });
+              setKxFly(true);
               if (r.status === 'assigned') triggerRingBurst();
               else showToast(L('Your code is on the way'));
               setSheet('claimed');
@@ -7586,6 +7609,26 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onShare={(reel) => void kxShareReelId(reel)} onShareDown={prefetchReelLink} onShareWin={openShareWin}
             needsVerify={!!meProfile && !(meProfile.verified || v5Card?.verified || faceOkNow) && !v5Ghost && !verifyPending} onVerify={() => setSheet('verify')} />
         )}
+        {kxCeleb && live && (
+          <Celebrate lang={lang} mode={kxCeleb.mode} week={kxCeleb.week} rank={kxResult?.rank ?? null} rings={kxResult?.rings ?? null}
+            name={v5Card?.first_name || ''} photo={v5Card?.photo || null} top3={kxCeleb.top3} inviteCode={getMyRef() || undefined} shareLink={withRef(kxInviteLink(null), getMyRef())}
+            onClose={() => { const w = kxCeleb.mode === 'winner'; setKxCeleb(null); if (w && kxResult) setSheet('result'); }}
+            onShare={(blob) => {
+              const link = withRef(kxInviteLink(null), getMyRef());
+              void shareCard(blob, { name: `kring-week-${kxResult?.rank ?? ''}.png`, caption: lang === 'th' ? 'ติดท็อปประจำสัปดาห์บนกริ๊ง! 🏆' : 'Top of the week on Kring! 🏆', link,
+                copy: async (x: string) => { try { await navigator.clipboard.writeText(x); return true; } catch { return false; } }, toast: showToast,
+                copied: lang === 'th' ? 'คัดลอกลิงก์แล้ว · ใน IG สตอรี่ ใส่สติกเกอร์ลิงก์แล้ววาง' : 'Link copied · in your IG story add a link sticker and paste' });
+            }}
+            onPrize={() => {
+              setKxCeleb(null);
+              if (!kxResult?.prize) return;
+              if (kxResult.prize.status !== 'won') { setSheet('result'); return; }
+              setKxPrizeSel({ id: kxResult.prize.id, kind: 'weekly', week: kxResult.week, rank: kxResult.rank, founding_no: null, amount: kxResult.prize.amount, rings: kxResult.rings, status: 'won', claim_id: null, created_at: '' });
+              void kxLoadRewards();
+              setSheet('claim');
+            }} />
+        )}
+        {kxFly && <RingFly lang={lang} onEnd={() => setKxFly(false)} />}
         {sheet === 'result' && live && kxResult && (
           <ResultPage L={L} Lf={Lf} lang={lang} r={kxResult} photo={v5Card?.photo || null} name={v5Card?.first_name || ''} level={kxMe?.level ?? 1} no={kxMe?.member_no ?? (v5Card as { member_no?: number } | null)?.member_no ?? null}
             onClose={() => setSheet(null)} onPost={() => kxPostAt()} onShare={(reel) => void kxShareReelId(reel)}

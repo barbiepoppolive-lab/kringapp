@@ -1366,3 +1366,9 @@
 .v8-app-root .kx-ef-sw { margin: 10px 0 2px; }
 .v8-app-root .kx-edit .kx-cta { background: linear-gradient(180deg, rgba(11,10,22,0), #0B0A16 45%); }
 .v8-app-root #sh-interests { z-index: 96; }
+/* 22 Nov: several cards for one prize */
+.v8-app-root .kx-multi { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 4px; }
+.v8-app-root .kx-mrow { display: flex; align-items: center; gap: 10px; }
+.v8-app-root .kx-mrow .a { flex: none; min-width: 64px; font-weight: 800; color: #2a1800; }
+.v8-app-root .kx-mrow .code { flex: 1; min-width: 0; font: 800 1rem var(--kx-u); letter-spacing: .06em; overflow-wrap: anywhere; text-align: left; }
+.v8-app-root .kx-mrow .cp { position: static; flex: none; }

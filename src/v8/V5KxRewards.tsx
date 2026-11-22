@@ -19,6 +19,10 @@ type Txf = (en: string, a: string, b?: string) => string;
 
 /** TrueMoney vouchers can arrive as a redeem link instead of a code: the admin pastes the https link as the code. */
 export const isLink = (code: string | null | undefined): boolean => /^https:\/\/[^\s]+$/i.test(code || '');
+/** 22 Nov: one prize can be several TrueMoney cards, stored as "1000:PIN|500:PIN" (each card copied separately). */
+export const isMulti = (code: string | null | undefined): boolean => /^\d+:[^|\s]+(\|\d+:[^|\s]+)+$/.test(code || '');
+export const splitCodes = (code: string | null | undefined): { amt: number; pin: string }[] =>
+  (code || '').split('|').map((x) => { const [a, ...r] = x.split(':'); return { amt: Number(a) || 0, pin: r.join(':') }; });
 const linkHost = (code: string | null | undefined) => { try { return new URL(code || '').host; } catch { return ''; } };
 const BRAND_BG: Record<Brand, string> = { grab: '#00b14f', shopeepay: '#ee4d2d', truemoney: '#ff7a00' };
 const BRAND_SITE: Record<Brand, string> = { grab: 'https://www.grab.com/th/', shopeepay: 'https://shopee.co.th/m/shopeepay', truemoney: 'https://www.truemoney.com/' };
@@ -322,8 +326,15 @@ export function ClaimedPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewar
             <div className="t1"><span className="gb" style={{ background: BRAND_BG[c.brand] }}>{BRAND_NAME[c.brand]}</span><small>{prizeTitle(L, Lf, props.lang, c, true).toLocaleUpperCase()}</small></div>
             <div className="amt">{baht(c.value ?? valueFor(c.brand, c.amount, tmPct(ringsRules(data?.rules))))}</div>
             <div className="perf" />
-            {isLink(c.code) ? <div className="code link" id="kxCode" data-link="1">{L('Your redeem link')}<small>{linkHost(c.code)}</small></div> : <div className="code" id="kxCode">{c.code}</div>}
-            <button type="button" className="cp" id="kxCopy" onClick={() => void copy(c.code || '')}>{isLink(c.code) ? L('Copy link') : L('Copy')}</button>
+            {isMulti(c.code) ? (
+              <div className="kx-multi" id="kxCode" data-multi="1">
+                {splitCodes(c.code).map((x, i) => (
+                  <div className="kx-mrow" key={i}><span className="a">{baht(x.amt)}</span><span className="code">{x.pin}</span>
+                    <button type="button" className="cp" onClick={() => void copy(x.pin)}>{L('Copy')}</button></div>
+                ))}
+              </div>
+            ) : <>{isLink(c.code) ? <div className="code link" id="kxCode" data-link="1">{L('Your redeem link')}<small>{linkHost(c.code)}</small></div> : <div className="code" id="kxCode">{c.code}</div>}
+            <button type="button" className="cp" id="kxCopy" onClick={() => void copy(c.code || '')}>{isLink(c.code) ? L('Copy link') : L('Copy')}</button></>}
           </div>
           <a className="kx-og" id="kxOpenApp" style={{ background: BRAND_BG[c.brand] }} href={isLink(c.code) ? c.code! : c.activation_url || BRAND_SITE[c.brand]} target="_blank" rel="noopener noreferrer"
             data-redeem={isLink(c.code) || c.activation_url ? '1' : undefined}>

@@ -54,6 +54,9 @@ export const kxRules = () => rpc<Record<string, number>>('kr8_rings_rules');
 export interface KxWeekResult { week: string; rank: number; rings: number; reel: string | null; prize: { id: string; amount: number; status: 'won' | 'claimed' } | null; line_need: number | null; line_prize: number }
 export interface KxCheckin { added: number; streak: number; bonus: number; ready: { id: string; brand: Brand; amount: number; assigned_at: string }[]; prizes?: number; result?: KxWeekResult | null }
 export const kxCheckin = () => rpc<KxCheckin>('kr8_checkin');
+/** 22 Nov: last closed week's Top 3 for the everyone-celebration (null when no week has closed yet). */
+export interface KxTop3 { week: string; top: { rank: number; name: string; photo: string | null; rings: number }[] }
+export const kxTop3 = () => rpc<KxTop3 | null>('kr8_last_week_top3');
 export type KxClaimResult = { status: 'assigned'; claim_id: string; brand: Brand; amount: number; value: number; code: string; activation_url: string | null }
   | { status: 'pending'; claim_id: string; brand: Brand; amount: number; value?: number };
 /** the phone id prize claims send (0124: shared with client events, see deviceId.ts) */
