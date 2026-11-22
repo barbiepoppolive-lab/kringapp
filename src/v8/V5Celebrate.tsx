@@ -50,7 +50,7 @@ class Fx {
     const loop = () => { this.step(); this.raf = requestAnimationFrame(loop); };
     this.raf = requestAnimationFrame(loop);
   }
-  resize() { this.dpr = Math.min(2, window.devicePixelRatio || 1); this.w = this.cv.clientWidth; this.h = this.cv.clientHeight; this.cv.width = this.w * this.dpr; this.cv.height = this.h * this.dpr; }
+  resize() { this.dpr = 1; this.w = this.cv.clientWidth; this.h = this.cv.clientHeight; this.cv.width = this.w * this.dpr; this.cv.height = this.h * this.dpr; }
   stop() { cancelAnimationFrame(this.raf); this.ps = []; }
   launch(xr = 0.18 + Math.random() * 0.64, tyr = 0.12 + Math.random() * 0.26, pal = PALETTES[Math.floor(Math.random() * PALETTES.length)]) {
     const x = xr * this.w, y = this.h * 0.8;
@@ -58,10 +58,10 @@ class Fx {
     whoosh(0, 0.6, 0.16);
   }
   burst(x: number, y: number, pal: string[]) {
-    const n = reduced() ? 50 : 150; const sp = 3.2 + Math.random() * 1.8;
+    const n = reduced() ? 30 : 72; const sp = 3.2 + Math.random() * 1.8;
     for (let i = 0; i < n; i++) {
       const ang = (Math.PI * 2 * i) / n + Math.random() * 0.05; const s = sp * (0.55 + Math.random() * 0.5);
-      this.ps.push({ x, y, px: x, py: y, vx: Math.cos(ang) * s, vy: Math.sin(ang) * s, a: 1, da: 0.008 + Math.random() * 0.008, c: pal[i % pal.length], w: 1.6 + Math.random(), glitter: Math.random() < 0.35 });
+      this.ps.push({ x, y, px: x, py: y, vx: Math.cos(ang) * s, vy: Math.sin(ang) * s, a: 1, da: 0.008 + Math.random() * 0.008, c: pal[i % pal.length], w: 1.6 + Math.random(), glitter: Math.random() < 0.25 });
     }
     this.ps.push({ x, y, px: x, py: y, vx: 0, vy: 0, a: 1, da: 0.08, c: '#ffffff', w: 26, glitter: false });
     boom(0, 0.45);
@@ -76,7 +76,7 @@ class Fx {
       if (p.rocket) {
         p.x += p.vx; p.y += p.vy; p.vy *= 0.985;
         if (p.y <= p.rocket.ty || p.vy > -1.2) { this.burst(p.x, p.y, p.rocket.pal); continue; }
-      } else { p.vx *= 0.975; p.vy = p.vy * 0.975 + 0.045; p.x += p.vx; p.y += p.vy; p.a -= p.da; }
+      } else { p.vx *= 0.972; p.vy = p.vy * 0.972 + 0.05; p.x += p.vx; p.y += p.vy; p.a -= p.da; }
       if (p.a <= 0) continue;
       const flick = p.glitter && p.a < 0.6 ? (Math.random() < 0.5 ? 0.2 : 1) : 1;
       if (p.w > 20) {
@@ -204,6 +204,73 @@ export async function winStory(o: { lang: string; week: string; rank: number; ri
   } catch { return null; }
 }
 
+
+/* ---------- Kring opening rings (ported 1:1 from the kringapp.com opening, founder 21 Nov) ---------- */
+function OpRings({ play, onLock }: { play: boolean; onLock?: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const op = ref.current; if (!op || !play) return;
+    const AN: Animation[] = []; let lockT = 0;
+    const $ = (q: string) => op.querySelector(q) as HTMLElement | null;
+    const an = (el: Element | null, k: Keyframe[], o: KeyframeAnimationOptions) => { if (!el || !(el as HTMLElement).animate) return; o.fill = o.fill || 'both'; AN.push((el as HTMLElement).animate(k, o)); };
+    const orbEl = $('.orb')!; const W = orbEl.offsetWidth || 220; const F = 0.5, FX = 0.75;
+    if (reduced()) { an($('.br'), [{ opacity: 0 }, { opacity: 1 }], { duration: 500 }); lockT = window.setTimeout(() => onLock?.(), 500); return () => window.clearTimeout(lockT); }
+    const T0 = 120 * F, AP = 1800 * F, HD = 220 * F, LK = 210 * F, D = AP + HD + LK, C = T0 + AP + HD + LK * 0.55;
+    const Q = (t: number) => (t < 0.78 ? 0.85 * Math.pow(t / 0.78, 2.2) : 0.85 + 0.15 * (1 - Math.pow(1 - (t - 0.78) / 0.22, 3)));
+    const sm = (a: number, b: number, x: number) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); return x * x * (3 - 2 * x); };
+    const tf = (x: number, y: number, rx: number, ry: number, sc: number) => `translate(${x.toFixed(2)}px,${y.toFixed(2)}px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) scale(${sc.toFixed(4)})`;
+    const ring = (c: string, d: number, p0: number[], p1: number[]) => {
+      const K: Keyframe[] = [], G: Keyframe[] = [], Hh: Keyframe[] = []; const N = 44; const nm = d * 0.142 * W;
+      for (let i = 0; i <= N; i++) {
+        const t = i / N, q = Q(t), u = q;
+        const x = (1 - u) * (1 - u) * p0[0] * W + 2 * (1 - u) * u * p1[0] * W + u * u * nm, y = (1 - u) * (1 - u) * p0[1] * W + 2 * (1 - u) * u * p1[1] * W;
+        const o = (t * AP) / D;
+        K.push({ offset: o, opacity: Math.min(1, t / 0.1), transform: tf(x, y, 24 * (1 - q), -d * 58 * Math.pow(1 - q, 1.2), 1 / (1 + 7.5 * (1 - q))) });
+        if (i % 4 === 0) { G.push({ offset: o, opacity: 1 - 0.45 * sm(0.4, 0.95, q) }); Hh.push({ offset: o, opacity: sm(0.12, 0.85, q) }); }
+      }
+      K[K.length - 1].easing = 'cubic-bezier(.45,0,.55,1)';
+      K.push({ offset: (AP + HD) / D, opacity: 1, transform: tf(d * 0.118 * W, 0, 0, -d * 3, 1), easing: 'cubic-bezier(.6,0,.4,1)' });
+      K.push({ offset: (AP + HD + LK * 0.62) / D, opacity: 1, transform: tf(-d * 0.014 * W, 0, 0, d * 9, 1.012), easing: 'ease-out' });
+      K.push({ offset: 1, opacity: 1, transform: tf(0, 0, 0, 0, 1) });
+      G.push({ offset: (AP + HD) / D, opacity: 0.85 }, { offset: (AP + HD + LK * 0.62) / D, opacity: 1 }, { offset: 1, opacity: 0.42 });
+      Hh.push({ offset: 1, opacity: 1 });
+      const m = $(`.rg.m.${c}`); an(m, K, { duration: D, delay: T0 }); an(m?.querySelector('.gl') || null, G, { duration: D, delay: T0 }); an(m?.querySelector('.sh') || null, Hh, { duration: D, delay: T0 });
+      op.querySelectorAll(`.rg.e.${c}`).forEach((e, k) => {
+        const a0 = [0.5, 0.3, 0.16][k], lim = (AP * 0.93) / D;
+        const ks = K.filter((f) => (f.offset as number) <= lim).map((f) => { const t = ((f.offset as number) * D) / AP; return { offset: (f.offset as number) / lim, transform: f.transform, opacity: a0 * Math.min(1, t / 0.12) * (1 - sm(0.62, 0.93, t)) } as Keyframe; });
+        if (ks.length) ks[ks.length - 1].offset = 1;
+        an(e, ks, { duration: AP * 0.93, delay: T0 + (k + 1) * 34 * F });
+      });
+    };
+    ring('b', -1, [-0.6, -0.55], [-0.78, 0.38]);
+    ring('p', 1, [0.62, -0.42], [0.8, 0.46]);
+    an($('.hl'), [{ opacity: 0, transform: 'scale(.6)' }, { opacity: 0, transform: 'scale(.7)', offset: (T0 + AP * 0.72) / (C + 700 * FX) }, { opacity: 0.5, transform: 'scale(.95)', offset: (T0 + AP) / (C + 700 * FX) },
+      { opacity: 0.8, transform: 'scale(1)', offset: C / (C + 700 * FX) }, { opacity: 1, transform: 'scale(1.18)', offset: (C + 120 * FX) / (C + 700 * FX) }, { opacity: 0.32, transform: 'scale(1)' }], { duration: C + 700 * FX });
+    an($('.spk'), [{ opacity: 0, transform: 'scale(0) rotate(-120deg)' }, { opacity: 1, transform: 'scale(1.7) rotate(0deg)', offset: 0.35 }, { opacity: 1, transform: 'scale(1) rotate(0deg)' }], { duration: 560 * FX, delay: C, easing: 'cubic-bezier(.2,.8,.3,1)' });
+    an($('.fl'), [{ opacity: 0, transform: 'scale(.3)' }, { opacity: 0.95, transform: 'scale(1)', offset: 0.2 }, { opacity: 0, transform: 'scale(1.9)' }], { duration: 620 * FX, delay: C - 20, easing: 'ease-out', fill: 'none' });
+    op.querySelectorAll('.sw').forEach((w, k) => an(w, [{ opacity: 0, transform: 'scale(.38)' }, { opacity: 0.9, transform: 'scale(.45)', offset: 0.04 }, { opacity: 0, transform: `scale(${2.7 + k * 0.5})` }], { duration: (820 + k * 160) * FX, delay: C + k * 90 * FX, easing: 'cubic-bezier(.15,.75,.3,1)', fill: 'none' }));
+    lockT = window.setTimeout(() => onLock?.(), C);
+    return () => { window.clearTimeout(lockT); AN.forEach((x) => { try { x.cancel(); } catch { /* ignore */ } }); };
+  }, [play]); // eslint-disable-line react-hooks/exhaustive-deps
+  const gl = (cx: number, col: string) => <svg className="gl" viewBox="0 0 1024 1024"><circle cx={cx} cy="512" fill="none" filter="url(#cbOBl)" r="225" stroke={col} strokeWidth="84" /></svg>;
+  return (
+    <div className={`cb-op${play ? ' play' : ''}`} ref={ref} aria-hidden="true">
+      <svg height="0" width="0" style={{ position: 'absolute' }}><filter id="cbOBl" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="26" /></filter></svg>
+      <div className="orb"><div className="br"><span className="hl" /><span className="pulse" />
+        {[0, 1, 2].map((i) => <div key={`b${i}`} className="rg b e">{gl(392, '#8D9BFF')}</div>)}
+        {[0, 1, 2].map((i) => <div key={`p${i}`} className="rg p e">{gl(632, '#FF7CC2')}</div>)}
+        <div className="rg b m">{gl(392, '#8D9BFF')}<svg className="sh" viewBox="0 0 1024 1024"><g className="rb"><circle cx="392" cy="512" fill="none" r="225" stroke="#5B6CFF" strokeWidth="54" /></g></svg></div>
+        <div className="rg p m">{gl(632, '#FF7CC2')}<svg className="sh" viewBox="0 0 1024 1024"><g className="rp"><circle cx="632" cy="512" fill="none" r="225" stroke="#FF4FA3" strokeWidth="54" /></g></svg></div>
+        <span className="fl" /><span className="sw" /><span className="sw s2" />
+        <div className="spw"><svg className="spk" viewBox="0 0 1024 1024"><path d="M50 0C53 36 64 47 100 50C64 53 53 64 50 100C47 64 36 53 0 50C36 47 47 36 50 0Z" fill="#fff" transform="translate(462 462)" /></svg></div>
+      </div></div>
+    </div>
+  );
+}
+
+/** The website's clink: two bright strikes. */
+function clink() { bell(0, 1318, 0.32); bell(0.17, 1318, 0.26); }
+
 /* ---------- the moment ---------- */
 export function Celebrate(p: CelebProps) {
   const { lang } = p;
@@ -221,22 +288,23 @@ export function Celebrate(p: CelebProps) {
     return () => { window.removeEventListener('resize', on); timers.current.forEach((t) => window.clearTimeout(t)); fx.current?.stop(); };
   }, []);
   const later = (ms: number, f: () => void) => { timers.current.push(window.setTimeout(f, ms)); };
-  const show = (n: number, gap: number, from = 0) => { for (let i = 0; i < n; i++) later(from + i * gap + Math.random() * 180, () => fx.current?.launch()); };
 
+  const [play, setPlay] = useState(false);
   const open = () => {
     if (stage !== 'seal') return;
     unlockAudio();
     if (cvRef.current && !fx.current) fx.current = new Fx(cvRef.current);
-    setStage('ignite');
-    bell(0.02, 660, 0.55);
-    show(reduced() ? 1 : 3, 260, 350);
-    later(1500, () => {
-      setStage('reveal');
-      if (winner) { fanfare(0.05); bell(0.3, 990, 0.25); }
-      show(reduced() ? 2 : 7, 520, 200);
-      later(5200, () => show(reduced() ? 1 : 4, 900));
-    });
+    setStage('ignite'); setPlay(true);
+    whoosh(0.05, 1.0, 0.14);
     if (winner && p.rank) story.current = winStory({ lang, week: p.week, rank: p.rank, rings: p.rings || 0, name: p.name || '', photo: p.photo || null, code: p.inviteCode });
+  };
+  const onLock = () => {
+    clink(); bell(0.25, 660, 0.4);
+    later(1250, () => { setStage('reveal'); if (winner) fanfare(0.1); });
+    // three elegant bursts, no more (founder: not a fireworks show)
+    later(150, () => fx.current?.launch(0.22, 0.2, PALETTES[0]));
+    later(700, () => fx.current?.launch(0.78, 0.16, PALETTES[1]));
+    later(2600, () => fx.current?.launch(0.5, 0.12, PALETTES[2]));
   };
   const toggleMute = () => { const m = !mute; setMute(m); setMuted(m); };
   const share = async () => { sparkle(); const b = story.current ? await story.current : null; p.onShare?.(b); };
@@ -251,9 +319,9 @@ export function Celebrate(p: CelebProps) {
       <button type="button" className="cb-mute" aria-label={mute ? 'sound on' : 'mute'} onClick={toggleMute}>{mute ? '🔇' : '🔊'}</button>
       {stage === 'reveal' ? <button type="button" className="cb-x" aria-label={T(lang, 'ปิด', 'Close')} onClick={p.onClose}>✕</button> : null}
 
+      <OpRings play={play} onLock={onLock} />
       {stage !== 'reveal' && (
         <button type="button" className="cb-seal" id="kxCelebGift" onClick={open} aria-label={T(lang, 'แตะเพื่อเปิด', 'Tap to reveal')}>
-          <span className="cb-seal-ring"><KringRings size={150} gold /></span>
           <span className="cb-seal-cap">{cap}</span>
           <span className="cb-seal-t">{winner ? T(lang, 'ผลของคุณมาแล้ว', 'Your result is in') : T(lang, 'ประกาศผู้ชนะประจำสัปดาห์', 'This week’s winners')}</span>
           <span className="cb-seal-s">{T(lang, 'แตะเพื่อเปิด', 'Tap to reveal')}</span>
