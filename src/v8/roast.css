@@ -52,3 +52,10 @@
 .v8-app-root .rk-intro { position: fixed; inset: 0; z-index: 9600; background: #05040a; }
 .v8-app-root .rk-intro iframe { width: 100%; height: 100%; border: 0; display: block; }
 .v8-app-root .rk-skip { position: absolute; right: 14px; top: calc(14px + env(safe-area-inset-top)); border: 0; border-radius: 16px; padding: 7px 14px; background: rgba(255,255,255,.12); color: #fff; font: 700 13px var(--rv-f, system-ui); }
+
+/* 23 Nov founder: anonymous lines with a dot, no names or counts */
+.v8-app-root .rk-c { display: flex; gap: 8px; align-items: flex-start; }
+.v8-app-root .rk-c .dot { flex: none; width: 6px; height: 6px; margin-top: 9px; border-radius: 50%; }
+.v8-app-root .rk-half.r .rk-c .dot { background: #FF7CA3; box-shadow: 0 0 8px #FF4F7A; }
+.v8-app-root .rk-half.f .rk-c { flex-direction: row-reverse; } .v8-app-root .rk-half.f .rk-c .dot { background: #FFE08A; box-shadow: 0 0 8px #FFC94D; }
+.v8-app-root .rk-half.r .rk-c:nth-child(3n+2), .v8-app-root .rk-half.f .rk-c:nth-child(3n+2) { padding: 0; }

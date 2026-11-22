@@ -80,18 +80,11 @@ export function RoastCard(props: { lang: string; q: string; aImg: string | null;
       setMsg(/LEN/.test(c) ? tx.errLen : /LIMIT/.test(c) ? tx.errLimit : /CONTACT/.test(c) ? tx.errContact : /FACE/.test(c) ? tx.errFace : tx.err);
     } finally { setBusy(false); }
   };
-  const like = (id: number) => call<RList>('kr8_roast_like', { p_id: id }).then(setData).catch(() => {});
   const side = (s: 'a' | 'b') => {
     const items = (data?.items || []).filter((x) => x.side === s);
-    const topId = items.length && items[0].likes > 0 ? items[0].id : null;
     const loop = items.length > 3;
     const row = (x: RItem, k: string) => (
-      <div key={k} className={`rk-c${x.id === topId ? ' hot' : ''}`}>
-        {x.id === topId ? <div className="rk-crown">{s === 'a' ? tx.top : tx.topF}</div> : null}
-        <div className="t">{x.body}</div>
-        <div className="m"><span>{x.name}</span>
-          <button type="button" className={`re${x.liked ? ' on' : ''}`} onClick={() => void like(x.id)}>{s === 'a' ? '😂' : '💛'} {x.likes}</button></div>
-      </div>
+      <div key={k} className="rk-c"><i className="dot" aria-hidden="true" /><div className="t">{x.body}</div></div>
     );
     return (
       <div className={`rk-half ${s === 'a' ? 'r' : 'f'}`}>
