@@ -10,3 +10,6 @@ tot-songkran.jpg: File:Le Songkran,Silom road , Bang Rak, Bangkok, Thái Lan - p
 tot-stay-home.jpg: File:View from hotel window on Sukhumvit Road in Bangkok (14826596614).jpg by cloud.shepherd, CC BY 2.0, https://commons.wikimedia.org/wiki/File:View_from_hotel_window_on_Sukhumvit_Road_in_Bangkok_(14826596614).jpg
 tot-sukhumvit-night.jpg: File:Night Scene along Sukhumvit Road.jpg by Adam Jones, CC BY-SA 2.0, https://commons.wikimedia.org/wiki/File:Night_Scene_along_Sukhumvit_Road.jpg
 tot-temple-dawn.jpg: File:Wat Arun or the Temple of Dawn Photo Don Ramey Logan.jpg by Don Ramey Logan, CC BY-SA 3.0, https://commons.wikimedia.org/wiki/File:Wat_Arun_or_the_Temple_of_Dawn_Photo_Don_Ramey_Logan.jpg
+
+tot-kring-roast.jpg: Unsplash photo-1706381069808-fff12d637122 (Unsplash License)
+tot-kring-forgive.jpg: Unsplash photo-1680977735341-29992d88e0e0 (Unsplash License)

@@ -6,6 +6,7 @@
 import { TotHero } from './totHero';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import './tasks.css';
+import { RoastCard } from './V5Roast';
 import {
   claimedCount, doable, fmt, leftCount, readyCount, resetsIn, streakDays, taskClaim, TASK_ORDER, taskState, tasksToday, taskVote, taskWatch,
   tLang, TX, type TaskId, type TaskRow, type TasksToday, type TaskTx,
@@ -251,7 +252,7 @@ export function TasksSheet(props: { lang: string; onClose: () => void; onAsk: (q
   const go = (t: TaskRow) => {
     if (t.id === 'open') { void claim('open'); return; }
     if (t.id === 'ask') { props.onAsk(t.question?.id || null); return; }
-    if (t.id === 'vote') { setVote(true); return; }
+    if (t.id === 'vote') { if (t.vote?.kind === 'roast') { props.onAsk(null); return; } setVote(true); return; }
     if (t.id === 'watch') { props.onClose(); }
     if (t.id === 'post') { props.onClose(); window.dispatchEvent(new Event('kr8:post')); }
   };
@@ -346,6 +347,7 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
   const [grow, setGrow] = useState(false);
   useEffect(() => { if (v?.pick && v.pct) { const id = requestAnimationFrame(() => requestAnimationFrame(() => setGrow(true))); return () => cancelAnimationFrame(id); } setGrow(false); return undefined; }, [v?.pick, !!v?.pct]);   // eslint-disable-line react-hooks/exhaustive-deps
   if (!v) return null;
+  if (v.kind === 'roast') return props.inline ? <RoastCard lang={props.lang} day={data?.day} q={L === 'th' ? v.q_th : v.q_en} aImg={v.a_img} bImg={v.b_img} aLab={L === 'th' ? v.a_th : v.a_en} bLab={L === 'th' ? v.b_th : v.b_en} /> : null;
   const lab = (k: 'a' | 'b' | 'c') => (k === 'a' ? (L === 'th' ? v.a_th : v.a_en) : k === 'b' ? (L === 'th' ? v.b_th : v.b_en) : (L === 'th' ? v.c_th : v.c_en) || '');
   const mine = v.pick || busy;
   const shown = !!(v.pick && v.pct);

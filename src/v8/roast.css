@@ -1,0 +1,54 @@
+/* Roast or Forgive Kring (m198) — comments float on the photos, no boxes */
+.v8-app-root .rk { position: relative; margin: 0 0 10px; color: #fff; font-family: var(--rv-f, system-ui); }
+.v8-app-root .rk-hero { position: relative; height: min(118vw, 520px); display: flex; overflow: hidden; }
+.v8-app-root .rk-half { flex: 1; position: relative; overflow: hidden; }
+.v8-app-root .rk-half .ph { position: absolute; inset: 0; background-size: cover; filter: brightness(.62) saturate(1.1); }
+.v8-app-root .rk-half.r .ph { background-position: 42% 22%; }
+.v8-app-root .rk-half.f .ph { background-position: 48% 55%; }
+.v8-app-root .rk-half::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+.v8-app-root .rk-half.r::after { background: linear-gradient(180deg, rgba(11,9,22,.82) 0%, rgba(11,9,22,0) 30%, rgba(120,10,40,.25) 62%, rgba(11,9,22,.92) 100%); }
+.v8-app-root .rk-half.f::after { background: linear-gradient(180deg, rgba(11,9,22,.82) 0%, rgba(11,9,22,0) 30%, rgba(70,30,140,.3) 62%, rgba(11,9,22,.92) 100%); }
+.v8-app-root .rk-seam { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; z-index: 3; background: linear-gradient(180deg, transparent, rgba(255,124,194,.7), rgba(141,155,255,.7), transparent); }
+.v8-app-root .rk-q { position: absolute; left: 14px; right: 14px; top: 12px; z-index: 4; text-align: center; font: 800 20px/1.34 var(--rv-f, system-ui); text-shadow: 0 2px 18px #000; text-wrap: balance; }
+.v8-app-root .rk-or { position: absolute; left: 50%; top: 96px; width: 40px; height: 40px; margin-left: -20px; border-radius: 50%; z-index: 4; display: grid; place-items: center; font: 800 13px var(--rv-f, system-ui); background: rgba(11,9,22,.8); box-shadow: 0 0 22px rgba(255,124,194,.55); }
+.v8-app-root .rk-feed { position: absolute; top: 140px; bottom: 58px; left: 0; right: 0; z-index: 2; overflow: hidden;
+  -webkit-mask: linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent 100%); mask: linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent 100%); }
+.v8-app-root .rk-track { display: flex; flex-direction: column; gap: 20px; padding: 14px 12px; }
+.v8-app-root .rk-track.loop { animation: rk-up 24s linear infinite; }
+.v8-app-root .rk-half.f .rk-track.loop { animation-delay: -7s; }
+@keyframes rk-up { to { transform: translateY(-50%); } }
+.v8-app-root .rk-c { text-shadow: 0 1px 2px rgba(0,0,0,.9), 0 2px 14px rgba(0,0,0,.75); }
+.v8-app-root .rk-c .t { font: 700 15px/1.4 var(--rv-f, system-ui); overflow-wrap: anywhere; }
+.v8-app-root .rk-c .m { display: flex; gap: 8px; align-items: center; margin-top: 3px; font: 600 11px var(--rv-f, system-ui); opacity: .78; }
+.v8-app-root .rk-c .re { all: unset; cursor: pointer; padding: 2px 4px; border-radius: 8px; }
+.v8-app-root .rk-half.r .rk-c .re { color: #FFB3C8; } .v8-app-root .rk-half.f .rk-c .re { color: #FFE08A; }
+.v8-app-root .rk-c .re.on { font-weight: 800; }
+.v8-app-root .rk-half.r .rk-c:nth-child(3n+1) .t { font-size: 16.5px; } .v8-app-root .rk-half.r .rk-c:nth-child(3n+2) { padding-left: 12px; }
+.v8-app-root .rk-half.f .rk-c { text-align: right; } .v8-app-root .rk-half.f .rk-c .m { justify-content: flex-end; }
+.v8-app-root .rk-half.f .rk-c:nth-child(3n+2) { padding-right: 12px; } .v8-app-root .rk-half.f .rk-c:nth-child(3n) .t { font-size: 16px; }
+.v8-app-root .rk-half.r .hot .t { color: #FFD3DF; } .v8-app-root .rk-half.f .hot .t { color: #FFF0B8; }
+.v8-app-root .rk-crown { font: 800 10px var(--rv-f, system-ui); letter-spacing: .05em; color: #FFE08A; }
+.v8-app-root .rk-empty { margin: 30px 14px 0; font: 600 13px/1.4 var(--rv-f, system-ui); opacity: .75; text-shadow: 0 2px 10px #000; }
+.v8-app-root .rk-half.f .rk-empty { text-align: right; }
+.v8-app-root .rk-lab { position: absolute; bottom: 14px; z-index: 4; text-shadow: 0 2px 14px #000; }
+.v8-app-root .rk-half.r .rk-lab { left: 12px; } .v8-app-root .rk-half.f .rk-lab { right: 12px; text-align: right; }
+.v8-app-root .rk-lab b { display: block; font: 800 18px var(--rv-f, system-ui); }
+.v8-app-root .rk-lab small { font: 600 11px var(--rv-f, system-ui); opacity: .72; }
+.v8-app-root .rk-bar { display: flex; height: 8px; margin: 12px 14px 0; border-radius: 4px; overflow: hidden; background: linear-gradient(90deg, #b98cff, #ff7cc2); }
+.v8-app-root .rk-bar .a { display: block; height: 100%; background: linear-gradient(90deg, #ff3d6e, #ff6a3d); transition: width .8s cubic-bezier(.2,.8,.2,1); }
+.v8-app-root .rk-btns { display: flex; gap: 8px; margin: 12px 12px 0; }
+.v8-app-root .rk-btns button { flex: 1; height: 44px; border: 0; border-radius: 22px; color: #fff; font: 800 14px var(--rv-f, system-ui); }
+.v8-app-root .rk-btns .a, .v8-app-root .rk-box.a .go { background: linear-gradient(90deg, #ff3d6e, #ff6a3d); }
+.v8-app-root .rk-btns .b, .v8-app-root .rk-box.b .go { background: linear-gradient(90deg, #b98cff, #ff7cc2); }
+.v8-app-root .rk-sh { position: fixed; inset: 0; z-index: 9500; background: rgba(5,4,10,.6); display: flex; align-items: flex-end; }
+.v8-app-root .rk-box { width: 100%; padding: 14px 14px calc(14px + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0; background: #15112a; }
+.v8-app-root .rk-box textarea { width: 100%; min-height: 84px; border: 0; outline: 0; resize: none; border-radius: 14px; padding: 12px; background: rgba(255,255,255,.07); color: #fff; font: 600 16px/1.45 var(--rv-f, system-ui); }
+.v8-app-root .rk-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.v8-app-root .rk-row small { opacity: .6; font-size: 12px; } .v8-app-root .rk-row em { flex: 1; font: 600 12px var(--rv-f, system-ui); color: #ffb3c8; font-style: normal; }
+.v8-app-root .rk-row:not(:has(em)) small { flex: 1; }
+.v8-app-root .rk-row button { height: 40px; padding: 0 18px; border: 0; border-radius: 20px; color: #fff; font: 800 14px var(--rv-f, system-ui); }
+.v8-app-root .rk-row .ghost { background: rgba(255,255,255,.08); }
+.v8-app-root .rk-row .go:disabled { opacity: .45; }
+.v8-app-root .rk-intro { position: fixed; inset: 0; z-index: 9600; background: #05040a; }
+.v8-app-root .rk-intro iframe { width: 100%; height: 100%; border: 0; display: block; }
+.v8-app-root .rk-skip { position: absolute; right: 14px; top: calc(14px + env(safe-area-inset-top)); border: 0; border-radius: 16px; padding: 7px 14px; background: rgba(255,255,255,.12); color: #fff; font: 700 13px var(--rv-f, system-ui); }

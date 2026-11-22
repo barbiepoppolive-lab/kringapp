@@ -7,7 +7,7 @@ import { v5Client, V5Error, v5ErrCode } from './v5Live';
 
 export type TaskId = 'post' | 'ask' | 'say' | 'vote' | 'watch' | 'open' | 'bonus';
 export interface TaskVote {
-  kind: 'pair' | 'price'; q_en: string; q_th: string;
+  kind: 'pair' | 'price' | 'roast'; q_en: string; q_th: string;
   a_en: string; a_th: string; a_img: string | null; b_en: string; b_th: string; b_img: string | null;
   c_en: string | null; c_th: string | null; img: string | null;
   pick: 'a' | 'b' | 'c' | null; pct: (Partial<Record<'a' | 'b' | 'c', number>> & { n?: number }) | null;   // pct only after this member voted (0177)
