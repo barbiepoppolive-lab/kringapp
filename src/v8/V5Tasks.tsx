@@ -8,8 +8,8 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import './tasks.css';
 import { RoastCard } from './V5Roast';
 import {
-  claimedCount, doable, fmt, leftCount, readyCount, resetsIn, streakDays, taskClaim, TASK_ORDER, taskState, tasksToday, taskVote, taskWatch,
-  tLang, TX, type TaskId, type TaskRow, type TasksToday, type TaskTx,
+  claimedCount, doable, fmt, leftCount, readyCount, resetsIn, streakDays, taskClaim, TASK_ORDER, taskState, tasksToday, taskVote, taskVoteWho, taskWatch,
+  tLang, TX, VOTE_NUMS_MIN, type TaskId, type TaskRow, type TasksToday, type TaskTx, type VoteWho,
 } from './v5Tasks';
 
 // ───────────── one shared store (the Feed orb, the sheet and the Me line read the same state) ─────────────
@@ -330,6 +330,29 @@ function Count({ v, from }: { v: number; from: number | null }) {
   return <b className="cnt" key={shown}>{shown}</b>;
 }
 
+// ───────────── who voted (24 Nov) ─────────────
+const AV_BG = ['#5B8CFF', '#FF4FD8', '#F0A848', '#3FC9A3', '#A77BFF', '#FF7A6B'];
+/** "Jaaaa, Nut, Ploy +6 voted" with small round photos (a coloured letter when a member has none). */
+function VoteWho({ rows, tx }: { rows: VoteWho[]; tx: TaskTx }) {
+  if (!rows.length) return null;
+  const names = rows.map((r) => r.first_name).filter(Boolean);
+  if (!names.length) return null;
+  const more = Math.max(0, (rows[0]?.n ?? names.length) - names.length);
+  const line = more > 0 ? fmt(tx.whoMore, names.join(', '), more) : names.join(', ');
+  return (
+    <span className="toth-who">
+      <span className="toth-avs" aria-hidden="true">
+        {rows.map((r, i) => (
+          <span key={i} className="toth-av" style={r.photo ? { backgroundImage: `url('${r.photo}')` } : { background: AV_BG[i % AV_BG.length] }}>
+            {r.photo ? '' : (r.first_name || '?').slice(0, 1).toUpperCase()}
+          </span>
+        ))}
+      </span>
+      <span className="toth-wn">{fmt(tx.whoVoted, line)}</span>
+    </span>
+  );
+}
+
 // ───────────── quick vote (A: this or that · price check) ─────────────
 const placeImg = (f: string | null) => (f ? `${((import.meta as unknown as { env?: Record<string, string> }).env?.BASE_URL) || '/'}media/places/${f}` : '');
 /** 20 Nov (founder): "This or that": Kring-made, one a day, one locked vote per member. Shown as the FIRST card of Ask BKK
@@ -346,6 +369,16 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
   const [fresh, setFresh] = useState(false);   // voted in this view → play the reveal
   const [grow, setGrow] = useState(false);
   useEffect(() => { if (v?.pick && v.pct) { const id = requestAnimationFrame(() => requestAnimationFrame(() => setGrow(true))); return () => cancelAnimationFrame(id); } setGrow(false); return undefined; }, [v?.pick, !!v?.pct]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // 24 Nov (founder): show who voted (m204) — first names + photos only, and only once this member has voted
+  const [who, setWho] = useState<VoteWho[]>([]);
+  const voted = !!t?.vote?.pick;
+  const day = data?.day;
+  useEffect(() => {
+    if (!voted) { setWho([]); return undefined; }
+    let off = false;
+    void taskVoteWho(day).then((r) => { if (!off) setWho(Array.isArray(r) ? r : []); }).catch(() => { /* the names are a nicety, never a blocker */ });
+    return () => { off = true; };
+  }, [voted, day]);
   if (!v) return null;
   if (v.kind === 'roast') return props.inline ? <RoastCard lang={props.lang} day={data?.day} q={L === 'th' ? v.q_th : v.q_en} aImg={v.a_img} bImg={v.b_img} aLab={L === 'th' ? v.a_th : v.a_en} bLab={L === 'th' ? v.b_th : v.b_en} /> : null;
   const lab = (k: 'a' | 'b' | 'c') => (k === 'a' ? (L === 'th' ? v.a_th : v.a_en) : k === 'b' ? (L === 'th' ? v.b_th : v.b_en) : (L === 'th' ? v.c_th : v.c_en) || '');
@@ -362,7 +395,10 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
   const pc = (k: 'a' | 'b' | 'c') => (v.pct && typeof v.pct[k] === 'number' ? (v.pct[k] as number) : 0);
   const keys = (v.kind === 'pair' ? ['a', 'b'] : ['a', 'b', 'c']) as ('a' | 'b' | 'c')[];
   const n = v.pct?.n ?? 0;
-  const summary = shown ? `${keys.map((k) => `${pc(k)}%`).join(' · ')} · ${n === 1 ? tx.votes1 : fmt(tx.votesN, n)}` : '';
+  // 24 Nov (founder): one vote read as "100% / 0%" and looked broken — no digits at all under 10 votes, the count in words instead
+  const nums = shown && n >= VOTE_NUMS_MIN;
+  const countLine = shown && !nums ? fmt(tx.votedSoFar, n, VOTE_NUMS_MIN) : '';
+  const summary = shown ? (nums ? `${keys.map((k) => `${pc(k)}%`).join(' · ')} · ${n === 1 ? tx.votes1 : fmt(tx.votesN, n)}` : countLine) : '';
   const earned = fresh && !!data?.verified && (t?.rings ?? 0) > 0;
   // 20 Nov (founder): at the top of Ask BKK the pair question is a full-bleed hero that folds into a slim strip after the vote
   if (props.inline && v.kind === 'pair') {
@@ -370,6 +406,8 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
       <TotHero th={L === 'th'} q={L === 'th' ? v.q_th : v.q_en} imgs={{ a: placeImg(v.a_img), b: placeImg(v.b_img) }} lab={lab} pct={pc}
         pick={(v.pick as 'a' | 'b' | null) || null} busy={(busy as 'a' | 'b' | null) || null} shown={shown} grow={grow} fresh={fresh}
         onPick={(k) => void pick(k)} summary={summary} counted={tx.counted} locked={tx.locked} cap={<><Rings s={13} />{tx.thisOrThat}</>}
+        nums={nums} countLine={countLine} who={shown ? <VoteWho rows={who} tx={tx} /> : null}
+        guessQ={tx.guessQ} guessSub={tx.guessSub} picked={fmt(tx.youPicked, lab((v.pick || busy || 'a') as 'a' | 'b'))}
         ringChip={earned ? <span className="toth-chip ring"><Rings s={12} />{tx.ringPlus}</span> : null} />
     );
   }
@@ -391,7 +429,7 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
                 {me ? <span className="tot-check" aria-hidden="true">✓</span> : null}
                 {me && v.pick ? <span className="tot-yours">{tx.yourPick}</span> : null}
                 <span className="tot-nm">{lab(k)}</span>
-                {shown ? <span className="tot-bar"><i style={{ width: grow ? `${pc(k)}%` : '0%' }} /><b>{pc(k)}%</b></span> : null}
+                {shown ? <span className="tot-bar"><i style={{ width: grow ? `${pc(k)}%` : '0%' }} />{nums ? <b>{pc(k)}%</b> : null}</span> : null}
               </button>
             );
           })}
@@ -408,7 +446,7 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
                   {shown ? <i className="tot-fill" style={{ width: grow ? `${pc(k)}%` : '0%' }} /> : null}
                   <span>{lab(k)}{me && v.pick ? <em className="tot-yours sm">{tx.yourPick}</em> : null}</span>
                   {me ? <span className="tot-check sm" aria-hidden="true">✓</span> : null}
-                  {shown ? <b>{pc(k)}%</b> : null}
+                  {shown && nums ? <b>{pc(k)}%</b> : null}
                 </button>
               );
             })}
@@ -419,6 +457,7 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
         {shown ? (
           <>
             <span className="tot-sum" id="totSummary">{summary}</span>
+            <VoteWho rows={who} tx={tx} />
             <span className="tot-chips">{fresh ? <span className="tot-chip ok">{tx.counted}</span> : <span className="tot-chip">{tx.locked}</span>}{earned ? <span className="tot-chip ring"><Rings s={12} />{tx.ringPlus}</span> : null}</span>
           </>
         ) : <span className="tot-hint">{tx.tapVote}</span>}

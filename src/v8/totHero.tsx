@@ -5,6 +5,11 @@
  * On vote: the existing reveal (glow + ✓ on the pick, the other dims, bars rise from the bottom, "Vote counted ✓", haptic);
  * ~2 s later it folds into a slim glass strip ("You picked Rooftop bar · 62%") and the questions rise; a tap opens it again.
  * Already voted on a later visit → the strip; a new day's question → the full hero again.
+ *
+ * 24 Nov (founder): three upgrades. (1) No digits under 10 votes — the count is said in words instead ("7 voted so far ·
+ * result at 10"), and the folded strip drops the percentage too; the bars still rise. (2) Under the pair, the first names
+ * (and photos) of up to 3 other voters plus a count. (3) Guess first: before the vote each side carries a big "?" and the
+ * question line asks which side everyone else picked.
  */
 import React, { useEffect, useState } from 'react';
 import './totHero.css';
@@ -14,6 +19,10 @@ export interface TotHeroProps {
   th: boolean; q: string; imgs: Record<K, string>; lab: (k: K) => string; pct: (k: K) => number;
   pick: K | null; busy: K | null; shown: boolean; grow: boolean; fresh: boolean;
   onPick: (k: K) => void; summary: string; counted: string; locked: string; ringChip: React.ReactNode; cap: React.ReactNode;
+  /** 24 Nov: digits only from 10 votes (below that `countLine` says how many voted, in words) */
+  nums: boolean; countLine: string; who: React.ReactNode;
+  /** 24 Nov: before the vote both sides are covered with a "?" and the question becomes a guess */
+  guessQ: string; guessSub: string; picked: string;
 }
 export const TOT_FOLD_MS = 2000;
 
@@ -30,13 +39,14 @@ export function TotHero(p: TotHeroProps) {
   }, [p.shown, fresh]);
   const mine = p.pick || p.busy;
   const chosen = (p.pick || p.busy || 'a') as K;
+  const extra = p.shown && (!p.nums || !!p.who);
   return (
-    <div className={`toth${p.shown ? ' shown' : ''}${folded ? ' folded' : ''}${mine ? ' voted' : ''}`} id="totCard" lang={p.th ? 'th' : 'en'}>
+    <div className={`toth${p.shown ? ' shown' : ''}${folded ? ' folded' : ''}${mine ? ' voted' : ''}${extra ? ' extra' : ''}`} id="totCard" lang={p.th ? 'th' : 'en'}>
       <button type="button" className="toth-strip" aria-expanded={!folded} tabIndex={folded ? 0 : -1} aria-hidden={!folded}
         onClick={() => setFolded(false)} data-tot-strip="1">
         <span className="toth-thumb" style={{ backgroundImage: `url('${p.imgs[chosen]}')` }} aria-hidden="true" />
         <span className="toth-st">
-          <b>{p.th ? `คุณเลือก ${p.lab(chosen)} · ${p.pct(chosen)}%` : `You picked ${p.lab(chosen)} · ${p.pct(chosen)}%`}</b>
+          <b>{p.nums ? `${p.picked} · ${p.pct(chosen)}%` : p.picked}</b>
           <small>{p.q}</small>
         </span>
         <span className="toth-chev" aria-hidden="true">⌄</span>
@@ -50,19 +60,27 @@ export function TotHero(p: TotHeroProps) {
                 tabIndex={folded ? -1 : 0} onClick={() => { setHere(true); p.onPick(k); }}>
                 <img src={p.imgs[k]} alt="" draggable={false} />
                 <span className="toth-bfade" aria-hidden="true" />
+                {mine ? null : <span className="toth-qm" aria-hidden="true">?</span>}
                 {me ? <span className="toth-check" aria-hidden="true">✓</span> : null}
                 <span className="toth-nm">{p.lab(k)}</span>
                 {p.shown ? <span className="toth-bar" aria-hidden="true"><i style={{ height: p.grow ? `${Math.max(6, p.pct(k))}%` : '0%' }} /></span> : null}
-                {p.shown ? <b className="toth-pc">{p.pct(k)}%</b> : null}
+                {p.shown && p.nums ? <b className="toth-pc">{p.pct(k)}%</b> : null}
               </button>
             );
           })}
           <span className="toth-tfade" aria-hidden="true" />
           <div className="toth-top">
             <span className="toth-cap">{p.cap}</span>
-            <h3 className="toth-q">{p.q}</h3>
+            <h3 className="toth-q">{mine ? p.q : p.guessQ}</h3>
+            {mine ? null : <p className="toth-sub">{p.guessSub}</p>}
           </div>
           <span className="toth-or" aria-hidden="true">{p.th ? 'หรือ' : 'or'}</span>
+          {extra ? (
+            <div className="toth-under">
+              {p.nums ? null : <span className="toth-cnt">{p.countLine}</span>}
+              {p.who}
+            </div>
+          ) : null}
           {p.shown ? (
             <div className="toth-foot" role="status">
               <span className="toth-sum">{p.summary}</span>

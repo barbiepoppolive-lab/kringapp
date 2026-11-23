@@ -31,7 +31,13 @@ async function call<T>(fn: string, args: Record<string, unknown> = {}): Promise<
   return res.data as T;
 }
 
+/** 24 Nov (founder): one vote looked broken as "100% / 0%" — digits appear only from this many votes. */
+export const VOTE_NUMS_MIN = 10;
+/** who voted today (m204): first names + photos only, and only after this member voted. `n` = other real voters. */
+export interface VoteWho { first_name: string; photo: string | null; pick: 'a' | 'b' | 'c'; n: number }
+
 export const tasksToday = () => call<TasksToday>('kr8_tasks_today');
+export const taskVoteWho = (day?: string) => call<VoteWho[]>('kr8_task_vote_who', day ? { p_day: day } : {});
 export const taskClaim = (task: TaskId) => call<TasksToday>('kr8_task_claim', { p_task: task });
 export const taskVote = (pick: 'a' | 'b' | 'c') => call<TasksToday>('kr8_task_vote', { p_pick: pick });
 export const taskWatch = (post: string, phase: 'start' | 'end') =>
@@ -89,6 +95,7 @@ const EN = {
     faceT: 'Verify your face to collect your Rings', faceS: 'Takes 30 seconds. Your task stays done, collect it right after.', faceGo: 'Verify my face', later: 'Later',
     quickVote: 'Quick vote', priceCheck: 'Price check', tapSide: 'Tap a side · see what everyone picked', voted: '{0} members voted', next: 'Done',
     thisOrThat: 'This or that', tapVote: 'Tap to vote · results after you pick', counted: 'Vote counted ✓', ringPlus: '+1 Ring', yourPick: 'Your pick', votesN: '{0} votes', votes1: '1 vote', locked: 'One vote each · locked in',
+    guessQ: 'Which one did everyone else pick?', guessSub: 'Guess first', votedSoFar: '{0} voted so far · result at {1}', whoVoted: '{0} voted', whoMore: '{0} +{1}', youPicked: 'You picked {0}',
     pricePick: 'Results show after you pick', welcome: 'Good to see you, {0}', checkin: 'Day {0} · check-in +1 Ring', collect: 'Collect',
     watchBar: '{0}/{1} · +1', ringsShort: '+{0}', network: 'Couldn’t load your tasks. Try again.', claimFail: 'Couldn’t collect. Try again.',
     days: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], todayShort: 'Today', close: 'Close',
@@ -106,6 +113,7 @@ const TH: TaskTx = {
     faceT: 'ยืนยันใบหน้าเพื่อรับริงของคุณ', faceS: 'ใช้เวลา 30 วินาที ภารกิจที่ทำแล้วยังอยู่ รับได้ทันทีหลังยืนยัน', faceGo: 'ยืนยันใบหน้า', later: 'ไว้ทีหลัง',
     quickVote: 'โหวตด่วน', priceCheck: 'เช็กราคา', tapSide: 'แตะเลือก · ดูว่าทุกคนเลือกอะไร', voted: 'โหวตแล้ว {0} คน', next: 'เสร็จ',
     thisOrThat: 'อันไหนดี', tapVote: 'แตะเพื่อโหวต · ดูผลหลังเลือก', counted: 'นับโหวตแล้ว ✓', ringPlus: '+1 ริง', yourPick: 'คุณเลือก', votesN: '{0} โหวต', votes1: '1 โหวต', locked: 'โหวตได้คนละครั้ง · ล็อกแล้ว',
+    guessQ: 'คนอื่นเลือกข้อไหน?', guessSub: 'ทายก่อน · เลือกเลย', votedSoFar: '{0} คนโหวตแล้ว · ผลออกเมื่อครบ {1}', whoVoted: '{0} โหวตแล้ว', whoMore: '{0} +{1}', youPicked: 'คุณเลือก {0}',
     pricePick: 'ผลโหวตจะขึ้นหลังคุณเลือก', welcome: 'ยินดีต้อนรับ {0}', checkin: 'วันที่ {0} · เช็กอิน +1 ริง', collect: 'รับเลย',
     watchBar: '{0}/{1} · +1', ringsShort: '+{0}', network: 'โหลดภารกิจไม่ได้ ลองอีกครั้ง', claimFail: 'รับไม่สำเร็จ ลองอีกครั้ง',
     days: ['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'], todayShort: 'วันนี้', close: 'ปิด',
