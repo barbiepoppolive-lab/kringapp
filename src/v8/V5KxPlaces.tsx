@@ -127,8 +127,9 @@ export function PlaceSearchPage(props: { L: Tx; Lf: Txf; lang: string; picked: P
   const row = (p: KxPlace) => (
     <button type="button" key={p.id} className={`kx-prow${picked.length >= 2 && !isOn(p.id) ? ' dim' : ''}`} data-place-row={p.name_en} onClick={() => void flip(p)}>
       <Thumb url={p.photo_url} size={46} />
-      <span className="t"><b>{p.name_en}{p.status === 'pending' ? <i className="kx-pend">{L('Waiting for check')}</i> : null}</b>
-        <span>{p.name_th ? <em className="kx-th2">{p.name_th}</em> : null}<i className="ar">{kxArea(props.lang, p.area, L)}</i>{dist(p) !== null ? <i className="kx-dist">{fmtDist(dist(p))}</i> : null}</span></span>
+      {/* 24 Nov audit: the row printed the English name with the Thai one under it, in both modes. One name, in the member's language. */}
+      <span className="t"><b>{placeName(props.lang, p)}{p.status === 'pending' ? <i className="kx-pend">{L('Waiting for check')}</i> : null}</b>
+        <span><i className="ar">{kxArea(props.lang, p.area, L)}</i>{dist(p) !== null ? <i className="kx-dist">{fmtDist(dist(p))}</i> : null}</span></span>
       <span className={`kx-ck ${isOn(p.id) ? 'on' : 'off'}`}>{saving === p.id ? '…' : isOn(p.id) ? '✓' : '+'}</span>
     </button>
   );
@@ -361,8 +362,9 @@ export function PlacePage(props: { L: Tx; Lf: Txf; lang: string; id: string; onB
         <button type="button" className="kx-ib sm" aria-label={L('Share')} onClick={() => void share()}>➦</button>
       </div>
       <div className="kx-nmb">
-        {p.name_th ? <div className="tt2">{p.name_th}</div> : null}
-        <h1>{p.name_en}</h1>
+        {/* 24 Nov audit: the Thai name showed in English mode too. One language at a time. */}
+        {p.name_th && props.lang === 'th' ? <div className="tt2">{p.name_th}</div> : null}
+        <h1>{props.lang === 'th' && p.name_th ? p.name_th : p.name_en}</h1>
         <div className="ar"><Pin size={17} />{kxArea(props.lang, p.area, L)}{dist !== null ? <span className="kx-dist">{fmtDist(dist)}</span> : null}</div>
       </div>
       <div className="kx-now">

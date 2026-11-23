@@ -123,7 +123,9 @@ function Stats(props: { L: Tx; p: V5Profile; onList: (k: 'followers' | 'followin
 function ReelRow(props: { reels: V5Profile['reels']; posters: Record<string, string>; onOpen: (id: string) => void; pending?: string }) {
   return (
     <div className="kme-mom">
-      {props.reels.slice(0, 9).map((r) => (
+      {/* 24 Nov audit: this was sliced to 9 with no "see all", so a member's 10th Reel onward simply vanished from
+          their profile — worst for the most active members. The grid shows everything they have. */}
+      {props.reels.map((r) => (
         <button type="button" key={r.id} data-reel-tile={r.id} onClick={() => props.onOpen(r.id)}
           style={props.posters[r.poster_path] ? { backgroundImage: `url('${props.posters[r.poster_path]}')` } : undefined}>
           {r.status === 'pending' && props.pending ? <span className="pend">{props.pending}</span> : null}

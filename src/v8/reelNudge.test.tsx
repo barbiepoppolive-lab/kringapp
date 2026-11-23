@@ -27,13 +27,15 @@ describe('first-Reel nudge after the card is saved', () => {
     render(<ReelNudgeSheet poster="/p.jpg" onPost={onPost} onLater={onLater} rules={{}} />);
     const txt = document.body.textContent || '';
     expect(txt).toContain('โพสต์รีลแรกไว้ก่อนเลย');
-    expect(txt).toContain('Top 8 share ฿4,400');                 // audit P1-3: same ladder the server pays
-    expect(txt).toContain('25 Rings');
+    expect(txt).toContain('ท็อป 8 แบ่งกัน ฿4,400');                  // audit P1-3: same ladder the server pays
+    expect(txt).toContain('25 ริง');
+    // 24 Nov audit: a Thai phone sees Thai ONLY — the English line under every Thai one is gone
+    expect(txt).not.toMatch(/Top 8 share|Post a Reel|Later|Rules|Bang Pu/);
     expect(txt).not.toMatch(/Top 5|฿4,000|1 Dec|฿30/);
     expect(txt).not.toMatch(/lucky|draw|chance|ลุ้น|จับรางวัล|โชค/i);
-    expect(screen.getByText('กติกา · Rules').getAttribute('href')).toBe('/rules/');
-    fireEvent.click(screen.getByText('โพสต์รีล · Post a Reel')); expect(onPost).toHaveBeenCalled();
-    fireEvent.click(screen.getByText('ไว้ทีหลัง · Later')); expect(onLater).toHaveBeenCalled();
+    expect(screen.getByText('กติกา').getAttribute('href')).toBe('/rules/');
+    fireEvent.click(screen.getByText('โพสต์รีล')); expect(onPost).toHaveBeenCalled();
+    fireEvent.click(screen.getByText('ไว้ทีหลัง')); expect(onLater).toHaveBeenCalled();
   });
 
   it('an English phone sees English only, no Thai (audit P3-15)', () => {

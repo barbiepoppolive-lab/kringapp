@@ -49,8 +49,9 @@ export function ReelNudgeSheet(props: { poster: string; video?: string; onPost: 
   }, [props.rules]);
   const thai = !props.lang || props.lang === 'th';
   const L: Tx = props.L || ((en) => en);
-  /** Thai phones: Thai + English under. Others: one line in their language (English key through L). */
-  const bi = (th: string, en: string, small = true) => (thai ? <>{th}{small ? <small>{en}</small> : ` · ${en}`}</> : <>{L(en)}</>);
+  /** 24 Nov audit: this used to print the English under (or beside) every Thai line, on the very first sheet a new
+   *  Thai member sees. The member app shows ONE language at a time — Thai phones get Thai only. */
+  const bi = (th: string, en: string) => (thai ? <>{th}</> : <>{L(en)}</>);
   const R = ringsRules(server);
   const line = prizeLine(R);
   const lineL = L('Every week the Top {0} share {1}').replace('{0}', String(weeklySeats(R))).replace('{1}', fmtBaht(weeklyTotal(R)))
@@ -58,31 +59,34 @@ export function ReelNudgeSheet(props: { poster: string; video?: string; onPost: 
   return (
     <>
       {props.backdrop && <div className="sheet-backdrop rn-backdrop" onClick={props.onLater} />}
-      <div className="v8-sheet rn-sheet" id="sh-reelnudge" role="dialog" aria-label={thai ? 'โพสต์รีลแรกไว้ก่อนเลย · Post your first Reel now' : L('Post your first Reel now')}>
+      <div className="v8-sheet rn-sheet" id="sh-reelnudge" role="dialog" aria-label={thai ? 'โพสต์รีลแรกไว้ก่อนเลย' : L('Post your first Reel now')}>
         <div className="grab" />
-        <button type="button" className="xbtn rn-x" aria-label={thai ? 'ไว้ทีหลัง · Later' : L('Later')} onClick={props.onLater}>✕</button>
+        <button type="button" className="xbtn rn-x" aria-label={thai ? 'ไว้ทีหลัง' : L('Later')} onClick={props.onLater}>✕</button>
         <div className="rn-saved"><span className="rn-tick" aria-hidden="true">✓</span><span>{bi('บันทึกบัตรแล้ว', 'Your card is saved')}</span></div>
         <div className="rn-clip" style={{ backgroundImage: `url('${props.poster}')` }}>
           {props.video && <video src={props.video} poster={props.poster} muted autoPlay loop playsInline aria-hidden="true" />}
-          <span className="rn-tag">{thai ? 'บางปู · Bang Pu' : 'Bang Pu'}</span>
+          <span className="rn-tag">{thai ? 'บางปู' : 'Bang Pu'}</span>
         </div>
         <h3 className="rn-title">{bi('โพสต์รีลแรกไว้ก่อนเลย', 'Post your first Reel now')}</h3>
-        <p className="rn-copy" id="rnPrize">{thai ? <>{line.th}<small>{line.en}</small></> : lineL}</p>
+        <p className="rn-copy" id="rnPrize">{thai ? line.th : lineL}</p>
         <PerksStrip thai={thai} />
-        <button type="button" className="primary-cta rn-post" id="rnPost" onClick={props.onPost}>{bi('โพสต์รีล', 'Post a Reel', false)}</button>
+        <button type="button" className="primary-cta rn-post" id="rnPost" onClick={props.onPost}>{bi('โพสต์รีล', 'Post a Reel')}</button>
         <div className="rn-foot">
-          <button type="button" className="rn-later" id="rnLater" onClick={props.onLater}>{bi('ไว้ทีหลัง', 'Later', false)}</button>
-          <a className="rn-rules" href={props.rulesHref || '/rules/'} target="_blank" rel="noopener">{bi('กติกา', 'Rules', false)}</a>
+          <button type="button" className="rn-later" id="rnLater" onClick={props.onLater}>{bi('ไว้ทีหลัง', 'Later')}</button>
+          <a className="rn-rules" href={props.rulesHref || '/rules/'} target="_blank" rel="noopener">{bi('กติกา', 'Rules')}</a>
         </div>
       </div>
     </>
   );
 }
 
-export function FirstReelChip(props: { onPost: () => void }) {
+export function FirstReelChip(props: { onPost: () => void; lang?: string; L?: Tx }) {
+  // 24 Nov audit: this chip printed Thai and English on one line. One language at a time, like every member screen.
+  const thai = !props.lang || props.lang === 'th';
+  const L: Tx = props.L || ((en) => en);
   return (
     <button type="button" className="rn-chip" id="meFirstReelChip" onClick={props.onPost}>
-      <span className="rn-dot" aria-hidden="true" />โพสต์รีลแรก · Post your first Reel <span aria-hidden="true">›</span>
+      <span className="rn-dot" aria-hidden="true" />{thai ? 'โพสต์รีลแรก' : L('Post your first Reel')} <span aria-hidden="true">›</span>
     </button>
   );
 }

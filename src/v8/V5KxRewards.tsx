@@ -307,7 +307,8 @@ export function ClaimedPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewar
   const c: KxClaim | undefined = focused && focused.code ? focused : focused ? undefined : claims.find((x) => x.status === 'assigned');
   const pending = claims.filter((x) => x.status === 'pending');
   const isUsed = (x: KxClaim) => (x.id in used ? used[x.id] : !!x.used_at);
-  const rows = useMemo(() => claims.slice().sort((a, b) => Date.parse(b.assigned_at || b.created_at) - Date.parse(a.assigned_at || a.created_at)).slice(0, 30), [claims]);
+  const rows = useMemo(() => claims.slice()// 24 Nov audit: this stopped at 30 with no "show older", so a long-standing member's early prizes vanished
+    .sort((a, b) => Date.parse(b.assigned_at || b.created_at) - Date.parse(a.assigned_at || a.created_at)), [claims]);
   const copy = async (code: string) => {
     try { await navigator.clipboard.writeText(code); props.toast(isLink(code) ? L('Link copied') : L('Code copied')); } catch { props.toast(code); }
   };

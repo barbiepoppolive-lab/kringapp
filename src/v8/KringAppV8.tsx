@@ -4626,11 +4626,22 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                       {p.video ? (() => {
                         // S: ONE small pin "📍 place · area"; no place → the area only
                         const kp = kxFeedX[p.id]?.places?.[0];
+                        // 24 Nov audit: a Reel may carry two places, and the second one was dropped here with no sign of it
+                        const kp2 = kxFeedX[p.id]?.places?.[1];
                         if (kp) return (
+                          <>
                           <button type="button" className="reel-pin" data-act="place" data-place-chip={kp.id} onClick={(e) => { e.stopPropagation(); kxOpenPlace(kp.id, { name_en: kp.name_en, name_th: kp.name_th, area: kp.area }, true); }}>
                             {/* polish #12: one language per pin (Thai UI: Thai name · Thai area; a place with no Thai name stays all English) */}
                             <RvPin /><b>{lang === 'th' && kp.name_th ? kp.name_th : kp.name_en}</b>{kp.area ? <span> · {lang === 'th' && !kp.name_th ? kp.area : kxArea(lang, kp.area, L)}</span> : null}
                           </button>
+                          {kp2 ? (
+                            <button type="button" className="reel-pin more" data-act="place" data-place-chip={kp2.id}
+                              aria-label={lang === 'th' && kp2.name_th ? kp2.name_th : kp2.name_en}
+                              onClick={(e) => { e.stopPropagation(); kxOpenPlace(kp2.id, { name_en: kp2.name_en, name_th: kp2.name_th, area: kp2.area }, true); }}>
+                              <b>+1</b>
+                            </button>
+                          ) : null}
+                          </>
                         );
                         if (p.place) return (
                           <button type="button" className="reel-pin" data-act="place" aria-label={`${p.place.name} · ${L('See place')}`} onClick={(e) => { e.stopPropagation(); openReelPlace(p.place!); }}>
@@ -5169,7 +5180,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   onOpenMine={(i) => goOpenPlayer((goMine || []).map((r) => gridToGo(r, { id: v5Uid, name: v5Card?.first_name || '', photo: v5Card?.photo || null, handle: kxMe?.ig_handle }, true)), i)}
                   onOpenSaved={(i) => goOpenPlayer((kxSaved || []).map(savedToGo), i, { title: L('Saved Reels') })} />
               )}
-              firstReelChip={showFirstReelChip(v5Uid, meProfile.reels.length > 0) ? <FirstReelChip onPost={() => { setTab('feed'); openCreate(); }} /> : null}
+              firstReelChip={showFirstReelChip(v5Uid, meProfile.reels.length > 0) ? <FirstReelChip lang={lang} L={L} onPost={() => { setTab('feed'); openCreate(); }} /> : null}
               kx={kxMe}
               weekRank={kxWeekRank}
               weekHook={kxWeekHook(kxWeek, kxRewards?.ladder?.[0] || 0)}

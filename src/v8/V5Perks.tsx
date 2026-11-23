@@ -38,13 +38,13 @@ export function PerksCard() {
   );
 }
 
-/** Thai phones: Thai + English under. Every other language: the English line only (audit P3-15). */
+/** 24 Nov audit: Thai phones used to get the English line under each perk. One language at a time on member screens. */
 export function PerksStrip(props: { thai?: boolean } = {}) {
   const thai = props.thai !== false;
   return (
-    <div className="pk-strip" id="rnPerks" aria-label={thai ? 'ทำไมต้องโพสต์บนกริ๊ง! · Why post on Kring' : 'Why post on Kring'}>
+    <div className="pk-strip" id="rnPerks" aria-label={thai ? 'ทำไมต้องโพสต์บนกริ๊ง!' : 'Why post on Kring'}>
       {PERKS.map(([k, , , , , ths, ens]) => (
-        <span key={k} data-perk={k}><Ic k={k} />{thai ? <><b>{ths}</b><small>{ens}</small></> : <b className="en1">{ens}</b>}</span>
+        <span key={k} data-perk={k}><Ic k={k} /><b className={thai ? undefined : 'en1'}>{thai ? ths : ens}</b></span>
       ))}
     </div>
   );
