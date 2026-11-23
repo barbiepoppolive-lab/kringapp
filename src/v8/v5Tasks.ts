@@ -36,8 +36,32 @@ export const VOTE_NUMS_MIN = 10;
 /** who voted today (m204): first names + photos only, and only after this member voted. `n` = other real voters. */
 export interface VoteWho { first_name: string; photo: string | null; pick: 'a' | 'b' | 'c'; n: number }
 
+/**
+ * One-tap reasons (m204). The three presets per side live on kr8_task_votes as flat columns, but the app never reads them:
+ * kr8_task_reason_presets() shapes them into {a,b,c} → [{k,th,en}] and every reason RPC returns the whole payload below,
+ * so one call both writes and refreshes. Preset keys are side+ordinal — 'a1','a2','a3','b1'… (NOT 'a_r1').
+ */
+export interface ReasonPreset { k: string; th: string; en: string }
+export interface VoteReason {
+  id: string; pick: 'a' | 'b' | 'c'; key: string | null; th: string; en: string;
+  own_words: boolean; ups: number; mine: boolean; upvoted: boolean; name: string | null; photo: string | null;
+}
+export interface VoteReasons {
+  day: string; voted: boolean; my_pick?: 'a' | 'b' | 'c' | null;
+  presets: Partial<Record<'a' | 'b' | 'c', ReasonPreset[]>>; reasons: VoteReason[];
+}
+/** The guess streak (m205): consecutive FINISHED days this member picked the majority side. `last` is newest-first, ≤ 7,
+ *  and only holds days that had votes at all — fewer than 7 entries is normal and `mine: null` means they did not vote. */
+export interface StreakDay { day: string; hit: boolean; mine: 'a' | 'b' | 'c' | null; majority: 'a' | 'b' | 'c' | null }
+export interface VoteStreak { current: number; best: number; days: number; hits: number; through: string; last: StreakDay[] }
+
 export const tasksToday = () => call<TasksToday>('kr8_tasks_today');
 export const taskVoteWho = (day?: string) => call<VoteWho[]>('kr8_task_vote_who', day ? { p_day: day } : {});
+export const taskReasonsToday = (day?: string) => call<VoteReasons>('kr8_task_reasons_today', day ? { p_day: day } : {});
+/** Preset only (v1 has no typing — typing is what killed the roast card). The server takes exactly one of p_reason / p_text. */
+export const taskReason = (key: string) => call<VoteReasons>('kr8_task_reason', { p_reason: key });
+export const taskReasonUp = (id: string) => call<VoteReasons>('kr8_task_reason_up', { p_id: id });
+export const taskStreak = () => call<VoteStreak>('kr8_task_streak');
 export const taskClaim = (task: TaskId) => call<TasksToday>('kr8_task_claim', { p_task: task });
 export const taskVote = (pick: 'a' | 'b' | 'c') => call<TasksToday>('kr8_task_vote', { p_pick: pick });
 export const taskWatch = (post: string, phase: 'start' | 'end') =>
@@ -96,6 +120,8 @@ const EN = {
     quickVote: 'Quick vote', priceCheck: 'Price check', tapSide: 'Tap a side · see what everyone picked', voted: '{0} members voted', next: 'Done',
     thisOrThat: 'This or that', tapVote: 'Tap to vote · results after you pick', counted: 'Vote counted ✓', ringPlus: '+1 Ring', yourPick: 'Your pick', votesN: '{0} votes', votes1: '1 vote', locked: 'One vote each · locked in',
     guessQ: 'Which one did everyone else pick?', guessSub: 'Guess first', votedSoFar: '{0} voted so far · result at {1}', whoVoted: '{0} voted', whoMore: '{0} +{1}', youPicked: 'You picked {0}',
+    whyQ: 'Why? Tap one', topReason: 'Top reason today', myReason: 'Your reason', agree: 'Agree',
+    streakRun: 'Right {0} days in a row', streakOne: 'Right yesterday', streakSome: 'Right {0} of {1} days', streakNew: 'Your first guess is in',
     pricePick: 'Results show after you pick', welcome: 'Good to see you, {0}', checkin: 'Day {0} · check-in +1 Ring', collect: 'Collect',
     watchBar: '{0}/{1} · +1', ringsShort: '+{0}', network: 'Couldn’t load your tasks. Try again.', claimFail: 'Couldn’t collect. Try again.',
     days: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], todayShort: 'Today', close: 'Close',
@@ -114,6 +140,8 @@ const TH: TaskTx = {
     quickVote: 'โหวตด่วน', priceCheck: 'เช็กราคา', tapSide: 'แตะเลือก · ดูว่าทุกคนเลือกอะไร', voted: 'โหวตแล้ว {0} คน', next: 'เสร็จ',
     thisOrThat: 'อันไหนดี', tapVote: 'แตะเพื่อโหวต · ดูผลหลังเลือก', counted: 'นับโหวตแล้ว ✓', ringPlus: '+1 ริง', yourPick: 'คุณเลือก', votesN: '{0} โหวต', votes1: '1 โหวต', locked: 'โหวตได้คนละครั้ง · ล็อกแล้ว',
     guessQ: 'คนอื่นเลือกข้อไหน?', guessSub: 'ทายก่อน · เลือกเลย', votedSoFar: '{0} คนโหวตแล้ว · ผลออกเมื่อครบ {1}', whoVoted: '{0} โหวตแล้ว', whoMore: '{0} +{1}', youPicked: 'คุณเลือก {0}',
+    whyQ: 'เพราะอะไร? แตะเลือก', topReason: 'เหตุผลยอดนิยมวันนี้', myReason: 'เหตุผลของคุณ', agree: 'เห็นด้วย',
+    streakRun: 'ทายถูก {0} วันติด', streakOne: 'ทายถูกเมื่อวาน', streakSome: 'ทายถูก {0} จาก {1} วัน', streakNew: 'ทายครั้งแรกของคุณ',
     pricePick: 'ผลโหวตจะขึ้นหลังคุณเลือก', welcome: 'ยินดีต้อนรับ {0}', checkin: 'วันที่ {0} · เช็กอิน +1 ริง', collect: 'รับเลย',
     watchBar: '{0}/{1} · +1', ringsShort: '+{0}', network: 'โหลดภารกิจไม่ได้ ลองอีกครั้ง', claimFail: 'รับไม่สำเร็จ ลองอีกครั้ง',
     days: ['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'], todayShort: 'วันนี้', close: 'ปิด',

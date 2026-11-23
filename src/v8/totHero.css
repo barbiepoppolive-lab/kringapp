@@ -82,3 +82,35 @@
 .v8-app-root .toth-st small { font: 600 12px/1.25 var(--rv-f, system-ui); color: rgba(255, 255, 255, .62); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .v8-app-root .toth-chev { flex: none; font-size: 18px; color: rgba(255, 255, 255, .7); }
 @media (prefers-reduced-motion: reduce) { .v8-app-root :is(.toth-hero, .toth-pair, .toth-strip, .toth-bar i, .toth-or) { transition: none; animation: none; } }
+
+/* 24 Nov: one-tap reasons (m204) + the guess streak (m205). Under the pair, on the page itself — no card, no border, no
+   panel, same glass pills as the strip above them. They stay put when the hero folds. */
+.v8-app-root .toth-rsn { display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 2px; animation: tothIn .45s ease both; }
+.v8-app-root .tor-lab { font: 700 12px var(--rv-f, system-ui); color: rgba(255, 255, 255, .58); }
+.v8-app-root .tor-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.v8-app-root .tor-chip { display: inline-flex; align-items: center; gap: 5px; border: 0; padding: 9px 14px; border-radius: 999px; background: rgba(255, 255, 255, .08);
+  color: #fff; font: 600 13px var(--rv-f, system-ui); cursor: pointer; -webkit-tap-highlight-color: transparent;
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); transition: background .25s ease, transform .18s ease; }
+.v8-app-root .toth[lang='th'] .tor-chip { font-size: 13.5px; }
+.v8-app-root .tor-chip:active:not(:disabled) { transform: scale(.96); }
+.v8-app-root .tor-chip.on { background: linear-gradient(135deg, rgba(91, 140, 255, .92), rgba(255, 79, 216, .92)); }
+.v8-app-root .tor-chip i { font-style: normal; font-size: 11px; }
+.v8-app-root .tor-top { display: flex; align-items: center; gap: 10px; padding: 2px 0 0; animation: tothIn .4s ease both; }
+.v8-app-root .tor-av { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; overflow: hidden;
+  background: center / cover no-repeat #3a3350; font: 800 12px var(--rv-f, system-ui); color: #fff; }
+.v8-app-root .tor-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.v8-app-root .tor-tx small { font: 600 11px var(--rv-f, system-ui); color: rgba(255, 255, 255, .55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .tor-tx b { font: 700 13.5px/1.3 var(--rv-f, system-ui); color: #fff; }
+.v8-app-root :is(.tor-up, .tor-ups) { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 7px 11px; border: 0; border-radius: 999px;
+  background: rgba(255, 255, 255, .08); color: #fff; font: 700 12.5px var(--rv-f, system-ui); }
+.v8-app-root .tor-up { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background .25s ease, transform .18s ease; }
+.v8-app-root .tor-up:active:not(:disabled) { transform: scale(.94); }
+.v8-app-root .tor-up.on { background: rgba(255, 79, 216, .26); color: #FFBDEF; }
+.v8-app-root .tor-stk { display: flex; align-items: center; gap: 8px; padding: 10px 12px 12px; animation: tothIn .45s ease .1s both; }
+.v8-app-root .tor-fire { flex: none; font-size: 14px; line-height: 1; }
+.v8-app-root .tor-sl { flex: 1; min-width: 0; font: 700 12.5px var(--rv-f, system-ui); color: rgba(255, 255, 255, .76); }
+.v8-app-root .tor-dots { display: flex; gap: 5px; flex: none; }
+.v8-app-root .tor-dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, .14); }
+.v8-app-root .tor-dots i.miss { background: rgba(255, 255, 255, .3); }
+.v8-app-root .tor-dots i.hit { background: linear-gradient(135deg, #5B8CFF, #FF4FD8); box-shadow: 0 0 8px rgba(255, 79, 216, .5); }
+@media (prefers-reduced-motion: reduce) { .v8-app-root :is(.toth-rsn, .tor-chip, .tor-top, .tor-stk, .tor-up) { transition: none; animation: none; } }

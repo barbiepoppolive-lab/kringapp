@@ -4,12 +4,14 @@
  * The server decides everything (v5Tasks.ts); this file only shows state and asks.
  */
 import { TotHero } from './totHero';
+import { TotReasons, TotStreak } from './totReasons';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import './tasks.css';
 import { RoastCard } from './V5Roast';
 import {
-  claimedCount, doable, fmt, leftCount, readyCount, resetsIn, streakDays, taskClaim, TASK_ORDER, taskState, tasksToday, taskVote, taskVoteWho, taskWatch,
-  tLang, TX, VOTE_NUMS_MIN, type TaskId, type TaskRow, type TasksToday, type TaskTx, type VoteWho,
+  claimedCount, doable, fmt, leftCount, readyCount, resetsIn, streakDays, taskClaim, TASK_ORDER, taskReason, taskReasonsToday, taskReasonUp, taskState,
+  tasksToday, taskStreak, taskVote, taskVoteWho, taskWatch,
+  tLang, TX, VOTE_NUMS_MIN, type TaskId, type TaskRow, type TasksToday, type TaskTx, type VoteReasons, type VoteStreak, type VoteWho,
 } from './v5Tasks';
 
 // ───────────── one shared store (the Feed orb, the sheet and the Me line read the same state) ─────────────
@@ -379,6 +381,19 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
     void taskVoteWho(day).then((r) => { if (!off) setWho(Array.isArray(r) ? r : []); }).catch(() => { /* the names are a nicety, never a blocker */ });
     return () => { off = true; };
   }, [voted, day]);
+  // 24 Nov: one-tap reasons (m204) + the guess streak (m205). Both only mean anything once this member has voted, and
+  // both are extras — if either call fails the card itself still works, so nothing here can block the vote.
+  const [rsn, setRsn] = useState<VoteReasons | null>(null);
+  const [stk, setStk] = useState<VoteStreak | null>(null);
+  const [rBusy, setRBusy] = useState<string | null>(null);
+  const [upBusy, setUpBusy] = useState(false);
+  useEffect(() => {
+    if (!voted) { setRsn(null); setStk(null); return undefined; }
+    let off = false;
+    void taskReasonsToday(day).then((r) => { if (!off) setRsn(r); }).catch(() => { /* extra, never a blocker */ });
+    void taskStreak().then((r) => { if (!off) setStk(r); }).catch(() => { /* extra, never a blocker */ });
+    return () => { off = true; };
+  }, [voted, day]);
   if (!v) return null;
   if (v.kind === 'roast') return props.inline ? <RoastCard lang={props.lang} day={data?.day} q={L === 'th' ? v.q_th : v.q_en} aImg={v.a_img} bImg={v.b_img} aLab={L === 'th' ? v.a_th : v.a_en} bLab={L === 'th' ? v.b_th : v.b_en} /> : null;
   const lab = (k: 'a' | 'b' | 'c') => (k === 'a' ? (L === 'th' ? v.a_th : v.a_en) : k === 'b' ? (L === 'th' ? v.b_th : v.b_en) : (L === 'th' ? v.c_th : v.c_en) || '');
@@ -400,6 +415,29 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
   const countLine = shown && !nums ? fmt(tx.votedSoFar, n, VOTE_NUMS_MIN) : '';
   const summary = shown ? (nums ? `${keys.map((k) => `${pc(k)}%`).join(' · ')} · ${n === 1 ? tx.votes1 : fmt(tx.votesN, n)}` : countLine) : '';
   const earned = fresh && !!data?.verified && (t?.rings ?? 0) > 0;
+  // every reason RPC returns the whole day's reasons, so a tap needs no second read; if the server refuses (the reason is
+  // locked once someone has upvoted it, KR8_REASON_LOCKED) just re-read what it does have.
+  const reReason = async () => { try { setRsn(await taskReasonsToday(day)); } catch { /* leave what is on screen */ } };
+  const pickReason = async (k: string) => {
+    if (rBusy) return;
+    setRBusy(k);
+    try { navigator.vibrate?.(12); } catch { /* no haptics */ }
+    try { setRsn(await taskReason(k)); } catch { await reReason(); } finally { setRBusy(null); }
+  };
+  const upReason = async (id: string) => {
+    if (upBusy) return;
+    setUpBusy(true);
+    try { setRsn(await taskReasonUp(id)); } catch { await reReason(); } finally { setUpBusy(false); }
+  };
+  const myPick = (v.pick || null) as 'a' | 'b' | 'c' | null;
+  const myReason = rsn?.reasons?.find((r) => r.mine) || null;
+  const after = shown ? (
+    <>
+      <TotReasons th={L === 'th'} tx={tx} presets={(myPick && rsn?.presets?.[myPick]) || []} mineKey={myReason?.key ?? null}
+        top={rsn?.reasons?.[0] || null} busy={rBusy} upBusy={upBusy} onPick={(k) => void pickReason(k)} onUp={(id) => void upReason(id)} />
+      {stk ? <TotStreak tx={tx} s={stk} /> : null}
+    </>
+  ) : null;
   // 20 Nov (founder): at the top of Ask BKK the pair question is a full-bleed hero that folds into a slim strip after the vote
   if (props.inline && v.kind === 'pair') {
     return (
@@ -407,7 +445,7 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
         pick={(v.pick as 'a' | 'b' | null) || null} busy={(busy as 'a' | 'b' | null) || null} shown={shown} grow={grow} fresh={fresh}
         onPick={(k) => void pick(k)} summary={summary} counted={tx.counted} locked={tx.locked} cap={<><Rings s={13} />{tx.thisOrThat}</>}
         nums={nums} countLine={countLine} who={shown ? <VoteWho rows={who} tx={tx} /> : null}
-        guessQ={tx.guessQ} guessSub={tx.guessSub} picked={fmt(tx.youPicked, lab((v.pick || busy || 'a') as 'a' | 'b'))}
+        guessQ={tx.guessQ} guessSub={tx.guessSub} picked={fmt(tx.youPicked, lab((v.pick || busy || 'a') as 'a' | 'b'))} after={after}
         ringChip={earned ? <span className="toth-chip ring"><Rings s={12} />{tx.ringPlus}</span> : null} />
     );
   }

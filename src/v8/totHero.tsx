@@ -23,6 +23,9 @@ export interface TotHeroProps {
   nums: boolean; countLine: string; who: React.ReactNode;
   /** 24 Nov: before the vote both sides are covered with a "?" and the question becomes a guess */
   guessQ: string; guessSub: string; picked: string;
+  /** 24 Nov: one-tap reasons (m204) + the guess streak (m205). Rendered under the pair and OUTSIDE `.toth-hero`, so they
+   *  survive the fold into the slim strip — the reason chips stay tappable after the hero has closed. */
+  after?: React.ReactNode;
 }
 export const TOT_FOLD_MS = 2000;
 
@@ -90,6 +93,7 @@ export function TotHero(p: TotHeroProps) {
           {p.shown && !folded ? <button type="button" className="toth-fold" aria-label="⌃" onClick={() => setFolded(true)}>⌃</button> : null}
         </div>
       </div>
+      {p.after}
     </div>
   );
 }
