@@ -93,15 +93,20 @@ describe('Ask BKK screens', () => {
     expect(screen.getByPlaceholderText('Add an answer')).toBeTruthy();
     expect(screen.getByLabelText('GIF')).toBeTruthy();
   });
-  it('Ask sheet posts a question to the top of the timeline; signed-out taps go to sign-in first', async () => {
+  // 23 Nov (m199): writing a question is the Kring team's job — kr8_ask_create raises KR8_ASK_TEAM_ONLY for members.
+  // 24 Nov (founder): so the "Ask Bangkok locals anything" row came off the member screen; it could only ever error.
+  it('no Ask row on the member screen — questions are the team\'s to write', async () => {
     const api = createAskApi({ live: false, demo: false, me: () => me });
-    let asked = 0;
-    const need = (f: () => void) => { asked += 1; f(); };
-    render(<div className="v8-app-root"><AskThaiView L={L} api={api} me={me} areas={['Bangkok', 'Ari']} areaLabel={(a) => a} need={need} toast={() => {}} /></div>);
+    render(<div className="v8-app-root"><AskThaiView L={L} api={api} me={me} areas={['Bangkok', 'Ari']} areaLabel={(a) => a} need={(f) => f()} toast={() => {}} /></div>);
     await screen.findByText('No questions yet');
-    fireEvent.click(screen.getByRole('button', { name: /^Ask$/ }));
-    expect(asked).toBe(1);
-    const post = screen.getByRole('button', { name: 'Post' }) as HTMLButtonElement;
+    expect(screen.queryByText('Ask Bangkok locals anything')).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Ask$/ })).toBeNull();
+  });
+
+  it('the composer still posts to the top of the timeline when it is opened for the team', async () => {
+    const api = createAskApi({ live: false, demo: false, me: () => me });
+    render(<div className="v8-app-root"><AskThaiView L={L} api={api} me={me} areas={['Bangkok', 'Ari']} areaLabel={(a) => a} need={(f) => f()} toast={() => {}} openCompose /></div>);
+    const post = await screen.findByRole('button', { name: 'Post' }) as HTMLButtonElement;
     expect(post.disabled).toBe(true);
     fireEvent.change(screen.getByLabelText('Your question'), { target: { value: 'Is Chatuchak open on Friday?' } });
     await act(async () => { fireEvent.click(post); });
