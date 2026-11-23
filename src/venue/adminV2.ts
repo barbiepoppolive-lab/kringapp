@@ -1511,9 +1511,46 @@ function facePair(f: FaceCheck, photo: string | null, selfies: Record<string, st
     el('small', { class: 'v2sub' }, liveSteps(f.live)),
     f.reason && f.status === 'rejected' ? el('small', { class: 'v2sub' }, f.reason.split('\n').pop() || '') : null);
 }
+interface FaceHit { user_id: string; no: number | null; name: string | null; verified: boolean | null; links: { user_id: string; no: number | null; name: string | null; reason: string }[] }
+/** 23 Nov (founder): search a member by # or name, see their face and every account the face engine links to them, side by side. */
+function faceSearchCard(): HTMLElement {
+  const out = el('div', { class: 'v2fs-out' });
+  const input = el('input', { type: 'search', id: 'faceSearchQ', placeholder: 'Search member # or name', class: 'v2input', style: 'flex:1;min-width:0;padding:10px 12px;border-radius:12px;border:0;background:rgba(255,255,255,.08);color:inherit;font:inherit' }) as HTMLInputElement;
+  const pairOf = async (uid: string) => {
+    const fs = await rpc<FaceCheck[]>('kr8_admin_v2_face_checks', { p_user: uid, p_auto_only: false, p_limit: 1 }).catch(() => [] as FaceCheck[]);
+    const sel = await signSelfies(fs);
+    return fs[0] ? facePair(fs[0], photos.get(uid) || null, sel, false) : el('small', { class: 'v2sub' }, 'No face check yet');
+  };
+  const run = async () => {
+    const q = input.value.trim();
+    if (!q) { out.replaceChildren(); return; }
+    out.replaceChildren(loadingCard());
+    let hits: FaceHit[] = [];
+    try { hits = await rpc<FaceHit[]>('kr8_admin_face_search', { p_q: q }); } catch (e) { out.replaceChildren(errorCard(e)); return; }
+    if (!hits.length) { out.replaceChildren(el('small', { class: 'v2sub' }, 'No member found.')); return; }
+    await loadPhotos(hits.flatMap((h) => [h.user_id, ...h.links.map((l) => l.user_id)]));
+    const blocks = await Promise.all(hits.map(async (h) => {
+      const rows = await Promise.all(h.links.map(async (l) => el('div', { style: 'margin-top:10px' },
+        el('a', { class: 'v2row', href: `#m/${l.user_id}`, style: 'text-decoration:none;color:inherit' },
+          el('b', { class: 'grow' }, `#${l.no ?? '?'} ${l.name || ''}`), chip(l.reason === 'face' ? 'same face' : 'maybe same face', l.reason === 'face' ? 'r' : 'a')),
+        await pairOf(l.user_id))));
+      return el('section', { class: 'v2card' },
+        el('a', { class: 'v2row', href: `#m/${h.user_id}`, style: 'text-decoration:none;color:inherit' }, el('b', { class: 'grow' }, `#${h.no ?? '?'} ${h.name || ''}`),
+          chip(h.verified ? 'verified' : 'not verified', h.verified ? 'g' : 'k'), chip(`${h.links.length} face match${h.links.length === 1 ? '' : 'es'}`, h.links.length ? 'a' : 'k')),
+        await pairOf(h.user_id),
+        h.links.length ? el('p', { class: 'v2sub', style: 'margin-top:12px' }, 'Accounts the face engine links to this member:') : el('p', { class: 'v2sub' }, 'No other account has this face.'),
+        ...rows);
+    }));
+    out.replaceChildren(...blocks);
+  };
+  let t = 0;
+  input.addEventListener('input', () => { window.clearTimeout(t); t = window.setTimeout(() => void run(), 450); });
+  input.addEventListener('keydown', (e) => { if ((e as KeyboardEvent).key === 'Enter') { window.clearTimeout(t); void run(); } });
+  return el('div', {}, el('section', { class: 'v2card' }, el('b', {}, 'Search faces'), el('div', { class: 'v2row', style: 'margin-top:8px;gap:8px' }, input)), out);
+}
 export async function facesView() {
   const body = el('div', {}, loadingCard());
-  screen('more', header('Face checks', 'Auto-approved · newest first · straight + left + right passed', '#more'), body);
+  screen('more', header('Face checks', 'Auto-approved · newest first · straight + left + right passed', '#more'), faceSearchCard(), body);
   stopV2();
   let rows: FaceCheck[] = [];
   let selfies: Record<string, string> = {};
