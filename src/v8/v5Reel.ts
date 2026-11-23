@@ -551,3 +551,49 @@ export async function signReelPaths(paths: string[]): Promise<Record<string, str
   }
   return out;
 }
+
+/** 23 Nov (founder: photo posting on): a photo becomes a 7-second vertical Reel (slow zoom, soft fade),
+ *  so it goes through the same review, Feed, ranking and Daily Card as any Reel. Records in real time (~6 s). */
+export const isImageFile = (f: { type?: string; name?: string }) => /^image\//i.test(f.type || '') || /\.(jpe?g|png|webp|heic|heif|gif)$/i.test(f.name || '');
+export async function photoToReel(file: File, onProgress?: (p: number) => void, ms = 7000): Promise<File> {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => bad(new ReelError('UNREADABLE')); i.src = url; });
+    const W = 720, H = 1280;
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const ctx = c.getContext('2d'); if (!ctx) throw new ReelError('UNREADABLE');
+    const mime = (pickMime() || '').replace(/,mp4a[^;]*|,opus/g, '');
+    if (typeof c.captureStream !== 'function' || !mime) throw new ReelError('UNREADABLE');
+    const stream = c.captureStream(30);
+    const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 2_500_000 });
+    const parts: Blob[] = [];
+    rec.ondataavailable = (e) => { if (e.data && e.data.size) parts.push(e.data); };
+    const draw = (k: number) => {
+      // blurred cover background + the whole photo fitted, slow Ken Burns zoom
+      const sb = Math.max(W / img.width, H / img.height) * 1.15;
+      ctx.filter = 'blur(28px) brightness(.55)';
+      ctx.drawImage(img, (W - img.width * sb) / 2, (H - img.height * sb) / 2, img.width * sb, img.height * sb);
+      ctx.filter = 'none';
+      const fit = Math.min(W / img.width, H / img.height);
+      const cover = Math.max(W / img.width, H / img.height);
+      const base = img.height >= img.width ? cover : fit;   // portrait photos fill the screen, landscape ones sit on the blur
+      const s = base * (1 + 0.08 * k);
+      ctx.drawImage(img, (W - img.width * s) / 2, (H - img.height * s) / 2 - 20 * k, img.width * s, img.height * s);
+      const fade = Math.min(1, k * 8, (1 - k) * 8);
+      if (fade < 1) { ctx.fillStyle = `rgba(5,4,10,${1 - fade})`; ctx.fillRect(0, 0, W, H); }
+    };
+    draw(0);
+    const done = new Promise<void>((ok) => { rec.onstop = () => ok(); });
+    rec.start(250);
+    const t0 = performance.now();
+    await new Promise<void>((ok) => {
+      const tick = () => { const k = Math.min(1, (performance.now() - t0) / ms); draw(k); onProgress?.(k); if (k < 1) requestAnimationFrame(tick); else ok(); };
+      requestAnimationFrame(tick);
+    });
+    rec.stop(); await done;
+    stream.getTracks().forEach((t) => t.stop());
+    const type = mime.split(';')[0];
+    const ext = type.includes('mp4') ? 'mp4' : 'webm';
+    return new File(parts, `photo-reel.${ext}`, { type });
+  } finally { URL.revokeObjectURL(url); }
+}

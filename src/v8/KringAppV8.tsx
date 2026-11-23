@@ -192,7 +192,7 @@ import { installZoomGuard } from './zoomGuard';
 import { installKeyboardFocus } from './keyboardFocus';
 import { clearSignInDraft, loadSignInDraft, saveSignInDraft } from './signInDraft';
 import { installVersionWatch } from './appVersion';
-import { applyTrim, checkReel, createReel, makeAudio, prepareReel, ReelError, uploadReel, type ReelInfo, type ReelReady, type UploadedReel } from './v5Reel';
+import { applyTrim, checkReel, createReel, isImageFile, makeAudio, photoToReel, prepareReel, ReelError, uploadReel, type ReelInfo, type ReelReady, type UploadedReel } from './v5Reel';
 import { GoTrim, WindowVideo } from './V5Trim';
 import { clock } from './reelTrim';
 import { isMemberId } from './deepLink';
@@ -3463,6 +3463,12 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     setReelPreviewPoster((old) => { if (old) URL.revokeObjectURL(old); return ''; });
     if (!file) return;
     try {
+      if (isImageFile(file)) {   // 23 Nov: a photo becomes a 6 s Reel, then the normal Reel path
+        setReelProblem(L('Turning your photo into a Reel…'));
+        file = await photoToReel(file);
+        setReelProblem('');
+        v5LogClient('reel_photo', 'made', `${Math.round(file.size / 1e4) / 100}MB ${file.type}`);
+      }
       acceptReel(await checkReel(file));
     } catch (e) {
       const re = e instanceof ReelError ? e : null;
@@ -5954,10 +5960,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 style={reelInfo ? undefined : { background: 'rgba(255,247,236,0.06)', border: '1.5px dashed rgba(255,247,236,0.28)' }}>
                 {reelInfo ? <WindowVideo className="reel-preview-video" src={reelInfo.url} win={reelInfo.trim} poster={reelPreviewPoster || undefined} /> : null}
                 <label id="addReelPicker" className={`reel-add ${reelInfo ? 'small' : ''}`}>
-                  {reelInfo ? L('Change Reel') : L('＋ Add a Reel')}
+                  {reelInfo ? L('Change') : L('＋ Add a photo or Reel')}
                   <input
                     type="file"
-                    accept="video/*"
+                    accept="video/*,image/*"
                     aria-label={L('Add a Reel')}
                     id="reelFile"
                     style={{ display: 'none' }}
@@ -5965,7 +5971,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     onChange={(e) => { void pickReel(e.target.files?.[0]); e.target.value = ''; }}
                   />
                 </label>
-                {!reelInfo && <div className="reel-rule">{L('Vertical video · 5–60 seconds')}</div>}
+                {!reelInfo && <div className="reel-rule">{L('Photo or vertical video · 5–60 seconds')}</div>}
                 {reelInfo && <span className="reel-len">{(reelInfo.durationMs / 1000).toFixed(0)} s</span>}
               </div>
             )}
