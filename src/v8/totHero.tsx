@@ -21,8 +21,8 @@ export interface TotHeroProps {
   onPick: (k: K) => void; summary: string; counted: string; locked: string; ringChip: React.ReactNode; cap: React.ReactNode;
   /** 24 Nov: digits only from 10 votes (below that `countLine` says how many voted, in words) */
   nums: boolean; countLine: string; who: React.ReactNode;
-  /** 24 Nov: before the vote both sides are covered with a "?" and the question becomes a guess */
-  guessQ: string; guessSub: string; picked: string;
+  /** 24 Nov: before the vote both sides are covered with a "?" and `guessQ` sits under the question as the game */
+  guessQ: string; picked: string;
   /** 24 Nov: one-tap reasons (m204) + the guess streak (m205). Rendered under the pair and OUTSIDE `.toth-hero`, so they
    *  survive the fold into the slim strip — the reason chips stay tappable after the hero has closed. */
   after?: React.ReactNode;
@@ -50,7 +50,9 @@ export function TotHero(p: TotHeroProps) {
         <span className="toth-thumb" style={{ backgroundImage: `url('${p.imgs[chosen]}')` }} aria-hidden="true" />
         <span className="toth-st">
           <b>{p.nums ? `${p.picked} · ${p.pct(chosen)}%` : p.picked}</b>
-          <small>{p.q}</small>
+          {/* 24 Nov audit: folded, the count vanished and a quiet day looked finished. Under 10 votes the strip says
+              how it stands; from 10 the percentage is on the line above, so the question comes back. */}
+          <small>{p.nums || !p.countLine ? p.q : p.countLine}</small>
         </span>
         <span className="toth-chev" aria-hidden="true">⌄</span>
       </button>
@@ -74,8 +76,11 @@ export function TotHero(p: TotHeroProps) {
           <span className="toth-tfade" aria-hidden="true" />
           <div className="toth-top">
             <span className="toth-cap">{p.cap}</span>
-            <h3 className="toth-q">{mine ? p.q : p.guessQ}</h3>
-            {mine ? null : <p className="toth-sub">{p.guessSub}</p>}
+            {/* 24 Nov audit: the question used to be REPLACED by the guess line, so a member voted without being told
+                what they were voting on — fatal on a price check ("฿80 or ฿150" over two photos). The question always
+                shows; the guess is the line under it. */}
+            <h3 className="toth-q">{p.q}</h3>
+            {mine ? null : <p className="toth-sub">{p.guessQ}</p>}
           </div>
           <span className="toth-or" aria-hidden="true">{p.th ? 'หรือ' : 'or'}</span>
           {extra ? (

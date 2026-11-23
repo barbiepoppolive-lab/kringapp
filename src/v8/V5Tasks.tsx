@@ -445,7 +445,7 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
   const after = shown ? (
     <>
       <TotReasons th={L === 'th'} tx={tx} presets={(myPick && rsn?.presets?.[myPick]) || []} mineKey={myReason?.key ?? null}
-        mineOwn={!!myReason?.own_words} onText={textReason}
+        mineOwn={!!myReason?.own_words} onText={textReason} mine={myReason}
         top={rsn?.reasons?.[0] || null} busy={rBusy} upBusy={upBusy} onPick={(k) => void pickReason(k)} onUp={(id) => void upReason(id)} />
       {stk ? <TotStreak tx={tx} s={stk} /> : null}
     </>
@@ -457,7 +457,7 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
         pick={(v.pick as 'a' | 'b' | null) || null} busy={(busy as 'a' | 'b' | null) || null} shown={shown} grow={grow} fresh={fresh}
         onPick={(k) => void pick(k)} summary={summary} counted={tx.counted} locked={tx.locked} cap={<><Rings s={13} />{tx.thisOrThat}</>}
         nums={nums} countLine={countLine} who={shown ? <VoteWho rows={who} tx={tx} /> : null}
-        guessQ={tx.guessQ} guessSub={tx.guessSub} picked={fmt(tx.youPicked, lab((v.pick || busy || 'a') as 'a' | 'b'))} after={after}
+        guessQ={tx.guessQ} picked={fmt(tx.youPicked, lab((v.pick || busy || 'a') as 'a' | 'b'))} after={after}
         ringChip={earned ? <span className="toth-chip ring"><Rings s={12} />{tx.ringPlus}</span> : null} />
     );
   }

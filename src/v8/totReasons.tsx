@@ -16,10 +16,13 @@ const DOTS = 7;
 
 export function TotReasons(p: {
   th: boolean; tx: TaskTx; presets: ReasonPreset[]; mineKey: string | null; mineOwn: boolean; top: VoteReason | null;
+  mine: VoteReason | null;
   busy: string | null; upBusy: boolean; onPick: (k: string) => void; onUp: (id: string) => void;
   onText: (t: string) => Promise<string | null>;
 }) {
   const { tx, top } = p;
+  // the top reason, then the member's own underneath when someone else holds the top spot
+  const rows = [top, p.mine && p.mine.id !== top?.id ? p.mine : null].filter((r): r is VoteReason => !!r);
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
@@ -71,24 +74,27 @@ export function TotReasons(p: {
           {open && err ? <span className="tor-err">{err}</span> : null}
         </>
       ) : null}
-      {top ? (
-        <div className="tor-top">
-          <span className="tor-av" style={top.photo ? { backgroundImage: `url('${top.photo}')` } : undefined} aria-hidden="true">
-            {top.photo ? '' : (top.name || '?').slice(0, 1).toUpperCase()}
+      {/* 24 Nov audit: only reasons[0] used to render, so the member's own words vanished the moment anyone overtook
+          them — while the chip still showed a ✓. Their own line always shows, under the top one when both exist. */}
+      {rows.map((r) => (
+        <div className="tor-top" key={r.id}>
+          <span className="tor-av" style={r.photo ? { backgroundImage: `url('${r.photo}')` } : undefined} aria-hidden="true">
+            {r.photo ? '' : (r.name || '?').slice(0, 1).toUpperCase()}
           </span>
           <span className="tor-tx">
-            <small>{top.mine ? tx.myReason : (top.name || tx.topReason)}</small>
-            <b>{p.th ? top.th : top.en}</b>
+            <small>{r.mine ? tx.myReason : (r.name || tx.topReason)}</small>
+            <b>{p.th ? r.th : r.en}</b>
           </span>
-          {top.mine ? (
+          {r.mine ? (
             // you cannot agree with yourself (the server refuses it) — the count still shows
-            <span className="tor-ups">▲ {top.ups}</span>
+            <span className="tor-ups">▲ {r.ups}</span>
           ) : (
-            <button type="button" className={`tor-up${top.upvoted ? ' on' : ''}`} aria-label={tx.agree}
-              disabled={top.upvoted || p.upBusy} onClick={() => p.onUp(top.id)}>▲ {top.ups}</button>
+            // the word matters: a bare "▲ 12" looked identical to the count above and nobody knew it could be tapped
+            <button type="button" className={`tor-up${r.upvoted ? ' on' : ''}`} aria-label={tx.agree}
+              disabled={r.upvoted || p.upBusy} onClick={() => p.onUp(r.id)}>▲ {r.ups}<em>{tx.agree}</em></button>
           )}
         </div>
-      ) : null}
+      ))}
     </div>
   );
 }
