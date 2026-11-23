@@ -59,3 +59,11 @@
 .v8-app-root .rk-half.r .rk-c .dot { background: #FF7CA3; box-shadow: 0 0 8px #FF4F7A; }
 .v8-app-root .rk-half.f .rk-c { flex-direction: row-reverse; } .v8-app-root .rk-half.f .rk-c .dot { background: #FFE08A; box-shadow: 0 0 8px #FFC94D; }
 .v8-app-root .rk-half.r .rk-c:nth-child(3n+2), .v8-app-root .rk-half.f .rk-c:nth-child(3n+2) { padding: 0; }
+
+/* members' own comments, newest first, under the buttons */
+.v8-app-root .rk-list { margin: 14px 12px 0; display: flex; flex-direction: column; gap: 10px; }
+.v8-app-root .rk-lh { margin: 0 2px 2px; font: 700 12px var(--rv-f, system-ui); opacity: .6; letter-spacing: .02em; }
+.v8-app-root .rk-li { display: flex; gap: 9px; align-items: flex-start; font: 600 14.5px/1.45 var(--rv-f, system-ui); overflow-wrap: anywhere; }
+.v8-app-root .rk-li .dot { flex: none; width: 7px; height: 7px; margin-top: 8px; border-radius: 50%; }
+.v8-app-root .rk-li.a .dot { background: #FF7CA3; box-shadow: 0 0 8px #FF4F7A; }
+.v8-app-root .rk-li.b .dot { background: #FFE08A; box-shadow: 0 0 8px #FFC94D; }

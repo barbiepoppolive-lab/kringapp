@@ -9,7 +9,7 @@ import './roast.css';
 import { v5Client, V5Error, v5ErrCode } from './v5Live';
 import { tasksRefresh } from './V5Tasks';
 
-interface RItem { id: number; side: 'a' | 'b'; body: string; name: string; likes: number; liked: boolean; me: boolean }
+interface RItem { id: number; side: 'a' | 'b'; body: string; name: string; likes: number; liked: boolean; me: boolean; seed?: boolean }
 interface RList { day: string; counts: { a: number; b: number }; mine: 'a' | 'b' | null; items: RItem[] }
 async function call<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
   const c = await v5Client();
@@ -118,6 +118,11 @@ export function RoastCard(props: { lang: string; q: string; aImg: string | null;
         <button type="button" className="a" onClick={() => { setCompose('a'); setMsg(''); }}>{tx.write}</button>
         <button type="button" className="b" onClick={() => { setCompose('b'); setMsg(''); }}>{tx.forgive}</button>
       </div>
+      {(() => { const mine = (data?.items || []).filter((x) => !x.seed).sort((a, b) => b.id - a.id); return mine.length ? (
+        <div className="rk-list">
+          <p className="rk-lh">{L === 'th' ? 'ความเห็นจากสมาชิก' : 'From members'} · {mine.length}</p>
+          {mine.slice(0, 40).map((x) => <div key={x.id} className={`rk-li ${x.side}`}><i className="dot" aria-hidden="true" /><span>{x.body}</span></div>)}
+        </div>) : null; })()}
       {compose ? (
         <div className="rk-sh" onClick={() => setCompose(null)}>
           <div className={`rk-box ${compose}`} onClick={(e) => e.stopPropagation()}>
