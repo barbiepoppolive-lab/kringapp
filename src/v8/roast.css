@@ -37,9 +37,9 @@
 .v8-app-root .rk-bar { display: flex; height: 8px; margin: 12px 14px 0; border-radius: 4px; overflow: hidden; background: linear-gradient(90deg, #b98cff, #ff7cc2); }
 .v8-app-root .rk-bar .a { display: block; height: 100%; background: linear-gradient(90deg, #ff3d6e, #ff6a3d); transition: width .8s cubic-bezier(.2,.8,.2,1); }
 .v8-app-root .rk-btns { display: flex; gap: 8px; margin: 12px 12px 0; }
-.v8-app-root .rk-btns button { flex: 1; height: 44px; border: 0; border-radius: 22px; color: #fff; font: 800 14px var(--rv-f, system-ui); }
+.v8-app-root .rk-btns button { flex: 1; text-shadow: 0 1px 6px rgba(0,0,0,.35); height: 44px; border: 0; border-radius: 22px; color: #fff; font: 800 14px var(--rv-f, system-ui); }
 .v8-app-root .rk-btns .a, .v8-app-root .rk-box.a .go { background: linear-gradient(90deg, #ff3d6e, #ff6a3d); }
-.v8-app-root .rk-btns .b, .v8-app-root .rk-box.b .go { background: linear-gradient(90deg, #b98cff, #ff7cc2); }
+.v8-app-root .rk-btns .b, .v8-app-root .rk-box.b .go { background: linear-gradient(90deg, #7c4dff, #e0459b); }
 .v8-app-root .rk-sh { position: fixed; inset: 0; z-index: 9500; background: rgba(5,4,10,.6); display: flex; align-items: flex-end; }
 .v8-app-root .rk-box { width: 100%; padding: 14px 14px calc(14px + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0; background: #15112a; }
 .v8-app-root .rk-box textarea { width: 100%; min-height: 84px; border: 0; outline: 0; resize: none; border-radius: 14px; padding: 12px; background: rgba(255,255,255,.07); color: #fff; font: 600 16px/1.45 var(--rv-f, system-ui); }
