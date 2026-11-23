@@ -9,7 +9,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import './tasks.css';
 import { RoastCard } from './V5Roast';
 import {
-  claimedCount, doable, fmt, leftCount, readyCount, resetsIn, streakDays, taskClaim, TASK_ORDER, taskReason, taskReasonsToday, taskReasonUp, taskState,
+  claimedCount, doable, fmt, leftCount, readyCount, resetsIn, streakDays, taskClaim, TASK_ORDER, taskReason, taskReasonsToday, taskReasonText, taskReasonUp, taskState,
   tasksToday, taskStreak, taskVote, taskVoteWho, taskWatch,
   tLang, TX, VOTE_NUMS_MIN, type TaskId, type TaskRow, type TasksToday, type TaskTx, type VoteReasons, type VoteStreak, type VoteWho,
 } from './v5Tasks';
@@ -429,11 +429,23 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
     setUpBusy(true);
     try { setRsn(await taskReasonUp(id)); } catch { await reReason(); } finally { setUpBusy(false); }
   };
+  // own words (24 Nov): returns an error line to show under the box, or null when it went through
+  const textReason = async (t: string): Promise<string | null> => {
+    try { setRsn(await taskReasonText(t)); return null; }
+    catch (e) {
+      const code = (e as { code?: string })?.code;
+      if (code === 'KR8_REASON_LOCKED') { await reReason(); return tx.ownLocked; }
+      if (code === 'KR8_BAD_TEXT') return tx.ownBad;
+      await reReason();
+      return tx.network;
+    }
+  };
   const myPick = (v.pick || null) as 'a' | 'b' | 'c' | null;
   const myReason = rsn?.reasons?.find((r) => r.mine) || null;
   const after = shown ? (
     <>
       <TotReasons th={L === 'th'} tx={tx} presets={(myPick && rsn?.presets?.[myPick]) || []} mineKey={myReason?.key ?? null}
+        mineOwn={!!myReason?.own_words} onText={textReason}
         top={rsn?.reasons?.[0] || null} busy={rBusy} upBusy={upBusy} onPick={(k) => void pickReason(k)} onUp={(id) => void upReason(id)} />
       {stk ? <TotStreak tx={tx} s={stk} /> : null}
     </>

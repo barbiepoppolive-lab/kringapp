@@ -9,15 +9,33 @@
  * Both sit UNDER the pair (passed to TotHero as `after`, outside `.toth-hero`), so they stay on screen when the hero
  * folds into its slim strip 2 s after the vote. One language at a time: every line reads `th` or `en`, never both.
  */
-import { fmt, type ReasonPreset, type TaskTx, type VoteReason, type VoteStreak } from './v5Tasks';
+import { useEffect, useRef, useState } from 'react';
+import { fmt, REASON_MAX, type ReasonPreset, type TaskTx, type VoteReason, type VoteStreak } from './v5Tasks';
 
 const DOTS = 7;
 
 export function TotReasons(p: {
-  th: boolean; tx: TaskTx; presets: ReasonPreset[]; mineKey: string | null; top: VoteReason | null;
+  th: boolean; tx: TaskTx; presets: ReasonPreset[]; mineKey: string | null; mineOwn: boolean; top: VoteReason | null;
   busy: string | null; upBusy: boolean; onPick: (k: string) => void; onUp: (id: string) => void;
+  onText: (t: string) => Promise<string | null>;
 }) {
   const { tx, top } = p;
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const box = useRef<HTMLInputElement | null>(null);
+  useEffect(() => { if (open) box.current?.focus(); }, [open]);
+  // trimmed, because the server trims too — a box of spaces must not look sendable
+  const body = text.trim();
+  const send = async () => {
+    if (sending || body.length < 2) return;
+    setSending(true); setErr(null);
+    const e = await p.onText(body);
+    setSending(false);
+    if (e) { setErr(e); return; }
+    setText(''); setOpen(false);
+  };
   // no presets written for today's pair and nothing said yet → show nothing at all rather than an empty heading
   if (!p.presets.length && !top) return null;
   return (
@@ -35,7 +53,22 @@ export function TotReasons(p: {
                 </button>
               );
             })}
+            {/* 24 Nov (founder): own words too. Last chip, after the presets — one tap is still the easy path. */}
+            <button type="button" className={`tor-chip own${p.mineOwn ? ' on' : ''}`} aria-pressed={open || p.mineOwn}
+              aria-expanded={open} disabled={!!p.busy} onClick={() => { setErr(null); setOpen((o) => !o); }}>
+              <i aria-hidden="true">✏️</i>{tx.ownWords}{p.mineOwn ? <i aria-hidden="true">✓</i> : null}
+            </button>
           </div>
+          {open ? (
+            <div className="tor-own">
+              <input ref={box} type="text" className="tor-in" value={text} maxLength={REASON_MAX}
+                placeholder={tx.ownPh} aria-label={tx.ownWords} enterKeyHint="send" disabled={sending}
+                onChange={(e) => { setText(e.target.value); if (err) setErr(null); }}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void send(); } }} />
+              <button type="button" className="tor-send" disabled={sending || body.length < 2} onClick={() => void send()}>{tx.ownSend}</button>
+            </div>
+          ) : null}
+          {open && err ? <span className="tor-err">{err}</span> : null}
         </>
       ) : null}
       {top ? (

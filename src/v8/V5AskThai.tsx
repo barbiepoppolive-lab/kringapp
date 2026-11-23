@@ -609,11 +609,8 @@ export const AskThaiView: React.FC<AskThaiViewProps> = (props) => {
     <div className="at-root">
       <div className="at-list" ref={listRef} onScroll={onScroll} aria-busy={items === null}>
         {topSlot || null}
-        <button type="button" className="rva-askrow" aria-label={L('Ask')} onClick={() => need(() => setCompose(true))}>
-          {me ? <Av p={me} s={36} /> : <span className="rva-rings sm" aria-hidden="true"><i /><i /></span>}
-          <span className="rva-askph">{L('Ask Bangkok locals anything')}</span>
-          <span className="rva-askbtn" aria-hidden="true">{L('Ask')}</span>
-        </button>
+        {/* 24 Nov (founder): the Ask box is gone. m199 locked question-writing to the Kring team on 23 Nov, so this row
+            only ever produced KR8_ASK_TEAM_ONLY. Members still answer and vote on every question — that part is untouched. */}
         {err && <button type="button" className="at-retry" onClick={refresh}>{L('Try again')}</button>}
         {items === null && !err && [0, 1, 2].map((i) => <div key={i} className="at-tw at-skel"><span className="at-av" /><div className="at-tw-main"><i /><i /><i /></div></div>)}
         {items && items.length === 0 && (

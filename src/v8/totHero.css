@@ -95,6 +95,19 @@
 .v8-app-root .tor-chip:active:not(:disabled) { transform: scale(.96); }
 .v8-app-root .tor-chip.on { background: linear-gradient(135deg, rgba(91, 140, 255, .92), rgba(255, 79, 216, .92)); }
 .v8-app-root .tor-chip i { font-style: normal; font-size: 11px; }
+/* own words (24 Nov): the one chip that opens a box; outlined so it reads as "or type" next to the solid presets */
+.v8-app-root .tor-chip.own { background: transparent; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .17); color: rgba(255, 255, 255, .8); }
+.v8-app-root .tor-chip.own.on { background: linear-gradient(135deg, rgba(91, 140, 255, .92), rgba(255, 79, 216, .92)); box-shadow: none; color: #fff; }
+.v8-app-root .tor-own { display: flex; align-items: center; gap: 8px; padding: 9px 0 0; animation: tothIn .3s ease both; }
+.v8-app-root .tor-in { flex: 1; min-width: 0; border: 0; border-radius: 999px; padding: 10px 15px; background: rgba(255, 255, 255, .08);
+  font: 600 14px var(--rv-f, system-ui); color: #fff; outline: none; }
+.v8-app-root .tor-in::placeholder { color: rgba(255, 255, 255, .42); }
+.v8-app-root .tor-in:focus { background: rgba(255, 255, 255, .13); }
+.v8-app-root .tor-send { flex: none; border: 0; border-radius: 999px; padding: 10px 17px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  background: linear-gradient(135deg, #5B8CFF, #FF4FD8); color: #fff; font: 700 13.5px var(--rv-f, system-ui); transition: opacity .2s ease, transform .18s ease; }
+.v8-app-root .tor-send:disabled { opacity: .38; }
+.v8-app-root .tor-send:active:not(:disabled) { transform: scale(.95); }
+.v8-app-root .tor-err { display: block; padding: 7px 2px 0; font: 600 12px var(--rv-f, system-ui); color: #FFAFD6; }
 .v8-app-root .tor-top { display: flex; align-items: center; gap: 10px; padding: 2px 0 0; animation: tothIn .4s ease both; }
 .v8-app-root .tor-av { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; overflow: hidden;
   background: center / cover no-repeat #3a3350; font: 800 12px var(--rv-f, system-ui); color: #fff; }
