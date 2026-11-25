@@ -3543,11 +3543,20 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   useEffect(() => {
     if (!jpOk || joinPromptSeen() || tab !== 'feed' || feedMode === 'ask' || !feedItems.length || sheet) return undefined;
     const t = setTimeout(() => { if (!sheetRef.current) jpShowRef.current('watch'); }, 3000);
+    // a swipe counts only after the visitor's own touch / wheel (the ?reel= link scrolls the feed to the shared Reel by itself)
     const el = feedScrollRef.current;
-    const start = el ? el.scrollTop : 0;
-    const onScroll = () => { if (el && Math.abs(el.scrollTop - start) > el.clientHeight * 0.5 && !sheetRef.current) jpShowRef.current('swipe'); };
+    let start: number | null = null;
+    const down = () => { if (el && start === null) start = el.scrollTop; };
+    const onScroll = () => { if (el && start !== null && Math.abs(el.scrollTop - start) > el.clientHeight * 0.5 && !sheetRef.current) jpShowRef.current('swipe'); };
+    el?.addEventListener('touchstart', down, { passive: true });
+    el?.addEventListener('pointerdown', down, { passive: true });
+    el?.addEventListener('wheel', down, { passive: true });
     el?.addEventListener('scroll', onScroll, { passive: true });
-    return () => { clearTimeout(t); el?.removeEventListener('scroll', onScroll); };
+    return () => {
+      clearTimeout(t);
+      el?.removeEventListener('touchstart', down); el?.removeEventListener('pointerdown', down);
+      el?.removeEventListener('wheel', down); el?.removeEventListener('scroll', onScroll);
+    };
   }, [jpOk, tab, feedMode, feedItems.length > 0, sheet]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (signedIn) { setJpWhy(null); joinPromptCameBack(); } }, [signedIn]);
   // T301-019: the ?person=<member id> deep link, once we know whether this is the live app and who is signed in
