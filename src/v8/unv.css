@@ -46,3 +46,7 @@
 .unv-fvo { display: flex; align-items: flex-start; gap: 6px; }
 .unv-fvo span { margin-top: 1px; }
 .kme-sheet .li[data-activity="friend_verify"] .n { line-height: 1.4; }
+/* 25 Nov open onboarding: Me shows the profile as hidden (two lines), invite nudge line on Share & win */
+.unv-me[data-state="hidden"] .unv-mt { display: flex; flex-direction: column; gap: 3px; }
+.unv-me .unv-mh { color: #fff; font-size: 15px; font-weight: 800; }
+.unv-me .unv-ms { color: rgba(255, 255, 255, .66); font-size: 12.5px; line-height: 1.4; }

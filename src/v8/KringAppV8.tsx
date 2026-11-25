@@ -67,6 +67,7 @@ import {
   v5TakeOAuthError,
   v5Treats,
   v5ToggleLike,
+  v5UnvStats,
   v5ToggleSave,
   v5MergeSaves,
   v5MySaves,
@@ -116,6 +117,11 @@ const KR_LOWEND = typeof navigator !== 'undefined' && /Android/i.test(navigator.
  *  (mirrors kr8_rcfg('face_gate_on', 0)). Everything else (card, Feed, People, Reels, likes, chat, Rings, board) works without it. */
 const FACE_GATE_AFTER_NO = 68;
 const FACE_GATE_ON = true;   // 19 Nov (founder): face check right after the card photo; no posting / chat / People until verified (server: face_gate_on = 1)
+/** 25 Nov open onboarding (Claude Doc "Kring — open onboarding change list"): a new card is name + photo only and lands in the Feed;
+ *  the face check is offered when the member reaches for something social (say hi, chat, post, ask, answer, daily task, People),
+ *  after their 5th like ("you can see them, they can't see you"), and on their own Me (profile hidden). Watching, liking, saving and
+ *  reading Ask BKK stay open. The server rules (kr8_face_gate, m207) are unchanged and remain the real guard. */
+const OPEN_JOIN = true;
 import { StayDo } from './V5StayDo';
 import { v5MarkThreadRead } from './v5Live';
 import { v5DeviceSeen, v5HandoffBoot, v5LogClient, v5MyVerification, V5_AREAS } from './v5Live';
@@ -152,7 +158,7 @@ import { V5ShareCard } from './V5ShareCard';
 import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, showFirstReelChip } from './V5ReelNudge';
 import { V5ReelVideo, holdReels, reelsHeld, toggleReelSound } from './V5ReelVideo';
 import { TasksFeed, TasksFromMe, tasksClaimReady, ThisOrThatCard, useTasksSummary } from './V5Tasks';
-import { FaceIntroSheet, LockIc, UnvMeLine, UnvPeopleWall } from './V5Unverified';
+import { FaceIntroSheet, LockIc, UnvMeLine, UnvPeopleWall, openInviteLine, unvLikeShown, unvLikeTick, unvWhy, type UnvWhy } from './V5Unverified';
 import { startOpenBeacon } from './openBeacon';
 import { restoredTab, rememberTab } from './tabMemory';
 import { AskSwitch } from './V5AskSwitch';
@@ -1247,11 +1253,12 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const verifyFirstRef = useRef<() => void>(() => undefined);
   /** 20 Nov (variant A): no passed face check (and not a team / admin account) → People, Say hi and chat open the Quick face check */
   const unvRef = useRef(false);
-  const [faceIntro, setFaceIntro] = useState(false);
+  const [faceIntro, setFaceIntro] = useState<UnvWhy | null>(null);
+  const [faceIntroStats, setFaceIntroStats] = useState<{ views: number; likes: number } | null>(null);
   const setSheet = useCallback((v: SheetId | ((cur: SheetId) => SheetId)) => {
     if (adminViewRef.current && typeof v !== 'function' && v && ADMIN_VIEW_NO_SHEETS.has(v)) { adminNoRef.current(); return; }
     if (v === 'post' && faceGateRef.current) { verifyFirstRef.current(); return; }
-    if ((v === 'hi' || v === 'inbox') && unvRef.current) { setFaceIntro(true); return; }
+    if ((v === 'hi' || v === 'inbox') && unvRef.current) { setFaceIntro(v === 'hi' ? 'hi' : 'chat'); return; }
     setSheetRaw((cur) => {
       const next = typeof v === 'function' ? v(cur) : v;
       return adminViewRef.current && next && ADMIN_VIEW_NO_SHEETS.has(next) ? cur : next;
@@ -1276,9 +1283,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // 0093: a new member tried to post / chat before the face check → open it (once the card exists).
   // 0111: the server now asks only at a prize claim (KR8_VERIFY_FIRST): the check opens on top of the claim screen.
   useEffect(() => {
-    const on = () => {
+    const on = (e: Event) => {
       if (sheetRef.current === 'claim') { setClaimVerify(true); return; }
-      if (unvRef.current && sheetRef.current !== 'verify') { setFaceIntro(true); return; }
+      // 25 Nov open onboarding: the event says what the member reached for (post / ask / answer / task …), the prompt names it
+      if (unvRef.current && sheetRef.current !== 'verify') { setFaceIntro(unvWhy((e as CustomEvent).detail)); return; }
       if (sheetRef.current !== 'verify') setTimeout(() => { setVerifyMode('me'); setSheet('verify'); }, 80);
     };
     window.addEventListener('kr8-verify-first', on);
@@ -1494,7 +1502,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   };
   const askApi = useMemo(() => createAskApi({ live, demo: isDemo, me: () => askMeRef.current,
     // 0093: no Ask / answer photo upload for a face-gated member; the Ask screen shows the verify text, this opens the check
-    gate: () => { if (!faceGateRef.current) return false; try { window.dispatchEvent(new CustomEvent('kr8-verify-first')); } catch { /* ignore */ } return true; },
+    gate: (why) => { if (!faceGateRef.current) return false; try { window.dispatchEvent(new CustomEvent('kr8-verify-first', { detail: why || 'answer' })); } catch { /* ignore */ } return true; },
     base: ((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.BASE_URL) || '/' }), [live, isDemo]);
   const [v5Uid, setV5Uid] = useState<string>('');
   const [deepPersonId, setDeepPersonId] = useState<string>('');
@@ -1506,6 +1514,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [buildStart, setBuildStart] = useState<BuildStep | null>(null);
   const [buildAsk, setBuildAsk] = useState<'people' | 'hi' | null>(null);
   const buildAskedRef = useRef(false);   // at most one re-prompt per app session
+  /** open join: the builder was opened right after a new card, so closing it lands in the Feed (not People, which waits for the face check) */
+  const joinBuildRef = useRef(false);
   askMeRef.current = !signedIn ? null
     : live ? (v5Uid && v5Card ? { id: v5Uid, name: v5Card.first_name, photo: v5Card.photo || initialAvatar(v5Card.first_name), local: v5Card.who === 'local' } : null)
     : { id: user.id || 'me', name: user.name, photo: user.avatar || initialAvatar(user.name), local: user.role === 'local' };
@@ -2161,7 +2171,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // audit P2-9: friendly first lines, never a meet-up ask (founder: "make new friends", no meet wording)
   const openSayHi = (name: string, img: string, context: string, id?: string, fromReel = false) => {
     if (adminViewRef.current) { adminNoRef.current(); return; }
-    if (unvRef.current) { setFaceIntro(true); return; }   // 20 Nov: Say hi needs the face check
+    if (unvRef.current) { setFaceIntro('hi'); return; }   // 20 Nov: Say hi needs the face check
     if (askBuild('hi')) return;   // 25 Nov: one soft "finish your profile" ask per session; Not now lets the hello go on next tap
     // T301-022: one hello per person. If we already have a chat with them, open it instead of a second hello (the server says no with a 400).
     const had = live && id ? threads.find((t) => t.personId === id) : undefined;
@@ -2399,6 +2409,22 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const reelTapRef = useRef<{ id: string; at: number }>({ id: '', at: 0 });
   const patchFeed = (id: string, patch: Partial<V8FeedItem>) =>
     setFeedItems((prev) => prev.map((f) => (f.id === id ? { ...f, ...patch } : f)));
+  /** 25 Nov open onboarding (trigger 2): after the 5th like before the face check, one prompt with their real numbers
+   *  ("You've watched 14 clips and liked 9"), from kr8_my_unv_stats. At most 3 times, 3+ days apart; never over another sheet. */
+  const unvLiked = () => {
+    if (!OPEN_JOIN || !live || !unvRef.current || !v5Uid) return;
+    const uid = v5Uid;
+    if (!unvLikeTick(uid).due) return;
+    void v5UnvStats().then((st) => {
+      if (!st || !st.gated || st.likes < st.prompt_at || !unvRef.current) return;
+      window.setTimeout(() => {
+        if (sheetRef.current || document.getElementById('unvSheet')) return;
+        unvLikeShown(uid);
+        setFaceIntroStats({ views: st.views, likes: st.likes });
+        setFaceIntro('likes');
+      }, 900);
+    }).catch(() => undefined);
+  };
   const handleLikeReel = (p: V8FeedItem, fromDoubleTap = false) => {
     if (!live || !p.id) return;
     if ((p as V5FeedItem).mine) {
@@ -2415,6 +2441,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         try {
           const r = await v5ToggleLike(id);
           patchFeed(id, { liked: r.liked, likes: r.likes });
+          if (r.liked) unvLiked();
         } catch (e) {
           patchFeed(id, was);
           showToast(v5Msg(e));
@@ -2620,6 +2647,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   /** Re-prompt at the moment it matters (opening People, tapping to message someone), never on a timer. Once per app session. */
   const askBuild = (where: 'people' | 'hi'): boolean => {
     if (!buildNeeded || buildAskedRef.current || buildOpen) return false;
+    if (OPEN_JOIN && unvRef.current) return false;   // before the face check, the face-check prompt is the one ask
     buildAskedRef.current = true;
     setBuildAsk(where);
     return true;
@@ -2984,7 +3012,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     let ran = false;
     requireSignInForAction(() => {
       ran = true;
-      v5ToggleLike(id).then((r) => { patchFeed(id, { liked: r.liked, likes: r.likes }); done(r); }).catch((e) => { showToast(v5Msg(e)); done(null); });
+      v5ToggleLike(id).then((r) => { patchFeed(id, { liked: r.liked, likes: r.likes }); done(r); if (r.liked) unvLiked(); }).catch((e) => { showToast(v5Msg(e)); done(null); });
     });
     if (!ran) { setGoPlayer(null); done(null); }
   });
@@ -3238,8 +3266,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     unvRef.current = live && !!v5Card && !adminView && !v5Ghost && !(v5Card.verified || meProfile?.verified || faceOkNow)
       && no != null && Number(no) > FACE_GATE_AFTER_NO;
     verifyFirstRef.current = () => {
-      showToast(L('Verify your face in 30 seconds to post and chat. One person, one account.'));
-      try { window.dispatchEvent(new CustomEvent('kr8-verify-first')); } catch { /* ignore */ }
+      // 25 Nov open onboarding: the "Ready to post your first Reel?" prompt says it; the old toast stays for gated non-OPEN_JOIN cases
+      if (!(OPEN_JOIN && unvRef.current)) showToast(L('Verify your face in 30 seconds to post and chat. One person, one account.'));
+      try { window.dispatchEvent(new CustomEvent('kr8-verify-first', { detail: 'post' })); } catch { /* ignore */ }
     };
   }
   useEffect(() => {
@@ -3258,7 +3287,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       return;
     }
     // 20 Nov (variant A): no passed face check → the Quick face check instead of a locked profile
-    if (live && unvRef.current) { setFaceIntro(true); return; }
+    if (live && unvRef.current) { setFaceIntro('people'); return; }
     try {
       const p = await v5Profile(id);
       setOtherProfile(p);
@@ -4336,7 +4365,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
         {/* Chat Bubble Top-Right on Feed & People ONLY (HIDDEN on Deals & Me). T-301 (T301-004): hidden whenever ANY sheet or the
             Reel player is open (a member's card 'persondetail', a profile, …), so their ⋯ Report/Block and close buttons are never covered */}
-        {faceIntro ? <FaceIntroSheet lang={lang} onClose={() => setFaceIntro(false)} onStart={() => { setFaceIntro(false); setVerifyMode('me'); setSheet('verify'); }} /> : null}
+        {faceIntro ? <FaceIntroSheet lang={lang} why={faceIntro} stats={faceIntroStats} onClose={() => setFaceIntro(null)} onStart={() => { setFaceIntro(null); setVerifyMode('me'); setSheet('verify'); }} /> : null}
         {(tab === 'feed' || tab === 'people') && !sheet && !goPlayer && (
           <button
             type="button"
@@ -4845,7 +4874,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           </div>
 
           {unvRef.current ? (
-            <UnvPeopleWall lang={lang} stills={people.map((p) => p.img).filter((u) => !!u && u !== NEUTRAL_IMG).concat(peopleStills).slice(0, 8)} onVerify={() => setFaceIntro(true)} />
+            <UnvPeopleWall lang={lang} stills={people.map((p) => p.img).filter((u) => !!u && u !== NEUTRAL_IMG).concat(peopleStills).slice(0, 8)} onVerify={() => setFaceIntro('people')} />
           ) : peopleLoading ? (
             <div
               style={{
@@ -5230,7 +5259,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               weekHook={kxWeekHook(kxWeek, kxRewards?.ladder?.[0] || 0)}
               onShareBest={kxBestReel ? () => void kxShareReelId(kxBestReel) : undefined}
               onShareBestDown={() => prefetchReelLink(kxBestReel)}
-              lockSlot={unvRef.current ? <UnvMeLine lang={lang} onVerify={() => setFaceIntro(true)} /> : null}
+              lockSlot={unvRef.current ? <UnvMeLine lang={lang} onVerify={() => setFaceIntro('me')} /> : null}
               onRings={() => { setKxReady(false); setSheet('rewards'); void kxLoadRewards(); }}
               ringsDot={kxReady}
               onRanking={() => setSheet('ranking')}
@@ -5742,6 +5771,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               if (wasNew) pushMoment('minted');   // 16 Nov dings: ask right after the card is minted
               setSheet(null);
               // 0111: the check still comes right after the card photo, with a clear "Do it later" (nothing below waits for it)
+              // 25 Nov open onboarding: a new card lands straight in the Feed; the face check waits until they reach for something social
+              // 25 Nov: then the six-step profile builder (all skippable); closing it goes to the Feed (joinBuildRef)
+              if (what === 'verify' && OPEN_JOIN) { if (wasNew) { markReelNudgeSeen(v5LastUid.current || v5Uid); setTab('feed'); joinBuildRef.current = true; startBuild(); } return; }
               if (what === 'verify') { afterVerifyRef.current = wasNew; setVerifyMode(wasNew ? 'signup' : 'me'); setTimeout(() => setSheet('verify'), 60); return; }
               if (what === 'reel') { markReelNudgeSeen(v5LastUid.current || v5Uid); pendingActionRef.current = null; kxPostAt(); return; }
               const next = pendingActionRef.current;
@@ -7469,7 +7501,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {sheet === 'comments' && commentsPost && (
           <CommentsSheet L={L} Lf={Lf} postId={commentsPost} readOnly={adminView || mirrorActive()} onClose={() => setSheet(null)} toast={showToast}
             onCount={(id, n, off) => setCommentInfo((prev) => ({ ...prev, [id]: { n, off } }))}
-            onVerify={() => { setSheet(null); setFaceIntro(true); }}
+            onVerify={() => { setSheet(null); setFaceIntro('chat'); }}
             onSignIn={() => requireSignInForAction(() => openComments(commentsPost))}
             onCard={() => setSheet('v5card')}
             onPerson={(id) => void openProfile(id)} />
@@ -7673,10 +7705,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {meTasks && live && v5Card && !sheet && (
           <TasksFromMe lang={lang} onClose={() => setMeTasks(false)}
             onAsk={(q) => { setMeTasks(false); setTab('feed'); setAskOpenThread(q); pickFeedMode('ask'); }}
-            onVerify={() => { setMeTasks(false); setVerifyMode('me'); setSheet('verify'); }} />
+            onVerify={() => { setMeTasks(false); if (OPEN_JOIN && unvRef.current) { setFaceIntro('task'); return; } setVerifyMode('me'); setSheet('verify'); }} />
         )}
         {shareWin && live && v5Uid && (
-          <ShareWinSheet lang={shareLang} hasReel={!!shareWinReel}
+          <ShareWinSheet lang={shareLang} hasReel={!!shareWinReel} openJoin={OPEN_JOIN ? openInviteLine(shareLang) : ''}
             {...(() => { const end = (kxWeek?.ends_at ? Date.parse(kxWeek.ends_at) : 0) || weekEnd(Date.now());
               return shareWinHead(shareLang, kxWeek ? kxWeekHook(kxWeek, 0) : null, kxWeek?.me?.rings ?? 0, closesWhen(end, shareLang)); })()}
             onPost={() => { setShareWin(false); requireSignInForAction(() => kxPostAt()); }}
@@ -8031,6 +8063,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onStepDone={markBuildStep}
             onClose={(done) => {
               setBuildOpen(false); setBuildStart(null);
+              const fromJoin = joinBuildRef.current; joinBuildRef.current = false;
+              if (fromJoin || (OPEN_JOIN && unvRef.current)) { setTab('feed'); if (done) void v5Me().then(v5ApplyMe).catch(() => undefined); return; }
               if (done) { setTab('people'); void v5Me().then(v5ApplyMe).catch(() => undefined); }
             }}
           />

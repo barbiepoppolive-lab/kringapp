@@ -42,7 +42,9 @@ const LinkIc = () => (<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" st
 const ReelIc = () => (<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="5" /><path d="M10 8.5v7l6-3.5-6-3.5Z" fill="currentColor" /></svg>);
 
 export function ShareWinSheet(props: { lang: string; title: string; sub: string; hasReel: boolean; onClose: () => void; onShare: () => void;
-  onLine: () => void; onFacebook: () => void; onCopy: () => void; onReel: () => void; onPost: () => void; onReelDown?: () => void }) {
+  onLine: () => void; onFacebook: () => void; onCopy: () => void; onReel: () => void; onPost: () => void; onReelDown?: () => void;
+  /** 25 Nov open onboarding: one line telling the member their friends can join without the face check ('' = none) */
+  openJoin?: string }) {
   const th = props.lang === 'th';
   const t = th
     ? { inv: 'ชวนเพื่อน', invS: '(ได้ทั้งคู่)', reel: 'แชร์รีลของฉัน', reelS: '(ต่อเพื่อนที่เปิดดู)', post: 'โพสต์รีลก่อน', story: 'IG Story', myReel: 'รีลฉัน +5', copy: 'คัดลอก', tip: '💡 แชร์ลงกลุ่ม Facebook (มหาลัย · ย่านบ้าน · กลุ่มที่ชอบ) ได้ผลที่สุด', ask: 'ขอให้เพื่อนช่วยแชร์ต่อด้วยนะ 🙏', close: 'ปิด', label: 'แชร์รับริง' }
@@ -70,6 +72,7 @@ export function ShareWinSheet(props: { lang: string; title: string; sub: string;
           <button type="button" className="sw-b" id="kxShareWinReel" onPointerDown={props.onReelDown} onClick={reelTap}><span className="ic"><ReelIc /></span><span className="tx">{t.myReel}</span></button>
           <button type="button" className="sw-b" id="kxShareWinCopy" onClick={props.onCopy}><span className="ic"><LinkIc /></span><span className="tx">{t.copy}</span></button>
         </div>
+        {props.openJoin ? <p className="sw-open" id="kxShareWinOpen"><span aria-hidden="true">✨</span>{props.openJoin}</p> : null}
         <p className="sw-tip" id="kxShareWinTip">{t.tip}</p>
         <p className="sw-ask">{t.ask}</p>
       </div>

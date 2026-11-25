@@ -47,3 +47,7 @@
 .v8-app-root .kx-shbg.sw-bg { background: rgba(6, 4, 14, .5); }
 .v8-app-root .kx-shbg.sw-bg .bx-sharesheet.sw-sheet { text-align: left; background: linear-gradient(180deg, rgba(58, 34, 92, .9), rgba(28, 18, 46, .94)) !important; }
 .v8-app-root.kr-lowend .kx-shbg.sw-bg .bx-sharesheet.sw-sheet { background: rgb(36, 24, 58) !important; }
+/* 25 Nov open onboarding: invite nudge — friends can join without the face check */
+.v8-app-root .sw-sheet .sw-open { display: flex; gap: 6px; align-items: flex-start; justify-content: center; margin: 14px 6px 0; text-align: center;
+  font-size: .8125rem; font-weight: 600; line-height: 1.4; color: #FFE7F6; }
+.v8-app-root .sw-sheet .sw-open span { flex: 0 0 auto; }

@@ -815,6 +815,11 @@ export function v5ProfileLink(id: string): string {
 }
 // ─────────────── face verification (0031) ───────────────
 export interface V5Verification { status: 'pending' | 'approved' | 'rejected'; created_at: string; reviewed_at: string | null; reject_reason: string | null }
+/** m208 (25 Nov open onboarding): my own numbers before the face check, for the likes prompt. null when the call fails. */
+export interface V5UnvStats { gated: boolean; verified: boolean; views: number; likes: number; saves: number; prompt_at: number }
+export const v5UnvStats = () => rpc<V5UnvStats>('kr8_my_unv_stats').then((r) => (r && typeof r === 'object' ? {
+  gated: r.gated === true, verified: r.verified === true, views: Number(r.views) || 0, likes: Number(r.likes) || 0, saves: Number(r.saves) || 0,
+  prompt_at: Math.max(1, Number(r.prompt_at) || 5) } : null)).catch(() => null);
 export const v5MyVerification = async () => ((await rpc<V5Verification[]>('kr8_my_verification')) || [])[0] || null;
 /** Uploads the one selfie frame (private bucket, team-only) and sends the check results. */
 export async function v5RequestVerification(selfie: Blob, check: { straight: boolean; left: boolean; right: boolean; blink: boolean; blink_fallback?: boolean; match: number | null; device: string }, consent: string): Promise<string> {
