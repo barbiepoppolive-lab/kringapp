@@ -1,0 +1,18 @@
+--- kring-inbox/index.js (deployed 7 Nov 2026)
++++ kring-inbox/index.js (deployed 26 Nov 2026, rich menu forward)
+@@ -4133,6 +4133,15 @@
+   } catch {
+     return new Response("bad json", { status: 400 });
+   }
++  // 26 Nov 2026: Kring rich menu on @194hsqbc. Postbacks "km=..." go to the Supabase function line-menu
++  // (same raw body + LINE signature; it verifies again and answers with a free LINE reply). Nothing else changes.
++  if (oa === "cafe" && env.MENU_FN_URL && (payload.events || []).some((e) => e.type === "postback" && /^km=/.test(String(e.postback?.data || "")))) {
++    try {
++      await fetch(env.MENU_FN_URL, { method: "POST", headers: { "Content-Type": "application/json", "x-line-signature": sig }, body });
++    } catch (e) {
++      console.log("line-menu forward failed", String(e).slice(0, 200));
++    }
++  }
+   const admin = await kvGet(env, "admin");
+   for (const ev of payload.events || []) {
+     const userId = ev.source?.userId;
