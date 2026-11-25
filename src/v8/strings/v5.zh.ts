@@ -61,6 +61,8 @@ const T: Record<string, string> = {
     'That’s you, {0}': '这就是你了，{0}',
     'You’re on the People page now': '你已经在「新朋友」页面上了',
     'See People': '去「新朋友」',
+    'Your card is ready. Face check in 30 seconds whenever you want to be seen.': '你的卡片已准备好。想被看到时，随时做 30 秒人脸验证。',
+    'Go to the Feed': '去动态',
     'Finish your profile': '完成你的主页',
     '1 step left on your profile': '还差 1 步',
     '{0} steps left on your profile': '还差 {0} 步',

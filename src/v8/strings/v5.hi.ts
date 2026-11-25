@@ -61,6 +61,8 @@ const T: Record<string, string> = {
     'That’s you, {0}': 'यह रहे आप, {0}',
     'You’re on the People page now': 'अब आप लोग पेज पर हैं',
     'See People': 'लोग देखें',
+    'Your card is ready. Face check in 30 seconds whenever you want to be seen.': 'आपका कार्ड तैयार है। जब चाहें 30 सेकंड का फ़ेस चेक करें ताकि लोग आपको देख सकें।',
+    'Go to the Feed': 'फ़ीड पर जाएँ',
     'Finish your profile': 'अपनी प्रोफ़ाइल पूरी करें',
     '1 step left on your profile': '1 कदम बाकी',
     '{0} steps left on your profile': '{0} कदम बाकी',

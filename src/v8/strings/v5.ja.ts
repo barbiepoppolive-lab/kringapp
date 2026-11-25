@@ -61,6 +61,8 @@ const T: Record<string, string> = {
     'That’s you, {0}': 'これがあなたです、{0}',
     'You’re on the People page now': 'もうピープルページに載っています',
     'See People': 'ピープルを見る',
+    'Your card is ready. Face check in 30 seconds whenever you want to be seen.': 'カードの準備ができました。見てもらいたくなったら、いつでも30秒の顔チェックを。',
+    'Go to the Feed': 'フィードへ',
     'Finish your profile': 'プロフィールを仕上げる',
     '1 step left on your profile': 'あと1ステップ',
     '{0} steps left on your profile': 'あと{0}ステップ',

@@ -61,6 +61,8 @@ const T: Record<string, string> = {
     'That’s you, {0}': '이게 당신이에요, {0}',
     'You’re on the People page now': '이제 피플 페이지에 있어요',
     'See People': '피플 보기',
+    'Your card is ready. Face check in 30 seconds whenever you want to be seen.': '카드가 준비됐어요. 보이고 싶을 때 언제든 30초 얼굴 확인을 하세요.',
+    'Go to the Feed': '피드로 가기',
     'Finish your profile': '프로필 완성하기',
     '1 step left on your profile': '1단계 남았어요',
     '{0} steps left on your profile': '{0}단계 남았어요',

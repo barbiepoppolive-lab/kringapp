@@ -8050,6 +8050,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {/* ── Six-step profile builder (variant B, 25 Nov). Full screen, above the dock, only when a card exists. ── */}
         {buildOpen && live && v5Card && (
           <V5Build
+            feedAfter={OPEN_JOIN && (joinBuildRef.current || unvRef.current)}
             L={L}
             Lf={Lf}
             card={v5Card}

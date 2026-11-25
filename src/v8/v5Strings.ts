@@ -66,6 +66,8 @@ export const V5_L: Record<string, Record<string, string>> = {
     'That’s you, {0}': 'นี่คือคุณแล้ว {0}',
     'You’re on the People page now': 'คุณอยู่ในหน้าผู้คนแล้ว',
     'See People': 'ไปหน้าผู้คน',
+    'Your card is ready. Face check in 30 seconds whenever you want to be seen.': 'การ์ดของคุณพร้อมแล้ว สแกนหน้า 30 วินาทีเมื่อไหร่ก็ได้ที่อยากให้คนอื่นเห็นคุณ',
+    'Go to the Feed': 'ไปที่ฟีด',
     'Finish your profile': 'ทำโปรไฟล์ให้เสร็จ',
     '1 step left on your profile': 'เหลืออีก 1 ขั้นตอน',
     '{0} steps left on your profile': 'เหลืออีก {0} ขั้นตอน',
