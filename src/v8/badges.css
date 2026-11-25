@@ -1,0 +1,10 @@
+/* m211 profile badges: small tinted pills under the name. No border, no glow, no shadow. */
+.v8-app-root .kb-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 7px 0 0; }
+.v8-app-root .kb-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px 3px 8px; border-radius: 999px;
+  font: 600 0.75rem/1.35 var(--rv-f, system-ui); letter-spacing: 0; white-space: nowrap; box-shadow: none; border: 0; }
+.v8-app-root .kb-pill > span { font-size: 0.8125rem; line-height: 1; }
+.v8-app-root .kb-gold { color: #E9C98E; background: rgba(216, 180, 119, .15); }
+.v8-app-root .kb-win  { color: #D9D6E6; background: rgba(217, 214, 230, .11); }
+.v8-app-root .kb-star { color: #F3A8D9; background: rgba(236, 70, 182, .13); }
+/* People cards: the icons sit right after the name, no pill */
+.v8-app-root #pplGrid .rv-pc .kb-ic { flex: none; margin-left: 4px; font-size: 0.8125rem; line-height: 1; }

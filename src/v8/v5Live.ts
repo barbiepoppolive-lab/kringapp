@@ -4,6 +4,7 @@
  * Off unless VITE_AUTH_LIVE=1, so the current "Sign-in opens on 1 Dec · join the waitlist" sheet stays the default.
  * supabase-js is lazy-loaded, so the waitlist build never downloads it.
  */
+import type { V5LastWeek } from './badges';
 import { photoFirst } from './peopleSort';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { initialAvatar, NEUTRAL_IMG } from './v8Data';
@@ -489,9 +490,9 @@ export async function v5People(): Promise<V8Person[]> {
   try {
     const ids = list.map((p) => p.id).filter((id) => /^[0-9a-f-]{36}$/.test(id)).slice(0, 200);
     if (ids.length) {
-      const ex = await rpcRaw<{ user_id: string; interests: string[] | null; reels: number | null }[] | null>('kr8_people_extras', { p_ids: ids });
+      const ex = await rpcRaw<{ user_id: string; interests: string[] | null; reels: number | null; badges?: string[] | null; last_rank?: number | null }[] | null>('kr8_people_extras', { p_ids: ids });
       const by = new Map((ex || []).map((e) => [e.user_id, e] as const));
-      for (const p of list) { const e = by.get(p.id); if (e) { p.interests = e.interests || []; p.reels = e.reels ?? 0; } }
+      for (const p of list) { const e = by.get(p.id); if (e) { p.interests = e.interests || []; p.reels = e.reels ?? 0; p.badges = e.badges || []; p.lastRank = e.last_rank ?? null; } }
     }
   } catch { /* the cards simply show without tags */ }
   return list;
@@ -786,6 +787,8 @@ export interface V5Profile {
   lists_private?: boolean;
   /** 0251: profile builder step 6, the question key and the member's answer */
   qa_q?: string | null; qa_answer?: string | null;
+  /** m211: team-granted badges (e.g. 'founding_local') and last closed week's board place (1-8 only) */
+  badges?: string[] | null; last_week?: V5LastWeek | null;
 }
 /** 0251: save the step-6 answer (max 140, checked like the bio; empty clears it) */
 export const v5SetQa = (q: string, answer: string) => rpc<{ qa_q: string | null; qa_answer: string | null }>('kr8_set_qa', { p_q: q, p_answer: answer });

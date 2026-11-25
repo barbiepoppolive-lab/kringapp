@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { cardBadgeIcons } from './badges';
 import './fonts-v8.css';
 import './v8.css';
 import { KDock } from './KDock';
@@ -4988,6 +4989,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                         <button type="button" className="v" aria-label={L('verified')}
                           onClick={(e) => { e.stopPropagation(); setSheet('verified'); }}>✓</button>
                       )}
+                      {(() => { const ic = cardBadgeIcons(p.badges, p.lastRank); return ic ? <span className="kb-ic" aria-hidden="true">{ic}</span> : null; })()}
                     </div>
                     <div className="langs">{p.area ? <span className="rv-area">{rvArea(p.area)}</span> : null}{p.langCodes?.length ? rvLangs(p.langCodes) : p.langs}</div>
                     {tags.length ? (
@@ -5210,6 +5212,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           ) : live && signedIn && v5Card && meProfile ? (
             <MeView
               L={L}
+              lang={lang}
               chipTasks={meChipTasks}
               onTasks={() => setMeTasks(true)}
               onClaimTasks={async () => { const r = await tasksClaimReady(); if (r === 'ok') kxCardExtras().then(setKxMe).catch(() => undefined); return r; }}

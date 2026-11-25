@@ -19,6 +19,7 @@ import type { KxCardExtras } from './v5Kx';
 import { fvMarkShown, fvText } from './V5Unverified';
 import { postAgo } from './postTime';
 import './meChip.css';
+import { ProfileBadges } from './badges';
 
 // ── pre-season (D-11NOV-G): the board ranks from day one; rewards start on kr8_settings.reward_start_at ──
 const LOCALE: Record<string, string> = { th: 'th-TH', zh: 'zh-CN', hi: 'hi-IN', ja: 'ja-JP', ko: 'ko-KR' };
@@ -435,6 +436,8 @@ const Chev = () => <i className="kme-chev" aria-hidden="true">›</i>;
 
 /** My Me tab */
 export type MeViewProps = {
+  /** m211: the app language, for the badge pills under the name */
+  lang?: string;
   L: Tx; Lf: Txf; p: V5Profile; rank: number | null; posters: Record<string, string>; savedCount: number; savedImgs: string[];
   unread: boolean; verifyState: 'none' | 'pending' | 'verified';
   onTop10: () => void; onList: (k: 'followers' | 'following') => void; onSettings: () => void; onActivity: () => void;
@@ -529,7 +532,7 @@ export function MeView(props: MeViewProps) {
         <RingsSheet L={L} Lf={Lf} d={chip} mine onClose={closeChip} onRanking={props.onRanking} onHistory={props.onRings} onTasks={props.onTasks}
           onClaimPrize={props.onRings} onClaim={props.onClaimTasks} onShareBest={props.onShareBest} onShareBestDown={props.onShareBestDown} />
       ) : null}
-      <MeHead L={L} p={p} onEdit={props.onEdit} note={<QaBubble L={L} q={p.qa_q} a={p.qa_answer} qKey={props.qaKey || 'soi_shop'} onTap={props.onQa} />} stats={(
+      <MeHead L={L} lang={props.lang} p={p} onEdit={props.onEdit} note={<QaBubble L={L} q={p.qa_q} a={p.qa_answer} qKey={props.qaKey || 'soi_shop'} onTap={props.onQa} />} stats={(
         <div className="rv4-pst" id="meStats">
           <span id="statReels"><b>{fmtCount(props.reelCount ?? p.reels.length)}</b><span>{L('Reels')}</span></span>
           <button type="button" id="statFollowers" onClick={() => props.onList('followers')}><b>{fmtCount(p.followers)}</b><span>{L('Followers')}</span></button>
@@ -585,7 +588,7 @@ export function MeView(props: MeViewProps) {
 }
 
 /** rv4 Me A head: skyline band (CSS), round photo with a thin gold ring (tap = edit card), stats beside it, name ✓ and area. */
-function MeHead(props: { L: Tx; p: V5Profile; stats: React.ReactNode; onEdit: () => void; note?: React.ReactNode }) {
+function MeHead(props: { L: Tx; lang?: string; p: V5Profile; stats: React.ReactNode; onEdit: () => void; note?: React.ReactNode }) {
   // 0183: the bio under the name (own text, never translated); none yet → one quiet "+ Add a short bio" that opens the card editor
   const { L, p } = props;
   const ref = useRef<HTMLButtonElement>(null);
@@ -604,6 +607,8 @@ function MeHead(props: { L: Tx; p: V5Profile; stats: React.ReactNode; onEdit: ()
         {props.stats}
       </div>
       <h2 className="rv4-pnm">{p.first_name}{p.verified ? <RvCheck L={L} /> : null}</h2>
+      {/* m211: last week's board place + Founding Local, small pills under the name */}
+      <ProfileBadges lang={props.lang || 'en'} badges={p.badges} lastWeek={p.last_week} id="meBadges" />
       {/* 25 Nov (mock F): emoji instead of labels: 📍 area, then a flag per language (a short name where no flag fits) */}
       {where || flags ? <p className="rv4-psub mc-meta" id="meMeta">{where ? <span>📍 {where}</span> : null}{flags ? <span className="mc-flags">{flags}</span> : null}</p> : null}
       {p.bio ? <p className="rv4-pbio" id="meBio">{p.bio}</p>

@@ -20,6 +20,7 @@ import { rvHeroIn } from './rvMotion';
 import { RingGlyph, SocialPills } from './V5KxCard';
 import { GenderChip } from './V5Gender';
 import { AskText } from './askTr';
+import { ProfileBadges } from './badges';
 import { FriendVerifyNote, fvMarkShown, fvShownToday } from './V5Unverified';
 import type { V5Profile } from './v5Live';
 import type { PickedPlace } from './V5KxPlaces';
@@ -391,7 +392,7 @@ export function GoMeReels(props: {
 // ───────────── member profile ─────────────
 /** rv4 Profile B: the head of a member's profile. Round photo (thin gold ring) + the stats row beside it, then name ✓,
  *  area · languages, short bio and up to 3 interest tags with a gold hairline. Real data only: no bio / no interests → no line. */
-function ProfileHead(props: { L: Tx; p: V5Profile; stats: React.ReactNode; extra?: React.ReactNode; note?: React.ReactNode }) {
+function ProfileHead(props: { L: Tx; lang: string; p: V5Profile; stats: React.ReactNode; extra?: React.ReactNode; note?: React.ReactNode }) {
   const { L, p } = props;
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => { rvHeroIn(ref.current); }, []);
@@ -408,6 +409,8 @@ function ProfileHead(props: { L: Tx; p: V5Profile; stats: React.ReactNode; extra
       </div>
       {props.note}
       <h2 className="rv4-pnm">{p.first_name}{p.verified ? <RvCheck L={L} /> : null}</h2>
+      {/* m211: last week's board place + Founding Local, small pills under the name */}
+      <ProfileBadges lang={props.lang} badges={p.badges} lastWeek={p.last_week} id="profileBadges" />
       {/* 0183: the bio sits right under the name, in the reader's language ("Translated · See original") */}
       {p.bio ? <div className="rv4-biow" id="profileBio"><AskText L={L} kind="b" id={p.user_id} text={p.bio} skip={p.mine} as="p" className="rv4-pbio" toggle /></div> : null}
       <p className="rv4-psub">{[where, langs].filter(Boolean).join(' · ')}</p>
@@ -461,7 +464,7 @@ export function GoProfilePage(props: {
       {chip && chipOpen ? <RingsSheet L={L} Lf={props.Lf} d={chip} mine={false} onClose={closeChip} onRanking={props.onRanking} /> : null}
       {/* rv4 (founder pick Profile B, 20 Nov): round photo with a thin gold ring + stats beside it · name ✓ · area · languages · bio ·
           gold interest tags · Say hi (primary) + Follow · Reels grid edge to edge */}
-      <ProfileHead L={L} p={p} stats={
+      <ProfileHead L={L} lang={props.lang} p={p} stats={
         <div className="rv4-pst" id="profileStats">
           <div><b>{fmtN(list.length || p.reels.length)}</b><span>{L('Reels')}</span></div>
           <button type="button" data-locked={locked ? '1' : undefined} onClick={() => openList('followers')}><b id="profileFollowers">{fmtN(p.followers)}</b><span>{L('Followers')}</span></button>

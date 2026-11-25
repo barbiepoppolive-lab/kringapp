@@ -71,6 +71,9 @@ export interface V8Person {
   /** 0170 (revamp Phase 1): interest keys + approved Reel count, from kr8_people_extras (missing when the call fails) */
   interests?: string[];
   reels?: number;
+  /** m211: team badges + last closed week's board place (1-8), from kr8_people_extras */
+  badges?: string[];
+  lastRank?: number | null;
 }
 
 export interface V8Deal {
