@@ -3029,8 +3029,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     const reels = newFaces.filter((f) => f.k === 'reel' && f.video_path && f.poster_path);
     if (i < 0 || !reels.length) return;
     v5LogClient('newfaces_open', 'reel');
+    // the member's photo as the Feed already has it (the row itself sends none: photos are large)
+    const photoOf = (uid: string): string | null => {
+      const it = feedItems.find((x) => (x as V5FeedItem).authorId === uid && !!x.av && !x.av.startsWith('data:image/svg') && x.av !== x.img && x.av !== x.poster);
+      return it ? (it.av as string) : null;
+    };
     goOpenPlayer(reels.map((f) => ({ id: f.id, video_path: f.video_path as string, poster_path: f.poster_path as string, body: f.body, status: 'approved',
-      likes: f.likes || 0, liked: !!f.liked, saved: !!f.saved, mine: f.mine, author: { id: f.author_id, name: f.name, photo: null } })), Math.min(i, reels.length - 1),
+      likes: f.likes || 0, liked: !!f.liked, saved: !!f.saved, mine: f.mine, author: { id: f.author_id, name: f.name, photo: photoOf(f.author_id) } })), Math.min(i, reels.length - 1),
       { title: L('New in Bangkok 👋') });
   };
   const pickVote = (card: VoteCard, answer: string) => {
@@ -3046,6 +3051,28 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     });
   };
   const nfOn = live && signedIn && !adminView && newFaces.length > 0;
+  // The row floats over the top of the Feed (not inside one slide: the signed-in feed can land a few Reels down when it
+  // replaces the first one). It slides away once the member swipes on, and comes back at the top.
+  const [nfAway, setNfAway] = useState(false);
+  useEffect(() => {
+    const el = feedScrollRef.current;
+    if (!el || !nfOn) return undefined;
+    let base: number | null = null;
+    const down = () => { base = el.scrollTop; };
+    const onScroll = () => {
+      if (el.scrollTop < 40) { setNfAway(false); return; }
+      if (base !== null && Math.abs(el.scrollTop - base) > 60) setNfAway(true);
+    };
+    el.addEventListener('touchstart', down, { passive: true });
+    el.addEventListener('wheel', down, { passive: true });
+    el.addEventListener('pointerdown', down, { passive: true });
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      el.removeEventListener('touchstart', down); el.removeEventListener('wheel', down);
+      el.removeEventListener('pointerdown', down); el.removeEventListener('scroll', onScroll);
+    };
+  }, [nfOn, feedSettled, feedItems.length]);
+  const nfShow = nfOn && !nfAway && tab === 'feed' && feedMode !== 'ask';
   /** after every VOTE_EVERY-th slide, the next Ask BKK vote card (each card once; none for guests / admin view) */
   const withVoteCards = (slides: React.ReactNode[]): React.ReactNode[] => {
     if (!voteCards.length || !live || !signedIn || adminView) return slides;
@@ -4457,7 +4484,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
         {/* ==================== 1. FEED SCREEN ==================== */}
         <section
-          className={`v8-screen ${tab === 'feed' ? 'active' : ''} at-has-sw${feedMode === 'ask' ? ' at-on' : ''}${feedMode !== 'ask' && nextStep ? ' nx-on' : ''}${postedShare ? ' posted-on' : ''}`}
+          className={`v8-screen ${tab === 'feed' ? 'active' : ''} at-has-sw${feedMode === 'ask' ? ' at-on' : ''}${feedMode !== 'ask' && nextStep ? ' nx-on' : ''}${postedShare ? ' posted-on' : ''}${nfShow ? ' nf-on' : ''}`}
           id="s-feed"
           aria-label={L('Feed')}
         >
@@ -4555,6 +4582,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onAsk={(q) => { setAskOpenThread(q); pickFeedMode('ask'); }}
               onVerify={() => { setVerifyMode('me'); setSheet('verify'); }} />
           )}
+          {nfOn && tab === 'feed' && feedMode !== 'ask' ? (
+            <NewFacesRow L={L} items={newFaces} away={!nfShow} onReel={openNewFaceReel}
+              onAnswer={(f) => { v5LogClient('newfaces_open', 'ans'); if (f.post_id) { setAskOpenThread(f.post_id); pickFeedMode('ask'); } }} />
+          ) : null}
           {/* Vertical Snap Feed or Redesigned V9 Feed Hub */}
           {feedItems.length === 0 ? (
             <div className="feed-scroll" id="feedScroll" ref={feedScrollRef}>
@@ -4616,11 +4647,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
                 const isSaved = Boolean(p.id && savedIds[p.id]);
                 return (
-                  <div className={`slide${p.video ? ' has-reel' : ''}${idx === 0 && nfOn ? ' has-nf' : ''}`} key={p.id || idx} data-post-id={p.id} onClick={p.video ? (e) => handleReelTap(e, p) : undefined}>
-                    {idx === 0 && nfOn ? (
-                      <NewFacesRow L={L} items={newFaces} onReel={openNewFaceReel}
-                        onAnswer={(f) => { v5LogClient('newfaces_open', 'ans'); if (f.post_id) { setAskOpenThread(f.post_id); pickFeedMode('ask'); } }} />
-                    ) : null}
+                  <div className={`slide${p.video ? ' has-reel' : ''}`} key={p.id || idx} data-post-id={p.id} onClick={p.video ? (e) => handleReelTap(e, p) : undefined}>
                     {p.video ? (
                       <V5ReelVideo src={p.video} poster={p.poster} first={idx === 0} label={`Reel · ${p.name || ''} · ${p.area || ''}`} soundHint={L('Tap for sound 🔊')}
                         postId={live && p.id && !p.reelPending && !(p as V5FeedItem).mine ? (p.id as string) : undefined}

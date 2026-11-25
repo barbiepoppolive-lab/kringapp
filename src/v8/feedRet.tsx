@@ -9,7 +9,7 @@
  *    upvote on that answer (kr8_feed_vote → kr8_ask_vote, unchanged; no Rings). Then a truthful result line: from 10 other
  *    voters a percentage, below that the count in words. Questions the member already answered or voted on are skipped.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePosters } from './V5Go';
 import { AskText } from './askTr';
 import { hasThai, mostlyEnglish } from './askThai';
@@ -49,7 +49,7 @@ function markSeen(id: string) {
   } catch { /* private mode: the ring just stays bright */ }
 }
 
-export function NewFacesRow(p: { L: LFn; items: NewFace[]; onReel: (i: number) => void; onAnswer: (f: NewFace) => void }) {
+export function NewFacesRow(p: { L: LFn; items: NewFace[]; away?: boolean; onReel: (i: number) => void; onAnswer: (f: NewFace) => void }) {
   const [seen, setSeen] = useState<Record<string, number>>(readSeen);
   const posters = usePosters(p.items.filter((x) => x.k === 'reel' && x.poster_path).map((x) => x.poster_path as string));
   if (!p.items.length) return null;
@@ -57,7 +57,7 @@ export function NewFacesRow(p: { L: LFn; items: NewFace[]; onReel: (i: number) =
   const order = p.items.map((f, i) => ({ f, i })).sort((a, b) => Number(!!seen[a.f.id]) - Number(!!seen[b.f.id]) || a.i - b.i);
   const reelIds = p.items.filter((x) => x.k === 'reel').map((x) => x.id);
   return (
-    <div className="nf" id="newFaces" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
+    <div className={`nf${p.away ? ' away' : ''}`} id="newFaces" aria-hidden={p.away || undefined} onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
       <div className="nf-h">{p.L('New in Bangkok 👋')}</div>
       <div className="nf-row" role="list">
         {order.map(({ f }) => {
@@ -129,9 +129,18 @@ export function VoteSlide(p: {
   const picked = p.result?.pick || p.busy;
   const line = p.result ? voteLine(L, p.result.r) : null;
   const [grow, setGrow] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = ref.current;
+    const feed = el?.closest('#s-feed');
+    if (!el || !feed || typeof IntersectionObserver === 'undefined') return undefined;
+    const io = new IntersectionObserver(([e]) => { feed.classList.toggle('fv-cur', e.isIntersecting && e.intersectionRatio > 0.6); }, { threshold: [0, 0.6, 1] });
+    io.observe(el);
+    return () => { io.disconnect(); feed.classList.remove('fv-cur'); };
+  }, []);
   useEffect(() => { if (!p.result) { setGrow(false); return undefined; } const t = setTimeout(() => setGrow(true), 40); return () => clearTimeout(t); }, [p.result]);
   return (
-    <div className={`slide fv t-${sc.tint}`} data-vote-card={card.id} onClick={(e) => e.stopPropagation()}>
+    <div ref={ref} className={`slide fv t-${sc.tint}`} data-vote-card={card.id} onClick={(e) => e.stopPropagation()}>
       <span className="fv-scene" aria-hidden="true" style={{ backgroundImage: `url('${BASE}media/places/${sc.scene}.jpg')` }} />
       <div className="fv-body">
         <div className="fv-k">{L('Ask BKK')} · {card.answers === 1 ? L('1 answer') : L('{0} answers').replace('{0}', String(card.answers))}</div>

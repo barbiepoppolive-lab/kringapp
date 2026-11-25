@@ -1,7 +1,13 @@
 /* Retention push, Feed part (25 Nov 2026): "New in Bangkok" row + Ask BKK vote cards. Scoped to #s-feed; nothing else restyled. */
 
-/* ── 1. New in Bangkok: story-style row over the top of the first Reel. No box, no border: the Reel's own top scrim carries it. ── */
-.v8-app-root #s-feed .nf { position: absolute; left: 0; right: 0; top: calc(env(safe-area-inset-top, 0px) + 58px); z-index: 6; }
+/* ── 1. New in Bangkok: story-style row floating over the top of the Feed. No box, no border: the Reel's own top scrim carries it.
+      Sits under whatever already shows at the top: the weekly prize ticker (52–88px), the watch-3 bar (96–110px).
+      Under the daily check-in toast (z 31) so that one still reads. Slides up and away once the member swipes on. ── */
+.v8-app-root #s-feed .nf { position: absolute; left: 0; right: 0; top: calc(env(safe-area-inset-top, 0px) + 58px); z-index: 28;
+  transition: opacity .25s ease, transform .25s ease; }
+.v8-app-root #s-feed:has(.kpz-tick) .nf { top: calc(env(safe-area-inset-top, 0px) + 98px); }
+.v8-app-root #s-feed:has(.dt-wbar) .nf { top: calc(env(safe-area-inset-top, 0px) + 118px); }
+.v8-app-root #s-feed .nf.away { opacity: 0; transform: translateY(-12px); pointer-events: none; }
 .v8-app-root #s-feed .nf-h { padding: 0 16px; font: 600 0.8125rem/1.2 var(--rv-f); color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.55); }
 .v8-app-root #s-feed .nf-row { display: flex; gap: 12px; padding: 8px 16px 2px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
 .v8-app-root #s-feed .nf-row::-webkit-scrollbar { display: none; }
@@ -18,8 +24,14 @@
 .v8-app-root #s-feed .nf-n { max-width: 60px; font: 500 0.6875rem/1.2 var(--rv-f); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 4px rgba(0,0,0,.6); }
 .v8-app-root #s-feed .nf-t:focus-visible .nf-ring { outline: 2px solid #fff; outline-offset: 2px; }
 .v8-app-root #s-feed .nf-t:active .nf-ring { transform: scale(.94); }
-/* the slide carrying the row: its sound button steps below the row */
-.v8-app-root #s-feed .slide.has-nf .reel-sound { top: calc(env(safe-area-inset-top, 0px) + 160px) !important; }
+/* while the row shows, the Reel's sound button steps below it */
+.v8-app-root #s-feed.nf-on .reel-sound { top: calc(env(safe-area-inset-top, 0px) + 166px) !important; }
+.v8-app-root #s-feed.nf-on:has(.kpz-tick) .reel-sound { top: calc(env(safe-area-inset-top, 0px) + 206px) !important; }
+.v8-app-root #s-feed.nf-on:has(.dt-wbar) .reel-sound { top: calc(env(safe-area-inset-top, 0px) + 226px) !important; }
+@media (prefers-reduced-motion: reduce) { .v8-app-root #s-feed .nf { transition: none; } }
+
+/* while a vote card is on screen the daily-tasks orb steps aside (its own "away" look), so it never sits on the answers */
+.v8-app-root #s-feed.fv-cur .dt-orb { transform: translateX(-80%); opacity: .6; }
 
 /* ── 2. Ask BKK vote card: one full slide (same height as a Reel), the Ask BKK street photo + tint, content at the Reel caption line ── */
 .v8-app-root #s-feed .slide.fv { isolation: isolate; background: #0E0F19; }
