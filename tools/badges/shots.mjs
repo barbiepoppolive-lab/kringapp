@@ -72,6 +72,7 @@ async function wireBadges(o, meKey) {
   r.kr8_accept_terms = '2026-11-25T03:00:00Z';
   r.kr8_my_face_status = { verified: true, new_check: false, pending: false, blocked: false, tries_left: 3 };
   r.kr8_feed_ranked = r.kr8_feed;
+  r.kr8_coach_state = ['save', 'post', 'score', 'share', 'pb_gender', 'pb_area', 'pb_likes', 'pb_langs', 'pb_bio', 'pb_qa', 'pb_done'];
   r.kr8_people = ORDER.filter((k) => k !== meKey).map((k) => ({ user_id: M[k].user_id, first_name: M[k].first_name, photo: face(k), langs: M[k].langs, bio: M[k].bio,
     area: M[k].area, who: 'local', here: false, verified: true }));
   r.kr8_people_extras = ORDER.filter((k) => k !== meKey).map((k) => ({ user_id: M[k].user_id, interests: M[k].interests, reels: 3, badges: M[k].badges,
