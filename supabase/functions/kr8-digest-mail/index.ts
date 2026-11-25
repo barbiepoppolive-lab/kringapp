@@ -3,11 +3,14 @@
 //   POST /send         x-hook-secret = NOTIFY_HOOK_SECRET (pg_net from kr8_digest_mail_kick). Claims ≤25 at a time, ≤6 rounds.
 //   GET  /unsub?t=…    one-click unsubscribe link in the email (64-hex token in kr8_digest_prefs)
 //   POST /unsub?t=…    RFC 8058 List-Unsubscribe-Post (Gmail / Apple Mail "Unsubscribe" button)
+//   POST /line-check   x-hook-secret (cron 18:45 Bangkok, kr8_line_check_kick): free LINE profile lookups with the @194hsqbc token
+//                      (secret LINE_194_TOKEN) → kr8_push_line.friend; also stores the OA's monthly quota use. Sends nothing.
 // Hard switch: kr8_rings_config line_digest_on. While it is 0, kr8_digest_mail_claim returns nothing, so nothing is ever sent.
 const SB = Deno.env.get("SUPABASE_URL")!;
 const SR = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const BREVO = Deno.env.get("BREVO_API_KEY")!;
 const HOOK = Deno.env.get("NOTIFY_HOOK_SECRET")!;
+const LINE = Deno.env.get("LINE_194_TOKEN") ?? "";
 const SELF = `${SB}/functions/v1/kr8-digest-mail`;
 const SITE = "https://kringapp.com";
 
@@ -71,6 +74,29 @@ Deno.serve(async (req) => {
     const ok = await rpc<boolean>("kr8_digest_unsub", { p_token: t, p_via: req.method === "POST" ? "one-click" : "link" });
     if (req.method === "POST") return new Response(null, { status: ok === null ? 500 : 200 });
     return ok ? txt("เรียบร้อย กริ๊ง! จะไม่ส่งอีเมลสรุปแบบนี้ให้คุณอีก\n\nกลับไปที่กริ๊ง!: " + SITE + "/app/") : txt("ลิงก์นี้ใช้ไม่ได้แล้ว", 404);
+  }
+  if (path === "/line-check" && req.method === "POST") {
+    if (req.headers.get("x-hook-secret") !== HOOK) return new Response("forbidden", { status: 403 });
+    if (!LINE) return new Response(JSON.stringify({ error: "no LINE token" }), { status: 500 });
+    const H = { Authorization: `Bearer ${LINE}` };
+    const subs = ((await rpc<string[]>("kr8_line_check_claim", { p_limit: 300 })) || []).filter((x) => /^U[0-9a-f]{32}$/.test(x));
+    const results: { sub: string; http: number }[] = [];
+    for (let i = 0; i < subs.length; i += 10) {
+      await Promise.all(subs.slice(i, i + 10).map(async (sub) => {
+        try { const r = await fetch(`https://api.line.me/v2/bot/profile/${sub}`, { headers: H }); await r.body?.cancel(); results.push({ sub, http: r.status }); }
+        catch { /* next run */ }
+      }));
+    }
+    let quota: { limit: number; used: number } | null = null;
+    try {
+      const [a, b] = await Promise.all([fetch("https://api.line.me/v2/bot/message/quota", { headers: H }), fetch("https://api.line.me/v2/bot/message/quota/consumption", { headers: H })]);
+      const qa = await a.json(), qb = await b.json();
+      if (a.ok && b.ok && typeof qb.totalUsage === "number") quota = { limit: qa.type === "limited" ? Number(qa.value) : 100000, used: qb.totalUsage };
+    } catch { /* quota unknown: the database assumes 500 */ }
+    const n = await rpc<number>("kr8_line_check_done", { p_results: results, p_quota: quota });
+    const out = { checked: subs.length, recorded: n, friends: results.filter((x) => x.http === 200).length, quota };
+    console.log(JSON.stringify({ line_check: true, ...out }));
+    return new Response(JSON.stringify(out), { headers: { "Content-Type": "application/json" } });
   }
   if (path === "/send" && req.method === "POST") {
     if (req.headers.get("x-hook-secret") !== HOOK) return new Response("forbidden", { status: 403 });
