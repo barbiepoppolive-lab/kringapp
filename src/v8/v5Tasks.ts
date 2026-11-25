@@ -19,6 +19,8 @@ export interface TaskRow {
 export interface TasksToday {
   on: boolean; day?: string; resets_at?: string; verified?: boolean; max?: number; rings_today?: number;
   streak?: boolean[]; tasks?: TaskRow[];
+  /** m216: a member without the face check gets no tasks, only today's This-or-That here (first-visit step 1) */
+  gated?: boolean; vote?: TaskVote | null;
 }
 export type TaskState = 'go' | 'claim' | 'done' | 'soon';
 

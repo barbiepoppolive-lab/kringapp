@@ -3264,7 +3264,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     else if (s.kind === 'climb') { if (where === 'feed') setTab('me'); setSheet('ranking'); }
   };
   const nextHide = () => { if (nextStep) { hideNextStep(v5Uid, nextStep.kind); setNextHideTick((n) => n + 1); } };
-  // ── m214 first-visit steps (first 3 days): 1 Ask BKK answer · 3 Reel likes · first clip → "Bangkok Local ✓" tag (no Rings) ──
+  // ── m214/m216 first-visit steps (first 3 days): 1 This-or-That vote · 1 Ask BKK answer · 3 Reel likes · first clip → "Bangkok Local ✓" tag (no Rings) ──
   const onb = useOnb(live && signedIn && v5Card && !adminView ? v5Uid : '');
   const [onbTick, setOnbTick] = useState(0);
   void onbTick;
@@ -3284,7 +3284,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     if (k === 'clip') { kxPostAt(); return; }
     setSheet(null);
     setTab('feed');
-    pickFeedMode(k === 'ask' ? 'ask' : 'reels');
+    // the This-or-That card is the first card of Ask BKK, so the vote step opens Ask BKK too (the answer step keeps its face-check route)
+    pickFeedMode(k === 'ask' || k === 'vote' ? 'ask' : 'reels');
   };
   const onbHideNow = () => { onbHide(v5Uid); setOnbTick((n) => n + 1); };
   const alikeFollow = (id: string) => toggleFollow(id, false);

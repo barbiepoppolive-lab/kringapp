@@ -1,6 +1,6 @@
 /**
  * m214 (25 Nov 2026) retention push, first-visit + friends.
- *  · OnbStrip: Feed, first 3 days. One slim glass line in the prize ticker's place: the next step + a 3-part bar
+ *  · OnbStrip: Feed, first 3 days. One slim glass line in the prize ticker's place: the next step + a 4-part bar (m216)
  *    (LinkedIn profile-strength / Duolingo path idea). Tap = the three steps drop down, each with its own button.
  *    Never a sheet, never with a sheet (the app hides it while any sheet is open), hideable.
  *  · OnbMeLine: the same steps as one quiet line in the Me status block (opens inline).
@@ -9,56 +9,54 @@
  */
 import { useEffect, useState } from 'react';
 import './onboard.css';
-import { onbAlike, onbCount, onbNext, useAlikeGen, type AlikePerson, type OnbState, type OnbStep } from './onboard';
+import { ONB_N, ONB_STEPS, onbAlike, onbCount, onbNext, onbStepDone, useAlikeGen, type AlikePerson, type OnbState, type OnbStep } from './onboard';
 
 const TX = {
-  en: { head: 'Become a Bangkok Local', sub: '3 quick steps · the tag shows on your profile', ask: 'Answer 1 Ask BKK question', like: 'Like 3 Reels',
-    clip: 'Post your first clip', bAsk: 'Answer', bLike: 'Watch', bClip: 'Post', hide: 'Hide', open: 'Show steps', close: 'Close',
-    step: 'Step done · {0}/3', done: 'You’re a Bangkok Local ✓ · it’s on your profile', alike: 'Answered like you', alikeAsk: 'Also answered this',
+  en: { head: 'Become a Bangkok Local', sub: '4 quick steps · the tag shows on your profile', vote: 'Vote on 1 This or that', ask: 'Answer 1 Ask BKK question', like: 'Like 3 Reels',
+    clip: 'Post your first clip', bVote: 'Vote', bAsk: 'Answer', bLike: 'Watch', bClip: 'Post', hide: 'Hide', open: 'Show steps', close: 'Close',
+    step: 'Step done · {0}/4', done: 'You’re a Bangkok Local ✓ · it’s on your profile', alike: 'Answered like you', alikeAsk: 'Also answered this',
     same1: '1 same pick', sameN: '{0} same picks', follow: 'Follow', following: 'Following' },
-  th: { head: 'มาเป็นคนกรุงเทพฯ ตัวจริง', sub: '3 ขั้นง่ายๆ · ได้ป้ายโชว์บนโปรไฟล์', ask: 'ตอบคำถาม 1 ข้อใน ถาม BKK', like: 'กดใจรีล 3 อัน',
-    clip: 'โพสต์คลิปแรกของคุณ', bAsk: 'ตอบ', bLike: 'ดูรีล', bClip: 'โพสต์', hide: 'ซ่อน', open: 'ดูขั้นตอน', close: 'ปิด',
-    step: 'เสร็จแล้ว {0}/3', done: 'คุณเป็นคนกรุงเทพฯ ตัวจริงแล้ว ✓ ป้ายขึ้นบนโปรไฟล์แล้ว', alike: 'ตอบเหมือนคุณ', alikeAsk: 'คนที่ตอบข้อนี้ด้วย',
+  th: { head: 'มาเป็นคนกรุงเทพฯ ตัวจริง', sub: '4 ขั้นง่ายๆ · ได้ป้ายโชว์บนโปรไฟล์', vote: 'โหวต อันไหนดี 1 ข้อ', ask: 'ตอบคำถาม 1 ข้อใน ถาม BKK', like: 'กดใจรีล 3 อัน',
+    clip: 'โพสต์คลิปแรกของคุณ', bVote: 'โหวต', bAsk: 'ตอบ', bLike: 'ดูรีล', bClip: 'โพสต์', hide: 'ซ่อน', open: 'ดูขั้นตอน', close: 'ปิด',
+    step: 'เสร็จแล้ว {0}/4', done: 'คุณเป็นคนกรุงเทพฯ ตัวจริงแล้ว ✓ ป้ายขึ้นบนโปรไฟล์แล้ว', alike: 'ตอบเหมือนคุณ', alikeAsk: 'คนที่ตอบข้อนี้ด้วย',
     same1: 'เลือกตรงกัน 1 ข้อ', sameN: 'เลือกตรงกัน {0} ข้อ', follow: 'ติดตาม', following: 'ติดตามแล้ว' },
-  zh: { head: '成为曼谷本地人', sub: '3 个小步骤 · 标签会显示在你的主页', ask: '回答 1 个 Ask BKK 问题', like: '给 3 个 Reel 点赞',
-    clip: '发布你的第一个短片', bAsk: '回答', bLike: '去看', bClip: '发布', hide: '隐藏', open: '查看步骤', close: '关闭',
-    step: '完成一步 · {0}/3', done: '你已是曼谷本地人 ✓ 标签已在主页', alike: '和你答得一样', alikeAsk: '也回答了这个问题',
+  zh: { head: '成为曼谷本地人', sub: '4 个小步骤 · 标签会显示在你的主页', vote: '给 1 个 This or that 投票', ask: '回答 1 个 Ask BKK 问题', like: '给 3 个 Reel 点赞',
+    clip: '发布你的第一个短片', bVote: '投票', bAsk: '回答', bLike: '去看', bClip: '发布', hide: '隐藏', open: '查看步骤', close: '关闭',
+    step: '完成一步 · {0}/4', done: '你已是曼谷本地人 ✓ 标签已在主页', alike: '和你答得一样', alikeAsk: '也回答了这个问题',
     same1: '1 个相同选择', sameN: '{0} 个相同选择', follow: '关注', following: '已关注' },
-  hi: { head: 'बैंकॉक लोकल बनें', sub: '3 आसान कदम · टैग आपकी प्रोफ़ाइल पर दिखेगा', ask: 'Ask BKK का 1 सवाल जवाब दें', like: '3 Reels लाइक करें',
-    clip: 'अपनी पहली क्लिप पोस्ट करें', bAsk: 'जवाब दें', bLike: 'देखें', bClip: 'पोस्ट', hide: 'छिपाएँ', open: 'कदम देखें', close: 'बंद',
-    step: 'कदम पूरा · {0}/3', done: 'आप बैंकॉक लोकल हैं ✓ टैग प्रोफ़ाइल पर है', alike: 'आप जैसा जवाब दिया', alikeAsk: 'इन्होंने भी जवाब दिया',
+  hi: { head: 'बैंकॉक लोकल बनें', sub: '4 आसान कदम · टैग आपकी प्रोफ़ाइल पर दिखेगा', vote: '1 This or that पर वोट करें', ask: 'Ask BKK का 1 सवाल जवाब दें', like: '3 Reels लाइक करें',
+    clip: 'अपनी पहली क्लिप पोस्ट करें', bVote: 'वोट', bAsk: 'जवाब दें', bLike: 'देखें', bClip: 'पोस्ट', hide: 'छिपाएँ', open: 'कदम देखें', close: 'बंद',
+    step: 'कदम पूरा · {0}/4', done: 'आप बैंकॉक लोकल हैं ✓ टैग प्रोफ़ाइल पर है', alike: 'आप जैसा जवाब दिया', alikeAsk: 'इन्होंने भी जवाब दिया',
     same1: '1 जवाब एक जैसा', sameN: '{0} जवाब एक जैसे', follow: 'फ़ॉलो', following: 'फ़ॉलो किया' },
-  ja: { head: 'バンコク・ローカルになろう', sub: 'かんたん3ステップ · プロフィールにタグが付きます', ask: 'Ask BKKの質問に1つ答える', like: 'リールに3回いいね',
-    clip: '最初のクリップを投稿', bAsk: '答える', bLike: '見る', bClip: '投稿', hide: '非表示', open: 'ステップを見る', close: '閉じる',
-    step: 'ステップ完了 · {0}/3', done: 'バンコク・ローカルになりました ✓ プロフィールに表示中', alike: 'あなたと同じ答え', alikeAsk: 'この質問にも答えた人',
+  ja: { head: 'バンコク・ローカルになろう', sub: 'かんたん4ステップ · プロフィールにタグが付きます', vote: 'This or thatに1回投票', ask: 'Ask BKKの質問に1つ答える', like: 'リールに3回いいね',
+    clip: '最初のクリップを投稿', bVote: '投票', bAsk: '答える', bLike: '見る', bClip: '投稿', hide: '非表示', open: 'ステップを見る', close: '閉じる',
+    step: 'ステップ完了 · {0}/4', done: 'バンコク・ローカルになりました ✓ プロフィールに表示中', alike: 'あなたと同じ答え', alikeAsk: 'この質問にも答えた人',
     same1: '1問同じ', sameN: '{0}問同じ', follow: 'フォロー', following: 'フォロー中' },
-  ko: { head: '방콕 로컬 되기', sub: '3단계만 하면 · 프로필에 태그가 붙어요', ask: 'Ask BKK 질문 1개 답하기', like: '릴스 3개 좋아요',
-    clip: '첫 클립 올리기', bAsk: '답하기', bLike: '보기', bClip: '올리기', hide: '숨기기', open: '단계 보기', close: '닫기',
-    step: '완료 · {0}/3', done: '방콕 로컬이 되었어요 ✓ 프로필에 표시돼요', alike: '나와 같은 답', alikeAsk: '이 질문에 답한 사람',
+  ko: { head: '방콕 로컬 되기', sub: '4단계만 하면 · 프로필에 태그가 붙어요', vote: 'This or that 1개 투표하기', ask: 'Ask BKK 질문 1개 답하기', like: '릴스 3개 좋아요',
+    clip: '첫 클립 올리기', bVote: '투표', bAsk: '답하기', bLike: '보기', bClip: '올리기', hide: '숨기기', open: '단계 보기', close: '닫기',
+    step: '완료 · {0}/4', done: '방콕 로컬이 되었어요 ✓ 프로필에 표시돼요', alike: '나와 같은 답', alikeAsk: '이 질문에 답한 사람',
     same1: '1개 같은 선택', sameN: '{0}개 같은 선택', follow: '팔로우', following: '팔로잉' },
 };
 type Tx = typeof TX.en;
 export const onbTx = (lang: string): Tx => (TX as Record<string, Tx>)[lang] || TX.en;
 const fmt = (s: string, ...a: (string | number)[]) => a.reduce<string>((o, v, i) => o.replace(`{${i}}`, String(v)), s);
 
-const STEPS: OnbStep[] = ['ask', 'like', 'clip'];
-const label = (tx: Tx, k: OnbStep) => (k === 'ask' ? tx.ask : k === 'like' ? tx.like : tx.clip);
-const btn = (tx: Tx, k: OnbStep) => (k === 'ask' ? tx.bAsk : k === 'like' ? tx.bLike : tx.bClip);
-const isDone = (s: OnbState, k: OnbStep) => (k === 'ask' ? !!s.ask : k === 'like' ? (s.likes || 0) >= 3 : !!s.clip);
+const label = (tx: Tx, k: OnbStep) => (k === 'vote' ? tx.vote : k === 'ask' ? tx.ask : k === 'like' ? tx.like : tx.clip);
+const btn = (tx: Tx, k: OnbStep) => (k === 'vote' ? tx.bVote : k === 'ask' ? tx.bAsk : k === 'like' ? tx.bLike : tx.bClip);
 
-/** the 3-part bar (one part per step, filled in order of what is done) */
+/** the 4-part bar (one part per step, filled in order of what is done) */
 function Bar({ n }: { n: number }) {
-  return <span className="onb-bar" aria-hidden="true">{[0, 1, 2].map((i) => <i key={i} className={i < n ? 'on' : ''} />)}</span>;
+  return <span className="onb-bar" aria-hidden="true">{ONB_STEPS.map((k, i) => <i key={k} className={i < n ? 'on' : ''} />)}</span>;
 }
 
-/** The three rows (shared by the Feed drop-down and the Me line). */
+/** The four rows (shared by the Feed drop-down and the Me line). */
 export function OnbSteps(props: { lang: string; st: OnbState; onGo: (k: OnbStep) => void }) {
   const tx = onbTx(props.lang);
   const next = onbNext(props.st);
   return (
     <ol className="onb-steps">
-      {STEPS.map((k, i) => {
-        const done = isDone(props.st, k);
+      {ONB_STEPS.map((k, i) => {
+        const done = onbStepDone(props.st, k);
         return (
           <li key={k} className={`onb-step${done ? ' done' : ''}${k === next ? ' next' : ''}`} data-step={k}>
             <span className="onb-dot" aria-hidden="true">{done ? '✓' : i + 1}</span>
@@ -80,8 +78,8 @@ export function OnbStrip(props: { lang: string; st: OnbState; onGo: (k: OnbStep)
   return (
     <div className={`onb${open ? ' open' : ''}`} id="onbStrip" lang={props.lang}>
       <button type="button" className="onb-line" aria-expanded={open} aria-controls="onbPanel" onClick={() => setOpen((o) => !o)}
-        aria-label={`${tx.head} · ${n}/3 · ${open ? tx.close : tx.open}`}>
-        <span className="onb-l1"><b>{next ? label(tx, next) : tx.head}</b><span className="onb-n">{n}/3</span></span>
+        aria-label={`${tx.head} · ${n}/${ONB_N} · ${open ? tx.close : tx.open}`}>
+        <span className="onb-l1"><b>{next ? label(tx, next) : tx.head}</b><span className="onb-n">{n}/{ONB_N}</span></span>
         <Bar n={n} />
         <svg className="onb-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5" /></svg>
       </button>
@@ -98,7 +96,7 @@ export function OnbStrip(props: { lang: string; st: OnbState; onGo: (k: OnbStep)
   );
 }
 
-/** Me: one quiet line in the status block ("✦ Become a Bangkok Local · 1/3 ›"), opens the rows in place. */
+/** Me: one quiet line in the status block ("✦ Become a Bangkok Local · 1/4"), opens the rows in place. */
 export function OnbMeLine(props: { lang: string; st: OnbState; onGo: (k: OnbStep) => void }) {
   const tx = onbTx(props.lang);
   const [open, setOpen] = useState(false);
@@ -106,7 +104,7 @@ export function OnbMeLine(props: { lang: string; st: OnbState; onGo: (k: OnbStep
   return (
     <div className={`onb-me${open ? ' open' : ''}`} id="meOnb">
       <button type="button" className="me-st2 onb-me-line" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-        <span aria-hidden="true">✦ </span>{tx.head}<span className="onb-n"> · {n}/3</span><Bar n={n} />
+        <span aria-hidden="true">✦ </span>{tx.head}<span className="onb-n"> · {n}/{ONB_N}</span><Bar n={n} />
       </button>
       {open ? <OnbSteps lang={props.lang} st={props.st} onGo={props.onGo} /> : null}
     </div>

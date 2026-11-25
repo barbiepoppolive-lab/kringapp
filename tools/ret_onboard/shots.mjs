@@ -1,4 +1,4 @@
-// ret-onboard proof shots (m214) on the LOCAL build + LOCAL fake backend, QA member "Ploy" (example cast, initial avatars).
+// ret-onboard proof shots (m214, four steps m216) on the LOCAL build + LOCAL fake backend, QA member "Ploy" (example cast, initial avatars).
 // Usage: node tools/ret_onboard/shots.mjs <out dir> <en|th>   (dev server: tools/prize_ui/dev.sh)
 import fs from 'node:fs'; import path from 'node:path';
 import { start, settle, makeAvatars } from './harness.mjs';
@@ -26,9 +26,9 @@ const rpc = {
   kr8_ask_thread: { q: rawQ, answers: [ansRow('a1', 'nat', lang === 'th' ? 'Landhaus ปลั๊กเยอะ เงียบดี' : 'Landhaus: lots of plugs, quiet', 4), ansRow('a2', 'ploy', lang === 'th' ? 'Kaizen Coffee ชั้นสอง' : 'Kaizen Coffee, upstairs', 1)], people: ppl },
 };
 
-// 1-3: Feed strip, opened, Me line (new member, 1 of 3 done)
+// 1-3: Feed strip, opened, Me line (new member; m216 four steps: vote done = 1 of 4, 1 of 3 likes)
 {
-  const s = await start(browsers, { lang, st: { on: true, new: true, ends_at: '2026-11-27T10:00:00Z', ask: true, likes: 1, clip: false, done: false, badge: false, answers: 1, streak: 1 }, rpc });
+  const s = await start(browsers, { lang, st: { on: true, new: true, ends_at: '2026-11-27T10:00:00Z', vote: true, ask: false, likes: 1, clip: false, done: false, badge: false, answers: 1, streak: 1 }, rpc });
   await shot(s, '1_feed_strip');
   await s.page.click('#onbStrip .onb-line'); await settle(s.page, 700);
   await shot(s, '2_feed_steps');
@@ -38,9 +38,10 @@ const rpc = {
   console.log(lang, 'A errs', s.page.errs.filter((e) => !/open-meteo|interactive-widget/.test(e)).slice(0, 4));
   await s.context.close();
 }
+if (!process.env.ONLY_A) {
 // 4-7: done member: People "answered like you", own profile tags, another member's profile tags, This-or-That + Ask thread rows
 {
-  const s = await start(browsers, { lang, st: { on: true, new: true, ask: true, likes: 3, clip: true, done: true, badge: true, answers: 4, streak: 4 }, rpc,
+  const s = await start(browsers, { lang, st: { on: true, new: true, vote: true, ask: true, likes: 3, clip: true, done: true, badge: true, answers: 4, streak: 4 }, rpc,
     badges: { ploy: ['bangkok_local'], mint: ['bangkok_local'] }, streaks: { ploy: 4, mint: 3 } });
   await s.page.click('nav.dock [data-tab="people"]'); await settle(s.page, 1800);
   await shot(s, '4_people_alike');
@@ -62,4 +63,5 @@ const rpc = {
   console.log(lang, 'B errs', s.page.errs.filter((e) => !/open-meteo|interactive-widget/.test(e)).slice(0, 4));
   await s.context.close();
 }
+} // end ONLY_A guard
 for (const b of Object.values(browsers)) await b.close();

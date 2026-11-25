@@ -1,7 +1,7 @@
 /**
  * m214 (25 Nov 2026) first-visit steps + "answered like you". Retention push: new members left within a minute or two.
- *  · kr8_onb_state(): the three first-visit steps (1 Ask BKK answer · 3 Reel likes · first clip); finishing all three
- *    gives the "Bangkok Local ✓" profile tag (a badge only: no Rings, nothing that can be farmed)
+ *  · kr8_onb_state(): the first-visit steps. m216 (founder 25 Nov): four, in this order: 1 This-or-That vote (no face check)
+ *    · 1 Ask BKK answer · 3 Reel likes · first clip; all four give the "Bangkok Local ✓" profile tag (a badge only: no Rings)
  *  · kr8_onb_alike(kind, ref): members who answered the same way (after 2+ answers/votes), for Follow
  * One small store; any like / answer / vote / Reel post fires 'kr8-onb-poke' (v5Live, askThai, v5Tasks) and the store re-reads.
  */
@@ -9,10 +9,12 @@ import { useEffect, useSyncExternalStore } from 'react';
 import { v5Client } from './v5Live';
 
 export interface OnbState {
-  on: boolean; new?: boolean; ends_at?: string; ask?: boolean; likes?: number; clip?: boolean;
+  on: boolean; new?: boolean; ends_at?: string; vote?: boolean; ask?: boolean; likes?: number; clip?: boolean;
   done?: boolean; badge?: boolean; answers?: number; streak?: number;
 }
-export type OnbStep = 'ask' | 'like' | 'clip';
+export type OnbStep = 'vote' | 'ask' | 'like' | 'clip';
+export const ONB_STEPS: OnbStep[] = ['vote', 'ask', 'like', 'clip'];
+export const ONB_N = ONB_STEPS.length;
 export interface AlikePerson { user_id: string; first_name: string; photo: string | null; verified: boolean; same_votes: number; same_questions: number }
 export interface Alike { eligible: boolean; answers: number; people: AlikePerson[] }
 
@@ -54,9 +56,11 @@ export function useOnb(uid: string): OnbState | null {
   return uid ? s : null;
 }
 
-export const onbCount = (s: OnbState | null) => (s ? (s.ask ? 1 : 0) + ((s.likes || 0) >= 3 ? 1 : 0) + (s.clip ? 1 : 0) : 0);
-export const onbNext = (s: OnbState): OnbStep | null => (!s.ask ? 'ask' : (s.likes || 0) < 3 ? 'like' : !s.clip ? 'clip' : null);
-/** Shown only in the first 3 days, before all three are done, and until the member hides it. */
+export const onbStepDone = (s: OnbState, k: OnbStep) =>
+  (k === 'vote' ? !!s.vote : k === 'ask' ? !!s.ask : k === 'like' ? (s.likes || 0) >= 3 : !!s.clip);
+export const onbCount = (s: OnbState | null) => (s ? ONB_STEPS.filter((k) => onbStepDone(s, k)).length : 0);
+export const onbNext = (s: OnbState): OnbStep | null => ONB_STEPS.find((k) => !onbStepDone(s, k)) || null;
+/** Shown only in the first 3 days, before all four are done, and until the member hides it. */
 export const onbActive = (s: OnbState | null, uid: string) => !!(s && s.on && s.new && !s.done && !onbHidden(uid));
 
 const hideKey = (uid: string) => `kr8_onb_hide_${uid}`;

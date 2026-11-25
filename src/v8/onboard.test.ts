@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { badgePills, STREAK_MIN } from './badges';
-import { onbActive, onbCount, onbNext } from './onboard';
+import { ONB_N, ONB_STEPS, onbActive, onbCount, onbNext } from './onboard';
 
 describe('m214 tags', () => {
   it('Bangkok Local ✓ shows from the badge, one language at a time', () => {
@@ -20,15 +20,22 @@ describe('m214 tags', () => {
   });
 });
 
-describe('m214 first-visit steps', () => {
-  const base = { on: true, new: true, ask: false, likes: 0, clip: false, done: false };
-  it('counts and picks the next step in order', () => {
+describe('m216 first-visit steps (four, founder order)', () => {
+  const base = { on: true, new: true, vote: false, ask: false, likes: 0, clip: false, done: false };
+  it('counts and picks the next step in order: vote, ask, like, clip', () => {
+    expect(ONB_STEPS).toEqual(['vote', 'ask', 'like', 'clip']);
+    expect(ONB_N).toBe(4);
     expect(onbCount(base)).toBe(0);
-    expect(onbNext(base)).toBe('ask');
-    expect(onbNext({ ...base, ask: true, likes: 2 })).toBe('like');
-    expect(onbCount({ ...base, ask: true, likes: 3 })).toBe(2);
-    expect(onbNext({ ...base, ask: true, likes: 3 })).toBe('clip');
-    expect(onbNext({ ...base, ask: true, likes: 3, clip: true })).toBe(null);
+    expect(onbNext(base)).toBe('vote');
+    expect(onbNext({ ...base, vote: true })).toBe('ask');
+    expect(onbNext({ ...base, vote: true, ask: true, likes: 2 })).toBe('like');
+    expect(onbCount({ ...base, vote: true, ask: true, likes: 3 })).toBe(3);
+    expect(onbNext({ ...base, vote: true, ask: true, likes: 3 })).toBe('clip');
+    expect(onbNext({ ...base, vote: true, ask: true, likes: 3, clip: true })).toBe(null);
+    expect(onbCount({ ...base, vote: true, ask: true, likes: 3, clip: true })).toBe(4);
+  });
+  it('an old server reply without vote still counts as not done', () => {
+    expect(onbNext({ on: true, new: true, ask: true, likes: 3, clip: true })).toBe('vote');
   });
   it('shows only for new members who have not finished', () => {
     expect(onbActive(base, 'u1')).toBe(true);
