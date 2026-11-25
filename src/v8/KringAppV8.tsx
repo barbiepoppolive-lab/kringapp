@@ -214,6 +214,7 @@ import { AdminViewMe, AdminViewPill } from './V5AdminView';
 import { HELP_UI, HelpSheet } from './V5Help';
 import { v5HelpEvent, v5HelpOpen } from './v5Live';
 import { bkkClock, bkkDay, dayLabel, postAgo } from './postTime';
+import { feedNewFaces, feedVote, feedVoteCards, NewFacesRow, VOTE_EVERY, VoteSlide, type NewFace, type VoteCard, type VoteResult } from './feedRet';
 import './glass.css';   // 20 Nov: light glass on every sheet; last so it wins
 
 const V9_L: Record<string, Record<string, string>> = {
@@ -3008,6 +3009,86 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       setGoPlayer((cur) => (cur && cur.reels === reels ? { ...cur, reels: reels.map((r) => ({ ...r, people: m.get(r.id) || r.people })) } : cur));
     }).catch(() => undefined);
   };
+  // ── retention push, Feed part (25 Nov): "New in Bangkok" row + Ask BKK vote cards (feedRet.tsx, m212) ──
+  const [newFaces, setNewFaces] = useState<NewFace[]>([]);
+  const [voteCards, setVoteCards] = useState<VoteCard[]>([]);
+  const [voteDone, setVoteDone] = useState<Record<string, { pick: string; r: VoteResult }>>({});
+  const [voteBusy, setVoteBusy] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (!live || !signedIn || adminView) { setNewFaces([]); setVoteCards([]); return undefined; }
+    let dead = false;
+    const load = () => {
+      feedNewFaces().then((x) => { if (!dead) setNewFaces(x); }).catch(() => undefined);
+    };
+    load();
+    // vote cards: once per visit (a card the member votes on stays in place with its result)
+    feedVoteCards().then((x) => { if (!dead) setVoteCards(x); }).catch(() => undefined);
+    const t = setInterval(load, 10 * 60_000);
+    return () => { dead = true; clearInterval(t); };
+  }, [live, signedIn, adminView]);
+  const openNewFaceReel = (i: number) => {
+    const reels = newFaces.filter((f) => f.k === 'reel' && f.video_path && f.poster_path);
+    if (i < 0 || !reels.length) return;
+    v5LogClient('newfaces_open', 'reel');
+    // the member's photo as the Feed already has it (the row itself sends none: photos are large)
+    const photoOf = (uid: string): string | null => {
+      const it = feedItems.find((x) => (x as V5FeedItem).authorId === uid && !!x.av && !x.av.startsWith('data:image/svg') && x.av !== x.img && x.av !== x.poster);
+      return it ? (it.av as string) : null;
+    };
+    goOpenPlayer(reels.map((f) => ({ id: f.id, video_path: f.video_path as string, poster_path: f.poster_path as string, body: f.body, status: 'approved',
+      likes: f.likes || 0, liked: !!f.liked, saved: !!f.saved, mine: f.mine, author: { id: f.author_id, name: f.name, photo: photoOf(f.author_id) } })), Math.min(i, reels.length - 1),
+      { title: L('New in Bangkok 👋') });
+  };
+  const pickVote = (card: VoteCard, answer: string) => {
+    if (voteDone[card.id] || voteBusy[card.id]) return;
+    if (adminViewRef.current) { adminNoRef.current(); return; }
+    requireSignInForAction(() => {
+      setVoteBusy((b) => ({ ...b, [card.id]: answer }));
+      try { navigator.vibrate?.(12); } catch { /* no haptics */ }
+      feedVote(answer)
+        .then((r) => setVoteDone((d) => ({ ...d, [card.id]: { pick: answer, r } })))
+        .catch((e) => showToast(v5Msg(e)))
+        .finally(() => setVoteBusy((b) => { const n = { ...b }; delete n[card.id]; return n; }));
+    });
+  };
+  const nfOn = live && signedIn && !adminView && newFaces.length > 0;
+  // The row floats over the top of the Feed (not inside one slide: the signed-in feed can land a few Reels down when it
+  // replaces the first one). It slides away once the member swipes on, and comes back at the top.
+  const [nfAway, setNfAway] = useState(false);
+  useEffect(() => {
+    const el = feedScrollRef.current;
+    if (!el || !nfOn) return undefined;
+    let base: number | null = null;
+    const down = () => { base = el.scrollTop; };
+    const onScroll = () => {
+      if (el.scrollTop < 40) { setNfAway(false); return; }
+      if (base !== null && Math.abs(el.scrollTop - base) > 60) setNfAway(true);
+    };
+    el.addEventListener('touchstart', down, { passive: true });
+    el.addEventListener('wheel', down, { passive: true });
+    el.addEventListener('pointerdown', down, { passive: true });
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      el.removeEventListener('touchstart', down); el.removeEventListener('wheel', down);
+      el.removeEventListener('pointerdown', down); el.removeEventListener('scroll', onScroll);
+    };
+  }, [nfOn, feedSettled, feedItems.length]);
+  const nfShow = nfOn && !nfAway && tab === 'feed' && feedMode !== 'ask';
+  /** after every VOTE_EVERY-th slide, the next Ask BKK vote card (each card once; none for guests / admin view) */
+  const withVoteCards = (slides: React.ReactNode[]): React.ReactNode[] => {
+    if (!voteCards.length || !live || !signedIn || adminView) return slides;
+    const out: React.ReactNode[] = [];
+    let k = 0;
+    slides.forEach((el, i) => {
+      out.push(el);
+      if ((i + 1) % VOTE_EVERY === 0 && k < voteCards.length && i < slides.length - 1) {
+        const c = voteCards[k++];
+        out.push(<VoteSlide key={`vote-${c.id}`} L={L} lang={lang} card={c} result={voteDone[c.id] || null} busy={voteBusy[c.id] || null}
+          onPick={(a) => pickVote(c, a)} onOpen={() => { setAskOpenThread(c.id); pickFeedMode('ask'); }} />);
+      }
+    });
+    return out;
+  };
   /** Admin view: the Reels waiting for review, in the same full-screen player, each marked "in review" (like / save / share off). */
   const openPendingReels = async () => {
     try {
@@ -4407,7 +4488,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
         {/* ==================== 1. FEED SCREEN ==================== */}
         <section
-          className={`v8-screen ${tab === 'feed' ? 'active' : ''} at-has-sw${feedMode === 'ask' ? ' at-on' : ''}${feedMode !== 'ask' && nextStep ? ' nx-on' : ''}${postedShare ? ' posted-on' : ''}`}
+          className={`v8-screen ${tab === 'feed' ? 'active' : ''} at-has-sw${feedMode === 'ask' ? ' at-on' : ''}${feedMode !== 'ask' && nextStep ? ' nx-on' : ''}${postedShare ? ' posted-on' : ''}${nfShow ? ' nf-on' : ''}`}
           id="s-feed"
           aria-label={L('Feed')}
         >
@@ -4505,6 +4586,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onAsk={(q) => { setAskOpenThread(q); pickFeedMode('ask'); }}
               onVerify={() => { setVerifyMode('me'); setSheet('verify'); }} />
           )}
+          {nfOn && tab === 'feed' && feedMode !== 'ask' ? (
+            <NewFacesRow L={L} items={newFaces} away={!nfShow} onReel={openNewFaceReel}
+              onAnswer={(f) => { v5LogClient('newfaces_open', 'ans'); if (f.post_id) { setAskOpenThread(f.post_id); pickFeedMode('ask'); } }} />
+          ) : null}
           {/* Vertical Snap Feed or Redesigned V9 Feed Hub */}
           {feedItems.length === 0 ? (
             <div className="feed-scroll" id="feedScroll" ref={feedScrollRef}>
@@ -4517,7 +4602,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             </div>
           ) : (
             <div className="feed-scroll" id="feedScroll" ref={feedScrollRef}>
-              {(selectedArea === 'All Bangkok'
+              {withVoteCards((selectedArea === 'All Bangkok'
                 ? feedItems
                 : feedItems.filter((item) => !item.area || item.area === selectedArea)
               ).filter((item) => item.type !== 'ask').map((p, idx) => {
@@ -4748,7 +4833,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                     </div>
                   </div>
                 );
-              })}
+              }))}
               {renderFillerSlides()}
             </div>
           )}

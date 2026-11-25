@@ -956,6 +956,19 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
  */
 export const KX_L: Record<string, Record<string, string>> = {
   th: {
+    // m212 (25 Nov): Feed retention — "New in Bangkok" row + Ask BKK vote cards (feedRet.tsx)
+    'New in Bangkok 👋': 'มาใหม่ในกรุงเทพฯ 👋',
+    'First Reel': 'รีลแรก',
+    'First answer': 'คำตอบแรก',
+    'Tap the answer you agree with': 'แตะคำตอบที่คุณเห็นด้วย',
+    'See the answer': 'ดูคำตอบ',
+    'See all {0} answers': 'ดูคำตอบทั้งหมด {0} ข้อ',
+    'You agree with {0}% of Bangkok': 'คุณคิดเหมือนคนกรุงเทพฯ {0}%',
+    '{0} people voted here': 'โหวตแล้ว {0} คน',
+    'You’re the first to vote on this one': 'คุณโหวตข้อนี้เป็นคนแรก',
+    'Bangkok’s % shows from 10 votes': 'ครบ 10 โหวตจะเห็นเปอร์เซ็นต์ของคนกรุงเทพฯ',
+    'No one else picked this yet · {0} voted here': 'ยังไม่มีใครเลือกข้อนี้ · โหวตแล้ว {0} คน',
+    '{0} of {1} who voted here picked this too': '{0} จาก {1} คนที่โหวต เลือกข้อเดียวกับคุณ',
     // 0183 (20 Nov): profile bio + card editor + camera-first posting
     '+ Add a short bio': '+ เพิ่มแนะนำตัวสั้น ๆ',
     'Bio': 'แนะนำตัว',
