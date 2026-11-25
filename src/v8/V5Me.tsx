@@ -327,7 +327,8 @@ export function RingsChip(props: { L: Tx; Lf: Txf; d: RingsChipData; mine: boole
     <button type="button" className="mc-chip" id={props.mine ? 'meChip' : 'profileChip'} aria-label={label} aria-haspopup="dialog" onClick={props.onOpen}>
       <span className="mc-c"><RingGlyph /><b>{rings}</b></span>
       {d.tasks ? <span className="mc-c"><span aria-hidden="true">🔥</span><b>{d.tasks.done}</b></span> : null}
-      <span className="mc-c"><span aria-hidden="true">🏆</span><b>{d.rank ? `#${d.rank}` : '–'}</b></span>
+      {/* 25 Nov: no rank this week → no 🏆 part at all (a "🏆 –" sat confusingly next to the "🏆 #3 · Week 47" badge) */}
+      {d.rank ? <span className="mc-c"><span aria-hidden="true">🏆</span><b>{`#${d.rank}`}</b></span> : null}
       {props.mine && d.claim > 0 ? <i className="mc-badge" id="meChipBadge">{d.claim}</i> : null}
     </button>
   );
