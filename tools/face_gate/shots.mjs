@@ -171,8 +171,9 @@ for (const lang of ['en', 'th']) {
     void o;
     await page.click('nav.dock [data-tab="people"]');
     await settle(page, 2500);
+    if (await page.$('#buildAskLater')) { await page.click('#buildAskLater'); await page.waitForTimeout(500); }   // the live "finish your profile" ask, not part of this change
     await shot(`FG_06a_people_no_tick${sfx(lang)}.png`, page, await page.evaluate(() => [...document.querySelectorAll('[data-verified]')].map((e) => e.getAttribute('data-verified') + ':' + (e.textContent || '').slice(0, 12)).join(' | ')));
-    await page.click('text=Ton');
+    await page.click('[data-verified="0"]');
     await page.waitForTimeout(1800);
     await shot(`FG_06b_profile_no_tick${sfx(lang)}.png`, page, await page.evaluate(() => document.querySelector('.rv4-pnm, .rv-idnm, h2')?.textContent || ''));
   }, opts: { viewerVerified: true } });
