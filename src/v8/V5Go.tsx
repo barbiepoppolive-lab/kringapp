@@ -410,7 +410,7 @@ function ProfileHead(props: { L: Tx; lang: string; p: V5Profile; stats: React.Re
       {props.note}
       <h2 className="rv4-pnm">{p.first_name}{p.verified ? <RvCheck L={L} /> : null}</h2>
       {/* m211: last week's board place + Founding Local, small pills under the name */}
-      <ProfileBadges lang={props.lang} badges={p.badges} lastWeek={p.last_week} id="profileBadges" />
+      <ProfileBadges lang={props.lang} badges={p.badges} lastWeek={p.last_week} streak={p.streak} id="profileBadges" />
       {/* 0183: the bio sits right under the name, in the reader's language ("Translated · See original") */}
       {p.bio ? <div className="rv4-biow" id="profileBio"><AskText L={L} kind="b" id={p.user_id} text={p.bio} skip={p.mine} as="p" className="rv4-pbio" toggle /></div> : null}
       <p className="rv4-psub">{[where, langs].filter(Boolean).join(' · ')}</p>

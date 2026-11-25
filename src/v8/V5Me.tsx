@@ -474,6 +474,8 @@ export type MeViewProps = {
   lockSlot?: React.ReactNode;
   /** 25 Nov: six-step profile builder: how many steps are left, and the row that reopens it. Hidden at 0. */
   buildLeft?: number; buildLabel?: string; onBuild?: () => void;
+  /** m214: first-visit steps line ("✦ Become a Bangkok Local · 1/3"), first 3 days only */
+  onbSlot?: React.ReactNode;
   /** 25 Nov (mock F): today's tasks for the Rings chip + sheet, the sheet's links, and the claim (same kr8_task_claim as the tasks sheet) */
   chipTasks?: ChipTasks | null; onTasks?: () => void; onClaimTasks?: () => Promise<'ok' | 'face' | 'fail'>;
   /** the weekly board as loaded (for "N Rings to #2") */
@@ -543,9 +545,10 @@ export function MeView(props: MeViewProps) {
       {/* 25 Nov (founder): ONE compact block under the bio, no card / border / icon square / paragraph.
           Line 1 (only before the face check): "🔒 No ✓ yet" + "Verify · 5 sec" pill. Line 2 (only while the profile is unfinished):
           "✦ 1 step left on your profile ›", which opens the builder. */}
-      {props.lockSlot || (props.buildLeft && props.onBuild) ? (
+      {props.lockSlot || (props.buildLeft && props.onBuild) || props.onbSlot ? (
         <div className="me-status" id="meStatus">
           {props.lockSlot || null}
+          {props.onbSlot || null}
           {props.buildLeft && props.onBuild ? (
             <button type="button" className="me-st2" id="meBuild" onClick={props.onBuild}>
               <span aria-hidden="true">✦ </span>{props.buildLabel || L('Finish your profile')}<span aria-hidden="true"> ›</span>
@@ -609,7 +612,7 @@ function MeHead(props: { L: Tx; lang?: string; p: V5Profile; stats: React.ReactN
       </div>
       <h2 className="rv4-pnm">{p.first_name}{p.verified ? <RvCheck L={L} /> : null}</h2>
       {/* m211: last week's board place + Founding Local, small pills under the name */}
-      <ProfileBadges lang={props.lang || 'en'} badges={p.badges} lastWeek={p.last_week} id="meBadges" />
+      <ProfileBadges lang={props.lang || 'en'} badges={p.badges} lastWeek={p.last_week} streak={p.streak} id="meBadges" />
       {/* 25 Nov (mock F): emoji instead of labels: 📍 area, then a flag per language (a short name where no flag fits) */}
       {where || flags ? <p className="rv4-psub mc-meta" id="meMeta">{where ? <span>📍 {where}</span> : null}{flags ? <span className="mc-flags">{flags}</span> : null}</p> : null}
       {p.bio ? <p className="rv4-pbio" id="meBio">{p.bio}</p>

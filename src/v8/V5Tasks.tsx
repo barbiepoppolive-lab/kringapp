@@ -363,20 +363,21 @@ const placeImg = (f: string | null) => (f ? `${((import.meta as unknown as { env
 /** 20 Nov (founder): "This or that": Kring-made, one a day, one locked vote per member. Shown as the FIRST card of Ask BKK
  *  (inline) and from the Daily tasks "Quick vote" row (sheet). Before voting: the two pictures only, no numbers (the server
  *  doesn't send them either). After the vote: glow ring + check on the pick, the other side dims, bars fill, "Vote counted ✓". */
-export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?: () => void }) {
+export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?: () => void; alike?: (day: string) => React.ReactNode }) {
   const L = tLang(props.lang);
   const tx = TX[L];
   const { data } = useTasks();
   useEffect(() => { if (!store.data) void tasksRefresh(); }, []);
   const t = data?.tasks?.find((x) => x.id === 'vote');
-  const v = t?.vote;
+  // m216: a member without the face check has no tasks, only today's vote (first-visit step 1)
+  const v = t?.vote ?? (data?.gated ? data.vote : null);
   const [busy, setBusy] = useState<'a' | 'b' | 'c' | null>(null);
   const [fresh, setFresh] = useState(false);   // voted in this view → play the reveal
   const [grow, setGrow] = useState(false);
   useEffect(() => { if (v?.pick && v.pct) { const id = requestAnimationFrame(() => requestAnimationFrame(() => setGrow(true))); return () => cancelAnimationFrame(id); } setGrow(false); return undefined; }, [v?.pick, !!v?.pct]);   // eslint-disable-line react-hooks/exhaustive-deps
   // 24 Nov (founder): show who voted (m204) — first names + photos only, and only once this member has voted
   const [who, setWho] = useState<VoteWho[]>([]);
-  const voted = !!t?.vote?.pick;
+  const voted = !!v?.pick;
   const day = data?.day;
   useEffect(() => {
     if (!voted) { setWho([]); return undefined; }
@@ -447,10 +448,13 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
   const myReason = rsn?.reasons?.find((r) => r.mine) || null;
   const after = shown ? (
     <>
-      <TotReasons th={L === 'th'} tx={tx} presets={(myPick && rsn?.presets?.[myPick]) || []} mineKey={myReason?.key ?? null}
+      {/* m216: reasons stay face-checked (words from an unchecked account never show), so the unchecked voter sees the result only */}
+      {data?.gated ? null : <TotReasons th={L === 'th'} tx={tx} presets={(myPick && rsn?.presets?.[myPick]) || []} mineKey={myReason?.key ?? null}
         mineOwn={!!myReason?.own_words} onText={textReason} mine={myReason}
-        top={rsn?.reasons?.[0] || null} busy={rBusy} upBusy={upBusy} onPick={(k) => void pickReason(k)} onUp={(id) => void upReason(id)} />
+        top={rsn?.reasons?.[0] || null} busy={rBusy} upBusy={upBusy} onPick={(k) => void pickReason(k)} onUp={(id) => void upReason(id)} />}
       {stk ? <TotStreak tx={tx} s={stk} /> : null}
+      {/* m214: members who picked the same side today (only after 2+ answers/votes; the row hides itself otherwise) */}
+      {props.alike && day ? props.alike(day) : null}
     </>
   ) : null;
   // 20 Nov (founder): at the top of Ask BKK the pair question is a full-bleed hero that folds into a slim strip after the vote
@@ -515,6 +519,8 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
           </>
         ) : <span className="tot-hint">{tx.tapVote}</span>}
       </div>
+      {/* m214: same row the pair hero gets through `after` */}
+      {shown && props.alike && day ? props.alike(day) : null}
     </div>
   );
   if (props.inline) return card;

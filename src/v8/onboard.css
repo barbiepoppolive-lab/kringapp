@@ -1,0 +1,81 @@
+/* m214 first-visit steps + "answered like you". Same dark glass as the prize ticker (it sits in the ticker's place),
+   brand blue → pink only on the bar and the active dot. No glow, no borders on rows, no empty space. */
+.v8-app-root .onb { --onb-b: #5B6CFF; --onb-p: #FF4FA3; position: absolute; z-index: 41; top: calc(env(safe-area-inset-top) + 52px); left: 0; right: 0;
+  margin: 0 auto; width: min(340px, calc(100% - 24px)); font-family: var(--rv-f, system-ui); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.35); }
+.v8-app-root .onb-line { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 5px; width: 100%; height: 40px;
+  padding: 0 34px 0 14px; border: 0; border-radius: 20px; color: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  background: rgba(14,12,22,.68); -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: 0 6px 18px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.06); }
+.v8-app-root .onb-line::before { content: ''; position: absolute; inset: -4px 0; }   /* 48 px tap area */
+.v8-app-root .onb-l1 { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.v8-app-root .onb-l1 b { flex: 1; min-width: 0; font-size: 0.7812rem; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .onb-n { flex: none; font-size: 0.6875rem; font-weight: 600; color: rgba(255,255,255,.7); font-variant-numeric: tabular-nums; }
+.v8-app-root .onb-bar { display: flex; gap: 3px; width: 100%; }
+.v8-app-root .onb-bar i { flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,.16); }
+.v8-app-root .onb-bar i.on { background: linear-gradient(90deg, var(--onb-b, #5B6CFF), var(--onb-p, #FF4FA3)); }
+.v8-app-root .onb-chev { position: absolute; right: 11px; top: 50%; width: 16px; height: 16px; margin-top: -8px; fill: none; stroke: rgba(255,255,255,.75);
+  stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s ease; }
+.v8-app-root .onb.open .onb-chev { transform: rotate(180deg); }
+.v8-app-root .onb.open .onb-line { border-radius: 20px 20px 0 0; background: rgba(14,12,22,.86); box-shadow: none; }
+
+.v8-app-root .onb-panel { padding: 4px 12px 10px 14px; border-radius: 0 0 20px 20px; background: rgba(14,12,22,.86);
+  -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%); box-shadow: 0 14px 28px rgba(0,0,0,.3);
+  animation: onbDrop .22s cubic-bezier(.2,.9,.25,1) both; }
+.v8-app-root .onb-ph { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 4px 0 6px; }
+.v8-app-root .onb-ph > span { display: flex; flex-direction: column; min-width: 0; }
+.v8-app-root .onb-ph b { font-size: 0.9375rem; font-weight: 700; line-height: 1.25; }
+.v8-app-root .onb-tick { color: #9DB0FF; }
+.v8-app-root .onb-ph small { font-size: 0.7188rem; line-height: 1.3; color: rgba(255,255,255,.66); }
+.v8-app-root .onb-hide { flex: none; padding: 2px 0 6px 8px; border: 0; background: none; color: rgba(255,255,255,.6); font: 500 0.75rem/1.2 var(--rv-f, system-ui); cursor: pointer; }
+
+.v8-app-root .onb-steps { list-style: none; margin: 0; padding: 0; }
+.v8-app-root .onb-step { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.v8-app-root .onb-step + .onb-step { border-top: 1px solid rgba(255,255,255,.07); }
+.v8-app-root .onb-dot { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+  font: 700 0.75rem/1 var(--rv-f, system-ui); color: rgba(255,255,255,.8); background: rgba(255,255,255,.1); }
+.v8-app-root .onb-step.next .onb-dot { color: #fff; background: linear-gradient(135deg, var(--onb-b, #5B6CFF), var(--onb-p, #FF4FA3)); }
+.v8-app-root .onb-step.done .onb-dot { color: #0E0C16; background: #9DB0FF; }
+.v8-app-root .onb-tx { flex: 1; min-width: 0; font-size: 0.8438rem; font-weight: 600; line-height: 1.3; }
+.v8-app-root .onb-tx em { font-style: normal; font-weight: 500; color: rgba(255,255,255,.66); font-variant-numeric: tabular-nums; }
+.v8-app-root .onb-step.done .onb-tx { color: rgba(255,255,255,.5); text-decoration: line-through; text-decoration-color: rgba(255,255,255,.3); }
+.v8-app-root .onb-steps button.onb-go { flex: none; height: 30px; min-width: 64px; padding: 0 13px; border: 0; border-radius: 15px; cursor: pointer;
+  font: 700 0.75rem/30px var(--rv-f, system-ui); color: #fff; background: rgba(255,255,255,.12); }
+.v8-app-root .onb-step.next button.onb-go { background: var(--onb-p, #FF4FA3); }
+.v8-app-root .onb-steps button.onb-go:active { transform: scale(.96); }
+
+/* Me: one quiet line in the status block (same type as "✦ 1 step left on your profile ›"), rows open in place */
+.v8-app-root #s-me .onb-me { display: flex; flex-direction: column; gap: 2px; }
+.v8-app-root #s-me .rv4-me button.onb-me-line { display: flex; flex-wrap: wrap; align-items: baseline; row-gap: 6px; width: 100%; white-space: pre; color: rgba(255,255,255,.86); }
+.v8-app-root #s-me .onb-me-line .onb-n { color: rgba(255,255,255,.6); }
+.v8-app-root #s-me .onb-me-line .onb-bar { flex: 0 0 100%; max-width: 220px; }
+.v8-app-root #s-me .onb-me .onb-steps { margin-top: 4px; }
+.v8-app-root #s-me .onb-me .onb-step { min-height: 42px; }
+
+/* "Answered like you": one swipeable row of people, Follow under each name */
+.v8-app-root .al { font-family: var(--rv-f, system-ui); color: #fff; }
+.v8-app-root .al-h { margin: 0 0 8px; font-size: 0.8125rem; font-weight: 700; line-height: 1.2; color: rgba(255,255,255,.9); }
+.v8-app-root .al-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; scroll-snap-type: x proximity; }
+.v8-app-root .al-row::-webkit-scrollbar { display: none; }
+.v8-app-root .al-p { flex: none; width: 92px; display: flex; flex-direction: column; align-items: center; gap: 6px; scroll-snap-align: start;
+  padding: 10px 6px 8px; border-radius: 16px; background: rgba(255,255,255,.06); }
+.v8-app-root .al button.al-who { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
+.v8-app-root .al-av { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #2A2C6E; }
+.v8-app-root .al-ini { display: grid; place-items: center; font: 700 1.25rem/1 var(--rv-f, system-ui); color: #fff; background: linear-gradient(135deg, #5B6CFF, #FF4FA3); }
+.v8-app-root .al-nm { display: flex; align-items: center; gap: 3px; max-width: 100%; }
+.v8-app-root .al-nm b { min-width: 0; font-size: 0.8125rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .al-ok { flex: none; display: grid; place-items: center; width: 13px; height: 13px; border-radius: 50%; background: #6E7BFF; color: #fff; font: 800 8px/1 system-ui; font-style: normal; }
+.v8-app-root .al-who small { font-size: 0.6562rem; line-height: 1.2; color: rgba(255,255,255,.62); white-space: nowrap; }
+.v8-app-root .al button.al-fol { width: 100%; height: 28px; border: 0; border-radius: 14px; cursor: pointer; font: 700 0.7188rem/28px var(--rv-f, system-ui); color: #FFB3D7; background: rgba(255,79,163,.18); }
+.v8-app-root .al button.al-fol.on, .v8-app-root .al button.al-fol:disabled { background: rgba(255,255,255,.12); color: rgba(255,255,255,.75); cursor: default; }
+/* People: the row spans both grid columns, above the cards */
+.v8-app-root #pplGrid .al-people { grid-column: 1 / -1; padding: 2px 0 6px; }
+/* results (This or That, Ask BKK thread): sits in the card's own padding */
+.v8-app-root .al-result { margin: 12px 0 2px; }
+.v8-app-root .at-thread .al-result { margin: 6px 20px 14px; }
+
+@keyframes onbDrop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .v8-app-root .onb-panel { animation: none; } .v8-app-root .onb-chev { transition: none; } }
+/* the round sound button sits right under the strip while it shows (it shares the strip's row otherwise) */
+.v8-app-root #s-feed.onb-on .reel-sound, .v8-app-root #s-feed.onb-on .reel-sound.has-hint.has-hint { top: calc(env(safe-area-inset-top, 0px) + 100px) !important; }
+/* while the steps are open, the sound button (under the strip) steps out of the way */
+.v8-app-root #s-feed.onb-on:has(.onb.open) .reel-sound { opacity: 0 !important; }

@@ -131,6 +131,12 @@ function codeOf(e: unknown): string {
   if (/JWT|jwt expired|not authenticated|permission denied/i.test(msg)) return 'SIGN_IN';
   return 'UNKNOWN';
 }
+/** m214: a like / Reel post may finish a first-visit step, so the steps card re-reads itself (see onboard.ts) */
+const ONB_POKE = new Set(['kr8_toggle_like', 'kr8_like', 'kr8_create_reel_v2', 'kr8_create_reel']);
+function onbPokeAfter(fn: string) {
+  if (!ONB_POKE.has(fn) || typeof window === 'undefined') return;
+  try { window.dispatchEvent(new CustomEvent('kr8-onb-poke', { detail: fn })); } catch { /* old browser */ }
+}
 function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
   return sharedRead(fn, args, () => rpcRaw<T>(fn, args));   // K-006: identical reads a few seconds apart share one request
 }
@@ -144,6 +150,7 @@ async function rpcRaw<T>(fn: string, args: Record<string, unknown> = {}): Promis
     throw new V5Error(codeOf(e));
   }
   if (res.error) throw new V5Error(codeOf(res.error));
+  onbPokeAfter(fn);
   return viaEdgeUrls(res.data) as T;
 }
 /** Public bucket photos (partner/venue pictures) are shown through kringapp.com/media/pub/ (Cloudflare cache), never straight
@@ -789,6 +796,8 @@ export interface V5Profile {
   qa_q?: string | null; qa_answer?: string | null;
   /** m211: team-granted badges (e.g. 'founding_local') and last closed week's board place (1-8 only) */
   badges?: string[] | null; last_week?: V5LastWeek | null;
+  /** m214: consecutive Bangkok days with an Ask BKK answer or a This-or-That vote (the tag shows from 2) */
+  streak?: number | null;
 }
 /** 0251: save the step-6 answer (max 140, checked like the bio; empty clears it) */
 export const v5SetQa = (q: string, answer: string) => rpc<{ qa_q: string | null; qa_answer: string | null }>('kr8_set_qa', { p_q: q, p_answer: answer });

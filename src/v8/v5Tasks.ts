@@ -19,6 +19,8 @@ export interface TaskRow {
 export interface TasksToday {
   on: boolean; day?: string; resets_at?: string; verified?: boolean; max?: number; rings_today?: number;
   streak?: boolean[]; tasks?: TaskRow[];
+  /** m216: a member without the face check gets no tasks, only today's This-or-That here (first-visit step 1) */
+  gated?: boolean; vote?: TaskVote | null;
 }
 export type TaskState = 'go' | 'claim' | 'done' | 'soon';
 
@@ -28,6 +30,8 @@ async function call<T>(fn: string, args: Record<string, unknown> = {}): Promise<
   let res;
   try { res = await c.rpc(fn, args); } catch (e) { throw new V5Error(v5ErrCode(e)); }
   if (res.error) throw new V5Error(v5ErrCode(res.error));
+  // m214: a This-or-That vote counts towards "answered like you" (onboard.ts re-reads)
+  if (fn === 'kr8_task_vote') { try { window.dispatchEvent(new CustomEvent('kr8-onb-poke', { detail: fn })); } catch { /* old browser */ } }
   return res.data as T;
 }
 

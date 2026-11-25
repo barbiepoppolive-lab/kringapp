@@ -6,5 +6,8 @@
 .v8-app-root .kb-gold { color: #E9C98E; background: rgba(216, 180, 119, .15); }
 .v8-app-root .kb-win  { color: #D9D6E6; background: rgba(217, 214, 230, .11); }
 .v8-app-root .kb-star { color: #F3A8D9; background: rgba(236, 70, 182, .13); }
+/* m214: Bangkok Local ✓ (brand blue) and the answer streak (warm orange) */
+.v8-app-root .kb-local { color: #B9C4FF; background: rgba(91, 108, 255, .16); }
+.v8-app-root .kb-fire  { color: #FFC39A; background: rgba(255, 128, 60, .14); }
 /* People cards: the icons sit right after the name, no pill */
 .v8-app-root #pplGrid .rv-pc .kb-ic { flex: none; margin-left: 4px; font-size: 0.8125rem; line-height: 1; }

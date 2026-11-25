@@ -302,6 +302,8 @@ function liveApi(gate?: (why?: 'ask' | 'answer') => boolean): Omit<AskApi, 'mode
     const c = await m.v5Client();
     const res = await c.rpc(fn, args);
     if (res.error) throw res.error;
+    // m214: an answer may finish the first-visit "answer 1 Ask BKK question" step (onboard.ts re-reads)
+    if (fn === 'kr8_ask_answer') { try { window.dispatchEvent(new CustomEvent('kr8-onb-poke', { detail: fn })); } catch { /* old browser */ } }
     return res.data as T;
   };
   const people = (raw: Record<string, RawPerson> | null | undefined) => (id: string): AskPerson => {
