@@ -11,14 +11,14 @@ import { inAppBrowser } from './A2HS';
 import { liffUrl } from './lineEnv';
 import { v5LineOn, v5LogClient, v5SignInGoogle, v5SignInLine, v5StoredRef } from './v5Live';
 
-type Tx = { h: string; s: string; line: string; google: string; close: string };
+type Tx = { h: string; s: string; line: string; google: string; close: string; more: string };
 const TX: Record<string, Tx> = {
-  en: { h: 'Make new friends in Bangkok', s: 'Join free to like, follow and see more people and places.', line: 'Continue with LINE', google: 'Continue with Google', close: 'Close' },
-  th: { h: 'หาเพื่อนใหม่ในกรุงเทพฯ', s: 'สมัครฟรี กดไลก์ ติดตาม และเจอคนกับที่เที่ยวใหม่ๆ อีกเพียบ', line: 'เข้าสู่ระบบด้วย LINE', google: 'ดำเนินการต่อด้วย Google', close: 'ปิด' },
-  zh: { h: '在曼谷结识新朋友', s: '免费加入，点赞、关注，发现更多有趣的人和地方。', line: '使用 LINE 继续', google: '通过 Google 继续', close: '关闭' },
-  hi: { h: 'बैंकॉक में नए दोस्त बनाइए', s: 'मुफ़्त जुड़ें — लाइक करें, फ़ॉलो करें और नए लोग व जगहें देखें।', line: 'LINE से जारी रखें', google: 'Google से जारी रखें', close: 'बंद करें' },
-  ja: { h: 'バンコクで新しい友だちをつくろう', s: '無料で参加して、いいね・フォローで、もっと多くの人と場所に出会おう。', line: 'LINE で続ける', google: 'Google で続ける', close: '閉じる' },
-  ko: { h: '방콕에서 새 친구를 만나보세요', s: '무료로 가입하고 좋아요·팔로우로 더 많은 사람과 장소를 만나보세요.', line: 'LINE으로 계속하기', google: 'Google로 계속하기', close: '닫기' },
+  en: { h: 'Make new friends in Bangkok', s: 'Join free to like, follow and see more people and places.', line: 'Continue with LINE', google: 'Continue with Google', close: 'Close', more: 'Other ways to join' },
+  th: { h: 'หาเพื่อนใหม่ในกรุงเทพฯ', s: 'สมัครฟรี กดไลก์ ติดตาม และเจอคนกับที่เที่ยวใหม่ๆ อีกเพียบ', line: 'เข้าสู่ระบบด้วย LINE', google: 'ดำเนินการต่อด้วย Google', close: 'ปิด', more: 'สมัครด้วยวิธีอื่น' },
+  zh: { h: '在曼谷结识新朋友', s: '免费加入，点赞、关注，发现更多有趣的人和地方。', line: '使用 LINE 继续', google: '通过 Google 继续', close: '关闭', more: '其他加入方式' },
+  hi: { h: 'बैंकॉक में नए दोस्त बनाइए', s: 'मुफ़्त जुड़ें — लाइक करें, फ़ॉलो करें और नए लोग व जगहें देखें।', line: 'LINE से जारी रखें', google: 'Google से जारी रखें', close: 'बंद करें', more: 'जुड़ने के दूसरे तरीके' },
+  ja: { h: 'バンコクで新しい友だちをつくろう', s: '無料で参加して、いいね・フォローで、もっと多くの人と場所に出会おう。', line: 'LINE で続ける', google: 'Google で続ける', close: '閉じる', more: 'ほかの方法で参加' },
+  ko: { h: '방콕에서 새 친구를 만나보세요', s: '무료로 가입하고 좋아요·팔로우로 더 많은 사람과 장소를 만나보세요.', line: 'LINE으로 계속하기', google: 'Google로 계속하기', close: '닫기', more: '다른 방법으로 가입' },
 };
 export const joinTx = (lang: string): Tx => TX[lang] || TX.en;
 
@@ -86,6 +86,9 @@ export function JoinPrompt(p: { lang: string; why: string; onClose: () => void; 
           <button type="button" className="jp-line jp-plain" id="jpMore" onClick={p.onFallback}><span className="jp-lt">{tx.h}</span></button>
         )}
       </div>
+      {lineOn && !goog && (
+        <button type="button" className="jp-more" id="jpMore2" disabled={busy} onClick={() => { v5LogClient('join_prompt', 'more', p.why); p.onFallback(); }}>{tx.more}</button>
+      )}
     </div>
   );
 }
