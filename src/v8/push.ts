@@ -185,7 +185,7 @@ export const pushAskWrite = writeAsk;
 export const PUSH_ASK_EVENT = ASK_EVENT;
 
 /** A link from a ding → what the app should do (pure; used by the service-worker message and on start). */
-export interface PushLink { tab?: 'feed' | 'people' | 'deals' | 'me'; rewards?: boolean; reel?: string }
+export interface PushLink { tab?: 'feed' | 'people' | 'deals' | 'me'; rewards?: boolean; reel?: string; /** m213 */ ask?: string }
 export function parsePushLink(url: string): PushLink | null {
   let u: URL;
   try { u = new URL(url, 'https://kringapp.com'); } catch { return null; }
@@ -196,5 +196,7 @@ export function parsePushLink(url: string): PushLink | null {
   if (u.searchParams.get('open') === 'rewards') out.rewards = true;
   const r = u.searchParams.get('reel');
   if (r && /^[0-9a-f-]{36}$/.test(r)) { out.reel = r; out.tab = 'feed'; }
+  const a = u.searchParams.get('ask');   // m213: the evening summary opens an Ask BKK question
+  if (a && /^[0-9a-f-]{36}$/.test(a)) { out.ask = a; out.tab = 'feed'; }
   return out;
 }

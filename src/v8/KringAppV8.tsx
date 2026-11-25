@@ -99,6 +99,7 @@ import {
 import { ActivitySheet, FollowSheet, INTEREST, InterestsSheet, LANG_NAME, MeView, kxWeekHook } from './V5Me';
 import { CommentsSheet } from './V5Comments';
 import { KC_L } from './commentStrings';
+import { startSessionBeat } from './sessionBeat';
 import { v5CommentCounts } from './v5Live';
 import { rvHeroFrom } from './rvMotion';
 import { inAppBrowser, A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip, openInstallSheet, takeInstallAsk } from './A2HS';
@@ -3290,6 +3291,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       try { window.dispatchEvent(new CustomEvent('kr8-verify-first', { detail: 'post' })); } catch { /* ignore */ }
     };
   }
+  // m213: session length (one beat every 30 s while on screen) from sign-in on, card or not
+  useEffect(() => (live && v5Uid ? startSessionBeat() : undefined), [live, v5Uid]);
   useEffect(() => {
     if (!live || !v5Uid || !v5Card) return;
     void v5Touch();
@@ -3776,6 +3779,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const openPushLink = (link: PushLink | null) => {
     if (!link) return;
     if (link.reel) { reelLinkRef.current = link.reel; setSheet(null); setTab('feed'); v5Feed().then(setFeedItems).catch(() => undefined); checkReelLiveRef.current(true); return; }   // the "Reel approved" ding → "Your Reel is live · Share"
+    if (link.ask) { setSheet(null); setTab('feed'); setAskOpenThread(link.ask); pickFeedMode('ask'); return; }   // m213
     if (link.tab) setTab(link.tab);
     if (link.rewards && live) { setKxReady(false); setSheet('rewards'); void kxLoadRewards(); }
   };
@@ -7604,7 +7608,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <ActivitySheet L={L} Lf={Lf} lang={lang} rows={activityRows} posters={mePosters} onClose={() => setSheet(null)} seenAt={activitySeenAt}
             onMarkRead={() => { setActivityUnread(false); try { localStorage.setItem('kr8_activity_seen', activityRows?.[0]?.at || new Date().toISOString()); } catch { /* ignore */ } }}
             onFollowBack={async (id) => { await toggleFollow(id, false); void loadMe(); }}
-            onPerson={(id) => void openProfile(id)} onReel={openReelFromProfile} onComments={openComments} />
+            onPerson={(id) => void openProfile(id)} onReel={openReelFromProfile} onComments={openComments}
+            onAsk={(q) => { setSheet(null); setTab('feed'); setAskOpenThread(q); pickFeedMode('ask'); }} />
         )}
         {sheet === 'v5card' && cardInterests && (
           <InterestsSheet L={L} Lf={Lf} value={v5Card?.interests || []} all={V5_INTERESTS} onClose={() => setCardInterests(false)}

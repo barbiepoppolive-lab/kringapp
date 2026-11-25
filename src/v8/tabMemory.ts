@@ -6,7 +6,7 @@
 export type MemTab = 'feed' | 'people' | 'deals' | 'me';
 const KEY = 'kr8-tab';
 const TABS: MemTab[] = ['feed', 'people', 'deals', 'me'];
-const DEEP = ['tab', 'reel', 'deal', 'person', 'post', 'me'];   // me=ghost: founder bookmark always opens the Feed
+const DEEP = ['tab', 'reel', 'deal', 'person', 'post', 'me', 'ask'];   // m213: ?ask= (summary email) opens the Feed's Ask BKK   // me=ghost: founder bookmark always opens the Feed
 
 export const isMemTab = (t: unknown): t is MemTab => typeof t === 'string' && (TABS as string[]).includes(t);
 
