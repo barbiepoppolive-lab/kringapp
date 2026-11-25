@@ -28,12 +28,12 @@ const me = (x: Partial<MeViewProps> = {}, L = EN) => render(
 describe('Me tab rv4 A: skyline head + one line', () => {
   const hook = (h: Partial<{ rank: number | null; prize: number; toLine: number | null; top: number }> = {}) => ({ rank: null, prize: 0, toLine: null, top: 1500, ...h });
   const tasks = { done: 3, of: 4, ready: 1, readyRings: 1, streak: 1 };
-  it('25 Nov chip: ◎ Rings · 🔥 tasks done today · 🏆 rank ("–" when unranked); the big Rings box is gone', () => {
+  it('25 Nov chip: ◎ Rings · 🔥 tasks done today · 🏆 rank (no 🏆 part when unranked); the big Rings box is gone', () => {
     me({ weekHook: hook(), chipTasks: { ...tasks, ready: 0 } });
     const c = document.getElementById('meChip')!;
     expect(c.textContent).toContain('420');
     expect(c.textContent).toContain('🔥3');
-    expect(c.textContent).toContain('🏆–');
+    expect(c.textContent).not.toContain('🏆');   // 25 Nov: no "🏆 –" next to the week badge
     expect(document.getElementById('meChipBadge')).toBeNull();
     for (const id of ['meStrip', 'kxWeekHook', 'kxWeekHookOpen', 'dtMeLine', 'profileQa']) expect(document.getElementById(id), id).toBeNull();
     cleanup();
