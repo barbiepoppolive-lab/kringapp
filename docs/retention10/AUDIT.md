@@ -182,3 +182,104 @@ Cross-cutting rules every feature below keeps:
   profile line, fair play adds up for every ranked test member, no device/IP fields, newcomers league, follow suggestions,
   profile-only reason + examples, admin RPC refused for members, anon refused. All pass.
 - The 5pm window was moved to 02:00–04:00 for the screenshots and set back to 17:00 (rings_config `b5_hour` = 17).
+
+---
+# Round 2 (26 Nov): test isolation, daily photo, Ask BKK awards, leaderboard orb, rule cards, attention rule
+
+## Test content never reaches real members — m225 (applied)
+- Cause: the QA seed Reels were approved and visible; the signed-in feed (`kr8_feed_order`), People, the New in Bangkok row and
+  place pages had no test-author filter (the visitor feed and the board already had one).
+- Fix at the data level: `kr8_test_hidden(viewer, author)` = the author is a test account and the viewer is not (visitors and the
+  founder included). Added to `kr8_feed_order` (→ `kr8_feed_ranked`), `kr8_people`, `kr8_feed_new_faces`, `kr8_ask_q_ok` /
+  `kr8_ask_a_ok` (→ Ask feed, threads, vote cards, public Ask pages), `kr8_place_page`, `kr8_onb_alike`. Test accounts still see
+  each other, so QA keeps working.
+- Proof: `tools/retention10/test_leak_check.sql` runs 21 member reads as a real verified member and as a visitor and searches every
+  result for any test account or test post id. Before m225: 8 leaks (feed, People, New in Bangkok, place pages). After: **0**,
+  even with the QA posts visible and a promoted test photo on the feed. The QA posts are hidden again anyway (belt and braces).
+
+## Daily photo — m226 (applied)
+- One photo a Bangkok day (`kr8_create_photo`; face-checked members only; in-app camera JPEG ≤ 400 KB, no links). It is live on the
+  member's profile at once and completes the "Post a photo or Reel" task: **+3 on a photo-only day**, +5 if a Reel is approved that
+  day (one claim a day, as before). Photo likes earn no board Rings (the board counts Reels), so a photo's Rings are exactly its +3.
+- The tasks sheet shows "Today's photo · +3" first. The sheet shows 3 example shots (back / side / outfit) and the line "Show your
+  vibe, your face is optional" in the member's language only.
+- Admin: photos wait in the same Reel queue (test photos never). **Feed** = full-screen photo card between Reels (the live app
+  already draws these); **Profile only** (no "why"); **Profile only · why?** (one reason); **Hide (rule break)** = hidden + the
+  day's photo-rate +3 taken back (one −3 ledger row).
+- Feed rule fixed: `feed_off` now applies to photos too, so an unpromoted photo never reaches the main feed.
+
+## Ask BKK awards — m227 (applied, OFF for real members until go-live)
+- Daily at 20:00 Bangkok, over the 24 h of top-level answers: "Most helpful" (❤️ 💯) and "Funniest" (😂), +5 each (`ask_award`).
+- Votes: face-checked members only, never the author, never an account linked to the author; linked voters (same phone / face /
+  look-alike face) count as one; at least 2 voters; reactions after 20:00 count the next day. Answers need 40+ characters (the
+  daily task still needs 15+). At most 2 awards per member per week, one award per answer a day. Reactions still give 0.
+- Counted by the weekly board, lifetime Rings and the fair-play sheet ("Ask BKK award" line); not under the 12/day task cap.
+  A scored day is never rescored, and nothing before go-live is scored (switch `ask_awards_on`).
+- App: "Most helpful" / "Funniest" tags on answers; under 40 characters a soft line ("Add your why to be in the running for
+  today's award"); a light kindness check on insults ("Want to rephrase?" · Edit · Post anyway).
+
+## Leaderboard orb (Me)
+- A round orb (blue + gold ring, soft glow, gentle float; no float with reduced motion) shows this week's rank and the next step
+  ("14 to #3", "14 to a prize seat" below the 25-Ring minimum, "Top of the week"). Tap = the weekly board (fair play + newcomers
+  league). Without a face check: "Join the board" → the face check.
+- Placed top-right in the free space between the header icons and the stats row. Overlap check at 360 / 390 / 430 px, Thai and
+  English, two members: no overlap with the photo, stats, icons, Rings chip, name, tabs or grid; always inside the screen.
+- It is the one always-on glow in Me: the Rings chip's glow is off next to it, and its red badge hides while a next-step card shows.
+
+## Rule cards (D)
+- "How Rings work", the "How to win" sheet (all 3 layouts), the tasks list, the help bot (6 new answers + the Rings answer) and the
+  rules page (kringapp.com/rules, in the live-ready folder) now say: best Reel **of each day** counts (board v2 since 23 Nov; the old
+  text said "of the week"), opens max **10** a day (help said 30), photo +3 / Reel +5 / Ask BKK +3, Ask BKK awards +5 at 8pm,
+  newcomers league + Rising Local tag, bestie streaks give no Rings, Bangkok at 5, where the board orb is.
+- Removed false promises found in the live "How to win" sheet and tasks list: "streak day 3 +5 / day 5 +10 / day 7 +20",
+  "+1 per person who comments or waves", "friend joins +5 / active 3 days +10", "today's prompt +2". None of these are paid by the
+  server (ledger, last 10 days: only task, invite, invite_welcome, ask_award).
+- No public text about the paid-recruiter rule. The honorary Founding Local shows only the badge. TrueMoney wording kept.
+
+## Attention rule (B) — fixes, before → after (shots/clutter/*_before.png vs *_after.png)
+| Screen | Before | After |
+|---|---|---|
+| Feed, day 0–3 | 5pm banner over the first-visit steps **and** the "4 tasks left" bubble at once | One item: first-visit steps; the task bubble and the 5pm banner wait |
+| Feed, returning member 17–19h | 5pm banner and the task bubble together | Order: task bubble (6 s) → then the 5pm banner |
+| Feed after posting | "Your Reel is live · Share" pill stacked over the New in Bangkok row | The row waits until the pill closes |
+| Me, day 3 | "Claim ฿100" card + red "1" on the Rings chip (same action twice) + "Show on Google?" card (third coloured button) | One call to action (the card); chip badge quiet; Google card waits until no next step and after the first 3 days; orb added as the only glow |
+Order everywhere: face check > first-visit steps / first post > today's task reminder > 5pm banner > streak nudge (in-app dot in Me) >
+league (inside the board). The orb is the one always-on element in Me.
+
+## Retention per day (one next action, a reaction within 48 h)
+| Day | Next action on screen | Reaction within 48 h |
+|---|---|---|
+| 0 | First-visit steps strip (vote → Ask → 3 likes → first clip); Follow 3 row | First clip/photo → "Welcome new Locals" task puts it in front of every active member (≤5 likes, fewest first); New in Bangkok row 48 h; followed members get the Activity line |
+| 1–2 | Steps strip until done; tasks orb (photo +3 first) | Welcome task (likes), Ask BKK answer replies / awards at 8pm, bestie nudges |
+| 3 | Steps end; tasks orb; Me next-step card | Same + newcomers league rank on the board orb |
+| 7 | Tasks orb, board orb ("N to #k"), 5pm banner in the evening | Board / fair-play, Rising Local tag for last week's top 3 newcomers |
+Dead ends found and closed: a member with no Reel and no photo had nothing that brings likes (now the photo +3 and the welcome
+task); an unchecked member had no board entry point in Me (now "Join the board" orb → face check).
+Known gap: there is no reaction guarantee for a member who posts nothing; the evening summary (off) and pushes are out of scope (no LINE).
+
+## Farming paths (every way to gain Rings, and its cap)
+| Source | Cap / guard |
+|---|---|
+| Likes on Reels | face-checked likers full (same liker counts half after 3 of your Reels a week); unchecked likers 1 each, max 2/day per creator, only after 24 h; linked accounts (same phone / face) never; best Reel of each day only |
+| Saves ×3 | face-checked savers only; same repeat rule |
+| Link opens ×5 | max 10/day per Reel; robots, LINE previews, repeats, the poster's own phone/session never |
+| Visitor ×2 | face-checked travellers only |
+| Daily tasks (post / ask / vote / watch / bonus, welcome, 5pm) | face-checked only; each once a day; welcome + 5pm clipped so the day never passes 12 |
+| Photo +3 | 1 a day, in-app camera JPEG; shares the post task slot with Reels (one claim); rule-break Hide takes it back |
+| Welcome task | picks fixed per day; one Reel per newcomer; only Reels under 5 likes; linked authors excluded; 1 Ring per Reel |
+| Bangkok at 5 +1 | only after the founder approves the clip; 1 a day; within the 12 |
+| Ask BKK awards +5 | 2 a day site-wide; face-checked voters, linked voters count once, no self-votes, ≥2 voters, 40+ chars, max 2 a member a week |
+| Invites +10 | after the friend's face check; 20 a day; 0 for paid recruiters |
+| Follows, comments, reactions, openers, bestie streaks, question answers | 0 Rings |
+Residual risk: two real face-checked friends can vote for each other's answers (max +10 a week each, by the weekly cap).
+
+## Combined re-audit (E) — pass/fail
+| # | Check | Result |
+|---|---|---|
+| 1 | Rings math end to end | **PASS**: fair play = board for all 22 ranked real members (0 mismatches, 0 lag) and all 4 test members incl. photo +3 and award +5; photo pays 3 not 5; second photo refused; award day not rescored. Note: 2 real members had 13 task Rings on 23 Nov from the old "open +1" task (before this release, since switched off) |
+| 2 | Farming paths listed + capped | **PASS** (table above; one residual risk noted) |
+| 3 | One attention item per screen, priority with the orb | **PASS** (before/after pairs; orb is the only Me glow) |
+| 4 | Language mode | **PASS**: automated scan of every new UI block in all Thai and English shots: no English words in Thai mode, no Thai in English mode (the ฿ sign only). Other app languages (zh/hi/ja/ko) read English on new screens |
+| 5 | Zero test content in live reads | **PASS**: 21 reads × member + visitor = 42 calls, 0 leaks |
+| 6 | Live app unchanged until deploy | **PASS**: board md5 identical before/after m226 + m227; every changed live function only acts on things the live app cannot create (photos, opening questions) or sits behind a switch that is off (paid recruiter, honorary badge, awards). One intended live change: m225 (test content hidden from real members) |
+| 7 | Rollback | **PASS**: all 10 UNDO files applied newest-first in one transaction: every new function gone, the board still computes (22 rows); rolled back |
