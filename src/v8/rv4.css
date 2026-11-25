@@ -235,7 +235,7 @@
 .v8-app-root #s-me .rv4-mhd .rv4-ptop { gap: 22px; align-items: center; }
 .v8-app-root #s-me .rv4-mhd .rv4-pav { position: relative; width: 108px; height: 108px; padding: 0; border: 0; cursor: pointer;
   /* 25 Nov (founder): one thin solid 2px ring, no glow, no outer shadow */
-  box-shadow: 0 0 0 2px rgba(216,180,119,.92); }
+  box-shadow: 0 0 0 2px var(--rv-gd); }
 .v8-app-root #s-me .rv4-pen { position: absolute; right: 2px; bottom: 2px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
   background: rgba(14,15,25,.82); box-shadow: 0 0 0 1px rgba(255,255,255,.18); }
 .v8-app-root #s-me .rv4-pen svg { width: 14px; height: 14px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linejoin: round; }
