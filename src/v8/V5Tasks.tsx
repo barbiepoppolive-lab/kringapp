@@ -363,7 +363,7 @@ const placeImg = (f: string | null) => (f ? `${((import.meta as unknown as { env
 /** 20 Nov (founder): "This or that": Kring-made, one a day, one locked vote per member. Shown as the FIRST card of Ask BKK
  *  (inline) and from the Daily tasks "Quick vote" row (sheet). Before voting: the two pictures only, no numbers (the server
  *  doesn't send them either). After the vote: glow ring + check on the pick, the other side dims, bars fill, "Vote counted ✓". */
-export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?: () => void }) {
+export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?: () => void; alike?: (day: string) => React.ReactNode }) {
   const L = tLang(props.lang);
   const tx = TX[L];
   const { data } = useTasks();
@@ -451,6 +451,8 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
         mineOwn={!!myReason?.own_words} onText={textReason} mine={myReason}
         top={rsn?.reasons?.[0] || null} busy={rBusy} upBusy={upBusy} onPick={(k) => void pickReason(k)} onUp={(id) => void upReason(id)} />
       {stk ? <TotStreak tx={tx} s={stk} /> : null}
+      {/* m214: members who picked the same side today (only after 2+ answers/votes; the row hides itself otherwise) */}
+      {props.alike && day ? props.alike(day) : null}
     </>
   ) : null;
   // 20 Nov (founder): at the top of Ask BKK the pair question is a full-bleed hero that folds into a slim strip after the vote
@@ -515,6 +517,8 @@ export function ThisOrThatCard(props: { lang: string; inline?: boolean; onClose?
           </>
         ) : <span className="tot-hint">{tx.tapVote}</span>}
       </div>
+      {/* m214: same row the pair hero gets through `after` */}
+      {shown && props.alike && day ? props.alike(day) : null}
     </div>
   );
   if (props.inline) return card;

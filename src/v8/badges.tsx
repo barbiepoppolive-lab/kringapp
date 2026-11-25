@@ -9,14 +9,17 @@ import './badges.css';
 
 export interface V5LastWeek { rank: number; week: string; week_no?: number | null }
 
-const TX: Record<string, { week: string; founding: string }> = {
-  en: { week: '#{0} · Week {1}', founding: 'Founding Local' },
-  th: { week: 'อันดับ {0} · สัปดาห์ที่ {1}', founding: 'รุ่นบุกเบิก' },
-  zh: { week: '第 {0} 名 · 第 {1} 周', founding: '创始会员' },
-  hi: { week: '#{0} · सप्ताह {1}', founding: 'फ़ाउंडिंग लोकल' },
-  ja: { week: '{0}位 · 第{1}週', founding: '創設メンバー' },
-  ko: { week: '{0}위 · {1}주차', founding: '창립 멤버' },
+// m214: 'local' = the "Bangkok Local ✓" tag (first-visit steps done); 'streak' = days in a row with an Ask answer or vote
+const TX: Record<string, { week: string; founding: string; local: string; streak: string }> = {
+  en: { week: '#{0} · Week {1}', founding: 'Founding Local', local: 'Bangkok Local ✓', streak: '{0} days' },
+  th: { week: 'อันดับ {0} · สัปดาห์ที่ {1}', founding: 'รุ่นบุกเบิก', local: 'คนกรุงเทพฯ ตัวจริง ✓', streak: '{0} วันติด' },
+  zh: { week: '第 {0} 名 · 第 {1} 周', founding: '创始会员', local: '曼谷本地人 ✓', streak: '连续 {0} 天' },
+  hi: { week: '#{0} · सप्ताह {1}', founding: 'फ़ाउंडिंग लोकल', local: 'बैंकॉक लोकल ✓', streak: '{0} दिन' },
+  ja: { week: '{0}位 · 第{1}週', founding: '創設メンバー', local: 'バンコク・ローカル ✓', streak: '{0}日連続' },
+  ko: { week: '{0}위 · {1}주차', founding: '창립 멤버', local: '방콕 로컬 ✓', streak: '{0}일 연속' },
 };
+/** m214: the streak tag shows from this many days */
+export const STREAK_MIN = 2;
 
 /** ISO week number of a 'YYYY-MM-DD' Monday (only used if the server did not send week_no). */
 export function isoWeek(day: string): number | null {
@@ -29,9 +32,9 @@ export function isoWeek(day: string): number | null {
   return Math.ceil(((d.getTime() - y0) / 86400000 + 1) / 7);
 }
 
-export interface BadgePill { key: string; icon: string; text: string; kind: 'gold' | 'win' | 'star' }
+export interface BadgePill { key: string; icon: string; text: string; kind: 'gold' | 'win' | 'star' | 'local' | 'fire' }
 
-export function badgePills(lang: string, badges: string[] | null | undefined, lastWeek: V5LastWeek | null | undefined): BadgePill[] {
+export function badgePills(lang: string, badges: string[] | null | undefined, lastWeek: V5LastWeek | null | undefined, streak?: number | null): BadgePill[] {
   const tx = TX[lang] || TX.en;
   const out: BadgePill[] = [];
   const r = lastWeek && Number.isInteger(lastWeek.rank) ? lastWeek.rank : 0;
@@ -40,12 +43,15 @@ export function badgePills(lang: string, badges: string[] | null | undefined, la
     if (wk) out.push({ key: 'week', icon: r <= 3 ? '🏆' : '🏅', text: tx.week.replace('{0}', String(r)).replace('{1}', String(wk)), kind: r <= 3 ? 'gold' : 'win' });
   }
   if ((badges || []).includes('founding_local')) out.push({ key: 'founding_local', icon: '🌟', text: tx.founding, kind: 'star' });
+  if ((badges || []).includes('bangkok_local')) out.push({ key: 'bangkok_local', icon: '🛺', text: tx.local, kind: 'local' });
+  const n = Number.isInteger(streak) ? (streak as number) : 0;
+  if (n >= STREAK_MIN) out.push({ key: 'streak', icon: '🔥', text: tx.streak.replace('{0}', String(n)), kind: 'fire' });
   return out;
 }
 
 /** The pills row under a member's name (profile + Me). Nothing at all when the member has no badge. */
-export function ProfileBadges(props: { lang: string; badges?: string[] | null; lastWeek?: V5LastWeek | null; id?: string }) {
-  const pills = badgePills(props.lang, props.badges, props.lastWeek);
+export function ProfileBadges(props: { lang: string; badges?: string[] | null; lastWeek?: V5LastWeek | null; streak?: number | null; id?: string }) {
+  const pills = badgePills(props.lang, props.badges, props.lastWeek, props.streak);
   if (!pills.length) return null;
   return (
     <div className="kb-row" id={props.id}>

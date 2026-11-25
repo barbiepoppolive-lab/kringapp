@@ -170,6 +170,8 @@ import { lazyPart, prefetchParts } from './lazyPart';
 import { PrizeBanner } from './V5PrizeBanner';
 import { NextStepCard } from './V5NextStep';
 import { hideNextStep, hideVerifyRow, nextStepHidden, pickNextStep, verifyRowHidden } from './nextStep';
+import { onbActive, onbCount, onbHide, useOnb, type OnbStep } from './onboard';
+import { AlikeRow, OnbMeLine, OnbStrip, onbTx } from './V5Onboard';
 import './kx.css';
 import './rv2.css';
 import './rv4.css';
@@ -3262,6 +3264,34 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     else if (s.kind === 'climb') { if (where === 'feed') setTab('me'); setSheet('ranking'); }
   };
   const nextHide = () => { if (nextStep) { hideNextStep(v5Uid, nextStep.kind); setNextHideTick((n) => n + 1); } };
+  // ── m214 first-visit steps (first 3 days): 1 Ask BKK answer · 3 Reel likes · first clip → "Bangkok Local ✓" tag (no Rings) ──
+  const onb = useOnb(live && signedIn && v5Card && !adminView ? v5Uid : '');
+  const [onbTick, setOnbTick] = useState(0);
+  void onbTick;
+  const onbOn = live && signedIn && !!v5Card && !adminView && onbActive(onb, v5Uid);
+  const onbFeed = onbOn && !!onb && feedMode !== 'ask' && tab === 'feed' && !sheet && !buildOpen && !faceIntro && !postedShare;
+  const onbPrev = useRef<{ uid: string; n: number; done: boolean } | null>(null);
+  useEffect(() => {
+    if (!onb || !onb.on || !v5Uid) return;
+    const n = onbCount(onb), done = !!onb.done, prev = onbPrev.current;
+    onbPrev.current = { uid: v5Uid, n, done };
+    if (!prev || prev.uid !== v5Uid || !onb.new) return;   // first read of the session: no toast
+    const tx = onbTx(lang);
+    if (done && !prev.done) { showToast(tx.done); void loadMe(); }
+    else if (n > prev.n && !done) showToast(tx.step.replace('{0}', String(n)));
+  }, [onb, v5Uid]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const onbGo = (k: OnbStep) => {
+    if (k === 'clip') { kxPostAt(); return; }
+    setSheet(null);
+    setTab('feed');
+    pickFeedMode(k === 'ask' ? 'ask' : 'reels');
+  };
+  const onbHideNow = () => { onbHide(v5Uid); setOnbTick((n) => n + 1); };
+  const alikeFollow = (id: string) => toggleFollow(id, false);
+  const alikeRow = (kind: 'any' | 'vote' | 'ask', ref: string | null, place: 'people' | 'result') =>
+    live && signedIn && v5Card && !adminView
+      ? <AlikeRow key={`${kind}-${ref || ''}`} lang={lang} kind={kind} refId={ref} place={place} onPerson={(id) => void openProfile(id)} onFollow={alikeFollow} />
+      : null;
   // "Online" = opened the app in the last 5 minutes
   // 0061: the admin's own ghost card shows one line on Me (the database already hides it from everyone else)
   const [v5Ghost, setV5Ghost] = useState(false);
@@ -4403,7 +4433,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
         {/* ==================== 1. FEED SCREEN ==================== */}
         <section
-          className={`v8-screen ${tab === 'feed' ? 'active' : ''} at-has-sw${feedMode === 'ask' ? ' at-on' : ''}${feedMode !== 'ask' && nextStep ? ' nx-on' : ''}${postedShare ? ' posted-on' : ''}`}
+          className={`v8-screen ${tab === 'feed' ? 'active' : ''} at-has-sw${feedMode === 'ask' ? ' at-on' : ''}${feedMode !== 'ask' && nextStep ? ' nx-on' : ''}${postedShare ? ' posted-on' : ''}${onbFeed ? ' onb-on' : ''}`}
           id="s-feed"
           aria-label={L('Feed')}
         >
@@ -4482,7 +4512,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <AskSwitch L={L} mode={feedMode} onMode={pickFeedMode} dot={!askSeen} />
           {feedMode === 'ask' && (
             <AskThaiView key={askOpenThread || 'ask'} openThread={askOpenThread || undefined} L={L} api={askApi}
-              topSlot={live && signedIn && v5Card && !adminView ? <ThisOrThatCard lang={lang} inline /> : null} me={askMeRef.current} areas={V5_AREAS} areaLabel={(a) => kxArea(lang, a, L)}
+              topSlot={live && signedIn && v5Card && !adminView ? <ThisOrThatCard lang={lang} inline alike={(d) => alikeRow('vote', d, 'result')} /> : null} me={askMeRef.current}
+              alikeSlot={(qid) => alikeRow('ask', qid, 'result')} areas={V5_AREAS} areaLabel={(a) => kxArea(lang, a, L)}
               defaultArea={(live && v5Card?.area) || 'Bangkok'} need={requireSignInForAction} toast={showToast} refCode={getMyRef()}
               shareLink={(url, text) => void shareNow(url, text)}
               onPerson={(p) => (p.official ? setSheet('official') : void openProfile(p.id))} />
@@ -4490,6 +4521,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           {/* rv4 (founder pick Feed A): no floating "next step" pill over the Reel (e.g. "We're checking your Reel"); that status lives on Me */}
           {postedShare && tab === 'feed' ? null /* audit 18 Nov: the post-success share takes this spot (it overlapped the pill) */ : RV4_FEED_PILL && feedMode !== 'ask' && nextStep ? (
             <NextStepCard step={nextStep} variant="pill" lang={lang} L={L} Lf={Lf} onGo={() => nextGo('feed')} onHide={nextHide} />
+          ) : onbFeed && onb ? (
+            /* m214: the first-visit steps take the ticker's place for the first 3 days (never together with a sheet) */
+            <OnbStrip lang={lang} st={onb} onGo={onbGo} onHide={onbHideNow} />
           ) : PRIZE_TICKER_ON_FEED && !nextStep && feedMode !== 'ask' && live && signedIn && v5Card && v5Uid && kxWeek ? (
             <PrizeBanner variant="ticker" lang={lang} uid={v5Uid} week={kxWeek} hideTick={prizeHideTick} onHide={() => setPrizeHideTick((n) => n + 1)}
               onOpen={() => { setTab('me'); setSheet('ranking'); }} />
@@ -4966,6 +5000,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             </div>
           ) : (
             <div className="ppl-grid" id="pplGrid">
+              {/* m214: "Answered like you" (after 2+ answers/votes), above the cards, only without filters */}
+              {!(filterLang || filterWho || filterOnline || searchQuery || pplNear || filterInt) ? alikeRow('any', null, 'people') : null}
               {filteredPeople.map((p) => {
                 const tags = (p.interests || []).filter((k) => INTEREST[k]).slice(0, 2);
                 const hi = (e: React.MouseEvent) => {
@@ -5262,6 +5298,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onPost={() => kxPostAt()}
               onVerify={() => setSheet('verify')}
               verifyHidden={verifyRowHidden(v5Uid, verifyHideTick)} onVerifyHide={() => { hideVerifyRow(v5Uid); setVerifyHideTick((n) => n + 1); }}
+              onbSlot={onbOn && onb ? <OnbMeLine lang={lang} st={onb} onGo={onbGo} /> : null}
               nextSlot={nextStep ? <div className="nx-cardwrap"><NextStepCard step={nextStep} variant="card" lang={lang} L={L} Lf={Lf} onGo={() => nextGo('me')} onHide={nextHide} /></div> : null}
               gender={shownGender(v5Card)}
               onReplay={() => { void coachReplay(coachRef.current, true).then(() => { setTab('feed'); showToast(L('Intro is on again')); }); }}

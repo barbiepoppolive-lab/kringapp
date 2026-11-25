@@ -28,6 +28,8 @@ async function call<T>(fn: string, args: Record<string, unknown> = {}): Promise<
   let res;
   try { res = await c.rpc(fn, args); } catch (e) { throw new V5Error(v5ErrCode(e)); }
   if (res.error) throw new V5Error(v5ErrCode(res.error));
+  // m214: a This-or-That vote counts towards "answered like you" (onboard.ts re-reads)
+  if (fn === 'kr8_task_vote') { try { window.dispatchEvent(new CustomEvent('kr8-onb-poke', { detail: fn })); } catch { /* old browser */ } }
   return res.data as T;
 }
 

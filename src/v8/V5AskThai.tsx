@@ -221,7 +221,9 @@ const Thread: React.FC<{
   focusAnswer?: boolean;
   /** 0185: the sharer's invite code on the answer's /q/ link */
   refCode?: string;
-}> = ({ L, api, id, me, areaLabel, onClose, onShare, need, toast, onChanged, onReportedQ, focusAnswer, refCode }) => {
+  /** m214: "Also answered this" */
+  alikeSlot?: (questionId: string) => React.ReactNode;
+}> = ({ L, api, id, me, areaLabel, onClose, onShare, need, toast, onChanged, onReportedQ, focusAnswer, refCode, alikeSlot }) => {
   const [rep, setRep] = useState<{ kind: 'q' | 'a'; id: string } | null>(null);
   const report = (r: AskReportReason) => {
     const target = rep;
@@ -356,6 +358,7 @@ const Thread: React.FC<{
             </div>
           </div>
         )}
+        {q && alikeSlot && answers.some((a) => !a.parentId && mine(a.by)) ? alikeSlot(q.id) : null}
         {answers.map((a) => (
           <AnswerRow key={a.id} className={`at-c${a.parentId ? ' reply' : ''}`} id={a.id} onLong={() => setReactOpen(a.id)}>
             <div className="h">
@@ -521,6 +524,8 @@ export interface AskThaiViewProps {
   onPerson?: (p: AskPerson) => void;
   /** 20 Nov: Kring's daily "This or that" card, always the first card */
   topSlot?: React.ReactNode;
+  /** m214: "Also answered this" under the question, once this member has answered it */
+  alikeSlot?: (questionId: string) => React.ReactNode;
   L: LFn;
   /** invite-1: the member's invite code, added to shared links */
   refCode?: string;
@@ -540,7 +545,7 @@ export interface AskThaiViewProps {
   composeText?: string;
 }
 export const AskThaiView: React.FC<AskThaiViewProps> = (props) => {
-  const { L, api, me, areas, areaLabel, defaultArea = 'Bangkok', need, toast, openThread, openCompose, composeText, refCode, shareLink, topSlot } = props;
+  const { L, api, me, areas, areaLabel, defaultArea = 'Bangkok', need, toast, openThread, openCompose, composeText, refCode, shareLink, topSlot, alikeSlot } = props;
   const [items, setItems] = useState<AskQuestion[] | null>(null);
   const [err, setErr] = useState(false);
   const [more, setMore] = useState(true);
@@ -627,7 +632,7 @@ export const AskThaiView: React.FC<AskThaiViewProps> = (props) => {
         <div className="at-pad" />
       </div>
       {thread && (
-        <Thread L={L} api={api} id={thread} me={me} areaLabel={areaLabel} need={need} toast={toast} onChanged={patch} focusAnswer={answerNow} refCode={refCode}
+        <Thread L={L} api={api} id={thread} me={me} areaLabel={areaLabel} need={need} toast={toast} onChanged={patch} focusAnswer={answerNow} refCode={refCode} alikeSlot={alikeSlot}
           onClose={() => { setThread(null); }} onShare={(q) => void share(q)}
           onReportedQ={(qid) => { setThread(null); setItems((cur) => (cur ? cur.filter((x) => x.id !== qid) : cur)); }} />
       )}
