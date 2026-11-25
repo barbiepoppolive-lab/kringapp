@@ -11,6 +11,8 @@ import { KX_AREA_TH, KX_L, V5_L } from './v5Strings';
 const kxMock = vi.hoisted(() => ({ kxClaimPrize: vi.fn(), kxRecentClaims: vi.fn(), kxMarkUsed: vi.fn(), kxBreakdown: vi.fn(), kxRanking: vi.fn() }));
 vi.mock('./v5Kx', async (orig) => ({ ...(await orig<typeof import('./v5Kx')>()), ...kxMock }));
 vi.mock('./v5Reel', () => ({ signReelPaths: vi.fn().mockResolvedValue({}) }));
+const fpMock = vi.hoisted(() => vi.fn());
+vi.mock('./ret10', async (orig) => ({ ...(await orig<typeof import('./ret10')>()), fairPlay: fpMock, newcomers: vi.fn().mockResolvedValue(null) }));
 import { ClaimedPage, ClaimPage, ResultPage, RewardsPage } from './V5KxRewards';
 import { HOW_RINGS, HowSheet, MathSheet, ownRow, RankingPage } from './V5KxRanking';
 import { FoundingChecklist } from './V5Me';
@@ -312,20 +314,27 @@ describe('Ranking screen', () => {
     expect(isLastHours(end - 60_000, end)).toBe(true);
     expect(isLastHours(end + 1, end)).toBe(false);
   });
-  it('tap any score → the math: the Reel that counts, line by line', async () => {
+  it('tap any score → the fair-play breakdown (Retention 10): every part adds up to the board number', async () => {
     kxMock.kxRanking.mockResolvedValue(ranking([row(1, 107)]));
-    kxMock.kxBreakdown.mockResolvedValue({ user_id: 'u1', first_name: 'Ploy', is_me: false, rings: 107, rank: 1, more: 1, weights: { like: 1, save: 3, open: 5, mult: 2, cap: 30, best: 1 },
-      reels: [{ post_id: 'p1', posted_at: '2026-11-10T05:00:00Z', poster_path: null, place: 'Benjakitti Forest Park', place_th: null, l_local: 16, l_trav: 3, s_local: 4, s_trav: 1, opens: 6, score: 70 }] });
+    fpMock.mockResolvedValue({ user_id: 'u1', first_name: 'Ploy', is_me: false, as_of: '2026-11-26T05:00:00Z', on_board: true, rings: 107, rank: 1,
+      reels_total: 70, reel_count: 2, more_reels: 1,
+      likes_verified: { n: 19, visitors: 3, rings: 22, who: [{ user_id: 'a', name: 'Mint', n: 2, visitor: false }] },
+      likes_newer: { n: 0, rings: 0, day_cap: 2, who: [] }, saves: { n: 5, rings: 18 },
+      opens: { n: 6, rings: 30, by_app: { facebook: 4, instagram: 2 }, over_cap: 0, not_counted: { repeat: 3 }, day_cap: 10 },
+      rules_adjust: 0, tasks: 37, ask_opens: 0, invites: 0, invites_shown: true, lag: 0, weights: { like: 1, save: 3, open: 5, mult: 2 },
+      days: [{ day: '2026-11-23', reels: 40, tasks: 20, invites: 0 }, { day: '2026-11-24', reels: 30, tasks: 17, invites: 0 }] });
     render(<RankingPage L={L} Lf={Lf} lang="en" myArea="Ari" myPhoto={null} myName="Mint" myId={null} onBack={() => undefined} onPerson={() => undefined} onPost={() => undefined} onShare={() => undefined} />);
     fireEvent.click(await screen.findByLabelText('See the math'));
-    await waitFor(() => expect(document.querySelector('#kxMathTotal')).toBeTruthy());
-    expect(kxMock.kxBreakdown).toHaveBeenCalledWith('u1');
-    const first = document.querySelector('[data-math-reel="p1"]')!;
-    expect([...first.querySelectorAll('.kx-ml')].map((e) => e.textContent)).toEqual(['Local likes16 × 116', 'Visitor likes3 × 26', 'Local saves4 × 312', 'Visitor saves1 × 66', 'Link opens from Instagram / TikTok6 × 530']);
-    expect(document.querySelectorAll('[data-math-reel]').length).toBe(1);
-    expect(screen.getByText('your best Reel this week')).toBeTruthy();
-    expect(screen.getByText('1 more Reel this week, not counted (only your best Reel counts)')).toBeTruthy();
-    expect(document.querySelector('#kxMathShare')).toBeNull();                                   // someone else's score: no button
+    await waitFor(() => expect(document.querySelector('#fpTitle')).toBeTruthy());
+    expect(fpMock).toHaveBeenCalledWith('u1');
+    expect(document.querySelector('#fpTitle')!.textContent).toBe('How Ploy got 107 Rings');
+    const nums = [...document.querySelectorAll('#kxFairPlay .r10-fpt b')].map((e) => Number(e.textContent));
+    expect(nums.reduce((x, y) => x + y, 0)).toBe(107);
+    expect(document.querySelector('[data-why="repeat"]')!.textContent).toContain('same person opened again');
+    expect(document.querySelector('[data-fp="invites"]')).toBeNull();
+    fireEvent.click(document.querySelector('#fpDays')!);
+    expect(document.querySelectorAll('#fpDayList .r10-day').length).toBe(2);
+    expect(document.querySelector('#fpShare')).toBeNull();                                   // someone else's score: no button
   });
   it('"How Rings work" is the exact founder copy, with Thai', () => {
     render(<HowSheet L={L} onClose={() => undefined} />);

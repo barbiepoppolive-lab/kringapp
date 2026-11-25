@@ -10,13 +10,13 @@ import './badges.css';
 export interface V5LastWeek { rank: number; week: string; week_no?: number | null }
 
 // m214: 'local' = the "Bangkok Local ✓" tag (first-visit steps done); 'streak' = days in a row with an Ask answer or vote
-const TX: Record<string, { week: string; founding: string; local: string; streak: string }> = {
-  en: { week: '#{0} · Week {1}', founding: 'Founding Local', local: 'Bangkok Local ✓', streak: '{0} days' },
-  th: { week: 'อันดับ {0} · สัปดาห์ที่ {1}', founding: 'รุ่นบุกเบิก', local: 'คนกรุงเทพฯ ตัวจริง ✓', streak: '{0} วันติด' },
-  zh: { week: '第 {0} 名 · 第 {1} 周', founding: '创始会员', local: '曼谷本地人 ✓', streak: '连续 {0} 天' },
-  hi: { week: '#{0} · सप्ताह {1}', founding: 'फ़ाउंडिंग लोकल', local: 'बैंकॉक लोकल ✓', streak: '{0} दिन' },
-  ja: { week: '{0}位 · 第{1}週', founding: '創設メンバー', local: 'バンコク・ローカル ✓', streak: '{0}日連続' },
-  ko: { week: '{0}위 · {1}주차', founding: '창립 멤버', local: '방콕 로컬 ✓', streak: '{0}일 연속' },
+const TX: Record<string, { week: string; founding: string; local: string; streak: string; rising: string }> = {
+  en: { week: '#{0} · Week {1}', founding: 'Founding Local', local: 'Bangkok Local ✓', streak: '{0} days', rising: 'Rising Local' },
+  th: { week: 'อันดับ {0} · สัปดาห์ที่ {1}', founding: 'รุ่นบุกเบิก', local: 'คนกรุงเทพฯ ตัวจริง ✓', streak: '{0} วันติด', rising: 'ดาวรุ่ง' },
+  zh: { week: '第 {0} 名 · 第 {1} 周', founding: '创始会员', local: '曼谷本地人 ✓', streak: '连续 {0} 天', rising: '新星本地人' },
+  hi: { week: '#{0} · सप्ताह {1}', founding: 'फ़ाउंडिंग लोकल', local: 'बैंकॉक लोकल ✓', streak: '{0} दिन', rising: 'राइज़िंग लोकल' },
+  ja: { week: '{0}位 · 第{1}週', founding: '創設メンバー', local: 'バンコク・ローカル ✓', streak: '{0}日連続', rising: 'ライジング・ローカル' },
+  ko: { week: '{0}위 · {1}주차', founding: '창립 멤버', local: '방콕 로컬 ✓', streak: '{0}일 연속', rising: '라이징 로컬' },
 };
 /** m214: the streak tag shows from this many days */
 export const STREAK_MIN = 2;
@@ -32,7 +32,7 @@ export function isoWeek(day: string): number | null {
   return Math.ceil(((d.getTime() - y0) / 86400000 + 1) / 7);
 }
 
-export interface BadgePill { key: string; icon: string; text: string; kind: 'gold' | 'win' | 'star' | 'local' | 'fire' }
+export interface BadgePill { key: string; icon: string; text: string; kind: 'gold' | 'win' | 'star' | 'local' | 'fire' | 'rise' }
 
 export function badgePills(lang: string, badges: string[] | null | undefined, lastWeek: V5LastWeek | null | undefined, streak?: number | null): BadgePill[] {
   const tx = TX[lang] || TX.en;
@@ -44,6 +44,8 @@ export function badgePills(lang: string, badges: string[] | null | undefined, la
   }
   if ((badges || []).includes('founding_local')) out.push({ key: 'founding_local', icon: '🌟', text: tx.founding, kind: 'star' });
   if ((badges || []).includes('bangkok_local')) out.push({ key: 'bangkok_local', icon: '🛺', text: tx.local, kind: 'local' });
+  // m224: top 3 of last week's newcomers league
+  if ((badges || []).includes('rising_local')) out.push({ key: 'rising_local', icon: '🌱', text: tx.rising, kind: 'rise' });
   const n = Number.isInteger(streak) ? (streak as number) : 0;
   if (n >= STREAK_MIN) out.push({ key: 'streak', icon: '🔥', text: tx.streak.replace('{0}', String(n)), kind: 'fire' });
   return out;

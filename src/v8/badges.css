@@ -11,3 +11,4 @@
 .v8-app-root .kb-fire  { color: #FFC39A; background: rgba(255, 128, 60, .14); }
 /* People cards: the icons sit right after the name, no pill */
 .v8-app-root #pplGrid .rv-pc .kb-ic { flex: none; margin-left: 4px; font-size: 0.8125rem; line-height: 1; }
+.v8-app-root .kb-rise { color: #BFF0CF; background: rgba(143, 227, 176, .14); }

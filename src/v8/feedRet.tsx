@@ -9,11 +9,12 @@
  *    upvote on that answer (kr8_feed_vote → kr8_ask_vote, unchanged; no Rings). Then a truthful result line: from 10 other
  *    voters a percentage, below that the count in words. Questions the member already answered or voted on are skipped.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { usePosters } from './V5Go';
 import { AskText } from './askTr';
 import { hasThai, mostlyEnglish } from './askThai';
 import { initialAvatar } from './v8Data';
+import { newFacesOrder } from './ret10';
 import './feedRet.css';
 
 type LFn = (en: string) => string;
@@ -31,9 +32,10 @@ export interface NewFace {
   poster_path?: string; video_path?: string; likes?: number; liked?: boolean; saved?: boolean;
   post_id?: string; photo?: string | null;
 }
-export const NEW_FACES_HOURS = 24;
+/** Retention 10 (26 Nov): 48 h (was 24), Reel tiles fewest likes first, max 10, first answers after them (ret10.newFacesOrder) */
+export const NEW_FACES_HOURS = 48;
 export const feedNewFaces = (hours = NEW_FACES_HOURS) =>
-  rpc<{ hours: number; items: NewFace[] }>('kr8_feed_new_faces', { p_hours: hours }).then((r) => (r?.items || []).filter((x) => x && x.id));
+  rpc<{ hours: number; items: NewFace[] }>('kr8_feed_new_faces', { p_hours: hours }).then((r) => newFacesOrder((r?.items || []).filter((x) => x && x.id)));
 
 const SEEN_KEY = 'kr8_newfaces_seen';
 function readSeen(): Record<string, number> {
@@ -49,10 +51,10 @@ function markSeen(id: string) {
   } catch { /* private mode: the ring just stays bright */ }
 }
 
-export function NewFacesRow(p: { L: LFn; items: NewFace[]; away?: boolean; onReel: (i: number) => void; onAnswer: (f: NewFace) => void }) {
+export function NewFacesRow(p: { L: LFn; items: NewFace[]; away?: boolean; onReel: (i: number) => void; onAnswer: (f: NewFace) => void; lead?: ReactNode }) {
   const [seen, setSeen] = useState<Record<string, number>>(readSeen);
   const posters = usePosters(p.items.filter((x) => x.k === 'reel' && x.poster_path).map((x) => x.poster_path as string));
-  if (!p.items.length) return null;
+  if (!p.items.length && !p.lead) return null;
   // unseen first; inside each group the newest first (the server order)
   const order = p.items.map((f, i) => ({ f, i })).sort((a, b) => Number(!!seen[a.f.id]) - Number(!!seen[b.f.id]) || a.i - b.i);
   const reelIds = p.items.filter((x) => x.k === 'reel').map((x) => x.id);
@@ -60,6 +62,7 @@ export function NewFacesRow(p: { L: LFn; items: NewFace[]; away?: boolean; onRee
     <div className={`nf${p.away ? ' away' : ''}`} id="newFaces" aria-hidden={p.away || undefined} onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
       <div className="nf-h">{p.L('New in Bangkok 👋')}</div>
       <div className="nf-row" role="list">
+        {p.lead || null}
         {order.map(({ f }) => {
           const img = f.k === 'reel' ? posters[f.poster_path || ''] : f.photo || initialAvatar(f.name);
           const isSeen = !!seen[f.id];

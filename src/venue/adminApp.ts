@@ -510,11 +510,14 @@ async function reelQueue() {
   app.replaceChildren(el('div', { class: 'scr' }, loading()));
   let rows: Reel[];
   try { rows = await rpc<Reel[]>('kr8_admin_reels', { p_status: 'pending', p_limit: 100 }); } catch (e) { app.replaceChildren(el('div', { class: 'scr' }, errP(e))); return; }
-  const [urls, cnt, checks] = await Promise.all([
+  const [urls, cnt, checks, b5ids] = await Promise.all([
     signReelPaths(rows.flatMap((r) => [r.video_path, r.poster_path])).catch(() => ({} as Record<string, string>)),
     rows.length ? rpc<Counts[]>('kr8_admin_reel_counts', { p_ids: rows.map((r) => r.id) }).catch(() => [] as Counts[]) : Promise.resolve([] as Counts[]),
     loadReelChecks(rpc, rows.map((r) => r.id)),
+    // Retention 10 (m219): which of these are "Bangkok at 5" clips (label only; reviewed like any Reel)
+    rows.length ? rpc<string[]>('kr8_admin_b5_ids', { p_ids: rows.map((r) => r.id) }).catch(() => [] as string[]) : Promise.resolve([] as string[]),
   ]);
+  const b5 = new Set(b5ids || []);
   const cm = new Map(cnt.map((c) => [c.id, c]));
   // audit P3-2: label each Reel with the member's own "I live here / Visiting" (older databases: plain "Member")
   const who = await rpc<{ user_id: string; who: 'local' | 'traveller' }[]>('kr8_admin_member_who', { p_ids: [...new Set(rows.map((r) => r.author_id))] }).catch(() => []);
@@ -539,13 +542,15 @@ async function reelQueue() {
         btn(sugProfile ? 'ghost big' : 'go big', [ic('check'), 'Approve · Feed'], () => approveTo(true), { id: 'approveReel-' + r.id }),
         btn(sugProfile ? 'go big' : 'ghost big', [ic('users'), 'Approve · Profile only'], () => approveTo(false), { id: 'approveProfile-' + r.id })),
       el('div', { class: 'two' },
-        btn('ghost big', [ic('clock'), 'Not yet'], () => notYetSheet(r.id, qc?.reasons || [], hideReel, api.next), { id: 'notYetReel-' + r.id }),
+        // Retention 10 (feature 4): a quality reason = approved + profile only + ONE reason the member sees in their language (one tap)
+        btn('ghost big', [ic('users'), 'Profile only · why?'], () => profileOnlySheet(r.id, qc?.reasons || [], api, hideReel), { id: 'poReel-' + r.id }),
         btn('out-bad big', [ic('eyeoff'), 'Hide'], () => hideReel() /* = rejectSheet('Why hide?', …, REEL_CHIPS) */, { id: 'hideReel-' + r.id })),
       el('div', { class: 'two' }, skipBtn(api))));
     return el('div', { 'data-reel': r.id },
       reelVideo(urls[r.video_path] || '', urls[r.poster_path] || '', [el('span', { class: 'chip' }, ic('play'), `${Math.round(r.duration_ms / 1000)} s`)],
         [el('b', {}, `${r.author_name} · ${r.author_who === 'traveller' ? 'Visiting Bangkok' : r.author_who === 'local' ? 'Kring Local' : 'Member'}`), el('p', { class: 'dim' }, `${r.area} · ${ago(r.created_at)}`), r.body ? el('p', {}, r.body) : null]),
       el('div', { class: 'facts' },
+        b5.has(r.id) ? el('span', { class: 'fact', 'data-b5': r.id }, ic('clock'), el('b', {}, 'Bangkok at 5'), ' clip · approve to show it in the 5pm row') : null,
         el('span', { class: 'fact' }, ic('link'), 'Ref ', el('b', {}, r.ref_code || '–')),
         el('span', { class: 'fact' }, ic('check'), 'Approved before ', el('b', {}, String(r.author_approved))),
         c ? el('span', { class: 'fact', 'data-counts': r.id }, ic('eye'), el('b', {}, String(c.views)), ic('heart'), el('b', {}, String(c.likes)), ic('save'), el('b', {}, String(c.saves)), ic('share'), el('b', {}, String(c.shares))) : null,
@@ -622,6 +627,37 @@ export function notYetSheet(reelId: string, botReasons: readonly string[], hide:
       sh.close(); toast('Not yet · tips sent', { ms: 2500 }); onDone();
     } catch (e) { go.disabled = false; out.replaceChildren(errP(e)); }
   };
+}
+/**
+ * Retention 10 (feature 4, 26 Nov): "Profile only · why?" — one tap on a QUALITY reason = approved, kept to the member's profile (not
+ * the main feed), still counts for the weekly board; the member sees "Live on your profile" + this reason in their language + 2 example
+ * Reels. Rule breaks are not here: they go to Hide with their own message.
+ */
+export const PROFILE_ONLY_REASONS: [key: string, label: string][] = [
+  ['noperson', 'No person in it'], ['dark', 'Too dark'], ['blurry', 'Blurry or shaky'], ['noplace', 'No place shown'], ['home', 'At home / indoors'],
+  ['sideways', 'Sideways'], ['short', 'Too short'], ['sound', 'Hard to hear'], ['slowstart', 'Slow start'],
+];
+export function profileOnlySheet(reelId: string, botReasons: readonly string[], api: { done: (label: string, write: RpcWrite) => void }, hide: (ready?: string) => void) {
+  const pre = chipsFromReasons(botReasons);
+  const sh = sheet(el('h3', {}, 'Profile only · pick the reason'),
+    el('p', { class: 'dim', style: 'margin:4px 0 0' }, 'One tap. It stays on their profile and counts for the board; they see the reason and 2 Reels that made the feed.'),
+    pre.ruleBreak ? el('p', { class: 'err', style: 'margin:6px 0 0' }, `Autopilot: ${pre.ruleBreak} — use Hide`) : null,
+    el('div', { class: 'chips2', style: 'margin-top:10px' }, ...PROFILE_ONLY_REASONS.map(([k, label]) => {
+      const b = el('button', { type: 'button', 'data-po': k, id: `po-${reelId}-${k}`, class: pre.tips.includes(k) ? 'sug' : '' }, (pre.tips.includes(k) ? '★ ' : '') + label) as HTMLButtonElement;
+      b.onclick = () => {
+        sh.close();
+        api.done(`Profile only · ${label}`, async () => { await rpc('kr8_admin_reel_profile_only', { p_reel: reelId, p_reason: k }); });
+      };
+      return b;
+    })),
+    el('p', { class: 'dim xs', style: 'margin:12px 0 4px;font-weight:700' }, 'Breaks the rules → Hide'),
+    el('div', { class: 'chips2' }, ...NOT_YET_RULE_BREAKS.map((label) => {
+      const ch = REEL_CHIPS.find((x) => x[0] === label);
+      const b = el('button', { type: 'button', 'data-rulebreak': label, style: 'border-color:#d33' }, label);
+      b.onclick = () => { sh.close(); hide(ch ? ch[1] : undefined); };
+      return b;
+    })));
+  sh.box.classList.add('rsheet'); sh.box.id = 'po-' + reelId + 'Sheet';
 }
 /** Removing a reported Reel / Ask BKK post or answer (only what the published rules say). */
 export const REPORT_CHIPS: Chip[] = [

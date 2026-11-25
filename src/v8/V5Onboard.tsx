@@ -7,7 +7,7 @@
  *  · AlikeRow: "Answered like you" (This or That result, Ask BKK thread, top of People), Follow in one tap.
  * One language per screen: own 6-language table, like badges.tsx.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import './onboard.css';
 import { ONB_N, ONB_STEPS, onbAlike, onbCount, onbNext, onbStepDone, useAlikeGen, type AlikePerson, type OnbState, type OnbStep } from './onboard';
 
@@ -50,7 +50,7 @@ function Bar({ n }: { n: number }) {
 }
 
 /** The four rows (shared by the Feed drop-down and the Me line). */
-export function OnbSteps(props: { lang: string; st: OnbState; onGo: (k: OnbStep) => void }) {
+export function OnbSteps(props: { lang: string; st: OnbState; onGo: (k: OnbStep) => void; extra?: ReactNode }) {
   const tx = onbTx(props.lang);
   const next = onbNext(props.st);
   return (
@@ -65,12 +65,14 @@ export function OnbSteps(props: { lang: string; st: OnbState; onGo: (k: OnbStep)
           </li>
         );
       })}
+      {/* Retention 10: optional extra rows (Follow 3) — not part of the 4 steps or the tag */}
+      {props.extra ? <li className="onb-x">{props.extra}</li> : null}
     </ol>
   );
 }
 
 /** Feed: slim line in the ticker's place; tap opens the steps under it. */
-export function OnbStrip(props: { lang: string; st: OnbState; onGo: (k: OnbStep) => void; onHide: () => void }) {
+export function OnbStrip(props: { lang: string; st: OnbState; onGo: (k: OnbStep) => void; onHide: () => void; extra?: ReactNode }) {
   const tx = onbTx(props.lang);
   const [open, setOpen] = useState(false);
   const n = onbCount(props.st);
@@ -89,7 +91,7 @@ export function OnbStrip(props: { lang: string; st: OnbState; onGo: (k: OnbStep)
             <span><b>{tx.head} <span className="onb-tick">✓</span></b><small>{tx.sub}</small></span>
             <button type="button" className="onb-hide" id="onbHide" onClick={props.onHide}>{tx.hide}</button>
           </div>
-          <OnbSteps lang={props.lang} st={props.st} onGo={(k) => { setOpen(false); props.onGo(k); }} />
+          <OnbSteps lang={props.lang} st={props.st} onGo={(k) => { setOpen(false); props.onGo(k); }} extra={props.extra} />
         </div>
       ) : null}
     </div>
@@ -97,7 +99,7 @@ export function OnbStrip(props: { lang: string; st: OnbState; onGo: (k: OnbStep)
 }
 
 /** Me: one quiet line in the status block ("✦ Become a Bangkok Local · 1/4"), opens the rows in place. */
-export function OnbMeLine(props: { lang: string; st: OnbState; onGo: (k: OnbStep) => void }) {
+export function OnbMeLine(props: { lang: string; st: OnbState; onGo: (k: OnbStep) => void; extra?: ReactNode }) {
   const tx = onbTx(props.lang);
   const [open, setOpen] = useState(false);
   const n = onbCount(props.st);
@@ -106,7 +108,7 @@ export function OnbMeLine(props: { lang: string; st: OnbState; onGo: (k: OnbStep
       <button type="button" className="me-st2 onb-me-line" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
         <span aria-hidden="true">✦ </span>{tx.head}<span className="onb-n"> · {n}/{ONB_N}</span><Bar n={n} />
       </button>
-      {open ? <OnbSteps lang={props.lang} st={props.st} onGo={props.onGo} /> : null}
+      {open ? <OnbSteps lang={props.lang} st={props.st} onGo={props.onGo} extra={props.extra} /> : null}
     </div>
   );
 }

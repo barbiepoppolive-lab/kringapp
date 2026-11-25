@@ -25,6 +25,7 @@ import { FriendVerifyNote, fvMarkShown, fvShownToday } from './V5Unverified';
 import type { V5Profile } from './v5Live';
 import type { PickedPlace } from './V5KxPlaces';
 import { postAgo } from './postTime';
+import { poOpen, r10Tx, usePoMap } from './ret10';
 
 type Tx = (en: string) => string;
 type Txf = (en: string, a: string, b?: string) => string;
@@ -329,11 +330,13 @@ export function GoReelPlayer(props: {
 
 // ───────────── grid ─────────────
 function Tile(props: { L: Tx; poster?: string; rings?: number | null; week?: boolean; pending?: boolean; likes?: number; i: number; onOpen: () => void; id: string;
-  /** own hidden Reel (audit P2-3): "Hidden · reason" */ hidden?: string | null; /** 20 Nov: "Not yet" (tips, not a strike) */ notYet?: boolean }) {
+  /** own hidden Reel (audit P2-3): "Hidden · reason" */ hidden?: string | null; /** 20 Nov: "Not yet" (tips, not a strike) */ notYet?: boolean;
+  /** Retention 10: own approved Reel kept to the profile (not the main feed) */ po?: string | null }) {
   return (
     <button type="button" className="go-gt" data-go-tile={props.id} style={{ animationDelay: `${Math.min(props.i, 12) * 35}ms` }} onClick={props.onOpen}>
       {props.poster ? <img src={props.poster} alt="" loading="lazy" /> : null}
-      {props.notYet ? <span className="go-gw rv ny" data-notyet="1">{props.L('Not yet')}</span>
+      {props.po ? <span className="go-gw rv po" data-po="1">{props.po}</span>
+        : props.notYet ? <span className="go-gw rv ny" data-notyet="1">{props.L('Not yet')}</span>
         : props.hidden != null ? <span className="go-gw rv hid" data-hidden="1">{[props.L('Hidden'), props.hidden].filter(Boolean).join(' · ')}</span>
         : props.pending ? <span className="go-gw rv">{props.L('in review')}</span> : props.week ? <span className="go-gw">{props.L('This week')}</span> : null}
       {props.pending || props.hidden != null ? null : props.rings !== null && props.rings !== undefined ? <span className="go-gs"><RingGlyph /> {fmtN(props.rings)}</span>
@@ -343,15 +346,18 @@ function Tile(props: { L: Tx; poster?: string; rings?: number | null; week?: boo
 }
 const RV4_FILL = ['thonglor', 'siam-square', 'charoen-krung', 'one-bangkok', 'bacc'].map((n) => `${import.meta.env.BASE_URL}media/places/${n}.jpg`);
 export function GoGrid(props: { L: Tx; reels: KxGridReel[]; onOpen: (i: number) => void; add?: { label: string; onAdd: () => void };
-  /** rv4 Me A: the "+" tile first, and quiet Bangkok photos fill the first two rows (decoration only, not Reels) */ me?: boolean }) {
+  /** rv4 Me A: the "+" tile first, and quiet Bangkok photos fill the first two rows (decoration only, not Reels) */ me?: boolean; lang?: string }) {
   const posters = usePosters(props.reels.map((r) => r.poster_path));
+  const po = usePoMap(!!props.me);   // Retention 10: "On your profile" tiles (own grid only)
+  const poTx = props.me ? r10Tx(props.lang || 'en').poTag : '';
   const addT = props.add ? <button type="button" className="go-gt add" id="goGridAdd" aria-label={props.add.label} onClick={props.add.onAdd}><span><IcPlus /><em>{props.add.label}</em></span></button> : null;
   const fill = props.me ? RV4_FILL.slice(0, Math.max(0, 5 - props.reels.length)) : [];
   return (
     <div className="go-grid" id="goGrid">
       {props.me ? addT : null}
       {props.reels.map((r, i) => (
-        <Tile key={r.id} L={props.L} id={r.id} i={i} poster={posters[r.poster_path]} rings={r.rings} week={r.this_week} pending={r.status === 'pending'} hidden={r.status === 'hidden' ? reviewNoteText(r.note) : null} notYet={r.status === 'hidden' && isNotYetNote(r.note)} onOpen={() => props.onOpen(i)} />
+        <Tile key={r.id} L={props.L} id={r.id} i={i} poster={posters[r.poster_path]} rings={r.rings} week={r.this_week} pending={r.status === 'pending'} hidden={r.status === 'hidden' ? reviewNoteText(r.note) : null} notYet={r.status === 'hidden' && isNotYetNote(r.note)}
+          po={props.me && r.id in po && r.status === 'approved' ? poTx : null} onOpen={() => (props.me && r.id in po && r.status === 'approved' ? poOpen(r.id) : props.onOpen(i))} />
       ))}
       {props.me ? fill.map((f) => <span key={f} className="go-gt rv4-fill" aria-hidden="true" style={{ backgroundImage: `url('${f}')` }} />) : addT}
     </div>
@@ -361,7 +367,7 @@ export function GoGrid(props: { L: Tx; reels: KxGridReel[]; onOpen: (i: number) 
 /** Me: tabs "Reels" and "Saved" */
 export function GoMeReels(props: {
   L: Tx; Lf: Txf; mine: KxGridReel[] | null; saved: KxSavedReel[] | null; tab: 'reels' | 'saved'; onTab: (t: 'reels' | 'saved') => void;
-  onOpenMine: (i: number) => void; onOpenSaved: (i: number) => void; onPost: () => void; onBrowse: () => void;
+  onOpenMine: (i: number) => void; onOpenSaved: (i: number) => void; onPost: () => void; onBrowse: () => void; lang?: string;
 }) {
   const { L } = props;
   const savedPosters = usePosters(props.tab === 'saved' ? (props.saved || []).map((r) => r.poster_path) : []);
@@ -375,7 +381,7 @@ export function GoMeReels(props: {
       </div>
       {props.tab === 'reels' ? (
         props.mine === null ? <p className="go-empty">…</p> : (
-          <GoGrid L={L} reels={props.mine} me onOpen={props.onOpenMine} add={{ label: props.mine.length ? L('New Reel') : L('Post your first Reel'), onAdd: props.onPost }} />
+          <GoGrid L={L} reels={props.mine} me lang={props.lang} onOpen={props.onOpenMine} add={{ label: props.mine.length ? L('New Reel') : L('Post your first Reel'), onAdd: props.onPost }} />
         )
       ) : props.saved === null ? <p className="go-empty">…</p> : nSaved ? (
         <div className="go-grid" id="goSavedGrid">
@@ -430,6 +436,8 @@ export function GoProfilePage(props: {
   adminSees?: boolean;
   /** 25 Nov (mock F): the read-only Rings chip; its sheet links to the weekly leaderboard */
   onRanking?: () => void; top?: number;
+  /** Retention 10: the opening question card + bestie streak line under the buttons */
+  slot?: React.ReactNode;
 }) {
   const { L, p } = props;
   const [menu, setMenu] = useState(false);
@@ -484,6 +492,7 @@ export function GoProfilePage(props: {
             {p.i_follow ? `${L('Following')} ✓` : p.follows_me ? L('Follow back') : L('Follow')}</button>
         </div>
       ) : null}
+      {props.slot || null}
       <button type="button" className="rv-wk rv4-wk" id="profileScore" aria-label={L('See the math')} onClick={props.onMath}>
         <RingGlyph /><b>{fmtN(props.kx?.week ?? 0)}</b><span>{L('Rings this week')}</span><i aria-hidden="true">›</i></button>
       {props.reels === null ? <p className="go-empty">…</p> : list.length ? <GoGrid L={L} reels={list} onOpen={props.onOpen} /> : <p className="go-empty" id="profileNoReels">{L('No Reels yet')}</p>}

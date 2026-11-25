@@ -8,6 +8,8 @@ import { TotReasons, TotStreak } from './totReasons';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import './tasks.css';
 import { RoastCard } from './V5Roast';
+import { B5TaskRow, WelcomeCard } from './V5Ret10';
+import { extraStore } from './ret10';
 import {
   claimedCount, doable, fmt, leftCount, readyCount, resetsIn, streakDays, taskClaim, TASK_ORDER, taskReason, taskReasonsToday, taskReasonText, taskReasonUp, taskState,
   tasksToday, taskStreak, taskVote, taskVoteWho, taskWatch,
@@ -225,7 +227,11 @@ export function TasksSheet(props: { lang: string; onClose: () => void; onAsk: (q
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') props.onClose(); };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    // Retention 10: the welcome / 5pm rows (kr8_task_extra) re-read when the sheet opens; a claim there re-reads the day
+    void extraStore.refresh();
+    const re = () => { void tasksRefresh(); };
+    window.addEventListener('kr8:tasks-refresh', re);
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('kr8:tasks-refresh', re); };
   }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   if (!data?.on || !data.tasks) {
     return (
@@ -278,6 +284,7 @@ export function TasksSheet(props: { lang: string; onClose: () => void; onAsk: (q
             </div>
           </div>
         </div>
+        <WelcomeCard lang={props.lang} onFace={props.onFace} onClose={props.onClose} />
         <div className="dt-list">
           {rows.map((t) => {
             const st = taskState(t);
@@ -298,6 +305,7 @@ export function TasksSheet(props: { lang: string; onClose: () => void; onAsk: (q
               </div>
             );
           })}
+          <B5TaskRow lang={props.lang} onFace={props.onFace} onClose={props.onClose} />
         </div>
         {failMsg ? <p className="dt-msg err" role="alert">{failMsg}</p> : null}
         <div className="dt-week" aria-label={fmt(tx.streak, streak)}>

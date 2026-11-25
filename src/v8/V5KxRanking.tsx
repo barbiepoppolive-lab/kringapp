@@ -15,6 +15,7 @@ import { signReelPaths } from './v5Reel';
 import { RingToast, rulesVariant, WinSheet, winRules } from './V5KxRules';
 import { BackIcon, Crown, InfoIcon, Medal, PlusIcon, ShareIcon, type Tone } from './BoardArt';
 import { rankDelta, seenRankAtStart } from './prizeRace';
+import { FairPlaySheet, NewcomersLeague } from './V5Ret10';
 import { lineOut, refCode } from './invite';
 import { boardMoment, displayCode, cardBlob, cardCaption, cardLink, linkCopiedToast, shareCard, storyButtonLabel, storyFileName, type ShareCard } from './rankStory';
 
@@ -58,7 +59,15 @@ export function HowSheet(props: { L: Tx; onClose: () => void }) {
 }
 
 /** Tap any score → the Reel(s) that count, with every line of the sum (mock m3). One Reel since 15 Nov. */
-export function MathSheet(props: { L: Tx; Lf: Txf; lang: string; user: string; onClose: () => void; onShare?: (reel: string | null) => void; onHow: () => void }) {
+export function MathSheet(props: { L: Tx; Lf: Txf; lang: string; user: string; onClose: () => void; onShare?: (reel: string | null) => void; onHow: () => void;
+  onProfile?: (id: string) => void }) {
+  // Retention 10 (feature 9): every score tap opens the fair-play breakdown (kr8_fair_play, adds up to the board number exactly)
+  if (FAIR_PLAY) return <FairPlaySheet lang={props.lang} user={props.user} onClose={props.onClose} onProfile={props.onProfile}
+    onShare={props.onShare ? () => props.onShare?.(null) : undefined} />;
+  return <MathSheetOld {...props} />;
+}
+const FAIR_PLAY = true;
+function MathSheetOld(props: { L: Tx; Lf: Txf; lang: string; user: string; onClose: () => void; onShare?: (reel: string | null) => void; onHow: () => void }) {
   const { L, Lf } = props;
   const [d, setD] = useState<KxBreakdown | null | undefined>(undefined);
   const [posters, setPosters] = useState<Record<string, string>>({});
@@ -344,12 +353,12 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   );
   const Row = ({ r }: { r: KxRankRow }) => (
     <div className={`kx-row bx-row${r.is_me ? ' mer' : ''}${r.needs ? ' low' : ''}${r.rank > paid ? ' plain' : ''}`} data-rank={r.rank}>
-      <button type="button" className="who" onClick={() => props.onPerson(r.user_id)} aria-label={r.is_me ? L('You') : r.first_name}>
+      <button type="button" className="who" onClick={() => setMath(r.user_id)} aria-label={r.is_me ? L('You') : r.first_name}>
         <span className="n">{r.rank}</span>
         <span className={`bx-ra ${RING_CLS[r.rank % 4]}`}><Av photo={r.photo} name={r.first_name} size={36} /></span>
       </button>
       <span className="bx-rt">
-        <button type="button" className="t" onClick={() => props.onPerson(r.user_id)}>{r.is_me ? L('You') : r.first_name}{r.is_new && !r.is_me ? <i className="nw">{L('NEW')}</i> : null}</button>
+        <button type="button" className="t" onClick={() => setMath(r.user_id)}>{r.is_me ? L('You') : r.first_name}{r.is_new && !r.is_me ? <i className="nw">{L('NEW')}</i> : null}</button>
         {Score({ r, cls: 'kx-sc bx-sc' })}
         {progLine(r)}
       </span>
@@ -453,7 +462,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
                   <div className="bx-ph">
                     <Crown tone={TONE[rank]} w={rank === 1 ? 40 : 30} cls="bx-crown" />
                     {r ? (
-                      <button type="button" className="bx-img" data-rank={rank} aria-label={r.is_me ? L('You') : r.first_name} onClick={() => props.onPerson(r.user_id)}
+                      <button type="button" className="bx-img" data-rank={rank} aria-label={r.is_me ? L('You') : r.first_name} onClick={() => setMath(r.user_id)}
                         style={r.photo ? { backgroundImage: `url('${r.photo}')` } : undefined}>{r.photo ? '' : (r.first_name || '?').charAt(0).toUpperCase()}</button>
                     ) : (
                       <button type="button" className="bx-img empty" data-seat="open" aria-label={L('Your spot?')} onClick={props.onPost}><PlusIcon /></button>
@@ -476,6 +485,8 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
                 <span>{floorNote ? <>{C.prizeLine(data?.floor ?? 0)} <RingGlyph /></> : C.prizeLine(paid).replace(/ · \d+$/, '')}</span></div> : null}
             {rows.filter((r) => r.rank > paid).map((r) => <React.Fragment key={r.user_id}>{Row({ r })}</React.Fragment>)}
           </div>
+          {/* Retention 10 (feature 10): members who joined this week, same Rings as the board */}
+          <NewcomersLeague lang={lang} onPerson={(id) => setMath(id)} />
         </>
       )}
       <div className="bx-endpad" />
@@ -519,6 +530,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
         </button>
       </div>
       {math ? <MathSheet L={L} Lf={Lf} lang={lang} user={math} onClose={() => setMath(null)} onHow={() => { setMath(null); setHow(true); }}
+        onProfile={(id) => { setMath(null); props.onPerson(id); }}
         onShare={(reel) => { setMath(null); if (reel) props.onShare(reel); else props.onPost(); }} /> : null}
       {how ? <HowSheet L={L} onClose={() => setHow(false)} /> : null}
       {wr && win ? <WinSheet v={rv || 'C'} lang={lang} r={wr} glass onClose={() => setWin(false)} extra={<SeatsLine L={L} Lf={Lf} lang={lang} left={seatsLeft} />} /> : null}
