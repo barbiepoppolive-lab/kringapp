@@ -784,7 +784,11 @@ export interface V5Profile {
   reels: { id: string; poster_path: string; likes: number; status: string }[];
   /** 0184: the member shows the followers / following lists to nobody (the counts stay) */
   lists_private?: boolean;
+  /** 0251: profile builder step 6, the question key and the member's answer */
+  qa_q?: string | null; qa_answer?: string | null;
 }
+/** 0251: save the step-6 answer (max 140, checked like the bio; empty clears it) */
+export const v5SetQa = (q: string, answer: string) => rpc<{ qa_q: string | null; qa_answer: string | null }>('kr8_set_qa', { p_q: q, p_answer: answer });
 export const v5Profile = (user?: string | null) => rpc<V5Profile>('kr8_profile', { p_user: user || null });
 /** 0184: Settings → Privacy → "Who can see my followers & following" (true = Only me) */
 export const v5SetListsPrivate = (on: boolean) => rpc<boolean>('kr8_set_lists_private', { p_private: on });

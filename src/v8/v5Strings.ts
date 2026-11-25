@@ -1,6 +1,51 @@
 /** V5 strings. English is the key; TH / ZH / HI / JA / KO below. Looked up by L() / Lf() in KringAppV8. */
 export const V5_L: Record<string, Record<string, string>> = {
   th: {
+    // ── six-step profile builder (25 Nov 2026) ──
+    // gender tile words (same Thai as KX_L, here so every V5 language has the same keys)
+    'Female': 'หญิง',
+    'Male': 'ชาย',
+    'Kathoey': 'กะเทย',
+    'You are': 'คุณคือ',
+    'It helps people find you. You can hide it below.': 'ช่วยให้คนอื่นรู้จักคุณง่ายขึ้น ซ่อนได้ทีหลัง',
+    'Show this on my profile': 'แสดงบนโปรไฟล์ของฉัน',
+    'Which area are you around?': 'อยู่แถวไหน',
+    'Pick the one you are in most': 'เลือกย่านที่คุณอยู่บ่อยที่สุด',
+    'What are you into?': 'ชอบอะไรบ้าง',
+    'Pick 3 or more': 'เลือกอย่างน้อย 3 อย่าง',
+    '{0} picked · up to 8': 'เลือกแล้ว {0} · ได้สูงสุด 8',
+    'You speak': 'พูดได้',
+    'Tap every one you can hold a chat in': 'แตะทุกภาษาที่คุยได้',
+    'A short intro': 'แนะนำตัวสั้นๆ',
+    'Tap the one that fits, then change it': 'แตะอันที่ใช่ แล้วแก้ได้เลย',
+    'I’m always hunting for a café to work in — send me one': 'หาคาเฟ่นั่งทำงานอยู่ตลอด แนะนำหน่อย',
+    'I’d rather walk the sois for food than go to a mall': 'ชอบเดินหาของกินแถวบ้านมากกว่าห้าง',
+    'I want to practise English, and I’ll teach you Thai': 'อยากฝึกภาษาอังกฤษ แลกกับสอนภาษาไทย',
+    'or write your own': 'เขียนเองก็ได้',
+    'Your own words': 'เขียนเอง…',
+    'Today’s question': 'คำถามวันนี้',
+    'Which shop in your soi do you always go back to?': 'ร้านประจำในซอยบ้านคุณคือร้านไหน',
+    'The coffee place at the mouth of the soi': 'ร้านกาแฟหน้าปากซอย',
+    'The chicken-rice shop': 'ร้านข้าวมันไก่',
+    'The 24-hour noodle cart': 'รถเข็นก๋วยเตี๋ยว 24 ชม.',
+    'Skip': 'ข้าม',
+    'Finish': 'เสร็จแล้ว',
+    '{0} / 6': '{0} / 6',
+    'pick one…': 'เลือกหนึ่งอย่าง…',
+    'pick your area…': 'เลือกย่าน…',
+    'pick what you like…': 'เลือกสิ่งที่ชอบ…',
+    'pick your languages…': 'เลือกภาษา…',
+    'add a line…': 'เขียนแนะนำตัว…',
+    'answer today’s question…': 'ตอบคำถามวันนี้…',
+    'That’s you, {0}': 'นี่คือคุณแล้ว {0}',
+    'You’re on the People page now': 'คุณอยู่ในหน้าผู้คนแล้ว',
+    'See People': 'ไปหน้าผู้คน',
+    'Finish your profile': 'ทำโปรไฟล์ให้เสร็จ',
+    '1 step left on your profile': 'เหลืออีก 1 ขั้นตอน',
+    '{0} steps left on your profile': 'เหลืออีก {0} ขั้นตอน',
+    'Takes under a minute': 'ใช้เวลาไม่ถึงนาที',
+    'People see you better with a full card': 'โปรไฟล์ที่ครบ ทำให้คนอื่นเห็นคุณชัดขึ้น',
+    'Members with a full card get far more replies. {0}': 'สมาชิกที่โปรไฟล์ครบ ได้รับการตอบกลับมากกว่ามาก {0}',
     'Tap again to confirm': 'แตะอีกครั้งเพื่อยืนยัน',
     'Verify your face in 30 seconds to post and chat. One person, one account.': 'ยืนยันใบหน้า 30 วินาทีก่อนโพสต์และแชตนะ หนึ่งคน หนึ่งบัญชี',
     'Usually your face photo stays on your phone and Kring keeps only a face code (numbers). If the check is unsure, or your phone can’t run it, one selfie goes to our team to look at, and we delete it about 30 days after the review.': 'ปกติรูปหน้าของคุณจะอยู่แค่ในมือถือ และกริ๊ง! เก็บแค่รหัสใบหน้าที่เป็นตัวเลข ถ้าระบบยังไม่แน่ใจ หรือมือถือตรวจเองไม่ได้ เราจะส่งเซลฟี่ 1 รูปให้ทีมงานดู แล้วลบทิ้งราว 30 วันหลังตรวจเสร็จครับ',
@@ -831,7 +876,7 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
     case 'BAD_NAME': return ['Add your first name.'];
     case 'BAD_LANGS': return ['Pick at least one language.'];
     case 'LIST_PRIVATE': return ['This member keeps their list private'];
-    case 'BAD_BIO': case 'BAD_TEXT': return ['Keep it short, with no phone numbers, links or LINE IDs.'];
+    case 'BAD_BIO': case 'BAD_TEXT': case 'BAD_QA': return ['Keep it short, with no phone numbers, links or LINE IDs.'];
     case 'BAD_PHOTO': return ['That photo didn’t work. Try another one.'];
     case 'THEY_SAID_HI': return ['{0} already said hi to you. Reply in Messages.', name];
     case 'ALREADY_SAID_HI': return ['You already sent your one hello to {0}. Full chat opens as soon as they reply.', name];

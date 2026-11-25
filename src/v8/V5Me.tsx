@@ -31,6 +31,20 @@ type Txf = (en: string, a: string, b?: string) => string;
 export const LEVEL_NAME: Record<V5Level, string> = { anchan: 'Anchan member', tea: 'Thai tea member', pandan: 'Pandan member' };
 export const LANG_NAME: Record<string, string> = { TH: 'Thai', EN: 'English', ZH: 'Chinese', HI: 'Hindi', JA: 'Japanese', KO: 'Korean', FR: 'French', DE: 'German',
   ES: 'Spanish', RU: 'Russian', MS: 'Malay', ID: 'Indonesian', VI: 'Vietnamese', AR: 'Arabic' };
+/** 0251: profile builder step 6. Key saved in kr8_members.qa_q → the English question (translated by L()). */
+export const QA_QUESTIONS: Record<string, string> = { soi_shop: 'Which shop in your soi do you always go back to?' };
+/** The member's answer to today's question, on their profile. Renders nothing without an answer. */
+export function QaLine(props: { L: Tx; q?: string | null; a?: string | null }) {
+  const a = (props.a || '').trim();
+  if (!a) return null;
+  const q = props.q && QA_QUESTIONS[props.q];
+  return (
+    <p className="kpb-qa-card" id="profileQa">
+      {q ? <small>{props.L(q)}</small> : null}
+      <b>{a}</b>
+    </p>
+  );
+}
 export const INTEREST: Record<string, [string, string]> = {
   coffee: ['☕', 'Coffee'], street_food: ['🍜', 'Street food'], desserts: ['🍧', 'Desserts'], markets: ['🛍', 'Markets'], running: ['🏃', 'Running'],
   yoga: ['🧘', 'Yoga'], film_photos: ['📷', 'Film photos'], art: ['🎨', 'Art'], music: ['🎵', 'Music'], books: ['📚', 'Books'],
@@ -308,6 +322,8 @@ export type MeViewProps = {
   tasksSlot?: React.ReactNode;
   /** 20 Nov: no passed face check → one Verify line in place of the weekly ranking + daily rewards */
   lockSlot?: React.ReactNode;
+  /** 25 Nov: six-step profile builder: how many steps are left, and the row that reopens it. Hidden at 0. */
+  buildLeft?: number; buildLabel?: string; onBuild?: () => void;
 };
 
 /**
@@ -358,6 +374,17 @@ export function MeView(props: MeViewProps) {
           <button type="button" id="statFollowing" onClick={() => props.onList('following')}><b>{fmtCount(p.following)}</b><span>{L('Following')}</span></button>
         </div>
       )} />
+      <QaLine L={L} q={p.qa_q} a={p.qa_answer} />
+      {props.buildLeft && props.onBuild ? (
+        <button type="button" className="kpb-row" id="meBuild" onClick={props.onBuild}>
+          <span className="kpb-ic" aria-hidden="true">✦</span>
+          <span className="kpb-rt">
+            <b>{L('Finish your profile')}</b>
+            <small>{props.buildLabel || L('Takes under a minute')}</small>
+          </span>
+          <span className="kpb-go" aria-hidden="true">›</span>
+        </button>
+      ) : null}
       {/* 20 Nov (founder, Android): ONE compact glass strip: Rings + this week's place | daily-task ring + chevron */}
       {props.lockSlot ? props.lockSlot : (
       <div className={`rv5-mstrip${props.tasksSlot ? '' : ' solo'}`} id="meStrip">
@@ -493,6 +520,7 @@ export function ProfileView(props: {
         <button type="button" className="kme-back" aria-label={L('More')} onClick={() => setMenu((m) => !m)}>⋯</button>
       </div>
       <KxMemberCard L={L} Lf={Lf} p={p} kx={props.kx} compact />
+      <QaLine L={L} q={p.qa_q} a={p.qa_answer} />
       <Stats L={L} p={p} onList={props.onList} />
       {!p.mine && (
         <div className="kme-ob">

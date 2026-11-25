@@ -1,0 +1,536 @@
+/**
+ * Six-step profile builder — founder-approved "variant B".
+ * Dark #07060d ground, blue→pink gradient accents, six dashes on top, the member's card filling in live.
+ * Scoped to .kpb so nothing outside this flow changes.
+ */
+/* The builder, the Me row and the re-prompt all live in different parts of the tree, so the tokens
+   are declared on each root rather than on .kpb alone (a gradient button outside .kpb had no colour). */
+.kpb,
+.kpb-row,
+.kpb-ask {
+  --kpb-bg: #07060d;
+  --kpb-surf: #14111f;
+  --kpb-surf2: #1c1830;
+  --kpb-line: #2a2638;
+  --kpb-blue: #6366ff;
+  --kpb-pink: #ff4fd8;
+  --kpb-gold: #ffd36b;
+  --kpb-muted: #8d89a6;
+  --kpb-dim: #b9b3d6;
+}
+
+.kpb {
+  position: absolute;
+  inset: 0;
+  z-index: 85;
+  background: var(--kpb-bg);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: 'Bricolage Grotesque', 'Anuphan', -apple-system, BlinkMacSystemFont, sans-serif;
+  animation: kpb-in 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes kpb-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+.kpb-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(520px 300px at 18% -8%, rgba(99, 102, 255, 0.3), transparent 62%),
+    radial-gradient(460px 300px at 96% 8%, rgba(255, 79, 216, 0.18), transparent 60%);
+}
+
+/* ── top bar: back · six dashes · skip ── */
+.kpb-top {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: calc(16px + env(safe-area-inset-top)) 20px 0;
+}
+
+.kpb-back {
+  border: 0;
+  background: none;
+  color: var(--kpb-muted);
+  font-size: 24px;
+  line-height: 1;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+
+.kpb-back:disabled { opacity: 0.28; }
+
+.kpb-dots {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+
+.kpb-dots i {
+  height: 3.5px;
+  flex: 1;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.14);
+  transition: background 0.3s ease;
+}
+
+.kpb-dots i.on { background: linear-gradient(90deg, var(--kpb-blue), var(--kpb-pink)); }
+
+.kpb-skip {
+  border: 0;
+  background: none;
+  color: var(--kpb-muted);
+  font-size: 13.5px;
+  padding: 6px 2px;
+  cursor: pointer;
+}
+
+/* ── body ── */
+.kpb-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px calc(18px + env(safe-area-inset-bottom));
+}
+
+/* ── the live card preview ── */
+.kpb-card {
+  flex: none;
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(99, 102, 255, 0.16), rgba(255, 79, 216, 0.11));
+}
+
+.kpb-card .kpb-img {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #2a2440, #3a2f55) center / cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.kpb-card .kpb-tx {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.kpb-card .kpb-nm {
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: -0.1px;
+}
+
+.kpb-card .kpb-meta {
+  color: var(--kpb-dim);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.kpb-card .kpb-meta .kpb-w {
+  color: var(--kpb-gold);
+  font-weight: 500;
+}
+
+.kpb-n {
+  flex: none;
+  margin: 22px 0 10px;
+  color: var(--kpb-muted);
+  font-size: 11.5px;
+  letter-spacing: 1.6px;
+}
+
+.kpb h1 {
+  flex: none;
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.kpb-hint {
+  flex: none;
+  margin: 9px 0 0;
+  color: var(--kpb-dim);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+/* ── big one-of tiles (step 1) ── */
+.kpb-big {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  margin-top: 26px;
+}
+
+.kpb-big button {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  padding: 18px 20px;
+  border-radius: 19px;
+  border: 1.4px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.02);
+  color: #efeefb;
+  font: inherit;
+  font-size: 17px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.kpb-big button .kpb-em { font-size: 22px; }
+
+.kpb-big button.on {
+  border-color: transparent;
+  background: linear-gradient(135deg, rgba(99, 102, 255, 0.9), rgba(255, 79, 216, 0.85));
+  color: #fff;
+  font-weight: 500;
+}
+
+/* ── show-on-profile toggle ── */
+.kpb-tog {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 18px;
+  padding: 12px 4px;
+  border: 0;
+  background: none;
+  color: var(--kpb-dim);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.kpb-tog .kpb-sw {
+  width: 44px;
+  height: 26px;
+  flex: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  position: relative;
+  transition: background 0.2s ease;
+}
+
+.kpb-tog .kpb-sw i {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.kpb-tog.on .kpb-sw { background: linear-gradient(135deg, var(--kpb-blue), var(--kpb-pink)); }
+.kpb-tog.on .kpb-sw i { transform: translateX(18px); }
+.kpb-tog.on { color: #fff; }
+
+/* ── chips (steps 2, 3, 4) ── */
+.kpb-chips {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.kpb-chips button {
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1.3px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.03);
+  color: #efeefb;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.kpb-chips button.on {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--kpb-blue), var(--kpb-pink));
+  color: #fff;
+  font-weight: 500;
+}
+
+/* ── starter lines (steps 5, 6) ── */
+.kpb-lines {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.kpb-lines button {
+  padding: 14px 16px;
+  border-radius: 15px;
+  border: 1.3px dashed rgba(255, 255, 255, 0.17);
+  background: none;
+  color: #dcdaf0;
+  font: inherit;
+  font-size: 14.5px;
+  line-height: 1.45;
+  text-align: left;
+  cursor: pointer;
+}
+
+.kpb-lines button.on {
+  border-style: solid;
+  border-color: transparent;
+  background: rgba(99, 102, 255, 0.17);
+  color: #fff;
+}
+
+.kpb-own {
+  flex: none;
+  margin-top: 14px;
+  padding: 6px;
+  border: 0;
+  background: none;
+  color: #5b6cff;
+  font: inherit;
+  font-size: 13.5px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.kpb-area {
+  flex: none;
+  margin-top: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 15px;
+  border: 1.3px solid rgba(99, 102, 255, 0.55);
+  background: var(--kpb-surf);
+  color: #fff;
+  font: inherit;
+  font-size: 14.5px;
+  line-height: 1.45;
+  resize: none;
+}
+
+.kpb-area::placeholder { color: var(--kpb-muted); }
+
+.kpb-err {
+  flex: none;
+  margin: 14px 0 0;
+  color: #ff8ca8;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* ── next, pinned to the bottom ── */
+.kpb-cta {
+  flex: none;
+  margin: auto 0 0;
+  width: 100%;
+  padding: 16px;
+  border: 0;
+  border-radius: 17px;
+  background: linear-gradient(135deg, var(--kpb-blue), var(--kpb-pink));
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.kpb-cta.off {
+  background: rgba(255, 255, 255, 0.07);
+  color: #6e6a85;
+}
+
+/* ── the finished card ── */
+.kpb-done {
+  align-items: stretch;
+  padding-top: 8vh;
+}
+
+.kpb-tick {
+  flex: none;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--kpb-blue), var(--kpb-pink));
+}
+
+.kpb-done h1 {
+  text-align: center;
+  margin-bottom: 26px;
+}
+
+.kpb-card-big {
+  padding: 16px;
+  align-items: flex-start;
+}
+
+.kpb-card-big .kpb-img {
+  width: 64px;
+  height: 64px;
+  border-radius: 17px;
+}
+
+.kpb-card-big .kpb-bioline,
+.kpb-card-big .kpb-qaline {
+  color: var(--kpb-dim);
+  font-size: 12.5px;
+  line-height: 1.45;
+  margin-top: 4px;
+}
+
+.kpb-card-big .kpb-qaline { color: var(--kpb-gold); }
+
+.kpb-in {
+  flex: none;
+  margin: 24px 0 0;
+  text-align: center;
+  color: var(--kpb-dim);
+  font-size: 14.5px;
+}
+
+/* ── Me tab: resume row, and the People / message re-prompt ── */
+.kpb-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 12px 0 0;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(99, 102, 255, 0.18), rgba(255, 79, 216, 0.12));
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* .kme strips padding from every button inside it, and its cards sit in a 14px gutter: match both. */
+.v8-app-root .kme button.kpb-row {
+  width: auto;
+  margin: 12px 14px 0;
+  padding: 14px 16px;
+}
+
+.kpb-row .kpb-ic {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  background: linear-gradient(135deg, #6366ff, #ff4fd8);
+}
+
+.kpb-row .kpb-rt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kpb-row .kpb-rt b { font-size: 14.5px; font-weight: 700; }
+.kpb-row .kpb-rt small { font-size: 12px; color: rgba(255, 255, 255, 0.72); }
+.kpb-row .kpb-go { color: rgba(255, 255, 255, 0.6); font-size: 18px; }
+
+/* re-prompt sheet */
+.kpb-ask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 86;
+  padding: 22px 20px calc(22px + env(safe-area-inset-bottom));
+  border-radius: 26px 26px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: #14111f;
+  color: #fff;
+  animation: kpb-up 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes kpb-up {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+
+.kpb-ask h3 {
+  margin: 0 0 8px;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.kpb-ask p {
+  margin: 0 0 18px;
+  color: #b9b3d6;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.kpb-ask .kpb-cta { margin: 0; }
+
+.kpb-ask .kpb-later {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border: 0;
+  background: none;
+  color: #8d89a6;
+  font: inherit;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+/* 0251: the member's answer to today's question, under the card on Me and on someone's profile */
+.kpb-qa-card {
+  margin: 10px 16px 0;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: #fff;
+}
+.kpb-qa-card small { font-size: 11.5px; color: rgba(255, 255, 255, 0.62); }
+.kpb-qa-card b { font-size: 14px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }

@@ -182,6 +182,8 @@ const ResultPage = lazyPart(() => import('./V5KxRewards').then((m) => m.ResultPa
 const Celebrate = lazyPart(() => import('./V5Celebrate').then((m) => m.Celebrate));
 const RingFly = lazyPart(() => import('./V5Celebrate').then((m) => m.RingFly));
 import { kxTop3, type KxTop3 } from './v5Kx';
+import { kxCoachState } from './v5Kx';
+import { V5Build, QA_KEY, buildIncomplete, buildLeftLabel, cardDoneSteps, missingSteps } from './V5Build';
 import { cardBlob, displayCode } from './rankStory';
 const RewardsPage = lazyPart(() => import('./V5KxRewards').then((m) => m.RewardsPage));
 const MathSheet = lazyPart(() => import('./V5KxRanking').then((m) => m.MathSheet));
@@ -1497,6 +1499,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [v5Uid, setV5Uid] = useState<string>('');
   const [deepPersonId, setDeepPersonId] = useState<string>('');
   const [v5Card, setV5Card] = useState<V5Card | null>(null);
+  // ── six-step profile builder (25 Nov): which steps are done (kr8_member_coach), the flow itself, and the re-prompt ──
+  const [coachDone, setCoachDone] = useState<string[] | null>(null);
+  const [buildOpen, setBuildOpen] = useState(false);
+  const [buildAsk, setBuildAsk] = useState<'people' | 'hi' | null>(null);
+  const buildAskedRef = useRef(false);   // at most one re-prompt per app session
   askMeRef.current = !signedIn ? null
     : live ? (v5Uid && v5Card ? { id: v5Uid, name: v5Card.first_name, photo: v5Card.photo || initialAvatar(v5Card.first_name), local: v5Card.who === 'local' } : null)
     : { id: user.id || 'me', name: user.name, photo: user.avatar || initialAvatar(user.name), local: user.role === 'local' };
@@ -2145,12 +2152,15 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       return;
     }
     setTab(target);
+    // an unfinished profile is re-prompted when the member opens People, where it actually costs them
+    if (target === 'people') setTimeout(() => askBuild('people'), 260);
   };
 
   // audit P2-9: friendly first lines, never a meet-up ask (founder: "make new friends", no meet wording)
   const openSayHi = (name: string, img: string, context: string, id?: string, fromReel = false) => {
     if (adminViewRef.current) { adminNoRef.current(); return; }
     if (unvRef.current) { setFaceIntro(true); return; }   // 20 Nov: Say hi needs the face check
+    if (askBuild('hi')) return;   // 25 Nov: one soft "finish your profile" ask per session; Not now lets the hello go on next tap
     // T301-022: one hello per person. If we already have a chat with them, open it instead of a second hello (the server says no with a 400).
     const had = live && id ? threads.find((t) => t.personId === id) : undefined;
     if (had) {
@@ -2599,6 +2609,20 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
   // ── Me tab (locked 10 Nov): my profile, Top 10 rank, someone else's profile, follow lists, activity
   const [meProfile, setMeProfile] = useState<V5Profile | null>(null);
+  // ── six-step profile builder: done = coach marks on the account + whatever the card already answers ──
+  const buildDone = coachDone ? [...new Set([...coachDone, ...cardDoneSteps(v5Card, meProfile?.qa_answer)])] : null;
+  const buildNeeded = !!(live && !adminView && v5Card && buildDone && buildIncomplete(buildDone));
+  const buildLeft = buildDone ? missingSteps(buildDone).length : 0;
+  const markBuildStep = (key: string) => setCoachDone((p) => (p && p.includes(key) ? p : [...(p || []), key]));
+  const startBuild = () => { setCoachDone((p) => p || []); setTimeout(() => setBuildOpen(true), 120); };
+  /** Re-prompt at the moment it matters (opening People, tapping to message someone), never on a timer. Once per app session. */
+  const askBuild = (where: 'people' | 'hi'): boolean => {
+    if (!buildNeeded || buildAskedRef.current || buildOpen) return false;
+    buildAskedRef.current = true;
+    setBuildAsk(where);
+    return true;
+  };
+
   const [meRank, setMeRank] = useState<number | null>(null);
   const [mePosters, setMePosters] = useState<Record<string, string>>({});
   const [otherProfile, setOtherProfile] = useState<V5Profile | null>(null);
@@ -3000,6 +3024,14 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   };
   useEffect(() => {
     if (live && v5Uid && v5Card) void coachSync(coachRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live, v5Uid, !!v5Card]);
+  // which profile-builder steps this member already finished (kr8_coach_state); never blocks anything
+  useEffect(() => {
+    if (!(live && v5Uid && v5Card)) { setCoachDone(null); return; }
+    let on = true;
+    kxCoachState().then((k) => { if (on) setCoachDone((p) => [...new Set([...(k || []), ...(p || [])])]); }).catch(() => { if (on) setCoachDone((p) => p || []); });
+    return () => { on = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [live, v5Uid, !!v5Card]);
   // a sheet that opens by itself (week result, sign-in…) always wins over a feed coach mark: the mark steps aside, unseen
@@ -5183,6 +5215,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               firstReelChip={showFirstReelChip(v5Uid, meProfile.reels.length > 0) ? <FirstReelChip lang={lang} L={L} onPost={() => { setTab('feed'); openCreate(); }} /> : null}
               kx={kxMe}
               weekRank={kxWeekRank}
+              buildLeft={buildNeeded ? buildLeft : 0}
+              buildLabel={buildDone ? buildLeftLabel(L, Lf, buildDone) : ''}
+              onBuild={() => setBuildOpen(true)}
               weekHook={kxWeekHook(kxWeek, kxRewards?.ladder?.[0] || 0)}
               onShareBest={kxBestReel ? () => void kxShareReelId(kxBestReel) : undefined}
               onShareBestDown={() => prefetchReelLink(kxBestReel)}
@@ -5704,7 +5739,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               pendingActionRef.current = null;
               if (next) setTimeout(() => next(), 60);
               else if (standRef.current) setTimeout(() => { setStandOpen(standRef.current); setSheet('ticket'); }, 60);   // the stand ticket comes first
-              else if (wasNew) { markReelNudgeSeen(v5LastUid.current || v5Uid); setTab('me'); }   // the minted screen already offered the first Reel
+              else if (wasNew) { markReelNudgeSeen(v5LastUid.current || v5Uid); setTab('me'); startBuild(); }   // the minted screen already offered the first Reel; 25 Nov: then the six-step builder (all skippable)
             }}
           />
         )}
@@ -7489,7 +7524,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onClose={() => {
               setSheet(null); setVerifyMode('me'); void loadMe();
               // a brand-new member goes on to Me, where "Your next step" offers the first Reel
-              if (afterVerifyRef.current) { afterVerifyRef.current = false; markReelNudgeSeen(v5LastUid.current || v5Uid); setTab('me'); }
+              if (afterVerifyRef.current) { afterVerifyRef.current = false; markReelNudgeSeen(v5LastUid.current || v5Uid); setTab('me'); startBuild(); }   // 25 Nov: then the six-step builder
             }}
             onSent={() => setVerifyPending(true)}
             onVerified={() => { setVerifyPending(false); setFaceOkNow(true); markFacePassed(v5Uid); setMeProfile((p) => (p ? { ...p, verified: true } : p)); }}
@@ -7969,6 +8004,38 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             {postedShare.mode !== 'pending' ? <p className="v8-posted-push" id="postedPush">{L('Friends who open this push you up 🚀')}</p> : null}
             <InviteHint lang={shareLang} x={kxRewards?.rules?.invite} id="postedHint" />
           </div>
+        )}
+        {/* ── Six-step profile builder (variant B, 25 Nov). Full screen, above the dock, only when a card exists. ── */}
+        {buildOpen && live && v5Card && (
+          <V5Build
+            L={L}
+            Lf={Lf}
+            card={v5Card}
+            qaInit={meProfile?.qa_q === QA_KEY ? meProfile?.qa_answer : ''}
+            onQa={(r) => setMeProfile((p) => (p ? { ...p, qa_q: r.qa_q, qa_answer: r.qa_answer } : p))}
+            done={buildDone || []}
+            errText={(e) => v5Msg(e)}
+            areaL={(a) => kxArea(lang, a, L)}
+            onCard={(me) => { if (me && me.card) setV5Card((p) => ({ ...(p as V5Card), ...me.card } as V5Card)); }}
+            onStepDone={markBuildStep}
+            onClose={(done) => {
+              setBuildOpen(false);
+              if (done) { setTab('people'); void v5Me().then(v5ApplyMe).catch(() => undefined); }
+            }}
+          />
+        )}
+        {/* Re-prompt: shown on opening People or tapping to message someone, never on a timer */}
+        {buildAsk && buildNeeded && !buildOpen && (
+          <>
+            <div className="sheet-backdrop" id="buildAskBackdrop" onClick={() => setBuildAsk(null)} />
+            <div className="kpb-ask" id="buildAsk">
+              <h3>{L('People see you better with a full card')}</h3>
+              <p>{Lf('Members with a full card get far more replies. {0}', buildLeftLabel(L, Lf, buildDone || []))}</p>
+              <button type="button" className="kpb-cta" id="buildAskGo"
+                onClick={() => { setBuildAsk(null); setBuildOpen(true); }}>{L('Finish your profile')}</button>
+              <button type="button" className="kpb-later" id="buildAskLater" onClick={() => setBuildAsk(null)}>{L('Not now')}</button>
+            </div>
+          </>
         )}
         {/* Toast Notification (only mounted when active) */}
         {toastMsg && (
