@@ -216,6 +216,7 @@ import { AdminViewMe, AdminViewPill } from './V5AdminView';
 import { HELP_UI, HelpSheet } from './V5Help';
 import { v5HelpEvent, v5HelpOpen } from './v5Live';
 import { bkkClock, bkkDay, dayLabel, postAgo } from './postTime';
+import { JoinPrompt, cameFromSharedReel, joinPromptCameBack, joinPromptSeen, markJoinPromptSeen } from './JoinPrompt';
 import { feedNewFaces, feedVote, feedVoteCards, NewFacesRow, VOTE_EVERY, VoteSlide, type NewFace, type VoteCard, type VoteResult } from './feedRet';
 import './glass.css';   // 20 Nov: light glass on every sheet; last so it wins
 
@@ -1248,6 +1249,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   useEffect(() => armFirstTapSound(), []);
   const [sheet, setSheetRaw] = useState<SheetId>(null);
   const sheetRef = useRef<SheetId>(null);
+  // join prompt (shared-Reel visitors): set further down, called by the sign-in gate on the first like / follow
+  const jpShowRef = useRef<(why: string) => boolean>(() => false);
   // 17 Nov admin view (?admin=1, adminView.ts): an admin sign-in sees every tab, read-only. Sheets that would make a card,
   // post, say hi, claim or log something never open while it is on (one toast instead).
   const adminWantedRef = useRef<boolean>(adminViewWanted());
@@ -2042,6 +2045,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       action();
     } else {
       pendingActionRef.current = action;
+      if (!v5Uid && jpShowRef.current('tap')) return;   // a visitor from a shared Reel: the compact join prompt first (once per visit)
       setSignInNotice('');
       setSheet(live && v5Uid && !v5Card ? 'v5card' : 'signin');
     }
@@ -3525,6 +3529,27 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   });   // lazy: runs once (it writes the resume note, so it must not run on every render)
   const standRef = useRef(standInit);
   const [v5AuthReady, setV5AuthReady] = useState(false);
+  // ── join prompt (25 Nov, test build): a signed-out visitor who opened a shared Reel sees one compact LINE / Google sheet after
+  // ~3 s of watching, or on the first like / follow / swipe. Never blocks the Reel, ✕ closes it, at most once per visit. ──
+  const jpCameRef = useRef<boolean>(cameFromSharedReel());
+  const [jpWhy, setJpWhy] = useState<string | null>(null);
+  const jpOk = live && v5AuthReady && !signedIn && !v5Uid && jpCameRef.current && !adminWantedRef.current;
+  jpShowRef.current = (why: string) => {
+    if (!jpOk || joinPromptSeen()) return false;
+    markJoinPromptSeen();
+    setJpWhy(why);
+    return true;
+  };
+  useEffect(() => {
+    if (!jpOk || joinPromptSeen() || tab !== 'feed' || feedMode === 'ask' || !feedItems.length || sheet) return undefined;
+    const t = setTimeout(() => { if (!sheetRef.current) jpShowRef.current('watch'); }, 3000);
+    const el = feedScrollRef.current;
+    const start = el ? el.scrollTop : 0;
+    const onScroll = () => { if (el && Math.abs(el.scrollTop - start) > el.clientHeight * 0.5 && !sheetRef.current) jpShowRef.current('swipe'); };
+    el?.addEventListener('scroll', onScroll, { passive: true });
+    return () => { clearTimeout(t); el?.removeEventListener('scroll', onScroll); };
+  }, [jpOk, tab, feedMode, feedItems.length > 0, sheet]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (signedIn) { setJpWhy(null); joinPromptCameBack(); } }, [signedIn]);
   // T301-019: the ?person=<member id> deep link, once we know whether this is the live app and who is signed in
   useEffect(() => {
     if (!deepPersonId || (live && !v5AuthReady)) return;
@@ -4638,6 +4663,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             <TasksFeed lang={lang} name={v5Card.first_name || ''} verified={!!(meProfile?.verified || v5Card.verified || faceOkNow)} scrollEl={feedScrollRef.current}
               onAsk={(q) => { setAskOpenThread(q); pickFeedMode('ask'); }}
               onVerify={() => { setVerifyMode('me'); setSheet('verify'); }} />
+          )}
+          {jpWhy && !signedIn && tab === 'feed' && feedMode !== 'ask' && !sheet && (
+            <JoinPrompt lang={lang} why={jpWhy} onClose={() => setJpWhy(null)} onFallback={() => { setJpWhy(null); setSignInNotice(''); setSheet('signin'); }} />
           )}
           {nfOn && tab === 'feed' && feedMode !== 'ask' ? (
             <NewFacesRow L={L} items={newFaces} away={!nfShow} onReel={openNewFaceReel}

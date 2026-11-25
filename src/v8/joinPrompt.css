@@ -1,0 +1,26 @@
+/* Join prompt for visitors from a shared Reel (25 Nov, test build). Same dark glass as the first-visit steps strip, so it sits on
+   the Bangkok Reel like part of the app; LINE green only on the LINE button. No backdrop, no glow, no borders. */
+.v8-app-root .jp { position: absolute; z-index: 45; left: 10px; right: 10px; bottom: 10px; margin: 0 auto; max-width: 420px;
+  padding: 16px 16px 14px; border-radius: 22px; font-family: var(--rv-f, system-ui); color: #fff;
+  background: rgba(14,12,22,.84); -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: 0 10px 30px rgba(0,0,0,.28); animation: jpUp .24s cubic-bezier(.2,.9,.25,1) both; }
+.v8-app-root .jp-h { margin: 0 40px 4px 0; font-size: 1.0625rem; font-weight: 800; line-height: 1.3; letter-spacing: 0; }
+.v8-app-root .jp-s { margin: 0 0 12px; font-size: 0.8125rem; font-weight: 500; line-height: 1.4; color: rgba(255,255,255,.72); }
+.v8-app-root .jp-x { position: absolute; top: 6px; right: 6px; width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 0;
+  border-radius: 50%; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.v8-app-root .jp-x svg { width: 18px; height: 18px; fill: none; stroke: rgba(255,255,255,.7); stroke-width: 2.2; stroke-linecap: round; }
+.v8-app-root .jp-row { display: flex; gap: 10px; }
+.v8-app-root .jp-line { flex: 1; min-width: 0; display: flex; align-items: center; height: 50px; padding: 0 16px 0 0; border: 0; border-radius: 25px; cursor: pointer;
+  background: #06C755; color: #fff; font: 800 0.9375rem/1 var(--rv-f, system-ui); overflow: hidden; -webkit-tap-highlight-color: transparent; }
+.v8-app-root .jp-lg { flex: none; display: flex; align-items: center; justify-content: center; width: 52px; height: 100%; }
+.v8-app-root .jp-lt { flex: 1; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v8-app-root .jp-plain { padding: 0 16px; background: #fff; color: #14121F; }
+.v8-app-root .jp-goog { flex: none; display: flex; align-items: center; justify-content: center; gap: 8px; width: 50px; height: 50px; padding: 0; border: 0;
+  border-radius: 50%; background: #fff; color: #1f1f1f; font: 700 0.9375rem/1 var(--rv-f, system-ui); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.v8-app-root .jp-goog.wide { flex: 1; border-radius: 25px; }
+.v8-app-root .jp-goog svg { width: 20px; height: 20px; }
+.v8-app-root .jp-line:active, .v8-app-root .jp-goog:active { transform: scale(.97); }
+.v8-app-root .jp-line[disabled], .v8-app-root .jp-goog[disabled] { opacity: .55; }
+.v8-app-root .jp button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+@keyframes jpUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .v8-app-root .jp { animation: none; } }

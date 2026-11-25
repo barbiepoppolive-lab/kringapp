@@ -56,7 +56,7 @@ function useErr(L: Tx, Lf: Txf) {
 /** Google refuses sign-in inside app browsers (LINE, Instagram, TikTok, Facebook: "disallowed_useragent"), so it is never offered there. */
 const googleHere = () => import.meta.env.VITE_GOOGLE_ON === '1' && !inAppBrowser(typeof navigator === 'undefined' ? '' : navigator.userAgent);
 /** LINE logo for the LINE button (LINE Login button guideline: white bubble with the green LINE word, on #06C755). */
-function LineLogo() {
+export function LineLogo() {
   return (
     <svg viewBox="0 0 40 40" width="26" height="26" focusable="false">
       <path fill="#fff" d="M20 5.5C10.9 5.5 3.5 11.5 3.5 18.9c0 6.6 5.9 12.2 13.8 13.2.5.1 1.3.4 1.5.9.2.4.1 1.1.1 1.6l-.2 1.4c-.1.4-.3 1.6 1.4.9 1.7-.7 9.2-5.4 12.6-9.3 2.3-2.5 3.4-5.2 3.4-8.2C36.5 11.5 29.1 5.5 20 5.5z" />
