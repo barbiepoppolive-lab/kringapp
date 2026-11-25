@@ -536,19 +536,19 @@ export function MeView(props: MeViewProps) {
           <button type="button" id="statFollowing" onClick={() => props.onList('following')}><b>{fmtCount(p.following)}</b><span>{L('Following')}</span></button>
         </div>
       )} />
-      {props.buildLeft && props.onBuild ? (
-        <button type="button" className="kpb-row" id="meBuild" onClick={props.onBuild}>
-          <span className="kpb-ic" aria-hidden="true">✦</span>
-          <span className="kpb-rt">
-            <b>{L('Finish your profile')}</b>
-            <small>{props.buildLabel || L('Takes under a minute')}</small>
-          </span>
-          <span className="kpb-go" aria-hidden="true">›</span>
-        </button>
+      {/* 25 Nov (founder): ONE compact block under the bio, no card / border / icon square / paragraph.
+          Line 1 (only before the face check): "🔒 No ✓ yet" + "Verify · 5 sec" pill. Line 2 (only while the profile is unfinished):
+          "✦ 1 step left on your profile ›", which opens the builder. */}
+      {props.lockSlot || (props.buildLeft && props.onBuild) ? (
+        <div className="me-status" id="meStatus">
+          {props.lockSlot || null}
+          {props.buildLeft && props.onBuild ? (
+            <button type="button" className="me-st2" id="meBuild" onClick={props.onBuild}>
+              <span aria-hidden="true">✦ </span>{props.buildLabel || L('Finish your profile')}<span aria-hidden="true"> ›</span>
+            </button>
+          ) : null}
+        </div>
       ) : null}
-      {/* 25 Nov (founder, mock F): the big Rings box is gone; Rings · today's tasks · this week's rank sit in the chip on the cover.
-          A member without a passed face check still sees the one Verify line here instead. */}
-      {props.lockSlot ? props.lockSlot : null}
       {actionStep && props.nextKind !== 'reel' && props.nextKind !== 'pending' ? props.nextSlot : null}
       {props.webAskSlot || null}
       {props.reelsSlot ? props.reelsSlot : (

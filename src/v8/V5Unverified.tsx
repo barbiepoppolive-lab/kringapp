@@ -16,7 +16,7 @@ const TX: Record<Lng, Record<string, string>> = {
     foot: 'Takes 5 seconds · Your selfie is deleted within 30 days',
     meA: 'Verify your face to join the',
     meB: 'weekly ranking & daily rewards',
-    meGo: 'Verify (5 sec)',
+    meGo: 'Verify · 5 sec',
     shT: 'Quick face check',
     shB: 'Kring is one real person, one account. A 5-second check unlocks People, Say hi, chat and weekly rewards.',
     shGo: 'Start · 5 seconds',
@@ -52,7 +52,7 @@ const TX: Record<Lng, Record<string, string>> = {
     foot: 'ใช้เวลา 5 วินาที · เซลฟี่ของคุณจะถูกลบภายใน 30 วัน',
     meA: 'สแกนหน้าเพื่อเข้าร่วม',
     meB: 'อันดับประจำสัปดาห์และรางวัลรายวัน',
-    meGo: 'ยืนยัน (5 วิ)',
+    meGo: 'ยืนยัน · 5 วิ',
     shT: 'สแกนหน้าแป๊บเดียว',
     shB: 'กริ๊ง! คือหนึ่งคนจริง หนึ่งบัญชี สแกนหน้าแค่ 5 วินาที ก็ปลดล็อกหน้าผู้คน การทักทาย แชต และรางวัลประจำสัปดาห์',
     shGo: 'เริ่ม · 5 วินาที',
@@ -80,7 +80,14 @@ const TX: Record<Lng, Record<string, string>> = {
     openInv: 'ตอนนี้เพื่อนสมัครได้ด้วยชื่อกับรูปเดียว ไม่ต้องสแกนหน้าก่อน ได้ +10 ทั้งคู่เมื่อเพื่อนสแกนหน้า',
   },
 };
-const tx = (lang: string) => TX[lang === 'th' ? 'th' : 'en'];
+/** 25 Nov: the Me status line (no ✓ yet + pill) in every app language; the rest of this file is English / Thai. */
+const ME_LINE: Record<string, { meH: string; meGo: string }> = {
+  zh: { meH: '还没有 ✓', meGo: '验证 · 5 秒' },
+  hi: { meH: 'अभी ✓ नहीं', meGo: 'सत्यापित करें · 5 सेकंड' },
+  ja: { meH: 'まだ ✓ なし', meGo: '認証 · 5秒' },
+  ko: { meH: '아직 ✓ 없음', meGo: '인증 · 5초' },
+};
+const tx = (lang: string) => (ME_LINE[lang] ? { ...TX.en, ...ME_LINE[lang] } : TX[lang === 'th' ? 'th' : 'en']);
 
 const FaceIc = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2" /><circle cx="12" cy="10.5" r="2.6" /><path d="M7.8 17c.9-1.9 2.4-2.8 4.2-2.8s3.3.9 4.2 2.8" /></svg>
@@ -113,11 +120,12 @@ export function UnvPeopleWall(props: { lang: string; stills: string[]; onVerify:
  *  25 Nov open onboarding (founder: unverified members stay visible, just without the ✓): "No ✓ yet · Verify (5 sec)". */
 export function UnvMeLine(props: { lang: string; onVerify: () => void }) {
   const t = tx(props.lang);
+  // 25 Nov (founder): one compact line, no card, no paragraph: "🔒 No ✓ yet" + a small pink "Verify · 5 sec" pill on the right.
+  // The why lives in the prompt the pill opens.
   return (
-    <div className="unv-me" id="unvMe" data-state="no-tick">
-      <span className="unv-lk"><LockIc /></span>
-      <span className="unv-mt"><b className="unv-mh">{t.meH}</b><small className="unv-ms">{t.meS}</small></span>
-      <button type="button" className="unv-mgo" id="unvMeGo" onClick={props.onVerify}>{t.meGo}</button>
+    <div className="me-st1" id="unvMe" data-state="no-tick">
+      <span className="me-st1-t"><span aria-hidden="true">🔒 </span>{t.meH}</span>
+      <button type="button" className="me-pill" id="unvMeGo" onClick={props.onVerify}>{t.meGo}</button>
     </div>
   );
 }

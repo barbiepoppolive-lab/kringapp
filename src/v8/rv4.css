@@ -235,7 +235,7 @@
 .v8-app-root #s-me .rv4-mhd .rv4-ptop { gap: 22px; align-items: center; }
 .v8-app-root #s-me .rv4-mhd .rv4-pav { position: relative; width: 108px; height: 108px; padding: 0; border: 0; cursor: pointer;
   /* 25 Nov (founder): one thin solid 2px ring, no glow, no outer shadow */
-  box-shadow: 0 0 0 2px rgba(216,180,119,.92); }
+  box-shadow: 0 0 0 2px var(--rv-gd); }
 .v8-app-root #s-me .rv4-pen { position: absolute; right: 2px; bottom: 2px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
   background: rgba(14,15,25,.82); box-shadow: 0 0 0 1px rgba(255,255,255,.18); }
 .v8-app-root #s-me .rv4-pen svg { width: 14px; height: 14px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linejoin: round; }
@@ -300,3 +300,15 @@
    first tap anywhere the sound is on and it is the round button again */
 .v8-app-root #s-feed .reel-sound.has-hint.has-hint { width: auto !important; height: 32px !important; padding: 0 12px !important; border-radius: 16px !important; display: flex !important; align-items: center; }
 .v8-app-root #s-feed .reel-sound.has-hint .reel-sound-hint { display: inline !important; font: 600 0.75rem/1 var(--rv-f, system-ui); color: #fff; text-shadow: none; }
+
+/* 25 Nov (founder: "what's your fetish with empty spaces, useless borders"): ONE compact status block straight under the bio.
+   No card, no border, no icon square, no paragraph. Line 1 "🔒 No ✓ yet" + small pink pill; line 2 the builder's step count. */
+.v8-app-root #s-me .rv4-me .me-status { display: flex; flex-direction: column; gap: 6px; margin: 10px 20px 0; font-family: var(--rv-f); }
+.v8-app-root #s-me .rv4-me .me-st1 { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 30px; }
+.v8-app-root #s-me .rv4-me .me-st1-t { min-width: 0; font: 600 15px/1.25 var(--rv-f); color: #fff; }
+.v8-app-root #s-me .rv4-me button.me-pill { flex: none; height: 30px; padding: 0 13px; border: 0; border-radius: 15px; background: var(--rv-pk);
+  color: #fff; font: 600 13px/30px var(--rv-f); white-space: nowrap; box-shadow: none; }
+.v8-app-root #s-me .rv4-me button.me-st2 { align-self: flex-start; padding: 0; border: 0; background: none; text-align: left;
+  font: 400 13.5px/1.35 var(--rv-f); color: var(--rv-mu); }
+.v8-app-root #s-me .rv4-me .me-status + * { margin-top: 14px; }
+.v8-app-root #s-me .rv4-me .me-status ~ .go-me { margin-top: 14px; }
