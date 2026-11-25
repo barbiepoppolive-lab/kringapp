@@ -604,6 +604,7 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Ghost mode · nobody can see you': 'โหมดล่องหน · ไม่มีใครเห็นคุณ',
     'Ghost mode is on: likes, saves, follows, hellos and posts are off.': 'โหมดล่องหนเปิดอยู่: กดถูกใจ บันทึก ติดตาม ทักทาย และโพสต์ถูกปิดไว้',
     'This account is paused. Please use your main Kring account.': 'บัญชีนี้ถูกพักไว้ กรุณาใช้บัญชีกริ๊ง!หลักของคุณครับ',
+    'Ghost mode is on, so this account can\u2019t post Reels. Turn ghost mode off, or post from a normal account.': 'โหมดซ่อนตัวเปิดอยู่ บัญชีนี้จึงโพสต์รีลไม่ได้ ปิดโหมดซ่อนตัว หรือโพสต์จากบัญชีปกติครับ',
     // Ask BKK (16 Nov)
     'Feed': 'ฟีด',
     'Ask BKK': 'ถาม BKK',

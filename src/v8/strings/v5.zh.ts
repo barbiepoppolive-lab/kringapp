@@ -560,6 +560,7 @@ const T: Record<string, string> = {
     'Ghost mode · nobody can see you': '隐身模式 · 没有人能看到你',
     'Ghost mode is on: likes, saves, follows, hellos and posts are off.': '隐身模式已开启：点赞、收藏、关注、打招呼和发帖已关闭。',
     'This account is paused. Please use your main Kring account.': '此账号已暂停，请使用你的主 Kring 账号。',
+    'Ghost mode is on, so this account can\u2019t post Reels. Turn ghost mode off, or post from a normal account.': '隐身模式已开启，此账号无法发布 Reels。请关闭隐身模式，或用普通账号发布。',
     // Ask BKK (16 Nov)
     "Feed": "动态",
     "Ask BKK": "问 BKK",

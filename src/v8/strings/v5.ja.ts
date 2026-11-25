@@ -560,6 +560,7 @@ const T: Record<string, string> = {
     'Ghost mode · nobody can see you': 'ゴーストモード · 誰からも見えません',
     'Ghost mode is on: likes, saves, follows, hellos and posts are off.': 'ゴーストモード中：いいね・保存・フォロー・あいさつ・投稿はオフです。',
     'This account is paused. Please use your main Kring account.': 'このアカウントは一時停止中です。メインの Kring アカウントをご利用ください。',
+    'Ghost mode is on, so this account can\u2019t post Reels. Turn ghost mode off, or post from a normal account.': 'ゴーストモードがオンのため、このアカウントはリールを投稿できません。ゴーストモードをオフにするか、通常のアカウントから投稿してください。',
     // Ask BKK (16 Nov)
     "Feed": "フィード",
     "Ask BKK": "BKKに聞く",

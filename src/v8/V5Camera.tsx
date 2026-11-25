@@ -11,6 +11,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { REEL_MAX_MS, REEL_MIN_MS, pickMime } from './v5Reel';
 import { camDenied, withTimeout } from './camGuard';
+import { v5LogClient } from './v5Live';
 import './camera.css';
 
 type Tx = (s: string) => string;
@@ -98,6 +99,8 @@ export function ReelCamera(props: {
         if (dead) return;
         // refused or no answer: back to the one compact screen (a new try only comes from a new tap)
         const name = (e as { name?: string })?.name || '';
+        // 25 Nov: a camera that won't start was invisible to us (no log); record the browser's reason
+        v5LogClient('reel_cam_fail', name || (e as Error)?.message?.slice(0, 40) || 'UNKNOWN', face);
         setGateWhy(camDenied(name) ? 'denied' : 'none');
         setMode('gate');
       }

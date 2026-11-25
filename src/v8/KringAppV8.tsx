@@ -1253,6 +1253,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // opens, so no video / thumbnail is ever uploaded for the server to refuse. The kr8_posts trigger stays the real guard.
   const faceGateRef = useRef(false);
   const verifyFirstRef = useRef<() => void>(() => undefined);
+  /** true (and the member told why) when this account is in ghost mode and can't post */
+  const ghostNoPostRef = useRef<() => boolean>(() => false);
   /** 20 Nov (variant A): no passed face check (and not a team / admin account) → People, Say hi and chat open the Quick face check */
   const unvRef = useRef(false);
   const [faceIntro, setFaceIntro] = useState<UnvWhy | null>(null);
@@ -1260,6 +1262,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const setSheet = useCallback((v: SheetId | ((cur: SheetId) => SheetId)) => {
     if (adminViewRef.current && typeof v !== 'function' && v && ADMIN_VIEW_NO_SHEETS.has(v)) { adminNoRef.current(); return; }
     if (v === 'post' && faceGateRef.current) { verifyFirstRef.current(); return; }
+    // 25 Nov bugfix: a ghost (hidden admin) account is refused by the server (KR8_GHOST); say so BEFORE the camera opens,
+    // not after the member filmed, captioned and tapped Post
+    if (v === 'post' && ghostNoPostRef.current()) return;
     if ((v === 'hi' || v === 'inbox') && unvRef.current) { setFaceIntro(v === 'hi' ? 'hi' : 'chat'); return; }
     setSheetRaw((cur) => {
       const next = typeof v === 'function' ? v(cur) : v;
@@ -3272,6 +3277,12 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     // 20 Nov (founder): same rule as the server's kr8_face_gate: members #68 and below keep chat without a face check
     unvRef.current = live && !!v5Card && !adminView && !v5Ghost && !(v5Card.verified || meProfile?.verified || faceOkNow)
       && no != null && Number(no) > FACE_GATE_AFTER_NO;
+    ghostNoPostRef.current = () => {
+      if (!(live && v5Ghost)) return false;
+      showToast(L('Ghost mode is on, so this account can’t post Reels. Turn ghost mode off, or post from a normal account.'));
+      v5LogClient('reel_ghost_block', 'open');
+      return true;
+    };
     verifyFirstRef.current = () => {
       // 25 Nov open onboarding: the "Ready to post your first Reel?" prompt says it; the old toast stays for gated non-OPEN_JOIN cases
       if (!(OPEN_JOIN && unvRef.current)) showToast(L('Verify your face in 5 seconds to post and chat. One person, one account.'));
@@ -3554,7 +3565,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     if (faceGateRef.current) { verifyFirstRef.current(); return; }   // 0093: never upload what the server will refuse
     // errfix-1 (18 Nov): a ghost account is refused by kr8_create_reel AFTER the whole video went up (#58: 6 tries, up to 18 MB
     // each, files left behind). Say it before preparing or uploading anything.
-    if (v5Ghost) { setReelProblem(L('This account is paused. Please use your main Kring account.')); return; }
+    if (v5Ghost) { setReelProblem(L('Ghost mode is on, so this account can’t post Reels. Turn ghost mode off, or post from a normal account.')); v5LogClient('reel_ghost_block', 'publish'); return; }
     const reelArea = postArea || postPlaces[0]?.kr_area || (postPlaces.length ? 'Bangkok' : '');
     if (!reelArea) { showToast(L('Add the area pin first')); return; }   // area pin is required for Reels
     const ac = reelWorkRef.current.ready ? null : makeAudio();   // inside the tap: lets the phone capture the sound
