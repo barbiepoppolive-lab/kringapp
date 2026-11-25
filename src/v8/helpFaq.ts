@@ -47,10 +47,34 @@ export const HELP_FAQS: HelpFaq[] = [
     en: [['another account', 3], ['another kring account', 3], ['already on', 2], ['already used', 2], ['two accounts', 3], ['duplicate', 3], ['old account', 2], ['same face', 2]] },
   // ── rings ──
   { id: 'rings_what', cat: 'rings', qTh: 'ริงคืออะไร เก็บยังไง?', qEn: 'What are Rings and how do I get them?', chipTh: 'ริงคืออะไร?', chipEn: 'What are Rings?',
-    aTh: 'ริงคือคะแนนของรีลคุณ: ไลก์ +1 · เซฟ +3 · มีคนเปิดลิงก์ที่คุณแชร์ +5 (นับสูงสุด 30 ครั้ง/วัน) นักท่องเที่ยวที่ยืนยันแล้วกดไลก์หรือเซฟ นับ 2 เท่า',
-    aEn: 'Rings are your Reel’s score: like +1 · save +3 · someone opens your share link +5 (up to 30 a day). A verified traveller’s like or save counts ×2.',
+    aTh: 'ริงคือคะแนนของคุณ: ไลก์ +1 · เซฟ +3 · มีคนเปิดลิงก์ที่คุณแชร์ +5 (นับสูงสุด 10 ครั้ง/วัน) นักท่องเที่ยวที่ยืนยันแล้วกดไลก์หรือเซฟ นับ 2 เท่า นับรีลที่ดีที่สุดของแต่ละวัน ภารกิจรายวันได้เพิ่ม: รูปประจำวัน +3 · รีล +5 · ตอบ ถาม BKK +3 และคำตอบที่มีประโยชน์ที่สุดกับฮาที่สุดของวัน ได้คนละ +5 ตอน 2 ทุ่ม',
+    aEn: 'Rings are your score: like +1 · save +3 · someone opens your share link +5 (up to 10 a day). A verified traveller’s like or save counts ×2. Your best Reel of each day counts. Daily tasks add more: today’s photo +3 · a Reel +5 · an Ask BKK answer +3, and the day’s most helpful and funniest Ask BKK answers win +5 each at 8pm.',
     th: [['ริงคือ', 3], ['ริงคืออะไร', 3], ['เก็บริง', 3], ['ได้ริง', 2], ['ริง', 2], ['คะแนน', 2], ['นับยังไง', 1]],
     en: [['what are rings', 3], ['what is a ring', 3], ['ring', 2], ['points', 2], ['score', 2], ['get rings', 2], ['earn', 1], ['how are rings', 2], ['rings work', 3], ['how do rings', 3]] },
+  { id: 'photo_task', cat: 'rings', qTh: 'รูปประจำวันคืออะไร?', qEn: 'What is today’s photo?', chipTh: 'รูปประจำวัน', chipEn: 'Today’s photo',
+    aTh: 'วันละ 1 รูปจากสถานที่จริงในกรุงเทพฯ ได้ +3 ริง ไม่ต้องเห็นหน้าก็ได้ ถ่ายด้านหลัง ด้านข้าง หรือลุคของคุณ (ไม่รับภาพแคปจอ รูปอาหารล้วน หรือรูปจากเน็ต) รูปขึ้นบนโปรไฟล์ทันที และรูปที่สวยอาจได้ขึ้นฟีดหลักครับ',
+    aEn: 'One photo a day at a real Bangkok spot gives +3 Rings. Your face is optional: your back, your side or your outfit (no screenshots, food-only or internet photos). It shows on your profile at once, and the best ones go on the main feed.',
+    th: [['รูปประจำวัน', 3], ['โพสต์รูป', 3], ['ลงรูป', 3], ['รูป', 1]], en: [['photo', 3], ['picture', 2], ['daily photo', 3]] },
+  { id: 'ask_award', cat: 'rings', qTh: 'รางวัล ถาม BKK คืออะไร?', qEn: 'What are the Ask BKK awards?', chipTh: 'รางวัล ถาม BKK', chipEn: 'Ask BKK awards',
+    aTh: 'ทุกวันตอน 2 ทุ่ม คำตอบที่มีประโยชน์ที่สุด (❤️ 💯) และฮาที่สุด (😂) ได้คนละ +5 ริง โหวตนับเฉพาะสมาชิกที่ยืนยันใบหน้าแล้ว คำตอบต้องยาว 40 ตัวอักษรขึ้นไป ได้สูงสุด 2 รางวัลต่อสัปดาห์ การกดอีโมจิไม่ได้ริงครับ',
+    aEn: 'Every day at 8pm the most helpful (❤️ 💯) and the funniest (😂) answer win +5 Rings each. Only face-checked members’ votes count, the answer needs 40+ characters, and you can win up to 2 a week. Reacting itself gives no Rings.',
+    th: [['รางวัล ถาม', 3], ['ฮาที่สุด', 3], ['มีประโยชน์ที่สุด', 3], ['รางวัลคำตอบ', 3]], en: [['award', 3], ['funniest', 3], ['most helpful', 3]] },
+  { id: 'newcomers', cat: 'rings', qTh: 'ลีกน้องใหม่ กับป้ายดาวรุ่ง คืออะไร?', qEn: 'What is the Newcomers league?', chipTh: 'ลีกน้องใหม่', chipEn: 'Newcomers league',
+    aTh: 'บอร์ดเล็กสำหรับคนที่เข้าร่วมสัปดาห์นี้ ใช้ริงเดียวกับบอร์ดหลัก 3 อันดับแรกได้ป้าย “ดาวรุ่ง” บนโปรไฟล์ตลอดสัปดาห์ถัดไปครับ',
+    aEn: 'A small board for members who joined this week, with the same Rings as the main board. The top 3 get the Rising Local tag on their profile for the next week.',
+    th: [['น้องใหม่', 3], ['ดาวรุ่ง', 3], ['ลีก', 2]], en: [['newcomer', 3], ['rising local', 3], ['league', 2]] },
+  { id: 'bestie', cat: 'rings', qTh: 'สตรีคเพื่อนซี้คืออะไร?', qEn: 'What is a bestie streak?', chipTh: 'สตรีคเพื่อนซี้', chipEn: 'Bestie streak',
+    aTh: 'เพื่อนที่ติดตามกันและกันเริ่มสตรีคด้วยกันได้ ทุกวันที่ทั้งคู่ทำภารกิจอย่างน้อย 1 อย่าง สตรีคจะเพิ่ม 1 วัน ถ้าพลาดวันนึงสตรีคจะเริ่มใหม่ สตรีคไม่ได้ริงครับ',
+    aEn: 'Friends who follow each other can start a streak. Each day you both do at least one task, it grows by a day; miss a day and it starts again. Streaks give no Rings.',
+    th: [['สตรีค', 3], ['เพื่อนซี้', 3]], en: [['streak', 3], ['bestie', 3]] },
+  { id: 'b5', cat: 'rings', qTh: 'กรุงเทพฯ ตอน 5 โมงเย็น คืออะไร?', qEn: 'What is Bangkok at 5?', chipTh: '5 โมงเย็น', chipEn: 'Bangkok at 5',
+    aTh: 'ทุกวัน 5 โมงเย็นถึง 1 ทุ่ม โพสต์คลิป 10 วินาทีว่าตอนนี้อยู่ที่ไหน ไม่ต้องเห็นหน้า ไม่ต้องตัดต่อ เมื่อผ่านการตรวจจะขึ้นแถว 5 โมงเย็น และได้ +1 ริงในภารกิจครับ',
+    aEn: 'Every day from 5 to 7pm, post a 10-second clip of where you are, with no face needed and no editing. Once it passes the check it joins the 5pm row and gives +1 Ring in your tasks.',
+    th: [['5 โมง', 3], ['ห้าโมง', 3]], en: [['bangkok at 5', 3], ['5pm', 3]] },
+  { id: 'orb', cat: 'rings', qTh: 'ดูอันดับประจำสัปดาห์ได้ที่ไหน?', qEn: 'Where is the weekly board?', chipTh: 'อันดับของฉัน', chipEn: 'My rank',
+    aTh: 'ที่แท็บ ฉัน ตรงวงกลมเรืองแสงมุมขวาบน จะเห็นอันดับสัปดาห์นี้และอีกกี่ริงถึงอันดับถัดไป แตะเพื่อเปิดบอร์ด ดูได้ด้วยว่าแต่ละคนได้ริงมาจากไหนครับ',
+    aEn: 'In Me, the glowing circle at the top right shows your rank this week and the Rings to the next rank. Tap it for the board, where you can see how anyone got their Rings.',
+    th: [['อันดับ', 2], ['บอร์ด', 2], ['ลีดเดอร์บอร์ด', 3]], en: [['leaderboard', 3], ['my rank', 3], ['board', 1]] },
   { id: 'rings_line', cat: 'rings', qTh: 'แชร์ลิงก์ใน LINE แล้ว ทำไมริงไม่ขึ้น?', qEn: 'I shared my link on LINE. Why no Rings?',
     aTh: 'การเปิดลิงก์จาก LINE การเปิดเองจากมือถือของคุณ และบอทพรีวิวลิงก์ ไม่นับครับ ลองแชร์ทาง IG, Facebook, TikTok หรือ X แทน',
     aEn: 'Opens from LINE, your own opens and link-preview robots don’t count. Share on Instagram, Facebook, TikTok or X instead.',
@@ -137,7 +161,6 @@ export const faqById = (id: string) => HELP_FAQS.find((f) => f.id === id);
 export function faqAnswer(f: HelpFaq, thai: boolean, server?: Record<string, number> | null): string {
   const r: RingsRules = server ? ringsRules(server) : { ...RINGS };
   const ladder = weeklyLadder(r);
-  const best = Math.max(1, Math.round(r.best_reels));
   // 20 Nov: Founding Local seats are all taken; the answer stops promising ฿100 to new members while founding_promo_on is 0
   const founding = r.founding_on === 1 && r.founding_slots > 0 && r.founding_thb > 0 && (server?.founding_promo_on ?? 1) === 1;
   const tok: Record<string, string> = {
@@ -145,8 +168,8 @@ export function faqAnswer(f: HelpFaq, thai: boolean, server?: Record<string, num
     total: fmtBaht(sumBaht(ladder)),
     first: fmtBaht(ladder[0] ?? 0),
     floor: String(r.min_rings_for_paid_seat),
-    best_th: best === 1 ? 'นับเฉพาะรีลที่ดีที่สุดของคุณรีลเดียว' : `นับ ${best} รีลที่ดีที่สุดของคุณ`,
-    best_en: best === 1 ? 'only your single best Reel of the week counts' : `your best ${best} Reels of the week count`,
+    best_th: 'นับรีลที่ดีที่สุดของแต่ละวัน',   // board v2 (since 23 Nov): the best Reel of each posting day
+    best_en: 'your best Reel of each day counts',
     founding_th: founding ? ` ส่วน ${r.founding_slots} คนแรกที่มีรีลผ่านการตรวจ รับเพิ่ม ${fmtBaht(r.founding_thb)} (Founding Local)` : '',
     founding_en: founding ? ` The first ${r.founding_slots} members with an approved Reel also get ${fmtBaht(r.founding_thb)} (Founding Local).` : '',
   };

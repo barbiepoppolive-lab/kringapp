@@ -23,12 +23,13 @@ export function rulesVariant(): RulesVariant | null {
 }
 
 /** The live numbers the sheet shows (kr8_rings_rules + the ranking's prizes/floor). */
-export interface WinRules { like: number; save: number; open: number; cap: number; mult: number; best: number; floor: number; prizes: number[] }
+export interface WinRules { like: number; save: number; open: number; cap: number; mult: number; best: number; floor: number; prizes: number[]; invite?: number }
 export function winRules(cfg: Record<string, number> | null, rk: KxRanking | null): WinRules | null {
   if (!cfg) return null;
   const paid = rk?.paid_ranks ?? 8;
   const prizes = rk?.prizes?.length ? rk.prizes.slice(0, paid) : Array.from({ length: paid }, (_, i) => Number(cfg[`prize_${i + 1}`]) || 0);
-  return { like: cfg.like, save: cfg.save, open: cfg.open, cap: cfg.opens_day_cap, mult: cfg.traveller_mult, best: cfg.best_reels,
+  return { like: cfg.like, save: cfg.save, open: cfg.open, cap: cfg.v2_opens_day_cap ?? 10,   // board v2: 10 opens a day per Reel
+    mult: cfg.traveller_mult, best: cfg.best_reels, invite: cfg.invite,
     floor: rk?.floor ?? cfg.min_rings_for_paid_seat, prizes: prizes.filter((p) => p > 0) };
 }
 
@@ -68,12 +69,17 @@ function earnRows(r: WinRules) {
     { k: 'save', ic: '🔖', pts: `+${r.save}`, th: 'มีคนกดเซฟรีลของคุณ', en: 'Someone saves your Reel' },
     { k: 'open', ic: '🔗', pts: `+${r.open}`, th: `คนเปิดลิงก์ที่คุณแชร์ · สูงสุด ${r.cap}/วัน`, en: `Someone opens your share link · max ${r.cap}/day` },
     { k: 'trav', ic: '✈️', pts: `×${r.mult}`, th: `นักท่องเที่ยว (ยืนยันแล้ว) ไลก์/เซฟ = ${r.mult} เท่า`, en: `Verified traveller’s like or save ×${r.mult}` },
+    // Retention 10: daily tasks (photo / Reel / Ask BKK) and the Ask BKK awards
+    { k: 'tasks', ic: '📸', pts: '+3–5', th: 'ภารกิจรายวัน: รูปประจำวัน +3 · รีล +5 · ตอบ ถาม BKK +3', en: 'Daily tasks: today’s photo +3 · a Reel +5 · an Ask BKK answer +3' },
+    { k: 'award', ic: '🏅', pts: '+5', th: 'คำตอบ ถาม BKK ที่มีประโยชน์ที่สุดและฮาที่สุดของวัน (2 ทุ่ม)', en: 'The day’s most helpful and funniest Ask BKK answers (8pm)' },
   ];
 }
 function fineRows(r: WinRules) {
   return [
     { k: 'floor', ic: '🎯', th: `ต้องมีอย่างน้อย ${r.floor} ริง ถึงจะมีสิทธิ์รับรางวัล`, en: `${r.floor} Rings to be eligible for a prize` },
-    { k: 'best', ic: '⭐', th: r.best <= 1 ? 'นับเฉพาะรีลที่ดีที่สุดของคุณ 1 รีล' : `นับ ${r.best} รีลที่ดีที่สุดของคุณ`, en: r.best <= 1 ? 'Only your best Reel counts' : `Your best ${r.best} Reels count` },
+    { k: 'best', ic: '⭐', th: 'นับรีลที่ดีที่สุดของแต่ละวัน', en: 'Your best Reel of each day counts' },
+    { k: 'league', ic: '🌱', th: 'ลีกน้องใหม่: 3 อันดับแรกของคนที่เพิ่งเข้าร่วมได้ป้าย ดาวรุ่ง', en: 'Newcomers league: this week’s top 3 new members get the Rising Local tag' },
+    { k: 'extra', ic: '🔥', th: 'สตรีคเพื่อนซี้และกรุงเทพฯ ตอน 5 โมงเย็น สนุกด้วยกัน (สตรีคไม่ได้ริง)', en: 'Bestie streaks and Bangkok at 5 are for fun with friends (streaks give no Rings)' },
     { k: 'end', ic: '⏰', th: 'ปิดรอบทุกวันอาทิตย์ 23:59 น. (เวลากรุงเทพฯ)', en: 'Week ends Sunday 23:59, Bangkok time' },
     { k: 'pay', ic: '💸', th: 'รับรางวัลเป็นโค้ด TrueMoney ในแอป', en: 'Paid as TrueMoney codes in the app' },
   ];
@@ -131,16 +137,18 @@ export function WinSheet({ v, lang, r, onClose, glass, extra }: SheetProps) {
     );
   } else {
     const steps = [
-      // rules v2 (30 Nov): Daily Card · streak + reactions · friends · top 8
-      { n: 1, art: '📸', th: 'ทำภารกิจรายวัน', en: 'Do your Daily Card',
+      // Retention 10 (26 Nov): only what the server pays today — tasks, Reel likes/saves/opens, Ask BKK awards, face-checked invites, top 8
+      { n: 1, art: '📸', th: 'ทำภารกิจรายวัน', en: 'Do your daily tasks',
         chips: [{ th: '📸 รูป +3', en: '📸 Photo +3' }, { th: '🎬 รีล +5', en: '🎬 Reel +5' }, { th: '💬 ถาม BKK +3', en: '💬 Ask BKK +3' },
-          { th: '▶️ ดู 3 อัน +1', en: '▶️ Watch 3 +1' }] },
-      { n: 2, art: <RingGlyph />, th: 'ต่อเนื่องทุกวัน + มีคนทักรีลคุณ', en: 'Keep your streak, get reactions',
-        chips: [{ th: '🔥 3 วัน +5', en: '🔥 3 days +5' }, { th: '🔥 5 วัน +10', en: '🔥 5 days +10' }, { th: '🔥 7 วัน +20', en: '🔥 7 days +20' },
-          { th: '👋 +1 ต่อคน', en: '👋 +1 per person' }, { th: `✈️ ×${r.mult}`, en: `✈️ ×${r.mult}` }] },
-      { n: 3, art: '👯', th: 'ชวนเพื่อนมาเล่น', en: 'Bring friends',
-        chips: [{ th: 'เพื่อนสมัคร +5', en: 'Friend joins +5' }, { th: 'เล่นครบ 3 วัน +10', en: 'Active 3 days +10' }, { th: 'สูงสุด 60/สัปดาห์', en: 'max 60/week' }] },
-      { n: 4, art: '🏆', th: `ติด ${r.prizes.length} อันดับแรก รับรางวัลทุกสัปดาห์`, en: `Make the top ${r.prizes.length}, win every week`,
+          { th: '🗳️ โหวต +1', en: '🗳️ Vote +1' }, { th: '▶️ ดู 3 อัน +1', en: '▶️ Watch 3 +1' }, { th: '✅ ครบทุกอย่าง +2', en: '✅ All done +2' }] },
+      { n: 2, art: <RingGlyph />, th: 'ให้คนชอบรีลของคุณ', en: 'Get likes, saves and link opens',
+        chips: [{ th: '❤️ ไลก์ +1', en: '❤️ Like +1' }, { th: '🔖 เซฟ +3', en: '🔖 Save +3' }, { th: `🔗 เปิดลิงก์ +${r.open}`, en: `🔗 Link open +${r.open}` },
+          { th: `✈️ ×${r.mult}`, en: `✈️ ×${r.mult}` }] },
+      { n: 3, art: '🏅', th: 'รางวัล ถาม BKK ทุก 2 ทุ่ม', en: 'Ask BKK awards at 8pm',
+        chips: [{ th: 'มีประโยชน์ที่สุด +5', en: 'Most helpful +5' }, { th: 'ฮาที่สุด +5', en: 'Funniest +5' }] },
+      { n: 4, art: '👯', th: 'ชวนเพื่อนมาเล่น', en: 'Bring friends',
+        chips: [{ th: `เพื่อนยืนยันใบหน้าแล้ว +${r.invite ?? 10}`, en: `Friend passes the face check +${r.invite ?? 10}` }] },
+      { n: 5, art: '🏆', th: `ติด ${r.prizes.length} อันดับแรก รับรางวัลทุกสัปดาห์`, en: `Make the top ${r.prizes.length}, win every week`,
         chips: [{ th: `อันดับ 1 ${B(r.prizes[0])}`, en: `#1 ${B(r.prizes[0])}` }, { th: `ขั้นต่ำ ${r.floor} ริง`, en: `${r.floor} Rings to qualify` }] },
     ];
     body = (
@@ -158,7 +166,7 @@ export function WinSheet({ v, lang, r, onClose, glass, extra }: SheetProps) {
             </div>
           ))}
         </div>
-        <p className="rw-legend"><Bi lang={lang} th={'👋 คนคอมเมนต์หรือโบกมือ (สูงสุด 30/สัปดาห์) · ✈️ นักท่องเที่ยว'} en={'👋 each member who comments or waves (max 30/week) · ✈️ verified traveller'} /></p>
+        <p className="rw-legend"><Bi lang={lang} th={'✈️ นักท่องเที่ยวที่ยืนยันแล้วนับ 2 เท่า · นับรีลที่ดีที่สุดของแต่ละวัน · คอมเมนต์และอีโมจิไม่ได้ริง'} en={'✈️ a verified traveller counts double · your best Reel of each day counts · comments and reactions give no Rings'} /></p>
         <div className="rw-ladc">{r.prizes.map((p, i) => <span key={i} className={`r${i + 1}`}><small>#{i + 1}</small>{B(p)}</span>)}</div>
         <div className="rw-fine">
           {fineRows(r).filter((x) => x.k !== 'floor' && x.k !== 'best').map((x) => <div className="rw-frow" key={x.k} data-rule={x.k}><i>{x.ic}</i><Bi lang={lang} th={x.th} en={x.en} /></div>)}

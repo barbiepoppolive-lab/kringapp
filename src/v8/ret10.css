@@ -185,3 +185,37 @@
 @media (prefers-reduced-motion: reduce) { .v8-app-root .r10-sheet, .v8-app-root .r10-dim { animation: none; } }
 .v8-app-root .onb-x { list-style: none; border-top: 1px solid rgba(255,255,255,.07); }
 .v8-app-root .onb-x:empty { display: none; }
+
+/* daily photo (m226) */
+.v8-app-root .r10-phex { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.v8-app-root .r10-phex span { position: relative; height: 168px; border-radius: 14px; background: #1A1B2C center / cover no-repeat; }
+.v8-app-root .r10-phex i { position: absolute; left: 6px; bottom: 6px; font: 600 .6875rem var(--rv-f, system-ui); font-style: normal; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.75); }
+.v8-app-root .r10-phprev { height: 300px; border-radius: 16px; background: #1A1B2C center / cover no-repeat; }
+.v8-app-root .r10-pvimg { height: min(62vh, 520px); border-radius: 16px; background: #0d0c16 center / contain no-repeat; }
+.v8-app-root .c-award { background: #FFB35C; }
+.v8-app-root .go-gt.r10-pht img { object-fit: cover; }
+
+/* leaderboard orb (Me): the one always-on glow there. Sits in the free space between the header icons and the stats row. */
+.v8-app-root .r10-orb { position: absolute; z-index: 6; top: calc(env(safe-area-inset-top, 0px) + 56px); right: 14px; width: 84px; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 0; border: 0; background: none; cursor: pointer; color: #fff; font-family: var(--rv-f, system-ui); animation: r10Float 4.5s ease-in-out infinite; -webkit-tap-highlight-color: transparent; }
+.v8-app-root .r10-orbc { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; position: relative;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.22), rgba(20,18,36,.86) 62%);
+  box-shadow: 0 0 0 2px rgba(115,123,255,.9), 0 0 0 4px rgba(216,180,119,.55), 0 0 18px 2px rgba(115,123,255,.45), 0 0 26px 4px rgba(216,180,119,.22); }
+.v8-app-root .r10-orbc b { font: 800 1.0625rem/1 var(--rv-f, system-ui); color: #F6E6C4; letter-spacing: -.01em; }
+.v8-app-root .r10-orb small { max-width: 84px; font: 600 .625rem/1.2 var(--rv-f, system-ui); text-align: center; color: #F1E6D0; text-shadow: 0 1px 4px rgba(0,0,0,.7); }
+.v8-app-root .r10-orb.join .r10-orbc { box-shadow: 0 0 0 2px rgba(216,180,119,.75), 0 0 14px 2px rgba(216,180,119,.3); }
+.v8-app-root .r10-orb:active .r10-orbc { transform: scale(.94); }
+@keyframes r10Float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@media (prefers-reduced-motion: reduce) { .v8-app-root .r10-orb { animation: none; } }
+/* attention rule (Me): the orb is the one glow; the Rings chip and the bell dot stay calm next to it */
+.v8-app-root .kme-a:has(.r10-orb) .mc-chip { box-shadow: none; animation: none; }
+
+/* Ask BKK award tag (m227) */
+.v8-app-root .at-c .award { margin-left: 4px; padding: 2px 7px; border-radius: 999px; background: rgba(255,179,92,.16); color: #FFD9AE; font: 700 .625rem var(--rv-f, system-ui); }
+.v8-app-root .at-min.aw { color: #FFD9AE; }
+.v8-app-root .at-kind { margin: 6px 12px 0; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,.08); color: #fff; font: 500 .8125rem/1.35 var(--rv-f, system-ui);
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.v8-app-root .at-kind b { flex: 1 1 100%; }
+.v8-app-root .at-kind button { padding: 6px 12px; border: 0; border-radius: 999px; background: rgba(255,255,255,.12); color: #fff; font: 600 .75rem var(--rv-f, system-ui); cursor: pointer; }
+/* attention rule (Me): one call to the same action — while the next-step card shows, the Rings chip's badge stays quiet */
+.v8-app-root .kme-a:has(.nx-cardwrap) .mc-badge { display: none; }

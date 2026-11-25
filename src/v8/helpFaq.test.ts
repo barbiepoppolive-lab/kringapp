@@ -22,12 +22,18 @@ const PHRASINGS: Record<string, [string, string]> = {
   delete_data: ['อยากลบบัญชีทิ้ง', 'please remove my account and data'],
   change_profile: ['จะเปลี่ยนภาษาเป็นอังกฤษ', 'how to change the app language to English'],
   promo_off: ['ไม่อยากให้เอารีลไปโปรโมต', 'stop using my reels for promotion'],
+  photo_task: ['อยากลงรูปประจำวัน', 'can I post a daily photo instead of a reel'],
+  ask_award: ['รางวัลคำตอบฮาที่สุดได้ยังไง', 'how do I win the funniest award'],
+  newcomers: ['ป้ายดาวรุ่งได้ยังไง', 'what is the rising local tag'],
+  bestie: ['สตรีคเพื่อนซี้เริ่มยังไง', 'how does the bestie streak work'],
+  b5: ['ห้าโมงเย็นต้องโพสต์อะไร', 'what should I post at 5pm'],
+  orb: ['ลีดเดอร์บอร์ดอยู่ไหน', 'where is the leaderboard'],
 };
 
 describe('Kring Helper FAQ matcher', () => {
-  it('has the 18 approved FAQs with unique ids and 6 chips', () => {
-    expect(HELP_FAQS).toHaveLength(18);
-    expect(new Set(HELP_FAQS.map((f) => f.id)).size).toBe(18);
+  it('has the 24 approved FAQs (18 + 6 for Retention 10) with unique ids and 6 chips', () => {
+    expect(HELP_FAQS).toHaveLength(24);
+    expect(new Set(HELP_FAQS.map((f) => f.id)).size).toBe(24);
     expect(HELP_CHIPS).toHaveLength(6);
     for (const id of HELP_CHIPS) expect(faqById(id)?.chipTh).toBeTruthy();
     expect(Object.keys(PHRASINGS).sort()).toEqual(HELP_FAQS.map((f) => f.id).sort());
@@ -76,19 +82,17 @@ describe('Kring Helper FAQ matcher', () => {
 describe('T-392 FAQ truth check: answers match the code', () => {
   const en = (id: string, r?: Record<string, number>) => faqAnswer(faqById(id)!, false, r);
   const th = (id: string, r?: Record<string, number>) => faqAnswer(faqById(id)!, true, r);
-  it('prize_win: only the single best Reel counts (best_reels = 1), with the ladder, floor and Founding Local from the rules', () => {
-    expect(en('prize_win')).toBe('Every week the top 8 on the board share ฿4,400 (฿1,500 for #1). You need at least 25 Rings, only your single best Reel of the week counts, and the Reel must be pinned to a Bangkok place. The first 50 members with an approved Reel also get ฿100 (Founding Local).');
-    expect(th('prize_win')).toContain('นับเฉพาะรีลที่ดีที่สุดของคุณรีลเดียว');
+  it('prize_win: the best Reel of each day counts (board v2), with the ladder, floor and Founding Local from the rules', () => {
+    expect(en('prize_win')).toBe('Every week the top 8 on the board share ฿4,400 (฿1,500 for #1). You need at least 25 Rings, your best Reel of each day counts, and the Reel must be pinned to a Bangkok place. The first 50 members with an approved Reel also get ฿100 (Founding Local).');
+    expect(th('prize_win')).toContain('นับรีลที่ดีที่สุดของแต่ละวัน');
     expect(th('prize_win')).toMatch(/ครับ$/);
     for (const t of [en('prize_win'), th('prize_win')]) expect(t).not.toMatch(/\{|best 2|2 รีล/);
   });
   it('prize_win follows a config change without a code edit', () => {
     const t = en('prize_win', { best_reels: 2, min_rings_for_paid_seat: 30, prize_4: 0, founding_on: 0 });
-    expect(t).toContain('your best 2 Reels of the week count');
     expect(t).toContain('top 3 on the board share ฿3,000');
     expect(t).toContain('at least 30 Rings');
     expect(t).not.toContain('Founding Local');
-    expect(th('prize_win', { best_reels: 2 })).toContain('นับ 2 รีลที่ดีที่สุดของคุณ');
   });
   it('"how much is the prize" finds prize_win', () => {
     expect(matchHelp('how much is the prize').faq?.id).toBe('prize_win');

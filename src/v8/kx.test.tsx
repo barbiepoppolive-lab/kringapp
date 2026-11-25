@@ -338,7 +338,8 @@ describe('Ranking screen', () => {
   });
   it('"How Rings work" is the exact founder copy, with Thai', () => {
     render(<HowSheet L={L} onClose={() => undefined} />);
-    expect(document.querySelector('#kxHowText')!.textContent).toBe('Bangkok’s best Reels, chosen by the people who love the city. A like is 1 Ring. A save is 3. Each person who opens your Reel from Instagram, TikTok, Facebook or another app is 5. When a visitor to Bangkok likes or saves your Reel, it counts double, because you showed someone the real city. Only your best Reel of the week counts. Tap any score to see how it adds up.');
+    expect(document.querySelector('#kxHowText')!.textContent).toBe(HOW_RINGS);
+    expect(HOW_RINGS).toMatch(/A like is 1 Ring\. A save is 3\..*best Reel of each day counts.*today’s photo \+3.*win \+5 each at 8pm/);
     expect(KX_L.th[HOW_RINGS]).toMatch(/ไลก์ = 1 ริง.*เซฟ = 3 ริง.*= 5 ริง.*สองเท่า/);
     void MathSheet;
   });

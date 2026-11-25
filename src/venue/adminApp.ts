@@ -518,12 +518,16 @@ async function reelQueue() {
     rows.length ? rpc<string[]>('kr8_admin_b5_ids', { p_ids: rows.map((r) => r.id) }).catch(() => [] as string[]) : Promise.resolve([] as string[]),
   ]);
   const b5 = new Set(b5ids || []);
+  // m226: today's photos wait in the same queue (already live on the member's profile; Feed puts one on the main feed)
+  const photos = await rpc<AdminPhoto[]>('kr8_admin_photos').catch(() => [] as AdminPhoto[]);
+  for (const ph of photos) (rows as unknown as Array<Reel | AdminPhoto>).push({ ...ph, __photo: true });
   const cm = new Map(cnt.map((c) => [c.id, c]));
   // audit P3-2: label each Reel with the member's own "I live here / Visiting" (older databases: plain "Member")
   const who = await rpc<{ user_id: string; who: 'local' | 'traveller' }[]>('kr8_admin_member_who', { p_ids: [...new Set(rows.map((r) => r.author_id))] }).catch(() => []);
   const wm = new Map(who.map((w) => [w.user_id, w.who]));
   for (const r of rows) r.author_who = wm.get(r.author_id) ?? null;
-  queue('Reels waiting', rows, (r, api) => {
+  queue(photos.length ? 'Reels + photos waiting' : 'Reels waiting', rows, (r, api) => {
+    if ((r as unknown as AdminPhoto).__photo) return photoItem(r as unknown as AdminPhoto, api);
     const c = cm.get(r.id);
     // audit P2-3: Hide asks why (same sheet as face checks); the member sees the reason on their Reel, in Activity and as a ding
     // 0150: the founder picks Feed or Profile only; the Feed quality bot's suggestion is the big button (Feed when it has no view)
@@ -658,6 +662,32 @@ export function profileOnlySheet(reelId: string, botReasons: readonly string[], 
       return b;
     })));
   sh.box.classList.add('rsheet'); sh.box.id = 'po-' + reelId + 'Sheet';
+}
+interface AdminPhoto { id: string; photo: string; body: string; area: string; at: string; author_id: string; author_name: string; member_no: number | null; test: boolean; __photo?: true }
+/** m226: one photo in the queue. It is already on the member's profile; one tap decides the main feed. */
+function photoItem(ph: AdminPhoto, api: QApi): HTMLElement {
+  const w = (action: 'feed' | 'profile' | 'hide', reason?: string) => async () => { await rpc('kr8_admin_photo_review', { p_post: ph.id, p_action: action, p_reason: reason ?? null }); };
+  const why = () => {
+    const sh = sheet(el('h3', {}, 'Profile only · pick the reason'), el('p', { class: 'dim', style: 'margin:4px 0 0' }, 'Optional. They see it on their photo, in their language.'),
+      el('div', { class: 'chips2', style: 'margin-top:10px' }, ...PROFILE_ONLY_REASONS.map(([k, label]) => {
+        const b = el('button', { type: 'button', 'data-po': k }, label) as HTMLButtonElement;
+        b.onclick = () => { sh.close(); api.done(`Profile only · ${label}`, w('profile', k)); };
+        return b;
+      })));
+    sh.box.classList.add('rsheet');
+  };
+  api.actions(el('div', {},
+    el('div', { class: 'two' },
+      btn('go big', [ic('check'), 'Feed'], () => api.done('Photo · in the Feed', w('feed')), { id: 'photoFeed-' + ph.id }),
+      btn('ghost big', [ic('users'), 'Profile only'], () => api.done('Photo · profile only', w('profile')), { id: 'photoProfile-' + ph.id })),
+    el('div', { class: 'two' },
+      btn('ghost big', [ic('users'), 'Profile only · why?'], why, { id: 'photoWhy-' + ph.id }),
+      btn('out-bad big', [ic('eyeoff'), 'Hide (rule break)'], () => api.done('Photo hidden · its +3 taken back', w('hide', 'Not a real Bangkok spot, a screenshot or not your own photo')), { id: 'photoHide-' + ph.id })),
+    el('div', { class: 'two' }, skipBtn(api))));
+  return el('div', { 'data-photo': ph.id },
+    el('div', { class: 'vid' }, el('img', { src: ph.photo, alt: '', style: 'width:100%;max-height:62vh;object-fit:contain;display:block;background:#000' }),
+      el('div', { class: 'ov' }, el('b', {}, `${ph.author_name}${ph.member_no ? ' #' + ph.member_no : ''} · Daily photo${ph.test ? ' · TEST' : ''}`), el('p', { class: 'dim' }, `${ph.area} · ${ago(ph.at)}`), ph.body ? el('p', {}, ph.body) : null)),
+    el('div', { class: 'facts' }, el('span', { class: 'fact' }, ic('users'), 'Already on their profile · +3 task Rings · Feed = full-screen card between Reels')));
 }
 /** Removing a reported Reel / Ask BKK post or answer (only what the published rules say). */
 export const REPORT_CHIPS: Chip[] = [

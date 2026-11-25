@@ -8,7 +8,7 @@ import { TotReasons, TotStreak } from './totReasons';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import './tasks.css';
 import { RoastCard } from './V5Roast';
-import { B5TaskRow, WelcomeCard } from './V5Ret10';
+import { B5TaskRow, PhotoTaskRow, WelcomeCard } from './V5Ret10';
 import { extraStore } from './ret10';
 import {
   claimedCount, doable, fmt, leftCount, readyCount, resetsIn, streakDays, taskClaim, TASK_ORDER, taskReason, taskReasonsToday, taskReasonText, taskReasonUp, taskState,
@@ -96,6 +96,8 @@ function rowText(t: TaskRow, tx: TaskTx, lang: 'th' | 'en'): { title: string; su
 // ───────────── the orb on the Feed (A) + reminder bubble (A, no border) + check-in toast (A) + watch bar (B) ─────────────
 export interface TasksFeedProps {
   lang: string; name: string; verified: boolean;
+  /** Retention 10 attention rule: a higher item (first-visit steps) is on screen, so the reminder bubble waits */
+  quiet?: boolean;
   onAsk: (questionId: string | null) => void;
   onVerify: () => void;
   /** the Feed scroller (orb slides half away while scrolling) */
@@ -157,13 +159,15 @@ export function TasksFeed(props: TasksFeedProps) {
     }
     let b = '';
     try { b = sessionStorage.getItem('kr8_dt_bubble') || ''; } catch { /* ignore */ }
-    if (!b && leftCount(data) > 0) {
+    if (!b && leftCount(data) > 0 && !props.quiet) {
       const t = window.setTimeout(() => { setBubble(true); try { sessionStorage.setItem('kr8_dt_bubble', '1'); } catch { /* ignore */ } }, 9000);
       return () => window.clearTimeout(t);
     }
     return undefined;
-  }, [data?.on, data?.day]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [data?.on, data?.day, props.quiet]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!bubble) return; const t = window.setTimeout(() => setBubble(false), 6500); return () => window.clearTimeout(t); }, [bubble]);
+  // the 5pm banner (lower in the attention order) waits while this reminder is up
+  useEffect(() => { try { window.dispatchEvent(new CustomEvent('kr8:attn-bubble', { detail: bubble })); } catch { /* old browser */ } }, [bubble]);
   useEffect(() => { if (!toast) return; const t = window.setTimeout(() => setToast(false), 9000); return () => window.clearTimeout(t); }, [toast]);
   if (!data?.on || !data.tasks) return null;
   const n = doable(data).length;
@@ -286,6 +290,9 @@ export function TasksSheet(props: { lang: string; onClose: () => void; onAsk: (q
         </div>
         <WelcomeCard lang={props.lang} onFace={props.onFace} onClose={props.onClose} />
         <div className="dt-list">
+          {/* m226: the photo option sits first, so it is obvious (gone once today's post task is done) */}
+          <PhotoTaskRow lang={props.lang} verified={!!data.verified} onFace={props.onFace} onClose={props.onClose}
+            postDone={!!data.tasks.find((x) => x.id === 'post' && (x.done || x.claimed))} />
           {rows.map((t) => {
             const st = taskState(t);
             const { title, sub } = rowText(t, tx, L);

@@ -10,6 +10,11 @@ delete from public.kr8_follows where follower in (select id from _q) or followee
 delete from public.kr8_messages where thread_id in (select id from public.kr8_threads where user_a in (select id from _q) or user_b in (select id from _q));
 delete from public.kr8_threads where user_a in (select id from _q) or user_b in (select id from _q);
 delete from public.kr8_posts where author in (select id from _q);
+delete from public.kr8_ask_reactions where user_id in (select id from _q) or answer_id in (select id from public.kr8_ask_answers where author in (select id from _q));
+delete from public.kr8_ask_awards where member_id in (select id from _q);
+delete from public.kr8_ask_answers where author in (select id from _q);
+delete from public.kr8_reward_claims where member_id in (select id from _q);
+delete from public.kr8_prizes where member_id in (select id from _q);
 delete from public.kr8_member_badges where user_id in (select id from _q);
 delete from public.kr8_members where user_id in (select id from _q);
 delete from public.kr8_rings_ledger where member_id in (select id from _q);

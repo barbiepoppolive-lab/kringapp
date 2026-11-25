@@ -25,10 +25,13 @@ let askMinChars = 15;
 export const askChars = (s: string) => [...s.trim()].length;
 const askNorm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
 export function askTaskHint(th: boolean, n: number, min: number): string {
-  if (n >= min) return th ? `✓ นับภารกิจ +3 ริง (${n}/${min})` : `✓ Counts for +3 Rings (${n}/${min})`;
+  // m227: 15+ counts for the task; 40+ is in the running for today's Ask BKK award
+  if (n >= AWARD_MIN) return th ? `✓ นับภารกิจ +3 ริง · ${r10Tx('th').awOk}` : `✓ Counts for +3 Rings · ${r10Tx('en').awOk}`;
+  if (n >= min) return th ? `✓ นับภารกิจ +3 ริง · ${r10Tx('th').awNudge}` : `✓ Counts for +3 Rings · ${r10Tx('en').awNudge}`;
   return th ? `ตอบอย่างน้อย ${min} ตัวอักษร + บอกว่าทำไม เพื่อรับ +3 ริง (${n}/${min})` : `Write at least ${min} characters + say why to get +3 Rings (${n}/${min})`;
 }
 
+import { askRude, awardStore, AWARD_MIN, r10Tx } from './ret10';
 type LFn = (en: string) => string;
 /** A server refusal the member can act on (ghost mode, too many posts, banned words, no card) gets its own message;
  *  anything else keeps the plain fallback. */
@@ -300,8 +303,14 @@ const Thread: React.FC<{
     setData({ ...data, answers: data.answers.map((x) => (x.id === a.id ? { ...x, myVote: v, score: x.score + v - x.myVote } : x)) });
     api.vote('a', a.id, v).catch((e) => toast(askErrText(L, e, 'Something went wrong')));
   });
-  const send = () => need(async () => {
+  const [kindAsk, setKindAsk] = useState(false);
+  const awards = awardStore.use(api.mode() === 'live');
+  const awardOf = (id: string) => (awards || []).find((x) => x.answer_id === id)?.kind;
+  const send = (force = false) => need(async () => {
     if (!data || busy || (!text.trim() && !media.file)) return;
+    // m227: a light kindness check (insults only); the member can still post
+    if (!force && askRude(text)) { setKindAsk(true); return; }
+    setKindAsk(false);
     setBusy(true);
     try {
       const hadFile = !!media.file;
@@ -366,6 +375,7 @@ const Thread: React.FC<{
               {a.by.official || a.by.local ? who(a.by, L) : <small>· {L('traveller')}</small>}
               <small className="at-t" data-post-time="1">{postAgo(a.at)}</small>
               {a.best && <span className="star">{L('★ Best')}</span>}
+              {awardOf(a.id) ? <span className="award" data-award={awardOf(a.id)}>{awardOf(a.id) === 'funny' ? r10Tx(askTh ? 'th' : 'en').awFunny : r10Tx(askTh ? 'th' : 'en').awHelpful}</span> : null}
               {!mine(a.by) && <MoreBtn L={L} id={a.id} onClick={() => setRep({ kind: 'a', id: a.id })} />}
             </div>
             {a.body && (bigEmoji(a.body) ? <p className="t ar-big" data-big-emoji="1">{a.body}</p> : <AskText L={L} kind="a" id={a.id} text={a.body} className="t" toggle />)}
@@ -423,9 +433,16 @@ const Thread: React.FC<{
           <button type="button" className="at-tool" aria-label={L('Photo')} onClick={() => need(() => photoIn.current?.click())}><Ic d={IC.photo} s={20} /></button>
           <button type="button" className={`at-tool${emoji ? ' on' : ''}`} aria-label={L('Emoji')} onClick={() => setEmoji((x) => !x)}><Ic d={IC.smile} s={20} /></button>
           <button type="button" className="at-tool at-gif" aria-label={L('GIF')} onClick={() => need(() => gifIn.current?.click())}>{L('GIF')}</button>
-          {canSend && <button type="button" className="at-go" aria-label={L('Post')} disabled={busy} onClick={send}><Ic d={IC.send} s={18} /></button>}
+          {canSend && <button type="button" className="at-go" aria-label={L('Post')} disabled={busy} onClick={() => send()}><Ic d={IC.send} s={18} /></button>}
         </div>
-        {me && !replyTo && nChars > 0 ? <p className={`at-min${nChars >= askMinChars ? ' ok' : ''}`} id="askMinHint" role="status" lang={askTh ? 'th' : 'en'}>{askTaskHint(askTh, nChars, askMinChars)}</p> : null}
+        {kindAsk ? (
+          <div className="at-kind" id="askKind" role="alert" lang={askTh ? 'th' : 'en'}>
+            <b>{r10Tx(askTh ? 'th' : 'en').kindT}</b><span>{r10Tx(askTh ? 'th' : 'en').kindS}</span>
+            <button type="button" onClick={() => { setKindAsk(false); inp.current?.focus(); }}>{r10Tx(askTh ? 'th' : 'en').kindEdit}</button>
+            <button type="button" id="askKindPost" onClick={() => send(true)}>{r10Tx(askTh ? 'th' : 'en').kindPost}</button>
+          </div>
+        ) : null}
+        {me && !replyTo && nChars > 0 ? <p className={`at-min${nChars >= AWARD_MIN ? ' ok' : nChars >= askMinChars ? ' ok aw' : ''}`} id="askMinHint" role="status" lang={askTh ? 'th' : 'en'}>{askTaskHint(askTh, nChars, askMinChars)}</p> : null}
         <input ref={photoIn} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => { media.pick(e.target.files?.[0]); e.target.value = ''; }} />
         <input ref={gifIn} type="file" accept="image/gif" hidden onChange={(e) => { media.pick(e.target.files?.[0]); e.target.value = ''; }} />
       </div>

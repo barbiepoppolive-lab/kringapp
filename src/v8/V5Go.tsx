@@ -26,6 +26,7 @@ import type { V5Profile } from './v5Live';
 import type { PickedPlace } from './V5KxPlaces';
 import { postAgo } from './postTime';
 import { poOpen, r10Tx, usePoMap } from './ret10';
+import { PHOTO_VIEW, usePhotos } from './V5Ret10';
 
 type Tx = (en: string) => string;
 type Txf = (en: string, a: string, b?: string) => string;
@@ -346,15 +347,25 @@ function Tile(props: { L: Tx; poster?: string; rings?: number | null; week?: boo
 }
 const RV4_FILL = ['thonglor', 'siam-square', 'charoen-krung', 'one-bangkok', 'bacc'].map((n) => `${import.meta.env.BASE_URL}media/places/${n}.jpg`);
 export function GoGrid(props: { L: Tx; reels: KxGridReel[]; onOpen: (i: number) => void; add?: { label: string; onAdd: () => void };
-  /** rv4 Me A: the "+" tile first, and quiet Bangkok photos fill the first two rows (decoration only, not Reels) */ me?: boolean; lang?: string }) {
+  /** rv4 Me A: the "+" tile first, and quiet Bangkok photos fill the first two rows (decoration only, not Reels) */ me?: boolean; lang?: string;
+  /** m226: this member's daily photos join the grid (newest first, before the Reels) */ photoUser?: string | null }) {
   const posters = usePosters(props.reels.map((r) => r.poster_path));
   const po = usePoMap(!!props.me);   // Retention 10: "On your profile" tiles (own grid only)
   const poTx = props.me ? r10Tx(props.lang || 'en').poTag : '';
+  const photos = usePhotos(props.photoUser);
+  const photoTiles = photos.map((ph) => (
+    <button type="button" key={ph.id} className="go-gt r10-pht" data-photo={ph.id}
+      onClick={() => { try { window.dispatchEvent(new CustomEvent(PHOTO_VIEW, { detail: { ...ph, mine: !!props.me } })); } catch { /* old browser */ } }}>
+      <img src={ph.photo} alt="" loading="lazy" />
+      {props.me && !ph.feed ? <span className="go-gw rv po" data-po="1">{poTx}</span> : null}
+    </button>
+  ));
   const addT = props.add ? <button type="button" className="go-gt add" id="goGridAdd" aria-label={props.add.label} onClick={props.add.onAdd}><span><IcPlus /><em>{props.add.label}</em></span></button> : null;
-  const fill = props.me ? RV4_FILL.slice(0, Math.max(0, 5 - props.reels.length)) : [];
+  const fill = props.me ? RV4_FILL.slice(0, Math.max(0, 5 - props.reels.length - (props.photoUser ? 0 : 0))) : [];
   return (
     <div className="go-grid" id="goGrid">
       {props.me ? addT : null}
+      {photoTiles}
       {props.reels.map((r, i) => (
         <Tile key={r.id} L={props.L} id={r.id} i={i} poster={posters[r.poster_path]} rings={r.rings} week={r.this_week} pending={r.status === 'pending'} hidden={r.status === 'hidden' ? reviewNoteText(r.note) : null} notYet={r.status === 'hidden' && isNotYetNote(r.note)}
           po={props.me && r.id in po && r.status === 'approved' ? poTx : null} onOpen={() => (props.me && r.id in po && r.status === 'approved' ? poOpen(r.id) : props.onOpen(i))} />
@@ -367,7 +378,7 @@ export function GoGrid(props: { L: Tx; reels: KxGridReel[]; onOpen: (i: number) 
 /** Me: tabs "Reels" and "Saved" */
 export function GoMeReels(props: {
   L: Tx; Lf: Txf; mine: KxGridReel[] | null; saved: KxSavedReel[] | null; tab: 'reels' | 'saved'; onTab: (t: 'reels' | 'saved') => void;
-  onOpenMine: (i: number) => void; onOpenSaved: (i: number) => void; onPost: () => void; onBrowse: () => void; lang?: string;
+  onOpenMine: (i: number) => void; onOpenSaved: (i: number) => void; onPost: () => void; onBrowse: () => void; lang?: string; uid?: string;
 }) {
   const { L } = props;
   const savedPosters = usePosters(props.tab === 'saved' ? (props.saved || []).map((r) => r.poster_path) : []);
@@ -381,7 +392,7 @@ export function GoMeReels(props: {
       </div>
       {props.tab === 'reels' ? (
         props.mine === null ? <p className="go-empty">…</p> : (
-          <GoGrid L={L} reels={props.mine} me lang={props.lang} onOpen={props.onOpenMine} add={{ label: props.mine.length ? L('New Reel') : L('Post your first Reel'), onAdd: props.onPost }} />
+          <GoGrid L={L} reels={props.mine} me lang={props.lang} photoUser={props.uid} onOpen={props.onOpenMine} add={{ label: props.mine.length ? L('New Reel') : L('Post your first Reel'), onAdd: props.onPost }} />
         )
       ) : props.saved === null ? <p className="go-empty">…</p> : nSaved ? (
         <div className="go-grid" id="goSavedGrid">
@@ -453,6 +464,7 @@ export function GoProfilePage(props: {
   const openList = (k: 'followers' | 'following') => (locked ? setPrivNote(true) : props.onList(k));
   const list = props.reels?.reels || [];
   const handle = props.kx?.ig_handle || p.ig_handle;
+  const profPhotos = usePhotos(p.user_id);
   return (
     <div className="go-page go-prof" id="profileView" data-user={p.user_id}>
       <div className="go-hdr">
@@ -495,7 +507,7 @@ export function GoProfilePage(props: {
       {props.slot || null}
       <button type="button" className="rv-wk rv4-wk" id="profileScore" aria-label={L('See the math')} onClick={props.onMath}>
         <RingGlyph /><b>{fmtN(props.kx?.week ?? 0)}</b><span>{L('Rings this week')}</span><i aria-hidden="true">›</i></button>
-      {props.reels === null ? <p className="go-empty">…</p> : list.length ? <GoGrid L={L} reels={list} onOpen={props.onOpen} /> : <p className="go-empty" id="profileNoReels">{L('No Reels yet')}</p>}
+      {props.reels === null ? <p className="go-empty">…</p> : list.length || profPhotos.length ? <GoGrid L={L} reels={list} photoUser={p.user_id} onOpen={props.onOpen} /> : <p className="go-empty" id="profileNoReels">{L('No Reels yet')}</p>}
     </div>
   );
 }

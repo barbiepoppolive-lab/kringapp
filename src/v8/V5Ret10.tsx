@@ -9,9 +9,10 @@ import { usePosters } from './V5Go';
 import { initialAvatar } from './v8Data';
 import {
   b5Arm, b5Hidden, b5Hide, b5Store, bestieAct, bestieInvite, bestieNudge, bestieOf, bestiePill, bestieSeen, bestieStore, errCode, extraStore, fairPlay,
-  fmt, followSuggest, fpParts, newcomers, OQ_PRESETS, PO_OPEN, openQAnswer, openQOf, poMarkSeen, poReason, poSeen, poStore, r10Tx, setOpenQ, taskExtraClaim,
+  fmt, followSuggest, fpParts, newcomers, createPhoto, photoStore, type MemberPhoto, OQ_PRESETS, PO_OPEN, openQAnswer, openQOf, poMarkSeen, poReason, poSeen, poStore, r10Tx, setOpenQ, taskExtraClaim,
   type Bestie, type BestieOf, type FairPlay, type FollowSuggest, type Newcomers, type OpenQ, type R10Reel,
 } from './ret10';
+import { v5CompressImage } from './v5Live';
 import './ret10.css';
 
 export const R10_PLAY = 'kr8:r10-play';
@@ -551,6 +552,7 @@ export function FairPlaySheet(props: { lang: string; user: string; onClose: () =
             {d.rules_adjust !== 0 ? <section className="r10-fpc" data-fp="rules"><div className="r10-fpt"><span>{tx.fpRules}</span><b>{d.rules_adjust > 0 ? `+${d.rules_adjust}` : d.rules_adjust}</b></div>
               <div className="r10-fpl"><span>{tx.fpRulesSub}</span></div></section> : null}
             {d.tasks > 0 ? <section className="r10-fpc" data-fp="tasks"><div className="r10-fpt"><span><i className="c-tasks" />{tx.fpTasks}</span><b>{d.tasks}</b></div></section> : null}
+            {(d.ask_awards || 0) > 0 ? <section className="r10-fpc" data-fp="award"><div className="r10-fpt"><span><i className="c-award" />{tx.fpAward}</span><b>{d.ask_awards}</b></div></section> : null}
             {d.ask_opens > 0 ? <section className="r10-fpc" data-fp="ask"><div className="r10-fpt"><span><i className="c-tasks" />{tx.fpAsk}</span><b>{d.ask_opens}</b></div></section> : null}
             {d.invites_shown && d.invites > 0 ? <section className="r10-fpc" data-fp="invites"><div className="r10-fpt"><span><i className="c-invites" />{tx.fpInv}</span><b>{d.invites}</b></div></section> : null}
             {d.lag !== 0 ? <section className="r10-fpc" data-fp="lag"><div className="r10-fpt"><span>{tx.fpLag}</span><b>{d.lag > 0 ? `+${d.lag}` : d.lag}</b></div></section> : null}
@@ -590,5 +592,110 @@ export function NewcomersLeague(props: { lang: string; onPerson: (id: string) =>
       )) : <p className="r10-note">{tx.ncEmpty}</p>}
       {d.me ? <p className="r10-ncme" id="kxNewcomersMe">{d.me.next ? fmt(tx.ncTo, d.me.next.need, d.me.next.rank) : d.me.rank === 1 ? tx.ncTop : ''}</p> : null}
     </section>
+  );
+}
+
+// ───────────────────────────── Daily photo (m226) ─────────────────────────────
+const BASE10 = ((import.meta as unknown as { env?: { BASE_URL?: string } }).env?.BASE_URL || '/app/');
+export const PHOTO_OPEN = 'kr8:r10-photo';
+export function openPhotoSheet() { try { window.dispatchEvent(new Event(PHOTO_OPEN)); } catch { /* old browser */ } }
+/** tasks sheet: the photo option, until today's post task is done */
+export function PhotoTaskRow(props: { lang: string; postDone: boolean; verified: boolean; onFace: () => void; onClose: () => void }) {
+  const tx = r10Tx(props.lang);
+  if (props.postDone) return null;
+  return (
+    <div className="dt-row st-go r10-phrow" data-task="photo">
+      <span className="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="13" rx="2.5" /><circle cx="12" cy="12.5" r="3.2" /><path d="M9 6l1.2-2h3.6L15 6" /></svg></span>
+      <span className="tx"><b>{tx.phRow}</b><small>{tx.phRowS}</small></span>
+      <span className="rw">+3</span>
+      <button type="button" className="dt-btn" id="r10PhotoGo" onClick={() => { if (!props.verified) { props.onFace(); return; } props.onClose(); openPhotoSheet(); }}>{tx.go}</button>
+    </div>
+  );
+}
+export function PhotoSheet(props: { lang: string; area: string | null; onClose: () => void; onPosted: () => void; toast: (m: string) => void }) {
+  const tx = r10Tx(props.lang);
+  const [img, setImg] = useState<string | null>(null);
+  const [cap, setCap] = useState('');
+  const [busy, setBusy] = useState(false);
+  const inp = { current: null as HTMLInputElement | null };
+  const pick = async (f: File | undefined) => {
+    if (!f) return;
+    try { setImg(await v5CompressImage(f, 1080, 520000)); } catch { props.toast(tx.phBad); }
+  };
+  const post = async () => {
+    if (!img || busy) return;
+    setBusy(true);
+    try { await createPhoto(img, props.area, cap.trim() || null); props.toast(tx.phPosted); props.onPosted(); props.onClose(); }
+    catch (e) { const c = errCode(e); props.toast(c === 'PHOTO_DAY' ? tx.phDay : c === 'VERIFY_FIRST' ? tx.phFace : tx.phBad); }
+    finally { setBusy(false); }
+  };
+  return (
+    <Sheet id="r10Photo" label={tx.phTitle} onClose={props.onClose}>
+      <div className="r10-b5h"><b>{tx.phTitle}</b><small>{tx.phLine}</small></div>
+      {img ? (
+        <div className="r10-phprev" style={{ backgroundImage: `url("${img}")` }} />
+      ) : (
+        <div className="r10-phex" id="r10PhotoExamples">
+          {[['ex-back', tx.exBack], ['ex-side', tx.exSide], ['ex-outfit', tx.exOutfit]].map(([f, l]) => (
+            <span key={f} style={{ backgroundImage: `url("${BASE10}media/r10/${f}.jpg")` }}><i>{l}</i></span>
+          ))}
+        </div>
+      )}
+      <p className="r10-note">{tx.phRules}</p>
+      {img ? <input className="r10-ta" id="r10PhotoCap" maxLength={140} placeholder={tx.phCap} value={cap} onChange={(e) => setCap(e.target.value)} /> : null}
+      {/* camera only (capture): a photo taken now, not a screenshot or a picture from the internet */}
+      <input ref={(el) => { inp.current = el; }} id="r10PhotoInput" type="file" accept="image/*" capture="environment" hidden
+        onChange={(e) => { void pick(e.target.files?.[0]); e.target.value = ''; }} />
+      {img ? (
+        <>
+          <button type="button" className="r10-main" id="r10PhotoPost" disabled={busy} onClick={() => void post()}>{tx.phPost}</button>
+          <button type="button" className="r10-link" onClick={() => document.getElementById('r10PhotoInput')?.click()}>{tx.phRetake}</button>
+        </>
+      ) : <button type="button" className="r10-main" id="r10PhotoTake" onClick={() => document.getElementById('r10PhotoInput')?.click()}>{tx.phTake}</button>}
+    </Sheet>
+  );
+}
+/** profile / Me grid: a member's photos (own unpromoted ones carry "On your profile") */
+export function usePhotos(user: string | null | undefined): MemberPhoto[] {
+  const v = photoStore(user || '-').use(!!user);
+  useEffect(() => { if (user) void photoStore(user).refresh(); }, [user]);
+  return user ? v || [] : [];
+}
+export const PHOTO_VIEW = 'kr8:r10-photoview';
+export function PhotoViewer(props: { lang: string }) {
+  const tx = r10Tx(props.lang);
+  const [p, setP] = useState<(MemberPhoto & { mine?: boolean }) | null>(null);
+  useEffect(() => {
+    const on = (e: Event) => setP((e as CustomEvent<MemberPhoto & { mine?: boolean }>).detail);
+    window.addEventListener(PHOTO_VIEW, on);
+    return () => window.removeEventListener(PHOTO_VIEW, on);
+  }, []);
+  if (!p) return null;
+  const [t, tip] = p.reason ? poReason(props.lang, p.reason) : ['', ''];
+  return (
+    <Sheet id="r10PhotoView" label={tx.phTitle} onClose={() => setP(null)} cls="r10-pv">
+      <div className="r10-pvimg" style={{ backgroundImage: `url("${p.photo}")` }} />
+      {p.body ? <p className="r10-sub">{p.body}</p> : null}
+      {p.mine && !p.feed ? <p className="r10-note">{tx.poTag}</p> : null}
+      {p.mine && p.reason ? <div className="r10-why"><small>{tx.poWhy}</small><b>{t}</b><span>{tip}</span></div> : null}
+    </Sheet>
+  );
+}
+
+// ───────────────────────────── Leaderboard orb (Me) ─────────────────────────────
+/** The one always-on glow in Me: this week's rank + Rings to the next rank; tap = the weekly board. Unchecked → "Join the board". */
+export function LeaderOrb(props: { lang: string; rank: number | null; need: number | null; nextRank: number | null; state?: string | null; verified: boolean; onOpen: () => void; onFace: () => void }) {
+  const tx = r10Tx(props.lang);
+  const join = !props.verified;
+  const line = join ? tx.orbFace
+    : props.state === 'floor' && props.need ? fmt(tx.orbFloor, props.need)   // under the 25-Ring minimum: the board's own "N to a prize seat"
+    : props.rank === 1 ? tx.orbTop
+    : props.need && props.nextRank && props.rank && props.nextRank < props.rank ? fmt(tx.orbTo, props.need, props.nextRank) : props.rank ? '' : tx.orbNone;
+  return (
+    <button type="button" className={`r10-orb${join ? ' join' : ''}`} id="meOrb" aria-label={`${tx.orbLabel}${props.rank ? ` · #${props.rank}` : ''}`}
+      onClick={join ? props.onFace : props.onOpen}>
+      <span className="r10-orbc"><b>{join ? <RingsIc s={22} /> : props.rank ? `#${props.rank}` : <RingsIc s={22} />}</b></span>
+      <small>{join ? tx.orbJoin : line || tx.orbLabel}</small>
+    </button>
   );
 }

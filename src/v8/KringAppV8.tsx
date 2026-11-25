@@ -161,7 +161,7 @@ import { V5Qr, V5SignInSheet } from './V5Sheets';
 import { V5ShareCard } from './V5ShareCard';
 import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, showFirstReelChip } from './V5ReelNudge';
 import { V5ReelVideo, holdReels, reelsHeld, toggleReelSound } from './V5ReelVideo';
-import { TasksFeed, TasksFromMe, tasksClaimReady, ThisOrThatCard, useTasksSummary } from './V5Tasks';
+import { TasksFeed, TasksFromMe, tasksClaimReady, tasksRefresh, ThisOrThatCard, useTasksSummary } from './V5Tasks';
 import { FaceIntroSheet, LockIc, UnvMeLine, UnvPeopleWall, openInviteLine, unvLikeShown, unvLikeTick, unvWhy, type UnvWhy } from './V5Unverified';
 import { startOpenBeacon } from './openBeacon';
 import { restoredTab, rememberTab } from './tabMemory';
@@ -218,8 +218,8 @@ import { v5HelpEvent, v5HelpOpen } from './v5Live';
 import { bkkClock, bkkDay, dayLabel, postAgo } from './postTime';
 import { JoinPrompt, cameFromSharedReel, joinPromptCameBack, joinPromptSeen, markJoinPromptSeen } from './JoinPrompt';
 import { feedNewFaces, feedVote, feedVoteCards, NewFacesRow, VOTE_EVERY, VoteSlide, type NewFace, type VoteCard, type VoteResult } from './feedRet';
-import { B5Banner, B5Sheet, B5Tile, BestieMeLine, Follow3Row, Follow3Sheet, OpenQAnswer, OpenQMeLine, ProfileBestie, ProfileOnlyWatcher, ProfileQCard, R10_PLAY, R10_PROFILE, useOpenQ } from './V5Ret10';
-import { b5AfterPost, b5Hidden, b5Store, errCode as r10Err, extraStore, r10Tx, reelOpeners, type R10Reel } from './ret10';
+import { LeaderOrb, PHOTO_OPEN, PhotoSheet, PhotoViewer, B5Banner, B5Sheet, B5Tile, BestieMeLine, Follow3Row, Follow3Sheet, OpenQAnswer, OpenQMeLine, ProfileBestie, ProfileOnlyWatcher, ProfileQCard, R10_PLAY, R10_PROFILE, useOpenQ } from './V5Ret10';
+import { photoStore as photoStoreOf, b5AfterPost, b5Hidden, b5Store, errCode as r10Err, extraStore, r10Tx, reelOpeners, type R10Reel } from './ret10';
 import './glass.css';   // 20 Nov: light glass on every sheet; last so it wins
 
 const V9_L: Record<string, Record<string, string>> = {
@@ -3043,6 +3043,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     return () => { window.removeEventListener(R10_PLAY, play); window.removeEventListener(R10_PROFILE, prof); };
   }, []);
   const [b5Open, setB5Open] = useState(false);
+  const [photoOpen, setPhotoOpen] = useState(false);
+  const [attnBubble, setAttnBubble] = useState(false);
+  useEffect(() => { const on = (e: Event) => setAttnBubble(!!(e as CustomEvent<boolean>).detail); window.addEventListener('kr8:attn-bubble', on); return () => window.removeEventListener('kr8:attn-bubble', on); }, []);
+  useEffect(() => { const on = () => setPhotoOpen(true); window.addEventListener(PHOTO_OPEN, on); return () => window.removeEventListener(PHOTO_OPEN, on); }, []);
   const [f3Open, setF3Open] = useState(false);
   const [b5Tick, setB5Tick] = useState(0);
   const r10On = live && signedIn && !!v5Card && !adminView;
@@ -3122,7 +3126,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       el.removeEventListener('pointerdown', down); el.removeEventListener('scroll', onScroll);
     };
   }, [nfOn, feedSettled, feedItems.length]);
-  const nfShow = nfOn && !nfAway && tab === 'feed' && feedMode !== 'ask';
+  const nfShow = nfOn && !nfAway && tab === 'feed' && feedMode !== 'ask' && !postedShare;   // Retention 10: never stacked under the share pill
   /** after every VOTE_EVERY-th slide, the next Ask BKK vote card (each card once; none for guests / admin view) */
   const withVoteCards = (slides: React.ReactNode[]): React.ReactNode[] => {
     if (!voteCards.length || !live || !signedIn || adminView) return slides;
@@ -4696,12 +4700,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           {/* rv4 (founder pick Feed A): no floating "next step" pill over the Reel (e.g. "We're checking your Reel"); that status lives on Me */}
           {postedShare && tab === 'feed' ? null /* audit 18 Nov: the post-success share takes this spot (it overlapped the pill) */ : RV4_FEED_PILL && feedMode !== 'ask' && nextStep ? (
             <NextStepCard step={nextStep} variant="pill" lang={lang} L={L} Lf={Lf} onGo={() => nextGo('feed')} onHide={nextHide} />
-          ) : b5BanOn ? (
+          ) : onbFeed && onb ? (
+            /* m214: the first-visit steps take the ticker's place for the first 3 days (never together with a sheet).
+               Retention 10 attention order: first-visit steps > today's task reminder > 5pm banner > prize ticker — one at a time. */
+            <OnbStrip lang={lang} st={onb} onGo={onbGo} onHide={onbHideNow} extra={<Follow3Row lang={lang} onOpen={() => setF3Open(true)} />} />
+          ) : b5BanOn && !attnBubble ? (
             /* Retention 10: 17:00–19:00 Bangkok the "Bangkok at 5" banner takes the ticker's place (in-app only, no push) */
             <B5Banner lang={lang} onOpen={() => setB5Open(true)} onHidden={() => setB5Tick((n) => n + 1)} />
-          ) : onbFeed && onb ? (
-            /* m214: the first-visit steps take the ticker's place for the first 3 days (never together with a sheet) */
-            <OnbStrip lang={lang} st={onb} onGo={onbGo} onHide={onbHideNow} extra={<Follow3Row lang={lang} onOpen={() => setF3Open(true)} />} />
           ) : PRIZE_TICKER_ON_FEED && !nextStep && feedMode !== 'ask' && live && signedIn && v5Card && v5Uid && kxWeek ? (
             <PrizeBanner variant="ticker" lang={lang} uid={v5Uid} week={kxWeek} hideTick={prizeHideTick} onHide={() => setPrizeHideTick((n) => n + 1)}
               onOpen={() => { setTab('me'); setSheet('ranking'); }} />
@@ -4709,7 +4714,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
 
           {/* 0171 daily tasks (founder 20 Nov): orb A on the left edge, check-in toast, watch-3 bar, reminder bubble; signed-in members only */}
           {tab === 'feed' && feedMode !== 'ask' && live && signedIn && v5Card && v5Uid && !adminView && !sheet && !unvRef.current && (
-            <TasksFeed lang={lang} name={v5Card.first_name || ''} verified={!!(meProfile?.verified || v5Card.verified || faceOkNow)} scrollEl={feedScrollRef.current}
+            <TasksFeed lang={lang} quiet={!!(onbFeed && onb)} name={v5Card.first_name || ''} verified={!!(meProfile?.verified || v5Card.verified || faceOkNow)} scrollEl={feedScrollRef.current}
               onAsk={(q) => { setAskOpenThread(q); pickFeedMode('ask'); }}
               onVerify={() => { setVerifyMode('me'); setSheet('verify'); }} />
           )}
@@ -5485,6 +5490,11 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onPost={() => kxPostAt()}
               onVerify={() => setSheet('verify')}
               verifyHidden={verifyRowHidden(v5Uid, verifyHideTick)} onVerifyHide={() => { hideVerifyRow(v5Uid); setVerifyHideTick((n) => n + 1); }}
+              orbSlot={r10On && !adminView ? (
+                <LeaderOrb lang={lang} verified={!!meProfile.verified} rank={kxWeek?.gap?.rank ?? kxWeekRank ?? null}
+                  need={kxWeek?.gap?.target?.need ?? null} nextRank={kxWeek?.gap?.target?.rank ?? null} state={kxWeek?.gap?.state ?? null}
+                  onOpen={() => setSheet('ranking')} onFace={() => setSheet('verify')} />
+              ) : null}
               onbSlot={(onbOn && onb) || meProfile.verified ? (
                 <>
                   {onbOn && onb ? <OnbMeLine lang={lang} st={onb} onGo={onbGo} extra={<Follow3Row lang={lang} onOpen={() => setF3Open(true)} />} /> : null}
@@ -5496,7 +5506,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               gender={shownGender(v5Card)}
               onReplay={() => { void coachReplay(coachRef.current, true).then(() => { setTab('feed'); showToast(L('Intro is on again')); }); }}
               reelsSlot={(
-                <GoMeReels L={L} Lf={Lf} lang={lang} mine={goMine} saved={kxSaved} tab={goMeTab} onTab={(k) => { setGoMeTab(k); if (k === 'saved') void kxLoadSaved(); }}
+                <GoMeReels L={L} Lf={Lf} lang={lang} uid={v5Uid} mine={goMine} saved={kxSaved} tab={goMeTab} onTab={(k) => { setGoMeTab(k); if (k === 'saved') void kxLoadSaved(); }}
                   onPost={() => kxPostAt()} onBrowse={() => setTab('feed')}
                   onOpenMine={(i) => goOpenPlayer((goMine || []).map((r) => gridToGo(r, { id: v5Uid, name: v5Card?.first_name || '', photo: v5Card?.photo || null, handle: kxMe?.ig_handle }, true)), i)}
                   onOpenSaved={(i) => goOpenPlayer((kxSaved || []).map(savedToGo), i, { title: L('Saved Reels') })} />
@@ -5521,7 +5531,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               rankLine={kxRankLine}
               saved={kxSaved ? { count: kxSaved.length, thumbs: kxSaved.slice(0, 3).map((x) => mePosters[x.poster_path] || '').filter(Boolean) } : null}
               onSavedReels={() => { setSheet('savedreels'); void kxLoadSaved(); }}
-              webAskSlot={webReels && webReels.has_reel && !webReels.asked && !v5Ghost ? (
+              webAskSlot={webReels && webReels.has_reel && !webReels.asked && !v5Ghost && !nextStep && !onbOn ? (
                 <div className="kme-webask" id="meWebAsk" role="group" aria-label={L('Show my Reels on the web')}>
                   <b>{L('Let your Reels show up on Google?')}</b>
                   <small>{L('Each approved Reel gets its own page on kringapp.com. First name and area only. Change it any time in Settings.')}</small>
@@ -8029,6 +8039,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {kxHow && live && (sheet === 'rewards' || sheet === 'profile' || !!goPlayer) && <HowSheet L={L} onClose={() => setKxHow(false)} />}
         {/* Retention 10 sheets (V5Ret10.tsx) */}
         {b5Open && r10On ? <B5Sheet lang={lang} onClose={() => setB5Open(false)} /> : null}
+        {photoOpen && r10On ? <PhotoSheet lang={lang} area={v5Card?.area || null} toast={showToast} onClose={() => setPhotoOpen(false)}
+          onPosted={() => { void tasksRefresh(); if (v5Uid) void photoStoreOf(v5Uid).refresh(); }} /> : null}
+        {r10On ? <PhotoViewer lang={lang} /> : null}
         {f3Open && r10On ? <Follow3Sheet lang={lang} onClose={() => { setF3Open(false); void onbRefreshNow(); }} onFollow={(id) => toggleFollow(id, false)} /> : null}
         {r10On && tab === 'me' && !sheet && !goPlayer ? (
           <ProfileOnlyWatcher lang={lang} active onPost={() => kxPostAt()}

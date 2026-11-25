@@ -43,7 +43,7 @@ export interface FairPlay {
   likes_newer: { n: number; rings: number; day_cap: number; who: { user_id: string | null; name: string | null; n: number }[] };
   saves: { n: number; rings: number };
   opens: { n: number; rings: number; by_app: Record<string, number>; over_cap: number; not_counted: Record<string, number>; day_cap: number };
-  rules_adjust: number; tasks: number; ask_opens: number; invites: number; invites_shown: boolean; lag: number;
+  rules_adjust: number; tasks: number; ask_opens: number; ask_awards?: number; invites: number; invites_shown: boolean; lag: number;
   weights: { like: number; save: number; open: number; mult: number };
   days: { day: string; reels: number; tasks: number; invites: number }[];
 }
@@ -70,6 +70,11 @@ export const bestieNudge = (id: string) => call<BestieState>('kr8_bestie_nudge',
 export const bestieSeen = () => call<void>('kr8_bestie_seen');
 export const bestieOf = (user: string) => call<BestieOf[]>('kr8_bestie_of', { p_user: user });
 export const fairPlay = (user: string) => call<FairPlay>('kr8_fair_play', { p_user: user });
+export interface MemberPhoto { id: string; photo: string; body: string; at: string; likes: number; feed: boolean; reason: string | null; place: { en: string | null; th: string | null } | null }
+export const createPhoto = (photo: string, area: string | null, body: string | null) => call<string>('kr8_create_photo', { p_photo: photo, p_area: area, p_body: body, p_place: null });
+export const memberPhotos = (user: string) => call<MemberPhoto[]>('kr8_member_photos', { p_user: user });
+export interface AskAward { answer_id: string; kind: 'helpful' | 'funny'; day: string }
+export const askAwardsRecent = () => call<AskAward[]>('kr8_ask_awards_recent');
 export const newcomers = () => call<Newcomers>('kr8_newcomers_board', { p_limit: 10 });
 
 // ───────── small shared stores (one read, many readers) ─────────
@@ -96,6 +101,13 @@ export const extraStore = store(taskExtra);
 export const b5Store = store(b5Row);
 export const poStore = store(myProfileOnly);
 export const bestieStore = store(bestieState);
+export const awardStore = store(askAwardsRecent);
+const photoStores = new Map<string, ReturnType<typeof store<MemberPhoto[]>>>();
+export function photoStore(user: string) { let st = photoStores.get(user); if (!st) { st = store(() => memberPhotos(user)); photoStores.set(user, st); } return st; }
+/** the kindness check before an Ask BKK answer is posted (light: insults only, never blocks) */
+const RUDE = [/\b(idiot|stupid|dumb|moron|loser|ugly|shut up|bitch|f+u+c+k+|shit|wtf|stfu|hate you)\b/i, /(ควาย|โง่|กาก|เหี้ย|สัส|อีดอก|ตอแหล|ส้นตีน|ไอ้บ้า|อีบ้า|เลวมาก|หน้าโง่)/];
+export const askRude = (t: string) => RUDE.some((r) => r.test(t || ''));
+export const AWARD_MIN = 40;
 
 if (typeof window !== 'undefined') {
   let t = 0;
@@ -123,6 +135,16 @@ export function b5Hide(day: string) { try { localStorage.setItem(B5_HIDE, day); 
 // ───────── words ─────────
 const EN = {
   rings: '+{0} Rings', ring1: '+1 Ring', claim: 'Claim', done: 'Done', go: 'Go', newTag: 'NEW', skip: 'Skip', close: 'Close', save: 'Save',
+  // photo task (m226)
+  phRow: 'Today’s photo', phRowS: 'Show your vibe · +3 Rings', phTitle: 'Today’s photo', phLine: 'Show your vibe, your face is optional',
+  exBack: 'Your back', exSide: 'From the side', exOutfit: 'Your outfit', phRules: 'A real Bangkok spot · no screenshots, no food-only, no photos from the internet',
+  phTake: 'Take a photo', phRetake: 'Retake', phCap: 'Where are you? (optional)', phPost: 'Post · +3 Rings', phPosted: 'On your profile · claim +3 in today’s tasks',
+  phDay: 'You posted today’s photo · see you tomorrow', phBad: 'That photo didn’t work. Try another one.', phFace: 'Do the 5-second face check first',
+  // Ask BKK awards (m227)
+  awHelpful: 'Most helpful', awFunny: 'Funniest', awNudge: 'Add your why to be in the running for today’s award', awOk: 'In the running for today’s award',
+  kindT: 'Want to rephrase?', kindS: 'Kind words get more replies.', kindEdit: 'Edit', kindPost: 'Post anyway', fpAward: 'Ask BKK award',
+  // leaderboard orb
+  orbTo: '{0} to #{1}', orbFloor: '{0} to a prize seat', orbTop: 'Top of the week', orbJoin: 'Join the board', orbFace: 'Face check', orbLabel: 'Weekly board', orbNone: 'Post to join',
   // 1
   welcome3: 'Welcome {0} new Locals', welcome1: 'Welcome a new Local', welcomeSub: 'Their first Reels on Kring · a like says hi',
   ofLikes: '{0} of 5 likes', watchLike: 'Watch and like', welcomeDone: 'Thanks for the welcome ✓',
@@ -169,6 +191,13 @@ const EN = {
 type Tx = typeof EN;
 const TH: Tx = {
   rings: '+{0} ริง', ring1: '+1 ริง', claim: 'รับ', done: 'เสร็จแล้ว', go: 'ไป', newTag: 'ใหม่', skip: 'ข้ามไปก่อน', close: 'ปิด', save: 'บันทึก',
+  phRow: 'รูปประจำวัน', phRowS: 'โชว์ไวบ์ของคุณ · +3 ริง', phTitle: 'รูปประจำวัน', phLine: 'โชว์ไวบ์ของคุณ ไม่ต้องเห็นหน้าก็ได้',
+  exBack: 'ด้านหลัง', exSide: 'ด้านข้าง', exOutfit: 'ลุคของคุณ', phRules: 'สถานที่จริงในกรุงเทพฯ · ไม่รับภาพแคปจอ รูปอาหารล้วน หรือรูปจากเน็ต',
+  phTake: 'ถ่ายรูป', phRetake: 'ถ่ายใหม่', phCap: 'ตอนนี้อยู่ที่ไหน (ไม่ใส่ก็ได้)', phPost: 'โพสต์ · +3 ริง', phPosted: 'ขึ้นบนโปรไฟล์แล้ว · ไปรับ +3 ในภารกิจวันนี้',
+  phDay: 'วันนี้โพสต์รูปแล้ว · พรุ่งนี้มาใหม่นะ', phBad: 'รูปนี้ใช้ไม่ได้ ลองรูปอื่นนะ', phFace: 'ยืนยันใบหน้า 5 วินาทีก่อนนะ',
+  awHelpful: 'มีประโยชน์ที่สุด', awFunny: 'ฮาที่สุด', awNudge: 'เล่าเหตุผลเพิ่มอีกนิด เพื่อลุ้นรางวัลวันนี้', awOk: 'ได้ลุ้นรางวัลวันนี้แล้ว',
+  kindT: 'อยากเรียบเรียงใหม่ไหม?', kindS: 'คำพูดดี ๆ ได้คำตอบกลับมากกว่า', kindEdit: 'แก้ไข', kindPost: 'โพสต์เลย', fpAward: 'รางวัล ถาม BKK',
+  orbTo: 'อีก {0} ถึงอันดับ {1}', orbFloor: 'อีก {0} ริงถึงที่นั่งรางวัล', orbTop: 'อันดับ 1 ของสัปดาห์', orbJoin: 'เข้าบอร์ด', orbFace: 'ยืนยันใบหน้า', orbLabel: 'บอร์ดประจำสัปดาห์', orbNone: 'โพสต์เพื่อเข้าบอร์ด',
   welcome3: 'ต้อนรับเพื่อนใหม่ {0} คน', welcome1: 'ต้อนรับเพื่อนใหม่ 1 คน', welcomeSub: 'รีลแรก ๆ ของเพื่อนใหม่บนกริ๊ง! · กดใจเป็นการทักทาย',
   ofLikes: 'ถูกใจแล้ว {0}/5', watchLike: 'ดูและกดใจ', welcomeDone: 'ขอบคุณที่ต้อนรับเพื่อนใหม่ ✓',
   b5: 'กรุงเทพฯ ตอน 5 โมงเย็น', b5Banner: '5 โมงเย็นแล้ว · ตอนนี้อยู่ที่ไหน ถ่ายให้ดูหน่อย', b5How: '10 วินาที · ไม่ต้องเห็นหน้า · ไม่ต้องตัดต่อ',
@@ -251,12 +280,13 @@ export function fpParts(d: FairPlay): { key: string; rings: number }[] {
     { key: 'opens', rings: d.opens.rings },
     { key: 'saves', rings: d.saves.rings },
     { key: 'tasks', rings: d.tasks + d.ask_opens },
+    { key: 'award', rings: d.ask_awards || 0 },
     { key: 'invites', rings: d.invites_shown ? d.invites : 0 },
   ];
   return parts.filter((p) => p.rings > 0);
 }
 export const fpSum = (d: FairPlay) =>
-  d.likes_verified.rings + d.likes_newer.rings + d.saves.rings + d.opens.rings + d.rules_adjust + d.tasks + d.ask_opens + (d.invites_shown ? d.invites : 0) + d.lag;
+  d.likes_verified.rings + d.likes_newer.rings + d.saves.rings + d.opens.rings + d.rules_adjust + d.tasks + d.ask_opens + (d.ask_awards || 0) + (d.invites_shown ? d.invites : 0) + d.lag;
 
 /** feature 8: the profile pill text */
 export function bestiePill(lang: string, b: BestieOf): string {

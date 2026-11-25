@@ -42,7 +42,7 @@ export const baht = (n: number) => `฿${fmtN(n)}`;
 export const ringsText = (L: Tx, Lf: Txf, n: number) => (n === 1 ? L('1 Ring') : Lf('{0} Rings', fmtN(n)));
 
 /** The exact founder copy (EN) with a natural Thai version in KX_L. */
-export const HOW_RINGS = 'Bangkok’s best Reels, chosen by the people who love the city. A like is 1 Ring. A save is 3. Each person who opens your Reel from Instagram, TikTok, Facebook or another app is 5. When a visitor to Bangkok likes or saves your Reel, it counts double, because you showed someone the real city. Only your best Reel of the week counts. Tap any score to see how it adds up.';
+export const HOW_RINGS = 'Bangkok’s best Reels, chosen by the people who love the city. A like is 1 Ring. A save is 3. Each person who opens your Reel from Instagram, TikTok, Facebook or another app is 5. When a visitor to Bangkok likes or saves your Reel, it counts double, because you showed someone the real city. Your best Reel of each day counts. Daily tasks add more: today’s photo +3, a Reel +5, an Ask BKK answer +3. The day’s most helpful and funniest Ask BKK answers win +5 each at 8pm. Tap any score to see how it adds up.';
 
 export function HowSheet(props: { L: Tx; onClose: () => void }) {
   const { L } = props;

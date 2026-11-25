@@ -476,6 +476,8 @@ export type MeViewProps = {
   buildLeft?: number; buildLabel?: string; onBuild?: () => void;
   /** m214: first-visit steps line ("✦ Become a Bangkok Local · 1/3"), first 3 days only */
   onbSlot?: React.ReactNode;
+  /** Retention 10: the weekly-board orb (floats top-right of the Me content) */
+  orbSlot?: React.ReactNode;
   /** 25 Nov (mock F): today's tasks for the Rings chip + sheet, the sheet's links, and the claim (same kr8_task_claim as the tasks sheet) */
   chipTasks?: ChipTasks | null; onTasks?: () => void; onClaimTasks?: () => Promise<'ok' | 'face' | 'fail'>;
   /** the weekly board as loaded (for "N Rings to #2") */
@@ -502,6 +504,7 @@ export function MeView(props: MeViewProps) {
   return (
     <div className="kme kme-a rv4-me" id="meView">
       <div className="rv4-msky" aria-hidden="true" />
+      {props.orbSlot || null}
       <div className="kme-top">
         <span className="cap">{L('Your Kring')}</span>
         {chip ? <RingsChip L={L} Lf={Lf} d={chip} mine onOpen={() => setChipOpen(true)} /> : null}
