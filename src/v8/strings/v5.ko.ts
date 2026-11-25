@@ -1,5 +1,10 @@
 /* V5_L ko: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    // ── Follow Kring on LINE (25 Nov 2026) ──
+    'Get Kring news on LINE': 'LINE에서 Kring 소식 받기',
+    'Weekly winners, new questions and invite tips, straight to your LINE.': '이번 주 우승자, 새 질문, 친구 초대 팁을 LINE으로 바로 보내드려요.',
+    'Add Kring on LINE': 'LINE에서 Kring 친구 추가',
+    'Kring on LINE': 'LINE의 Kring',
     // ── Me: Rings chip, its sheet, question bubble (25 Nov 2026) ──
     'My soi’s go-to': '우리 골목 단골집',
     'Your soi’s go-to shop?': '골목 단골집은 어디예요?',

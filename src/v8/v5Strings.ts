@@ -1,6 +1,11 @@
 /** V5 strings. English is the key; TH / ZH / HI / JA / KO below. Looked up by L() / Lf() in KringAppV8. */
 export const V5_L: Record<string, Record<string, string>> = {
   th: {
+    // ── Follow Kring on LINE (25 Nov 2026) ──
+    'Get Kring news on LINE': 'ติดตามกริ๊ง! บน LINE',
+    'Weekly winners, new questions and invite tips, straight to your LINE.': 'ประกาศผู้ชนะประจำสัปดาห์ คำถามใหม่ และเคล็ดลับชวนเพื่อน ส่งตรงถึง LINE ของคุณ',
+    'Add Kring on LINE': 'เพิ่มเพื่อนกริ๊ง! บน LINE',
+    'Kring on LINE': 'กริ๊ง! บน LINE',
     // ── Me: Rings chip, its sheet, question bubble (25 Nov 2026) ──
     'My soi’s go-to': 'ร้านประจำในซอย',
     'Your soi’s go-to shop?': 'ร้านประจำในซอยคุณคือร้านไหน',

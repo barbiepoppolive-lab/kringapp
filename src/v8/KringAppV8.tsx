@@ -192,6 +192,7 @@ const Celebrate = lazyPart(() => import('./V5Celebrate').then((m) => m.Celebrate
 const RingFly = lazyPart(() => import('./V5Celebrate').then((m) => m.RingFly));
 import { kxTop3, type KxTop3 } from './v5Kx';
 import { kxCoachState } from './v5Kx';
+import { LineFollowSheet, LineIcon, LINE_FOLLOW_URL, lineFollowSeen, logLineFollow, markLineFollowSeen, type LineFollowFrom } from './V5LineFollow';
 import { V5Build, QA_KEY, buildIncomplete, buildLeftLabel, cardDoneSteps, missingSteps, type BuildStep } from './V5Build';
 import { cardBlob, displayCode } from './rankStory';
 const RewardsPage = lazyPart(() => import('./V5KxRewards').then((m) => m.RewardsPage));
@@ -1006,7 +1007,8 @@ type SheetId =
   | 'interests'
   | 'profile'
   | 'comments'
-  | 'verify';
+  | 'verify'
+  | 'lineFollow';
 
 export interface V8UserAccount {
   id: string;
@@ -1524,6 +1526,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const buildAskedRef = useRef(false);   // at most one re-prompt per app session
   /** open join: the builder was opened right after a new card, so closing it lands in the Feed (not People, which waits for the face check) */
   const joinBuildRef = useRef(false);
+  /** 25 Nov: Follow Kring on LINE sheet: where it was opened from (builder end / app open), once per phone */
+  const [lineFrom, setLineFrom] = useState<LineFollowFrom>('open');
   askMeRef.current = !signedIn ? null
     : live ? (v5Uid && v5Card ? { id: v5Uid, name: v5Card.first_name, photo: v5Card.photo || initialAvatar(v5Card.first_name), local: v5Card.who === 'local' } : null)
     : { id: user.id || 'me', name: user.name, photo: user.avatar || initialAvatar(user.name), local: user.role === 'local' };
@@ -2688,6 +2692,27 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     return () => window.removeEventListener('kr8:lastweek', on);
   }, []);
   const [kxFly, setKxFly] = useState(false);
+  // 25 Nov: existing members get the Follow Kring on LINE sheet once per phone, no sooner than 10 s after the app opens,
+  // and only when nothing else is on screen (no sheet, face check, builder, its re-prompt, celebration or install / dings card)
+  const lineBlockRef = useRef(false);
+  lineBlockRef.current = buildOpen || !!buildAsk || !!faceIntro || !!kxCeleb || joinBuildRef.current;
+  const lineArm = !!(live && signedIn && v5Card && v5Uid && !adminView);
+  useEffect(() => {
+    if (!lineArm || lineFollowSeen()) return;
+    const t0 = Date.now();
+    const iv = window.setInterval(() => {
+      if (lineFollowSeen()) { window.clearInterval(iv); return; }
+      if (Date.now() - t0 < 10000 || document.hidden) return;
+      if (sheetRef.current || lineBlockRef.current) return;
+      if (document.querySelector('[role="dialog"], [aria-modal="true"], .kpb, .sheet-backdrop, #pushAsk')) return;
+      window.clearInterval(iv);
+      markLineFollowSeen('shown');
+      setLineFrom('open');
+      setSheet('lineFollow');
+    }, 1500);
+    return () => window.clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lineArm]);
   // QA only on *.pages.dev previews: ?celebtest=winner|all shows the celebration with my own card (never on kringapp.com)
   useEffect(() => {
     try {
@@ -7244,6 +7269,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSheet('help'); } }}>
                 <span>{L('Help and contact')}</span><em>{lang === 'th' ? HELP_UI.title[0] : HELP_UI.title[1]} ›</em>
               </div>
+              <a className="srow klf-row" id="setLine" href={LINE_FOLLOW_URL} target="_blank" rel="noopener noreferrer"
+                onClick={() => { markLineFollowSeen('tap'); logLineFollow('tap', 'settings'); }}>
+                <span><LineIcon size={24} />{L('Kring on LINE')}</span><em>↗</em>
+              </a>
               <div className="srow" role="button" tabIndex={0} id="setLegal" onClick={() => setLegalOpen((v) => !v)}>
                 <span>{L('Legal & privacy')}</span><em>{legalOpen ? '⌄' : '›'}</em>
               </div>
@@ -8086,11 +8115,14 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onClose={(done) => {
               setBuildOpen(false); setBuildStart(null);
               const fromJoin = joinBuildRef.current; joinBuildRef.current = false;
-              if (fromJoin || (OPEN_JOIN && unvRef.current)) { setTab('feed'); if (done) void v5Me().then(v5ApplyMe).catch(() => undefined); return; }
-              if (done) { setTab('people'); void v5Me().then(v5ApplyMe).catch(() => undefined); }
+              // 25 Nov: a new member who finished (or skipped the last step of) the builder gets the LINE sheet once, before the Feed
+              const lineAsk = () => { if (done && !buildStart && !lineFollowSeen()) { markLineFollowSeen('shown'); setLineFrom('builder'); setTimeout(() => { if (!sheetRef.current) setSheet('lineFollow'); }, 150); } };
+              if (fromJoin || (OPEN_JOIN && unvRef.current)) { setTab('feed'); if (done) void v5Me().then(v5ApplyMe).catch(() => undefined); lineAsk(); return; }
+              if (done) { setTab('people'); void v5Me().then(v5ApplyMe).catch(() => undefined); lineAsk(); }
             }}
           />
         )}
+        {sheet === 'lineFollow' && <LineFollowSheet L={L} from={lineFrom} onClose={() => setSheet(null)} />}
         {/* Re-prompt: shown on opening People or tapping to message someone, never on a timer */}
         {buildAsk && buildNeeded && !buildOpen && (
           <>

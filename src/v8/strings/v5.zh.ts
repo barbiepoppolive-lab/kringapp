@@ -1,5 +1,10 @@
 /* V5_L zh: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    // ── Follow Kring on LINE (25 Nov 2026) ──
+    'Get Kring news on LINE': '在 LINE 上获取 Kring 消息',
+    'Weekly winners, new questions and invite tips, straight to your LINE.': '每周获奖者、新问题和邀请小技巧，直接发到你的 LINE。',
+    'Add Kring on LINE': '在 LINE 上添加 Kring',
+    'Kring on LINE': 'Kring 的 LINE',
     // ── Me: Rings chip, its sheet, question bubble (25 Nov 2026) ──
     'My soi’s go-to': '我巷子里的常去店',
     'Your soi’s go-to shop?': '你巷子里常去哪家店？',

@@ -1,5 +1,10 @@
 /* V5_L hi: loaded only when this language is chosen (16 Nov perf 2: the app no longer downloads all six languages). */
 const T: Record<string, string> = {
+    // ── Follow Kring on LINE (25 Nov 2026) ──
+    'Get Kring news on LINE': 'Kring की खबरें LINE पर पाएं',
+    'Weekly winners, new questions and invite tips, straight to your LINE.': 'हर हफ़्ते के विजेता, नए सवाल और दोस्तों को बुलाने के टिप्स, सीधे आपके LINE पर।',
+    'Add Kring on LINE': 'LINE पर Kring जोड़ें',
+    'Kring on LINE': 'LINE पर Kring',
     // ── Me: Rings chip, its sheet, question bubble (25 Nov 2026) ──
     'My soi’s go-to': 'मेरी गली की पसंदीदा दुकान',
     'Your soi’s go-to shop?': 'आपकी गली की पसंदीदा दुकान कौन-सी है?',
