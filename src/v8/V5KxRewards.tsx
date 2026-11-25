@@ -260,7 +260,7 @@ export function ClaimPage(props: { L: Tx; Lf: Txf; lang: string; data: KxRewards
         <div className="kx-step kx-step-vfy" id="kxClaimVerify">
           <span className="vf" aria-hidden="true">✓</span>
           <b>{L('Verify your face to claim')}</b>
-          <small>{L('30 seconds, once. It keeps every prize one person, one account.')}</small>
+          <small>{L('5 seconds, once. It keeps every prize one person, one account.')}</small>
           <button type="button" className="kx-btn" id="kxClaimVerifyGo" onClick={() => props.onVerify?.()}>{L('Verify my face')}</button>
         </div>
       ) : null}

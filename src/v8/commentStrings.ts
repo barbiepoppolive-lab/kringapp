@@ -21,7 +21,7 @@ export const KC_L: Record<string, Record<string, string>> = {
     'Comments turned off': 'ปิดความคิดเห็นแล้ว',
     'Comments turned on': 'เปิดความคิดเห็นแล้ว',
     'Comments are off for this Reel.': 'รีลนี้ปิดความคิดเห็นอยู่',
-    'Face-checked members can comment. Verify your face in 30 seconds to join in.': 'ยืนยันใบหน้าก่อน แล้วคอมเมนต์ได้เลย ใช้แค่ 30 วินาที',
+    'Face-checked members can comment. Verify your face in 5 seconds to join in.': 'ยืนยันใบหน้าก่อน แล้วคอมเมนต์ได้เลย ใช้แค่ 5 วินาที',
     'Verify': 'ยืนยัน',
     'Sign in to comment': 'เข้าสู่ระบบเพื่อแสดงความคิดเห็น',
     'Make your Kring card to comment': 'ทำการ์ดกริ๊ง! ก่อน แล้วค่อยแสดงความคิดเห็นนะ',
@@ -67,7 +67,7 @@ export function commentReasonText(reason: string): string {
     case 'daily': return 'You’ve made 20 comments today. Come back tomorrow!';
     case 'slow': return 'Wait a few seconds before your next comment.';
     case 'repeat': return 'You already posted that comment.';
-    case 'verify': return 'Face-checked members can comment. Verify your face in 30 seconds to join in.';
+    case 'verify': return 'Face-checked members can comment. Verify your face in 5 seconds to join in.';
     case 'signin': return 'Sign in to comment';
     case 'no_card': return 'Make your Kring card to comment';
     case 'off': return 'Comments are off for this Reel.';

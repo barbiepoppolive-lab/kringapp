@@ -115,13 +115,15 @@ const KR_LOWEND = typeof navigator !== 'undefined' && /Android/i.test(navigator.
  *  they post, answer, say hi or chat; members ≤ 68 are exempt. Mirrors kr8_rcfg('face_gate_after_no', 68); the server is the real guard.
  *  0111 (founder 18 Nov, "Do it later"): the face check is needed ONLY to claim a prize, so this client copy is OFF
  *  (mirrors kr8_rcfg('face_gate_on', 0)). Everything else (card, Feed, People, Reels, likes, chat, Rings, board) works without it. */
-const FACE_GATE_AFTER_NO = 68;
+const FACE_GATE_AFTER_NO_OLD = 68;
 const FACE_GATE_ON = true;   // 19 Nov (founder): face check right after the card photo; no posting / chat / People until verified (server: face_gate_on = 1)
 /** 25 Nov open onboarding (Claude Doc "Kring — open onboarding change list"): a new card is name + photo only and lands in the Feed;
  *  the face check is offered when the member reaches for something social (say hi, chat, post, ask, answer, daily task, People),
  *  after their 5th like ("you can see them, they can't see you"), and on their own Me (profile hidden). Watching, liking, saving and
  *  reading Ask BKK stay open. The server rules (kr8_face_gate, m207) are unchanged and remain the real guard. */
 const OPEN_JOIN = true;
+/** 25 Nov (founder): the old unchecked members (#68 and below) follow the same rule as everyone (m210 sets face_gate_after_no = 0) */
+const FACE_GATE_AFTER_NO = OPEN_JOIN ? 0 : FACE_GATE_AFTER_NO_OLD;
 import { StayDo } from './V5StayDo';
 import { v5MarkThreadRead } from './v5Live';
 import { v5DeviceSeen, v5HandoffBoot, v5LogClient, v5MyVerification, V5_AREAS } from './v5Live';
@@ -1276,7 +1278,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [verifyMode, setVerifyMode] = useState<'signup' | 'me' | 'claim'>('me');
   /** 0111: the face check opened ON TOP of the claim screen (the claim stays underneath and goes on once verified) */
   const [claimVerify, setClaimVerify] = useState(false);
-  /** 0111: the Me "Verify your face in 30 seconds" row was hidden (×) */
+  /** 0111: the Me "Verify your face in 5 seconds" row was hidden (×) */
   const [verifyHideTick, setVerifyHideTick] = useState(0);
   /** 0092: two taps to delete face data (the page can't show confirm dialogs) */
   const [forgetArm, setForgetArm] = useState(false);
@@ -2067,7 +2069,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     const q = searchQuery.trim().toLowerCase();
     const list = people.filter((p) => {
       if (blockedIds.includes(p.id) || blockedIds.includes(p.name)) return false;
-      if (live && !adminView && !p.verified) return false;   // 20 Nov: People lists face-verified members only
+      // 20 Nov: People listed face-verified members only. 25 Nov open join (founder): unverified members stay visible, without the ✓
+      if (live && !adminView && !p.verified && !OPEN_JOIN) return false;
       const matchQuery =
         !q ||
         p.name.toLowerCase().includes(q) ||
@@ -2173,6 +2176,10 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     if (adminViewRef.current) { adminNoRef.current(); return; }
     if (unvRef.current) { setFaceIntro('hi'); return; }   // 20 Nov: Say hi needs the face check
     if (askBuild('hi')) return;   // 25 Nov: one soft "finish your profile" ask per session; Not now lets the hello go on next tap
+    // 25 Nov open join: an unchecked member is visible (no ✓) but cannot be messaged yet (the server refuses); say so kindly
+    if (OPEN_JOIN && live && id && ((otherProfile?.user_id === id && otherProfile.verified === false) || people.some((p) => p.id === id && p.verified === false))) {
+      showToast(L('They don’t have their ✓ yet. You can say hi once they do.')); return;
+    }
     // T301-022: one hello per person. If we already have a chat with them, open it instead of a second hello (the server says no with a 400).
     const had = live && id ? threads.find((t) => t.personId === id) : undefined;
     if (had) {
@@ -3181,7 +3188,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     }
   };
   // 0081 asked every member ONCE (a pop-up 6 s after opening) to do the 3-second check. 0111 (founder 18 Nov): no pop-ups; the face
-  // check is only needed to claim a prize, so the gentle row on Me ("Verify your face in 30 seconds") and the claim screen ask instead.
+  // check is only needed to claim a prize, so the gentle row on Me ("Verify your face in 5 seconds") and the claim screen ask instead.
   // A ?open=verify link still opens the check.
   useEffect(() => {
     if (!live || !v5Uid || !v5Card?.photo || adminViewActive()) return;
@@ -3267,7 +3274,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       && no != null && Number(no) > FACE_GATE_AFTER_NO;
     verifyFirstRef.current = () => {
       // 25 Nov open onboarding: the "Ready to post your first Reel?" prompt says it; the old toast stays for gated non-OPEN_JOIN cases
-      if (!(OPEN_JOIN && unvRef.current)) showToast(L('Verify your face in 30 seconds to post and chat. One person, one account.'));
+      if (!(OPEN_JOIN && unvRef.current)) showToast(L('Verify your face in 5 seconds to post and chat. One person, one account.'));
       try { window.dispatchEvent(new CustomEvent('kr8-verify-first', { detail: 'post' })); } catch { /* ignore */ }
     };
   }

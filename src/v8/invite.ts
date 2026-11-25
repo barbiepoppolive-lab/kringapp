@@ -69,7 +69,7 @@ export function shareText(lang: string, kind: ShareKind, name = ''): string {
 /** invite-face (21 Nov, founder): since 21 Nov an invite earns the inviter 10 Rings only once the friend passes the face check, so every
  *  message a member sends about their OWN card / Reel (it carries their ?ref= code) ends with one short line asking for it. */
 export const OWN_SHARES: readonly ShareKind[] = ['invite', 'my_profile', 'my_reel', 'my_reel_soon'];
-export const faceAsk = (lang: string): string => (isTh(lang) ? 'สมัครแล้วยืนยันใบหน้า 30 วิ ฉันจะได้ 10 ริง' : 'Sign up and do the 30-sec face check so I get 10 Rings');
+export const faceAsk = (lang: string): string => (isTh(lang) ? 'สมัครแล้วยืนยันใบหน้า 5 วิ ฉันจะได้ 10 ริง' : 'Sign up and do the 5-sec face check so I get 10 Rings');
 function shareLine(lang: string, kind: ShareKind, name = ''): string {
   const th = isTh(lang);
   const n = (name || '').trim();

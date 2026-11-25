@@ -7,7 +7,7 @@ import path from 'node:path';
 import { open, settle } from '../prize_ui/run.mjs';
 import { CAST, FAKE, MEDIA } from '../prize_ui/fake_kring.mjs';
 
-const out = process.argv[2] || '/tmp/face_gate';
+const out = process.argv[2] || '/tmp/face_gate';  // v2 (25 Nov): unverified members stay visible, no ✓; 5-second check
 const only = process.argv[3] || '';
 fs.mkdirSync(out, { recursive: true });
 const face = (k) => `${FAKE}/media/faces/${k}.jpg`;
@@ -46,7 +46,7 @@ async function placeholderFaces(context) {
   });
 }
 
-function unverified(data, { noCard = false } = {}) {
+function unverified(data, { noCard = false, viewerVerified = false } = {}) {
   const r = data.rpc;
   const card = { ...r.kr8_me.card, verified: false, ig_handle: null, terms_version: 'member-2026-11-17', terms_accepted_at: '2026-11-25T03:00:00Z', promo_ok: true };
   r.kr8_me = { ...r.kr8_me, card: noCard ? null : card, posts: 0 };
@@ -61,6 +61,14 @@ function unverified(data, { noCard = false } = {}) {
   r.kr8_toggle_like = { liked: true, likes: 41 };
   r.kr8_my_unv_stats = { gated: true, verified: false, views: 14, likes: 9, saves: 2, prompt_at: 5 };
   r.kr8_people = [];
+  if (viewerVerified) {
+    // a verified viewer: People lists verified and unverified members; Ton has no face check yet (no ✓)
+    r.kr8_me.card = { ...r.kr8_me.card, verified: true };
+    const P = (k, verified, bio) => ({ user_id: CAST[k].id, first_name: CAST[k].name, photo: face(k), langs: ['TH', 'EN'], bio, area: CAST[k].area, who: CAST[k].who, here: false, verified });
+    r.kr8_people = [P('ton', false, 'Sathorn street food and Muay Thai'), P('mint', true, 'Rooftops after work'), P('nat', true, 'Silom runner, coffee after'), P('aom', false, 'Film photos around Bang Rak')];
+    r.kr8_profile = { ...r.kr8_profile, user_id: CAST.ton.id, first_name: 'Ton', photo: face('ton'), bio: 'Sathorn street food and Muay Thai', area: 'Sathorn', verified: false, mine: false, ig_handle: null, member_no: 'KR 4821', reels: [], followers: 3, following: 12, likes: 0, i_follow: false, follows_me: false, qa_q: null, qa_answer: null };
+    r.kr8_card_extras = { ...r.kr8_card_extras, member_no: 37 };
+  }
   r.kr8_coach_state = [];   // a brand-new member: no profile-builder step done yet
   r.kr8_set_qa = { qa_q: null, qa_answer: null };
   return data;
@@ -157,6 +165,17 @@ for (const lang of ['en', 'th']) {
     await shot(`FG_04_nudge_after_likes${sfx(lang)}.png`, page, await page.$eval('#unvBody', (e) => e.textContent));
     void o;
   } });
+
+  // 06 · an unverified member's profile as others see it: listed in People and on the profile, with no ✓ (Ploy here is verified)
+  await run('06', lang, { go: async (page, o) => {
+    void o;
+    await page.click('nav.dock [data-tab="people"]');
+    await settle(page, 2500);
+    await shot(`FG_06a_people_no_tick${sfx(lang)}.png`, page, await page.evaluate(() => [...document.querySelectorAll('[data-verified]')].map((e) => e.getAttribute('data-verified') + ':' + (e.textContent || '').slice(0, 12)).join(' | ')));
+    await page.click('text=Ton');
+    await page.waitForTimeout(1800);
+    await shot(`FG_06b_profile_no_tick${sfx(lang)}.png`, page, await page.evaluate(() => document.querySelector('.rv4-pnm, .rv-idnm, h2')?.textContent || ''));
+  }, opts: { viewerVerified: true } });
 
   // 05 · invite nudge for members: Share & win sheet says friends can join without the face check
   await run('05', lang, { query: '?open=share', go: async (page, o) => {

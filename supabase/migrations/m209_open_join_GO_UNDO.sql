@@ -1,14 +1,5 @@
--- UNDO m209: back to the live definitions of 24 Nov (face gate follows face_gate_on only; invite pays on a passed face check
--- OR an approved first Reel) and open_join_on = 0.
+-- UNDO m209: back to the live kr8_invite_try of 24 Nov (invite pays on a passed face check OR an approved first Reel).
 begin;
-create or replace function public.kr8_face_gate(p_user uuid)
- returns boolean language sql stable security definer set search_path to 'public', 'pg_temp' as $function$
-  select public.kr8_rcfg('face_gate_on', 0) = 1
-     and exists (select 1 from public.kr8_members m
-                  where m.user_id = p_user and not m.verified and not m.ghost
-                    and coalesce(m.member_no, 0) > public.kr8_rcfg('face_gate_after_no', 68))
-$function$;
-
 create or replace function public.kr8_invite_try(p_friend uuid)
  returns integer language plpgsql security definer set search_path to 'public', 'pg_temp' as $function$
 declare
@@ -62,5 +53,4 @@ begin
 end $function$;
 revoke all on function public.kr8_invite_try(uuid) from public, anon, authenticated;
 
-update public.kr8_rings_config set value = 0, updated_at = now() where key = 'open_join_on';
 commit;

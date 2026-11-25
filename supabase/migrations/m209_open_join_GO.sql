@@ -1,27 +1,14 @@
 -- m209 (25 Nov, open onboarding) — APPLY ON GO. Do NOT apply before the founder says "go" for the open-join app build.
--- This changes live behaviour, so it waits. It goes live together with the face-gate app build (branch face-gate).
---
---   1. kr8_face_gate: the gate also holds while open_join_on = 1, so turning face_gate_on off by mistake can never make an
---      unchecked account visible or contactable once anyone can join without the check. Same rule otherwise (member #68 and
---      below exempt, ghosts exempt, verified exempt).
---   2. kr8_invite_try: an invite pays ONLY when the friend passes the face check (settled economy fact: invite = 10 Rings and
---      requires the face check). The old "or their first Reel was approved" route is removed. Today that route is already
---      closed for every new member (an unchecked member cannot post), so no Rings change for anyone; this makes it explicit.
---      invite = 10, invite_day_cap = 20 and the inviter's daily count are unchanged.
---   3. open_join_on = 1.
+-- Founder decision 25 Nov: unverified members stay visible (no ✓), so this file NO LONGER touches kr8_face_gate or hiding.
+-- What is left in it, and only this:
+--   kr8_invite_try: an invite pays ONLY when the friend passes the face check (settled economy fact: invite = 10 Rings and
+--   requires the face check). The old "or their first Reel was approved" route is removed. That route is already closed for every
+--   new member (an unchecked member cannot post), so no Rings change for anyone; this makes the rule explicit.
+--   invite = 10, invite_day_cap = 20 and the inviter's daily count are unchanged.
 -- Weekly ranking rules, liker_min_age_hours (876000), v2_unv_day_cap (2), min_rings_for_paid_seat (25): untouched.
+-- The visibility change (unchecked members shown in People, follow lists, tagging) is in m210_unverified_visible_GO.sql.
 -- UNDO: m209_open_join_GO_UNDO.sql
 begin;
-
-create or replace function public.kr8_face_gate(p_user uuid)
- returns boolean language sql stable security definer set search_path to 'public', 'pg_temp' as $function$
-  select (public.kr8_rcfg('face_gate_on', 0) = 1 or public.kr8_rcfg('open_join_on', 0) = 1)
-     and exists (select 1 from public.kr8_members m
-                  where m.user_id = p_user and not m.verified and not m.ghost
-                    and coalesce(m.member_no, 0) > public.kr8_rcfg('face_gate_after_no', 68))
-$function$;
-revoke execute on function public.kr8_face_gate(uuid) from public, anon;
-grant execute on function public.kr8_face_gate(uuid) to authenticated;
 
 create or replace function public.kr8_invite_try(p_friend uuid)
  returns integer language plpgsql security definer set search_path to 'public', 'pg_temp' as $function$
@@ -75,7 +62,5 @@ begin
 end $function$;
 -- trigger-only (kr8_invite_trg / kr8_invite_verify_trg): nobody calls it directly, same as today
 revoke all on function public.kr8_invite_try(uuid) from public, anon, authenticated;
-
-update public.kr8_rings_config set value = 1, updated_at = now() where key = 'open_join_on';
 
 commit;

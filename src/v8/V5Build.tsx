@@ -272,7 +272,7 @@ export function V5Build(props: V5BuildProps) {
               {qa.trim() ? <small className="kpb-qaline">{L(QA_QUESTION)} — {qa.trim()}</small> : null}
             </span>
           </div>
-          <p className="kpb-in">{props.feedAfter ? L('Your card is ready. Face check in 30 seconds whenever you want to be seen.') : L('You’re on the People page now')}</p>
+          <p className="kpb-in">{props.feedAfter ? L('Your card is ready. Get your ✓ with a 5-second face check any time.') : L('You’re on the People page now')}</p>
           <button type="button" className="kpb-cta" id="buildDone" onClick={() => props.onClose(true)}>{props.feedAfter ? L('Go to the Feed') : L('See People')}</button>
         </div>
       </div>

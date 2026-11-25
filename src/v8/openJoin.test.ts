@@ -16,10 +16,12 @@ describe('open onboarding prompts', () => {
       expect(/[A-Za-z]{4,}/.test(th.title + th.body.replace(/กริ๊ง!/g, ''))).toBe(false);
       expect(en.body).not.toMatch(/warning|banned|suspend|fake/i);
     }
-    expect(unvCopy('en', 'likes', { views: 14, likes: 9 }).body).toContain('watched 14 clips and liked 9');
-    expect(unvCopy('th', 'likes', { views: 14, likes: 9 }).body).toContain('ดูมา 14 คลิป และกดใจไป 9 ครั้ง');
-    // watched is never shown lower than liked
-    expect(unvCopy('en', 'likes', { views: 2, likes: 6 }).body).toContain('watched 6 clips and liked 6');
+    expect(unvCopy('en', 'likes', { views: 14, likes: 9 }).body).toContain('liked 9 clips');
+    expect(unvCopy('en', 'likes', { views: 14, likes: 9 }).title).toBe('Get your ✓');
+    expect(unvCopy('en', 'me').title).toBe('Get your ✓');
+    expect(unvCopy('th', 'likes', { views: 14, likes: 9 }).body).toContain('กดใจไปแล้ว 9 คลิป');
+    for (const why of ['hi', 'people', 'likes', 'me'] as const) expect(unvCopy('en', why).body).not.toMatch(/hidden|can’t see you|Everyone (on Kring|you see|here) has/);
+    expect(unvCopy('en', 'post').body).toMatch(/5-second/);
     expect(unvCopy('zh', 'post').title).toBe(unvCopy('en', 'post').title);
   });
   it('unknown reasons fall back to People', () => {
@@ -67,5 +69,18 @@ describe('server files', () => {
     expect(go).toMatch(/kr8_rcfg\('invite_day_cap', 20\)/);
     expect(go.replace(/^--.*$/gm, '')).not.toMatch(/liker_min_age_hours|v2_unv_day_cap|min_rings_for_paid_seat/);
     expect(go).toMatch(/revoke all on function public\.kr8_invite_try\(uuid\) from public, anon, authenticated/);
+    expect(go.replace(/^--.*$/gm, '')).not.toMatch(/kr8_face_gate|open_join_on/);
+  });
+  it('m210 (APPLY ON GO) lists unchecked members but keeps their own actions and receiving gated', () => {
+    const vis = fs.readFileSync('supabase/migrations/m210_unverified_visible_GO.sql', 'utf8');
+    const code = vis.replace(/^--.*$/gm, '');
+    expect(vis).toMatch(/APPLY ON GO/);
+    expect(code).not.toMatch(/not public\.kr8_face_gate\(m\.user_id\)/);
+    expect(code).toMatch(/if public\.kr8_face_gate\(uid\) then raise exception 'KR8_VERIFY_FIRST'/);
+    expect(code).not.toMatch(/kr8_send_hello|kr8_send_message|kr8_face_gate_trg|kr8_rings_ledger/);
+    expect(code.match(/kr8_rings_config[^;]*;/g)).toEqual(["kr8_rings_config set value = 0, updated_at = now() where key = 'face_gate_after_no';"]);
+    expect(code).not.toMatch(/ <> auth\.uid\(\)|<> uid/);
+    for (const f of ['kr8_people(integer)', 'kr8_follow(uuid)', 'kr8_follow_list(uuid, text)', 'kr8_tag_candidates(text, integer)'])
+      expect(code).toContain(`revoke execute on function public.${f} from public, anon;`);
   });
 });

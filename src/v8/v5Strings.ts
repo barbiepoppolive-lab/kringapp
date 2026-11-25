@@ -66,8 +66,9 @@ export const V5_L: Record<string, Record<string, string>> = {
     'That’s you, {0}': 'นี่คือคุณแล้ว {0}',
     'You’re on the People page now': 'คุณอยู่ในหน้าผู้คนแล้ว',
     'See People': 'ไปหน้าผู้คน',
-    'Your card is ready. Face check in 30 seconds whenever you want to be seen.': 'การ์ดของคุณพร้อมแล้ว สแกนหน้า 30 วินาทีเมื่อไหร่ก็ได้ที่อยากให้คนอื่นเห็นคุณ',
+    'Your card is ready. Get your ✓ with a 5-second face check any time.': 'การ์ดของคุณพร้อมแล้ว รับ ✓ ด้วยการสแกนหน้า 5 วินาทีได้ทุกเมื่อ',
     'Go to the Feed': 'ไปที่ฟีด',
+    'They don’t have their ✓ yet. You can say hi once they do.': 'เขายังไม่มี ✓ ทักทายได้เมื่อเขายืนยันหน้าแล้ว',
     'Finish your profile': 'ทำโปรไฟล์ให้เสร็จ',
     '1 step left on your profile': 'เหลืออีก 1 ขั้นตอน',
     '{0} steps left on your profile': 'เหลืออีก {0} ขั้นตอน',
@@ -75,7 +76,7 @@ export const V5_L: Record<string, Record<string, string>> = {
     'People see you better with a full card': 'โปรไฟล์ที่ครบ ทำให้คนอื่นเห็นคุณชัดขึ้น',
     'Members with a full card get far more replies. {0}': 'สมาชิกที่โปรไฟล์ครบ ได้รับการตอบกลับมากกว่ามาก {0}',
     'Tap again to confirm': 'แตะอีกครั้งเพื่อยืนยัน',
-    'Verify your face in 30 seconds to post and chat. One person, one account.': 'ยืนยันใบหน้า 30 วินาทีก่อนโพสต์และแชตนะ หนึ่งคน หนึ่งบัญชี',
+    'Verify your face in 5 seconds to post and chat. One person, one account.': 'ยืนยันใบหน้า 5 วินาทีก่อนโพสต์และแชตนะ หนึ่งคน หนึ่งบัญชี',
     'Usually your face photo stays on your phone and Kring keeps only a face code (numbers). If the check is unsure, or your phone can’t run it, one selfie goes to our team to look at, and we delete it about 30 days after the review.': 'ปกติรูปหน้าของคุณจะอยู่แค่ในมือถือ และกริ๊ง! เก็บแค่รหัสใบหน้าที่เป็นตัวเลข ถ้าระบบยังไม่แน่ใจ หรือมือถือตรวจเองไม่ได้ เราจะส่งเซลฟี่ 1 รูปให้ทีมงานดู แล้วลบทิ้งราว 30 วันหลังตรวจเสร็จครับ',
     // T-392: shown before the one selfie is uploaded for the team (need_photo / simple path)
     'We’ll send this one photo to our team to check, then delete it.': 'เราจะส่งรูปนี้ 1 รูปให้ทีมงานตรวจ แล้วลบทิ้งครับ',
@@ -685,7 +686,7 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Hide for a day': 'ซ่อนไว้ 1 วัน',
     // 0081 instant face check
     'Use your real face in front of the camera, not a photo or a screen.': 'ใช้หน้าจริงของคุณหน้ากล้องนะ ไม่ใช่รูปหรือหน้าจอ',
-    'A 30-second face check on your phone. People reply more to verified members.': 'เช็กหน้า 30 วินาทีในมือถือ คนจะตอบแชตสมาชิกที่ยืนยันตัวตนแล้วมากกว่า',
+    'A 5-second face check on your phone. People reply more to verified members.': 'เช็กหน้า 5 วินาทีในมือถือ คนจะตอบแชตสมาชิกที่ยืนยันตัวตนแล้วมากกว่า',
     'Put your face in the oval': 'วางหน้าให้อยู่ในวงรี',
     // face-fixes 19 Nov: live hints + face privacy link
     'Move your face into the oval': 'ขยับหน้าให้อยู่ในวงรีนะ',
@@ -707,12 +708,12 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Now blink': 'กะพริบตาหนึ่งที',
     'Getting the camera ready…': 'กำลังเปิดกล้อง…',
     'Checking…': 'กำลังเช็ก…',
-    'Checked on your phone · about 30 seconds': 'เช็กในมือถือของคุณ · ประมาณ 30 วินาที',
+    'Checked on your phone · about 5 seconds': 'เช็กในมือถือของคุณ · ประมาณ 5 วินาที',
     'Add a photo first': 'ใส่รูปก่อนนะ',
     'Add a clear photo of your face to your card first. The face check compares it with your camera.': 'ใส่รูปหน้าชัด ๆ บนการ์ดก่อน ระบบจะเทียบรูปนี้กับหน้าในกล้อง',
-    'New: 30-second face check': 'ใหม่! เช็กหน้า 30 วินาที',
+    'New: 5-second face check': 'ใหม่! เช็กหน้า 5 วินาที',
     'Do it once. It keeps your ✓ and your prizes safe.': 'ทำครั้งเดียวจบ ช่วยให้ ✓ และรางวัลของคุณปลอดภัย',
-    'Verify in 30 seconds': 'ยืนยันตัวตนใน 30 วินาที',
+    'Verify in 5 seconds': 'ยืนยันตัวตนใน 5 วินาที',
     'Look at the camera, turn your head a little, blink. That’s it.': 'มองกล้อง หันหน้านิดนึง แล้วกะพริบตา แค่นั้นเอง',
     'The check runs on your phone and the result comes right away. To keep Kring one person, one account, we keep a face code made from your selfie and from your card photo (numbers, not a photo) and compare it with other members’ face codes. Only the Kring team can see it.': 'การเช็กทำในมือถือของคุณและรู้ผลทันที เพื่อให้ Kring เป็นหนึ่งคนหนึ่งบัญชี เราเก็บรหัสใบหน้าจากเซลฟี่และจากรูปบนการ์ดของคุณ (เป็นตัวเลข ไม่ใช่รูปภาพ) แล้วเทียบกับรหัสใบหน้าของสมาชิกคนอื่น มีแค่ทีม Kring ที่ดูได้',
     'Agree and start': 'ยอมรับและเริ่มเลย',
@@ -760,7 +761,7 @@ export const V5_L: Record<string, Record<string, string>> = {
     // 0111 (18 Nov): the face check is needed only to claim a prize ("Do it later" in sign-up, a gentle row on Me, a step in the claim)
     'Do it later': 'ไว้ทีหลัง',
     // invite-face (21 Nov, founder): the face check right after a sign-up from a member's invite link (the inviter's 10 Rings wait for it)
-    'Verify your face in 30 sec and the friend who invited you gets 10 Rings': 'ยืนยันใบหน้า 30 วิ แล้วเพื่อนที่ชวนคุณได้ 10 ริง',
+    'Verify your face in 5 sec and the friend who invited you gets 10 Rings': 'ยืนยันใบหน้า 5 วิ แล้วเพื่อนที่ชวนคุณได้ 10 ริง',
     'So your and your friends’ Rings count in full. Look at the camera, turn a little, blink.': 'เพื่อให้ริงของคุณและเพื่อนนับเต็ม มองกล้อง หันหน้านิดนึง แล้วกะพริบตา',
     // fix4 (19 Nov): a timed-out face check offers "Do it later"; camera blocked shows short steps
     'No rush. Do it when you can, so your and your friends’ Rings count in full.': 'ไม่ต้องรีบครับ ทำตอนสะดวก เพื่อให้ริงของคุณและเพื่อนนับเต็ม',
@@ -781,15 +782,15 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Camera → Allow': 'กล้อง → อนุญาต',
     'Come back and click Try again': 'กลับมาแล้วคลิก “ลองใหม่”',
     'One quick step to get your prize': 'อีกขั้นเดียวก็รับรางวัลได้',
-    'A 30-second face check keeps every prize one person, one account.': 'เช็กหน้า 30 วินาที ให้ทุกรางวัลเป็นของคนจริง หนึ่งคน หนึ่งบัญชี',
+    'A 5-second face check keeps every prize one person, one account.': 'เช็กหน้า 5 วินาที ให้ทุกรางวัลเป็นของคนจริง หนึ่งคน หนึ่งบัญชี',
     'Now pick where to get your prize.': 'เลือกได้เลยว่าจะรับรางวัลทางไหน',
     'Back to my prize': 'กลับไปรับรางวัล',
-    'Verify your face in 30 seconds': 'ยืนยันใบหน้าใน 30 วินาที',
+    'Verify your face in 5 seconds': 'ยืนยันใบหน้าใน 5 วินาที',
     'Be ready to claim your prize the moment you win.': 'พร้อมรับรางวัลทันทีที่คุณชนะ',
     'Hide': 'ซ่อน',
-    'Verify your face in 30 seconds to claim your prize.': 'ยืนยันใบหน้า 30 วินาทีเพื่อรับรางวัลของคุณ',
+    'Verify your face in 5 seconds to claim your prize.': 'ยืนยันใบหน้า 5 วินาทีเพื่อรับรางวัลของคุณ',
     // 0125 server face check + 19 Nov face guides (1A · 2B · 3C)
-    "Checked securely · about 30 seconds": "ตรวจอย่างปลอดภัย · ประมาณ 30 วินาที",
+    "Checked securely · about 5 seconds": "ตรวจอย่างปลอดภัย · ประมาณ 5 วินาที",
     "So your and your friends’ Rings count in full. Look at the camera, then turn a little left and right.": "เพื่อให้ริงของคุณและเพื่อนนับเต็ม มองกล้อง แล้วหันซ้ายขวานิดนึง",
     "Your phone takes 3 quick photos. They go securely to our face-check service (Amazon Web Services, Australia), which compares them with your card photo and with other members’ faces, to keep Kring one person, one account.": "มือถือจะถ่ายรูปสั้น ๆ 3 รูป แล้วส่งอย่างปลอดภัยไปยังระบบตรวจใบหน้าของเรา (Amazon Web Services ออสเตรเลีย) เพื่อเทียบกับรูปบนการ์ดของคุณและใบหน้าของสมาชิกคนอื่น ให้ Kring เป็นหนึ่งคน หนึ่งบัญชี",
     "We keep one photo for our team to check and delete it about 30 days later. Your face code stays with Amazon until you delete your face data or your account.": "เราเก็บรูป 1 รูปไว้ให้ทีมงานตรวจ แล้วลบทิ้งภายในประมาณ 30 วัน ส่วนรหัสใบหน้าจะเก็บไว้ที่ Amazon จนกว่าคุณจะลบข้อมูลใบหน้าหรือลบบัญชี",
@@ -920,7 +921,7 @@ export function v5ErrText(code: string, name = ''): [string, string?] {
     case 'NETWORK': return ['Couldn’t reach Kring. Check your connection and try again.'];
     case 'BAD_CODE': return ['That code is wrong or has expired. Send a new code below.'];
     case 'BAD_HANDLE': return ['That Instagram name doesn’t look right.'];
-    case 'VERIFY_FIRST': return ['Verify your face in 30 seconds to claim your prize.'];   // 0111: only a prize claim asks
+    case 'VERIFY_FIRST': return ['Verify your face in 5 seconds to claim your prize.'];   // 0111: only a prize claim asks
     case 'VERIFY_PENDING': return ['Your face check is with our team. You can claim as soon as it passes. We’ll notify you.'];
     case 'NEED_REEL': return ['Post a Reel and get it approved to claim your prize.'];
     case 'NEED_PLACE_REEL': return ['To claim the ฿100, post a Reel at a real place (add the place) and get it approved.'];
@@ -986,7 +987,7 @@ export const KX_L: Record<string, Record<string, string>> = {
     'Prize now': 'รางวัลตอนนี้',
     // 0111: the face check as the claim's one required step
     'Verify your face to claim': 'ยืนยันใบหน้าเพื่อรับรางวัล',
-    '30 seconds, once. It keeps every prize one person, one account.': 'ใช้ 30 วินาที ทำครั้งเดียว ให้ทุกรางวัลเป็นของคนจริง หนึ่งคน หนึ่งบัญชี',
+    '5 seconds, once. It keeps every prize one person, one account.': 'ใช้ 5 วินาที ทำครั้งเดียว ให้ทุกรางวัลเป็นของคนจริง หนึ่งคน หนึ่งบัญชี',
     'Verify my face': 'ยืนยันใบหน้า',
     'Show my Instagram & TikTok on my card': 'โชว์ไอจีและติ๊กต็อกบนการ์ดของฉัน',
     'Off: only you can see them.': 'ปิดไว้: เห็นได้แค่คุณคนเดียว',

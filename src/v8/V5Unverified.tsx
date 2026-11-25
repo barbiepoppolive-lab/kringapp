@@ -11,72 +11,72 @@ type Lng = 'th' | 'en';
 const TX: Record<Lng, Record<string, string>> = {
   en: {
     meetT: 'Meet the people of Bangkok',
-    meetB: 'Everyone here has passed a 30-second face check. Do yours to see them and say hi.',
+    meetB: 'Do a 5-second face check to see profiles and say hi.',
     meetGo: 'Verify my face',
-    foot: 'Takes 30 seconds · Your selfie is deleted within 30 days',
+    foot: 'Takes 5 seconds · Your selfie is deleted within 30 days',
     meA: 'Verify your face to join the',
     meB: 'weekly ranking & daily rewards',
-    meGo: 'Verify',
+    meGo: 'Verify (5 sec)',
     shT: 'Quick face check',
-    shB: 'Kring is one real person, one account. A 30-second check unlocks People, Say hi, chat and weekly rewards.',
-    shGo: 'Start · 30 seconds',
+    shB: 'Kring is one real person, one account. A 5-second check unlocks People, Say hi, chat and weekly rewards.',
+    shGo: 'Start · 5 seconds',
     shNo: 'Not now',
     shFoot: 'Your selfie is deleted within 30 days',
     // 0182 (20 Nov): friend-verify nudge. Owner: in My Reel stats + Activity (once a day). Liker: on this sheet.
-    fvOwner: 'Your friend’s like counts fully once they do the 30-second face check.',
-    fvLiker: 'Your likes count fully for your friends after a 30-second face check.',
+    fvOwner: 'Your friend’s like counts fully once they do the 5-second face check.',
+    fvLiker: 'Your likes count fully for your friends after a 5-second face check.',
     // 25 Nov open onboarding: the face check moves to the moment they reach for something social (one prompt per reason)
     hiT: 'Want to say hi?',
-    hiB: 'A 30-second face check first. Everyone on Kring has done it.',
+    hiB: 'A 5-second face check first, so everyone you chat with is a real person.',
     chatT: 'Want to chat?',
     postT: 'Ready to post your first Reel?',
-    postB: 'A 30-second face check first, so everything in the feed is from a real person.',
+    postB: 'A 5-second face check first, so everything in the feed is from a real person.',
     askT: 'Want to ask Bangkok?',
-    askB: 'A 30-second face check first, then your question goes up.',
+    askB: 'A 5-second face check first, then your question goes up.',
     ansT: 'Want to answer this?',
-    ansB: 'A 30-second face check first, then your answer goes up.',
+    ansB: 'A 5-second face check first, then your answer goes up.',
     taskT: 'Daily tasks pay Rings',
-    taskB: 'A 30-second face check unlocks daily tasks, Rings and the weekly ranking.',
+    taskB: 'A 5-second face check unlocks daily tasks, Rings and the weekly ranking.',
     peopleT: 'Want to see who’s here?',
-    peopleB: 'A 30-second face check opens People, profiles and Say hi. Everyone you see has done it.',
-    likesT: 'You can see them. They can’t see you yet.',
-    likesB: 'You’ve watched {v} clips and liked {l}. 30 seconds of your face to join the room properly.',
-    meH: 'Your profile is hidden',
-    meS: 'Only you can see it. A 30-second face check puts you in People, chat and the weekly ranking.',
+    peopleB: 'A 5-second face check opens profiles and Say hi.',
+    likesT: 'Get your ✓',
+    likesB: 'You’ve liked {l} clips. A 5-second face check lets people say hi to you, and your likes count fully.',
+    meH: 'No ✓ yet',
+    meS: 'A 5-second face check lets people say hi to you, and unlocks chat, posting and the weekly ranking.',
     openInv: 'Friends can now join with just a name and photo, no face check to start. You both get +10 when they do it.',
   },
   th: {
     meetT: 'มาเจอผู้คนในกรุงเทพฯ',
-    meetB: 'ทุกคนที่นี่ผ่านการสแกนหน้า 30 วินาทีแล้ว สแกนหน้าของคุณเพื่อดูโปรไฟล์และทักทายได้เลย',
+    meetB: 'สแกนหน้า 5 วินาที เพื่อดูโปรไฟล์และทักทายได้เลย',
     meetGo: 'สแกนหน้าของฉัน',
-    foot: 'ใช้เวลา 30 วินาที · เซลฟี่ของคุณจะถูกลบภายใน 30 วัน',
+    foot: 'ใช้เวลา 5 วินาที · เซลฟี่ของคุณจะถูกลบภายใน 30 วัน',
     meA: 'สแกนหน้าเพื่อเข้าร่วม',
     meB: 'อันดับประจำสัปดาห์และรางวัลรายวัน',
-    meGo: 'สแกนหน้า',
+    meGo: 'ยืนยัน (5 วิ)',
     shT: 'สแกนหน้าแป๊บเดียว',
-    shB: 'กริ๊ง! คือหนึ่งคนจริง หนึ่งบัญชี สแกนหน้าแค่ 30 วินาที ก็ปลดล็อกหน้าผู้คน การทักทาย แชต และรางวัลประจำสัปดาห์',
-    shGo: 'เริ่ม · 30 วินาที',
+    shB: 'กริ๊ง! คือหนึ่งคนจริง หนึ่งบัญชี สแกนหน้าแค่ 5 วินาที ก็ปลดล็อกหน้าผู้คน การทักทาย แชต และรางวัลประจำสัปดาห์',
+    shGo: 'เริ่ม · 5 วินาที',
     shNo: 'ไว้ทีหลัง',
     shFoot: 'เซลฟี่ของคุณจะถูกลบภายใน 30 วัน',
-    fvOwner: 'ไลก์ของเพื่อนจะนับเต็มเมื่อเพื่อนสแกนหน้า 30 วินาที',
-    fvLiker: 'ไลก์ของคุณจะนับเต็มให้เพื่อน หลังสแกนหน้า 30 วินาที',
+    fvOwner: 'ไลก์ของเพื่อนจะนับเต็มเมื่อเพื่อนสแกนหน้า 5 วินาที',
+    fvLiker: 'ไลก์ของคุณจะนับเต็มให้เพื่อน หลังสแกนหน้า 5 วินาที',
     hiT: 'อยากทักคนนี้ใช่ไหม',
-    hiB: 'สแกนหน้า 30 วินาทีก่อนนะ ทุกคนในกริ๊ง! ผ่านขั้นนี้มาแล้ว',
+    hiB: 'สแกนหน้า 5 วินาทีก่อน เพื่อให้ทุกคนที่คุณคุยด้วยเป็นคนจริง',
     chatT: 'อยากแชตใช่ไหม',
     postT: 'พร้อมโพสต์รีลแรกแล้วใช่ไหม',
-    postB: 'สแกนหน้า 30 วินาทีก่อน ทุกอย่างในฟีดจะได้มาจากคนจริง',
+    postB: 'สแกนหน้า 5 วินาทีก่อน ทุกอย่างในฟีดจะได้มาจากคนจริง',
     askT: 'อยากถามคนกรุงเทพฯ ใช่ไหม',
-    askB: 'สแกนหน้า 30 วินาทีก่อน แล้วคำถามของคุณจะขึ้นเลย',
+    askB: 'สแกนหน้า 5 วินาทีก่อน แล้วคำถามของคุณจะขึ้นเลย',
     ansT: 'อยากตอบคำถามนี้ใช่ไหม',
-    ansB: 'สแกนหน้า 30 วินาทีก่อน แล้วคำตอบของคุณจะขึ้นเลย',
+    ansB: 'สแกนหน้า 5 วินาทีก่อน แล้วคำตอบของคุณจะขึ้นเลย',
     taskT: 'ภารกิจรายวันได้ริง',
-    taskB: 'สแกนหน้า 30 วินาที ปลดล็อกภารกิจรายวัน ริง และอันดับประจำสัปดาห์',
+    taskB: 'สแกนหน้า 5 วินาที ปลดล็อกภารกิจรายวัน ริง และอันดับประจำสัปดาห์',
     peopleT: 'อยากรู้ไหมว่าใครอยู่ที่นี่',
-    peopleB: 'สแกนหน้า 30 วินาที เปิดหน้าผู้คน โปรไฟล์ และการทักทาย ทุกคนที่คุณเห็นผ่านขั้นนี้มาแล้ว',
-    likesT: 'คุณเห็นทุกคน แต่เขายังมองไม่เห็นคุณ',
-    likesB: 'คุณดูมา {v} คลิป และกดใจไป {l} ครั้ง สแกนหน้า 30 วินาที เพื่อเข้าห้องจริง',
-    meH: 'โปรไฟล์ของคุณยังซ่อนอยู่',
-    meS: 'มีแค่คุณที่เห็น สแกนหน้า 30 วินาที แล้วคุณจะอยู่ในหน้าผู้คน แชต และอันดับประจำสัปดาห์',
+    peopleB: 'สแกนหน้า 5 วินาที เพื่อเปิดดูโปรไฟล์และทักทาย',
+    likesT: 'รับ ✓ ของคุณ',
+    likesB: 'คุณกดใจไปแล้ว {l} คลิป สแกนหน้า 5 วินาที แล้วคนอื่นจะทักคุณได้ และไลก์ของคุณจะนับเต็ม',
+    meH: 'ยังไม่มี ✓',
+    meS: 'สแกนหน้า 5 วินาที แล้วคนอื่นจะทักคุณได้ พร้อมปลดล็อกแชต การโพสต์ และอันดับประจำสัปดาห์',
     openInv: 'ตอนนี้เพื่อนสมัครได้ด้วยชื่อกับรูปเดียว ไม่ต้องสแกนหน้าก่อน ได้ +10 ทั้งคู่เมื่อเพื่อนสแกนหน้า',
   },
 };
@@ -110,11 +110,11 @@ export function UnvPeopleWall(props: { lang: string; stills: string[]; onVerify:
 }
 
 /** Me: one line in place of the weekly ranking / daily rewards.
- *  25 Nov open onboarding (trigger 3): the member's own profile shows as hidden, with the prompt attached. */
+ *  25 Nov open onboarding (founder: unverified members stay visible, just without the ✓): "No ✓ yet · Verify (5 sec)". */
 export function UnvMeLine(props: { lang: string; onVerify: () => void }) {
   const t = tx(props.lang);
   return (
-    <div className="unv-me" id="unvMe" data-state="hidden">
+    <div className="unv-me" id="unvMe" data-state="no-tick">
       <span className="unv-lk"><LockIc /></span>
       <span className="unv-mt"><b className="unv-mh">{t.meH}</b><small className="unv-ms">{t.meS}</small></span>
       <button type="button" className="unv-mgo" id="unvMeGo" onClick={props.onVerify}>{t.meGo}</button>
@@ -141,7 +141,7 @@ export function unvCopy(lang: string, why: UnvWhy, stats?: { views: number; like
       const v = Math.max(l, Math.round(stats?.views ?? 0));
       return { title: t.likesT, body: t.likesB.replace('{v}', String(v)).replace('{l}', String(l)) };
     }
-    case 'me': return { title: t.meH, body: t.meS };
+    case 'me': return { title: t.likesT, body: t.meS };
     default: return { title: t.peopleT, body: t.peopleB };
   }
 }
@@ -158,7 +158,7 @@ export function FaceIntroSheet(props: { lang: string; why?: UnvWhy; stats?: { vi
         <span className="unv-ic"><FaceIc /></span>
         <b id="unvTitle">{c.title}</b>
         <p id="unvBody">{c.body}</p>
-        {why === 'likes' || why === 'people' ? <p className="unv-fv" id="unvLikesNote"><span aria-hidden="true">♥</span>{t.fvLiker}</p> : null}
+        {why === 'people' ? <p className="unv-fv" id="unvLikesNote"><span aria-hidden="true">♥</span>{t.fvLiker}</p> : null}
         <button type="button" className="unv-go" id="unvStart" onClick={props.onStart}><FaceIc />{t.shGo}</button>
         <button type="button" className="unv-no" id="unvNotNow" onClick={props.onClose}>{t.shNo}</button>
         <small><LockIc />{t.shFoot}</small>

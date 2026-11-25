@@ -37,7 +37,7 @@ const ASK_ERR: Record<string, string> = {
   SLOW_DOWN: 'Slow down a little and try again soon.',
   BAD_TEXT: 'Keep it short, with no phone numbers, links or LINE IDs.',
   NO_CARD: 'Make your Kring card first.',
-  VERIFY_FIRST: 'Verify your face in 30 seconds to post and chat. One person, one account.',
+  VERIFY_FIRST: 'Verify your face in 5 seconds to post and chat. One person, one account.',
 };
 export function askErrText(L: LFn, e: unknown, fallback: string): string {
   const m = /KR8_([A-Z_]+)/.exec(String((e as { message?: string } | null)?.message ?? e ?? ''));

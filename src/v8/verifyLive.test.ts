@@ -118,7 +118,7 @@ describe('instant face check · the phone\'s verdict (SFace cosine + MiniFASNet)
 
 describe('instant face check · Thai copy', () => {
   const keys = ['Turn your head slightly left', 'Turn your head slightly right', 'Now blink', 'Move closer', 'More light', 'Hold still', 'You’re verified ✓',
-    'We’re checking · usually within a day', 'This face is already on another Kring account', 'Try again · {0} left today', 'Agree and start', 'New: 30-second face check'];
+    'We’re checking · usually within a day', 'This face is already on another Kring account', 'Try again · {0} left today', 'Agree and start', 'New: 5-second face check'];
   it('every new screen line has Thai', () => { for (const k of keys) expect(V5_L.th[k], k).toBeTruthy(); });
   it('no banned words in the member copy', () => {
     const banned = /\b(meet|guide|tour|host|creator|reviews?|hidden gem|alcohol|gift|wallet|credit|lucky|draw|temples)\b|ลุ้น/i;
