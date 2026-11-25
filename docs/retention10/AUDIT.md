@@ -37,6 +37,7 @@ Cross-cutting rules every feature below keeps:
 - Holes found + fixes:
   - A list that re-sorts on every open lets a member reshuffle until they get easy Reels and makes "liked all 3" ambiguous →
     the 3 Reels are **picked once per member per Bangkok day and stored** (`kr8_task_welcome_picks`).
+  - Three Reels from the same newcomer would be one person getting all the help → **one Reel per newcomer** (their least-liked).
   - Fewer than 3 eligible Reels is the normal case at our size → the task asks for as many as exist (1–3) and pays
     **1 Ring per Reel liked (max 3)**, not a flat +3. No eligible Reel → no task card.
   - "Like for Rings" pushing likes at one person → a Reel leaves the pool at 5 likes, so the task can add at most ~5
@@ -145,6 +146,8 @@ Cross-cutting rules every feature below keeps:
   link opens from outside by app (Facebook / Instagram / TikTok / LINE / other) plus "not counted" lines with plain
   reasons (robot / link preview, same person opened again, the author's own phone, LINE in-app preview), daily tasks,
   face-checked invites, "See day by day".
+- Board: tapping a member (photo, name or score) now opens this breakdown; "View profile" is inside it.
+- Paid recruiters (m218): no invite line at all, invite Rings 0, the total still equals the board.
 - Privacy: only counts per source app and reason; no IP / device / session / country; liker lists respect blocks and
   hide ghosts / Team; available for members on the board (verified), same as the old breakdown.
 
@@ -155,3 +158,27 @@ Cross-cutting rules every feature below keeps:
 - Weekly close (Mon 00:07 Bangkok, new job): top 3 newcomers of the week that just closed with at least 1 Ring get the
   "Rising Local" tag for the week (stored in `kr8_member_badges`, last week's tags removed first, results kept in
   `kr8_newcomer_results`). No cash, no prize rows. Test accounts never mixed with real ones.
+
+## Added during the build (CoS, founder-approved): m218
+- Paid-recruiter rule: `kr8_paid_recruiters` (seeded: member #14 Pich). `kr8_invite_rings` returns 0 for them, so the board,
+  the old math sheet, the fair-play sheet, lifetime Rings / level and the Invite screen all drop their invite Rings; ledger rows
+  stay. Their invited friends keep their own +10 welcome.
+  - Effect on THIS week's board (week started **Mon 23 Nov** 00:00 Bangkok — the board week is Monday→Sunday, not Sunday):
+    none. Her two invite rows (+10, +10) are from Sun 22 Nov 19:02–19:11 Bangkok = last week. Dry-run with the rule on: no
+    rank or Rings change for anyone this week; #14 stays #1 with 73 (as of the dry-run). Her lifetime Rings 184 → 164.
+  - Last week (16–22 Nov, closed): stored results are frozen and not recomputed (she finished #6 with 111 incl. the 20; without
+    them 91, which would have been below #7's 103). Her ฿250 prize was already claimed; nothing is clawed back.
+- Honorary Founding Local: `kr8_honorary_founding` (seeded: #14 → Founding Local #51, the next number after the 50 real ones).
+  `kr8_card_extras.founding_no` shows it; no `kr8_prizes` row, so seats left (0), payouts and claims are untouched;
+  `kr8_founding_try` never gives her a ฿100 seat and never re-uses an honorary number; the "Not yet" note never promises her ฿100.
+- Both are OFF for real members until go-live (rings_config `paid_recruiter_on`, `honorary_founding_on` = 0; test accounts
+  always follow them).
+
+## QA (26 Nov, qa.kringapp.pages.dev)
+- 4 throwaway test accounts (qa-r10-*@example.com, kr8_is_test_member = true; only on the test board). Seed `qa_seed.sql`,
+  clean-up `qa_unseed.sql` (explore/_r10/).
+- Server checks as those accounts (tools/retention10/rpc_tests.mjs): welcome picks / claim / cap, 5pm mark refusals + row +
+  claim, opening question refusal + answer + one per pair, normal hello unaffected, bestie mutual-only + streak + nudge +
+  profile line, fair play adds up for every ranked test member, no device/IP fields, newcomers league, follow suggestions,
+  profile-only reason + examples, admin RPC refused for members, anon refused. All pass.
+- The 5pm window was moved to 02:00–04:00 for the screenshots and set back to 17:00 (rings_config `b5_hour` = 17).

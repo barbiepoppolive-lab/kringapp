@@ -4,6 +4,7 @@
  * Data + words: ret10.ts. Server: m219–m224.
  */
 import { useEffect, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { usePosters } from './V5Go';
 import { initialAvatar } from './v8Data';
 import {
@@ -34,12 +35,15 @@ function Sheet(props: { id: string; label: string; onClose: () => void; children
     window.addEventListener('keydown', k);
     return () => window.removeEventListener('keydown', k);
   }, []);   // eslint-disable-line react-hooks/exhaustive-deps
-  return (
+  // portalled to the app root: above the tab bar and outside any page that makes its own stacking layer
+  const host = (typeof document !== 'undefined' && document.querySelector('.v8-app-root')) || null;
+  const el = (
     <div className="r10-wrap" role="dialog" aria-modal="true" aria-label={props.label} onClick={(e) => e.stopPropagation()}>
       <div className="r10-dim" onClick={props.onClose} />
       <div className={`r10-sheet ${props.cls || ''}`} id={props.id}><div className="r10-grab" />{props.children}</div>
     </div>
   );
+  return host ? createPortal(el, host) : el;
 }
 
 // ───────────────────────────── 1. Welcome new Locals (tasks sheet card) ─────────────────────────────
@@ -105,7 +109,7 @@ export function B5TaskRow(props: { lang: string; onFace: () => void; onClose: ()
     <div className={`dt-row st-${st} r10-b5row`} data-task="b5">
       <span className="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg></span>
       <span className="tx"><b>{tx.b5}</b><small>{st === 'wait' ? tx.b5Review : st === 'off' ? tx.b5Hidden : st === 'soon' ? tx.b5Opens : tx.b5TaskSub}</small></span>
-      <span className="rw">{fmt(tx.rings, b.rings)}</span>
+      <span className="rw">+{b.rings}</span>
       {st === 'done' ? <span className="dt-btn done">{tx.done}</span>
         : st === 'claim' ? <button type="button" className="dt-btn claim" disabled={busy} onClick={() => void claim()}>{tx.claim}</button>
         : st === 'go' ? <button type="button" className="dt-btn" onClick={() => { props.onClose(); b5Arm(); window.dispatchEvent(new Event('kr8:post')); }}>{tx.go}</button>
@@ -551,7 +555,7 @@ export function FairPlaySheet(props: { lang: string; user: string; onClose: () =
             {d.invites_shown && d.invites > 0 ? <section className="r10-fpc" data-fp="invites"><div className="r10-fpt"><span><i className="c-invites" />{tx.fpInv}</span><b>{d.invites}</b></div></section> : null}
             {d.lag !== 0 ? <section className="r10-fpc" data-fp="lag"><div className="r10-fpt"><span>{tx.fpLag}</span><b>{d.lag > 0 ? `+${d.lag}` : d.lag}</b></div></section> : null}
           </div>
-          <p className="r10-note">{tx.fpReels}{d.more_reels > 0 ? ` · ${fmt(tx.fpMore, d.more_reels)}` : ''} · {tx.fpSame}</p>
+          <p className="r10-note">{tx.fpReels}{d.more_reels > 0 ? ` · ${d.more_reels === 1 ? tx.fpMore1 : fmt(tx.fpMore, d.more_reels)}` : ''} · {tx.fpSame}</p>
           <button type="button" className="r10-link" id="fpDays" aria-expanded={days} onClick={() => setDays((x) => !x)}>{days ? tx.fpDaysHide : tx.fpDays}</button>
           {days ? (
             <div className="r10-days" id="fpDayList">

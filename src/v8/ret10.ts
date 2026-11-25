@@ -150,7 +150,7 @@ const EN = {
   bsNudge: 'Nudge {0}', bsNudged: 'Nudged ✓', bsNudgedMe: '{0} nudged you · do one task today', bsStart: 'Start a bestie streak', bsSent: 'Invite sent',
   bsInvited: '{0} wants a bestie streak with you', bsAccept: 'Accept', bsLater: 'Not now', bsBroke: 'The streak broke · start again', bsWait: 'Waiting for {0}',
   bsEnd: 'End streak', bsMutual: 'For friends who follow each other', bsFull: 'You already have 3 streaks', bsNone: 'No streak yet',
-  bsWith: '{0} days with {1}', bsCount: 'Bestie streak · {0} days', bsMe: 'Bestie streaks · {0}', bsNew: 'New', bsNoRings: 'No Rings for streaks, just bragging rights',
+  bsWith: '{0} days with {1}', bsCount: 'Bestie streak · {0} days', bsMe: 'Bestie streak · {0} days', bsNew: 'New', bsNoRings: 'No Rings for streaks, just bragging rights',
   // 9
   fpTitle: 'How {0} got {1} Rings', fpTitleMe: 'How you got {0} Rings', fpRank: '#{0} this week · open to everyone', fpOpen: 'Open to everyone',
   fpLikes: 'Likes from members', fpVer: '{0} face-verified members', fpVis: 'visitors count double', fpNew: '{0} from newer members (max {1} a day)', fpWho: 'see who', fpHide: 'hide',
@@ -160,7 +160,7 @@ const EN = {
   fpTasks: 'Daily tasks', fpAsk: 'Ask BKK link opens', fpInv: 'Friends invited (face-checked)', fpRules: 'Fair-play rules',
   fpRulesSub: 'Repeat likes from one person count half after 3, daily caps, farming cuts, rounding', fpLag: 'Arrived in the last minute',
   fpDays: 'See day by day', fpDaysHide: 'Hide days', fpProfile: 'View profile', fpMember: 'A member', fpSame: 'Same math for everyone.',
-  fpShare: 'Share my Reel · each open +5', fpNone: 'No Rings yet this week.', fpReels: 'Best Reel of each day counts', fpMore: '{0} more Reels not counted (one per day counts)',
+  fpShare: 'Share my Reel · each open +5', fpNone: 'No Rings yet this week.', fpReels: 'Best Reel of each day counts', fpMore: '{0} more Reels not counted (one per day counts)', fpMore1: '1 more Reel not counted (one per day counts)',
   dReels: 'Reels', dTasks: 'Tasks', dInv: 'Friends',
   // 10
   ncTitle: 'Newcomers league', ncSub: 'Only members who joined this week · top 3 get the Rising Local tag', ncTo: '{0} Rings to #{1}', ncTop: 'You’re #1 of the newcomers',
@@ -168,7 +168,7 @@ const EN = {
 };
 type Tx = typeof EN;
 const TH: Tx = {
-  rings: '+{0} ริง', ring1: '+1 ริง', claim: 'รับ', done: 'เสร็จแล้ว', go: 'ไปเลย', newTag: 'ใหม่', skip: 'ข้ามไปก่อน', close: 'ปิด', save: 'บันทึก',
+  rings: '+{0} ริง', ring1: '+1 ริง', claim: 'รับ', done: 'เสร็จแล้ว', go: 'ไป', newTag: 'ใหม่', skip: 'ข้ามไปก่อน', close: 'ปิด', save: 'บันทึก',
   welcome3: 'ต้อนรับเพื่อนใหม่ {0} คน', welcome1: 'ต้อนรับเพื่อนใหม่ 1 คน', welcomeSub: 'รีลแรก ๆ ของเพื่อนใหม่บนกริ๊ง! · กดใจเป็นการทักทาย',
   ofLikes: 'ถูกใจแล้ว {0}/5', watchLike: 'ดูและกดใจ', welcomeDone: 'ขอบคุณที่ต้อนรับเพื่อนใหม่ ✓',
   b5: 'กรุงเทพฯ ตอน 5 โมงเย็น', b5Banner: '5 โมงเย็นแล้ว · ตอนนี้อยู่ที่ไหน ถ่ายให้ดูหน่อย', b5How: '10 วินาที · ไม่ต้องเห็นหน้า · ไม่ต้องตัดต่อ',
@@ -189,7 +189,7 @@ const TH: Tx = {
   bsNudge: 'สะกิด {0}', bsNudged: 'สะกิดแล้ว ✓', bsNudgedMe: '{0} สะกิดคุณ · วันนี้ทำภารกิจสักอย่างนะ', bsStart: 'เริ่มสตรีคเพื่อนซี้', bsSent: 'ส่งคำชวนแล้ว',
   bsInvited: '{0} ชวนคุณเริ่มสตรีคเพื่อนซี้', bsAccept: 'ตกลง', bsLater: 'ไว้ก่อน', bsBroke: 'สตรีคขาดแล้ว · เริ่มใหม่', bsWait: 'รอ {0} ตอบรับ',
   bsEnd: 'เลิกสตรีค', bsMutual: 'สำหรับเพื่อนที่ติดตามกันและกัน', bsFull: 'คุณมีสตรีคครบ 3 คนแล้ว', bsNone: 'ยังไม่มีสตรีค',
-  bsWith: 'ซี้กับ {1} {0} วัน', bsCount: 'สตรีคเพื่อนซี้ {0} วัน', bsMe: 'สตรีคเพื่อนซี้ · {0}', bsNew: 'ใหม่', bsNoRings: 'สตรีคไม่ได้ริง ได้ความภูมิใจล้วน ๆ',
+  bsWith: 'ซี้กับ {1} {0} วัน', bsCount: 'สตรีคเพื่อนซี้ {0} วัน', bsMe: 'สตรีคเพื่อนซี้ · {0} วัน', bsNew: 'ใหม่', bsNoRings: 'สตรีคไม่ได้ริง ได้ความภูมิใจล้วน ๆ',
   fpTitle: '{0} ได้ {1} ริงมาจากไหน', fpTitleMe: 'คุณได้ {0} ริงมาจากไหน', fpRank: 'อันดับ {0} สัปดาห์นี้ · ทุกคนดูได้', fpOpen: 'ทุกคนดูได้',
   fpLikes: 'ถูกใจจากสมาชิก', fpVer: 'สมาชิกที่ยืนยันหน้าแล้ว {0}', fpVis: 'นักท่องเที่ยวนับสองเท่า', fpNew: 'จากสมาชิกใหม่ {0} (นับได้วันละ {1})', fpWho: 'ดูว่าใคร', fpHide: 'ซ่อน',
   fpSaves: 'บันทึก', fpOpens: 'เปิดลิงก์จากแอปอื่น', fpOther: 'แอปอื่น', fpNot: 'ไม่นับ: {0}', fpOver: 'เกินวันละ {0}',
@@ -198,7 +198,7 @@ const TH: Tx = {
   fpTasks: 'ภารกิจรายวัน', fpAsk: 'เปิดลิงก์ ถาม BKK', fpInv: 'เพื่อนที่ชวนมา (ยืนยันหน้าแล้ว)', fpRules: 'กติกาแฟร์เพลย์',
   fpRulesSub: 'คนเดิมกดใจเกิน 3 รีลนับครึ่ง เพดานต่อวัน การตัดยอดปั่น และการปัดเศษ', fpLag: 'เข้ามาในนาทีล่าสุด',
   fpDays: 'ดูทีละวัน', fpDaysHide: 'ซ่อนรายวัน', fpProfile: 'ดูโปรไฟล์', fpMember: 'สมาชิก', fpSame: 'คิดแบบเดียวกันทุกคน',
-  fpShare: 'แชร์รีลของฉัน · เปิดครั้งละ +5', fpNone: 'สัปดาห์นี้ยังไม่มีริง', fpReels: 'นับรีลที่ดีที่สุดของแต่ละวัน', fpMore: 'อีก {0} รีลไม่นับ (นับวันละ 1 รีล)',
+  fpShare: 'แชร์รีลของฉัน · เปิดครั้งละ +5', fpNone: 'สัปดาห์นี้ยังไม่มีริง', fpReels: 'นับรีลที่ดีที่สุดของแต่ละวัน', fpMore: 'อีก {0} รีลไม่นับ (นับวันละ 1 รีล)', fpMore1: 'อีก 1 รีลไม่นับ (นับวันละ 1 รีล)',
   dReels: 'รีล', dTasks: 'ภารกิจ', dInv: 'เพื่อน',
   ncTitle: 'ลีกน้องใหม่', ncSub: 'เฉพาะคนที่เข้าร่วมสัปดาห์นี้ · 3 อันดับแรกได้ป้าย ดาวรุ่ง', ncTo: 'อีก {0} ริงถึงอันดับ {1}', ncTop: 'คุณคืออันดับ 1 ของน้องใหม่',
   ncEmpty: 'สัปดาห์นี้ยังไม่มีน้องใหม่บนบอร์ด', ncYou: 'คุณ',
