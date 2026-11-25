@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { cardBadgeIcons } from './badges';
 import './fonts-v8.css';
 import './v8.css';
@@ -1357,6 +1357,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // Number of genuinely new feed rows found on refresh; the "N new" pill only shows when > 0.
   const [newRowsCount, setNewRowsCount] = useState<number>(0);
   const feedScrollRef = useRef<HTMLDivElement | null>(null);
+  const feedTopRef = useRef(false);   // set when the ranked feed replaces the visitor feed: open it at the first Reel
 
   // Weather
   const [weather, setWeather] = useState<V8Weather>(DEFAULT_WEATHER);
@@ -1783,7 +1784,14 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       // so on a slow phone they do not compete with the first Reel for the network.
       let shown = false;
       v5FeedPeek().then((q) => { if (q && q.length) { shown = true; setFeedItems((prev) => (prev.length ? prev : q)); setFeedSettled(true); } }).catch(() => undefined);
-      const feedP = v5Feed().then((f) => { if (f.length || !shown) setFeedItems(f); }, () => { if (!shown) setFeedItems([]); }).finally(() => setFeedSettled(true));
+      const feedP = v5Feed().then((f) => {
+        if (!(f.length || !shown)) return;
+        // 25 Nov: the member's own ranked feed replaces the visitor feed. Scroll snap re-snaps to the Reel that was on screen, which can sit
+        // 2–3 places down in the new list, so a member who had not swiped yet goes back to the top (a ?reel= link still wins).
+        const el = feedScrollRef.current;
+        if (shown && !reelLinkRef.current && (!el || el.scrollTop < (el.clientHeight || 600) / 2)) feedTopRef.current = true;
+        setFeedItems(f);
+      }, () => { if (!shown) setFeedItems([]); }).finally(() => setFeedSettled(true));
       const after = <T,>(f: () => Promise<T>) => Promise.race([feedP, new Promise((r) => setTimeout(r, 2500))]).then(f);
       const [p, d] = await Promise.all([
         v5Card || adminViewRef.current ? after(() => v5People()).catch(() => [] as V8Person[]) : Promise.resolve([] as V8Person[]),
@@ -3792,6 +3800,16 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     reelLinkRef.current = null;
     setTab('feed');
     requestAnimationFrame(() => document.querySelector(`[data-post-id="${CSS.escape(id)}"]`)?.scrollIntoView({ block: 'start' }));
+  }, [feedItems]);
+
+  // the ranked feed just replaced the visitor feed: back to the first Reel before paint (and once more after the snap settles)
+  useLayoutEffect(() => {
+    if (!feedTopRef.current) return;
+    feedTopRef.current = false;
+    const el = feedScrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+    requestAnimationFrame(() => { if (el.scrollTop > 0 && el.scrollTop < el.clientHeight * 4) el.scrollTo({ top: 0 }); });
   }, [feedItems]);
 
   // ── 16 Nov dings (push): Settings toggle, links from a tapped ding, daily re-sync of this phone ──

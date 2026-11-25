@@ -247,6 +247,7 @@
   height: 100%;
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
+  overflow-anchor: none;   /* 25 Nov: the ranked feed replacing the visitor feed must not carry the member a few Reels down */
   scrollbar-width: none;
 }
 .v8-app-root .feed-scroll::-webkit-scrollbar {

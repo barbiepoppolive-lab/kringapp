@@ -28,6 +28,9 @@
 .v8-app-root #s-feed.nf-on .reel-sound { top: calc(env(safe-area-inset-top, 0px) + 166px) !important; }
 .v8-app-root #s-feed.nf-on:has(.kpz-tick) .reel-sound { top: calc(env(safe-area-inset-top, 0px) + 206px) !important; }
 .v8-app-root #s-feed.nf-on:has(.dt-wbar) .reel-sound { top: calc(env(safe-area-inset-top, 0px) + 226px) !important; }
+/* release 25 Nov: the first-visit steps strip takes the ticker's place (52–92px), so the row sits under it like it does under the ticker */
+.v8-app-root #s-feed:has(.onb) .nf { top: calc(env(safe-area-inset-top, 0px) + 98px); }
+.v8-app-root #s-feed.nf-on.onb-on .reel-sound, .v8-app-root #s-feed.nf-on.onb-on .reel-sound.has-hint.has-hint { top: calc(env(safe-area-inset-top, 0px) + 206px) !important; }
 @media (prefers-reduced-motion: reduce) { .v8-app-root #s-feed .nf { transition: none; } }
 
 /* while a vote card is on screen the daily-tasks orb steps aside (its own "away" look), so it never sits on the answers */
