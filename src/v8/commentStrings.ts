@@ -42,6 +42,9 @@ export const KC_L: Record<string, Record<string, string>> = {
     '{0} and {1} others commented on your Reel': '{0} และอีก {1} คนแสดงความคิดเห็นในรีลของคุณ',
     '{0} replied to your comment': '{0} ตอบกลับความคิดเห็นของคุณ',
     '{0} and {1} others replied to your comment': '{0} และอีก {1} คนตอบกลับความคิดเห็นของคุณ',
+    // m213: Ask BKK replies in Activity
+    '{0} replied to your answer in Ask BKK': '{0} ตอบกลับคำตอบของคุณใน Ask BKK',
+    '{0} and {1} others replied to your answer in Ask BKK': '{0} และอีก {1} คนตอบกลับคำตอบของคุณใน Ask BKK',
     'Reply': 'ตอบกลับ',
     'Replying to {0}': 'กำลังตอบกลับ {0}',
     'Reply to {0}…': 'ตอบกลับ {0}…',

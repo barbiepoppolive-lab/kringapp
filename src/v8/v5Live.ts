@@ -802,7 +802,7 @@ export const v5FollowList = (user: string, kind: 'followers' | 'following') => r
 export type V5TopPeriod = 'today' | 'week' | 'area';
 export interface V5TopRow { rank: number; reel_id: string; user_id: string; first_name: string; photo: string | null; area: string; body: string; venue_name: string | null; poster_path: string; points: number; prize: string | null; is_me: boolean | null }
 export const v5Top10 = (period: V5TopPeriod, area?: string | null) => rpc<V5TopRow[]>('kr8_top10', { p_period: period, p_area: area || null });
-export interface V5Activity { kind: 'follow' | 'like' | 'comment' | 'gift' | 'approved' | 'hidden' | 'friend_verify'; at: string; actor_id: string | null; actor_name: string | null; actor_photo: string | null;
+export interface V5Activity { kind: 'follow' | 'like' | 'comment' | 'gift' | 'approved' | 'hidden' | 'friend_verify' | 'ask_reply'; at: string; actor_id: string | null; actor_name: string | null; actor_photo: string | null;
   post_id: string | null; poster_path: string | null; n: number; rank: number | null; prize: string | null; i_follow: boolean | null }
 export const v5Activity = () => rpc<V5Activity[]>('kr8_my_activity', { p_limit: 50 });
 export const V5_INTERESTS = ['coffee', 'street_food', 'desserts', 'markets', 'running', 'yoga', 'film_photos', 'art', 'music', 'books',
