@@ -219,3 +219,7 @@
 .v8-app-root .at-kind button { padding: 6px 12px; border: 0; border-radius: 999px; background: rgba(255,255,255,.12); color: #fff; font: 600 .75rem var(--rv-f, system-ui); cursor: pointer; }
 /* attention rule (Me): one call to the same action — while the next-step card shows, the Rings chip's badge stays quiet */
 .v8-app-root .kme-a:has(.nx-cardwrap) .mc-badge { display: none; }
+/* the orb's line stays on one line (Thai is longer), right-aligned under the orb so it never reaches the stats row or the screen edge */
+.v8-app-root .r10-orb { align-items: flex-end; }
+.v8-app-root .r10-orbc { margin-right: 13px; }
+.v8-app-root .r10-orb small { white-space: nowrap; max-width: 160px; text-align: right; }

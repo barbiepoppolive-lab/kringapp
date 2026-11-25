@@ -63,7 +63,8 @@ begin
   return coalesce((select jsonb_agg(jsonb_build_object('id', p.id, 'photo', p.photo, 'body', p.body, 'area', p.area, 'at', p.created_at,
            'author_id', p.author, 'author_name', m.first_name, 'member_no', m.member_no, 'test', public.kr8_is_test_member(p.author)) order by p.created_at)
      from public.kr8_posts p join public.kr8_members m on m.user_id = p.author
-    where p.kind = 'photo' and not p.hidden and p.reviewed_at is null and p.created_at > now() - interval '7 days'), '[]'::jsonb);
+    where p.kind = 'photo' and not p.hidden and p.reviewed_at is null and p.created_at > now() - interval '7 days'
+      and not public.kr8_is_test_member(p.author)), '[]'::jsonb);   -- QA test photos never reach the founder's queue
 end $function$;
 revoke execute on function public.kr8_admin_photos() from public, anon;
 grant execute on function public.kr8_admin_photos() to authenticated;
