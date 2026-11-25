@@ -6,7 +6,7 @@
  *  · GoCompose      ONE compose screen after the clip is picked: caption + hashtags, Add place, Tag people, Post
  *  · GoCoach        one-time coach marks (kept on the account, see goCoach.ts)
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ReelCamera, type CamAccess } from './V5Camera';
 import { rememberSound, soundHintWanted, soundWanted, SOUND_PREF_EVENT } from './reelSound';
 import './go.css';
@@ -14,7 +14,7 @@ import { fmtN, isNotYetNote, reviewNoteText } from './kxLogic';
 import { kxTagCandidates, type KxCardExtras, type KxGridReel, type KxMemberReels, type KxSavedReel, type KxTagPerson } from './v5Kx';
 import { signReelPaths, type ReelInfo } from './v5Reel';
 import { WindowVideo } from './V5Trim';
-import { INTEREST, RvCheck } from './V5Me';
+import { INTEREST, RingsChip, RingsSheet, RvCheck, type RingsChipData } from './V5Me';
 import { rvArea, rvLangs } from './rvLabels';
 import { rvHeroIn } from './rvMotion';
 import { RingGlyph, SocialPills } from './V5KxCard';
@@ -425,9 +425,16 @@ export function GoProfilePage(props: {
   onQr?: () => void;
   /** 0184: the admin (View as member) still opens private lists */
   adminSees?: boolean;
+  /** 25 Nov (mock F): the read-only Rings chip; its sheet links to the weekly leaderboard */
+  onRanking?: () => void; top?: number;
 }) {
   const { L, p } = props;
   const [menu, setMenu] = useState(false);
+  const [chipOpen, setChipOpen] = useState(false);
+  const closeChip = useCallback(() => setChipOpen(false), []);
+  // another member: Rings and this week's rank only (kr8_card_extras gives those for anyone); their tasks and history are private
+  const chip: RingsChipData | null = props.kx && !p.mine ? { rings: props.kx.lifetime ?? 0, rank: props.kx.week_rank ?? null, tasks: null, gap: null,
+    top: props.top || 0, claim: 0, prizes: 0, week: props.kx.week ?? 0 } : null;
   // 0184: "Only me" lists: the counts stay, a tap shows a small glass note instead of the list (the server refuses it too)
   const locked = !!p.lists_private && !p.mine && !props.adminSees;
   const [privNote, setPrivNote] = useState(false);
@@ -450,6 +457,8 @@ export function GoProfilePage(props: {
           {!p.mine && <button type="button" role="menuitem" className="bad" id="profileBlock" onClick={() => { setMenu(false); props.onBlock(); }}>{L('Block')}</button>}
         </div>
       )}
+      {chip ? <div className="mc-pchip"><RingsChip L={L} Lf={props.Lf} d={chip} mine={false} onOpen={() => setChipOpen(true)} /></div> : null}
+      {chip && chipOpen ? <RingsSheet L={L} Lf={props.Lf} d={chip} mine={false} onClose={closeChip} onRanking={props.onRanking} /> : null}
       {/* rv4 (founder pick Profile B, 20 Nov): round photo with a thin gold ring + stats beside it · name ✓ · area · languages · bio ·
           gold interest tags · Say hi (primary) + Follow · Reels grid edge to edge */}
       <ProfileHead L={L} p={p} stats={

@@ -1,6 +1,32 @@
 /** V5 strings. English is the key; TH / ZH / HI / JA / KO below. Looked up by L() / Lf() in KringAppV8. */
 export const V5_L: Record<string, Record<string, string>> = {
   th: {
+    // ── Me: Rings chip, its sheet, question bubble (25 Nov 2026) ──
+    'My soi’s go-to': 'ร้านประจำในซอย',
+    'Your soi’s go-to shop?': 'ร้านประจำในซอยคุณคือร้านไหน',
+    'Add a short bio': 'เพิ่มแนะนำตัวสั้นๆ',
+    '#{0} this week': 'อันดับ {0} สัปดาห์นี้',
+    'Not on this week’s board yet': 'ยังไม่ติดอันดับสัปดาห์นี้',
+    '{0} Rings to #{1}': 'อีก {0} ริงถึงอันดับ {1}',
+    '1 Ring to #{1}': 'อีก 1 ริงถึงอันดับ {1}',
+    'Top of the board this week': 'อันดับ 1 ของสัปดาห์นี้',
+    '#1 wins {0}': 'อันดับ 1 รับ {0}',
+    '{0} Rings': '{0} ริง',
+    '1 Ring': '1 ริง',
+    'From likes, Reels and tasks': 'ได้จากไลก์ รีล และภารกิจ',
+    '{0} of {1} today': 'วันนี้ {0} จาก {1}',
+    'Leaderboard': 'ตารางอันดับ',
+    'History': 'ประวัติ',
+    'Tasks': 'ภารกิจ',
+    'Claim 1 Ring': 'รับ 1 ริง',
+    'Claim {0} Rings': 'รับ {0} ริง',
+    'Claim your prize': 'รับรางวัล',
+    'Share my best Reel': 'แชร์รีลที่ดีที่สุดของฉัน',
+    '{0} Rings this week': 'สัปดาห์นี้ {0} ริง',
+    '1 Ring this week': 'สัปดาห์นี้ 1 ริง',
+    'Couldn’t claim. Try again.': 'รับไม่สำเร็จ ลองอีกครั้ง',
+    'Your Rings': 'ริงของคุณ',
+    'Rings this week': 'ริงสัปดาห์นี้',
     // ── six-step profile builder (25 Nov 2026) ──
     // gender tile words (same Thai as KX_L, here so every V5 language has the same keys)
     'Female': 'หญิง',

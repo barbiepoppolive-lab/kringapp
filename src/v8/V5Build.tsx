@@ -103,12 +103,15 @@ export interface V5BuildProps {
   errText: (e: unknown) => string;
   /** Area name in the screen's language (the app's kxArea); defaults to L. */
   areaL?: Tx;
+  /** 25 Nov: open on this step (the Me question bubble opens step 6, answered or not); default: the first unfinished step */
+  startAt?: BuildStep | null;
 }
 
 export function V5Build(props: V5BuildProps) {
   const { L, Lf, card } = props;
   const AL: Tx = props.areaL || L;
   const first = useMemo(() => {
+    if (props.startAt && BUILD_STEPS.includes(props.startAt)) return BUILD_STEPS.indexOf(props.startAt);
     const m = missingSteps(props.done);
     return m.length ? BUILD_STEPS.indexOf(m[0]) : 0;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -178,6 +181,8 @@ export function V5Build(props: V5BuildProps) {
       }
       busyRef.current = false;
       setBusy(false);
+      // 25 Nov: opened from the Me bubble for this one step → save it and go back to Me (the builder's own progress is untouched)
+      if (props.startAt) { props.onClose(false); return; }
       if (last) {
         await kxCoachSeen(V5_BUILD_DONE);
         props.onStepDone(V5_BUILD_DONE);
@@ -276,8 +281,8 @@ export function V5Build(props: V5BuildProps) {
     <div className="kpb" id="buildFlow" data-step={step}>
       <div className="kpb-glow" />
       <div className="kpb-top">
-        <button type="button" className="kpb-back" aria-label={L('Back')} disabled={i === 0 || busy}
-          onClick={() => setI((n) => Math.max(0, n - 1))}>‹</button>
+        <button type="button" className="kpb-back" aria-label={L('Back')} disabled={(i === 0 && !props.startAt) || busy}
+          onClick={() => (props.startAt ? props.onClose(false) : setI((n) => Math.max(0, n - 1)))}>‹</button>
         <span className="kpb-dots" aria-hidden="true">
           {BUILD_STEPS.map((k, n) => <i key={k} className={n <= i ? 'on' : ''} />)}
         </span>

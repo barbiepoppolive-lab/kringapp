@@ -7,6 +7,7 @@
  */
 import { rvArea, rvLangs } from './rvLabels';
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { rvHeroIn, rvSettle } from './rvMotion';
 import './me.css';
 import './meA.css';
@@ -17,6 +18,7 @@ import { fmtN, isNotYetNote, levelFor, reviewNoteText } from './kxLogic';
 import type { KxCardExtras } from './v5Kx';
 import { fvMarkShown, fvText } from './V5Unverified';
 import { postAgo } from './postTime';
+import './meChip.css';
 
 // ── pre-season (D-11NOV-G): the board ranks from day one; rewards start on kr8_settings.reward_start_at ──
 const LOCALE: Record<string, string> = { th: 'th-TH', zh: 'zh-CN', hi: 'hi-IN', ja: 'ja-JP', ko: 'ko-KR' };
@@ -279,6 +281,150 @@ export function FoundingChecklist(props: { L: Tx; Lf: Txf; kx: KxCardExtras | nu
 /** Same rule as FoundingChecklist: the Founding "Next step" card is on screen. */
 export const foundingDue = (kx: KxCardExtras | null | undefined) => !!kx && !kx.founding_no && kx.founding_left !== undefined && !kx.has_reel;
 
+
+// ───────────── 25 Nov (founder-approved mock F): the Rings chip on the cover + its sheet, the question bubble, emoji meta ─────────────
+/** Flags for the member's languages. A language with no fair single flag (Arabic) shows its short name instead. */
+export const LANG_FLAG: Record<string, string> = { TH: '🇹🇭', EN: '🇬🇧', ZH: '🇨🇳', HI: '🇮🇳', JA: '🇯🇵', KO: '🇰🇷', FR: '🇫🇷', DE: '🇩🇪',
+  ES: '🇪🇸', RU: '🇷🇺', MS: '🇲🇾', ID: '🇮🇩', VI: '🇻🇳' };
+export function langFlags(L: Tx, codes: string[] | null | undefined, max = 4): string {
+  return (codes || []).slice(0, max).map((c) => { const k = c.toUpperCase(); return LANG_FLAG[k] || L(LANG_NAME[k] || c); }).join(' ');
+}
+/** Short label + prompt per question key (the full question stays in QA_QUESTIONS for the builder). */
+export const QA_SHORT: Record<string, { label: string; prompt: string; ic: string }> = {
+  soi_shop: { label: 'My soi’s go-to', prompt: 'Your soi’s go-to shop?', ic: '🏪' },
+};
+/** Instagram-Notes-style bubble above the photo: my answer, or today's question as a prompt. Tap → the builder's question step. */
+export function QaBubble(props: { L: Tx; q?: string | null; a?: string | null; qKey: string; onTap?: () => void }) {
+  const { L } = props;
+  const a = (props.a || '').trim();
+  const meta = QA_SHORT[(a && props.q) || props.qKey];
+  if (!a && (!props.onTap || !meta)) return null;
+  const body = a ? (
+    <><small>{meta ? L(meta.label) : L('Today’s question')}</small><b>{a}</b></>
+  ) : (
+    <><small>{L('Today’s question')}</small><b><span aria-hidden="true">{meta!.ic} </span>{L(meta!.prompt)}</b></>
+  );
+  return props.onTap ? (
+    <button type="button" className={`mc-note${a ? '' : ' ask'}`} id="meQaNote" onClick={props.onTap}>{body}</button>
+  ) : <p className="mc-note" id="meQaNote">{body}</p>;
+}
+
+export type ChipTasks = { done: number; of: number; ready: number; readyRings: number; streak: number };
+/** The data behind the chip and the sheet. Every number comes from the app's own loads (kr8_card_extras, kr8_weekly_ranking, kr8_tasks_today). */
+export type RingsChipData = {
+  rings: number | null; rank: number | null; tasks: ChipTasks | null;
+  /** to the rank above: { n Rings, to rank } */ gap: { n: number; to: number } | null;
+  top: number; claim: number; prizes: number; near?: { n: number; prize: number } | null; needs?: number | null; week?: number | null;
+};
+
+export function RingsChip(props: { L: Tx; Lf: Txf; d: RingsChipData; mine: boolean; onOpen: () => void }) {
+  const { L, Lf, d } = props;
+  const rings = d.rings === null ? '…' : fmtN(d.rings);
+  const label = [Lf(d.rings === 1 ? '1 Ring' : '{0} Rings', rings), d.tasks ? Lf('{0} of {1} today', String(d.tasks.done), String(d.tasks.of)) : '',
+    d.rank ? Lf('#{0} this week', String(d.rank)) : L('Not on this week’s board yet')].filter(Boolean).join(' · ');
+  return (
+    <button type="button" className="mc-chip" id={props.mine ? 'meChip' : 'profileChip'} aria-label={label} aria-haspopup="dialog" onClick={props.onOpen}>
+      <span className="mc-c"><RingGlyph /><b>{rings}</b></span>
+      {d.tasks ? <span className="mc-c"><span aria-hidden="true">🔥</span><b>{d.tasks.done}</b></span> : null}
+      <span className="mc-c"><span aria-hidden="true">🏆</span><b>{d.rank ? `#${d.rank}` : '–'}</b></span>
+      {props.mine && d.claim > 0 ? <i className="mc-badge" id="meChipBadge">{d.claim}</i> : null}
+    </button>
+  );
+}
+
+export function RingsSheet(props: { L: Tx; Lf: Txf; d: RingsChipData; mine: boolean; onClose: () => void;
+  onRanking?: () => void; onHistory?: () => void; onTasks?: () => void; onClaimPrize?: () => void;
+  onClaim?: () => Promise<'ok' | 'face' | 'fail'>; onShareBest?: () => void; onShareBestDown?: () => void }) {
+  const { L, Lf, d } = props;
+  const [busy, setBusy] = useState(false);
+  const [fail, setFail] = useState(false);
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') props.onClose(); };
+    window.addEventListener('keydown', k);
+    return () => window.removeEventListener('keydown', k);
+  }, [props.onClose]);
+  const baht = (n: number) => `฿${fmtN(n)}`;
+  const go = (f?: () => void) => () => { props.onClose(); f?.(); };
+  const rankSub = props.mine
+    ? [d.near ? Lf(d.near.n === 1 ? '1 Ring from {1} · one Story could do it' : '{0} Rings from {1} · one Story could do it', fmtN(d.near.n), baht(d.near.prize))
+        : d.needs ? Lf('{0} Rings to unlock', fmtN(d.needs))
+        : d.rank === 1 ? L('Top of the board this week')
+        : d.gap ? Lf(d.gap.n === 1 ? '1 Ring to #{1}' : '{0} Rings to #{1}', fmtN(d.gap.n), String(d.gap.to)) : '',
+      d.top && d.rank !== 1 && !d.near ? Lf('#1 wins {0}', baht(d.top)) : ''].filter(Boolean)
+    : [d.week !== null && d.week !== undefined ? Lf(d.week === 1 ? '1 Ring this week' : '{0} Rings this week', fmtN(d.week)) : '', d.top ? Lf('#1 wins {0}', baht(d.top)) : ''].filter(Boolean);
+  const claimTasks = props.mine && d.tasks && d.tasks.ready > 0;
+  const claimPrize = props.mine && !claimTasks && d.prizes > 0;
+  const claim = async () => {
+    if (!props.onClaim || busy) return;
+    setBusy(true); setFail(false);
+    const r = await props.onClaim().catch(() => 'fail' as const);
+    setBusy(false);
+    if (r === 'ok') return;
+    if (r === 'face') { props.onClose(); props.onTasks?.(); return; }
+    setFail(true);
+  };
+  const Go = ({ t }: { t: string }) => <span className="mc-go">{t}<i aria-hidden="true">›</i></span>;
+  const goldify = (s: string) => {
+    const m = s.match(/฿[\d,]+/);
+    if (!m || m.index === undefined) return s;
+    return <>{s.slice(0, m.index)}<em>{m[0]}</em>{s.slice(m.index + m[0].length)}</>;
+  };
+  return createPortal(
+    <div className="mc-wrap" role="dialog" aria-modal="true" aria-label={props.mine ? L('Your Rings') : L('Rings this week')} id="meRingsSheet">
+      <div className="mc-dim" onClick={props.onClose} />
+      <div className="mc-sheet">
+        <div className="mc-grab" />
+        <button type="button" className="mc-row" id="meSheetRank" onClick={go(props.onRanking)}>
+          <span className="mc-e" aria-hidden="true">🏆</span>
+          <span className="mc-t"><b>{d.rank ? Lf('#{0} this week', String(d.rank)) : L('Not on this week’s board yet')}</b>
+            {rankSub.length ? <small>{rankSub.map((x, i) => <React.Fragment key={i}>{i ? ' · ' : ''}{goldify(x)}</React.Fragment>)}</small> : null}</span>
+          <Go t={L('Leaderboard')} />
+        </button>
+        {props.mine && props.onHistory ? (
+          <button type="button" className="mc-row" id="meSheetRings" onClick={go(props.onHistory)}>
+            <span className="mc-e" aria-hidden="true"><RingGlyph /></span>
+            <span className="mc-t"><b>{d.rings === null ? '…' : Lf(d.rings === 1 ? '1 Ring' : '{0} Rings', fmtN(d.rings))}</b><small>{L('From likes, Reels and tasks')}</small></span>
+            <Go t={L('History')} />
+          </button>
+        ) : null}
+        {props.mine && d.tasks && props.onTasks ? (
+          <button type="button" className="mc-row" id="meSheetTasks" onClick={go(props.onTasks)}>
+            <span className="mc-e" aria-hidden="true">🔥</span>
+            <span className="mc-t"><b>{Lf('{0} of {1} today', String(d.tasks.done), String(d.tasks.of))}</b>
+              <span className="mc-seg" aria-hidden="true">{Array.from({ length: Math.max(1, d.tasks.of) }, (_, i) => <i key={i} className={i < d.tasks!.done ? 'on' : ''} />)}</span></span>
+            <Go t={L('Tasks')} />
+          </button>
+        ) : null}
+        {props.mine && d.near && props.onShareBest ? (
+          <button type="button" className="mc-share" id="kxNearShare" onPointerDown={props.onShareBestDown} onClick={go(props.onShareBest)}>
+            {L('Share my best Reel')}<span aria-hidden="true"> ↗</span></button>
+        ) : null}
+        {claimTasks ? (
+          <button type="button" className="mc-claim" id="meSheetClaim" disabled={busy} onClick={() => void claim()}>
+            {d.tasks!.readyRings === 1 ? L('Claim 1 Ring') : d.tasks!.readyRings > 1 ? Lf('Claim {0} Rings', fmtN(d.tasks!.readyRings)) : L('Claim')}</button>
+        ) : claimPrize ? (
+          <button type="button" className="mc-claim" id="meSheetClaim" onClick={go(props.onClaimPrize)}>{L('Claim your prize')}</button>
+        ) : null}
+        {fail ? <p className="mc-fail" role="alert">{L('Couldn’t claim. Try again.')}</p> : null}
+      </div>
+    </div>,
+    (typeof document !== 'undefined' && document.querySelector('.v8-app-root')) || document.body,
+  );
+}
+
+/** Builds the chip data for my own Me tab. */
+export function myChipData(kx: KxCardExtras | null | undefined, hook: WeekHookData, tasks: ChipTasks | null,
+  week: { me: { rank: number; all_rank?: number; rings: number } | null; rows?: { all_rank?: number; rank: number; rings: number }[] } | null | undefined): RingsChipData {
+  const rank = hook.rank;
+  let gap: RingsChipData['gap'] = null;
+  if (rank && rank > 1 && week?.me) {
+    const up = week.rows?.find((r) => (r.all_rank || r.rank) === rank - 1);
+    if (up) gap = { n: Math.max(1, up.rings - week.me.rings + 1), to: rank - 1 };
+  }
+  return { rings: kx ? kx.lifetime ?? 0 : null, rank, tasks, gap, top: hook.top, claim: (tasks?.ready ?? 0) + (kx?.prizes ?? 0), prizes: kx?.prizes ?? 0,
+    near: rank ? hook.near ?? null : null, needs: hook.needs ?? null };
+}
+
 const IcBell = () => <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" /></svg>;
 const IcMore = () => <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4" /><circle cx="12" cy="12" r="1.4" /><circle cx="19" cy="12" r="1.4" /></svg>;
 const IcShare = () => <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 14v6h14v-6" /></svg>;
@@ -324,6 +470,12 @@ export type MeViewProps = {
   lockSlot?: React.ReactNode;
   /** 25 Nov: six-step profile builder: how many steps are left, and the row that reopens it. Hidden at 0. */
   buildLeft?: number; buildLabel?: string; onBuild?: () => void;
+  /** 25 Nov (mock F): today's tasks for the Rings chip + sheet, the sheet's links, and the claim (same kr8_task_claim as the tasks sheet) */
+  chipTasks?: ChipTasks | null; onTasks?: () => void; onClaimTasks?: () => Promise<'ok' | 'face' | 'fail'>;
+  /** the weekly board as loaded (for "N Rings to #2") */
+  week?: { me: { rank: number; all_rank?: number; rings: number } | null; rows?: { all_rank?: number; rank: number; rings: number }[] } | null;
+  /** the question bubble: tap opens the builder's question step */
+  onQa?: () => void; qaKey?: string;
 };
 
 /**
@@ -336,11 +488,17 @@ export function MeView(props: MeViewProps) {
   const [menu, setMenu] = useState(false);
   const pick = (f?: () => void) => () => { setMenu(false); f?.(); };
   const actionStep = !!props.nextKind && props.nextKind !== 'climb';
+  const [chipOpen, setChipOpen] = useState(false);
+  const closeChip = React.useCallback(() => setChipOpen(false), []);
+  // 25 Nov: no passed face check → the Verify line stays in place of the weekly ranking + daily rewards, so no chip either
+  const chip = props.lockSlot ? null : myChipData(props.kx, props.weekHook || { rank: props.weekRank ?? null, prize: props.weekPrize ?? 0, toLine: null, top: 0 },
+    props.chipTasks ?? null, props.week);
   return (
     <div className="kme kme-a rv4-me" id="meView">
       <div className="rv4-msky" aria-hidden="true" />
       <div className="kme-top">
         <span className="cap">{L('Your Kring')}</span>
+        {chip ? <RingsChip L={L} Lf={Lf} d={chip} mine onOpen={() => setChipOpen(true)} /> : null}
         <span className="kme-icons">
           <button type="button" id="activityBtn" aria-label={L('Activity')} onClick={props.onActivity}>
             <IcBell />{props.unread ? <i className="dot" /> : null}
@@ -367,14 +525,17 @@ export function MeView(props: MeViewProps) {
       {/* rv4 (founder pick Me round 2 · A, 20 Nov): Bangkok twilight skyline behind a gold-ringed photo with the stats beside it,
           name ✓ · area, ONE line (Rings · this week's board, Post when not on it), then the Reels / Saved grid edge to edge.
           Founding ฿100 is closed, so the line sells the weekly board (same copy as the live fix). */}
-      <MeHead L={L} p={p} onEdit={props.onEdit} stats={(
+      {chip && chipOpen ? (
+        <RingsSheet L={L} Lf={Lf} d={chip} mine onClose={closeChip} onRanking={props.onRanking} onHistory={props.onRings} onTasks={props.onTasks}
+          onClaimPrize={props.onRings} onClaim={props.onClaimTasks} onShareBest={props.onShareBest} onShareBestDown={props.onShareBestDown} />
+      ) : null}
+      <MeHead L={L} p={p} onEdit={props.onEdit} note={<QaBubble L={L} q={p.qa_q} a={p.qa_answer} qKey={props.qaKey || 'soi_shop'} onTap={props.onQa} />} stats={(
         <div className="rv4-pst" id="meStats">
           <span id="statReels"><b>{fmtCount(props.reelCount ?? p.reels.length)}</b><span>{L('Reels')}</span></span>
           <button type="button" id="statFollowers" onClick={() => props.onList('followers')}><b>{fmtCount(p.followers)}</b><span>{L('Followers')}</span></button>
           <button type="button" id="statFollowing" onClick={() => props.onList('following')}><b>{fmtCount(p.following)}</b><span>{L('Following')}</span></button>
         </div>
       )} />
-      <QaLine L={L} q={p.qa_q} a={p.qa_answer} />
       {props.buildLeft && props.onBuild ? (
         <button type="button" className="kpb-row" id="meBuild" onClick={props.onBuild}>
           <span className="kpb-ic" aria-hidden="true">✦</span>
@@ -385,14 +546,9 @@ export function MeView(props: MeViewProps) {
           <span className="kpb-go" aria-hidden="true">›</span>
         </button>
       ) : null}
-      {/* 20 Nov (founder, Android): ONE compact glass strip: Rings + this week's place | daily-task ring + chevron */}
-      {props.lockSlot ? props.lockSlot : (
-      <div className={`rv5-mstrip${props.tasksSlot ? '' : ' solo'}`} id="meStrip">
-        <MeLine L={L} Lf={Lf} kx={props.kx} hook={props.weekHook || { rank: props.weekRank ?? null, prize: props.weekPrize ?? 0, toLine: null, top: 0 }}
-          dot={!!props.ringsDot || (props.kx?.prizes ?? 0) > 0} onRings={props.onRings} onRanking={props.onRanking} onPost={props.onPost}
-          onShareBest={props.onShareBest} onShareBestDown={props.onShareBestDown} />
-        {props.tasksSlot || null}
-      </div>)}
+      {/* 25 Nov (founder, mock F): the big Rings box is gone; Rings · today's tasks · this week's rank sit in the chip on the cover.
+          A member without a passed face check still sees the one Verify line here instead. */}
+      {props.lockSlot ? props.lockSlot : null}
       {actionStep && props.nextKind !== 'reel' && props.nextKind !== 'pending' ? props.nextSlot : null}
       {props.webAskSlot || null}
       {props.reelsSlot ? props.reelsSlot : (
@@ -429,15 +585,17 @@ export function MeView(props: MeViewProps) {
 }
 
 /** rv4 Me A head: skyline band (CSS), round photo with a thin gold ring (tap = edit card), stats beside it, name ✓ and area. */
-function MeHead(props: { L: Tx; p: V5Profile; stats: React.ReactNode; onEdit: () => void }) {
+function MeHead(props: { L: Tx; p: V5Profile; stats: React.ReactNode; onEdit: () => void; note?: React.ReactNode }) {
   // 0183: the bio under the name (own text, never translated); none yet → one quiet "+ Add a short bio" that opens the card editor
   const { L, p } = props;
   const ref = useRef<HTMLButtonElement>(null);
   useEffect(() => { rvHeroIn(ref.current); }, []);
   const where = p.who === 'traveller' ? [L('Traveller'), rvArea(L(p.area))].filter(Boolean).join(' · ') : rvArea(L(p.area === 'Bangkok' ? 'Bangkok' : p.area));
+  const flags = langFlags(L, p.langs);
   return (
     <section className="rv4-phd rv4-mhd" id="meIdentity" aria-label={p.first_name}>
       <div className="rv4-ptop">
+        {props.note}
         <button type="button" className="rv4-pav" id="meEdit" ref={ref} aria-label={L('Edit card')} onClick={props.onEdit}
           style={p.photo ? { backgroundImage: `url('${p.photo}')` } : undefined}>
           {p.photo ? null : <span aria-hidden="true">{initial(p.first_name)}</span>}
@@ -446,45 +604,11 @@ function MeHead(props: { L: Tx; p: V5Profile; stats: React.ReactNode; onEdit: ()
         {props.stats}
       </div>
       <h2 className="rv4-pnm">{p.first_name}{p.verified ? <RvCheck L={L} /> : null}</h2>
+      {/* 25 Nov (mock F): emoji instead of labels: 📍 area, then a flag per language (a short name where no flag fits) */}
+      {where || flags ? <p className="rv4-psub mc-meta" id="meMeta">{where ? <span>📍 {where}</span> : null}{flags ? <span className="mc-flags">{flags}</span> : null}</p> : null}
       {p.bio ? <p className="rv4-pbio" id="meBio">{p.bio}</p>
-        : <button type="button" className="rv4-addbio" id="meAddBio" onClick={props.onEdit}>{L('+ Add a short bio')}</button>}
-      {where ? <p className="rv4-psub">{where}</p> : null}
+        : <button type="button" className="rv4-addbio" id="meAddBio" onClick={props.onEdit}><span aria-hidden="true">✏️ </span>{L('Add a short bio')}</button>}
     </section>
-  );
-}
-
-/** rv4 Me A: the one line. Rings (lifetime, taps → Rewards) | this week's board in the live fix's words (taps → the ranking) | Post when not on the board. */
-function MeLine(props: { L: Tx; Lf: Txf; kx: KxCardExtras | null | undefined; hook: WeekHookData; dot: boolean;
-  onRings?: () => void; onRanking?: () => void; onPost: () => void;
-  /** 21 Nov: share my best Reel this week (shown only with hook.near) */ onShareBest?: () => void; onShareBestDown?: () => void }) {
-  const { L, Lf, kx, hook: h } = props;
-  const total = kx ? kx.lifetime ?? 0 : null;
-  const baht = (n: number) => `฿${fmtN(n)}`;
-  const inPrize = !!h.rank && h.prize > 0;
-  const locked = inPrize && !!h.needs;
-  const onBoard = !!h.rank;
-  const line = inPrize ? (h.needs ? `${Lf('You’re #{0} · {1}', String(h.rank), baht(h.prize))} · ${Lf('{0} Rings to unlock', fmtN(h.needs))}` : Lf('You’re #{0} · {1} this week 🏆', String(h.rank), baht(h.prize)))
-    : onBoard && h.toLine ? Lf('You’re #{0} · {1} Rings to the prize line', String(h.rank), fmtN(h.toLine))
-    : h.top ? Lf('Be Bangkok’s face of the week · #1 wins {0}', baht(h.top)) : L('Climb this week’s board');
-  const cut = line.indexOf(' · ');
-  const [a, b0] = cut > 0 ? [line.slice(0, cut), line.slice(cut + 3)] : [line, ''];
-  const near = onBoard ? h.near : null;
-  const b = near ? Lf(near.n === 1 ? '1 Ring from {1} · one Story could do it' : '{0} Rings from {1} · one Story could do it', fmtN(near.n), baht(near.prize)) : b0;
-  return (
-    <div className={`rv4-mline${inPrize && !locked ? ' won' : locked ? ' locked' : ''}`} id="kxWeekHook" data-state={inPrize ? 'prize' : onBoard ? 'board' : 'off'} data-near={near ? '1' : undefined}>
-      <button type="button" className="rv4-mr" id="meRings" aria-label={`${L('Your Rings')} · ${total === null ? '…' : fmtN(total)}`} onClick={props.onRings}>
-        <RingGlyph /><b>{total === null ? '…' : fmtN(total)}</b>{props.dot ? <i className="kx-tdot" aria-label={L('New')} /> : null}
-      </button>
-      <span className="rv4-msep" aria-hidden="true" />
-      <button type="button" className="rv4-mw" id="kxWeekHookOpen" aria-label={line} onClick={props.onRanking || props.onPost}>
-        <span>{a}</span>{b ? <b>{b}</b> : null}
-      </button>
-      {near && props.onShareBest ? (
-        <button type="button" className="rv4-mshare" id="kxNearShare" onPointerDown={props.onShareBestDown} onClick={props.onShareBest}>
-          {L('Share')}<span aria-hidden="true">↗</span></button>
-      ) : null}
-      {!onBoard ? <button type="button" className="rv4-mpost" id="kxWeekHookPost" onClick={props.onPost}>{L('Post')}</button> : null}
-    </div>
   );
 }
 

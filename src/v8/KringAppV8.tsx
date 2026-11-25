@@ -151,7 +151,7 @@ import { V5Qr, V5SignInSheet } from './V5Sheets';
 import { V5ShareCard } from './V5ShareCard';
 import { FirstReelChip, ReelNudgeSheet, markReelNudgeSeen, setReelNudgeLater, showFirstReelChip } from './V5ReelNudge';
 import { V5ReelVideo, holdReels, reelsHeld, toggleReelSound } from './V5ReelVideo';
-import { TasksFeed, TasksFromMe, TasksMeLine, ThisOrThatCard } from './V5Tasks';
+import { TasksFeed, TasksFromMe, tasksClaimReady, ThisOrThatCard, useTasksSummary } from './V5Tasks';
 import { FaceIntroSheet, LockIc, UnvMeLine, UnvPeopleWall } from './V5Unverified';
 import { startOpenBeacon } from './openBeacon';
 import { restoredTab, rememberTab } from './tabMemory';
@@ -183,7 +183,7 @@ const Celebrate = lazyPart(() => import('./V5Celebrate').then((m) => m.Celebrate
 const RingFly = lazyPart(() => import('./V5Celebrate').then((m) => m.RingFly));
 import { kxTop3, type KxTop3 } from './v5Kx';
 import { kxCoachState } from './v5Kx';
-import { V5Build, QA_KEY, buildIncomplete, buildLeftLabel, cardDoneSteps, missingSteps } from './V5Build';
+import { V5Build, QA_KEY, buildIncomplete, buildLeftLabel, cardDoneSteps, missingSteps, type BuildStep } from './V5Build';
 import { cardBlob, displayCode } from './rankStory';
 const RewardsPage = lazyPart(() => import('./V5KxRewards').then((m) => m.RewardsPage));
 const MathSheet = lazyPart(() => import('./V5KxRanking').then((m) => m.MathSheet));
@@ -1502,6 +1502,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // ── six-step profile builder (25 Nov): which steps are done (kr8_member_coach), the flow itself, and the re-prompt ──
   const [coachDone, setCoachDone] = useState<string[] | null>(null);
   const [buildOpen, setBuildOpen] = useState(false);
+  /** 25 Nov: the Me question bubble opens the builder straight on its question step */
+  const [buildStart, setBuildStart] = useState<BuildStep | null>(null);
   const [buildAsk, setBuildAsk] = useState<'people' | 'hi' | null>(null);
   const buildAskedRef = useRef(false);   // at most one re-prompt per app session
   askMeRef.current = !signedIn ? null
@@ -2630,6 +2632,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // Card + Rings + Ranking + Places (feat/card-rewards-rank-places)
   const [kxMe, setKxMe] = useState<KxCardExtras | null>(null);
   const [kxOther, setKxOther] = useState<KxCardExtras | null>(null);
+  // 25 Nov (Me chip): today's tasks in numbers, from the same store as the tasks sheet
+  const meChipTasks = useTasksSummary(!!(live && v5Card && v5Uid && !adminView));
   const [kxWeekRank, setKxWeekRank] = useState<number | null>(null);
   const [kxRewards, setKxRewards] = useState<KxRewards | null>(null);
   const [kxClaimFocus, setKxClaimFocus] = useState<{ id: string | null; fresh: boolean }>({ id: null, fresh: false });
@@ -5170,7 +5174,12 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           ) : live && signedIn && v5Card && meProfile ? (
             <MeView
               L={L}
-              tasksSlot={live && v5Card && v5Uid && !adminView ? <TasksMeLine lang={lang} onOpen={() => setMeTasks(true)} /> : null}
+              chipTasks={meChipTasks}
+              onTasks={() => setMeTasks(true)}
+              onClaimTasks={async () => { const r = await tasksClaimReady(); if (r === 'ok') kxCardExtras().then(setKxMe).catch(() => undefined); return r; }}
+              week={kxWeek}
+              qaKey={QA_KEY}
+              onQa={live && v5Card ? () => { setBuildStart('pb_qa'); setBuildOpen(true); } : undefined}
               reelCount={goMine ? goMine.length : undefined}
               Lf={Lf}
               ghost={v5Ghost}
@@ -5217,7 +5226,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               weekRank={kxWeekRank}
               buildLeft={buildNeeded ? buildLeft : 0}
               buildLabel={buildDone ? buildLeftLabel(L, Lf, buildDone) : ''}
-              onBuild={() => setBuildOpen(true)}
+              onBuild={() => { setBuildStart(null); setBuildOpen(true); }}
               weekHook={kxWeekHook(kxWeek, kxRewards?.ladder?.[0] || 0)}
               onShareBest={kxBestReel ? () => void kxShareReelId(kxBestReel) : undefined}
               onShareBestDown={() => prefetchReelLink(kxBestReel)}
@@ -7592,6 +7601,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onShare={() => void shareProfile(otherProfile)}
             onQr={live && v5Uid && otherProfile.mine ? () => { if (!meProfile) setMeProfile(otherProfile); qrBackRef.current = 'profile'; setSheet('mycode'); } : undefined}
             onMath={() => setKxMathFor(otherProfile.user_id)}
+            onRanking={() => setSheet('ranking')} top={kxWeek?.prizes?.[0] || kxRewards?.ladder?.[0] || 0}
             onOpen={(i) => goOpenPlayer((goOtherReels?.reels || []).map((r) => gridToGo(r, { id: otherProfile.user_id, name: otherProfile.first_name, photo: otherProfile.photo, handle: kxOther?.ig_handle || otherProfile.ig_handle }, false)), i)}
             kx={kxOther} />
         )}
@@ -8012,6 +8022,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             Lf={Lf}
             card={v5Card}
             qaInit={meProfile?.qa_q === QA_KEY ? meProfile?.qa_answer : ''}
+            startAt={buildStart}
             onQa={(r) => setMeProfile((p) => (p ? { ...p, qa_q: r.qa_q, qa_answer: r.qa_answer } : p))}
             done={buildDone || []}
             errText={(e) => v5Msg(e)}
@@ -8019,7 +8030,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             onCard={(me) => { if (me && me.card) setV5Card((p) => ({ ...(p as V5Card), ...me.card } as V5Card)); }}
             onStepDone={markBuildStep}
             onClose={(done) => {
-              setBuildOpen(false);
+              setBuildOpen(false); setBuildStart(null);
               if (done) { setTab('people'); void v5Me().then(v5ApplyMe).catch(() => undefined); }
             }}
           />

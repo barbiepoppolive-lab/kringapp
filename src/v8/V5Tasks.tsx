@@ -562,6 +562,34 @@ export function TasksMeLine(props: { lang: string; onOpen: () => void }) {
   );
 }
 
+/** 25 Nov (Me chip): today's tasks in numbers for the Rings chip and its sheet. Same counts as the old Me line (TasksMeLine). */
+export type TasksSummary = { done: number; of: number; ready: number; readyRings: number; streak: number; verified: boolean };
+export function useTasksSummary(on: boolean): TasksSummary | null {
+  const { data } = useTasks();
+  useEffect(() => { if (on && !store.data) void tasksRefresh(); }, [on]);
+  if (!on || !data?.on || !data.tasks) return null;
+  const ready = doable(data).filter((t) => t.done && !t.claimed);
+  return { done: claimedCount(data), of: doable(data).length, ready: readyCount(data), readyRings: ready.reduce((s, t) => s + (t.rings || 0), 0),
+    streak: streakDays(data.streak), verified: !!data.verified };
+}
+/** The Claim button on the Me sheet: the same kr8_task_claim the tasks sheet sends, once per task that is done and not claimed.
+ *  Not verified → 'face' (nothing is sent; the caller opens the tasks sheet, which asks for the face check as before). */
+export async function tasksClaimReady(): Promise<'ok' | 'face' | 'fail'> {
+  const d = store.data;
+  if (!d?.tasks) return 'fail';
+  if (!d.verified) return 'face';
+  const ids = doable(d).filter((t) => t.done && !t.claimed).map((t) => t.id);
+  let last: TasksToday | null = null;
+  try {
+    for (const id of ids) last = await taskClaim(id);
+  } catch (e) {
+    if (last) tasksSet(last);
+    return (e as { code?: string }).code === 'TASK_FACE' ? 'face' : 'fail';
+  }
+  if (last) tasksSet(last);
+  return 'ok';
+}
+
 /** The sheet + face nudge opened from Me (the Feed has its own). */
 export function TasksFromMe(props: { lang: string; onClose: () => void; onAsk: (q: string | null) => void; onVerify: () => void }) {
   const [face, setFace] = useState(false);

@@ -27,37 +27,71 @@ const me = (x: Partial<MeViewProps> = {}, L = EN) => render(
 
 describe('Me tab rv4 A: skyline head + one line', () => {
   const hook = (h: Partial<{ rank: number | null; prize: number; toLine: number | null; top: number }> = {}) => ({ rank: null, prize: 0, toLine: null, top: 1500, ...h });
-  it('not on the board: Rings · "Be Bangkok’s face of the week · #1 wins ฿1,500" · Post; the line opens the ranking, Rings open Rewards', () => {
-    const onRings = vi.fn(), onRanking = vi.fn(), onPost = vi.fn();
-    me({ onRings, onRanking, onPost, weekHook: hook() });
-    const line = document.getElementById('kxWeekHook')!;
-    expect(line.textContent).toContain('420');
-    expect(line.textContent).toContain('Be Bangkok’s face of the week');
-    expect(line.textContent).toContain('#1 wins ฿1,500');
-    fireEvent.click(document.getElementById('kxWeekHookOpen')!);
-    expect(onRanking).toHaveBeenCalled();
-    fireEvent.click(document.getElementById('meRings')!);
-    expect(onRings).toHaveBeenCalled();
-    fireEvent.click(document.getElementById('kxWeekHookPost')!);
-    expect(onPost).toHaveBeenCalled();
-  });
-  it('on the board outside the prizes / inside the prizes: the rank line, no Post', () => {
-    me({ weekHook: hook({ rank: 14, toLine: 23 }) });
-    expect(document.getElementById('kxWeekHook')!.textContent).toContain('You’re #14');
-    expect(document.getElementById('kxWeekHook')!.textContent).toContain('23 Rings to the prize line');
-    expect(document.getElementById('kxWeekHookPost')).toBeNull();
+  const tasks = { done: 3, of: 4, ready: 1, readyRings: 1, streak: 1 };
+  it('25 Nov chip: ◎ Rings · 🔥 tasks done today · 🏆 rank ("–" when unranked); the big Rings box is gone', () => {
+    me({ weekHook: hook(), chipTasks: { ...tasks, ready: 0 } });
+    const c = document.getElementById('meChip')!;
+    expect(c.textContent).toContain('420');
+    expect(c.textContent).toContain('🔥3');
+    expect(c.textContent).toContain('🏆–');
+    expect(document.getElementById('meChipBadge')).toBeNull();
+    for (const id of ['meStrip', 'kxWeekHook', 'kxWeekHookOpen', 'dtMeLine', 'profileQa']) expect(document.getElementById(id), id).toBeNull();
     cleanup();
-    me({ weekHook: hook({ rank: 3, prize: 600 }) });
-    expect(document.getElementById('kxWeekHook')!.textContent).toContain('฿600 this week 🏆');
-    expect(document.getElementById('kxWeekHook')!.dataset.state).toBe('prize');
+    me({ weekHook: hook({ rank: 3, prize: 600 }), chipTasks: tasks });
+    expect(document.getElementById('meChip')!.textContent).toContain('🏆#3');
+    expect(document.getElementById('meChipBadge')!.textContent).toBe('1');
   });
-  it('stats are Reels · Followers · Following beside the photo; head, then the line, then the Reels; Founding card and old week tiles are gone', () => {
+  it('the sheet: Leaderboard · History · Tasks open their screens; Claim sends the claim; another member sees no claim', async () => {
+    const onRanking = vi.fn(), onRings = vi.fn(), onTasks = vi.fn(), onClaimTasks = vi.fn(async () => 'ok' as const);
+    const week = { me: { rank: 3, all_rank: 3, rings: 120 }, rows: [{ rank: 2, all_rank: 2, rings: 157 }] };
+    const open = () => fireEvent.click(document.getElementById('meChip')!);
+    me({ weekHook: hook({ rank: 3, prize: 600 }), chipTasks: tasks, week, onRanking, onRings, onTasks, onClaimTasks });
+    open();
+    const sh = document.getElementById('meRingsSheet')!.textContent || '';
+    for (const t of ['#3 this week', '38 Rings to #2', '#1 wins ฿1,500', '420 Rings', 'From likes, Reels and tasks', '3 of 4 today', 'Leaderboard', 'History', 'Tasks', 'Claim 1 Ring'])
+      expect(sh, t).toContain(t);
+    fireEvent.click(document.getElementById('meSheetClaim')!);
+    expect(onClaimTasks).toHaveBeenCalled();
+    fireEvent.click(document.getElementById('meSheetRank')!); expect(onRanking).toHaveBeenCalled();
+    expect(document.getElementById('meRingsSheet')).toBeNull();
+    open(); fireEvent.click(document.getElementById('meSheetRings')!); expect(onRings).toHaveBeenCalled();
+    open(); fireEvent.click(document.getElementById('meSheetTasks')!); expect(onTasks).toHaveBeenCalled();
+    cleanup();
+    me({ weekHook: hook(), chipTasks: { ...tasks, ready: 0 } });
+    open();
+    expect(document.getElementById('meSheetClaim')).toBeNull();
+    expect(document.getElementById('meRingsSheet')!.textContent).toContain('Not on this week’s board yet');
+  });
+  it('no passed face check: the Verify line, no chip', () => {
+    me({ weekHook: hook(), chipTasks: tasks, lockSlot: <div id="lockProbe" /> });
+    expect(document.getElementById('lockProbe')).not.toBeNull();
+    expect(document.getElementById('meChip')).toBeNull();
+  });
+  it('question bubble: my answer, or today\'s question as a prompt that opens the question step', () => {
+    const onQa = vi.fn();
+    me({ p: { ...p, qa_q: 'soi_shop', qa_answer: 'The coffee place at the mouth of the soi' } as V5Profile, onQa });
+    expect(document.getElementById('meQaNote')!.textContent).toContain('My soi’s go-to');
+    expect(document.getElementById('meQaNote')!.textContent).toContain('The coffee place');
+    cleanup();
+    me({ onQa });
+    expect(document.getElementById('meQaNote')!.textContent).toContain('Your soi’s go-to shop?');
+    fireEvent.click(document.getElementById('meQaNote')!);
+    expect(onQa).toHaveBeenCalled();
+  });
+  it('under the name: 📍 area and flags; empty bio → ✏️ Add a short bio', () => {
+    me({ p: { ...p, langs: ['TH', 'EN', 'AR'] } as V5Profile });
+    const m = document.getElementById('meMeta')!.textContent || '';
+    expect(m).toContain('📍 Ari');
+    expect(m).toContain('🇹🇭 🇬🇧 Arabic');
+    expect(document.getElementById('meAddBio')!.textContent).toBe('✏️ Add a short bio');
+  });
+  it('stats are Reels · Followers · Following beside the photo; head, then the Reels; Founding card and old week tiles are gone', () => {
     const onEdit = vi.fn();
     me({ onEdit, weekHook: hook() });
     const s = document.getElementById('meStats')!.textContent || '';
     for (const t of ['1', 'Reels', '214', 'Followers', '88', 'Following']) expect(s).toContain(t);
     expect(document.getElementById('meIdentity')!.contains(document.getElementById('meStats'))).toBe(true);
-    const order = ['meIdentity', 'kxWeekHook', 'slot'].map((id) => document.getElementById(id)!);
+    const order = ['meChip', 'meIdentity', 'slot'].map((id) => document.getElementById(id)!);
     for (let i = 1; i < order.length; i++) expect(order[i - 1].compareDocumentPosition(order[i]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     for (const id of ['kxTiles', 'kxFounding', 'meShare', 'meHelpRow', 'installChip']) expect(document.getElementById(id), id).toBeNull();
     fireEvent.click(document.getElementById('meEdit')!);
@@ -91,15 +125,22 @@ describe('Me tab rv4 A: skyline head + one line', () => {
       expect(document.getElementById('nextProbe'), k).not.toBeNull();
     }
   });
-  it('Thai mode: Thai only (line, stats, menu)', () => {
-    me({ weekHook: { rank: null, prize: 0, toLine: null, top: 1500 } }, TH);
+  it('Thai mode: Thai only (chip sheet, meta, bubble, stats, menu)', () => {
+    document.documentElement.lang = 'th';   // the app sets this in Thai mode (rvArea reads it)
+    me({ weekHook: { rank: 3, prize: 600, toLine: null, top: 1500 }, chipTasks: tasks, onQa: () => undefined,
+      week: { me: { rank: 3, all_rank: 3, rings: 120 }, rows: [{ rank: 2, all_rank: 2, rings: 157 }] } }, TH);
+    fireEvent.click(document.getElementById('meChip')!);
+    const sheet = document.getElementById('meRingsSheet')!.textContent || '';
+    fireEvent.click(document.querySelector('.mc-dim')!);
     fireEvent.click(document.getElementById('meMore')!);
-    const t = [document.getElementById('kxWeekHook')!, document.getElementById('meStats')!, document.getElementById('meMoreList')!].map((e) => e.textContent).join(' ');
-    expect(t).toContain('มาเป็นหน้าเด่นของกรุงเทพฯ สัปดาห์นี้');
+    const t = [sheet, ...['meMeta', 'meQaNote', 'meAddBio', 'meStats', 'meMoreList'].map((id) => document.getElementById(id)!.textContent)].join(' ');
+    expect(t).toContain('อันดับ 3 สัปดาห์นี้');
     expect(t).toContain('อันดับ 1 รับ ฿1,500');
-    expect(t).toContain('โพสต์');
+    expect(t).toContain('รับ 1 ริง');
+    expect(t).toContain('ร้านประจำในซอยคุณคือร้านไหน');
     expect(t).toContain('ถามผู้ช่วยกริ๊ง!');
     expect(t.replace(/k\b/g, '')).not.toMatch(/[A-Za-z]{2,}/);
+    document.documentElement.lang = '';
   });
   it('the preview switch is gone', () => {
     expect(fs.existsSync(path.join(__dirname, 'V5MeVariants.tsx'))).toBe(false);
