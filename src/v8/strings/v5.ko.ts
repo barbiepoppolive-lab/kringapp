@@ -560,6 +560,7 @@ const T: Record<string, string> = {
     'Ghost mode · nobody can see you': '고스트 모드 · 아무도 나를 볼 수 없어요',
     'Ghost mode is on: likes, saves, follows, hellos and posts are off.': '고스트 모드 켜짐: 좋아요, 저장, 팔로우, 인사, 게시가 꺼져 있어요.',
     'This account is paused. Please use your main Kring account.': '이 계정은 일시 중지되었어요. 기본 Kring 계정을 사용해 주세요.',
+    'Ghost mode is on, so this account can\u2019t post Reels. Turn ghost mode off, or post from a normal account.': '고스트 모드가 켜져 있어 이 계정은 릴스를 올릴 수 없어요. 고스트 모드를 끄거나 일반 계정으로 올려 주세요.',
     // Ask BKK (16 Nov)
     "Feed": "피드",
     "Ask BKK": "BKK에 묻기",
