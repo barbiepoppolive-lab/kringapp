@@ -301,3 +301,9 @@
 .v8-app-root .kme .r10-myp.me { position: absolute; z-index: 6; top: calc(env(safe-area-inset-top, 0px) + 127px); right: 14px; padding: 4px 9px; font-size: .65625rem; background: rgba(20,18,36,.72); color: #F1E6D0; }
 .v8-app-root .bx-hrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .v8-app-root .bx-hrow .r10-myp { padding: 6px 10px; }
+/* r13: board header = ONE row: "Last week's winners" pill + a small 🎁 icon chip (My prizes) */
+.v8-app-root .bx-hrow { flex-wrap: nowrap; justify-content: center; margin-top: 8px; }
+.v8-app-root .bx-hrow .bx-lw { margin: 0; min-width: 0; white-space: nowrap; }
+.v8-app-root .bx-hrow .r10-myp.ico { flex: none; width: 32px; height: 32px; padding: 0; justify-content: center; font-size: .95rem; }
+/* r13: podium "+17 to qualify" stays inside its card (2-line clamp) */
+.v8-app-root .bx-r .rka-elig { max-width: 100%; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-align: center; }

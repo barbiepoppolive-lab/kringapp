@@ -1512,6 +1512,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [feedMode, setFeedMode] = useState<'reels' | 'ask'>(() => (typeof location !== 'undefined' && (/[?&]feed=ask\b/.test(location.search) || !!askLink) ? 'ask' : 'reels'));
   // 0171 daily tasks: the Ask BKK question to open from the task sheet, and the sheet opened from Me
   const [askOpenThread, setAskOpenThread] = useState<string | null>(askLink);
+  const [askAnswerFor, setAskAnswerFor] = useState<string | null>(null);   // r13: How to win → today's question opens with the answer box
   const [meTasks, setMeTasks] = useState(false);
   useEffect(() => { if (feedMode !== 'ask') setAskOpenThread(null); }, [feedMode]);
   const askMeRef = useRef<AskPerson | null>(null);
@@ -3064,7 +3065,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
       let n = 0; const go = () => { const el = document.getElementById('kxDailyTop'); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); else if (++n < 20) window.setTimeout(go, 150); };
       window.setTimeout(go, 200); return;
     }
-    if (a === 'ask') { setSheet(null); setTab('feed'); if (arg) setAskOpenThread(arg); pickFeedMode('ask'); return; }
+    if (a === 'ask') {   // r13: open TODAY's question (newest Kring Team question in the live Ask feed) with the answer box, not the task's pick
+      setSheet(null); setTab('feed'); pickFeedMode('ask');
+      void askApi.feed().then((qs) => [...qs].filter((q) => q.by.official).sort((x, y) => (x.at < y.at ? 1 : -1))[0]?.id || qs[0]?.id || arg || null)
+        .catch(() => arg || null)
+        .then((id) => { if (id) { setAskAnswerFor(id); setAskOpenThread(id); } });
+      return;
+    }
     if (a === 'invite') { void kxShareInvite(); return; }
     if (a === 'share') { if (arg) void kxShareReelId(arg); return; }
     if (a === 'photo') { setSheet(null); openPhotoSheet(); return; }
@@ -4710,7 +4717,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           )}
           <AskSwitch L={L} mode={feedMode} onMode={pickFeedMode} dot={!askSeen} />
           {feedMode === 'ask' && (
-            <AskThaiView key={askOpenThread || 'ask'} openThread={askOpenThread || undefined} L={L} api={askApi}
+            <AskThaiView key={askOpenThread || 'ask'} openThread={askOpenThread || undefined} openAnswer={!!askOpenThread && askAnswerFor === askOpenThread} L={L} api={askApi}
               topSlot={live && signedIn && v5Card && !adminView ? <ThisOrThatCard lang={lang} inline alike={(d) => alikeRow('vote', d, 'result')} /> : null} me={askMeRef.current}
               alikeSlot={(qid) => alikeRow('ask', qid, 'result')} areas={V5_AREAS} areaLabel={(a) => kxArea(lang, a, L)}
               defaultArea={(live && v5Card?.area) || 'Bangkok'} need={requireSignInForAction} toast={showToast} refCode={getMyRef()}
@@ -8021,7 +8028,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <RankingPage L={L} Lf={Lf} lang={lang} myArea={v5Card?.area || null} myPhoto={v5Card?.photo || null} myName={v5Card?.first_name || ''} myId={v5Card ? v5Uid || null : null}
             onBack={() => setSheet(null)} onPerson={(id) => void goOpenBest(id)} onPost={() => requireSignInForAction(() => kxPostAt())}
             onShare={(reel) => void kxShareReelId(reel)} onShareDown={prefetchReelLink} onShareWin={openShareWin}
-            onHtw={r10On ? () => openHtw('board') : undefined} prizesSlot={r10On ? <MyPrizesBtn lang={lang} id="kxMyPrizes" dot={(kxMe?.prizes ?? 0) > 0} onOpen={openMyPrizes} /> : null}
+            onHtw={r10On ? () => openHtw('board') : undefined} prizesSlot={r10On ? <MyPrizesBtn lang={lang} id="kxMyPrizes" cls="ico" dot={(kxMe?.prizes ?? 0) > 0} onOpen={openMyPrizes} /> : null}
             needsVerify={!!meProfile && !(meProfile.verified || v5Card?.verified || faceOkNow) && !v5Ghost && !verifyPending} onVerify={() => setSheet('verify')} />
         )}
         {kxCeleb && live && (

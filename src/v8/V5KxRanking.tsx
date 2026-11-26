@@ -350,7 +350,9 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   const postLabel = lang === 'th' ? 'โพสต์คลิป' : L('Post a Reel');   // founder copy for this button (the app says โพสต์รีล elsewhere)
   const share = latest !== null;
   // board-1 (Kring Light): "X more Rings to be eligible" only on MY row; other rows under the floor show a dimmed prize (the prize line says why)
-  const elig = (r: KxRankRow) => (r.needs && r.is_me ? <em className="rka-elig">{Lf('{0} more Rings to be eligible', fmtN(Math.max(1, r.needs - r.rings)))}</em> : null);
+  const elig = (r: KxRankRow, short = false) => (r.needs && r.is_me ? <em className="rka-elig">{short   // r13: the podium card is narrow → short line ("+17 to qualify"), clamped to 2 lines
+    ? (lang === 'th' ? `อีก ${fmtN(Math.max(1, r.needs - r.rings))} ริงมีสิทธิ์` : `+${fmtN(Math.max(1, r.needs - r.rings))} to qualify`)
+    : Lf('{0} more Rings to be eligible', fmtN(Math.max(1, r.needs - r.rings)))}</em> : null);
   // 20 Nov (founder): a prize seat under the Rings floor shows its prize greyed with "25 Rings to unlock" (payout needs the floor too)
   const unlock = (r: KxRankRow | undefined) => (r && r.needs && !r.paid ? <small className="rv5-unlock">{lang === 'th' ? `ต้องมี ${fmtN(r.needs)} ริง` : `${fmtN(r.needs)} Rings to unlock`}</small> : null);
   // 20 Nov: one thin blue→pink line per row = my Rings against the rank just above me
@@ -358,7 +360,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   // plain render functions (not components): the countdown re-render must not remount rows
   const Score = ({ r, cls }: { r: KxRankRow; cls: string }) => (
     <button type="button" className={cls} data-score={r.rings} aria-label={L('See the math')} title={ringsText(L, Lf, r.rings)} onClick={(e) => { e.stopPropagation(); setMath(r.user_id); }}>
-      <RingGlyph /><span className="num">{fmtN(Math.round(r.rings * cu))}</span>{elig(r)}
+      <RingGlyph /><span className="num">{fmtN(Math.round(r.rings * cu))}</span>{elig(r, cls === 'bx-r')}
     </button>
   );
   const Row = ({ r }: { r: KxRankRow }) => (

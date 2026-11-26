@@ -183,7 +183,7 @@ const Post: React.FC<{ q: AskQuestion; L: LFn; onOpen: () => void; onAnswer: () 
       <span className="rva-meta">{dots([q.by.official ? <Official L={L} /> : q.by.local ? <em>{L('BKK Local')}</em> : null, areaLabel(q.area), askTime(L, q.at)])}</span>
     </div>
     <button type="button" className="at-tw-open" onClick={onOpen}>
-      <AskText L={L} kind="q" id={q.id} text={q.body} skip={!!q.by.official} className="at-tw-q" />
+      <AskText L={L} kind="q" id={q.id} text={q.body} className="at-tw-q" />
       {q.media && <Media m={q.media} cls="at-tw-img" />}
     </button>
     {q.top && (
@@ -359,8 +359,8 @@ const Thread: React.FC<{
                 <span className="rva-meta">{areaLabel(q.area)} · {askTime(L, q.at)}</span>
               </div>
             </div>
-            <AskText L={L} kind="q" id={q.id} text={q.body} skip={!!q.by.official} as="h1" toggle />
-            {q.details && <AskText L={L} kind="qd" id={q.id} text={q.details} skip={!!q.by.official} as="p" toggle />}
+            <AskText L={L} kind="q" id={q.id} text={q.body} as="h1" toggle />
+            {q.details && <AskText L={L} kind="qd" id={q.id} text={q.details} as="p" toggle />}
             {q.media && <Media m={q.media} cls="img" />}
             <div className="qa">
               <VoteRow L={L} score={q.score} my={q.myVote} onVote={voteQ} hot />
@@ -559,6 +559,8 @@ export interface AskThaiViewProps {
   toast: (m: string) => void;
   /** harness / deep link: open this thread or the Ask sheet straight away */
   openThread?: string;
+  /** r13: the thread opens with the answer box focused (How to win → Ask BKK awards) */
+  openAnswer?: boolean;
   openCompose?: boolean;
   composeText?: string;
 }
@@ -569,7 +571,7 @@ export const AskThaiView: React.FC<AskThaiViewProps> = (props) => {
   const [more, setMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [thread, setThread] = useState<string | null>(openThread || null);
-  const [answerNow, setAnswerNow] = useState(false);
+  const [answerNow, setAnswerNow] = useState(!!props.openAnswer && !!openThread);
   const [compose, setCompose] = useState(!!openCompose);
   const listRef = useRef<HTMLDivElement>(null);
 

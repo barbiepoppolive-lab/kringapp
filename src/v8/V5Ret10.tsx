@@ -918,8 +918,9 @@ export function HowToWinSheet(props: { lang: string; uid: string | null; latestR
 /** r12: the small "My prizes 🎁" button (under the Me orb, on the board header). Gold dot = an unclaimed prize. No glow. */
 export function MyPrizesBtn(props: { lang: string; dot: boolean; onOpen: () => void; id: string; cls?: string }) {
   return (
-    <button type="button" className={`r10-myp ${props.cls || ''}`} id={props.id} data-dot={props.dot ? '1' : '0'} onClick={props.onOpen} lang={props.lang === 'th' ? 'th' : 'en'}>
-      {props.lang === 'th' ? 'รางวัลของฉัน' : 'My prizes'} <span aria-hidden="true">🎁</span>{props.dot ? <i className="dot" aria-label={props.lang === 'th' ? 'มีรางวัลรอรับ' : 'Prize to claim'} /> : null}
+    <button type="button" className={`r10-myp ${props.cls || ''}`} id={props.id} data-dot={props.dot ? '1' : '0'} onClick={props.onOpen} lang={props.lang === 'th' ? 'th' : 'en'}
+      aria-label={props.lang === 'th' ? 'รางวัลของฉัน' : 'My prizes'}>
+      {props.cls === 'ico' ? null : <>{props.lang === 'th' ? 'รางวัลของฉัน' : 'My prizes'} </>}<span aria-hidden="true">🎁</span>{props.dot ? <i className="dot" aria-label={props.lang === 'th' ? 'มีรางวัลรอรับ' : 'Prize to claim'} /> : null}
     </button>
   );
 }
