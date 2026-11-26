@@ -70,7 +70,7 @@ function earnRows(r: WinRules) {
     { k: 'open', ic: '🔗', pts: `+${r.open}`, th: `คนเปิดลิงก์ที่คุณแชร์ · สูงสุด ${r.cap}/วัน`, en: `Someone opens your share link · max ${r.cap}/day` },
     { k: 'trav', ic: '✈️', pts: `×${r.mult}`, th: `นักท่องเที่ยว (ยืนยันแล้ว) ไลก์/เซฟ = ${r.mult} เท่า`, en: `Verified traveller’s like or save ×${r.mult}` },
     // Retention 10: daily tasks (photo / Reel / Ask BKK) and the Ask BKK awards
-    { k: 'tasks', ic: '📸', pts: '+3–5', th: 'ภารกิจรายวัน: รูปประจำวัน +3 · รีล +5 · ตอบ ถาม BKK +3', en: 'Daily tasks: today’s photo +3 · a Reel +5 · an Ask BKK answer +3' },
+    { k: 'tasks', ic: '📸', pts: '+3–7', th: 'ภารกิจรายวัน: รีล +5 หรือรูป +3 · รูปประจำวัน +2 · ตอบ ถาม BKK +3', en: 'Daily tasks: a Reel +5 or a photo +3 · photo of the day +2 · an Ask BKK answer +3' },
     { k: 'award', ic: '🏅', pts: '+5', th: 'คำตอบ ถาม BKK ที่มีประโยชน์ที่สุดและฮาที่สุดของวัน (2 ทุ่ม)', en: 'The day’s most helpful and funniest Ask BKK answers (8pm)' },
   ];
 }
@@ -139,7 +139,7 @@ export function WinSheet({ v, lang, r, onClose, glass, extra, more }: SheetProps
     const steps = [
       // Retention 10 (26 Nov): only what the server pays today — tasks, Reel likes/saves/opens, Ask BKK awards, face-checked invites, top 8
       { n: 1, art: '📸', th: 'ทำภารกิจรายวัน', en: 'Do your daily tasks',
-        chips: [{ th: '📸 รูป +3', en: '📸 Photo +3' }, { th: '🎬 รีล +5', en: '🎬 Reel +5' }, { th: '💬 ถาม BKK +3', en: '💬 Ask BKK +3' },
+        chips: [{ th: '🎬 รีล +5', en: '🎬 Reel +5' }, { th: '📸 หรือรูป +3', en: '📸 or photo +3' }, { th: '🖼️ รูปประจำวัน +2', en: '🖼️ Photo of the day +2' }, { th: '💬 ถาม BKK +3', en: '💬 Ask BKK +3' },
           { th: '🗳️ โหวต +1', en: '🗳️ Vote +1' }, { th: '▶️ ดู 3 อัน +1', en: '▶️ Watch 3 +1' }, { th: '✅ ครบทุกอย่าง +2', en: '✅ All done +2' }] },
       { n: 2, art: <RingGlyph />, th: 'ให้คนชอบรีลของคุณ', en: 'Get likes, saves and link opens',
         chips: [{ th: '❤️ ไลก์ +1', en: '❤️ Like +1' }, { th: '🔖 เซฟ +3', en: '🔖 Save +3' }, { th: `🔗 เปิดลิงก์ +${r.open}`, en: `🔗 Link open +${r.open}` },

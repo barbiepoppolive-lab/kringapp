@@ -800,8 +800,8 @@ const HTW = {
     heroNext: 'Add {0} link opens and it was #{1} · {2}.', heroShort: 'From daily tasks ({0} a day). Last week #{1} needed {2} more Rings than that: about {3} link opens.',
     heroNone: 'From daily tasks alone ({0} a day). Add link opens, likes and saves to climb.', today: 'Today: {0} of {1} done',
     perDay: 'per day', perWeek: 'per week', each: 'each', dayMax: 'per day max',
-    tasksT: 'Daily tasks', tasksS: 'Photo or Reel +{0}/+{1} · Ask BKK +{2} · Vote +{3} · Watch 3 +{4} · All done +{5}',
-    tasks1: 'Open today’s tasks', tasks2: 'Post a photo or Reel, answer Ask BKK, vote and watch 3 Reels', tasks3: 'Rings land as you finish each one. All done adds +{0}', tasksGo: 'Open today’s tasks',
+    tasksT: 'Daily tasks', tasksS: 'Reel +{1} or photo +{0} · Photo of the day +{6} · Ask BKK +{2} · Vote +{3} · Watch 3 +{4} · All done +{5}',
+    tasks1: 'Open today’s tasks', tasks2: 'Post a Reel or a photo, add a photo of the day, answer Ask BKK, vote and watch 3 Reels', tasks3: 'Rings land as you finish each one. All done adds +{0}', tasksGo: 'Open today’s tasks',
     topT: 'Today’s top 3 bonus', topS: '+{0} / +{1} / +{2} at 23:59 · climber +{3}',
     top1: 'Collect the most Rings today (Bangkok time)', top2: 'At 23:59 the top 3 get +{0} / +{1} / +{2}, the biggest climber +{3}', top3: 'You need at least {0} Rings today to count', topGo: 'See today’s top 3',
     askT: 'Ask BKK awards', askS: 'Most helpful or Funniest at 8pm',
@@ -817,8 +817,8 @@ const HTW = {
     heroNext: 'ถ้ามีคนเปิดลิงก์เพิ่มอีก {0} คน ก็ได้อันดับ {1} · {2}', heroShort: 'จากภารกิจรายวัน (วันละ {0}) สัปดาห์ที่แล้วอันดับ {1} ต้องมีมากกว่านี้อีก {2} ริง หรือมีคนเปิดลิงก์ราว {3} คน',
     heroNone: 'จากภารกิจรายวันอย่างเดียว (วันละ {0}) เพิ่มคนเปิดลิงก์ ไลก์ และเซฟ เพื่อไต่อันดับ', today: 'วันนี้ทำได้ {0} จาก {1}',
     perDay: 'ต่อวัน', perWeek: 'ต่อสัปดาห์', each: 'ต่อคน', dayMax: 'สูงสุดต่อวัน',
-    tasksT: 'ภารกิจรายวัน', tasksS: 'รูปหรือรีล +{0}/+{1} · ถาม BKK +{2} · โหวต +{3} · ดู 3 คลิป +{4} · ครบทุกอย่าง +{5}',
-    tasks1: 'เปิดภารกิจของวันนี้', tasks2: 'โพสต์รูปหรือรีล ตอบ ถาม BKK โหวต และดูรีลให้จบ 3 คลิป', tasks3: 'ทำเสร็จข้อไหนได้ริงทันที ทำครบทุกข้อรับเพิ่มอีก +{0}', tasksGo: 'เปิดภารกิจวันนี้',
+    tasksT: 'ภารกิจรายวัน', tasksS: 'รีล +{1} หรือรูป +{0} · รูปประจำวัน +{6} · ถาม BKK +{2} · โหวต +{3} · ดู 3 คลิป +{4} · ครบทุกอย่าง +{5}',
+    tasks1: 'เปิดภารกิจของวันนี้', tasks2: 'โพสต์รีลหรือรูป ลงรูปประจำวัน ตอบ ถาม BKK โหวต และดูรีลให้จบ 3 คลิป', tasks3: 'ทำเสร็จข้อไหนได้ริงทันที ทำครบทุกข้อรับเพิ่มอีก +{0}', tasksGo: 'เปิดภารกิจวันนี้',
     topT: 'โบนัส 3 อันดับแรกของวัน', topS: '+{0} / +{1} / +{2} ตอน 23:59 · ไต่อันดับไวสุด +{3}',
     top1: 'เก็บริงให้ได้มากที่สุดภายในวันนี้ (เวลากรุงเทพฯ)', top2: 'ตอน 23:59 สามอันดับแรกได้ +{0} / +{1} / +{2} คนที่ไต่อันดับไวสุดได้ +{3}', top3: 'วันนั้นต้องมีอย่างน้อย {0} ริงถึงจะนับ', topGo: 'ดู 3 อันดับแรกวันนี้',
     askT: 'รางวัล ถาม BKK', askS: 'คำตอบมีประโยชน์ที่สุดหรือฮาที่สุด ประกาศ 2 ทุ่ม',
@@ -851,7 +851,7 @@ export function HowToWinSheet(props: { lang: string; uid: string | null; latestR
   const [ex, setEx] = useState<string | null>(null);
   useEffect(() => { void tasksRefresh(); void seatsStore.refresh(); }, []);
   const c = (k: string, d: number) => (typeof cfg[k] === 'number' ? cfg[k] : d);
-  const perDay = tasks?.max || (c('task_post', 5) + c('task_ask', 3) + c('task_vote', 1) + c('task_watch', 1) + c('task_bonus', 2));
+  const perDay = tasks?.max || (c('task_post', 5) + c('task_photo_day', 2) + c('task_ask', 3) + c('task_vote', 1) + c('task_watch', 1) + c('task_bonus', 2));   // m233: 14
   const open = c('open', 5), cap = c('v2_opens_day_cap', 10);
   const h = htwHero(perDay, seats?.seats || [], open);
   const paid = Array.from({ length: 10 }, (_, i) => c(`prize_${i + 1}`, 0)).filter((p) => p > 0);
@@ -865,7 +865,7 @@ export function HowToWinSheet(props: { lang: string; uid: string | null; latestR
   const b = [c('daily_top_1', 10), c('daily_top_2', 6), c('daily_top_3', 3), c('daily_climb', 5)];
   const share: { a: HtwAct; label: string } = props.latestReel ? { a: 'share', label: t.shGo } : photos.length ? { a: 'reel', label: t.shReel } : { a: 'photo', label: t.shFirst };
   const rows: { k: string; ic: string; tt: string; s: string; v: string; u: string; steps: string[]; go: string; act: HtwAct; arg?: string | null; fine?: string }[] = [
-    { k: 'tasks', ic: '✅', tt: t.tasksT, s: fmt(t.tasksS, c('task_photo', 3), c('task_post', 5), c('task_ask', 3), c('task_vote', 1), c('task_watch', 1), c('task_bonus', 2)), v: String(perDay), u: t.perDay,
+    { k: 'tasks', ic: '✅', tt: t.tasksT, s: fmt(t.tasksS, c('task_photo', 3), c('task_post', 5), c('task_ask', 3), c('task_vote', 1), c('task_watch', 1), c('task_bonus', 2), c('task_photo_day', 2)), v: String(perDay), u: t.perDay,
       steps: [t.tasks1, t.tasks2, fmt(t.tasks3, c('task_bonus', 2))], go: t.tasksGo, act: 'tasks' },
     { k: 'top', ic: '🌙', tt: t.topT, s: fmt(t.topS, b[0], b[1], b[2], b[3]), v: `+${b[0]}`, u: t.perDay,
       steps: [t.top1, fmt(t.top2, b[0], b[1], b[2], b[3]), fmt(t.top3, c('daily_top_min', 10))], go: t.topGo, act: 'top' },

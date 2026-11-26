@@ -5,7 +5,7 @@
  */
 import { v5Client, V5Error, v5ErrCode } from './v5Live';
 
-export type TaskId = 'post' | 'ask' | 'say' | 'vote' | 'watch' | 'open' | 'bonus';
+export type TaskId = 'post' | 'photo' | 'ask' | 'say' | 'vote' | 'watch' | 'open' | 'bonus';
 export interface TaskVote {
   kind: 'pair' | 'price' | 'roast'; q_en: string; q_th: string;
   a_en: string; a_th: string; a_img: string | null; b_en: string; b_th: string; b_img: string | null;
@@ -76,7 +76,7 @@ export const taskWatch = (post: string, phase: 'start' | 'end') =>
   call<{ counted: boolean; progress: number; goal?: number }>('kr8_task_watch', { p_post: post, p_phase: phase });
 
 /** Order on the sheet: the main task first, the check-in last (it is always ready). */
-export const TASK_ORDER: TaskId[] = ['post', 'ask', 'vote', 'watch', 'bonus'];   // rules v2 (30 Nov): open + say removed
+export const TASK_ORDER: TaskId[] = ['post', 'photo', 'ask', 'vote', 'watch', 'bonus'];   // rules v2 (30 Nov): open + say removed · m233: photo of the day
 
 export function taskState(t: TaskRow): TaskState {
   if (t.soon) return 'soon';
@@ -122,7 +122,7 @@ const EN = {
     ask: 'Answer 1 Ask BKK', askRule: 'Answer 1 question ({0}+ characters)', askDone: 'Answer posted', askNone: 'Answer any question',
     vote: 'Quick vote', voteDone: 'You picked {0}', watch: 'Watch 3 Reels', watchS: 'To the end · {0} of {1}',
     say: 'Say it in Thai', sayS: 'Voice clips are coming soon',
-    post: 'Post a photo or Reel', postS: 'Photo +3 · Reel +5 · one a day', postDone: 'Posted · best one counts', bonus: 'All tasks done', bonusS: 'Counts for your streak', streakLine: 'Your streak: days in a row with a task done',
+    post: 'Post a photo or Reel', postS: 'Reel +5 · or photo +3 · once a day', photo: 'Photo of the day', photoS: 'A photo from your day, once a day · +2', photoGo: 'Post a photo', postDone: 'Posted · best one counts', bonus: 'All tasks done', bonusS: 'Counts for your streak', streakLine: 'Your streak: days in a row with a task done',
     tasksLeft: '{0} tasks left today', taskLeft: '1 task left today', dailyTasks: 'Daily tasks',
     faceT: 'Verify your face to collect your Rings', faceS: 'Takes 5 seconds. Your task stays done, collect it right after.', faceGo: 'Verify my face', later: 'Later',
     quickVote: 'Quick vote', priceCheck: 'Price check', tapSide: 'Tap a side · see what everyone picked', voted: '{0} members voted', next: 'Done',
@@ -143,7 +143,7 @@ const TH: TaskTx = {
     ask: 'ตอบ 1 คำถามใน ถาม BKK', askRule: 'ตอบคำถาม 1 ข้อ ({0} ตัวอักษรขึ้นไป)', askDone: 'ตอบแล้ว', askNone: 'ตอบคำถามไหนก็ได้',
     vote: 'โหวตด่วน', voteDone: 'คุณเลือก {0}', watch: 'ดูรีล 3 อัน', watchS: 'ดูจนจบ · {0} จาก {1}',
     say: 'พูดเป็นภาษาไทย', sayS: 'คลิปเสียงมาเร็วๆ นี้',
-    post: 'โพสต์รูปหรือรีล', postS: 'รูป +3 · รีล +5 · วันละ 1 ครั้ง', postDone: 'โพสต์แล้ว · นับอันที่ดีที่สุด', bonus: 'ทำครบทุกอย่าง', bonusS: 'นับเป็นวันต่อเนื่อง', streakLine: 'วันต่อเนื่อง: วันที่ทำภารกิจติดกัน',
+    post: 'โพสต์รูปหรือรีล', postS: 'รีล +5 · หรือรูป +3 · วันละ 1 ครั้ง', photo: 'รูปประจำวัน', photoS: 'รูปจากวันของคุณ วันละ 1 รูป · +2', photoGo: 'โพสต์รูป', postDone: 'โพสต์แล้ว · นับอันที่ดีที่สุด', bonus: 'ทำครบทุกอย่าง', bonusS: 'นับเป็นวันต่อเนื่อง', streakLine: 'วันต่อเนื่อง: วันที่ทำภารกิจติดกัน',
     tasksLeft: 'เหลืออีก {0} ภารกิจวันนี้', taskLeft: 'เหลืออีก 1 ภารกิจวันนี้', dailyTasks: 'ภารกิจรายวัน',
     faceT: 'ยืนยันใบหน้าเพื่อรับริงของคุณ', faceS: 'ใช้เวลา 5 วินาที ภารกิจที่ทำแล้วยังอยู่ รับได้ทันทีหลังยืนยัน', faceGo: 'ยืนยันใบหน้า', later: 'ไว้ทีหลัง',
     quickVote: 'โหวตด่วน', priceCheck: 'เช็กราคา', tapSide: 'แตะเลือก · ดูว่าทุกคนเลือกอะไร', voted: 'โหวตแล้ว {0} คน', next: 'เสร็จ',

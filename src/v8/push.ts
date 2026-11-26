@@ -200,3 +200,22 @@ export function parsePushLink(url: string): PushLink | null {
   if (a && /^[0-9a-f-]{36}$/.test(a)) { out.ask = a; out.tab = 'feed'; }
   return out;
 }
+
+// ───────── r14 (26 Nov): the bottom-sheet opt-in (after a Reel / photo upload, and once on Me for members who have posted) ─────────
+// Same subscribe code as above (pushEnable); this only decides WHEN to offer it. At most once per 3 days per device.
+export const OPTIN_KEY = 'kr8_push_optin';
+export const OPTIN_GAP_MS = 3 * 864e5;
+export type OptInTrigger = 'reel' | 'photo' | 'me';
+export type OptInVariant = 'ok' | 'ios-install' | 'inapp';
+/** Pure. Never when notifications are already on for this phone, blocked, or impossible here. */
+export function optInVariant(state: PushState): OptInVariant | null {
+  if (state === 'off') return 'ok';
+  if (state === 'ios-install' || state === 'inapp') return state;
+  return null;   // 'on' (granted + live subscription), 'denied', 'unsupported'
+}
+/** Pure: 3 days since this device last showed the sheet. */
+export const optInDue = (last: number | null, now: number): boolean => !last || !(now - last < OPTIN_GAP_MS);
+export function optInLast(): number | null {
+  try { const n = Number(localStorage.getItem(OPTIN_KEY)); return Number.isFinite(n) && n > 0 ? n : null; } catch { return null; }
+}
+export function optInMark(now = Date.now()) { try { localStorage.setItem(OPTIN_KEY, String(now)); } catch { /* private mode */ } }

@@ -105,6 +105,7 @@ import { rvHeroFrom } from './rvMotion';
 import { inAppBrowser, A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit, InstallChip, openInstallSheet, takeInstallAsk } from './A2HS';
 import { parsePushLink, pushConfigured, pushDisable, pushEnable, pushMoment, pushResync, pushState, type PushLink, type PushState } from './push';
 import { PUSH_ASK_LINE, PushAskCard } from './V5Push';
+import { PushOptInHost, pushOptInAsk } from './V5PushOptIn';
 import { EscapeScreen } from './V5Escape';
 import { inAppOf, isLiffOpen, openEscape } from './escape';
 import { TripPerks } from './V5Trip';
@@ -241,7 +242,6 @@ const V9_L: Record<string, Record<string, string>> = {
     "Who’s going? กริ๊ง!": "ใครไปบ้าง? กริ๊ง!",
     "I’m going to {0}": "ฉันกำลังจะไป {0}",
     "Be the first in {0} today": "ประเดิมคนแรกใน{0}วันนี้",
-    "Post a photo or a plan. The first 3 posts each day win a café treat.": "โพสต์รูปหรือแพลน 3 โพสต์แรกของแต่ละวันรับดีลคาเฟ่ฟรี",
     "ASK BKK": "ถาม BKK",
     "Visiting? Ask anything — real Thais answer, no AI.": "มาเที่ยวเหรอ? ถามได้ทุกเรื่อง — คนกรุงเทพฯ ตัวจริงตอบ ไม่ใช่ AI",
     "Ask a question": "ถามคำถาม",
@@ -385,7 +385,6 @@ const V9_L: Record<string, Record<string, string>> = {
     "Who’s going? กริ๊ง!": "谁一起去？กริ๊ง!",
     "I’m going to {0}": "我打算去 {0}",
     "Be the first in {0} today": "成为今天在 {0} 第一个分享的人",
-    "Post a photo or a plan. The first 3 posts each day win a café treat.": "发一张照片或计划。每天前 3 条帖子可赢取咖啡福利。",
     "ASK BKK": "问 BKK",
     "Visiting? Ask anything — real Thais answer, no AI.": "来旅行？尽管问——泰国本地真人回答，非 AI。",
     "Ask a question": "提个问题",
@@ -529,7 +528,6 @@ const V9_L: Record<string, Record<string, string>> = {
     "Who’s going? กริ๊ง!": "कौन चल रहा है? กริ๊ง!",
     "I’m going to {0}": "मैं {0} जा रहा/रही हूँ",
     "Be the first in {0} today": "आज {0} में पोस्ट करने वाले पहले बनें",
-    "Post a photo or a plan. The first 3 posts each day win a café treat.": "फ़ोटो या प्लान पोस्ट करें। रोज़ की पहली 3 पोस्ट को कैफ़े ट्रीट मिलती है।",
     "ASK BKK": "BKK से पूछें",
     "Visiting? Ask anything — real Thais answer, no AI.": "घूमने आए हैं? कुछ भी पूछें — असली थाई लोग जवाब देते हैं, AI नहीं।",
     "Ask a question": "सवाल पूछें",
@@ -673,7 +671,6 @@ const V9_L: Record<string, Record<string, string>> = {
     "Who’s going? กริ๊ง!": "行く人いる？ กริ๊ง!",
     "I’m going to {0}": "{0} に行きます",
     "Be the first in {0} today": "今日の {0} で最初の投稿者に",
-    "Post a photo or a plan. The first 3 posts each day win a café treat.": "写真や予定を投稿しよう。毎日最初の3件の投稿にカフェ特典をプレゼント。",
     "ASK BKK": "BKKに聞く",
     "Visiting? Ask anything — real Thais answer, no AI.": "旅行中？何でも聞いてください — AIではなく本物のタイ人が答えます。",
     "Ask a question": "質問する",
@@ -817,7 +814,6 @@ const V9_L: Record<string, Record<string, string>> = {
     "Who’s going? กริ๊ง!": "같이 갈 사람? กริ๊ง!",
     "I’m going to {0}": "저 {0} 가요",
     "Be the first in {0} today": "오늘 {0}의 첫 게시물을 올려보세요",
-    "Post a photo or a plan. The first 3 posts each day win a café treat.": "사진이나 일정을 올려보세요. 매일 첫 3개의 게시물에는 카페 혜택을 드려요.",
     "ASK BKK": "BKK에 묻기",
     "Visiting? Ask anything — real Thais answer, no AI.": "여행 중이신가요? 무엇이든 물어보세요 — AI가 아닌 실제 태국인이 답해드려요.",
     "Ask a question": "질문하기",
@@ -1597,6 +1593,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // ?install=1 (website Install button): the install sheet comes first; sign-in / "Make your card" wait until it is closed (16 Nov)
   const installAskRef = useRef<boolean>(takeInstallAsk());
   const [installAsking, setInstallAsking] = useState<boolean>(installAskRef.current);
+  const [pushOptOpen, setPushOptOpen] = useState(false);   // r14: the notification opt-in sheet is up
   const cardAfterInstallRef = useRef(false);
   const installAskDone = () => {
     if (!installAskRef.current) return;
@@ -2518,7 +2515,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   // 'pending' = still in review (shares my profile + ref: it shows the Reel once approved, never a hidden Reel);
   // 'live' = a Reel the team approved later: "Your Reel is live · Share" once, the next time the member is on the Feed.
   const [postedShare, setPostedShare] = useState<{ id: string; mode: 'posted' | 'pending' | 'live' } | null>(null);
-  useEffect(() => { if (!postedShare) return; const t = setTimeout(() => setPostedShare(null), postedShare.mode === 'live' ? 12000 : 9000); return () => clearTimeout(t); }, [postedShare]);
+  // r14: the share pill's timer waits while the notification opt-in sheet is up, so it still gets its full time after
+  useEffect(() => { if (!postedShare || pushOptOpen) return; const t = setTimeout(() => setPostedShare(null), postedShare.mode === 'live' ? 12000 : 9000); return () => clearTimeout(t); }, [postedShare, pushOptOpen]);
   const [liveReel, setLiveReel] = useState<string | null>(null);
   const [myInvites, setMyInvites] = useState<{ friends: number; rings: number; x: number } | null>(null);
   useEffect(() => {
@@ -3378,6 +3376,15 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     if (live && v5Uid && v5Card && tab === 'me') void loadMe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [live, v5Uid, !!v5Card, tab, v5Card?.first_name, v5Card?.photo]);
+  // r14: once per app open, Me offers notifications to a member who has posted (the sheet checks 3 days, permission and first open)
+  const optInMeRef = useRef(false);
+  useEffect(() => {
+    if (optInMeRef.current || !live || !signedIn || !v5Uid || !v5Card || tab !== 'me') return;
+    if (!((goMine?.length || 0) > 0 || (photoStoreOf(v5Uid).get()?.length || 0) > 0)) return;
+    optInMeRef.current = true;
+    pushOptInAsk('me');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live, signedIn, v5Uid, !!v5Card, tab, goMine]);
   // 16 Nov prize banner: the week is fetched once signed in, again when the app comes back to the front or the Feed is opened
   // (at most once a minute), and every 5 minutes while the app is on screen, so the Rings on the banner stay current.
   useEffect(() => {
@@ -3830,7 +3837,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         void b5AfterPost(r.id);   // Retention 10: marks it as today's 5pm clip only when the camera was opened from the 5pm banner / task
       }
       a2hsFirstValue('reel');
-      pushMoment('first_reel');   // 16 Nov dings: ask after the first Reel (small card, never the browser prompt by itself)
+      pushOptInAsk('reel');   // r14: the notification opt-in sheet after every upload (at most once per 3 days); replaces the 16 Nov first-Reel card
       // audit 18 Nov: back at the top of the feed (it could land on the end card "Be the first in Bangkok today" right after posting)
       v5Feed().then((f) => { setFeedItems(f); requestAnimationFrame(() => feedScrollRef.current?.scrollTo({ top: 0 })); }).catch(() => undefined);
     } catch (e) {
@@ -4093,6 +4100,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           setTab('feed');
           triggerRingBurst();
           showToast(L('Posted to Bangkok Feed · กริ๊ง!'));
+          if (kind === 'photo') pushOptInAsk('photo');   // r14
           v5Feed().then(setFeedItems).catch(() => undefined);
         })
       );
@@ -7838,9 +7846,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             )}
           </div>
         )}
-        {live && (!sheet || installAsking) && <A2HSBanner L={L} blocked={['preparing', 'uploading', 'saving'].includes(reelStage)} onClose={installAskDone} />}
+        {live && (!sheet || installAsking) && <A2HSBanner L={L} blocked={['preparing', 'uploading', 'saving'].includes(reelStage) || pushOptOpen} onClose={installAskDone} />}
         {live && <EscapeScreen L={L} lang={lang} liff={isLiffOpen(typeof location === 'undefined' ? '' : location.search, typeof navigator === 'undefined' ? '' : navigator.userAgent)} signedIn={signedIn} authReady={v5AuthReady} />}
-        {live && signedIn && !!v5Card && !sheet && !goPlayer && !installAsking && (
+        {live && signedIn && !!v5Card && (
+          <PushOptInHost lang={lang} toast={showToast} onOpenChange={setPushOptOpen}
+            blocked={!!sheet || !!goPlayer || installAsking || buildOpen || photoOpen || ['preparing', 'uploading', 'saving'].includes(reelStage)} />
+        )}
+        {live && signedIn && !!v5Card && !sheet && !goPlayer && !installAsking && !pushOptOpen && (
           <PushAskCard L={L} lang={lang} toast={showToast} onInstallHelp={openInstallSheet} blocked={['preparing', 'uploading', 'saving'].includes(reelStage)} />
         )}
         {updateReady ? <button type="button" className="kr-upd" id="appUpdate" onClick={() => location.reload()}>{L('New update · tap to refresh')}</button> : null}
@@ -8069,7 +8081,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {/* Retention 10 sheets (V5Ret10.tsx) */}
         {b5Open && r10On ? <B5Sheet lang={lang} onClose={() => setB5Open(false)} /> : null}
         {photoOpen && r10On ? <PhotoSheet lang={lang} area={v5Card?.area || null} toast={showToast} onClose={() => setPhotoOpen(false)}
-          onPosted={() => { void tasksRefresh(); if (v5Uid) void photoStoreOf(v5Uid).refresh(); }} /> : null}
+          onPosted={() => { void tasksRefresh(); if (v5Uid) void photoStoreOf(v5Uid).refresh(); pushOptInAsk('photo'); }} /> : null}
         {r10On ? <PhotoViewer lang={lang} /> : null}
         {r10On ? <HowItWorksHost lang={lang} onWin={() => openHtw('how')} /> : live && !signedIn ? <HowItWorksHost lang={lang} /> : null}
         {r10On ? <HowToWinHost lang={lang} uid={v5Uid || null} onOpen={() => { if (!goMine) goLoadMine(); }} onAct={htwAct}

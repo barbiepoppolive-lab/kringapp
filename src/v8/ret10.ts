@@ -167,7 +167,7 @@ const EN = {
   // photo task (m226)
   phRow: 'Today’s photo', phRowS: 'Show your vibe · +3 Rings', phTitle: 'Today’s photo', phLine: 'Show your vibe, your face is optional',
   exBack: 'Your back', exSide: 'From the side', exOutfit: 'Your outfit', phRules: 'A real Bangkok spot · no screenshots, no food-only, no photos from the internet',
-  phTake: 'Take a photo', phRetake: 'Retake', phCap: 'Where are you? (optional)', phPost: 'Post · +3 Rings', phPosted: 'On your profile · claim +3 in today’s tasks',
+  phTake: 'Take a photo', phRetake: 'Retake', phCap: 'Where are you? (optional)', phPost: 'Post · up to +5 Rings', phPosted: 'On your profile · Rings added to today’s tasks',
   phDay: 'You posted today’s photo · see you tomorrow', phBad: 'That photo didn’t work. Try another one.', phFace: 'Do the 5-second face check first',
   // Ask BKK awards (m227)
   awHelpful: 'Most helpful', awFunny: 'Funniest', awNudge: 'Add your why to be in the running for today’s award', awOk: 'In the running for today’s award',
@@ -231,7 +231,7 @@ const TH: Tx = {
   rings: '+{0} ริง', ring1: '+1 ริง', claim: 'รับ', done: 'เสร็จแล้ว', go: 'ไป', newTag: 'ใหม่', skip: 'ข้ามไปก่อน', close: 'ปิด', save: 'บันทึก',
   phRow: 'รูปประจำวัน', phRowS: 'โชว์ไวบ์ของคุณ · +3 ริง', phTitle: 'รูปประจำวัน', phLine: 'โชว์ไวบ์ของคุณ ไม่ต้องเห็นหน้าก็ได้',
   exBack: 'ด้านหลัง', exSide: 'ด้านข้าง', exOutfit: 'ลุคของคุณ', phRules: 'สถานที่จริงในกรุงเทพฯ · ไม่รับภาพแคปจอ รูปอาหารล้วน หรือรูปจากเน็ต',
-  phTake: 'ถ่ายรูป', phRetake: 'ถ่ายใหม่', phCap: 'ตอนนี้อยู่ที่ไหน (ไม่ใส่ก็ได้)', phPost: 'โพสต์ · +3 ริง', phPosted: 'ขึ้นบนโปรไฟล์แล้ว · ไปรับ +3 ในภารกิจวันนี้',
+  phTake: 'ถ่ายรูป', phRetake: 'ถ่ายใหม่', phCap: 'ตอนนี้อยู่ที่ไหน (ไม่ใส่ก็ได้)', phPost: 'โพสต์ · สูงสุด +5 ริง', phPosted: 'ขึ้นบนโปรไฟล์แล้ว · ได้ริงในภารกิจวันนี้แล้ว',
   phDay: 'วันนี้โพสต์รูปแล้ว · พรุ่งนี้มาใหม่นะ', phBad: 'รูปนี้ใช้ไม่ได้ ลองรูปอื่นนะ', phFace: 'ยืนยันใบหน้า 5 วินาทีก่อนนะ',
   awHelpful: 'มีประโยชน์ที่สุด', awFunny: 'ฮาที่สุด', awNudge: 'เล่าเหตุผลเพิ่มอีกนิด เพื่อลุ้นรางวัลวันนี้', awOk: 'ได้ลุ้นรางวัลวันนี้แล้ว',
   kindT: 'อยากเรียบเรียงใหม่ไหม?', kindS: 'คำพูดดี ๆ ได้คำตอบกลับมากกว่า', kindEdit: 'แก้ไข', kindPost: 'โพสต์เลย', fpAward: 'รางวัล ถาม BKK',

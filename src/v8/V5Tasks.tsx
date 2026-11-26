@@ -8,7 +8,7 @@ import { TotReasons, TotStreak } from './totReasons';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import './tasks.css';
 import { RoastCard } from './V5Roast';
-import { B5TaskRow, PhotoTaskRow, WelcomeCard } from './V5Ret10';
+import { B5TaskRow, openPhotoSheet, PhotoTaskRow, WelcomeCard } from './V5Ret10';
 import { extraStore } from './ret10';
 import {
   claimedCount, doable, fmt, leftCount, readyCount, resetsIn, streakDays, taskClaim, TASK_ORDER, taskReason, taskReasonsToday, taskReasonText, taskReasonUp, taskState,
@@ -60,6 +60,7 @@ function Ring({ pct, size, stroke, children, cls = '' }: { pct: number; size: nu
 }
 const Ic: Record<TaskId, React.ReactNode> = {
   post: <svg viewBox="0 0 24 24"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></svg>,
+  photo: <svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2.5" /><circle cx="9" cy="10" r="1.6" /><path d="M5 17l4.5-4.5 3 3 2.5-2.5L19 17" /></svg>,
   bonus: <svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z" /></svg>,
   open: <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>,
   ask: <svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z" /><path d="M8 9.5h8M8 12.5h5" /></svg>,
@@ -89,6 +90,7 @@ function rowText(t: TaskRow, tx: TaskTx, lang: 'th' | 'en'): { title: string; su
     case 'watch': return { title: tx.watch, sub: fmt(tx.watchS, t.progress ?? 0, t.goal ?? 3) };
     case 'say': return { title: tx.say, sub: tx.sayS };
     case 'post': return { title: tx.post, sub: t.done ? tx.postDone : t.question ? `“${t.question.body}” · ${tx.postS}` : tx.postS };
+    case 'photo': return { title: tx.photo, sub: tx.photoS };
     case 'bonus': return { title: tx.bonus, sub: tx.bonusS };
   }
 }
@@ -270,6 +272,7 @@ export function TasksSheet(props: { lang: string; onClose: () => void; onAsk: (q
     if (t.id === 'vote') { if (t.vote?.kind === 'roast') { props.onAsk(null); return; } setVote(true); return; }
     if (t.id === 'watch') { props.onClose(); }
     if (t.id === 'post') { props.onClose(); window.dispatchEvent(new Event('kr8:post')); }
+    if (t.id === 'photo') { if (!data.verified) { props.onFace(); return; } props.onClose(); openPhotoSheet(); }   // m233: the existing photo flow
   };
   const dayLabels = weekLabels(data.day, tx);
   return (
@@ -290,9 +293,10 @@ export function TasksSheet(props: { lang: string; onClose: () => void; onAsk: (q
         </div>
         <WelcomeCard lang={props.lang} onFace={props.onFace} onClose={props.onClose} />
         <div className="dt-list">
-          {/* m226: the photo option sits first, so it is obvious (gone once today's post task is done) */}
-          <PhotoTaskRow lang={props.lang} verified={!!data.verified} onFace={props.onFace} onClose={props.onClose}
-            postDone={!!data.tasks.find((x) => x.id === 'post' && (x.done || x.claimed))} />
+          {/* m226: the photo option sits first, so it is obvious (gone once today's post task is done). m233: only while the server has no
+              separate photo-of-the-day task (the new row below replaces it) */}
+          {rows.some((x) => x.id === 'photo') ? null : <PhotoTaskRow lang={props.lang} verified={!!data.verified} onFace={props.onFace} onClose={props.onClose}
+            postDone={!!data.tasks.find((x) => x.id === 'post' && (x.done || x.claimed))} />}
           {rows.map((t) => {
             const st = taskState(t);
             const { title, sub } = rowText(t, tx, L);
@@ -300,7 +304,7 @@ export function TasksSheet(props: { lang: string; onClose: () => void; onAsk: (q
               <div key={t.id} className={`dt-row st-${st}${popping === t.id ? ' pop' : ''}`} data-task={t.id}>
                 <span className="ic" aria-hidden="true">{Ic[t.id]}</span>
                 <span className="tx"><b>{title}</b><small>{sub}</small></span>
-                <span className="rw">{t.id === 'post' ? '+3–7' : fmt(tx.ringsShort, t.rings)}</span>
+                <span className="rw">{t.id === 'post' ? (rows.some((x) => x.id === 'photo') ? '+3–5' : '+3–7') : fmt(tx.ringsShort, t.rings)}</span>
                 {t.id === 'bonus' && st === 'go' ? <span className="dt-tag">{c}/{n}</span>
                   : st === 'soon' ? <span className="dt-tag">{tx.soon}</span>
                   : st === 'done' ? <span className="dt-btn done"><Check />{tx.done}</span>
@@ -308,7 +312,7 @@ export function TasksSheet(props: { lang: string; onClose: () => void; onAsk: (q
                     <button type="button" className="dt-btn claim" disabled={busy === t.id} onClick={() => void claim(t.id)}>
                       {tx.claim}<span className="dt-burst" aria-hidden="true"><Rings s={18} /><Rings s={13} /><Rings s={10} /></span>
                     </button>
-                  ) : <button type="button" className="dt-btn" onClick={() => go(t)}>{tx.go}</button>}
+                  ) : <button type="button" className={`dt-btn${t.id === 'photo' ? ' wide' : ''}`} id={t.id === 'photo' ? 'dtPhotoGo' : undefined} onClick={() => go(t)}>{t.id === 'photo' ? tx.photoGo : tx.go}</button>}
               </div>
             );
           })}

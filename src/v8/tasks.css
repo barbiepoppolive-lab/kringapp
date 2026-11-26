@@ -210,3 +210,4 @@
 .v8-app-root .tot-sheet .tot { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
 @keyframes totPop { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.18); opacity: 1; } 100% { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .v8-app-root :is(.tot-check, .tot-chip) { animation: none; } .v8-app-root :is(.tot-bar i, .tot-fill) { transition: none; } }
+.v8-app-root .dt-btn.wide { padding: 0 12px; white-space: nowrap; font-size: 12.5px; }   /* m233: "Post a photo" */
