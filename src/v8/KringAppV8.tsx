@@ -1080,8 +1080,18 @@ class V8ErrorBoundary extends React.Component<
     return { hasError: true, message: error?.message || 'Unexpected error' };
   }
 
-  componentDidCatch() {
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
     bootDone();   // the error screen must never sit under the loading rings
+    // 26 Nov: the crash screen used to leave no trace (Pich saw it, Sentry and kr8_client_events were empty).
+    // Log the message + where it broke, so the team can fix the real cause. Never throws.
+    try {
+      // the server keeps 60 chars of code and 300 of detail
+      const msg = String(error?.message || error || 'unknown').slice(0, 60);
+      const stack = String(error?.stack || '').split('\n').slice(0, 3).join(' ').replace(/https?:\/\/[^/]+/g, '');
+      const comp = String(info?.componentStack || '').replace(/\s+/g, ' ').trim();
+      const where = `${location.search.slice(0, 40)} | ${stack.slice(0, 170)} | ${comp.slice(0, 80)}`.slice(0, 300);
+      v5LogClient('ui_crash', msg, where);
+    } catch { /* never block */ }
   }
 
   render() {
