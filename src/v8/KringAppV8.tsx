@@ -106,6 +106,8 @@ import { inAppBrowser, A2HSBanner, a2hsFirstValue, a2hsMoment, a2hsSignedInVisit
 import { parsePushLink, pushConfigured, pushDisable, pushEnable, pushMoment, pushResync, pushState, type PushLink, type PushState } from './push';
 import { PUSH_ASK_LINE, PushAskCard } from './V5Push';
 import { PushOptInHost, pushOptInAsk } from './V5PushOptIn';
+import { GenderAskSheet } from './V5GenderAsk';
+import { isGender as isGenderV } from './V5Gender';
 import { EscapeScreen } from './V5Escape';
 import { inAppOf, isLiffOpen, openEscape } from './escape';
 import { TripPerks } from './V5Trip';
@@ -7858,11 +7860,16 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         )}
         {live && (!sheet || installAsking) && <A2HSBanner L={L} blocked={['preparing', 'uploading', 'saving'].includes(reelStage) || pushOptOpen} onClose={installAskDone} />}
         {live && <EscapeScreen L={L} lang={lang} liff={isLiffOpen(typeof location === 'undefined' ? '' : location.search, typeof navigator === 'undefined' ? '' : navigator.userAgent)} signedIn={signedIn} authReady={v5AuthReady} />}
+        {live && signedIn && !!v5Card && !isGenderV(v5Card.gender) && !sheet && !goPlayer && !installAsking && !pushOptOpen && !buildOpen && !photoOpen
+          && !['preparing', 'uploading', 'saving'].includes(reelStage) && (
+          <GenderAskSheet L={L} toast={showToast}
+            onSaved={(g, sh) => setV5Card((c) => (c ? { ...c, gender: g, show_gender: sh } : c))} />
+        )}
         {live && signedIn && !!v5Card && (
           <PushOptInHost lang={lang} toast={showToast} onOpenChange={setPushOptOpen}
-            blocked={!!sheet || !!goPlayer || installAsking || buildOpen || photoOpen || ['preparing', 'uploading', 'saving'].includes(reelStage)} />
+            blocked={!!sheet || !!goPlayer || installAsking || buildOpen || photoOpen || !isGenderV(v5Card.gender) || ['preparing', 'uploading', 'saving'].includes(reelStage)} />
         )}
-        {live && signedIn && !!v5Card && !sheet && !goPlayer && !installAsking && !pushOptOpen && (
+        {live && signedIn && !!v5Card && isGenderV(v5Card.gender) && !sheet && !goPlayer && !installAsking && !pushOptOpen && (
           <PushAskCard L={L} lang={lang} toast={showToast} onInstallHelp={openInstallSheet} blocked={['preparing', 'uploading', 'saving'].includes(reelStage)} />
         )}
         {updateReady ? <button type="button" className="kr-upd" id="appUpdate" onClick={() => location.reload()}>{L('New update · tap to refresh')}</button> : null}
