@@ -16,7 +16,8 @@ export const shownGender = (c: { gender?: string | null; show_gender?: boolean |
 
 type Tx = (en: string) => string;
 
-export function GenderRow(props: { L: Tx; value: Gender | null; show: boolean; onChange: (g: Gender | null, show: boolean) => void; disabled?: boolean }) {
+/** required (26 Nov, founder): new cards must pick one; no "Prefer not to say", a tapped chip can't be un-picked. */
+export function GenderRow(props: { L: Tx; value: Gender | null; show: boolean; onChange: (g: Gender | null, show: boolean) => void; disabled?: boolean; required?: boolean; missing?: boolean }) {
   const { L, value, show } = props;
   return (
     <div className="kx-gender" id="kxGender" role="group" aria-labelledby="kxGenderLab">
@@ -24,16 +25,18 @@ export function GenderRow(props: { L: Tx; value: Gender | null; show: boolean; o
       <div className="kx-chips kx-gchips">
         {GENDERS.map((g) => (
           <button key={g} type="button" data-gender={g} aria-pressed={value === g} className={value === g ? 'on' : ''} disabled={props.disabled}
-            onClick={() => props.onChange(value === g ? null : g, value === g ? false : show)}>{L(GENDER_LABEL[g])}</button>
+            onClick={() => props.onChange(value === g && !props.required ? null : g, value === g && !props.required ? false : show)}>{L(GENDER_LABEL[g])}</button>
         ))}
-        <button type="button" data-gender="none" aria-pressed={value === null} className={value === null ? 'on' : ''} disabled={props.disabled}
-          onClick={() => props.onChange(null, false)}>{L('Prefer not to say')}</button>
+        {props.required ? null : <button type="button" data-gender="none" aria-pressed={value === null} className={value === null ? 'on' : ''} disabled={props.disabled}
+          onClick={() => props.onChange(null, false)}>{L('Prefer not to say')}</button>}
       </div>
       <label className={`kx-gshow${value ? '' : ' off'}`}>
         <input type="checkbox" id="kxGenderShow" checked={!!value && show} disabled={!value || props.disabled} onChange={(e) => props.onChange(value, e.target.checked)} />
         <i aria-hidden="true" /><span>{L('Show on my card')}</span>
       </label>
-      <p className="kx-gnote" id="kxGenderNote">{L('Optional. You choose whether it shows on your card.')}</p>
+      {props.required
+        ? <p className={`kx-gnote${props.missing ? ' kx-gmiss' : ''}`} id="kxGenderNote" role={props.missing ? 'alert' : undefined}>{L('Required. You choose whether it shows on your card.')}</p>
+        : <p className="kx-gnote" id="kxGenderNote">{L('Optional. You choose whether it shows on your card.')}</p>}
     </div>
   );
 }

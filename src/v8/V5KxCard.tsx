@@ -227,6 +227,7 @@ export function V5MintSheet(props: {
   /** 0079: explicit agreement to the Terms (incl. promotion use) on a new card, like other apps */
   const [termsOk, setTermsOk] = useState(false);
   const [more, setMore] = useState(!isNew);
+  const [genderMiss, setGenderMiss] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [link, setLink] = useState<Social | null>(null);
@@ -287,6 +288,8 @@ export function V5MintSheet(props: {
     { const bp = bioProblem(bio); if (bp) { setMore(true); setBioErr(L(BIO_MSG[bp])); setTimeout(() => document.getElementById('v5Bio')?.focus(), 30); return setNotice(''); } }
     if (!langs.length) return setNotice(L('Pick at least one language.'));
     // makecard-1: one tick on a new card covers both (18+ and Terms); both are still sent / recorded separately below
+    // 26 Nov (founder): "I am" is required on a new card
+    if (isNew && !gender) { setGenderMiss(true); setTimeout(() => document.getElementById('kxGender')?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 30); return setNotice(L('Please choose Female, Male or Kathoey.')); }
     if (isNew && (!ageOk || !termsOk)) return setNotice(L('Please confirm you’re 18+ and agree to the Terms.'));
     busyRef.current = true;
     setBusy(true);
@@ -527,7 +530,7 @@ export function V5MintSheet(props: {
         ) : null}
         {(ig || tt) && !showSocials && (!isNew || more) ? <p className="kx-gnote" id="kxSocialsNote">{L('Off: only you can see them.')}</p> : null}
         {/* makecard-1: optional "I am" sits behind "More about you" on a new card */}
-        {!isNew || more ? <GenderRow L={L} value={gender} show={showGender} disabled={busy} onChange={(g, sh) => { setGender(g); setShowGender(sh); }} /> : null}
+        <GenderRow L={L} value={gender} show={showGender} disabled={busy} required={isNew} missing={isNew && genderMiss && !gender} onChange={(g, sh) => { setGender(g); setShowGender(sh); setGenderMiss(false); }} />
         {!more && (
           <button type="button" className="kx-more" id="v5More" onClick={() => setMore(true)}>{L('More about you (optional) ›')}</button>
         )}

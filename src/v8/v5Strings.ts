@@ -1258,6 +1258,8 @@ export const KX_L: Record<string, Record<string, string>> = {
     'Prefer not to say': 'ไม่ระบุ',
     'Show on my card': 'โชว์บนการ์ดของฉัน',
     'Optional. You choose whether it shows on your card.': 'ไม่ใส่ก็ได้ คุณเลือกเองว่าจะโชว์บนการ์ดไหม',
+    'Required. You choose whether it shows on your card.': 'ต้องเลือก 1 อย่าง คุณเลือกเองว่าจะโชว์บนการ์ดไหม',
+    'Please choose Female, Male or Kathoey.': 'กรุณาเลือก หญิง ชาย หรือ กะเทย',
     'Card saved. We couldn’t save “I am” this time, try again from Edit profile.': 'บันทึกการ์ดแล้ว แต่ยังบันทึก “ฉันเป็น” ไม่ได้ ลองใหม่ที่แก้ไขโปรไฟล์นะ',
     // automatic chat translation (15 Nov): screen-reader labels only, nothing extra is printed on the bubble
     'Translated. Tap to see the original.': 'แปลแล้ว แตะเพื่อดูข้อความต้นฉบับ',

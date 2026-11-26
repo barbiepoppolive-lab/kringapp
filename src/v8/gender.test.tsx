@@ -99,14 +99,14 @@ describe('optional gender: making and editing the card', () => {
     await vi.waitFor(() => { expect(document.getElementById('kxAddPhoto')).toBeNull(); expect(document.getElementById('kxPhotoNeed')).toBeNull(); }, { timeout: 4000 });
     fireEvent.change(document.getElementById('v5Name')!, { target: { value: 'TEST-Mali' } }); fireEvent.click(document.getElementById('v5TermsOk')!);
     fireEvent.click(document.getElementById('v5More')!); };   // makecard-1: "I am" sits behind "More about you" on a new card
-  it('a new card can be made without touching the row: nothing is sent for gender', async () => {
+  it('26 Nov: a new card cannot be made without choosing "I am" (no "Prefer not to say")', async () => {
     sheet(null); await fillNew();
     expect(document.getElementById('kxGender')).toBeTruthy();
+    expect(document.querySelector('[data-gender="none"]')).toBeNull();
     fireEvent.click(document.getElementById('v5SaveCard')!);
-    await vi.waitFor(() => expect(liveMock.v5SaveCard).toHaveBeenCalled());
     await new Promise((r) => setTimeout(r, 20));
-    expect(kxMock.kxSetGender).not.toHaveBeenCalled();
-    expect(document.getElementById('v5CardNotice')).toBeNull();
+    expect(liveMock.v5SaveCard).not.toHaveBeenCalled();
+    expect(document.getElementById('kxGenderNote')!.className).toContain('kx-gmiss');
   });
   it.each(GENDERS)('new card choosing %s: saved with "show" off unless switched on', async (g: Gender) => {
     sheet(null); await fillNew();

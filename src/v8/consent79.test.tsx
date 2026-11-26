@@ -44,6 +44,7 @@ describe('0079 new card: explicit agree checkbox', () => {
   });
   it('cannot mint without agreeing; nothing is saved', async () => {
     sheet(null); await fillNew();
+    fireEvent.click(document.querySelector('[data-gender="female"]')!);
     fireEvent.click(document.getElementById('v5SaveCard')!);
     await vi.waitFor(() => expect(document.getElementById('v5CardNotice')!.textContent).toBe('Please confirm you’re 18+ and agree to the Terms.'));
     expect(liveMock.v5SaveCard).not.toHaveBeenCalled();
@@ -51,21 +52,20 @@ describe('0079 new card: explicit agree checkbox', () => {
   });
   it('ticking it records the agreement as "signup"', async () => {
     sheet(null); await fillNew();
+    fireEvent.click(document.querySelector('[data-gender="female"]')!);
     fireEvent.click(document.getElementById('v5TermsOk')!);
     fireEvent.click(document.getElementById('v5SaveCard')!);
     await vi.waitFor(() => expect(liveMock.v5AcceptTerms).toHaveBeenCalledWith('signup'));
     // the one tick still sends the 18+ confirmation the server requires (kr8_save_card p_age_ok)
     expect(liveMock.v5SaveCard).toHaveBeenCalledWith(expect.objectContaining({ age_ok: true }));
   });
-  it('makecard-1: a new card shows no photo box, no Instagram/TikTok rows and no "I am" row until "More about you"', async () => {
+  it('makecard-1: a new card shows no photo box and no Instagram/TikTok rows; "I am" is shown straight away (required since 26 Nov)', async () => {
     sheet(null);
     expect(document.getElementById('kxPhotoNeed')).toBeNull();
     expect(document.getElementById('kxPhotoGallery')).toBeNull();
     expect(document.getElementById('kxPhotoCamera')).toBeTruthy();
     expect(document.getElementById('kxIgRow')).toBeNull();
     expect(document.getElementById('kxTtRow')).toBeNull();
-    expect(document.getElementById('kxGender')).toBeNull();
-    fireEvent.click(document.getElementById('v5More')!);
     expect(document.getElementById('kxGender')).toBeTruthy();
   });
   it('makecard-1: editing an existing card keeps every row', async () => {
