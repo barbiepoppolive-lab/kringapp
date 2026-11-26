@@ -9,8 +9,8 @@ import { usePosters } from './V5Go';
 import { initialAvatar } from './v8Data';
 import {
   b5Arm, b5Hidden, b5Hide, b5Store, bestieAct, bestieInvite, bestieNudge, bestieOf, bestiePill, bestieSeen, bestieStore, errCode, extraStore, fairPlay,
-  fmt, followSuggest, fpParts, newcomers, createPhoto, photoStore, type MemberPhoto, OQ_PRESETS, PO_OPEN, openQAnswer, openQOf, poMarkSeen, poReason, poSeen, poStore, r10Tx, setOpenQ, taskExtraClaim,
-  type Bestie, type BestieOf, type FairPlay, type FollowSuggest, type Newcomers, type OpenQ, type R10Reel,
+  dailyStore, fmt, followSuggest, fpParts, HOW_OPEN, openHowItWorks, rulesStore, newcomers, createPhoto, photoStore, type MemberPhoto, OQ_PRESETS, PO_OPEN, openQAnswer, openQOf, poMarkSeen, poReason, poSeen, poStore, r10Tx, setOpenQ, taskExtraClaim,
+  type Bestie, type BestieOf, type DailyPick, type FairPlay, type FollowSuggest, type Newcomers, type OpenQ, type R10Reel,
 } from './ret10';
 import { v5CompressImage } from './v5Live';
 import './ret10.css';
@@ -553,6 +553,8 @@ export function FairPlaySheet(props: { lang: string; user: string; onClose: () =
               <div className="r10-fpl"><span>{tx.fpRulesSub}</span></div></section> : null}
             {d.tasks > 0 ? <section className="r10-fpc" data-fp="tasks"><div className="r10-fpt"><span><i className="c-tasks" />{tx.fpTasks}</span><b>{d.tasks}</b></div></section> : null}
             {(d.ask_awards || 0) > 0 ? <section className="r10-fpc" data-fp="award"><div className="r10-fpt"><span><i className="c-award" />{tx.fpAward}</span><b>{d.ask_awards}</b></div></section> : null}
+            {(d.daily_top || 0) > 0 ? <section className="r10-fpc" data-fp="dtop"><div className="r10-fpt"><span><i className="c-bonus" />{tx.fpTop}</span><b>{d.daily_top}</b></div></section> : null}
+            {(d.daily_climb || 0) > 0 ? <section className="r10-fpc" data-fp="dclimb"><div className="r10-fpt"><span><i className="c-bonus" />{tx.fpClimb}</span><b>{d.daily_climb}</b></div></section> : null}
             {d.ask_opens > 0 ? <section className="r10-fpc" data-fp="ask"><div className="r10-fpt"><span><i className="c-tasks" />{tx.fpAsk}</span><b>{d.ask_opens}</b></div></section> : null}
             {d.invites_shown && d.invites > 0 ? <section className="r10-fpc" data-fp="invites"><div className="r10-fpt"><span><i className="c-invites" />{tx.fpInv}</span><b>{d.invites}</b></div></section> : null}
             {d.lag !== 0 ? <section className="r10-fpc" data-fp="lag"><div className="r10-fpt"><span>{tx.fpLag}</span><b>{d.lag > 0 ? `+${d.lag}` : d.lag}</b></div></section> : null}
@@ -563,8 +565,8 @@ export function FairPlaySheet(props: { lang: string; user: string; onClose: () =
             <div className="r10-days" id="fpDayList">
               {d.days.map((x) => (
                 <div className="r10-day" key={x.day}><span>{df.format(Date.parse(`${x.day}T12:00:00Z`))}</span>
-                  <small>{[x.reels ? `${tx.dReels} ${x.reels}` : '', x.tasks ? `${tx.dTasks} ${x.tasks}` : '', d.invites_shown && x.invites ? `${tx.dInv} ${x.invites}` : ''].filter(Boolean).join(' · ') || '–'}</small>
-                  <b>{x.reels + x.tasks + (d.invites_shown ? x.invites : 0)}</b></div>
+                  <small>{[x.reels ? `${tx.dReels} ${x.reels}` : '', x.tasks ? `${tx.dTasks} ${x.tasks}` : '', x.bonus ? `${tx.dBonus} ${x.bonus}` : '', d.invites_shown && x.invites ? `${tx.dInv} ${x.invites}` : ''].filter(Boolean).join(' · ') || '–'}</small>
+                  <b>{x.reels + x.tasks + (x.bonus || 0) + (d.invites_shown ? x.invites : 0)}</b></div>
               ))}
             </div>
           ) : null}
@@ -696,6 +698,95 @@ export function LeaderOrb(props: { lang: string; rank: number | null; need: numb
       onClick={join ? props.onFace : props.onOpen}>
       <span className="r10-orbc"><b>{join ? <RingsIc s={22} /> : props.rank ? `#${props.rank}` : <RingsIc s={22} />}</b></span>
       <small>{join ? tx.orbJoin : line || tx.orbLabel}</small>
+    </button>
+  );
+}
+
+// ───────────────────────────── m228: daily bonuses (variant A) ─────────────────────────────
+/** the board strip under "Last week's winners": today's top 3 (+10/+6/+3) and the biggest climber (+5). Quiet glass, no glow. */
+export function DailyTopStrip(props: { lang: string; onPerson: (id: string) => void }) {
+  const tx = r10Tx(props.lang);
+  const d = dailyStore.use(true);
+  useEffect(() => {   // the server refreshes every 5 minutes; read again on that rhythm while the board is open
+    const t = window.setInterval(() => { void dailyStore.refresh(); }, 5 * 60_000);
+    void dailyStore.refresh();
+    return () => window.clearInterval(t);
+  }, []);
+  if (!d || !d.on) return null;
+  const top = d.top || [];
+  const won = d.state === 'won';
+  const who = (id: string) => d.who?.[id];
+  const chip = (p: DailyPick, k: string, label: string) => {
+    const w = who(p.member_id);
+    if (!w) return null;
+    return (
+      <button type="button" key={k} className={`r10-dtc${k === 'climb' ? ' cl' : ''}`} data-dt={k} onClick={() => props.onPerson(p.member_id)}
+        aria-label={`${w.me ? tx.dtYou : w.first_name} ${label}`}>
+        {k === 'climb' ? <i className="r10-dtup" aria-hidden="true">📈</i> : null}<Av photo={w.photo} name={w.first_name} /><b>{label}</b>
+      </button>
+    );
+  };
+  return (
+    <div className={`r10-dt${won ? ' won' : ''}${top.length ? '' : ' empty'}`} id="kxDailyTop" data-state={d.state} lang={props.lang === 'th' ? 'th' : 'en'}>
+      <button type="button" className="r10-dth" onClick={() => openHowItWorks('strip')}>
+        <b>{won ? tx.dtWon : top.length ? tx.dtTitle : fmt(tx.dtEmpty, d.min ?? 10)}</b>
+        <small>{won ? tx.dtWonSub : tx.dtSub}</small>
+      </button>
+      {top.length || d.climber ? (
+        <span className="r10-dtcs">
+          {top.map((p) => chip(p, `t${p.rank}`, `+${p.bonus}`))}
+          {d.climber ? chip(d.climber, 'climb', `+${d.climber.bonus}`) : null}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+/** "How it works" (board ⓘ, How to win, Ask BKK): daily bonuses + Ask BKK awards. Mounted once; opened with openHowItWorks(). */
+export function HowItWorksHost(props: { lang: string; onWin?: () => void }) {
+  const [open, setOpen] = useState('');
+  useEffect(() => {
+    const f = (e: Event) => setOpen((e as CustomEvent<string>).detail || 'x');
+    window.addEventListener(HOW_OPEN, f);
+    return () => window.removeEventListener(HOW_OPEN, f);
+  }, []);
+  if (!open) return null;
+  return <HowItWorksSheet lang={props.lang} from={open} onClose={() => setOpen('')} onWin={props.onWin} />;
+}
+export function HowItWorksSheet(props: { lang: string; from?: string; onClose: () => void; onWin?: () => void }) {
+  const tx = r10Tx(props.lang);
+  const d = dailyStore.use(true);
+  const cfg = rulesStore.use(true);
+  const b = d?.bonus || [cfg?.daily_top_1 ?? 10, cfg?.daily_top_2 ?? 6, cfg?.daily_top_3 ?? 3];
+  const daily = !!d?.on;
+  const awards = (cfg?.ask_awards_on ?? 0) === 1 || props.from === 'ask';
+  const rows: { k: string; ic: string; t: string; s: string }[] = [
+    ...(daily ? [
+      { k: 'top', ic: '🌙', t: fmt(tx.hwTopT, b[0], b[1], b[2]), s: fmt(tx.hwTopS, b[0], b[1], b[2], cfg?.daily_top_min ?? 10) },
+      { k: 'climb', ic: '📈', t: fmt(tx.hwClimbT, d?.climb ?? cfg?.daily_climb ?? 5), s: fmt(tx.hwClimbS, d?.climb ?? 5, cfg?.daily_climb_min ?? 5) },
+    ] : []),
+    ...(awards ? [{ k: 'ask', ic: '🏆', t: tx.hwAskT, s: tx.hwAskS }] : []),
+    { k: 'fp', ic: '🔍', t: tx.hwFpT, s: tx.hwFpS },
+  ];
+  return (
+    <Sheet id="kxHowItWorks" label={tx.hwTitle} onClose={props.onClose} cls="r10-hw">
+      <div className="r10-hwh" lang={props.lang === 'th' ? 'th' : 'en'}><b>{tx.hwTitle}</b><small>{tx.hwSub}</small></div>
+      <div className="r10-hwl" lang={props.lang === 'th' ? 'th' : 'en'}>
+        {rows.map((r) => <div className="r10-hwr" key={r.k} data-hw={r.k}><i aria-hidden="true">{r.ic}</i><span><b>{r.t}</b><small>{r.s}</small></span></div>)}
+      </div>
+      {props.onWin && (props.from === 'board' || props.from === 'strip') ? <button type="button" className="r10-link" id="hwWin" onClick={() => { props.onClose(); props.onWin?.(); }}>{tx.hwWin} ›</button> : null}
+      <button type="button" className="r10-main" id="hwOk" onClick={props.onClose}>{tx.hwOk}</button>
+    </Sheet>
+  );
+}
+/** Ask BKK page: the one-line award rule (opens the same sheet) */
+export function AskAwardLine(props: { lang: string }) {
+  const tx = r10Tx(props.lang);
+  const cfg = rulesStore.use(true);
+  if (!cfg || (cfg.ask_awards_on ?? 0) !== 1) return null;
+  return (
+    <button type="button" className="r10-awl" id="askAwardRule" lang={props.lang === 'th' ? 'th' : 'en'} onClick={() => openHowItWorks('ask')}>
+      <span aria-hidden="true">🏆</span><b>{tx.askAwLine}</b><small>{tx.askAwHow} ›</small>
     </button>
   );
 }

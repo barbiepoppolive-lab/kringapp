@@ -1,7 +1,7 @@
 // Retention 10 QA proof shots on qa.kringapp.pages.dev, 390×844 @2x, QA test accounts only. Usage: node shots.mjs <en|th>
 import { pw, open, wait, ACCT } from './lib.mjs';
 const lang = process.argv[2] || 'en';
-const OUT = '/tmp/claude-0/-home-claude/b4df4a5f-34ab-5ac3-93b2-e9f658e3bfed/scratchpad/retention10/shots';
+const OUT = process.env.OUT ? process.env.OUT + '' : '/tmp/claude-0/-home-claude/b4df4a5f-34ab-5ac3-93b2-e9f658e3bfed/scratchpad/retention10/shots';
 const b = await pw.chromium.launch();
 const log = [];
 const shot = async (page, n) => { await page.screenshot({ path: `${OUT}/${lang}_${n}.png` }); log.push(n); };

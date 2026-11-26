@@ -15,7 +15,8 @@ import { signReelPaths } from './v5Reel';
 import { RingToast, rulesVariant, WinSheet, winRules } from './V5KxRules';
 import { BackIcon, Crown, InfoIcon, Medal, PlusIcon, ShareIcon, type Tone } from './BoardArt';
 import { rankDelta, seenRankAtStart } from './prizeRace';
-import { FairPlaySheet, NewcomersLeague } from './V5Ret10';
+import { DailyTopStrip, FairPlaySheet, NewcomersLeague } from './V5Ret10';
+import { dailyStore, openHowItWorks, r10Tx } from './ret10';
 import { lineOut, refCode } from './invite';
 import { boardMoment, displayCode, cardBlob, cardCaption, cardLink, linkCopiedToast, shareCard, storyButtonLabel, storyFileName, type ShareCard } from './rankStory';
 
@@ -283,6 +284,13 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   const [now, setNow] = useState(() => Date.now());
   const [math, setMath] = useState<string | null>(null);
   const [how, setHow] = useState(false);
+  // m228: once daily bonuses are on, ⓘ opens "How it works" (daily bonuses + Ask BKK awards); it links on to How to win
+  const daily = dailyStore.use(true);
+  useEffect(() => {
+    const f = () => setWin(true);
+    window.addEventListener('kr8:r10-win', f);
+    return () => window.removeEventListener('kr8:r10-win', f);
+  }, []);
   const [rv] = useState(rulesVariant);
   const [low] = useState(lowFx);
   const [cfg, setCfg] = useState<Record<string, number> | null>(null);
@@ -446,8 +454,9 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
             🏆 {lang === 'th' ? 'ผลสัปดาห์ที่แล้ว' : 'Last week’s winners'} <b aria-hidden="true">›</b>
           </button>
         </div>
-        <button type="button" className="bx-i" id="kxWinOpen" aria-label={L('How to win')} onClick={() => (wr ? setWin(true) : setHow(true))}><InfoIcon /></button>
+        <button type="button" className="bx-i" id="kxWinOpen" aria-label={L('How to win')} onClick={() => (daily?.on ? openHowItWorks('board') : wr ? setWin(true) : setHow(true))}><InfoIcon /></button>
       </div>
+      <DailyTopStrip lang={lang} onPerson={(id) => setMath(id)} />
       {data === null && !err ? <p className="kx-empty pad">…</p> : err ? <p className="kx-empty pad">{L('Couldn’t reach Kring. Check your connection and try again.')}</p> : (
         <>
           <div className="bx-pod" id="kxPodium">
@@ -533,7 +542,8 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
         onProfile={(id) => { setMath(null); props.onPerson(id); }}
         onShare={(reel) => { setMath(null); if (reel) props.onShare(reel); else props.onPost(); }} /> : null}
       {how ? <HowSheet L={L} onClose={() => setHow(false)} /> : null}
-      {wr && win ? <WinSheet v={rv || 'C'} lang={lang} r={wr} glass onClose={() => setWin(false)} extra={<SeatsLine L={L} Lf={Lf} lang={lang} left={seatsLeft} />} /> : null}
+      {wr && win ? <WinSheet v={rv || 'C'} lang={lang} r={wr} glass onClose={() => setWin(false)} extra={<SeatsLine L={L} Lf={Lf} lang={lang} left={seatsLeft} />}
+        more={daily?.on ? <button type="button" className="r10-link rw-hw" id="kxWinHow" onClick={() => { setWin(false); openHowItWorks('win'); }}>{r10Tx(lang).hwLink} ›</button> : null} /> : null}
       {shareOpen && latest ? (
         <div className="kx-shbg bx-shbg" onClick={() => setShareOpen(false)}>
           <div className="bx-sharesheet" id="kxShareSheet" role="dialog" aria-label={C.shareTitle} lang={lang === 'th' ? 'th' : 'en'} onClick={(e) => e.stopPropagation()}>

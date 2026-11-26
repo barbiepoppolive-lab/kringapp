@@ -43,9 +43,9 @@ export interface FairPlay {
   likes_newer: { n: number; rings: number; day_cap: number; who: { user_id: string | null; name: string | null; n: number }[] };
   saves: { n: number; rings: number };
   opens: { n: number; rings: number; by_app: Record<string, number>; over_cap: number; not_counted: Record<string, number>; day_cap: number };
-  rules_adjust: number; tasks: number; ask_opens: number; ask_awards?: number; invites: number; invites_shown: boolean; lag: number;
+  rules_adjust: number; tasks: number; ask_opens: number; ask_awards?: number; daily_top?: number; daily_climb?: number; invites: number; invites_shown: boolean; lag: number;
   weights: { like: number; save: number; open: number; mult: number };
-  days: { day: string; reels: number; tasks: number; invites: number }[];
+  days: { day: string; reels: number; tasks: number; bonus?: number; invites: number }[];
 }
 export interface Newcomers {
   week_start: string; ends_at: string; mine_new: boolean; top: number;
@@ -75,6 +75,12 @@ export const createPhoto = (photo: string, area: string | null, body: string | n
 export const memberPhotos = (user: string) => call<MemberPhoto[]>('kr8_member_photos', { p_user: user });
 export interface AskAward { answer_id: string; kind: 'helpful' | 'funny'; day: string }
 export const askAwardsRecent = () => call<AskAward[]>('kr8_ask_awards_recent');
+/** m228: today's top 3 + biggest climber (cache, refreshed every 5 min) */
+export interface DailyPick { rank?: number; member_id: string; rings: number; bonus: number }
+export interface DailyTop { on: boolean; state?: 'live' | 'won'; day?: string; min?: number; top?: DailyPick[]; climber?: DailyPick | null;
+  who?: Record<string, { first_name: string; photo: string | null; me: boolean }>; bonus?: number[]; climb?: number }
+export const dailyTop = () => call<DailyTop>('kr8_daily_top');
+export const rulesCfg = () => call<Record<string, number>>('kr8_rings_rules');
 export const newcomers = () => call<Newcomers>('kr8_newcomers_board', { p_limit: 10 });
 
 // ───────── small shared stores (one read, many readers) ─────────
@@ -102,6 +108,11 @@ export const b5Store = store(b5Row);
 export const poStore = store(myProfileOnly);
 export const bestieStore = store(bestieState);
 export const awardStore = store(askAwardsRecent);
+export const dailyStore = store(dailyTop);
+export const rulesStore = store(rulesCfg);
+/** m228: the "How it works" rules sheet (board ⓘ, How to win, Ask BKK) is mounted once in the app and opened by this event */
+export const HOW_OPEN = 'kr8:r10-how';
+export function openHowItWorks(from?: string) { try { window.dispatchEvent(new CustomEvent(HOW_OPEN, { detail: from || '' })); } catch { /* old browser */ } }
 const photoStores = new Map<string, ReturnType<typeof store<MemberPhoto[]>>>();
 export function photoStore(user: string) { let st = photoStores.get(user); if (!st) { st = store(() => memberPhotos(user)); photoStores.set(user, st); } return st; }
 /** the kindness check before an Ask BKK answer is posted (light: insults only, never blocks) */
@@ -186,6 +197,15 @@ const EN = {
   dReels: 'Reels', dTasks: 'Tasks', dInv: 'Friends',
   // 10
   ncTitle: 'Newcomers league', ncSub: 'Only members who joined this week · top 3 get the Rising Local tag', ncTo: '{0} Rings to #{1}', ncTop: 'You’re #1 of the newcomers',
+  // m228 daily bonuses
+  dtTitle: 'Today’s top 3', dtSub: 'bonus at 23:59', dtEmpty: 'Be today’s top 3: earn {0} Rings', dtWon: 'Won last night', dtWonSub: 'next bonus at 23:59',
+  dtYou: 'You', fpTop: 'Daily top 3 bonus', fpClimb: 'Biggest climber', dBonus: 'Bonus',
+  hwTitle: 'Daily bonuses', hwSub: 'Extra Rings for the weekly board, every night',
+  hwTopT: 'Today’s top 3: +{0}, +{1}, +{2}', hwTopS: 'Most Rings earned today, counted at 23:59. Needs a face check and {3}+ Rings that day. If tied, whoever got there first wins.',
+  hwClimbT: 'Biggest climber: +{0}', hwClimbS: 'Beat your own usual day by the most. Needs a face check and {1}+ Rings that day.',
+  hwAskT: 'Ask BKK awards: +5 each at 8pm', hwAskS: 'Most helpful (❤️💯) and Funniest (😂). Answers of 40+ characters, 2+ votes from face-checked members. No votes for yourself. Max 2 wins a week.',
+  hwFpT: 'Every bonus shows in Fair play', hwFpS: 'Tap anyone on the board to see where their Rings came from.',
+  hwWin: 'How to win the week', hwOk: 'Got it', hwLink: 'Daily bonuses and awards', askAwLine: 'Best answers win +5 at 8pm', askAwHow: 'How it works',
   ncEmpty: 'No newcomers on the board yet this week', ncYou: 'You',
 };
 type Tx = typeof EN;
@@ -230,6 +250,15 @@ const TH: Tx = {
   fpShare: 'แชร์รีลของฉัน · เปิดครั้งละ +5', fpNone: 'สัปดาห์นี้ยังไม่มีริง', fpReels: 'นับรีลที่ดีที่สุดของแต่ละวัน', fpMore: 'อีก {0} รีลไม่นับ (นับวันละ 1 รีล)', fpMore1: 'อีก 1 รีลไม่นับ (นับวันละ 1 รีล)',
   dReels: 'รีล', dTasks: 'ภารกิจ', dInv: 'เพื่อน',
   ncTitle: 'ลีกน้องใหม่', ncSub: 'เฉพาะคนที่เข้าร่วมสัปดาห์นี้ · 3 อันดับแรกได้ป้าย ดาวรุ่ง', ncTo: 'อีก {0} ริงถึงอันดับ {1}', ncTop: 'คุณคืออันดับ 1 ของน้องใหม่',
+  // m228 daily bonuses
+  dtTitle: 'ท็อป 3 วันนี้', dtSub: 'รับโบนัสตอน 23:59', dtEmpty: 'ติดท็อป 3 วันนี้: เก็บให้ได้ {0} ริง', dtWon: 'ผู้ชนะเมื่อคืน', dtWonSub: 'โบนัสรอบต่อไป 23:59',
+  dtYou: 'คุณ', fpTop: 'โบนัสท็อป 3 รายวัน', fpClimb: 'ไต่อันดับแรงสุด', dBonus: 'โบนัส',
+  hwTitle: 'โบนัสรายวัน', hwSub: 'ริงพิเศษเข้ากระดานประจำสัปดาห์ ทุกคืน',
+  hwTopT: 'ท็อป 3 ของวัน: +{0}, +{1}, +{2}', hwTopS: 'ใครเก็บริงได้มากที่สุดในวันนั้น นับตอน 23:59 ต้องยืนยันใบหน้าแล้ว และเก็บได้ {3} ริงขึ้นไปในวันนั้น ถ้าเท่ากัน ใครถึงก่อนได้ก่อน',
+  hwClimbT: 'ไต่อันดับแรงสุด: +{0}', hwClimbS: 'ทำได้ดีกว่าวันปกติของตัวเองมากที่สุด ต้องยืนยันใบหน้าแล้ว และเก็บได้ {1} ริงขึ้นไปในวันนั้น',
+  hwAskT: 'รางวัล ถาม BKK: รางวัลละ +5 ตอน 2 ทุ่ม', hwAskS: 'ช่วยได้มากที่สุด (❤️💯) และฮาที่สุด (😂) คำตอบต้องยาว 40 ตัวอักษรขึ้นไป และได้โหวตจากสมาชิกที่ยืนยันใบหน้าแล้วอย่างน้อย 2 คน โหวตให้ตัวเองไม่นับ ได้สูงสุด 2 รางวัลต่อสัปดาห์',
+  hwFpT: 'ทุกโบนัสดูได้ในแฟร์เพลย์', hwFpS: 'แตะใครก็ได้บนกระดาน เพื่อดูว่าริงของเขามาจากไหน',
+  hwWin: 'วิธีชนะประจำสัปดาห์', hwOk: 'เข้าใจแล้ว', hwLink: 'โบนัสรายวันและรางวัล', askAwLine: 'คำตอบเด็ดรับ +5 ตอน 2 ทุ่ม', askAwHow: 'ดูกติกา',
   ncEmpty: 'สัปดาห์นี้ยังไม่มีน้องใหม่บนบอร์ด', ncYou: 'คุณ',
 };
 export type R10Tx = Tx;
@@ -281,12 +310,13 @@ export function fpParts(d: FairPlay): { key: string; rings: number }[] {
     { key: 'saves', rings: d.saves.rings },
     { key: 'tasks', rings: d.tasks + d.ask_opens },
     { key: 'award', rings: d.ask_awards || 0 },
+    { key: 'bonus', rings: (d.daily_top || 0) + (d.daily_climb || 0) },
     { key: 'invites', rings: d.invites_shown ? d.invites : 0 },
   ];
   return parts.filter((p) => p.rings > 0);
 }
 export const fpSum = (d: FairPlay) =>
-  d.likes_verified.rings + d.likes_newer.rings + d.saves.rings + d.opens.rings + d.rules_adjust + d.tasks + d.ask_opens + (d.ask_awards || 0) + (d.invites_shown ? d.invites : 0) + d.lag;
+  d.likes_verified.rings + d.likes_newer.rings + d.saves.rings + d.opens.rings + d.rules_adjust + d.tasks + d.ask_opens + (d.ask_awards || 0) + (d.daily_top || 0) + (d.daily_climb || 0) + (d.invites_shown ? d.invites : 0) + d.lag;
 
 /** feature 8: the profile pill text */
 export function bestiePill(lang: string, b: BestieOf): string {

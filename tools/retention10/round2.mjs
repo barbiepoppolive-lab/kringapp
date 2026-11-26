@@ -3,7 +3,7 @@
 import { pw, open, wait } from './lib.mjs';
 import fs from 'node:fs';
 const lang = process.argv[2] || 'en', part = process.argv[3] || 'all';
-const OUT = '/tmp/claude-0/-home-claude/b4df4a5f-34ab-5ac3-93b2-e9f658e3bfed/scratchpad/retention10/shots/r2'; fs.mkdirSync(OUT, { recursive: true });
+const OUT = process.env.OUT ? process.env.OUT + '/r2' : '/tmp/claude-0/-home-claude/b4df4a5f-34ab-5ac3-93b2-e9f658e3bfed/scratchpad/retention10/shots/r2'; fs.mkdirSync(OUT, { recursive: true });
 const b = await pw.chromium.launch(); const log = [];
 const ALLOW = /\b(BKK|Kring|LINE|Instagram|TikTok|Facebook|TrueMoney|Grab|Ploy|Mint|Fah|Bee|Nes|Pichy|Review|Ari|Siam|Square|Silom|Lumpini|Jodd|Fairs|Hua|Lamphong|Wat|Dan|Phaya|Thai|Pathum|Wan|Huai|Khwang|GIF|TH|EN|KR)\b/g;
 // language mode: in Thai mode no English words in new UI blocks; in English mode no Thai (member names / their own text excluded)

@@ -218,7 +218,7 @@ import { v5HelpEvent, v5HelpOpen } from './v5Live';
 import { bkkClock, bkkDay, dayLabel, postAgo } from './postTime';
 import { JoinPrompt, cameFromSharedReel, joinPromptCameBack, joinPromptSeen, markJoinPromptSeen } from './JoinPrompt';
 import { feedNewFaces, feedVote, feedVoteCards, NewFacesRow, VOTE_EVERY, VoteSlide, type NewFace, type VoteCard, type VoteResult } from './feedRet';
-import { LeaderOrb, PHOTO_OPEN, PhotoSheet, PhotoViewer, B5Banner, B5Sheet, B5Tile, BestieMeLine, Follow3Row, Follow3Sheet, OpenQAnswer, OpenQMeLine, ProfileBestie, ProfileOnlyWatcher, ProfileQCard, R10_PLAY, R10_PROFILE, useOpenQ } from './V5Ret10';
+import { HowItWorksHost, LeaderOrb, PHOTO_OPEN, PhotoSheet, PhotoViewer, B5Banner, B5Sheet, B5Tile, BestieMeLine, Follow3Row, Follow3Sheet, OpenQAnswer, OpenQMeLine, ProfileBestie, ProfileOnlyWatcher, ProfileQCard, R10_PLAY, R10_PROFILE, useOpenQ } from './V5Ret10';
 import { photoStore as photoStoreOf, b5AfterPost, b5Hidden, b5Store, errCode as r10Err, extraStore, r10Tx, reelOpeners, type R10Reel } from './ret10';
 import './glass.css';   // 20 Nov: light glass on every sheet; last so it wins
 
@@ -8042,6 +8042,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {photoOpen && r10On ? <PhotoSheet lang={lang} area={v5Card?.area || null} toast={showToast} onClose={() => setPhotoOpen(false)}
           onPosted={() => { void tasksRefresh(); if (v5Uid) void photoStoreOf(v5Uid).refresh(); }} /> : null}
         {r10On ? <PhotoViewer lang={lang} /> : null}
+        {r10On ? <HowItWorksHost lang={lang} onWin={() => window.dispatchEvent(new Event('kr8:r10-win'))} /> : null}
         {f3Open && r10On ? <Follow3Sheet lang={lang} onClose={() => { setF3Open(false); void onbRefreshNow(); }} onFollow={(id) => toggleFollow(id, false)} /> : null}
         {r10On && tab === 'me' && !sheet && !goPlayer ? (
           <ProfileOnlyWatcher lang={lang} active onPost={() => kxPostAt()}

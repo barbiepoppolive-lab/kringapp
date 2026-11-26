@@ -32,6 +32,7 @@ export function askTaskHint(th: boolean, n: number, min: number): string {
 }
 
 import { askRude, awardStore, AWARD_MIN, r10Tx } from './ret10';
+import { AskAwardLine } from './V5Ret10';
 type LFn = (en: string) => string;
 /** A server refusal the member can act on (ghost mode, too many posts, banned words, no card) gets its own message;
  *  anything else keeps the plain fallback. */
@@ -631,6 +632,7 @@ export const AskThaiView: React.FC<AskThaiViewProps> = (props) => {
     <div className="at-root">
       <div className="at-list" ref={listRef} onScroll={onScroll} aria-busy={items === null}>
         {topSlot || null}
+        <AskAwardLine lang={/[\u0E00-\u0E7F]/.test(L('Add an answer')) ? 'th' : 'en'} />
         {/* 24 Nov (founder): the Ask box is gone. m199 locked question-writing to the Kring team on 23 Nov, so this row
             only ever produced KR8_ASK_TEAM_ONLY. Members still answer and vote on every question — that part is untouched. */}
         {err && <button type="button" className="at-retry" onClick={refresh}>{L('Try again')}</button>}
