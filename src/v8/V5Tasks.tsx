@@ -253,6 +253,7 @@ export function TasksSheet(props: { lang: string; onClose: () => void; onAsk: (q
   const rs = resetsIn(data.resets_at);
   const streak = streakDays(data.streak);
   const rows = TASK_ORDER.map((id) => data.tasks!.find((t) => t.id === id)).filter(Boolean) as TaskRow[];
+  const bonusOf = doable(data).filter((t) => t.id !== 'photo');   // m233: All done = post + ask + vote + watch (photo of the day is extra)
   const claim = async (id: TaskId) => {
     if (!data.verified) { props.onFace(); return; }
     setBusy(id); setFailMsg('');
@@ -305,7 +306,7 @@ export function TasksSheet(props: { lang: string; onClose: () => void; onAsk: (q
                 <span className="ic" aria-hidden="true">{Ic[t.id]}</span>
                 <span className="tx"><b>{title}</b><small>{sub}</small></span>
                 <span className="rw">{t.id === 'post' ? (rows.some((x) => x.id === 'photo') ? '+3–5' : '+3–7') : fmt(tx.ringsShort, t.rings)}</span>
-                {t.id === 'bonus' && st === 'go' ? <span className="dt-tag">{c}/{n}</span>
+                {t.id === 'bonus' && st === 'go' ? <span className="dt-tag">{bonusOf.filter((x) => x.claimed).length}/{bonusOf.length}</span>
                   : st === 'soon' ? <span className="dt-tag">{tx.soon}</span>
                   : st === 'done' ? <span className="dt-btn done"><Check />{tx.done}</span>
                   : st === 'claim' ? (
