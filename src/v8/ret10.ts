@@ -110,6 +110,24 @@ export const bestieStore = store(bestieState);
 export const awardStore = store(askAwardsRecent);
 export const dailyStore = store(dailyTop);
 export const rulesStore = store(rulesCfg);
+/** r12 (m230): last closed week's paid seats (rank → Rings, ฿) from the real weekly prizes — the How to win hero */
+export interface LastSeats { week: string; seats: { rank: number; rings: number; amount: number }[] }
+export const seatsStore = store(() => call<LastSeats | null>('kr8_last_week_seats'));
+/** r12: the How to win sheet (board ⓘ) is mounted once in the app and opened by this event */
+export const HTW_OPEN = 'kr8:htw';
+export function openHtw(from?: string) { try { window.dispatchEvent(new CustomEvent(HTW_OPEN, { detail: from || 'x' })); } catch { /* old browser */ } }
+export interface HtwHero { perDay: number; week: number; won: { rank: number; amount: number } | null; next: { rank: number; amount: number; opens: number } | null; short: { rank: number; need: number } | null }
+/** r12: the hero sentence, from the live task cap and last week's real seats. Pure (tested). */
+export function htwHero(perDay: number, seats: LastSeats['seats'], open: number): HtwHero {
+  const week = perDay * 7;
+  const s = [...seats].filter((x) => x.rings > 0).sort((a, b) => a.rank - b.rank);
+  if (!s.length) return { perDay, week, won: null, next: null, short: null };
+  const won = s.find((x) => x.rings <= week) || null;
+  if (!won) { const last = s[s.length - 1]; return { perDay, week, won: null, next: null, short: { rank: last.rank, need: last.rings - week + 1 } }; }
+  const up = s.find((x) => x.rank === won.rank - 1);
+  const next = up && open > 0 ? { rank: up.rank, amount: up.amount, opens: Math.ceil((up.rings + 1 - week) / open) } : null;
+  return { perDay, week, won: { rank: won.rank, amount: won.amount }, next, short: null };
+}
 /** m228: the "How it works" rules sheet (board ⓘ, How to win, Ask BKK) is mounted once in the app and opened by this event */
 export const HOW_OPEN = 'kr8:r10-how';
 export function openHowItWorks(from?: string) { try { window.dispatchEvent(new CustomEvent(HOW_OPEN, { detail: from || '' })); } catch { /* old browser */ } }

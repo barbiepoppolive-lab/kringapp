@@ -277,7 +277,9 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   /** 22 Nov: the small "Share & win Rings" line under my row → the Share & win Rings sheet */
   onShareWin?: () => void;
   /** 0066: not face-verified yet → a small nudge under my photo (everyone still shows on the board; 0111: it is only needed to claim a prize) */
-  needsVerify?: boolean; onVerify?: () => void }) {
+  needsVerify?: boolean; onVerify?: () => void;
+  /** r12: ⓘ opens the app's How to win sheet; the My prizes button on the header row */
+  onHtw?: () => void; prizesSlot?: React.ReactNode }) {
   const { L, Lf, lang } = props;
   const [data, setData] = useState<KxRanking | null>(null);
   const [err, setErr] = useState(false);
@@ -287,7 +289,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   // m228: once daily bonuses are on, ⓘ opens "How it works" (daily bonuses + Ask BKK awards); it links on to How to win
   const daily = dailyStore.use(true);
   useEffect(() => {
-    const f = () => setWin(true);
+    const f = () => (props.onHtw ? props.onHtw() : setWin(true));
     window.addEventListener('kr8:r10-win', f);
     return () => window.removeEventListener('kr8:r10-win', f);
   }, []);
@@ -450,11 +452,13 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
             <span className="bx-live" id="kxLive"><i aria-hidden="true" />{L('Live')}</span>
           </p>
           {/* 22 Nov founder: after the close, anyone can replay last week's top 10 (opens the week-close celebration, everyone view) */}
+<div className="bx-hrow">
           <button type="button" className="bx-lw" id="kxLastWeek" onClick={() => window.dispatchEvent(new Event('kr8:lastweek'))}>
             🏆 {lang === 'th' ? 'ผลสัปดาห์ที่แล้ว' : 'Last week’s winners'} <b aria-hidden="true">›</b>
           </button>
+          {props.prizesSlot || null}</div>
         </div>
-        <button type="button" className="bx-i" id="kxWinOpen" aria-label={L('How to win')} onClick={() => (daily?.on ? openHowItWorks('board') : wr ? setWin(true) : setHow(true))}><InfoIcon /></button>
+        <button type="button" className="bx-i" id="kxWinOpen" aria-label={L('How to win')} onClick={() => (props.onHtw ? props.onHtw() : daily?.on ? openHowItWorks('board') : wr ? setWin(true) : setHow(true))}><InfoIcon /></button>
       </div>
       <DailyTopStrip lang={lang} onPerson={(id) => setMath(id)} />
       {data === null && !err ? <p className="kx-empty pad">…</p> : err ? <p className="kx-empty pad">{L('Couldn’t reach Kring. Check your connection and try again.')}</p> : (

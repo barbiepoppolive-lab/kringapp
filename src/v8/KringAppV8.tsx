@@ -218,8 +218,8 @@ import { v5HelpEvent, v5HelpOpen } from './v5Live';
 import { bkkClock, bkkDay, dayLabel, postAgo } from './postTime';
 import { JoinPrompt, cameFromSharedReel, joinPromptCameBack, joinPromptSeen, markJoinPromptSeen } from './JoinPrompt';
 import { feedNewFaces, feedVote, feedVoteCards, NewFacesRow, VOTE_EVERY, VoteSlide, type NewFace, type VoteCard, type VoteResult } from './feedRet';
-import { HowItWorksHost, LeaderOrb, PHOTO_OPEN, PhotoSheet, PhotoViewer, B5Banner, B5Sheet, B5Tile, BestieMeLine, Follow3Row, Follow3Sheet, OpenQAnswer, OpenQMeLine, ProfileBestie, ProfileOnlyWatcher, ProfileQCard, R10_PLAY, R10_PROFILE, useOpenQ } from './V5Ret10';
-import { photoStore as photoStoreOf, b5AfterPost, b5Hidden, b5Store, errCode as r10Err, extraStore, r10Tx, reelOpeners, type R10Reel } from './ret10';
+import { HowItWorksHost, HowToWinHost, MyPrizesBtn, type HtwAct, LeaderOrb, openPhotoSheet, PHOTO_OPEN, PhotoSheet, PhotoViewer, B5Banner, B5Sheet, B5Tile, BestieMeLine, Follow3Row, Follow3Sheet, OpenQAnswer, OpenQMeLine, ProfileBestie, ProfileOnlyWatcher, ProfileQCard, R10_PLAY, R10_PROFILE, useOpenQ } from './V5Ret10';
+import { photoStore as photoStoreOf, b5AfterPost, b5Hidden, b5Store, errCode as r10Err, extraStore, openHtw, r10Tx, reelOpeners, type R10Reel } from './ret10';
 import './glass.css';   // 20 Nov: light glass on every sheet; last so it wins
 
 const V9_L: Record<string, Record<string, string>> = {
@@ -2743,6 +2743,12 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     // 16 Nov fix: one quiet retry before the error toast (the card shows the last known number, never a stuck '…')
     try { const r = await kxMyRewards().catch(() => new Promise<void>((ok) => setTimeout(ok, 1500)).then(() => kxMyRewards())); setKxRewards(r); setKxMe((m) => (m ? { ...m, week: r.week, week_rank: r.rank, lifetime: r.lifetime, level: r.level, prizes: r.prizes.filter((x) => x.status === 'won').length } : m)); return r; } catch (e) { showToast(v5Msg(e)); return null; }
   };
+  /** r12: My prizes 🎁 → the Rewards page, scrolled to the member's won prizes */
+  const openMyPrizes = () => {
+    setKxReady(false); setSheet('rewards'); void kxLoadRewards();
+    let n = 0; const go = () => { const el = document.getElementById('kxPrizes'); if (el) el.scrollIntoView({ block: 'center' }); else if (++n < 20) window.setTimeout(go, 150); };
+    window.setTimeout(go, 200);
+  };
   const kxInviteLink = (no: number | null | undefined) => `${location.origin}${import.meta.env.BASE_URL}?ref=${inviteCode(no ?? kxMe?.member_no)}`;
   const kxShareInvite = async (no?: number | null) => { await tapShare(kxInviteLink(no), 'invite'); };   // just made a card: no Reel yet
   const [kxPlaceHalf, setKxPlaceHalf] = useState<{ half: boolean; preview: { name_en: string; name_th: string | null; area: string } | null }>({ half: false, preview: null });
@@ -3050,6 +3056,20 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const [f3Open, setF3Open] = useState(false);
   const [b5Tick, setB5Tick] = useState(0);
   const r10On = live && signedIn && !!v5Card && !adminView;
+  /** r12: How to win action buttons → the real screen */
+  const htwAct = (a: HtwAct, arg?: string | null) => {
+    if (a === 'tasks') { setSheet(null); setMeTasks(true); return; }
+    if (a === 'top') {
+      setSheet('ranking');
+      let n = 0; const go = () => { const el = document.getElementById('kxDailyTop'); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); else if (++n < 20) window.setTimeout(go, 150); };
+      window.setTimeout(go, 200); return;
+    }
+    if (a === 'ask') { setSheet(null); setTab('feed'); if (arg) setAskOpenThread(arg); pickFeedMode('ask'); return; }
+    if (a === 'invite') { void kxShareInvite(); return; }
+    if (a === 'share') { if (arg) void kxShareReelId(arg); return; }
+    if (a === 'photo') { setSheet(null); openPhotoSheet(); return; }
+    if (a === 'reel') { setSheet(null); kxPostAt(); }
+  };
   const extra10 = extraStore.use(r10On);
   const b5Row10 = b5Store.use(r10On);
   useEffect(() => {   // the 5pm banner opens at 17:00 Bangkok even if the app was opened before
@@ -5495,6 +5515,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
                   need={kxWeek?.gap?.target?.need ?? null} nextRank={kxWeek?.gap?.target?.rank ?? null} state={kxWeek?.gap?.state ?? null}
                   onOpen={() => setSheet('ranking')} onFace={() => setSheet('verify')} />
               ) : null}
+              prizesSlot={r10On && !adminView ? <MyPrizesBtn lang={lang} id="meMyPrizes" cls="me" dot={(kxMe?.prizes ?? 0) > 0} onOpen={openMyPrizes} /> : null}
               onbSlot={(onbOn && onb) || meProfile.verified ? (
                 <>
                   {onbOn && onb ? <OnbMeLine lang={lang} st={onb} onGo={onbGo} extra={<Follow3Row lang={lang} onOpen={() => setF3Open(true)} />} /> : null}
@@ -8000,6 +8021,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <RankingPage L={L} Lf={Lf} lang={lang} myArea={v5Card?.area || null} myPhoto={v5Card?.photo || null} myName={v5Card?.first_name || ''} myId={v5Card ? v5Uid || null : null}
             onBack={() => setSheet(null)} onPerson={(id) => void goOpenBest(id)} onPost={() => requireSignInForAction(() => kxPostAt())}
             onShare={(reel) => void kxShareReelId(reel)} onShareDown={prefetchReelLink} onShareWin={openShareWin}
+            onHtw={r10On ? () => openHtw('board') : undefined} prizesSlot={r10On ? <MyPrizesBtn lang={lang} id="kxMyPrizes" dot={(kxMe?.prizes ?? 0) > 0} onOpen={openMyPrizes} /> : null}
             needsVerify={!!meProfile && !(meProfile.verified || v5Card?.verified || faceOkNow) && !v5Ghost && !verifyPending} onVerify={() => setSheet('verify')} />
         )}
         {kxCeleb && live && (
@@ -8042,7 +8064,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {photoOpen && r10On ? <PhotoSheet lang={lang} area={v5Card?.area || null} toast={showToast} onClose={() => setPhotoOpen(false)}
           onPosted={() => { void tasksRefresh(); if (v5Uid) void photoStoreOf(v5Uid).refresh(); }} /> : null}
         {r10On ? <PhotoViewer lang={lang} /> : null}
-        {r10On ? <HowItWorksHost lang={lang} onWin={() => window.dispatchEvent(new Event('kr8:r10-win'))} /> : null}
+        {r10On ? <HowItWorksHost lang={lang} onWin={() => openHtw('how')} /> : live && !signedIn ? <HowItWorksHost lang={lang} /> : null}
+        {r10On ? <HowToWinHost lang={lang} uid={v5Uid || null} onOpen={() => { if (!goMine) goLoadMine(); }} onAct={htwAct}
+          latestReel={[...(goMine || [])].filter((r) => r.status !== 'hidden').sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0]?.id || null} /> : null}
         {f3Open && r10On ? <Follow3Sheet lang={lang} onClose={() => { setF3Open(false); void onbRefreshNow(); }} onFollow={(id) => toggleFollow(id, false)} /> : null}
         {r10On && tab === 'me' && !sheet && !goPlayer ? (
           <ProfileOnlyWatcher lang={lang} active onPost={() => kxPostAt()}

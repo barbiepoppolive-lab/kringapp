@@ -9,10 +9,11 @@ import { usePosters } from './V5Go';
 import { initialAvatar } from './v8Data';
 import {
   b5Arm, b5Hidden, b5Hide, b5Store, bestieAct, bestieInvite, bestieNudge, bestieOf, bestiePill, bestieSeen, bestieStore, errCode, extraStore, fairPlay,
-  dailyStore, fmt, followSuggest, fpParts, HOW_OPEN, openHowItWorks, rulesStore, newcomers, createPhoto, photoStore, type MemberPhoto, OQ_PRESETS, PO_OPEN, openQAnswer, openQOf, poMarkSeen, poReason, poSeen, poStore, r10Tx, setOpenQ, taskExtraClaim,
+  dailyStore, fmt, followSuggest, HTW_OPEN, htwHero, seatsStore, fpParts, HOW_OPEN, openHowItWorks, rulesStore, newcomers, createPhoto, photoStore, type MemberPhoto, OQ_PRESETS, PO_OPEN, openQAnswer, openQOf, poMarkSeen, poReason, poSeen, poStore, r10Tx, setOpenQ, taskExtraClaim,
   type Bestie, type BestieOf, type DailyPick, type FairPlay, type FollowSuggest, type Newcomers, type OpenQ, type R10Reel,
 } from './ret10';
 import { v5CompressImage } from './v5Live';
+import { tasksRefresh, useTasks } from './V5Tasks';
 import './ret10.css';
 
 export const R10_PLAY = 'kr8:r10-play';
@@ -787,6 +788,138 @@ export function AskAwardLine(props: { lang: string }) {
   return (
     <button type="button" className="r10-awl" id="askAwardRule" lang={props.lang === 'th' ? 'th' : 'en'} onClick={() => openHowItWorks('ask')}>
       <span aria-hidden="true">🏆</span><b>{tx.askAwLine}</b><small>{tx.askAwHow} ›</small>
+    </button>
+  );
+}
+
+// ───────────────────────────── r12: How to win (founder mock htw_a2, 26 Nov) ─────────────────────────────
+export type HtwAct = 'tasks' | 'top' | 'ask' | 'invite' | 'share' | 'photo' | 'reel';
+const HTW = {
+  en: { title: 'How to win', upTo: 'Up to', aWeek: 'a week',
+    heroWon: 'Just from daily tasks ({0} a day). Last week that alone won a prize seat (#{1} · {2}).', heroTop: 'Just from daily tasks ({0} a day). Last week that alone took #1 ({1}).',
+    heroNext: 'Add {0} link opens and it was #{1} · {2}.', heroShort: 'From daily tasks ({0} a day). Last week #{1} needed {2} more Rings than that: about {3} link opens.',
+    heroNone: 'From daily tasks alone ({0} a day). Add link opens, likes and saves to climb.', today: 'Today: {0} of {1} done',
+    perDay: 'per day', perWeek: 'per week', each: 'each', dayMax: 'per day max',
+    tasksT: 'Daily tasks', tasksS: 'Photo or Reel +{0}/+{1} · Ask BKK +{2} · Vote +{3} · Watch 3 +{4} · All done +{5}',
+    tasks1: 'Open today’s tasks', tasks2: 'Post a photo or Reel, answer Ask BKK, vote and watch 3 Reels', tasks3: 'Rings land as you finish each one. All done adds +{0}', tasksGo: 'Open today’s tasks',
+    topT: 'Today’s top 3 bonus', topS: '+{0} / +{1} / +{2} at 23:59 · climber +{3}',
+    top1: 'Collect the most Rings today (Bangkok time)', top2: 'At 23:59 the top 3 get +{0} / +{1} / +{2}, the biggest climber +{3}', top3: 'You need at least {0} Rings today to count', topGo: 'See today’s top 3',
+    askT: 'Ask BKK awards', askS: 'Most helpful or Funniest at 8pm',
+    ask1: 'Answer today’s Ask BKK question with a real tip', ask2: 'At 8pm the most helpful and the funniest answers win +{0} each', ask3: 'Up to {0} awards a week', askGo: 'Answer today’s question',
+    invT: 'Bring a friend', invS: 'When your friend passes the face check',
+    inv1: 'Tap Invite a friend to share your personal link', inv2: 'Your friend signs up and does the 5-second face check', inv3: 'You get +{0} the moment they pass. No limit', invGo: 'Invite a friend', invFine: 'Second accounts and look-alike faces don’t count',
+    shT: 'Share your post', shS: 'Each person who opens your link +{0} · likes +{1} · saves +{2} · travellers ×{3}',
+    sh1: 'Tap Share and send your link to friends, your IG story or LINE', sh2: 'Each person who opens it gives +{0}, up to {1} a day', sh3: 'Likes +{0} and saves +{1}. Verified travellers count ×{2}',
+    shGo: 'Share my latest post', shFirst: 'Post your first photo', shReel: 'Post a Reel',
+    prizes: 'This week’s prizes · top {0} · TrueMoney', ok: 'Got it' },
+  th: { title: 'วิธีชนะ', upTo: 'สูงสุด', aWeek: 'ต่อสัปดาห์',
+    heroWon: 'จากภารกิจรายวันอย่างเดียว (วันละ {0}) สัปดาห์ที่แล้วแค่นี้ก็ได้ที่นั่งรับรางวัล (อันดับ {1} · {2})', heroTop: 'จากภารกิจรายวันอย่างเดียว (วันละ {0}) สัปดาห์ที่แล้วแค่นี้ก็ได้อันดับ 1 ({1})',
+    heroNext: 'ถ้ามีคนเปิดลิงก์เพิ่มอีก {0} คน ก็ได้อันดับ {1} · {2}', heroShort: 'จากภารกิจรายวัน (วันละ {0}) สัปดาห์ที่แล้วอันดับ {1} ต้องมีมากกว่านี้อีก {2} ริง หรือมีคนเปิดลิงก์ราว {3} คน',
+    heroNone: 'จากภารกิจรายวันอย่างเดียว (วันละ {0}) เพิ่มคนเปิดลิงก์ ไลก์ และเซฟ เพื่อไต่อันดับ', today: 'วันนี้ทำได้ {0} จาก {1}',
+    perDay: 'ต่อวัน', perWeek: 'ต่อสัปดาห์', each: 'ต่อคน', dayMax: 'สูงสุดต่อวัน',
+    tasksT: 'ภารกิจรายวัน', tasksS: 'รูปหรือรีล +{0}/+{1} · ถาม BKK +{2} · โหวต +{3} · ดู 3 คลิป +{4} · ครบทุกอย่าง +{5}',
+    tasks1: 'เปิดภารกิจของวันนี้', tasks2: 'โพสต์รูปหรือรีล ตอบ ถาม BKK โหวต และดูรีลให้จบ 3 คลิป', tasks3: 'ทำเสร็จข้อไหนได้ริงทันที ทำครบทุกข้อรับเพิ่มอีก +{0}', tasksGo: 'เปิดภารกิจวันนี้',
+    topT: 'โบนัส 3 อันดับแรกของวัน', topS: '+{0} / +{1} / +{2} ตอน 23:59 · ไต่อันดับไวสุด +{3}',
+    top1: 'เก็บริงให้ได้มากที่สุดภายในวันนี้ (เวลากรุงเทพฯ)', top2: 'ตอน 23:59 สามอันดับแรกได้ +{0} / +{1} / +{2} คนที่ไต่อันดับไวสุดได้ +{3}', top3: 'วันนั้นต้องมีอย่างน้อย {0} ริงถึงจะนับ', topGo: 'ดู 3 อันดับแรกวันนี้',
+    askT: 'รางวัล ถาม BKK', askS: 'คำตอบมีประโยชน์ที่สุดหรือฮาที่สุด ประกาศ 2 ทุ่ม',
+    ask1: 'ตอบคำถาม ถาม BKK ของวันนี้ด้วยทริคที่ใช้ได้จริง', ask2: 'ตอน 2 ทุ่ม คำตอบที่มีประโยชน์ที่สุดและฮาที่สุดได้ +{0}', ask3: 'ได้สูงสุด {0} รางวัลต่อสัปดาห์', askGo: 'ตอบคำถามวันนี้',
+    invT: 'ชวนเพื่อนมาเล่น', invS: 'เมื่อเพื่อนสแกนใบหน้าผ่าน',
+    inv1: 'กด ชวนเพื่อน เพื่อแชร์ลิงก์ส่วนตัวของคุณ', inv2: 'เพื่อนสมัครและสแกนใบหน้า 5 วินาที', inv3: 'คุณได้ +{0} ทันทีที่เพื่อนผ่าน ชวนได้ไม่จำกัด', invGo: 'ชวนเพื่อน', invFine: 'บัญชีที่สองและหน้าที่คล้ายกันไม่นับ',
+    shT: 'แชร์โพสต์ของคุณ', shS: 'คนเปิดลิงก์ของคุณ คนละ +{0} · ไลก์ +{1} · เซฟ +{2} · นักท่องเที่ยว ×{3}',
+    sh1: 'กดแชร์ แล้วส่งลิงก์ให้เพื่อน ลงสตอรี่ IG หรือ LINE', sh2: 'ทุกคนที่เปิดลิงก์ได้ +{0} สูงสุดวันละ {1} คน', sh3: 'ไลก์ +{0} เซฟ +{1} นักท่องเที่ยวที่ยืนยันแล้วนับ ×{2}',
+    shGo: 'แชร์โพสต์ล่าสุด', shFirst: 'โพสต์รูปแรกของคุณ', shReel: 'โพสต์รีล',
+    prizes: 'รางวัลสัปดาห์นี้ · {0} อันดับแรก · TrueMoney', ok: 'เข้าใจแล้ว' },
+};
+const thb = (n: number) => `฿${n.toLocaleString('en-US')}`;
+export function HowToWinHost(props: { lang: string; uid: string | null; latestReel: string | null; onOpen?: () => void; onAct: (a: HtwAct, arg?: string | null) => void }) {
+  const [open, setOpen] = useState('');
+  useEffect(() => {
+    const f = (e: Event) => { setOpen((e as CustomEvent<string>).detail || 'x'); props.onOpen?.(); };
+    window.addEventListener(HTW_OPEN, f);
+    return () => window.removeEventListener(HTW_OPEN, f);
+  }, []);   // eslint-disable-line react-hooks/exhaustive-deps
+  if (!open) return null;
+  return <HowToWinSheet lang={props.lang} uid={props.uid} latestReel={props.latestReel} onClose={() => setOpen('')} onAct={(a, x) => { setOpen(''); props.onAct(a, x); }} />;
+}
+export function HowToWinSheet(props: { lang: string; uid: string | null; latestReel: string | null; onClose: () => void; onAct: (a: HtwAct, arg?: string | null) => void }) {
+  const lang = props.lang === 'th' ? 'th' : 'en';
+  const t = HTW[lang];
+  const cfg = rulesStore.use(true) || {};
+  const seats = seatsStore.use(true);
+  const tasks = useTasks().data;
+  const photos = usePhotos(props.uid);
+  const [ex, setEx] = useState<string | null>(null);
+  useEffect(() => { void tasksRefresh(); void seatsStore.refresh(); }, []);
+  const c = (k: string, d: number) => (typeof cfg[k] === 'number' ? cfg[k] : d);
+  const perDay = tasks?.max || (c('task_post', 5) + c('task_ask', 3) + c('task_vote', 1) + c('task_watch', 1) + c('task_bonus', 2));
+  const open = c('open', 5), cap = c('v2_opens_day_cap', 10);
+  const h = htwHero(perDay, seats?.seats || [], open);
+  const paid = Array.from({ length: 10 }, (_, i) => c(`prize_${i + 1}`, 0)).filter((p) => p > 0);
+  let line = '';
+  if (h.won && h.won.rank === 1) line = fmt(t.heroTop, perDay, thb(h.won.amount));
+  else if (h.won) line = `${fmt(t.heroWon, perDay, h.won.rank, thb(h.won.amount))}${h.next ? ` ${fmt(t.heroNext, h.next.opens, h.next.rank, thb(h.next.amount))}` : ''}`;
+  else if (h.short) line = fmt(t.heroShort, perDay, h.short.rank, h.short.need, Math.ceil(h.short.need / open));
+  else line = fmt(t.heroNone, perDay);
+  const done = Math.min(perDay, tasks?.rings_today ?? 0);
+  const askQ = tasks?.tasks?.find((x) => x.id === 'ask')?.question?.id || null;
+  const b = [c('daily_top_1', 10), c('daily_top_2', 6), c('daily_top_3', 3), c('daily_climb', 5)];
+  const share: { a: HtwAct; label: string } = props.latestReel ? { a: 'share', label: t.shGo } : photos.length ? { a: 'reel', label: t.shReel } : { a: 'photo', label: t.shFirst };
+  const rows: { k: string; ic: string; tt: string; s: string; v: string; u: string; steps: string[]; go: string; act: HtwAct; arg?: string | null; fine?: string }[] = [
+    { k: 'tasks', ic: '✅', tt: t.tasksT, s: fmt(t.tasksS, c('task_photo', 3), c('task_post', 5), c('task_ask', 3), c('task_vote', 1), c('task_watch', 1), c('task_bonus', 2)), v: String(perDay), u: t.perDay,
+      steps: [t.tasks1, t.tasks2, fmt(t.tasks3, c('task_bonus', 2))], go: t.tasksGo, act: 'tasks' },
+    { k: 'top', ic: '🌙', tt: t.topT, s: fmt(t.topS, b[0], b[1], b[2], b[3]), v: `+${b[0]}`, u: t.perDay,
+      steps: [t.top1, fmt(t.top2, b[0], b[1], b[2], b[3]), fmt(t.top3, c('daily_top_min', 10))], go: t.topGo, act: 'top' },
+    { k: 'ask', ic: '🏅', tt: t.askT, s: t.askS, v: `+${c('ask_award', 5) * c('ask_award_week_max', 2)}`, u: t.perWeek,
+      steps: [t.ask1, fmt(t.ask2, c('ask_award', 5)), fmt(t.ask3, c('ask_award_week_max', 2))], go: t.askGo, act: 'ask', arg: askQ },
+    { k: 'friend', ic: '👯', tt: t.invT, s: t.invS, v: `+${c('invite', 10)}`, u: t.each,
+      steps: [t.inv1, t.inv2, fmt(t.inv3, c('invite', 10))], go: t.invGo, act: 'invite', fine: t.invFine },
+    { k: 'share', ic: '🔗', tt: t.shT, s: fmt(t.shS, open, c('like', 1), c('save', 3), c('traveller_mult', 2)), v: `+${open * cap}`, u: t.dayMax,
+      steps: [t.sh1, fmt(t.sh2, open, cap), fmt(t.sh3, c('like', 1), c('save', 3), c('traveller_mult', 2))], go: share.label, act: share.a, arg: props.latestReel },
+  ];
+  return (
+    <Sheet id="kxHtw" label={t.title} onClose={props.onClose} cls="r10-htw">
+      <div lang={lang} className="htw-in">
+        <h2 className="htw-h">{t.title}</h2>
+        <div className="htw-hero" id="htwHero" data-week={h.week} data-won={h.won?.rank ?? ''} data-next={h.next ? `${h.next.rank}:${h.next.opens}` : ''}>
+          <div className="big">{t.upTo} <RingsIc s={34} /><span>{h.week}</span> {t.aWeek}</div>
+          <p>{line}</p>
+          <div className="bar"><i style={{ width: `${Math.round((done / Math.max(1, perDay)) * 100)}%` }} /></div>
+          <small id="htwToday">{fmt(t.today, done, perDay)}</small>
+        </div>
+        {rows.map((r) => {
+          const on = ex === r.k;
+          return (
+            <div key={r.k} className={`htw-r${on ? ' on' : ''}`} data-htw={r.k}>
+              <button type="button" className="htw-row" aria-expanded={on} onClick={() => setEx(on ? null : r.k)}>
+                <i className="ic" aria-hidden="true">{r.ic}</i>
+                <span className="t"><b>{r.tt}</b><small>{r.s}</small></span>
+                <span className="v"><span><RingsIc s={20} />{r.v}</span><small>{r.u}</small></span>
+                <i className="chev" aria-hidden="true">›</i>
+              </button>
+              {on ? (
+                <div className="htw-ex">
+                  <ol>{r.steps.map((x, i) => <li key={i}>{x}</li>)}</ol>
+                  <button type="button" className="r10-main htw-go" data-go={r.act} onClick={() => props.onAct(r.act, r.arg)}>{r.go}</button>
+                  {r.fine ? <p className="fine">{r.fine}</p> : null}
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+        {paid.length ? (
+          <div className="htw-pz" id="htwPrizes"><p>{fmt(t.prizes, paid.length)}</p>
+            <div className="g">{paid.map((p, i) => <span key={i}><b>#{i + 1}</b> {thb(p)}</span>)}</div></div>
+        ) : null}
+        <button type="button" className="r10-link" id="htwOk" onClick={props.onClose}>{t.ok}</button>
+      </div>
+    </Sheet>
+  );
+}
+/** r12: the small "My prizes 🎁" button (under the Me orb, on the board header). Gold dot = an unclaimed prize. No glow. */
+export function MyPrizesBtn(props: { lang: string; dot: boolean; onOpen: () => void; id: string; cls?: string }) {
+  return (
+    <button type="button" className={`r10-myp ${props.cls || ''}`} id={props.id} data-dot={props.dot ? '1' : '0'} onClick={props.onOpen} lang={props.lang === 'th' ? 'th' : 'en'}>
+      {props.lang === 'th' ? 'รางวัลของฉัน' : 'My prizes'} <span aria-hidden="true">🎁</span>{props.dot ? <i className="dot" aria-label={props.lang === 'th' ? 'มีรางวัลรอรับ' : 'Prize to claim'} /> : null}
     </button>
   );
 }
