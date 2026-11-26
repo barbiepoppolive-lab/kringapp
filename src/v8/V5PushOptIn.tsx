@@ -17,7 +17,7 @@ export function pushOptInAsk(by: OptInTrigger) { try { window.dispatchEvent(new 
 
 /** true on the first app open on this device (the Me moment waits for a later open) */
 const FIRST_OPEN = (() => {
-  try { const had = localStorage.getItem('kr8_po_seen'); localStorage.setItem('kr8_po_seen', '1'); return !had; } catch { return true; }
+  try { const had = localStorage.getItem('kr8_pushopt_open'); localStorage.setItem('kr8_pushopt_open', '1'); return !had; } catch { return true; }
 })();
 
 const TX = {

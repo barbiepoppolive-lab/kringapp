@@ -344,7 +344,11 @@ export function bestiePill(lang: string, b: BestieOf): string {
 
 /** The once-only "Live on your profile" sheet: remembered per Reel on this phone. */
 const PO_SEEN = 'kr8_po_seen';
-export function poSeen(): string[] { try { return JSON.parse(localStorage.getItem(PO_SEEN) || '[]') || []; } catch { return []; } }
+// 26 Nov (r15b): r14's push opt-in wrote "1" to this same key, which crashed the app for members with a profile-only Reel.
+// Anything that is not a list of ids is ignored.
+export function poSeen(): string[] {
+  try { const v: unknown = JSON.parse(localStorage.getItem(PO_SEEN) || '[]'); return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []; } catch { return []; }
+}
 export function poMarkSeen(id: string) { try { const s = poSeen(); if (!s.includes(id)) localStorage.setItem(PO_SEEN, JSON.stringify([...s, id].slice(-60))); } catch { /* private mode */ } }
 
 /** feature 4: Me grid tiles that are profile-only (id → reason key); a tap on one opens the explanation sheet */
