@@ -298,6 +298,6 @@
 .v8-app-root .r10-myp { position: relative; display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border: 0; border-radius: 999px; background: rgba(20,18,36,.62);
   color: #F1E6D0; font: 600 .6875rem/1 var(--rv-f, system-ui); cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
 .v8-app-root .r10-myp .dot { position: absolute; top: -1px; right: -1px; width: 8px; height: 8px; border-radius: 50%; background: #F2C14E; box-shadow: 0 0 0 2px rgba(20,18,36,.9); }
-.v8-app-root .r10-myp.me { position: absolute; z-index: 6; top: calc(env(safe-area-inset-top, 0px) + 140px); right: 14px; }
+.v8-app-root .kme .r10-myp.me { position: absolute; z-index: 6; top: calc(env(safe-area-inset-top, 0px) + 127px); right: 14px; padding: 4px 9px; font-size: .65625rem; background: rgba(20,18,36,.72); color: #F1E6D0; }
 .v8-app-root .bx-hrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .v8-app-root .bx-hrow .r10-myp { padding: 6px 10px; }
