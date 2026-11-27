@@ -222,7 +222,7 @@ import { v5HelpEvent, v5HelpOpen } from './v5Live';
 import { bkkClock, bkkDay, dayLabel, postAgo } from './postTime';
 import { JoinPrompt, cameFromSharedReel, joinPromptCameBack, joinPromptSeen, markJoinPromptSeen } from './JoinPrompt';
 import { feedNewFaces, feedVote, feedVoteCards, NewFacesRow, VOTE_EVERY, VoteSlide, type NewFace, type VoteCard, type VoteResult } from './feedRet';
-import { HowItWorksHost, HowToWinHost, MyPrizesBtn, type HtwAct, LeaderOrb, openPhotoSheet, PHOTO_OPEN, PhotoSheet, PhotoViewer, B5Banner, B5Sheet, B5Tile, BestieMeLine, Follow3Row, Follow3Sheet, OpenQAnswer, OpenQMeLine, ProfileBestie, ProfileOnlyWatcher, ProfileQCard, R10_PLAY, R10_PROFILE, useOpenQ } from './V5Ret10';
+import { HowItWorksHost, HowToWinHost, MyPrizesBtn, PhotoIntroSheet, photoIntroSeen, type HtwAct, LeaderOrb, openPhotoSheet, PHOTO_OPEN, PhotoSheet, PhotoViewer, B5Banner, B5Sheet, B5Tile, BestieMeLine, Follow3Row, Follow3Sheet, OpenQAnswer, OpenQMeLine, ProfileBestie, ProfileOnlyWatcher, ProfileQCard, R10_PLAY, R10_PROFILE, useOpenQ } from './V5Ret10';
 import { photoStore as photoStoreOf, b5AfterPost, b5Hidden, b5Store, errCode as r10Err, extraStore, openHtw, r10Tx, reelOpeners, type R10Reel } from './ret10';
 import './glass.css';   // 20 Nov: light glass on every sheet; last so it wins
 
@@ -3063,6 +3063,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   }, []);
   const [b5Open, setB5Open] = useState(false);
   const [photoOpen, setPhotoOpen] = useState(false);
+  const [photoIntro, setPhotoIntro] = useState(() => !photoIntroSeen());   // m242: one-time intro to the photo of the day
   const [attnBubble, setAttnBubble] = useState(false);
   useEffect(() => { const on = (e: Event) => setAttnBubble(!!(e as CustomEvent<boolean>).detail); window.addEventListener('kr8:attn-bubble', on); return () => window.removeEventListener('kr8:attn-bubble', on); }, []);
   useEffect(() => { const on = () => setPhotoOpen(true); window.addEventListener(PHOTO_OPEN, on); return () => window.removeEventListener(PHOTO_OPEN, on); }, []);
@@ -7895,9 +7896,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
           <GenderAskSheet L={L} toast={showToast}
             onSaved={(g, sh) => setV5Card((c) => (c ? { ...c, gender: g, show_gender: sh } : c))} />
         )}
+        {live && signedIn && !!v5Card && photoIntro && !!(meProfile?.verified || v5Card?.verified) && isGenderV(v5Card.gender) && tab === 'feed' && !sheet && !goPlayer
+          && !installAsking && !pushOptOpen && !buildOpen && !photoOpen && !ivMode && !['preparing', 'uploading', 'saving'].includes(reelStage) && (
+          <PhotoIntroSheet lang={lang} onClose={() => setPhotoIntro(false)} onGo={() => { setPhotoIntro(false); openPhotoSheet(); }} />
+        )}
         {live && signedIn && !!v5Card && (
           <PushOptInHost lang={lang} toast={showToast} onOpenChange={setPushOptOpen}
-            blocked={!!sheet || !!goPlayer || installAsking || buildOpen || photoOpen || !isGenderV(v5Card.gender) || ['preparing', 'uploading', 'saving'].includes(reelStage)} />
+            blocked={!!sheet || !!goPlayer || installAsking || buildOpen || photoOpen || !isGenderV(v5Card.gender) || (photoIntro && !!(meProfile?.verified || v5Card?.verified) && tab === 'feed') || ['preparing', 'uploading', 'saving'].includes(reelStage)} />
         )}
         {live && signedIn && !!v5Card && isGenderV(v5Card.gender) && !sheet && !goPlayer && !installAsking && !pushOptOpen && (
           <PushAskCard L={L} lang={lang} toast={showToast} onInstallHelp={openInstallSheet} blocked={['preparing', 'uploading', 'saving'].includes(reelStage)} />

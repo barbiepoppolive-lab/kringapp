@@ -316,3 +316,5 @@
 .v8-app-root .r10-pvact #r10PvLike.on svg { fill: #ff4fd8; stroke: #ff4fd8; }
 .v8-app-root .r10-pvact #r10PvSave { margin-left: auto; }
 .v8-app-root .r10-pvact #r10PvSave.on svg { fill: #f4f1fa; }
+
+.v8-app-root .r10-phwhy { color: #ff8a8a; font-weight: 600; }

@@ -30,6 +30,7 @@
 import { AWS_LIMITS, cardSimilarity, decide, liveCheck, pickOther, summarize, type FaceAwsLimits, type FaceStep } from './decide.ts';
 import { signV4 } from './sigv4.ts';
 import { ageVerdict, copyHits, copySummary, scanFramePaths, type CopyHit, type TextDet } from './copyscan.ts';
+import { dailyPhotoVerdict, type DailyV, type DFace, type DLabel } from './dailyphoto.ts';
 import { dataUrlB64, frameFeatures, type FacesResp, type FrameF, type LabelsResp, type TextResp } from './quality.ts';
 import { dhashRGBA, otherMemberInReel, type FaceHit } from './reelprint.ts';
 import { photoVerdictAws, type Fd, type PhotoV } from './photoverdict.ts';
@@ -339,6 +340,51 @@ async function photoCheck(uid: string, body: Record<string, unknown>): Promise<R
   return json({ verdict: v });
 }
 
+
+// ───────── m242 (27 Nov): daily photo check ─────────
+// The phone sends the daily photo here before posting. AWS: labels (is a person in it?), faces (+age), words, and for ONE clear face
+// a search in the members' faces (is it this member?). ok → a 'dok' pass for that exact photo; kr8_create_photo only takes a photo
+// with a pass. AWS down → a 'dun' pass (posted, checked again later). Nothing is stored at AWS.
+async function dailyPhotoEval(uid: string, b64: string, dbg = false): Promise<DailyV> {
+  const [lb, fc, tt] = await Promise.all([
+    rk<{ Labels?: DLabel[] }>('DetectLabels', { Image: img(b64), MaxLabels: 40, MinConfidence: 60 }),
+    rk<{ FaceDetails?: DFace[] }>('DetectFaces', { Image: img(b64), Attributes: ['DEFAULT', 'AGE_RANGE'] }),
+    rk<{ TextDetections?: { Type?: string; Confidence?: number }[] }>('DetectText', { Image: img(b64) }).catch(() => null),
+  ]);
+  const faces = fc.FaceDetails || [];
+  const words = (tt?.TextDetections || []).filter((x) => x.Type === 'WORD' && (x.Confidence ?? 0) >= 80).length;
+  const clear = faces.filter((f) => (f.Confidence ?? 0) >= 95 && (f.BoundingBox?.Width ?? 0) >= 0.08);
+  let matches = clear.length === 1 ? faceHits(await search(b64).catch(() => ({ FaceMatches: [] }))) : null;
+  // the members' face search can miss a member whose selfies use beauty filters: compare with their own card photo too (≥ 70 % = them)
+  if (matches && !matches.some((m) => m.user.toLowerCase() === uid.toLowerCase() && m.sim >= 80)) {
+    try {
+      const r = await fetch(`${SUPA}/rest/v1/kr8_members?select=photo&user_id=eq.${encodeURIComponent(uid)}`, { headers: SRH });
+      const card = await photoB64(((await r.json()) as { photo?: string | null }[])?.[0]?.photo);
+      if (card) {
+        const c = await rk<{ FaceMatches?: { Similarity?: number }[] }>('CompareFaces', { SourceImage: img(b64), TargetImage: img(card), SimilarityThreshold: 0, QualityFilter: 'NONE' });
+        const sim = Math.max(0, ...(c.FaceMatches || []).map((m) => m.Similarity ?? 0));
+        if (sim >= 70) matches = [...matches, { user: uid, sim: 99 }];
+        if (dbg) log({ dphoto_card_sim: Math.round(sim) });
+      }
+    } catch (e) { log({ dphoto_card_error: String(e).slice(0, 160) }); }
+  }
+  const v = dailyPhotoVerdict(uid, lb.Labels || [], faces, words, matches);
+  if (dbg) log({ dphoto_dbg: v, labels: (lb.Labels || []).slice(0, 12).map((l) => `${l.Name}:${Math.round(l.Confidence ?? 0)}:${(l.Instances || []).length}`), faces: faces.length, words });
+  return v;
+}
+async function dailyPhotoCheck(uid: string, body: Record<string, unknown>): Promise<Response> {
+  const b64 = frameB64(body.image);
+  if (!b64 || typeof body.image !== 'string') return json({ verdict: 'error', why: 'bad_image' });
+  const sha = await sha256Hex(body.image);
+  const pass = (v: 'dok' | 'dun') => rpc('kr8_photo_pass_add', { p_user: uid, p_sha: sha, p_verdict: v }).catch((e) => log({ dpass_error: String(e).slice(0, 200) }));
+  if (MOCK) { const v = typeof body.mock === 'string' ? body.mock : 'ok'; if (v === 'ok') await pass('dok'); return json({ verdict: v }); }
+  let v: DailyV;
+  try { v = await dailyPhotoEval(uid, b64); }
+  catch (e) { log({ dphoto_aws_error: String(e).slice(0, 200) }); await pass('dun'); return json({ verdict: 'ok', checked: false }); }
+  if (v === 'ok') await pass('dok');
+  log({ dphoto_verdict: v });
+  return json({ verdict: v });
+}
 // ───────── 0168 (20 Nov): "same phone" links settled by the robot, never a card for the founder ─────────
 // Compare the two card photos (AWS CompareFaces). < 80% different people → dismissed; >= 95% same person → second-account
 // rule (newer account: all-prizes ban + one polite warning); no clear face / in between → a quiet flag only.
@@ -598,6 +644,10 @@ Deno.serve(async (req) => {
   if (robotKey.length >= 32 && req.headers.get('x-kring-robot') === robotKey) {
     let b: Record<string, unknown>;
     try { b = await req.json(); } catch { return json({ error: 'BAD_BODY' }, 400); }
+    if (b.action === 'daily_photo_eval' && typeof b.user === 'string' && typeof b.image === 'string') {
+      const x = frameB64(b.image); if (!x) return json({ verdict: 'error' });
+      try { return json({ verdict: await dailyPhotoEval(b.user, x, true) }); } catch (e) { return json({ verdict: 'error', why: String(e).slice(0, 120) }); }
+    }
     try { return await admin('', b, true); } catch (e) { log({ robot_error: String(e).slice(0, 300) }); return json({ error: 'SERVER' }, 500); }
   }
   const who = await userOf(req);
@@ -606,6 +656,7 @@ Deno.serve(async (req) => {
   try { body = await req.json(); } catch { return json({ error: 'BAD_BODY' }, 400); }
   try {
     if (body.action === 'photo') return await photoCheck(who.id, body);
+    if (body.action === 'daily_photo') return await dailyPhotoCheck(who.id, body);
     return typeof body.action === 'string' ? await admin(who.jwt, body) : await check(who.id, body);
   } catch (e) {
     if (e instanceof DbError && STATUS[e.code]) return json({ error: e.code }, STATUS[e.code]);

@@ -13,7 +13,7 @@ import {
   dailyStore, fmt, followSuggest, HTW_OPEN, htwHero, seatsStore, fpParts, HOW_OPEN, openHowItWorks, rulesStore, newcomers, createPhoto, photoStore, type MemberPhoto, OQ_PRESETS, PO_OPEN, openQAnswer, openQOf, poMarkSeen, poReason, poSeen, poStore, r10Tx, setOpenQ, taskExtraClaim,
   type Bestie, type BestieOf, type DailyPick, type FairPlay, type FollowSuggest, type Newcomers, type OpenQ, type R10Reel,
 } from './ret10';
-import { v5CompressImage, v5ToggleLike, v5ToggleSave } from './v5Live';
+import { v5CompressImage, v5DailyPhotoCheck, v5ToggleLike, v5ToggleSave } from './v5Live';
 import { tasksRefresh, useTasks } from './V5Tasks';
 import './ret10.css';
 
@@ -630,11 +630,20 @@ export function PhotoSheet(props: { lang: string; area: string | null; onClose: 
     if (!f) return;
     try { setImg(await v5CompressImage(f, 1080, 520000)); } catch { props.toast(tx.phBad); }
   };
+  const [why, setWhy] = useState('');
   const post = async () => {
     if (!img || busy) return;
-    setBusy(true);
-    try { await createPhoto(img, props.area, cap.trim() || null); props.toast(tx.phPosted); props.onPosted(); props.onClose(); }
-    catch (e) { const c = errCode(e); props.toast(c === 'PHOTO_DAY' ? tx.phDay : c === 'VERIFY_FIRST' ? tx.phFace : tx.phBad); }
+    setBusy(true); setWhy('');
+    try {
+      // m242 (27 Nov, founder): gallery photos allowed, but a bit of the member must be in it (checked first, face optional)
+      const v = await v5DailyPhotoCheck(img);
+      if (v !== 'ok') {
+        setWhy(v === 'noperson' ? tx.phNoPerson : v === 'notyou' || v === 'other' ? tx.phNotYou : v === 'text' ? tx.phText : v === 'child' ? tx.phChild : tx.phCheckErr);
+        return;
+      }
+      await createPhoto(img, props.area, cap.trim() || null); props.toast(tx.phPosted); props.onPosted(); props.onClose();
+    }
+    catch (e) { const c = errCode(e); props.toast(c === 'PHOTO_DAY' ? tx.phDay : c === 'VERIFY_FIRST' ? tx.phFace : c === 'PHOTO_CHECK' ? tx.phCheckErr : tx.phBad); }
     finally { setBusy(false); }
   };
   return (
@@ -650,16 +659,36 @@ export function PhotoSheet(props: { lang: string; area: string | null; onClose: 
         </div>
       )}
       <p className="r10-note">{tx.phRules}</p>
+      {why ? <p className="r10-note r10-phwhy" id="r10PhotoWhy" role="alert">{why}</p> : null}
       {img ? <input className="r10-ta" id="r10PhotoCap" maxLength={140} placeholder={tx.phCap} value={cap} onChange={(e) => setCap(e.target.value)} /> : null}
-      {/* camera only (capture): a photo taken now, not a screenshot or a picture from the internet */}
-      <input ref={(el) => { inp.current = el; }} id="r10PhotoInput" type="file" accept="image/*" capture="environment" hidden
-        onChange={(e) => { void pick(e.target.files?.[0]); e.target.value = ''; }} />
+      {/* m242: camera or gallery; the server check makes sure the member is in it (no screenshots / internet pictures) */}
+      <input ref={(el) => { inp.current = el; }} id="r10PhotoInput" type="file" accept="image/*" hidden
+        onChange={(e) => { setWhy(''); void pick(e.target.files?.[0]); e.target.value = ''; }} />
       {img ? (
         <>
-          <button type="button" className="r10-main" id="r10PhotoPost" disabled={busy} onClick={() => void post()}>{tx.phPost}</button>
+          <button type="button" className="r10-main" id="r10PhotoPost" disabled={busy} onClick={() => void post()}>{busy ? tx.phChecking : tx.phPost}</button>
           <button type="button" className="r10-link" onClick={() => document.getElementById('r10PhotoInput')?.click()}>{tx.phRetake}</button>
         </>
-      ) : <button type="button" className="r10-main" id="r10PhotoTake" onClick={() => document.getElementById('r10PhotoInput')?.click()}>{tx.phTake}</button>}
+      ) : <button type="button" className="r10-main" id="r10PhotoTake" onClick={() => document.getElementById('r10PhotoInput')?.click()}>{tx.phPick}</button>}
+    </Sheet>
+  );
+}
+/** m242 (27 Nov, founder: "people don't know"): one-time intro to the photo of the day, with the 3 example photos */
+const PI_KEY = 'kr8_photo_intro_v1';
+export function photoIntroSeen(): boolean { try { return localStorage.getItem(PI_KEY) === '1'; } catch { return true; } }
+export function PhotoIntroSheet(props: { lang: string; onGo: () => void; onClose: () => void }) {
+  const tx = r10Tx(props.lang);
+  const done = (go: boolean) => { try { localStorage.setItem(PI_KEY, '1'); } catch { /* private mode */ } if (go) props.onGo(); else props.onClose(); };
+  return (
+    <Sheet id="r10PhotoIntro" label={tx.piTitle} onClose={() => done(false)}>
+      <div className="r10-b5h"><b>{tx.piTitle}</b><small>{tx.piLine}</small></div>
+      <div className="r10-phex">
+        {[['ex-back', tx.exBack], ['ex-side', tx.exSide], ['ex-outfit', tx.exOutfit]].map(([f, l]) => (
+          <span key={f} style={{ backgroundImage: `url("${BASE10}media/r10/${f}.jpg")` }}><i>{l}</i></span>
+        ))}
+      </div>
+      <button type="button" className="r10-main" id="r10PhotoIntroGo" onClick={() => done(true)}>{tx.piGo}</button>
+      <button type="button" className="r10-link" id="r10PhotoIntroLater" onClick={() => done(false)}>{tx.piLater}</button>
     </Sheet>
   );
 }

@@ -166,6 +166,9 @@ export function b5Hide(day: string) { try { localStorage.setItem(B5_HIDE, day); 
 const EN = {
   rings: '+{0} Rings', ring1: '+1 Ring', claim: 'Claim', done: 'Done', go: 'Go', newTag: 'NEW', skip: 'Skip', close: 'Close', save: 'Save',
   // photo task (m226)
+  phNoPerson: 'Show a bit of you in it: your back, your side, your outfit or your hand at the spot.', phNotYou: 'This doesn’t look like you. Post a photo of yourself.',
+  phText: 'Screenshots and posters can’t be posted. Use a real photo.', phChild: 'Photos with children can’t be posted.', phCheckErr: 'Couldn’t check the photo. Try again.', phChecking: 'Checking…',
+  phPick: 'Choose a photo', piTitle: 'New: Photo of the day', piLine: 'Post one photo of you in Bangkok each day and get +3 Rings. Your face is optional.', piGo: 'Post today’s photo', piLater: 'Later',
   pvLike: 'Like', pvSave: 'Save', pvSaved: 'Saved', pvComment: 'Comment', phRow: 'Today’s photo', phRowS: 'Show your vibe · +3 Rings', phTitle: 'Today’s photo', phLine: 'Show your vibe, your face is optional',
   exBack: 'Your back', exSide: 'From the side', exOutfit: 'Your outfit', phRules: 'A real Bangkok spot · no screenshots, no food-only, no photos from the internet',
   phTake: 'Take a photo', phRetake: 'Retake', phCap: 'Where are you? (optional)', phPost: 'Post · up to +5 Rings', phPosted: 'On your profile · Rings added to today’s tasks',
@@ -230,6 +233,9 @@ const EN = {
 type Tx = typeof EN;
 const TH: Tx = {
   rings: '+{0} ริง', ring1: '+1 ริง', claim: 'รับ', done: 'เสร็จแล้ว', go: 'ไป', newTag: 'ใหม่', skip: 'ข้ามไปก่อน', close: 'ปิด', save: 'บันทึก',
+  phNoPerson: 'ขอเห็นตัวคุณสักนิดในรูป: ด้านหลัง ด้านข้าง ลุคที่ใส่ หรือมือคุณที่ร้านก็ได้', phNotYou: 'รูปนี้ดูไม่เหมือนคุณ ลองใช้รูปของคุณเองนะ',
+  phText: 'ใช้ภาพแคปหน้าจอหรือโปสเตอร์ไม่ได้ ใช้รูปจริงนะ', phChild: 'รูปที่มีเด็กโพสต์ไม่ได้', phCheckErr: 'ตรวจรูปไม่สำเร็จ ลองอีกครั้งนะ', phChecking: 'กำลังตรวจรูป…',
+  phPick: 'เลือกรูป', piTitle: 'ใหม่! รูปประจำวัน', piLine: 'โพสต์รูปคุณในกรุงเทพฯ วันละรูป รับ +3 ริง ไม่ต้องเห็นหน้าก็ได้', piGo: 'โพสต์รูปวันนี้', piLater: 'ไว้ทีหลัง',
   pvLike: 'ถูกใจ', pvSave: 'บันทึก', pvSaved: 'บันทึกแล้ว', pvComment: 'คอมเมนต์', phRow: 'รูปประจำวัน', phRowS: 'โชว์ไวบ์ของคุณ · +3 ริง', phTitle: 'รูปประจำวัน', phLine: 'โชว์ไวบ์ของคุณ ไม่ต้องเห็นหน้าก็ได้',
   exBack: 'ด้านหลัง', exSide: 'ด้านข้าง', exOutfit: 'ลุคของคุณ', phRules: 'สถานที่จริงในกรุงเทพฯ · ไม่รับภาพแคปจอ รูปอาหารล้วน หรือรูปจากเน็ต',
   phTake: 'ถ่ายรูป', phRetake: 'ถ่ายใหม่', phCap: 'ตอนนี้อยู่ที่ไหน (ไม่ใส่ก็ได้)', phPost: 'โพสต์ · สูงสุด +5 ริง', phPosted: 'ขึ้นบนโปรไฟล์แล้ว · ได้ริงในภารกิจวันนี้แล้ว',

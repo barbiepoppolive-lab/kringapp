@@ -957,6 +957,24 @@ export async function v5CardPhotoCheck(dataUrl: string, timeoutMs = 8000): Promi
     return v === 'ok' || v === 'none' || v === 'small' || v === 'group' || v === 'text' || v === 'child' ? v : 'error';
   } catch { return 'error'; } finally { clearTimeout(t); }
 }
+/** m242: the daily photo → face-check-aws "daily_photo" (a bit of the member in it). The server only takes a photo that passed here. */
+export async function v5DailyPhotoCheck(dataUrl: string, timeoutMs = 15000): Promise<'ok' | 'noperson' | 'text' | 'child' | 'notyou' | 'other' | 'error'> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return 'error';
+  const c = await v5Client();
+  const { data } = await c.auth.getSession();
+  if (!data.session) return 'error';
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), timeoutMs);
+  try {
+    const r = await fetch(`${SUPA_URL.replace(/\/$/, '')}/functions/v1/face-check-aws`, {
+      method: 'POST', signal: ctl.signal,
+      headers: { authorization: `Bearer ${data.session.access_token}`, apikey: SUPA_KEY, 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'daily_photo', image: dataUrl }),
+    });
+    const v = ((await r.json().catch(() => null)) as { verdict?: string } | null)?.verdict;
+    return v === 'ok' || v === 'noperson' || v === 'text' || v === 'child' || v === 'notyou' || v === 'other' ? v : 'error';
+  } catch { return 'error'; } finally { clearTimeout(t); }
+}
 /** 0082: the simple path when the face engine can't run on this phone: ONE selfie → the founder's Face checks queue. */
 export async function v5VerifySimple(selfie: Blob, check: { why: string; device: string }, consent: string): Promise<V5FaceDecision> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new V5Error('OFFLINE');
