@@ -70,7 +70,8 @@ export const bestieNudge = (id: string) => call<BestieState>('kr8_bestie_nudge',
 export const bestieSeen = () => call<void>('kr8_bestie_seen');
 export const bestieOf = (user: string) => call<BestieOf[]>('kr8_bestie_of', { p_user: user });
 export const fairPlay = (user: string) => call<FairPlay>('kr8_fair_play', { p_user: user });
-export interface MemberPhoto { id: string; photo: string; body: string; at: string; likes: number; feed: boolean; reason: string | null; place: { en: string | null; th: string | null } | null }
+export interface MemberPhoto { id: string; photo: string; body: string; at: string; likes: number; feed: boolean; reason: string | null;
+  /** m241: the viewer's own like / save, and the comment count */ liked?: boolean; saved?: boolean; comments?: number; place: { en: string | null; th: string | null } | null }
 export const createPhoto = (photo: string, area: string | null, body: string | null) => call<string>('kr8_create_photo', { p_photo: photo, p_area: area, p_body: body, p_place: null });
 export const memberPhotos = (user: string) => call<MemberPhoto[]>('kr8_member_photos', { p_user: user });
 export interface AskAward { answer_id: string; kind: 'helpful' | 'funny'; day: string }
@@ -165,7 +166,7 @@ export function b5Hide(day: string) { try { localStorage.setItem(B5_HIDE, day); 
 const EN = {
   rings: '+{0} Rings', ring1: '+1 Ring', claim: 'Claim', done: 'Done', go: 'Go', newTag: 'NEW', skip: 'Skip', close: 'Close', save: 'Save',
   // photo task (m226)
-  phRow: 'Today’s photo', phRowS: 'Show your vibe · +3 Rings', phTitle: 'Today’s photo', phLine: 'Show your vibe, your face is optional',
+  pvLike: 'Like', pvSave: 'Save', pvSaved: 'Saved', pvComment: 'Comment', phRow: 'Today’s photo', phRowS: 'Show your vibe · +3 Rings', phTitle: 'Today’s photo', phLine: 'Show your vibe, your face is optional',
   exBack: 'Your back', exSide: 'From the side', exOutfit: 'Your outfit', phRules: 'A real Bangkok spot · no screenshots, no food-only, no photos from the internet',
   phTake: 'Take a photo', phRetake: 'Retake', phCap: 'Where are you? (optional)', phPost: 'Post · up to +5 Rings', phPosted: 'On your profile · Rings added to today’s tasks',
   phDay: 'You posted today’s photo · see you tomorrow', phBad: 'That photo didn’t work. Try another one.', phFace: 'Do the 5-second face check first',
@@ -229,7 +230,7 @@ const EN = {
 type Tx = typeof EN;
 const TH: Tx = {
   rings: '+{0} ริง', ring1: '+1 ริง', claim: 'รับ', done: 'เสร็จแล้ว', go: 'ไป', newTag: 'ใหม่', skip: 'ข้ามไปก่อน', close: 'ปิด', save: 'บันทึก',
-  phRow: 'รูปประจำวัน', phRowS: 'โชว์ไวบ์ของคุณ · +3 ริง', phTitle: 'รูปประจำวัน', phLine: 'โชว์ไวบ์ของคุณ ไม่ต้องเห็นหน้าก็ได้',
+  pvLike: 'ถูกใจ', pvSave: 'บันทึก', pvSaved: 'บันทึกแล้ว', pvComment: 'คอมเมนต์', phRow: 'รูปประจำวัน', phRowS: 'โชว์ไวบ์ของคุณ · +3 ริง', phTitle: 'รูปประจำวัน', phLine: 'โชว์ไวบ์ของคุณ ไม่ต้องเห็นหน้าก็ได้',
   exBack: 'ด้านหลัง', exSide: 'ด้านข้าง', exOutfit: 'ลุคของคุณ', phRules: 'สถานที่จริงในกรุงเทพฯ · ไม่รับภาพแคปจอ รูปอาหารล้วน หรือรูปจากเน็ต',
   phTake: 'ถ่ายรูป', phRetake: 'ถ่ายใหม่', phCap: 'ตอนนี้อยู่ที่ไหน (ไม่ใส่ก็ได้)', phPost: 'โพสต์ · สูงสุด +5 ริง', phPosted: 'ขึ้นบนโปรไฟล์แล้ว · ได้ริงในภารกิจวันนี้แล้ว',
   phDay: 'วันนี้โพสต์รูปแล้ว · พรุ่งนี้มาใหม่นะ', phBad: 'รูปนี้ใช้ไม่ได้ ลองรูปอื่นนะ', phFace: 'ยืนยันใบหน้า 5 วินาทีก่อนนะ',

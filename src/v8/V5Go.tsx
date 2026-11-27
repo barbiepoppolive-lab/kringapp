@@ -355,7 +355,7 @@ export function GoGrid(props: { L: Tx; reels: KxGridReel[]; onOpen: (i: number) 
   const photos = usePhotos(props.photoUser);
   const photoTiles = photos.map((ph) => (
     <button type="button" key={ph.id} className="go-gt r10-pht" data-photo={ph.id}
-      onClick={() => { try { window.dispatchEvent(new CustomEvent(PHOTO_VIEW, { detail: { ...ph, mine: !!props.me } })); } catch { /* old browser */ } }}>
+      onClick={() => { try { window.dispatchEvent(new CustomEvent(PHOTO_VIEW, { detail: { ...ph, mine: !!props.me, user: props.photoUser } })); } catch { /* old browser */ } }}>
       <img src={ph.photo} alt="" loading="lazy" />
       {props.me && !ph.feed ? <span className="go-gw rv po" data-po="1">{poTx}</span> : null}
     </button>

@@ -8129,7 +8129,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         {b5Open && r10On ? <B5Sheet lang={lang} onClose={() => setB5Open(false)} /> : null}
         {photoOpen && r10On ? <PhotoSheet lang={lang} area={v5Card?.area || null} toast={showToast} onClose={() => setPhotoOpen(false)}
           onPosted={() => { void tasksRefresh(); if (v5Uid) void photoStoreOf(v5Uid).refresh(); pushOptInAsk('photo'); }} /> : null}
-        {r10On ? <PhotoViewer lang={lang} /> : null}
+        {r10On ? <PhotoViewer lang={lang} toast={(c) => showToast(v5Msg(new Error(c)))} onComment={(id) => openComments(id)} /> : null}
         {r10On ? <HowItWorksHost lang={lang} onWin={() => openHtw('how')} /> : live && !signedIn ? <HowItWorksHost lang={lang} /> : null}
         {r10On ? <HowToWinHost lang={lang} uid={v5Uid || null} onOpen={() => { if (!goMine) goLoadMine(); }} onAct={htwAct}
           latestReel={[...(goMine || [])].filter((r) => r.status !== 'hidden').sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))[0]?.id || null} /> : null}

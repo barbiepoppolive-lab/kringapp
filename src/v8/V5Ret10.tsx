@@ -13,7 +13,7 @@ import {
   dailyStore, fmt, followSuggest, HTW_OPEN, htwHero, seatsStore, fpParts, HOW_OPEN, openHowItWorks, rulesStore, newcomers, createPhoto, photoStore, type MemberPhoto, OQ_PRESETS, PO_OPEN, openQAnswer, openQOf, poMarkSeen, poReason, poSeen, poStore, r10Tx, setOpenQ, taskExtraClaim,
   type Bestie, type BestieOf, type DailyPick, type FairPlay, type FollowSuggest, type Newcomers, type OpenQ, type R10Reel,
 } from './ret10';
-import { v5CompressImage } from './v5Live';
+import { v5CompressImage, v5ToggleLike, v5ToggleSave } from './v5Live';
 import { tasksRefresh, useTasks } from './V5Tasks';
 import './ret10.css';
 
@@ -670,19 +670,40 @@ export function usePhotos(user: string | null | undefined): MemberPhoto[] {
   return user ? v || [] : [];
 }
 export const PHOTO_VIEW = 'kr8:r10-photoview';
-export function PhotoViewer(props: { lang: string }) {
+export function PhotoViewer(props: { lang: string; onComment?: (postId: string) => void; toast?: (m: string) => void }) {
   const tx = r10Tx(props.lang);
-  const [p, setP] = useState<(MemberPhoto & { mine?: boolean }) | null>(null);
+  const [p, setP] = useState<(MemberPhoto & { mine?: boolean; user?: string | null }) | null>(null);
+  const [busy, setBusy] = useState(false);
   useEffect(() => {
-    const on = (e: Event) => setP((e as CustomEvent<MemberPhoto & { mine?: boolean }>).detail);
+    const on = (e: Event) => setP((e as CustomEvent<MemberPhoto & { mine?: boolean; user?: string | null }>).detail);
     window.addEventListener(PHOTO_VIEW, on);
     return () => window.removeEventListener(PHOTO_VIEW, on);
   }, []);
   if (!p) return null;
   const [t, tip] = p.reason ? poReason(props.lang, p.reason) : ['', ''];
+  // m241 (27 Nov, founder): a daily photo can be liked, saved and commented on, like a Reel
+  const like = async () => {
+    if (p.mine || busy) return;
+    setBusy(true);
+    try { const r = await v5ToggleLike(p.id); setP({ ...p, liked: r.liked, likes: r.likes }); if (p.user) void photoStore(p.user).refresh(); }
+    catch (e) { props.toast?.(errCode(e)); } finally { setBusy(false); }
+  };
+  const save = async () => {
+    if (busy) return;
+    setBusy(true);
+    try { const on = await v5ToggleSave(p.id); setP({ ...p, saved: on }); } catch (e) { props.toast?.(errCode(e)); } finally { setBusy(false); }
+  };
   return (
     <Sheet id="r10PhotoView" label={tx.phTitle} onClose={() => setP(null)} cls="r10-pv">
-      <div className="r10-pvimg" style={{ backgroundImage: `url("${p.photo}")` }} />
+      <div className="r10-pvimg" style={{ backgroundImage: `url("${p.photo}")` }} onDoubleClick={() => { if (!p.liked) void like(); }} />
+      <div className="r10-pvact" id="r10PhotoActs">
+        <button type="button" id="r10PvLike" className={p.liked ? 'on' : ''} aria-pressed={!!p.liked} aria-label={tx.pvLike} disabled={!!p.mine} onClick={() => void like()}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z" /></svg>{p.likes ? <b>{p.likes}</b> : null}</button>
+        <button type="button" id="r10PvComment" aria-label={tx.pvComment} onClick={() => { const id = p.id; setP(null); props.onComment?.(id); }}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v10H9l-4 4z" /></svg>{p.comments ? <b>{p.comments}</b> : null}</button>
+        <button type="button" id="r10PvSave" className={p.saved ? 'on' : ''} aria-pressed={!!p.saved} aria-label={p.saved ? tx.pvSaved : tx.pvSave} onClick={() => void save()}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v16l-5-3.5L7 20z" /></svg></button>
+      </div>
       {p.body ? <p className="r10-sub">{p.body}</p> : null}
       {p.mine && !p.feed ? <p className="r10-note">{tx.poTag}</p> : null}
       {p.mine && p.reason ? <div className="r10-why"><small>{tx.poWhy}</small><b>{t}</b><span>{tip}</span></div> : null}
