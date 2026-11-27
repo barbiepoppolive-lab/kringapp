@@ -107,6 +107,7 @@ import { parsePushLink, pushConfigured, pushDisable, pushEnable, pushMoment, pus
 import { PUSH_ASK_LINE, PushAskCard } from './V5Push';
 import { PushOptInHost, pushOptInAsk } from './V5PushOptIn';
 import { GenderAskSheet } from './V5GenderAsk';
+import { InviteWelcome, InviteBar, cameFromInvite, inviteSeen, markInviteSeen, type Inviter } from './V5InviteWelcome';
 import { isGender as isGenderV } from './V5Gender';
 import { EscapeScreen } from './V5Escape';
 import { inAppOf, isLiffOpen, openEscape } from './escape';
@@ -156,7 +157,7 @@ import { lineShareUrl, lineOut, invitedByMember, liveSeen, markLiveSeen, oneTapS
 import { InviteHint } from './V5Invite';
 import { copyText } from './camGuard';
 import { PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, SavedReelsPage, type PickedPlace } from './V5KxPlaces';
-import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRanking, kxRefName, kxSavedReels, kxShareLink, kxShareLinkCached, kxShareOpenSeen, kxReelUnvLikes,
+import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRanking, kxRefName, kxRefCard, kxSavedReels, kxShareLink, kxShareLinkCached, kxShareOpenSeen, kxReelUnvLikes,
   type KxCardExtras, type KxClaimResult, type KxFeedExtra, type KxPrize, type KxRanking, type KxRewards, type KxSavedReel, type KxWeekResult } from './v5Kx';
 import { inviteCode, levelFor as kxLevelFor, weekEnd } from './kxLogic';
 import { armFirstTapSound } from './reelSound';
@@ -3645,6 +3646,23 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     };
   }, [jpOk, tab, feedMode, feedItems.length > 0, sheet]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (signedIn) { setJpWhy(null); joinPromptCameBack(); } }, [signedIn]);
+  // ── invite welcome (27 Nov, founder): a signed-out visitor on a member's invite link (?ref=) gets the inviter's invitation card once
+  // per invite, then a quiet LINE bar while browsing. Only when the inviter is a verified, visible adult (kr8_ref_card); else nothing new. ──
+  const ivCodeRef = useRef<string>(cameFromInvite());
+  const [ivInviter, setIvInviter] = useState<Inviter | null>(null);
+  const [ivMode, setIvMode] = useState<'card' | 'bar' | null>(null);
+  useEffect(() => {
+    const code = ivCodeRef.current;
+    if (!code || !live || !v5AuthReady || signedIn || v5Uid || adminWantedRef.current || mirrorActive()) return undefined;
+    let dead = false;
+    kxRefCard(code).then((c) => {
+      if (dead || !c || !c.name) return;
+      setIvInviter({ name: c.name, photo: c.photo || null });
+      if (inviteSeen(code)) setIvMode('bar'); else { markInviteSeen(code); setIvMode('card'); }
+    }).catch(() => undefined);
+    return () => { dead = true; };
+  }, [live, v5AuthReady, signedIn]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (signedIn) setIvMode(null); }, [signedIn]);
   // T301-019: the ?person=<member id> deep link, once we know whether this is the live app and who is signed in
   useEffect(() => {
     if (!deepPersonId || (live && !v5AuthReady)) return;
@@ -4765,7 +4783,13 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               onAsk={(q) => { setAskOpenThread(q); pickFeedMode('ask'); }}
               onVerify={() => { setVerifyMode('me'); setSheet('verify'); }} />
           )}
-          {jpWhy && !signedIn && tab === 'feed' && feedMode !== 'ask' && !sheet && (
+          {ivMode && ivInviter && !signedIn && !sheet && (ivMode === 'card' ? (
+            <InviteWelcome lang={lang} inviter={ivInviter} faces={[]} onLook={() => setIvMode('bar')}
+              onFallback={() => { setIvMode('bar'); setSignInNotice(''); setSheet('signin'); }} />
+          ) : tab === 'feed' ? (
+            <InviteBar lang={lang} inviter={ivInviter} onFallback={() => { setSignInNotice(''); setSheet('signin'); }} />
+          ) : null)}
+          {jpWhy && !ivMode && !signedIn && tab === 'feed' && feedMode !== 'ask' && !sheet && (
             <JoinPrompt lang={lang} why={jpWhy} onClose={() => setJpWhy(null)} onFallback={() => { setJpWhy(null); setSignInNotice(''); setSheet('signin'); }} />
           )}
           {nfOn && tab === 'feed' && feedMode !== 'ask' ? (

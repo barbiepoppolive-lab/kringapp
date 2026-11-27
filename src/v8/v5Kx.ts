@@ -30,6 +30,8 @@ export interface KxCardExtras { member_no: number | null; ig_handle: string | nu
 export const kxCardExtras = (user?: string | null) => rpc<KxCardExtras>('kr8_card_extras', { p_user: user || null });
 export const kxSetTiktok = (h: string) => rpc<string | null>('kr8_set_tiktok_handle', { p_handle: h });
 export const kxRefName = (code: string) => rpc<string | null>('kr8_ref_name', { p_code: code });
+/** 27 Nov (m238): the inviter's first name + card photo for the invite welcome card (verified, visible adults only; else null). */
+export const kxRefCard = (code: string) => rpc<{ name: string; photo: string | null } | null>('kr8_ref_card', { p_code: code });
 
 // ───────────── the next step (pinned row) ─────────────
 export interface KxGap { state: GapState; rank: number | null; rings: number; floor: number; prize_now: number;

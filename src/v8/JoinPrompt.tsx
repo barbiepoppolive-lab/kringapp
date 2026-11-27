@@ -37,6 +37,24 @@ export function joinPromptCameBack(): void {
 
 const googleHere = () => import.meta.env.VITE_GOOGLE_ON === '1' && !inAppBrowser(typeof navigator === 'undefined' ? '' : navigator.userAgent);
 
+/** One-tap LINE / Google sign-in shared by the join prompt and the invite welcome card (27 Nov). Logs under `kind` ('join_prompt' / 'invite_welcome'). */
+export function useJoinGo(logKind: string, why: string, onFallback: () => void) {
+  const [busy, setBusy] = useState(false);
+  const liffJoin = import.meta.env.VITE_LIFF_ID && inAppBrowser(typeof navigator === 'undefined' ? '' : navigator.userAgent) !== 'line' ? liffUrl(v5StoredRef()) : '';
+  const go = async (kind: 'line' | 'google') => {
+    if (busy) return;
+    setBusy(true);
+    v5LogClient(logKind, kind, why);
+    try { sessionStorage.setItem(CAME, kind); } catch { /* ignore */ }
+    try {
+      if (kind === 'line' && liffJoin) { window.location.assign(liffJoin); return; }
+      const r = kind === 'line' ? await v5SignInLine() : await v5SignInGoogle();
+      if (r !== 'redirect') { try { sessionStorage.removeItem(CAME); } catch { /* ignore */ } onFallback(); }
+    } catch { onFallback(); } finally { setBusy(false); }
+  };
+  return { busy, go, lineOn: v5LineOn(), goog: googleHere() };
+}
+
 export function JoinPrompt(p: { lang: string; why: string; onClose: () => void; onFallback: () => void }) {
   const tx = joinTx(p.lang);
   const [busy, setBusy] = useState(false);
