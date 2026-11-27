@@ -1880,7 +1880,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
         if (!s0?.user?.id && adminWantedRef.current && !sheetRef.current) { setV5SignInNotice(L('Admin view · sign in with your admin email')); setSheet('signin'); }
         // audit 18 Nov: every share now carries ?ref=. A link to something (a Reel, a profile, a place, a pass) shows that thing first;
         // the join sheet waits for the first like / follow (the friend's name is still on it). A plain invite link opens it at once.
-        else if (!s0?.user?.id && ((q0.get('ref') && !['reel', 'u', 'place', 'v', 'so', 'person'].some((k) => q0.get(k))) || v5JoinAsked.current) && !sheetRef.current && !installAskRef.current) setSheet('signin');
+        // 27 Nov: a member / campaign invite code (?ref=k00114, ?ref=pich) gets the invite welcome card instead (it falls back to this sheet)
+        else if (!s0?.user?.id && ((q0.get('ref') && !cameFromInvite(`?${q0.toString()}`) && !['reel', 'u', 'place', 'v', 'so', 'person'].some((k) => q0.get(k))) || v5JoinAsked.current) && !sheetRef.current && !installAskRef.current) setSheet('signin');
         // audit P3-14: ?open=rewards while signed out → sign-in first; the rewards page opens right after (pushOpenRef effect)
         else if (!s0?.user?.id && q0.get('open') === 'rewards' && !sheetRef.current) { setV5SignInNotice(L('Sign in to see your rewards')); setSheet('signin'); }
         else if (!s0?.user?.id && q0.get('open') === 'share' && !sheetRef.current) setSheet('signin');
@@ -3654,12 +3655,17 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   useEffect(() => {
     const code = ivCodeRef.current;
     if (!code || !live || !v5AuthReady || signedIn || v5Uid || adminWantedRef.current || mirrorActive()) return undefined;
+    // a shared Reel / place / person link keeps its own flow (the Reel first, then the join prompt)
+    if (['reel', 'post', 'u', 'place', 'v', 'so', 'person'].some((k) => new URLSearchParams(location.search).get(k))) return undefined;
     let dead = false;
+    // no card for this code (unknown / not verified): the old join sheet, exactly as before (plain invite links only)
+    const fallback = () => { if (!dead && !sheetRef.current && !installAskRef.current && !['reel', 'u', 'place', 'v', 'so', 'person'].some((k) => new URLSearchParams(location.search).get(k))) setSheet('signin'); };
     kxRefCard(code).then((c) => {
-      if (dead || !c || !c.name) return;
+      if (dead) return;
+      if (!c || !c.name) { fallback(); return; }
       setIvInviter({ name: c.name, photo: c.photo || null });
       if (inviteSeen(code)) setIvMode('bar'); else { markInviteSeen(code); setIvMode('card'); }
-    }).catch(() => undefined);
+    }).catch(fallback);
     return () => { dead = true; };
   }, [live, v5AuthReady, signedIn]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (signedIn) setIvMode(null); }, [signedIn]);
