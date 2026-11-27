@@ -1,3 +1,4 @@
+import { useAskTr } from './askTr';
 /**
  * Retention 10 (26 Nov 2026) — the screens. Founder-approved mock canvas, built light: dark glass like the tasks sheet and the
  * first-visit strip, the app's blue→pink only on bars / rings / the main button, no borders, no glow, Kring rings glyph for Rings.
@@ -327,6 +328,10 @@ export function useOpenQ(user: string | null | undefined, on = true): OpenQ | nu
   }, [user, on]);
   return q;
 }
+/** m240 (27 Nov, founder): another member's question reads in the reader's app language, like their bio */
+function QTr(props: { user: string; text: string }) {
+  return <>{useAskTr('o', props.user, props.text) || props.text}</>;
+}
 /** inside the Say hi sheet: the question card + the answer box (replaces the openers and the free hello) */
 export function OpenQAnswer(props: { lang: string; to: string; name: string; q: string; onSent: (thread: string) => void; onError: (m: string) => void }) {
   const tx = r10Tx(props.lang);
@@ -341,7 +346,7 @@ export function OpenQAnswer(props: { lang: string; to: string; name: string; q: 
   };
   return (
     <div className="r10-oq" id="r10OpenQ">
-      <div className="r10-oqc"><small>{fmt(tx.asks, props.name)}</small><b>{props.q}</b><span>{tx.answerStarts}</span></div>
+      <div className="r10-oqc"><small>{fmt(tx.asks, props.name)}</small><b><QTr user={props.to} text={props.q} /></b><span>{tx.answerStarts}</span></div>
       <label className="r10-lab" htmlFor="r10OqAns">{tx.yourAnswer}</label>
       <div className="r10-oqi">
         <textarea id="r10OqAns" rows={2} maxLength={280} value={a} onChange={(e) => setA(e.target.value)} />
@@ -359,7 +364,7 @@ export function ProfileQCard(props: { lang: string; user: string; name: string; 
   if (!q || !q.on || !q.q || q.thread) return null;
   return (
     <button type="button" className="r10-oqc r10-pq" id="profileOpenQ" onClick={props.onAnswer}>
-      <small>{fmt(tx.asks, props.name)}</small><b>{q.q}</b><span>{tx.answerStarts} ›</span>
+      <small>{fmt(tx.asks, props.name)}</small><b><QTr user={props.user} text={q.q} /></b><span>{tx.answerStarts} ›</span>
     </button>
   );
 }

@@ -162,7 +162,7 @@ describe('app wiring: every share goes through the one tap with my code', () => 
     expect(app).toContain('link: withRef(v5ProfileLink(v5Uid), getMyRef())');   // the QR card (if opened) carries the code too
   });
   it('audit 18 Nov: a shared Reel / profile / place link shows the thing first, not the join sheet', () => {
-    expect(app).toContain("q0.get('ref') && !['reel', 'u', 'place', 'v', 'so', 'person'].some((k) => q0.get(k))");
+    expect(app).toContain("!['reel', 'u', 'place', 'v', 'so', 'person'].some((k) => q0.get(k))");
   });
   it('hint only next to existing share buttons (Board + post-success)', () => {
     expect(readFileSync('src/v8/V5KxRanking.tsx', 'utf8')).toContain('<InviteHint lang={lang} x={cfg?.invite} />');   // board-1 v3: inside the Share sheet

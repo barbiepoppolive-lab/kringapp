@@ -7,8 +7,8 @@
 import { useEffect, useState } from 'react';
 import { hasThai, mostlyEnglish } from './askThai';
 
-/** q / qd / a = Ask BKK texts; b (0183) = a member's bio (id = the member's user_id) */
-export type TrKind = 'q' | 'qd' | 'a' | 'b';
+/** q / qd / a = Ask BKK texts; b (0183) = a member's bio, o (m240) = a member's own profile question (id = the member's user_id) */
+export type TrKind = 'q' | 'qd' | 'a' | 'b' | 'o';
 type Entry = { text: string | null; done: boolean };
 const cache = new Map<string, Entry>();
 const subs = new Set<() => void>();

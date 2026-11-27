@@ -73,7 +73,7 @@ const rest = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
   return (t ? JSON.parse(t) : null) as T;
 };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-type Kind = "q" | "qd" | "a" | "b";
+type Kind = "q" | "qd" | "a" | "b" | "o";
 type Src = { kind: Kind; id: string; body: string };
 type Out = { kind: Kind; id: string; status: string; text?: string };
 
@@ -96,6 +96,7 @@ const inList = (ids: string[]) => `(${ids.join(",")})`;
 async function load(items: { kind: Kind; id: string }[]): Promise<Src[]> {
   const q = items.filter((x) => x.kind === "q" || x.kind === "qd").map((x) => x.id), a = items.filter((x) => x.kind === "a").map((x) => x.id);
   const b = items.filter((x) => x.kind === "b").map((x) => x.id);
+  const o = items.filter((x) => x.kind === "o").map((x) => x.id);
   const out: Src[] = [];
   if (q.length) {
     const rows = await rest<{ id: string; body: string | null; ask_details: string | null }[]>(`kr8_posts?select=id,body,ask_details&kind=eq.ask&id=in.${inList([...new Set(q)])}`);
@@ -109,6 +110,11 @@ async function load(items: { kind: Kind; id: string }[]): Promise<Src[]> {
     // 0183: bios of members with a card (hidden / removed members have none to read)
     const rows = await rest<{ user_id: string; bio: string | null }[]>(`kr8_members?select=user_id,bio&user_id=in.${inList([...new Set(b)])}`);
     for (const it of items) if (it.kind === "b") { const r = rows.find((x) => x.user_id === it.id); if (r?.bio && r.bio.trim()) out.push({ ...it, body: r.bio }); }
+  }
+  if (o.length) {
+    // m240 (27 Nov): a member's own profile question ("X asks ..."), only while it is switched on
+    const rows = await rest<{ user_id: string; open_q: string | null }[]>(`kr8_members?select=user_id,open_q&open_q_on=is.true&user_id=in.${inList([...new Set(o)])}`);
+    for (const it of items) if (it.kind === "o") { const r = rows.find((x) => x.user_id === it.id); if (r?.open_q && r.open_q.trim()) out.push({ ...it, body: r.open_q }); }
   }
   return out;
 }
@@ -197,6 +203,8 @@ Deno.serve(async (req) => {
       for (const q of qs) { if (q.body?.trim()) all.push({ kind: "q", id: q.id, body: q.body }); if (q.ask_details?.trim()) all.push({ kind: "qd", id: q.id, body: q.ask_details }); }
       for (const a of as) if (a.body?.trim()) all.push({ kind: "a", id: a.id, body: a.body });
       for (const b of bs) if (b.bio?.trim()) all.push({ kind: "b", id: b.user_id, body: b.bio });
+      const os = await rest<{ user_id: string; open_q: string | null }[]>(`kr8_members?select=user_id,open_q&open_q_on=is.true&open_q=not.is.null&limit=2000`).catch(() => [] as { user_id: string; open_q: string | null }[]);
+      for (const m of os) if (m.open_q?.trim()) all.push({ kind: "o", id: m.user_id, body: m.open_q });
       const hs = await Promise.all(all.map((w) => hash(w.body)));
       const want = all.filter((w, i) => { if (done.has(`${w.kind}:${w.id}:${hs[i]}`)) return false; const l = detectLang(w.body); return !!l && l !== target && w.body.length <= 1200; });
       const need = want.slice(0, lim);
@@ -204,7 +212,7 @@ Deno.serve(async (req) => {
       return json({ status: "ok", asked: need.length, done: out.filter((o) => o.status === "ok").length, later: out.filter((o) => o.status === "later").length, remaining: want.length - need.length }, 200, origin);
     }
     const items = (Array.isArray(input?.items) ? input.items : []).slice(0, 40)
-      .filter((x: { kind?: unknown; id?: unknown }) => (x?.kind === "q" || x?.kind === "qd" || x?.kind === "a" || x?.kind === "b") && typeof x?.id === "string" && UUID.test(x.id as string)) as { kind: Kind; id: string }[];
+      .filter((x: { kind?: unknown; id?: unknown }) => (x?.kind === "q" || x?.kind === "qd" || x?.kind === "a" || x?.kind === "b" || x?.kind === "o") && typeof x?.id === "string" && UUID.test(x.id as string)) as { kind: Kind; id: string }[];
     if (robot) {
       // 0186: on insert / edit (database trigger): translate into both languages now
       const src = await load(items);
