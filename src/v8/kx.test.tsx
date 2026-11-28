@@ -8,7 +8,7 @@ import {
 } from './kxLogic';
 import { KX_AREA_TH, KX_L, V5_L } from './v5Strings';
 
-const kxMock = vi.hoisted(() => ({ kxClaimPrize: vi.fn(), kxRecentClaims: vi.fn(), kxMarkUsed: vi.fn(), kxBreakdown: vi.fn(), kxRanking: vi.fn() }));
+const kxMock = vi.hoisted(() => { const rk = vi.fn(); return ({ kxClaimPrize: vi.fn(), kxRecentClaims: vi.fn(), kxMarkUsed: vi.fn(), kxBreakdown: vi.fn(), kxRanking: rk, kxRankingLite: rk }); });
 vi.mock('./v5Kx', async (orig) => ({ ...(await orig<typeof import('./v5Kx')>()), ...kxMock }));
 vi.mock('./v5Reel', () => ({ signReelPaths: vi.fn().mockResolvedValue({}) }));
 const fpMock = vi.hoisted(() => vi.fn());

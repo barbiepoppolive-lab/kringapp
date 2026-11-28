@@ -197,16 +197,39 @@
 
 /* leaderboard orb (Me): the one always-on glow there. Sits in the free space between the header icons and the stats row. */
 .v8-app-root .r10-orb { position: absolute; z-index: 6; top: calc(env(safe-area-inset-top, 0px) + 56px); right: 14px; width: 84px; display: flex; flex-direction: column; align-items: center; gap: 3px;
-  padding: 0; border: 0; background: none; cursor: pointer; color: #fff; font-family: var(--rv-f, system-ui); animation: r10Float 4.5s ease-in-out infinite; -webkit-tap-highlight-color: transparent; }
+  padding: 0; border: 0; background: none; cursor: pointer; color: #fff; font-family: var(--rv-f, system-ui); -webkit-tap-highlight-color: transparent; }
 .v8-app-root .r10-orbc { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; position: relative;
-  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.22), rgba(20,18,36,.86) 62%);
-  box-shadow: 0 0 0 2px rgba(115,123,255,.9), 0 0 0 4px rgba(216,180,119,.55), 0 0 18px 2px rgba(115,123,255,.45), 0 0 26px 4px rgba(216,180,119,.22); }
+  background: radial-gradient(circle at 35% 28%, rgba(255,255,255,.16), rgba(20,18,36,.84) 64%);
+  box-shadow: 0 0 0 1.5px rgba(150,140,255,.55), 0 6px 18px rgba(0,0,0,.35); }
 .v8-app-root .r10-orbc b { font: 800 1.0625rem/1 var(--rv-f, system-ui); color: #F6E6C4; letter-spacing: -.01em; }
 .v8-app-root .r10-orb small { max-width: 84px; font: 600 .625rem/1.2 var(--rv-f, system-ui); text-align: center; color: #F1E6D0; text-shadow: 0 1px 4px rgba(0,0,0,.7); }
-.v8-app-root .r10-orb.join .r10-orbc { box-shadow: 0 0 0 2px rgba(216,180,119,.75), 0 0 14px 2px rgba(216,180,119,.3); }
+.v8-app-root .r10-orb.join .r10-orbc { box-shadow: 0 0 0 1.5px rgba(216,180,119,.7), 0 6px 18px rgba(0,0,0,.35); }
 .v8-app-root .r10-orb:active .r10-orbc { transform: scale(.94); }
-@keyframes r10Float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-@media (prefers-reduced-motion: reduce) { .v8-app-root .r10-orb { animation: none; } }
+/* 28 Nov (founder): the Kring rings hover inside the orb (slow float + gentle 3D tilt) and one thin pink light travels round the edge.
+   Transforms/opacity only, one layer each; paused off screen / app in background (data-still); still with reduce motion / low-end phones. */
+.v8-app-root .r10-orbhl { position: absolute; inset: -1.5px; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(from 0deg, transparent 0 74%, rgba(255,79,163,0) 76%, rgba(255,79,163,.85) 90%, #FFD3EC 93.5%, rgba(255,79,163,0) 96%, transparent 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1.6px), #000 calc(100% - 1.2px)); mask: radial-gradient(farthest-side, transparent calc(100% - 1.6px), #000 calc(100% - 1.2px));
+  filter: drop-shadow(0 0 1.5px rgba(255,79,163,.9)); animation: r10OrbSpin 7s linear infinite; will-change: transform; }
+.v8-app-root .r10-orb.join .r10-orbhl { background: conic-gradient(from 0deg, transparent 0 74%, rgba(255,200,120,0) 76%, rgba(255,190,110,.8) 90%, #FFF0D2 93.5%, rgba(255,190,110,0) 96%, transparent 100%); filter: drop-shadow(0 0 1.5px rgba(255,190,110,.85)); }
+.v8-app-root .r10-orb3d { position: relative; display: grid; place-items: center; width: 44px; height: 34px; perspective: 160px; }
+.v8-app-root .r10-orbrg { display: block; transform-origin: 50% 50%; animation: r10OrbHover 5.2s ease-in-out infinite; will-change: transform;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,.45)); }
+.v8-app-root .r10-orbsh { position: absolute; left: 50%; bottom: -1px; width: 26px; height: 4px; margin-left: -13px; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0,0,0,.55), transparent); animation: r10OrbShadow 5.2s ease-in-out infinite; will-change: transform, opacity; }
+.v8-app-root .r10-orbc b.r10-orbrk { position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%); padding: 1px 6px; border-radius: 999px;
+  background: #1C1930; box-shadow: 0 0 0 1px rgba(216,180,119,.6); font: 800 .625rem/1.35 var(--rv-f, system-ui); color: #F6E6C4; letter-spacing: 0; white-space: nowrap; }
+@keyframes r10OrbSpin { to { transform: rotate(360deg); } }
+@keyframes r10OrbHover {
+  0%, 100% { transform: translate3d(0, 1.5px, 0) rotateX(10deg) rotateY(-22deg); }
+  50% { transform: translate3d(0, -2.5px, 0) rotateX(4deg) rotateY(22deg); } }
+@keyframes r10OrbShadow { 0%, 100% { transform: scaleX(1); opacity: .9; } 50% { transform: scaleX(.72); opacity: .5; } }
+.v8-app-root .r10-orb[data-still="1"] :is(.r10-orbhl, .r10-orbrg, .r10-orbsh) { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .v8-app-root .r10-orb :is(.r10-orbhl, .r10-orbrg, .r10-orbsh) { animation: none; }
+  .v8-app-root .r10-orbhl { transform: rotate(40deg); }
+  .v8-app-root .r10-orbrg { transform: rotateX(8deg) rotateY(-14deg); } }
+.v8-app-root.kr-lowend .r10-orb :is(.r10-orbrg, .r10-orbsh) { animation: none; }
 /* attention rule (Me): the orb is the one glow; the Rings chip and the bell dot stay calm next to it */
 .v8-app-root .kme-a:has(.r10-orb) .mc-chip { box-shadow: none; animation: none; }
 
@@ -298,7 +321,7 @@
 .v8-app-root .r10-myp { position: relative; display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border: 0; border-radius: 999px; background: rgba(20,18,36,.62);
   color: #F1E6D0; font: 600 .6875rem/1 var(--rv-f, system-ui); cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
 .v8-app-root .r10-myp .dot { position: absolute; top: -1px; right: -1px; width: 8px; height: 8px; border-radius: 50%; background: #F2C14E; box-shadow: 0 0 0 2px rgba(20,18,36,.9); }
-.v8-app-root .kme .r10-myp.me { position: absolute; z-index: 6; top: calc(env(safe-area-inset-top, 0px) + 127px); right: 14px; padding: 4px 9px; font-size: .65625rem; background: rgba(20,18,36,.72); color: #F1E6D0; }
+.v8-app-root .kme .r10-myp.me { position: absolute; z-index: 6; top: calc(env(safe-area-inset-top, 0px) + 137px); right: 14px; padding: 4px 9px; font-size: .65625rem; background: rgba(20,18,36,.72); color: #F1E6D0; }
 .v8-app-root .bx-hrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .v8-app-root .bx-hrow .r10-myp { padding: 6px 10px; }
 /* r13: board header = ONE row: "Last week's winners" pill + a small 🎁 icon chip (My prizes) */

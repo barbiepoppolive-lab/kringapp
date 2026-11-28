@@ -75,12 +75,58 @@ export const kxRecentClaims = (n = 8) => rpc<KxRecent[]>('kr8_recent_claims', { 
 // ───────────── ranking ─────────────
 export type KxScope = 'all' | 'area' | 'friends';
 export interface KxRankRow { rank: number; all_rank: number; rings: number; prize: number; paid: boolean; needs: number | null; to_line: number | null; is_new?: boolean;
-  user_id: string; first_name: string; photo: string | null; area: string; move: number | null; is_me: boolean }
+  user_id: string; first_name: string; photo: string | null; area: string; move: number | null; is_me: boolean;
+  /** m252 lite board: short key of the member's photo (photo itself comes from kr8_board_photos) */
+  pv?: string | null }
 export interface KxRanking { week_start: string; ends_at: string; scope: KxScope; area: string | null; total: number; paid_ranks: number; floor: number; posters: number;
   min_posters: number; payout_on: boolean; open_seats: number; prizes: number[]; rows: KxRankRow[];
   me: { rank: number; all_rank: number; rings: number; prize: number; move: number | null } | null; gap: KxGap | null;
   mine: { pending: number; live: number; no_place: number } | null }
 export const kxRanking = (scope: KxScope) => rpc<KxRanking>('kr8_weekly_ranking', { p_scope: scope });
+/**
+ * 28 Nov (m252): the board without its inline photos. kr8_weekly_ranking returns every member's photo as a data: image
+ * (1.19 MB for 33 rows), which took 6-7 s on a phone. The lite answer is ~10 KB with a short photo key 'pv' per row; the photos
+ * come once from kr8_board_photos and are kept small on the phone (boardPhotos.ts). Same numbers, same rows.
+ * Before m252 is on the server (or if the call fails) it falls back to the full board, so the app works either way.
+ */
+let liteOff = false;
+export async function kxRankingLite(scope: KxScope): Promise<KxRanking> {
+  if (!liteOff) {
+    try { return await rpc<KxRanking>('kr8_weekly_ranking_lite', { p_scope: scope }); } catch (e) {
+      // offline / network → the full call would fail too; anything else (e.g. the server is older than m252) → full board from now on
+      const code = (e as { code?: string })?.code || '';
+      if (code === 'OFFLINE' || code === 'NETWORK') throw e;
+      liteOff = true;
+    }
+  }
+  return rpc<KxRanking>('kr8_weekly_ranking', { p_scope: scope });
+}
+/** m252: photos of members on this week's board (signed-in only, max 40 ids): [{id, pv, photo}] */
+export const kxBoardPhotos = (ids: string[]) => rpcRaw<{ id: string; pv: string; photo: string }[]>('kr8_board_photos', { p_ids: ids });
+
+/** 28 Nov: the last board this phone saw (memory + localStorage, per member), shown at once while the fresh one loads. */
+const BOARD_LS = 'kr8_board_last_v1';
+let boardMem: { uid: string; at: number; d: KxRanking } | null = null;
+export function kxBoardSave(uid: string | null | undefined, d: KxRanking | null | undefined): void {
+  if (!uid || !d || !Array.isArray(d.rows)) return;
+  // never keep inline photos (the full board's data: images would fill the phone's storage)
+  const slim: KxRanking = { ...d, rows: d.rows.map((r) => (r.photo && r.photo.length > 300 ? { ...r, photo: null } : r)) };
+  boardMem = { uid, at: Date.now(), d: slim };
+  try { localStorage.setItem(BOARD_LS, JSON.stringify(boardMem)); } catch { /* private mode / full */ }
+}
+/** the saved board for this member, only while its week is still open (a closed week is never shown as this week's board) */
+export function kxBoardPeek(uid: string | null | undefined): KxRanking | null {
+  if (!uid) return null;
+  let b = boardMem;
+  if (!b || b.uid !== uid) {
+    try { const raw = localStorage.getItem(BOARD_LS); b = raw ? JSON.parse(raw) : null; } catch { b = null; }
+    if (b && b.uid === uid) boardMem = b;
+  }
+  if (!b || b.uid !== uid || !b.d || !Array.isArray(b.d.rows)) return null;
+  const end = Date.parse(b.d.ends_at || '');
+  if (!end || end <= Date.now()) return null;
+  return b.d;
+}
 /** 0096: Founding Local paid seats left (of 50) — one integer, null when Founding Local is off. Never voucher stock. */
 export const kxSeatsLeft = () => rpc<number | null>('kr8_seats_left');
 export interface KxMathReel { post_id: string; posted_at: string; poster_path: string | null; place: string | null; place_th: string | null;

@@ -157,7 +157,7 @@ import { lineShareUrl, lineOut, invitedByMember, liveSeen, markLiveSeen, oneTapS
 import { InviteHint } from './V5Invite';
 import { copyText } from './camGuard';
 import { PlacePage, PlacePickRow, PlaceSearchPage, rememberPlaces, SavedReelsPage, type PickedPlace } from './V5KxPlaces';
-import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRanking, kxRefName, kxRefCard, kxSavedReels, kxShareLink, kxShareLinkCached, kxShareOpenSeen, kxReelUnvLikes,
+import { kxCheckin, kxCardExtras, kxCreateReel, kxFeedExtras, kxMyRewards, kxRankingLite, kxBoardSave, kxRefName, kxRefCard, kxSavedReels, kxShareLink, kxShareLinkCached, kxShareOpenSeen, kxReelUnvLikes,
   type KxCardExtras, type KxClaimResult, type KxFeedExtra, type KxPrize, type KxRanking, type KxRewards, type KxSavedReel, type KxWeekResult } from './v5Kx';
 import { inviteCode, levelFor as kxLevelFor, weekEnd } from './kxLogic';
 import { armFirstTapSound } from './reelSound';
@@ -198,6 +198,7 @@ const ResultPage = lazyPart(() => import('./V5KxRewards').then((m) => m.ResultPa
 const Celebrate = lazyPart(() => import('./V5Celebrate').then((m) => m.Celebrate));
 const RingFly = lazyPart(() => import('./V5Celebrate').then((m) => m.RingFly));
 import { kxTop3, type KxTop3 } from './v5Kx';
+import { ensureBoardPhotos } from './boardPhotos';
 import { kxCoachState } from './v5Kx';
 import { V5Build, QA_KEY, buildIncomplete, buildLeftLabel, cardDoneSteps, missingSteps, type BuildStep } from './V5Build';
 import { cardBlob, displayCode } from './rankStory';
@@ -2851,8 +2852,9 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
   const kxLoadWeek = (force = false) => {
     if (!force && Date.now() - kxWeekAt.current < 60_000) return;
     kxWeekAt.current = Date.now();
-    kxRanking('all').then((r) => {
+    kxRankingLite('all').then((r) => {
       setKxWeek(r); setKxWeekRank(r.me?.rank ?? null); setKxRankLine(kxTileLine(r));
+      kxBoardSave(v5Uid, r);   // 28 Nov: the board opens with this at once (then refreshes itself)
       // the "This week" Rings on Me come from the same board (kr8_week_board), so the row and the banners never disagree
       setKxMe((m) => (m ? { ...m, week: r.me?.rings ?? 0, week_rank: r.me?.all_rank ?? null } : m));
     }).catch(() => { kxWeekAt.current = 0; });
@@ -3412,6 +3414,17 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [live, v5Uid, !!v5Card, adminView]);
   useEffect(() => { if (live && v5Uid && (v5Card || adminView) && tab === 'feed') kxLoadWeek(); }, [tab]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // 28 Nov: while Me (with the board orb) is open, get the board ready in the quiet moment after Me has drawn: the board's code
+  // and the top 10 photos (once per phone; kept small). Opening the board then shows everything at once.
+  const kxTop10Key = (kxWeek?.rows || []).slice(0, 10).map((r) => r.user_id + (r.pv || '')).join(',');
+  useEffect(() => {
+    if (tab !== 'me' || !r10On || !kxWeek) return;
+    const t = window.setTimeout(() => {
+      void import('./V5KxRanking').catch(() => undefined);
+      void ensureBoardPhotos((kxWeek.rows || []).slice(0, 10));
+    }, 1500);
+    return () => window.clearTimeout(t);
+  }, [tab, r10On, kxTop10Key]);   // eslint-disable-line react-hooks/exhaustive-deps
   // 17 Nov "Your next step": the one thing to do next (Feed pill + top of Me), from my Reels, prizes, claims and verified.
   // Reels + rewards load quietly once signed in, and again when Feed / Me opens (at most once a minute).
   const [nextHideTick, setNextHideTick] = useState(0);
@@ -5571,7 +5584,8 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
               orbSlot={r10On && !adminView ? (
                 <LeaderOrb lang={lang} verified={!!meProfile.verified} rank={kxWeek?.gap?.rank ?? kxWeekRank ?? null}
                   need={kxWeek?.gap?.target?.need ?? null} nextRank={kxWeek?.gap?.target?.rank ?? null} state={kxWeek?.gap?.state ?? null}
-                  onOpen={() => setSheet('ranking')} onFace={() => setSheet('verify')} />
+                  onOpen={() => setSheet('ranking')} onFace={() => setSheet('verify')}
+                  onWarm={() => { void import('./V5KxRanking').catch(() => undefined); if (kxWeek) void ensureBoardPhotos(kxWeek.rows); }} />
               ) : null}
               prizesSlot={r10On && !adminView ? <MyPrizesBtn lang={lang} id="meMyPrizes" cls="me" dot={(kxMe?.prizes ?? 0) > 0} onOpen={openMyPrizes} /> : null}
               onbSlot={(onbOn && onb) || meProfile.verified ? (

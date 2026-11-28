@@ -16,7 +16,7 @@ export const ADMIN_VIEW_READS: ReadonlySet<string> = new Set([
   'kr8_me', 'kr8_people', 'kr8_profile', 'kr8_feed', 'kr8_feed_ranked', 'kr8_feed_extras', 'kr8_member_reels', 'kr8_reel_people', 'kr8_reel_awards_list',
   'kr8_follow_list', 'kr8_place_page', 'kr8_places_search', 'kr8_places_search2', 'kr8_tag_places', 'kr8_recent_places',
   'kr8_ask_feed', 'kr8_ask_thread', 'kr8_inbox', 'kr8_thread_messages', 'kr8_thread_translations',
-  'kr8_weekly_ranking', 'kr8_top10', 'kr8_score_breakdown', 'kr8_rings_rules', 'kr8_reward_start', 'kr8_recent_claims',
+  'kr8_weekly_ranking', 'kr8_weekly_ranking_lite', 'kr8_board_photos', 'kr8_top10', 'kr8_score_breakdown', 'kr8_rings_rules', 'kr8_reward_start', 'kr8_recent_claims',
   'kr8_treats_live', 'kr8_listings_live', 'kr8_stand_info', 'kr8_team_ids', 'kr8_gender_shown', 'kr8_card_extras',
   'kr8_my_rewards', 'kr8_my_saves', 'kr8_my_saved_reels', 'kr8_my_activity', 'kr8_my_blocks', 'kr8_my_ghost',
   'kr8_coach_state', 'kr8_social_status', 'kr8_reel_comments', 'kr8_comment_counts', 'kr8_ref_name', 'kr8_card_print_ok', 'kr8_am_founder',

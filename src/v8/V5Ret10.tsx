@@ -4,7 +4,7 @@ import { useAskTr } from './askTr';
  * first-visit strip, the app's blue→pink only on bars / rings / the main button, no borders, no glow, Kring rings glyph for Rings.
  * Data + words: ret10.ts. Server: m219–m224.
  */
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { usePosters } from './V5Go';
 import { initialAvatar } from './v8Data';
@@ -741,18 +741,53 @@ export function PhotoViewer(props: { lang: string; onComment?: (postId: string) 
 }
 
 // ───────────────────────────── Leaderboard orb (Me) ─────────────────────────────
-/** The one always-on glow in Me: this week's rank + Rings to the next rank; tap = the weekly board. Unchecked → "Join the board". */
-export function LeaderOrb(props: { lang: string; rank: number | null; need: number | null; nextRank: number | null; state?: string | null; verified: boolean; onOpen: () => void; onFace: () => void }) {
+/** The one always-on glow in Me: this week's rank + Rings to the next rank; tap = the weekly board. Unchecked → "Join the board".
+ *  28 Nov (founder): the Kring rings (blue + pink, interlocked as in the logo) float inside the circle with a slow 3D tilt, and one
+ *  thin pink light travels round the edge. CSS transforms/opacity only; paused when the orb is off screen or the app is in the
+ *  background; still with "reduce motion". The rank (if any) is a small tag on the circle. */
+export function LeaderOrb(props: { lang: string; rank: number | null; need: number | null; nextRank: number | null; state?: string | null; verified: boolean; onOpen: () => void; onFace: () => void; onWarm?: () => void }) {
   const tx = r10Tx(props.lang);
   const join = !props.verified;
   const line = join ? tx.orbFace
     : props.state === 'floor' && props.need ? fmt(tx.orbFloor, props.need)   // under the 25-Ring minimum: the board's own "N to a prize seat"
     : props.rank === 1 ? tx.orbTop
     : props.need && props.nextRank && props.rank && props.nextRank < props.rank ? fmt(tx.orbTo, props.need, props.nextRank) : props.rank ? '' : tx.orbNone;
+  const ref = useRef<HTMLButtonElement | null>(null);
+  const [still, setStill] = useState(false);
+  useEffect(() => {   // no animation work while nobody can see it
+    const el = ref.current;
+    let onScreen = true;
+    const upd = () => setStill(!onScreen || (typeof document !== 'undefined' && document.visibilityState === 'hidden'));
+    let io: IntersectionObserver | null = null;
+    if (el && typeof IntersectionObserver !== 'undefined') {
+      io = new IntersectionObserver((es) => { onScreen = es.some((e) => e.isIntersecting); upd(); });
+      io.observe(el);
+    }
+    document.addEventListener('visibilitychange', upd);
+    return () => { io?.disconnect(); document.removeEventListener('visibilitychange', upd); };
+  }, []);
   return (
-    <button type="button" className={`r10-orb${join ? ' join' : ''}`} id="meOrb" aria-label={`${tx.orbLabel}${props.rank ? ` · #${props.rank}` : ''}`}
-      onClick={join ? props.onFace : props.onOpen}>
-      <span className="r10-orbc"><b>{join ? <RingsIc s={22} /> : props.rank ? `#${props.rank}` : <RingsIc s={22} />}</b></span>
+    <button type="button" ref={ref} className={`r10-orb${join ? ' join' : ''}`} id="meOrb" data-still={still ? '1' : '0'}
+      aria-label={`${tx.orbLabel}${props.rank ? ` · #${props.rank}` : ''}`}
+      onPointerDown={props.onWarm} onClick={join ? props.onFace : props.onOpen}>
+      <span className="r10-orbc">
+        <i className="r10-orbhl" aria-hidden="true" />
+        <span className="r10-orb3d" aria-hidden="true">
+          <i className="r10-orbsh" />
+          <svg className="r10-orbrg" viewBox="0 0 34 20" width="40" height="24" focusable="false">
+            <defs>
+              <linearGradient id="r10OrbB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#A9B2FF" /><stop offset="1" stopColor="#5C64F2" /></linearGradient>
+              <linearGradient id="r10OrbP" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#FF9BD0" /><stop offset="1" stopColor="#E0399F" /></linearGradient>
+            </defs>
+            <circle cx="11" cy="10" r="7.5" fill="none" stroke="url(#r10OrbB)" strokeWidth="2.6" />
+            <circle cx="23" cy="10" r="7.5" fill="none" stroke="url(#r10OrbP)" strokeWidth="2.6" />
+            {/* the weave: the blue ring passes over the pink one at the lower crossing */}
+            <path d="M18.05 12.57A7.5 7.5 0 0 1 15.3 16.14" fill="none" stroke="#151326" strokeWidth="4.4" strokeLinecap="butt" />
+            <path d="M18.05 12.57A7.5 7.5 0 0 1 15.3 16.14" fill="none" stroke="url(#r10OrbB)" strokeWidth="2.6" strokeLinecap="butt" />
+          </svg>
+        </span>
+        {props.rank && !join ? <b className="r10-orbrk">#{props.rank}</b> : null}
+      </span>
       <small>{join ? tx.orbJoin : line || tx.orbLabel}</small>
     </button>
   );

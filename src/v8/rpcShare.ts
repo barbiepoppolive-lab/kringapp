@@ -9,7 +9,7 @@ import { ADMIN_VIEW_READS } from './adminView';
 const SHARE_MS = 4000;
 /** read-only calls whose answers may be shared for a few seconds */
 export const SHARED_READS: ReadonlySet<string> = new Set([
-  'kr8_weekly_ranking', 'kr8_member_reels', 'kr8_rings_rules', 'kr8_seats_left', 'kr8_treats_live', 'kr8_people',
+  'kr8_weekly_ranking', 'kr8_weekly_ranking_lite', 'kr8_member_reels', 'kr8_rings_rules', 'kr8_seats_left', 'kr8_treats_live', 'kr8_people',
 ]);
 const memo = new Map<string, { at: number; p: Promise<unknown> }>();
 

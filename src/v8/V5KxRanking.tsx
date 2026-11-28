@@ -5,10 +5,10 @@
  * Empty paid ranks show "Your spot? · ฿250". Pinned own row = progress to the prize floor + the next step. Tap any score → the math.
  * Every number comes from the server (kr8_weekly_ranking / kr8_score_breakdown); nothing is computed here.
  */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './kx.css';
 import { countdown, fmtN, mathLines, weekEnd } from './kxLogic';
-import { kxBreakdown, kxCardExtras, kxMemberReels, kxRanking, kxRules, kxSeatsLeft, type KxBreakdown, type KxGap, type KxRanking, type KxRankRow } from './v5Kx';
+import { kxBoardPeek, kxBoardSave, kxBreakdown, kxCardExtras, kxMemberReels, kxRankingLite, kxRules, kxSeatsLeft, type KxBreakdown, type KxGap, type KxRanking, type KxRankRow } from './v5Kx';
 import { RingGlyph } from './V5KxCard';
 import { InviteHint } from './V5Invite';
 import { signReelPaths } from './v5Reel';
@@ -17,6 +17,7 @@ import { BackIcon, Crown, InfoIcon, Medal, PlusIcon, ShareIcon, type Tone } from
 import { rankDelta, seenRankAtStart } from './prizeRace';
 import { DailyTopStrip, FairPlaySheet, NewcomersLeague } from './V5Ret10';
 import { dailyStore, openHowItWorks, r10Tx } from './ret10';
+import { boardPhoto, ensureBoardPhotos, useBoardPhotosVer } from './boardPhotos';
 import { lineOut, refCode } from './invite';
 import { boardMoment, displayCode, cardBlob, cardCaption, cardLink, linkCopiedToast, shareCard, storyButtonLabel, storyFileName, type ShareCard } from './rankStory';
 
@@ -262,6 +263,16 @@ function useCountUp(go: boolean): number {
   return p;
 }
 
+/** 28 Nov: while the very first board loads, the podium and rows keep their places (quiet shapes, no spinner, no jump). */
+function BoardSkeleton() {
+  return (
+    <div className="bx-skel" id="kxBoardSkel" aria-busy="true" aria-hidden="true">
+      <div className="bx-skp">{[2, 1, 3].map((k) => <span key={k} className={`p${k}`}><i /><b /><b /></span>)}</div>
+      {[0, 1, 2, 3, 4].map((k) => <div key={k} className="bx-skr"><i /><b /><em /></div>)}
+    </div>
+  );
+}
+
 /**
  * Board V2 "Compact" (founder pick 18 Nov, BOARDX_V2.png). One background picture; the rest is CSS/SVG.
  * Top: back · title (+ small crown) · one line "Closes Sun 23:59 · 38/50 seats left" · ⓘ (How to win + prize rules in a light glass sheet).
@@ -281,7 +292,8 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   /** r12: ⓘ opens the app's How to win sheet; the My prizes button on the header row */
   onHtw?: () => void; prizesSlot?: React.ReactNode }) {
   const { L, Lf, lang } = props;
-  const [data, setData] = useState<KxRanking | null>(null);
+  // 28 Nov: the last board this phone saw shows at once (same member, same open week); the fresh one replaces it a moment later
+  const [data, setData] = useState<KxRanking | null>(() => kxBoardPeek(props.myId));
   const [err, setErr] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const [math, setMath] = useState<string | null>(null);
@@ -309,11 +321,15 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
     let dead = false;
     Promise.resolve(kxRules()).then((c) => { if (!dead) setCfg(c || null); }).catch(() => undefined);
     Promise.resolve(kxSeatsLeft()).then((n) => { if (!dead) setSeatsLeft(typeof n === 'number' ? n : null); }).catch(() => undefined);
-    kxRanking('all').then((d) => { if (!dead) setData(d); }).catch(() => { if (!dead) setErr(true); });
+    const got = (d: KxRanking | null) => { if (dead || !d) return; setData(d); setErr(false); kxBoardSave(props.myId, d); void ensureBoardPhotos(d.rows); };
+    const cached = kxBoardPeek(props.myId);
+    if (cached) void ensureBoardPhotos(cached.rows);
+    // a failed read keeps the board already on screen; the error shows only when there is nothing to show
+    kxRankingLite('all').then(got).catch(() => { if (!dead && !kxBoardPeek(props.myId)) setErr(true); });
     // 19 Nov founder: the board is live, so it refreshes every 5 min while it is on screen (founder 19 Nov: keep the server light) (no flicker, a failed refresh keeps the last board)
     const tick = window.setInterval(() => {
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
-      kxRanking('all').then((d) => { if (!dead && d) { setData(d); setErr(false); } }).catch(() => undefined);
+      kxRankingLite('all').then(got).catch(() => undefined);
     }, 300000);
     return () => { dead = true; window.clearInterval(tick); };
   }, []);
@@ -338,7 +354,9 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
   const C = boardCopy(lang);
   const cu = useCountUp(!!data);
   const [shareOpen, setShareOpen] = useState(false);
-  const rows = data?.rows || [];
+  const phv = useBoardPhotosVer();
+  // m252 lite board: rows carry a photo key (pv); the photo itself is the small copy kept on this phone (initials until it arrives)
+  const rows = useMemo(() => (data?.rows || []).map((r) => (r.photo || !r.pv ? r : { ...r, photo: boardPhoto(r.user_id, r.pv) })), [data, phv]);   // eslint-disable-line react-hooks/exhaustive-deps
   const paid = data?.paid_ranks ?? 8;
   const prizes = data?.prizes || [];
   const at = (rank: number) => rows.find((r) => r.rank === rank);
@@ -463,7 +481,7 @@ export function RankingPage(props: { L: Tx; Lf: Txf; lang: string; myArea: strin
         <button type="button" className="bx-i" id="kxWinOpen" aria-label={L('How to win')} onClick={() => (props.onHtw ? props.onHtw() : daily?.on ? openHowItWorks('board') : wr ? setWin(true) : setHow(true))}><InfoIcon /></button>
       </div>
       <DailyTopStrip lang={lang} onPerson={(id) => setMath(id)} />
-      {data === null && !err ? <p className="kx-empty pad">…</p> : err ? <p className="kx-empty pad">{L('Couldn’t reach Kring. Check your connection and try again.')}</p> : (
+      {data === null && !err ? <BoardSkeleton /> : err ? <p className="kx-empty pad">{L('Couldn’t reach Kring. Check your connection and try again.')}</p> : (
         <>
           <div className="bx-pod" id="kxPodium">
             <i className="bx-aura" aria-hidden="true" />

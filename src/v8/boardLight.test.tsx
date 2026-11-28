@@ -9,7 +9,7 @@ import { prizeFor, prizeLadder } from './kxLogic';
 import { boardMoment, cardCaption, cardLink, cardText, linkCopiedToast, MOMENTS, SAFE_BOTTOM, SAFE_TOP, STORY_H, STORY_W, storyButton, storyButtonLabel } from './rankStory';
 import type { KxGap, KxRanking, KxRankRow } from './v5Kx';
 
-const kx = vi.hoisted(() => ({ kxRanking: vi.fn(), kxSeatsLeft: vi.fn(), kxRules: vi.fn(), kxMemberReels: vi.fn(), kxBreakdown: vi.fn(), kxCardExtras: vi.fn() }));
+const kx = vi.hoisted(() => { const rk = vi.fn(); return ({ kxRanking: rk, kxRankingLite: rk, kxSeatsLeft: vi.fn(), kxRules: vi.fn(), kxMemberReels: vi.fn(), kxBreakdown: vi.fn(), kxCardExtras: vi.fn() }); });
 vi.mock('./v5Kx', async (orig) => ({ ...(await orig<typeof import('./v5Kx')>()), ...kx }));
 
 const THAI = /[ก-ฺเ-๿]/;   // ฿ (U+0E3F) is fine in English
