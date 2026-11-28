@@ -30,7 +30,7 @@ const saveConsent = () => { try { localStorage.setItem(CONSENT_KEY, FACE_AWS_CON
 
 export const TICK_MS = 650;          // one countdown number
 export const COUNT_FROM = 3;         // 3-2-1, then the photo
-export const SETTLE_MS = 700;        // after "turn left/right" shows, time to turn before the countdown starts
+export const SETTLE_MS = 1000;       // after "turn left/right" shows, time to turn before the countdown starts
 export const FRAME_W = 480;          // photo width sent to the server
 export const FRAME_Q = 0.8;          // JPEG quality
 export const DARK_POLL_MS = 400;
@@ -53,8 +53,9 @@ export const AWS_RETRY_TEXT: Record<string, string> = {
   sunglasses: 'Take off your sunglasses and try again.',
   look_straight: 'Look straight at the camera',
   // 20 Nov: either direction counts and some phones mirror the preview, so the retry never names a side
-  turn_left_missing: 'Turn your head a little more to the side.',
-  turn_right_missing: 'Turn your head a little more to the side.',
+  // 28 Nov: members turned only 0–2° (the old Thai said "just a little"); ask for a real turn
+  turn_left_missing: 'Turn your head further, like looking at your shoulder.',
+  turn_right_missing: 'Turn your head further, like looking at your shoulder.',
   network: 'No connection. Try again in a moment.',
 };
 export const retryText = (why: string | null | undefined) => AWS_RETRY_TEXT[why || ''] || AWS_RETRY_TEXT.no_face;
@@ -220,7 +221,7 @@ export function V5VerifyAws(props: { L: Tx; photo: string | null; nudge?: boolea
   };
 
   // 20 Nov (founder: the text said "right" while his preview went left): the words never name a side; the arrow on screen shows it
-  const prompt = step === 'straight' ? L('Look straight at the camera') : L('Turn your head toward the arrow');
+  const prompt = step === 'straight' ? L('Look straight at the camera') : L('Turn your head toward the arrow, until your cheek shows');
   return (
     <div className="kfv2 kfa" id="sh-verify" data-stage={stage} data-step={step} data-engine="aws" role="dialog" aria-modal="true" aria-label={L('Get verified ✓')}>
       {stage === 'camera' && (

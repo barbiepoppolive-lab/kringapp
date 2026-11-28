@@ -92,7 +92,7 @@ export function checkFrame(step: FaceStep, faces: AwsFace[], lim: FaceAwsLimits 
 const closed = (f: AwsFace) => f.eyesOpen === false && f.eyesConf >= 80;
 const open = (f: AwsFace) => f.eyesOpen === true;
 /** a clear single turn this big (either way) is enough on its own: a held-up photo cannot turn 15° */
-export const ONE_TURN_YAW = 15;
+export const ONE_TURN_YAW = 12;   // 28 Nov: 15 → 12 (real members, still far beyond what a held-up photo can do)
 
 /** extra frames the app may send (20 Nov): a 2nd straight frame (eyes) and an earlier frame of each turn (the bigger turn counts) */
 export type ExtraFrames = Partial<Record<'straight2' | 'left2' | 'right2', AwsFace[]>>;
