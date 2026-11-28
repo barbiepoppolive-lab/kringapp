@@ -541,6 +541,13 @@ const T: Record<string, string> = {
     'Kring may earn a small commission. It never changes your price.': 'Kring は少額の手数料を受け取る場合がありますが、お支払い額は変わりません。',
     // deals-1 (18 Nov): TAGTHAi Bangkok Pass hero on top of For your trip
     'TAGTHAi · Official pass': 'TAGTHAi · 公式パス',
+    'Share this pass, earn half the commission': 'このパスをシェアして手数料の半分をゲット',
+    'About ฿130–180 for each pass bought through your link': 'あなたのリンクから1枚売れるごとに約 ฿130–180',
+    'Copied': 'コピーしました',
+    'Waiting': '確認待ち',
+    'Paid': '支払い済み',
+    'Paid by TrueMoney after TAGTHAi confirms the sale. Share in your posts and groups, never spam.': 'TAGTHAi が売上を確認後、TrueMoney でお支払いします。投稿やグループでシェアしてください。スパムは禁止です。',
+    'Bangkok Pass: 5 top spots in one pass': 'バンコクパス：人気スポット5か所が1枚に',
     'Bangkok Pass': 'バンコクパス',
     '5 top spots · 3 days': '人気スポット5か所 · 3日間',
     'from ฿2,590': '฿2,590〜',

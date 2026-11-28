@@ -44,3 +44,18 @@ describe('Deals → For your trip (17 Nov polish)', () => {
     }
   });
 });
+
+describe('m250 TAGTHAi share & earn', () => {
+  it('members see their own link (kringapp.com/pass/k<no>); guests see no share row', async () => {
+    const { affLink } = await import('./V5Trip');
+    expect(affLink(114)).toBe('https://kringapp.com/pass/k114');
+    const guest = render(<TripPerks L={(s) => s} />);
+    expect(guest.container.querySelector('#affShare')).toBeNull();
+    guest.unmount();
+    const m = render(<TripPerks L={TH} memberNo={114} />);
+    expect(m.container.querySelector('#affShare')).not.toBeNull();
+    expect(m.container.textContent).toContain('แชร์พาสนี้');
+    fireEvent.click(m.container.querySelector('.kf-aff-row')!);
+    expect(m.container.querySelector('#affLink')!.textContent).toBe('kringapp.com/pass/k114');
+  });
+});

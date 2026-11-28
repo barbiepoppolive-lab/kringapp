@@ -585,6 +585,13 @@ export const V5_L: Record<string, Record<string, string>> = {
     'Kring may earn a small commission. It never changes your price.': 'กริ๊ง! อาจได้รับค่าคอมมิชชันเล็กน้อย ราคาของคุณไม่เปลี่ยน',
     // deals-1 (18 Nov): TAGTHAi Bangkok Pass hero on top of For your trip
     'TAGTHAi · Official pass': 'TAGTHAi · พาสทางการ',
+    'Share this pass, earn half the commission': 'แชร์พาสนี้ รับครึ่งหนึ่งของค่าคอมมิชชั่น',
+    'About ฿130–180 for each pass bought through your link': 'ประมาณ ฿130–180 ต่อพาสที่ซื้อผ่านลิงก์ของคุณ',
+    'Copied': 'คัดลอกแล้ว',
+    'Waiting': 'รอยืนยัน',
+    'Paid': 'จ่ายแล้ว',
+    'Paid by TrueMoney after TAGTHAi confirms the sale. Share in your posts and groups, never spam.': 'จ่ายผ่าน TrueMoney หลัง TAGTHAi ยืนยันยอดขาย แชร์ในโพสต์และกลุ่มของคุณได้เลย แต่ห้ามสแปมนะ',
+    'Bangkok Pass: 5 top spots in one pass': 'Bangkok Pass: 5 ที่เที่ยวดังในพาสเดียว',
     'Bangkok Pass': 'บัตรเที่ยวกรุงเทพฯ',
     '5 top spots · 3 days': '5 ที่เด็ด · 3 วัน',
     'from ฿2,590': 'เริ่มต้น ฿2,590',

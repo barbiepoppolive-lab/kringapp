@@ -541,6 +541,13 @@ const T: Record<string, string> = {
     'Kring may earn a small commission. It never changes your price.': 'Kring이 소액의 수수료를 받을 수 있지만 가격은 절대 바뀌지 않아요.',
     // deals-1 (18 Nov): TAGTHAi Bangkok Pass hero on top of For your trip
     'TAGTHAi · Official pass': 'TAGTHAi · 공식 패스',
+    'Share this pass, earn half the commission': '이 패스를 공유하고 수수료의 절반을 받으세요',
+    'About ฿130–180 for each pass bought through your link': '내 링크로 패스가 팔릴 때마다 약 ฿130–180',
+    'Copied': '복사됨',
+    'Waiting': '확인 대기',
+    'Paid': '지급 완료',
+    'Paid by TrueMoney after TAGTHAi confirms the sale. Share in your posts and groups, never spam.': 'TAGTHAi가 판매를 확인하면 TrueMoney로 지급돼요. 게시물과 그룹에 공유하되 스팸은 금지예요.',
+    'Bangkok Pass: 5 top spots in one pass': '방콕 패스: 인기 명소 5곳을 한 장으로',
     'Bangkok Pass': '방콕 패스',
     '5 top spots · 3 days': '인기 명소 5곳 · 3일',
     'from ฿2,590': '฿2,590부터',

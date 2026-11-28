@@ -541,6 +541,13 @@ const T: Record<string, string> = {
     'Kring may earn a small commission. It never changes your price.': 'Kring 可能获得少量佣金，你的价格不会改变。',
     // deals-1 (18 Nov): TAGTHAi Bangkok Pass hero on top of For your trip
     'TAGTHAi · Official pass': 'TAGTHAi · 官方通票',
+    'Share this pass, earn half the commission': '分享这张通票，赚取一半佣金',
+    'About ฿130–180 for each pass bought through your link': '每通过你的链接售出一张通票约得 ฿130–180',
+    'Copied': '已复制',
+    'Waiting': '待确认',
+    'Paid': '已支付',
+    'Paid by TrueMoney after TAGTHAi confirms the sale. Share in your posts and groups, never spam.': 'TAGTHAi 确认订单后通过 TrueMoney 支付。可在帖子和群组中分享，请勿刷屏。',
+    'Bangkok Pass: 5 top spots in one pass': '曼谷通票：一张票玩转 5 个热门景点',
     'Bangkok Pass': '曼谷通票',
     '5 top spots · 3 days': '5 大热门景点 · 3 天',
     'from ฿2,590': '฿2,590 起',

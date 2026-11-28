@@ -541,6 +541,13 @@ const T: Record<string, string> = {
     'Kring may earn a small commission. It never changes your price.': 'Kring को थोड़ा कमीशन मिल सकता है। आपकी कीमत कभी नहीं बदलती।',
     // deals-1 (18 Nov): TAGTHAi Bangkok Pass hero on top of For your trip
     'TAGTHAi · Official pass': 'TAGTHAi · आधिकारिक पास',
+    'Share this pass, earn half the commission': 'यह पास शेयर करें, आधा कमीशन कमाएँ',
+    'About ฿130–180 for each pass bought through your link': 'आपके लिंक से बिके हर पास पर लगभग ฿130–180',
+    'Copied': 'कॉपी हो गया',
+    'Waiting': 'पुष्टि बाकी',
+    'Paid': 'भुगतान हो गया',
+    'Paid by TrueMoney after TAGTHAi confirms the sale. Share in your posts and groups, never spam.': 'TAGTHAi बिक्री की पुष्टि करे तो TrueMoney से भुगतान। अपनी पोस्ट और ग्रुप में शेयर करें, स्पैम नहीं।',
+    'Bangkok Pass: 5 top spots in one pass': 'बैंकॉक पास: एक पास में 5 मशहूर जगहें',
     'Bangkok Pass': 'बैंकॉक पास',
     '5 top spots · 3 days': '5 बेहतरीन जगहें · 3 दिन',
     'from ฿2,590': '฿2,590 से',

@@ -5506,7 +5506,7 @@ export const KringAppV8Inner: React.FC<{ initialTab?: V8Tab }> = ({ initialTab }
             </>
           )}
           {!DEALS_TRIP_ONLY && live && goDealF !== 'perks' ? <StayDo L={L} Lf={Lf} thai={lang === 'th'} signedIn={signedIn} /> : null}
-          {DEALS_TRIP_ONLY || !live || goDealF !== 'perks' || deals.length === 0 ? <TripPerks L={L} /> : null}
+          {DEALS_TRIP_ONLY || !live || goDealF !== 'perks' || deals.length === 0 ? <TripPerks L={L} memberNo={live && signedIn ? (myMemberNo ?? kxMe?.member_no ?? null) : null} /> : null}
           {DEALS_TRIP_ONLY ? (
             <div className="kd-soon" id="dealsSoon">
               <span className="kd-soon-rings" aria-hidden="true"><i /><i /></span>

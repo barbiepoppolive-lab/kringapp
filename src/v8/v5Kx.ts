@@ -27,6 +27,9 @@ export interface KxCardExtras { member_no: number | null; ig_handle: string | nu
   week_rank?: number | null; founding_no?: number | null; founding_left?: number | null; founding_thb?: number; has_reel?: boolean | null; prizes?: number | null;
   /** proposal 0114 (not live yet): a name-style code like NAT44; absent → the app shows K00037 */
   vanity_code?: string | null }
+/** m250 (28 Nov): my TAGTHAi share link + earnings (half of Kring's commission) */
+export interface AffMine { code: string | null; link?: string; sales?: number; pending?: number; paid?: number }
+export const kxAffMine = () => rpc<AffMine>('kr8_aff_mine', {});
 export const kxCardExtras = (user?: string | null) => rpc<KxCardExtras>('kr8_card_extras', { p_user: user || null });
 export const kxSetTiktok = (h: string) => rpc<string | null>('kr8_set_tiktok_handle', { p_handle: h });
 export const kxRefName = (code: string) => rpc<string | null>('kr8_ref_name', { p_code: code });

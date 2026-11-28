@@ -6,6 +6,7 @@
  * Copy rules: no tour/guide, no temples, no percent. One language per screen: every visible string goes through L().
  */
 import { useState, type ReactNode } from 'react';
+import { kxAffMine, type AffMine } from './v5Kx';
 import './trip.css';
 
 type Tx = (en: string) => string;
@@ -79,6 +80,54 @@ function TripFeature(props: { L: Tx; base: string }) {
   );
 }
 
+/** m250 (28 Nov, founder): members share the TAGTHAi pass with their own link and get half of Kring's commission.
+ *  Link kringapp.com/pass/k<no> (Pages function) → TAGTHAi with utm_content=k<no>; sales are recorded by the CoS from the
+ *  affiliate dashboard (kr8_aff_record) and paid by TrueMoney after TAGTHAi pays Kring. Signed-in members only. */
+export const affLink = (no: number) => `https://kringapp.com/pass/k${no}`;
+function AffShare(props: { L: Tx; memberNo: number }) {
+  const { L, memberNo } = props;
+  const [open, setOpen] = useState(false);
+  const [mine, setMine] = useState<AffMine | null>(null);
+  const [copied, setCopied] = useState(false);
+  const link = mine?.link || affLink(memberNo);
+  const t = (en: string) => { const v = L(en); return <span lang={THAI.test(v) ? 'th' : undefined}>{v}</span>; };
+  const toggle = () => {
+    setOpen((v) => !v);
+    if (!mine) kxAffMine().then(setMine).catch(() => undefined);
+  };
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(link); setCopied(true); window.setTimeout(() => setCopied(false), 1800); } catch { /* old browser: the link is shown to copy by hand */ }
+  };
+  const share = async () => {
+    const n = navigator as Navigator & { share?: (d: ShareData) => Promise<void> };
+    if (n.share) { try { await n.share({ title: 'Bangkok Pass', text: L('Bangkok Pass: 5 top spots in one pass'), url: link }); return; } catch { /* cancelled */ } }
+    void copy();
+  };
+  const baht = (v: number | undefined) => `฿${Math.round(v || 0).toLocaleString('en-US')}`;
+  return (
+    <div className={`kf-aff${open ? ' on' : ''}`} id="affShare" data-no={memberNo}>
+      <button type="button" className="kf-aff-row" aria-expanded={open} aria-controls="affPanel" onClick={toggle}>
+        <span className="kf-aff-ic" aria-hidden="true">฿</span>
+        <span className="kf-aff-txt"><b>{t('Share this pass, earn half the commission')}</b><span>{t('About ฿130–180 for each pass bought through your link')}</span></span>
+        <i aria-hidden="true">{open ? '−' : '+'}</i>
+      </button>
+      {open ? (
+        <div className="kf-aff-panel" id="affPanel">
+          <span className="kf-aff-link" id="affLink">{link.replace('https://', '')}</span>
+          <span className="kf-aff-btns">
+            <button type="button" className="kf-aff-b" id="affCopy" onClick={copy}>{t(copied ? 'Copied' : 'Copy link')}</button>
+            <button type="button" className="kf-aff-b main" id="affShareBtn" onClick={share}>{t('Share')}</button>
+          </span>
+          <span className="kf-aff-earn" id="affEarn">
+            {t('Waiting')} <b>{baht(mine?.pending)}</b> · {t('Paid')} <b>{baht(mine?.paid)}</b>
+          </span>
+          <span className="kf-aff-rule">{t('Paid by TrueMoney after TAGTHAi confirms the sale. Share in your posts and groups, never spam.')}</span>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 /** One clean line icon per need (no brand logos are kept in the repo). */
 const ICONS: Record<string, ReactNode> = {
   esim: <><path d="M8 3h6l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" /><path d="M9.5 17v-2.5M12 17v-4.5M14.5 17v-6.5" /></>,
@@ -99,8 +148,8 @@ function TwoLine(props: { L: Tx; en: string; className: string }) {
   );
 }
 
-export function TripPerks(props: { L: Tx }) {
-  const { L } = props;
+export function TripPerks(props: { L: Tx; memberNo?: number | null }) {
+  const { L, memberNo } = props;
   const [info, setInfo] = useState(false);
   const base = (import.meta as unknown as { env?: { BASE_URL?: string } }).env?.BASE_URL || '/app/';
   return (
@@ -116,6 +165,7 @@ export function TripPerks(props: { L: Tx }) {
         <p className="ktrip-infop" id="tripInfo">{L('Trusted travel partners')}</p>
       ) : null}
       <TripFeature L={L} base={base} />
+      {memberNo ? <AffShare L={L} memberNo={memberNo} /> : null}
       <div className="ktrip-grid">
         {TRIP_PARTNERS.map((p) => (
           <a key={p.id} className={`ktrip-card ${p.tone}`} data-partner={p.id} href={p.url} target="_blank" rel="noopener noreferrer sponsored">
